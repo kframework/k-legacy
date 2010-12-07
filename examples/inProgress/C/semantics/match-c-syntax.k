@@ -1,6 +1,6 @@
-mod MATCH-C-SYNTAX is
-	including COMMON-C-SYNTAX .
-	including K .
+kmod MATCH-C-SYNTAX is
+	including COMMON-C-SYNTAX
+	including K
 	
 	--- sort ?Bag .
 	--- subsort ?Bag < Bag .
@@ -49,4 +49,4 @@ mod MATCH-C-SYNTAX is
 	
 	--- ---op nothing : -> Configuration .
 	
-endm
+endkm
