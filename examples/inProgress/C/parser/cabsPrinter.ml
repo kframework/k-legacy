@@ -58,10 +58,9 @@
 *)
 
 (* George Necula: I changed this pretty dramatically since CABS changed *)
-open Cabs
 open Escape
-(* open Whitetrack *)
-(*open Xml *)
+open Cabs
+(* open XmlPrinter *)
 
 let version = "Cprint 2.1e 9.1.99 Hugues Cassé"
 (*
@@ -153,7 +152,9 @@ let toString s =
 let rec cabsToString ((fname, defs) : file) (fileContents : string) = 
 		wrap (("\"" ^ fname ^ "\"") :: (printDefs defs) :: (toString fileContents) :: []) "TranslationUnit"
 and cabsToXML ((fname, defs) : file) (fileContents : string) = 
-	Xml.PCData ("TranslationUnit")
+	(*let ppf = Format.std_formatter in
+		IoXML.xprint ppf "@[%a@]@."
+			(IoXML.xprint_list xprint_definition) defs; "xml" *) "xml"
 (*		wrap (("\"" ^ fname ^ "\"") :: (printDefs defs) :: (toString fileContents) :: []) "TranslationUnit" *)
 
 and printDefs defs =
