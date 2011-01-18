@@ -1394,12 +1394,12 @@ sub find_topmost_module
     # put all "right hand" modules into a variable separated with # for a future match
     while(my ($k, $v) = each %moduleMap) 
     {
-	push(@modules, $k);
-	my @temp = split(/\s+/, $v);
-	foreach(@temp)
-	{
-	    $inclusions .= "$_#";
-	}
+        push(@modules, $k);
+        my @temp = split(/\s+/, $v);
+        foreach(@temp)
+        {
+            $inclusions .= "$_#";
+        }
     }
     
     # collect all modules which are not included by other modules
@@ -1487,24 +1487,50 @@ sub uniq
 #       line numbers metadata                 #
 ###############################################
 
+my @k_attributes = qw(strict metadata prec format assoc comm id hybrid gather ditto seqstrict structural large);
+my $k_attributes_pattern = join("|",  @k_attributes);
+
 
 sub add_line_numbers
 {
     (local $_, my $file) = (shift, shift);
+#    print "ATTR: $k_attributes_pattern\n\n";
+    s/($comment)/                                                                                    
+    {                                                                                                
+	local $_=$1;                                                                                 
+	s!\S!!gs;                                                                                    
+	$_;                                                                                          
+    }/gsme; 
     
     my $temp = $_;
-    my $attr = "";
+    
     
     # process rules first
     while (/((rule|syntax)\s+.*?)(\s+)(?=$kmaude_keywords_pattern)/sg)
     {
+	$_ = $'; # this is perl 5.8.8 ... :-(
+#	print "Matched:\n$&\n\n-----------------------------------------------------------------\n\n\n\n\n\n";
+	
 	if ($2 eq "rule")
 	{
-	    my ($rule, $spaces) = ($1, $3);
+	    my ($rule, $spaces, $attr) = ($1, $3, "");
+#	    print "RULE: $rule\n";
 	    my ($tmp, $rule_line, $rule_size) = ($rule, countlines("$`"), countlines("$rule"));
-	    $rule =~ s/\[(.*?)\]/{$attr = $1;}""/gse;
-	    $rule .= " [$attr metadata \"location($file:$rule_line)\" ]" if $rule_size == 0 || $rule_size == 1;
-	    $rule .= " [$attr metadata \"location($file:$rule_line-" . ($rule_size + $rule_line - 1) . ")\" ]" if $rule_size > 1; 	
+	    # $rule =~ s/\[([^\]]*?(?<=\s)($k_attributes_pattern)(?=\s)[^\]]*?)\]/{$attr = $1;}""/gse;
+#	    $rule =~ s/\[[^\]]*?(?<=(\s|\[))($k_attributes_pattern)(?=(\s|\]))[^\]]*?\](?=\s*)$/{$attr = $2;}""/gse;
+	    $rule =~ s/\[([^\]]*?(?<=(\s|\[))($k_attributes_pattern)(?=(\s|\]))[^\]]*?)\](?=\s*)$/{$attr = $1;}""/gse;
+#	    print "ATTR: $attr\n";
+	    if ($attr eq "")
+	    {
+		$rule .= " [metadata \"location($file:$rule_line)\"]" if $rule_size == 0 || $rule_size == 1;
+		$rule .= " [metadata \"location($file:$rule_line-" . ($rule_size + $rule_line - 1) . ")\"]" if $rule_size > 1;
+	    }
+	    else
+	    {
+		$rule .= "[$attr metadata \"location($file:$rule_line)\"]" if $rule_size == 0 || $rule_size == 1;
+		$rule .= "[$attr metadata \"location($file:$rule_line-" . ($rule_size + $rule_line - 1) . ")\"]" if $rule_size > 1;
+	    }
+#	    print "MBRL: $rule\n\n";
 	    $temp =~ s/\Q$tmp\E/$rule/sg;
 	}
 	elsif ($2 eq "syntax")
@@ -1514,13 +1540,17 @@ sub add_line_numbers
 
 	    while ($syntax =~ /(?:(::=|\|))([^\|]+)/sg)
 	    {
-		my ($item, $t, $lines) = ($2, $2, countlines("$`"));
-		my $lno = $syntax_line + $lines - 1;
-		$item =~ s!\[(.*?)\](\s*)$!"\[$1 metadata \"location($file:$lno)\"\]$2"!se;
-		$tmp =~ s/\Q$t\E/$item/sge;
+		my $rule_line = countlines("$`") + $syntax_line;
+		my $spacess = "";
+		my $item = $2;
+		$item =~ s/(\s+)$/{$spacess = $1;}/sge;
+		my $item2 = $item;
+		$item =~ s!(\[([^\]]*?($k_attributes_pattern)[^\]]*?)\])![$2 metadata "location($file:$rule_line)"]!sg;
+		$tmp =~ s/\Q$item2\E/$item/sg;
 	    }
 	    
 	    $temp =~ s/\Q$syntax\E/$tmp/sg;
+#	    print "TEMP: $temp\n\n----------------------\n";
 	}
     }
 
@@ -1534,5 +1564,78 @@ sub countlines
     while(/\n/sg) { $count ++; }
     return $count;
 }
+
+# the following subroutine replaces 
+# macros declared with where
+sub resolve_where_macro($)
+{
+    local $_ = shift;
+    my %macro_map = ();
+    my %macro_order = ();
+    my $i = 1;
+    
+    # where macro can be found only in rules
+    if (/^rule/)
+    {
+        # locate where macro if any
+        if (/(?<=\s)(where(\s+)(.*)(\s+))(?=ATTR[0-9]*)/sg)
+        { 
+            # extract needed data
+            my $macros = $3;
+            my $all = $&;
+
+            # build an empty string which will keep the 
+            # length and the number of lines for where macro
+            my $macros_template = $all;
+            $macros_template =~ s/[^\n]/ /sg;
+            
+            
+            # exclude the where macro from the rule body
+            # and replace it with whitespaces
+            s/\Q$all\E/$macros_template/sg;
+            
+            # first, collect macros
+            # macro_map contains all macros mapped to their values
+            # macro_order containt all macros mapped to their occurence order
+            while($macros =~ /(\w+)\s+=\s+(.*?)((?=(\s+(\w+)\s+=))|$)/sg)
+            {
+                $macro_map{"$1"} = "$2";
+                $macro_order{"$1"} = $i ++;
+            }
+            
+            # solve macros inside macros
+            # each macro must be defined before it is used
+            # the following code will replace macros in each (key) value
+            while(my ($k, $order) = each %macro_order)
+            {
+                # $order contains the occurence index
+                # $k is the curent macro
+                # replace macro with its values in all macros declared after it was declared
+                while(my ($newk, $mvalue) = each %macro_map)
+                {
+                    if ($macro_order{$newk} > $order)
+                    {
+                        # add replacement
+                        $mvalue =~ s/\Q$k\E/$macro_map{$k}/sg;
+                        $macro_map{$newk} = $mvalue;
+                    }
+                }
+            }
+            
+            
+            # solve macros in current rule
+            # each macro in the hashmap $macro_map will be replaced
+            # in the current rule with macro's value
+            while(my ($k, $v) = each %macro_map)
+            {
+                s/(?<=\s)\Q$k\E(?=\s)/$v/sge;
+            }
+        }
+    }    
+    
+    return $_;
+}    
+
+
 
 1;

@@ -256,6 +256,9 @@ my $k_nice_pdf = File::Spec->catfile($k_tools_dir, "nice-pdf.sh");
 my @kmaude_keywords = qw(context rule macro eq ceq configuration op ops syntax kvar sort sorts subsort subsorts including kmod endkm);
 my $kmaude_keywords_pattern = join("|",map("\\b$_\\b",@kmaude_keywords));
 
+my @k_attributes = qw(strict metadata prec format assoc comm id hybrid gather ditto seqstrict structural large);           
+my $k_attributes_pattern = join("|",  @k_attributes);   
+
 my $comment = join("|", (
 		"---\\(.*?---\\)",
 		"---.*?\$",
@@ -721,6 +724,8 @@ sub latexify {
 #		  "(print $language_module_name .)\n",
 		  "quit\n");
 
+    print "OUT:\n$_\n";
+    
     s/\\begin{module}.*?\\end{module}//gms;
     my @l_modules = ($latex_output =~ /(\\begin{module}.*?\\end{module})/gms);
     if (@l_modules && !/\\begin{module}/) {
@@ -1173,7 +1178,7 @@ sub maudify_file {
     local $/=undef; open FILE,"<",$file or die "Cannot open $file\n"; local $_ = <FILE>; close FILE;
 
 # add line numbers metadata
-#    $_ = add_line_numbers($_, $file);
+    $_ = add_line_numbers($_, $file);
 #    print $_;
 #    exit(1);
 
@@ -1271,8 +1276,10 @@ sub maudify_module {
     
 # Step: Desugar syntax N ::= Prod1 | Prod2 | ... | Prodn
 # At the same time, also declare N as a sort if it is not declared already
-	s!(syntax\s+.*?)(?=$kmaude_keywords_pattern)!make_ops($1)!gse;
-    # print  "Stage:\n$_\n\n";
+    s/(\[[^\]]*?($k_attributes_pattern)[^\]]*?\])/Freeze($&, "ATTRIBUTES")/gse;
+    s!(syntax\s+.*?)(?=$kmaude_keywords_pattern)!make_ops($1)!gse;
+    $_ = Unfreeze("ATTRIBUTES", $_);
+#     print  "Stage:\n$_\n\n";
     
 # Step: Declare the on-the-fly variables
     $_ = on_the_fly_kvars($_);
@@ -1321,8 +1328,11 @@ sub maudify_module {
 # Step: Change K attributes to Maude metadata
     s!(\[(?:\\.|[^\]])*\])!make_metadata($1)!gse;
     # print  "Stage:\n$_\n\n";
-    
+
 # Step: Change K statements into Maude statements
+    s/(\[[^\]]*?($k_attributes_pattern)[^\]]*?\])/Freeze($&, "ATTR")/gse;
+    # resolve macros
+    s!((?:$kmaude_keywords_pattern).*?)(?=(?:$kmaude_keywords_pattern|$))!resolve_where_macro($1)!gse;
     s!((?:$kmaude_keywords_pattern).*?)(?=(?:$kmaude_keywords_pattern|$))!k2maude($1)!gse;
     # print  "Stage:\n$_\n\n";
     
@@ -1352,8 +1362,9 @@ sub maudify_module {
 
 # Takes a syntax statement and extracts sorts, subsorts and operations
 sub make_ops {
-	local ($_) = @_;
-#	print "make_ops:\n$_\n";
+    local ($_) = @_;
+    $_ = Unfreeze("ATTRIBUTES", $_);
+#    print "make_ops:\n$_\n";
 
 # Grab the result sort and the productions, as well as all spacing
  	my ($spaces1,$result_sort,$spaces2,$bnf,$productions,$spaces3) =  /^syntax(\s+)(\S*)(\s*)(::=)(.*?\S)(\s*)$/s;
@@ -1450,6 +1461,8 @@ sub make_ops {
 		$production =~ s/(^|$maude_special)`/$1/gs;
 		$production =~ s/`($|$maude_special)/$1/gs;
 
+
+#	    print "PROD: $production\n";
 # Add a latex attribute in case $latex and there is not already a user-defined one
 		if (($latex || $pdf || $png || $ps || $eps || $crop) && ($attributes !~ /latex/)) {
 		    my $latex_text = $production;
@@ -1470,6 +1483,7 @@ sub make_ops {
         }
 
 # print "Done\n";
+#        print "RESULT:$result\n";
 	return "$result$spaces3";
 }
 
@@ -1491,13 +1505,14 @@ sub make_latex {
 
 sub k2maude {
     local ($_) = @_;
+    $_ = Unfreeze("ATTR", $_);
     s/macro(\s)/eq$1/gs;
     switch ($_) {
 	case /^kmod/                    { s/kmod/mod/; }
 	case /^endkm/                   { s/endkm/endm/; }
 	case /^$default_freezer/        {}
 	case /^kvar/                    { s/k(var.*\S)(?=\s*)/$1 ./; }
-	case /^rule/                    { s/^(.*\S)(\s*)$/mb $1 : KSentence .$2/s;
+	case /^rule/                    { s/^(.*\S)(\s*)$/mb $1 : KSentence .$2/sg;
 					  s!(\[[^\[\]]*\]) : (KSentence)!
 					    (rule_attribute($1))?": $2 $1":"$1 : $2"!se;
 					  s!^mb(\s+)rule(\s+\[[^\[\]]*\]\s*:)!mb$2$1rule!s;
