@@ -1,109 +1,20 @@
-(* 
- *
- * Copyright (c) 2001-2003,
- *  George C. Necula    <necula@cs.berkeley.edu>
- *  Scott McPeak        <smcpeak@cs.berkeley.edu>
- *  Wes Weimer          <weimer@cs.berkeley.edu>
- *  Ben Liblit          <liblit@cs.berkeley.edu>
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- *
- * 3. The names of the contributors may not be used to endorse or promote
- * products derived from this software without specific prior written
- * permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
- * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
- * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
- * OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *)
-(* cprint -- pretty printer of C program from abstract syntax
-**
-** Project:	FrontC
-** File:	cprint.ml
-** Version:	2.1e
-** Date:	9.1.99
-** Author:	Hugues Cassé
-**
-**	1.0		2.22.99	Hugues Cassé	First version.
-**	2.0		3.18.99	Hugues Cassé	Compatible with Frontc 2.1, use of CAML
-**									pretty printer.
-**	2.1		3.22.99	Hugues Cassé	More efficient custom pretty printer used.
-**	2.1a	4.12.99	Hugues Cassé	Correctly handle:
-**									char *m, *m, *p; m + (n - p)
-**	2.1b	4.15.99	Hugues Cassé	x + (y + z) stays x + (y + z) for
-**									keeping computation order.
-**	2.1c	7.23.99	Hugues Cassé	Improvement of case and default display.
-**	2.1d	8.25.99	Hugues Cassé	Rebuild escape sequences in string and
-**									characters.
-**	2.1e	9.1.99	Hugues Cassé	Fix, recognize and correctly display '\0'.
-*)
-
-(* George Necula: I changed this pretty dramatically since CABS changed *)
 open Escape
 open Cabs
-(* open XmlPrinter *)
-
-let version = "Cprint 2.1e 9.1.99 Hugues Cassé"
-(*
-type loc = { line : int; file : string }
-
-let lu = {line = -1; file = "loc unknown";}
-let cabslu = {lineno = -10; 
-	      filename = "cabs loc unknown"; 
-	      byteno = -10;
-              ident = 0;}
-
-let curLoc = ref cabslu
-
-let msvcMode = ref false
-
-let printLn = ref true
-let printLnComment = ref false
-
-let printCounters = ref false
-let printComments = ref false
-*)
 
 let counter = ref 0
 let currentSwitchId = ref 0
 let switchStack = ref [0]
 
-(* why doesn't this work? *)
-(*let counterpp =
-	let retval = !counter in
-		counter := (retval + 1);
-		retval
-*)
+let rec trim s =
+  let l = String.length s in 
+  if l=0 then s
+  else if s.[0]=' ' || s.[0]='\t' || s.[0]='\n' || s.[0]='\r' then
+    trim (String.sub s 1 (l-1))
+  else if s.[l-1]=' ' || s.[l-1]='\t' || s.[l-1]='\n' || s.[l-1]='\r' then
+    trim (String.sub s 0 (l-1))
+  else
+    s
 
-
-let rec commas lst = 
-	match lst with
-		| x::y::xs -> x ^ ", " ^ (commas (y::xs))
-		| x::[] -> x
-		| [] -> ""
-let paren (d)  = "(" ^ d ^ ")"
-let parenList l = paren(commas(l))
-let wrap (d1) (d2)  = d2 ^ parenList d1
-let wrapString d1 d2 = d2 ^ paren(d1)
 
 (* this is from cil *)
 let escape_char = function
@@ -143,20 +54,70 @@ and interpret_character_constant char_list =
   let value = reduce_multichar char_list in
   Int64.to_int value
 
-let printFlatList f x =
-	paren (List.fold_left (fun aux arg -> aux ^ " :: " ^ paren (f arg)) "Nil" x)
+let replace input output =
+    Str.global_replace (Str.regexp_string input) output
+(*
+<TranslationUnit filename="asdf" source="asdf">
+	<FunctionDefinition> </FunctionDefinition>
+	<FunctionDefinition> </FunctionDefinition>
+	<FunctionDefinition> </FunctionDefinition>
+</TranslationUnit>
+*)
+
+type attribute =
+	Attrib of string * string
+
+let escapeForXML str =
+	(replace "<" "&lt;"
+	(replace "\"" "&quot;" str))
+
+let cdata (str : string) =
+	let str = replace "]]>" "<![CDATA[]]]]><![CDATA[>]]>" str (* escapes "]]>" *)
+	in
+	"<![CDATA[" ^ str ^ "]]>"
+
+let rec printAttribs (attribs) =
+	match attribs with 
+		| Attrib (name, data) :: xs -> 
+			" " ^ name ^ "=\"" ^ (escapeForXML data) ^ "\"" ^ printAttribs xs
+		| [] -> ""
+	
+let rec concatN n s =
+	if (n = 0) then "" else s ^ (concatN (n-1) s)
+	
+let printCell (name : string) (attribs) (contents : string) =
+	" <" ^ name ^ (printAttribs attribs) ^ ">" ^ contents ^ "</" ^ name ^ "> "
+	
+let printList f x =
+	List.fold_left (fun aux arg -> aux ^ "" ^ (f arg)) "" x
+
+let wrap (d1) (d2) = 	
+	printCell d2 [] (printList (fun x -> x) d1)
 
 let toString s =
 	"\"" ^ (escape_string s) ^ "\""
+
 	
-let rec cabsToString ((fname, defs) : file) (fileContents : string) = 
-		wrap (("\"" ^ fname ^ "\"") :: (printDefs defs) :: (toString fileContents) :: []) "TranslationUnit"
-
+(* this is where the recursive printer starts *)
+	
+let rec cabsToXML ((filename, defs) : file) (sourceCode : string) = 
+	printTranslationUnit filename sourceCode defs
+			
+and printTranslationUnit (filename : string) (sourceCode : string) defs =
+	let attribs = Attrib ("filename", filename)
+		:: []
+	in
+	printCell "TranslationUnit" attribs
+		((printSource sourceCode) ^ (printDefs defs))
+	
+and printSource (sourceCode : string) =
+	printCell "SourceCode" [] (cdata sourceCode)
+	
 and printDefs defs =
-	printFlatList printDef defs
-
+	printList printDef defs
+	
 and printDef def =
-	 (match def with
+	match def with
 		| FUNDEF (a, b, c, d) -> 
 			printDefinitionLocRange (wrap ((printSingleName a) :: (printBlock b) :: []) "FunctionDefinition") c d
 		| DECDEF (a, b) -> 
@@ -175,17 +136,21 @@ and printDef def =
 			printDefinitionLoc (wrap ((printDef a) :: (printDefs b) :: []) "Transformer") c
 		| EXPRTRANSFORMER (a, b, c) ->
 			printDefinitionLoc (wrap ((printExpression a) :: (printExpression b) :: []) "ExprTransformer") c
-		) ^ "\n"
+			
 and printDefinitionLoc a b =
 	wrap (a :: (printCabsLoc b) :: []) "DefinitionLoc"
 and printDefinitionLocRange a b c =
 	wrap (a :: (printCabsLoc b) :: (printCabsLoc c) :: []) "DefinitionLocRange"		
 and printSingleName (a, b) = 
 	wrap ((printSpecifier a) :: (printName b) :: []) "SingleName"
-	(* commas ((printSpecifier a) :: (printName b) :: []) *) 
 and printAttr a b = wrap (a :: (printAttributeList b) :: []) "AttributeWrapper"
 and printBlock a = 
-	printAttr (wrap ((string_of_int (counter := (!counter + 1); !counter)) :: (printBlockLabels a.blabels) :: (printStatementList a.bstmts) :: []) "Block") a.battrs
+	let blockNum = (string_of_int (counter := (!counter + 1); !counter)) in
+	let attribs = (Attrib ("id", blockNum))
+		:: []
+	in
+	let block = printCell "Block" attribs ((printBlockLabels a.blabels) ^ (printStatementList a.bstmts)) in
+	printAttr block a.battrs
 
 	(*	
 and block = 
@@ -194,7 +159,13 @@ and block =
       bstmts: statement list
     } *)
 and printCabsLoc a = 
-	wrap (("\"" ^ a.filename ^ "\"") :: (string_of_int a.lineno) :: (string_of_int a.byteno) :: (string_of_int a.ident) :: []) "CabsLoc"
+	let attribs = Attrib ("filename", a.filename )
+		:: Attrib ("lineno", string_of_int a.lineno )
+		:: Attrib ("byteno", string_of_int a.byteno )
+		:: Attrib ("ident", string_of_int a.ident )
+		:: []
+	in
+	printCell "CabsLoc" attribs ""
 (*
 type cabsloc = {
 
@@ -204,27 +175,28 @@ type cabsloc = {
 and printNameLoc s l =
 	wrap (s :: (printCabsLoc l) :: []) "NameLoc"
 and printIdentifier a =
-	wrap (("\"" ^ a ^ "\"") :: []) "Identifier"
+	printCell "Identifier" [] a
 and printName (a, b, c, d) = (* string * decl_type * attribute list * cabsloc *)
-	printAttr (printNameLoc (wrap ((if a = "" then "#NoName" else (printIdentifier a)) :: (printDeclType b) :: []) "Name") d) c
+	if a = "" then 
+		printAttr (printNameLoc (wrap ((printDeclType b) :: []) "AnonymousName") d) c
+	else 
+		printAttr (printNameLoc (wrap ((printIdentifier a) :: (printDeclType b) :: []) "Name") d) c
+	
+	
 and printInitNameGroup (a, b) = 
 	wrap ((printSpecifier a) :: (printInitNameList b) :: []) "InitNameGroup"
 and printNameGroup (a, b) = 
 	wrap ((printSpecifier a) :: (printNameList b) :: []) "NameGroup"
 and printNameList a =
-	(* wrap ((paren (commas (List.map printName a))) :: []) "NameList" *)
-	(* paren (commas (List.map printName a)) *)
-	printFlatList printName a
+	printList printName a
 and printInitNameList a = 
-	(* wrap ((paren (commas (List.map printInitName a))) :: []) "InitNameList" *)
-	(* (paren (commas (List.map printInitName a))) *)
-	printFlatList printInitName a
+	printList printInitName a
 and printFieldGroupList a =
-	printFlatList printFieldGroup a
+	printList printFieldGroup a
 and printFieldGroup (spec, fields) =
 	wrap ((printSpecifier spec) :: (printFieldList fields) :: []) "FieldGroup"
 and printFieldList (fields) =
-	printFlatList printField fields
+	printList printField fields
 and printField (name, expOpt) =
 	match expOpt with
 	| None -> wrap ((printName name) :: []) "FieldName"
@@ -242,7 +214,7 @@ and printInitExpressionForCast a castPrinter compoundLiteralPrinter = (* this is
 	| SINGLE_INIT exp -> castPrinter (printExpression exp)
 	| COMPOUND_INIT a -> compoundLiteralPrinter (wrap ((printInitFragmentList a) :: []) "CompoundInit")
 and printInitFragmentList a =
-	printFlatList printInitFragment a
+	printList printInitFragment a
 and printInitFragment (a, b) =
 	wrap ((printInitWhat a) :: (printInitExpression b) :: []) "InitFragment"
 and printInitWhat a = 
@@ -253,7 +225,7 @@ and printInitWhat a =
 	| ATINDEXRANGE_INIT (exp1, exp2) -> wrap ((printExpression exp1) :: (printExpression exp2) :: []) "AtIndexRangeInit"
 and printDeclType a =
 	match a with
-	| JUSTBASE -> "JustBase"
+	| JUSTBASE -> printCell "JustBase" [] ""
 	| PARENTYPE (a, b, c) -> printParenType a b c
 	| ARRAY (a, b, c) -> printArrayType a b c
 	| PTR (a, b) -> printPointerType a b
@@ -268,22 +240,21 @@ and printProtoType a b c =
 	wrap ((printDeclType a) :: (printSingleNameList b) :: (printBool c) :: []) "Prototype"
 and printBool a =
 	match a with
-	| true -> "true"
-	| false -> "false"
+	| true -> printCell "Variadic" [] "true"
+	| false -> printCell "Variadic" [] "false"
 and printNop =
 	"Nop"
 and printComputation exp =
 	wrap ((printExpression exp) :: []) "Computation"
-and printExpressionList defs = 
-	(* wrap (List.map printExpression defs) "" *)
-	printFlatList printExpression defs
+and printExpressionList defs =
+	printList printExpression defs
 and printConstant const =
 	match const with
 	| CONST_INT i -> wrap ((printIntLiteral i) :: []) "IntLiteral"
 	| CONST_FLOAT r -> wrap ((printFloatLiteral r) :: []) "FloatLiteral"
 	| CONST_CHAR c -> wrap ((string_of_int (interpret_character_constant c)) :: []) "CharLiteral"
 	| CONST_WCHAR c -> wrap ((string_of_int (interpret_character_constant c)) :: []) "WCharLiteral"
-	| CONST_STRING s -> wrap (("\"" ^ escape_string s ^ "\"") :: []) "StringLiteral"
+	| CONST_STRING s -> wrap ((cdata (escape_string s)) :: []) "StringLiteral"
 	| CONST_WSTRING ws -> wrap (("\"" ^ escape_wstring ws ^ "\"") :: []) "WStringLiteral"
 and splitFloat (xs, i) =
 	let lastOne = if (String.length i > 1) then String.uppercase (Str.last_chars i 1) else ("x") in
@@ -318,7 +289,6 @@ and printHexFloat f =
 	let significand = wholeSignificand +. fractionalSignificand in
 	let result = significand *. (2. ** (float_of_int exponent)) in
 	wrap ((string_of_int (int_of_float wholeSignificand)) :: (string_of_float fractionalSignificand) :: (string_of_int exponent) :: (string_of_float result) :: []) "HexFloatConstant"
-	(* (wrapString ("\"" ^ f ^ "\"") "HexFloatConstant") *)
 and printFloatLiteral r =
 	let (tag, r) = splitFloat ([], r) in
 	let num = (
@@ -327,45 +297,45 @@ and printFloatLiteral r =
 				let nonPrefix = Str.string_after r 2 in
 					printHexFloat nonPrefix					
 			else (
-				(wrapString r "DecimalFloatConstant")
+				(wrap (r :: []) "DecimalFloatConstant")
 			)
 	) in
 	match tag with
-	| "F" :: [] -> wrapString num "F"
-	| "L" :: [] -> wrapString num "L"
-	| [] -> wrapString num "NoSuffix"
+	| "F" :: [] -> wrap (num :: []) "F"
+	| "L" :: [] -> wrap (num :: []) "L"
+	| [] -> wrap (num :: []) "NoSuffix"
 and printIntLiteral i =
 	let (tag, i) = splitInt ([], i) in
 	let num = (
 		let firstTwo = if (String.length i > 2) then (Str.first_chars i 2) else ("xx") in
 		let firstOne = if (String.length i > 1) then (Str.first_chars i 1) else ("x") in
 			if (firstTwo = "0x" or firstTwo = "0X") then 
-				(wrapString ("\"" ^ Str.string_after i 2 ^ "\"") "HexConstant")
+				(wrap (("\"" ^ Str.string_after i 2 ^ "\"") :: []) "HexConstant")
 			else (
 				if (firstOne = "0") then
-					(wrapString (Str.string_after i 1) "OctalConstant")
+					(wrap ((Str.string_after i 1) :: []) "OctalConstant")
 				else (
-					wrapString i "DecimalConstant"
+					wrap (i :: []) "DecimalConstant"
 				)
 			)
 	) in
 	match tag with
 	| "U" :: "L" :: "L" :: []
-	| "L" :: "L" :: "U" :: [] -> wrapString num "ULL"
-	| "L" :: "L" :: [] -> wrapString num "LL"
+	| "L" :: "L" :: "U" :: [] -> wrap (num :: []) "ULL"
+	| "L" :: "L" :: [] -> wrap (num :: []) "LL"
 	| "U" :: "L" :: []
-	| "L" :: "U" :: [] -> wrapString num "UL"
-	| "U" :: [] -> wrapString num "U"
-	| "L" :: [] -> wrapString num "L"
-	| [] -> wrapString num "NoSuffix"
-	(* | _ as z -> wrapString num (List.fold_left (fun aux arg -> aux ^ arg) "" z) *)
+	| "L" :: "U" :: [] -> wrap (num :: []) "UL"
+	| "U" :: [] -> wrap (num :: []) "U"
+	| "L" :: [] -> wrap (num :: []) "L"
+	| [] -> wrap (num :: []) "NoSuffix"
+	(* | _ as z -> wrap (num :: []) (List.fold_left (fun aux arg -> aux ^ arg) "" z) *)
 	
 and printExpression exp =
 	match exp with
 	| UNARY (op, exp1) -> wrap ((printExpression exp1) :: []) (getUnaryOperator op)
 	| BINARY (op, exp1, exp2) -> wrap ((printExpression exp1) :: (printExpression exp2) :: []) (getBinaryOperator op)
 	| NOTHING -> "NothingExpression"
-	| PAREN (exp1) -> wrap ((printExpression exp1) :: []) ""
+	| PAREN (exp1) -> wrap ((printExpression exp1) :: []) "Paren"
 	| LABELADDR (s) -> wrap (s :: []) "GCCLabelOperator"
 	| QUESTION (exp1, exp2, exp3) -> wrap ((printExpression exp1) :: (printExpression exp2) :: (printExpression exp3) :: []) "_?_:_"
 	(* special case below for the compound literals.  i don't know why this isn't in the ast... *)
@@ -380,7 +350,7 @@ and printExpression exp =
 		should be printed as just T *)
 	| COMMA (expList) -> wrap ((printExpressionList expList) :: []) "Comma"
 	| CONSTANT (const) -> wrap (printConstant const :: []) "Constant"
-	| VARIABLE name -> wrap ((printIdentifier name) :: []) ""
+	| VARIABLE name -> wrap ((printIdentifier name) :: []) "Variable"
 	| EXPR_SIZEOF exp1 -> wrap ((printExpression exp1) :: []) "SizeofExpression"
 	| TYPE_SIZEOF (spec, declType) -> wrap ((printSpecifier spec) :: (printDeclType declType) :: []) "SizeofType"
 	| EXPR_ALIGNOF exp -> wrap ((printExpression exp) :: []) "AlignofExpression"
@@ -450,19 +420,10 @@ and printDoWhile exp stat =
 	wrap ((printExpression exp) :: (printStatement stat) :: []) "DoWhile"
 and printFor fc1 exp2 exp3 stat =
 	wrap ((string_of_int ((counter := (!counter + 1)); !counter)) :: (printForClause fc1) :: (printExpression exp2) :: (printExpression exp3) :: (printStatement stat) :: []) "For"
-(* these would wrap loop bodies with blocks *)
-(* 
-and printWhile exp stat =
-	wrap ((printExpression exp) :: (printBlockStatement (makeBlockStatement stat)) :: []) "While"
-and printDoWhile exp stat =
-	wrap ((printExpression exp) :: (printBlockStatement (makeBlockStatement stat)) :: []) "DoWhile"
-and printFor fc1 exp2 exp3 stat =
-	wrap ((printForClause fc1) :: (printExpression exp2) :: (printExpression exp3) :: (printBlockStatement (makeBlockStatement stat)) :: []) "For"
-*)
 and printForClause fc = 
 	match fc with
-	| FC_EXP exp1 -> wrapString (printExpression exp1) "ForClauseExpression"
-	| FC_DECL dec1 -> wrapString (printDef dec1) "ForClauseDeclaration"
+	| FC_EXP exp1 -> wrap ((printExpression exp1) :: []) "ForClauseExpression"
+	| FC_DECL dec1 -> wrap ((printDef dec1) :: []) "ForClauseDeclaration"
 and printBreak =
 	"Break"
 and printContinue =
@@ -477,15 +438,6 @@ and printSwitch exp stat =
 	switchStack := List.tl !switchStack;
 	currentSwitchId := List.hd !switchStack;
 	retval 
-(* and printSwitch exp stat =
-	let newSwitchId = ((counter := (!counter + 1)); !counter) in
-	switchStack := newSwitchId :: !switchStack;
-	currentSwitchId := newSwitchId;
-	let retval = wrap ((string_of_int newSwitchId) :: (printExpression exp) :: (printBlockStatement (makeBlockStatement stat)) :: []) "Switch" in
-	switchStack := List.tl !switchStack;
-	currentSwitchId := List.hd !switchStack;
-	retval 
-*)
 and printCase exp stat =
 	wrap ((string_of_int !currentSwitchId) :: (string_of_int (counter := (!counter + 1); !counter)) :: (printExpression exp) :: (printStatement stat) :: []) "Case"
 and printCaseRange exp1 exp2 stat =
@@ -532,31 +484,23 @@ and printStatement a =
 and printStatementLoc s l =
 	wrap (s :: (printCabsLoc l) :: []) "StatementLoc"
 and printStatementList a =
-	match a with 
-	| [] -> "Nil"
-	| x::xs -> printFlatList (fun x -> "\n\t" ^ printStatement x) (x::xs)
+	printList printStatement a
 and printAttributeList a =
-	match a with 
-	| [] -> "Nil"
-	| x::xs -> printFlatList printAttribute (x::xs)
+	printList printAttribute a
 and printEnumItemList a =
-	match a with 
-	| [] -> "Nil"
-	| x::xs -> printFlatList printEnumItem (x::xs)
+	printList printEnumItem a
 and printBlockLabels a =
-	match a with 
-	| [] -> "Nil"
-	| x::xs -> printFlatList (fun x -> x) (x::xs)
+	printList (fun x -> x) a
 and printAttribute (a, b) =
 	wrap (("\"" ^ a ^ "\"") :: (printExpressionList b) :: []) "Attribute"
 and printEnumItem (str, expression, cabsloc) =
 	wrap ((wrap ((printIdentifier str) :: (printExpression expression) :: []) "EnumItem") :: (printCabsLoc cabsloc) :: []) "EnumItemLoc"
 and printSpecifier a =
-	wrapString (printSpecElemList a) "Specifier"
+	wrap (printSpecElemList a :: []) "Specifier"
 and printSpecElemList a =
-	printFlatList printSpecElem a
+	printList printSpecElem a
 and printSingleNameList a =
-	printFlatList printSingleName a
+	printList printSingleName a
 and printSpecElem a =
 	match a with
 	| SpecTypedef -> "SpecTypedef"
@@ -610,3 +554,7 @@ and printEnumType a b c =
 		| None -> wrap ((printIdentifier a) :: []) "EnumRef"
 		| Some b -> wrap ((printIdentifier a) :: (printEnumItemList b) :: []) "EnumDef"
 	) c
+
+
+
+
