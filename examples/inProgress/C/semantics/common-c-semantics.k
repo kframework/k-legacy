@@ -222,9 +222,9 @@ kmod COMMON-SEMANTIC-SYNTAX is
 	subsort Value < C 
 	sort BaseValue 
 
-	subsort Nat Int Rat Float < BaseValue 
+	subsort Nat Int Float < BaseValue 
 	subsort BaseValue < C 
-	subsort BaseValue < Builtins 
+	--- subsort BaseValue < Builtins 
 	op dataList : List{K} -> KResult 
 	subsort Value < KResult K 
 	subsort Type < KResult K 
@@ -268,6 +268,8 @@ kmod COMMON-SEMANTIC-SYNTAX is
 		l('pointerType),, l('structType),, l('unionType),, 
 		l('qualifiedType)
 	)
+	
+	---ceq TranslationUnit(S:String, L:List{C}, S':String) = TranslationUnit(S:String, L:List{C}, "") if S':String =/=Bool ""
 	
 	op bind : List{C} List{Type} -> K 
 	op tv : List{K} Type -> Value 

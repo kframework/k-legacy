@@ -1,4 +1,4 @@
-in ../../../k-prelude
+ require ../../../k-prelude
 
 
 /*
@@ -19,9 +19,11 @@ endkm
 */
 kmod META-MODEL is including OCL-SOLVER
 
-  syntax Id ::= object
+  syntax Id ::= object 
 
-  syntax K ::= Id | undefined  
+  syntax CCPhase ::= init | loaded /*Vlad : conformance-checking phase */
+
+  syntax K ::= Id | undefined | Bool | CCPhase
 
   syntax ListItem ::= Id : KLabel [prec 20] | Formula
 
@@ -38,26 +40,38 @@ kmod META-MODEL is including OCL-SOLVER
 
   configuration <T> 
                   <metamodel*>
+                    <name> undefined </name> /*Vlad: added metamodel name*/
                     <classes>
                       <class*>
-                         <className> Id:Id </className>
-                         <extends> Id:Id </extends>
-                         <declAttributes> .List  </declAttributes>
+                         <className> undefined </className> /*Vlad: changed Id:Id to undefined because of errors in rule matching*/
+                         <extends> undefined </extends> /*Vlad: changed Id:Id to undefined because of errors in rule matching*/
+                         <declAttributes> .List  </declAttributes>/*Vlad: I think we need a Map from attribute names to types here*/
                       </class*>
                     </classes>
                     <oclConstraints> .List </oclConstraints>
                   </metamodel*>
-                  <models*>
-                    <model*>
+                 <models>
+                   <model*> 
+                      <modelName> undefined </modelName> /*Vlad: added model name*/
                       <instance*>
-                         <name> undefined </name>
+                         <instName> undefined </instName>
                          <ofClass> undefined </ofClass>
                          <attributes> .Map </attributes>
+                         <checked> false </checked> /*Vlad: added "checked" field*/
                       </instance*>
-                    </model*>
-                  </models*>
+                   </model*>
+                 </models>
+                <k> .K </k> /*Vlad: added K cell for checking conformance */
+                <ccPhase> init </ccPhase>
                 </T>
+
+ 
 endkm
+
+
+
+
+
 
 
 /* 

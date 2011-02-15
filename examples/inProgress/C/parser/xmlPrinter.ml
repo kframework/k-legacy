@@ -1,5 +1,7 @@
 open Escape
 open Cabs
+open Base64
+open Big_int
 
 let counter = ref 0
 let currentSwitchId = ref 0
@@ -30,7 +32,7 @@ let escape_char = function
   | '\\' -> "\\\\"
   | ' ' .. '~' as printable -> String.make 1 printable
   | unprintable -> Printf.sprintf "\\%03o" (Char.code unprintable)
-
+  
 (* this is from cil *)
 let escape_string str =
   let length = String.length str in
@@ -67,19 +69,35 @@ let replace input output =
 type attribute =
 	Attrib of string * string
 
+(* 
 let escapeForXML str =
 	(replace "<" "&lt;"
 	(replace "\"" "&quot;" str))
 
+let myEscapeChars s = 
+	replace "\000" "\\\\0" s
+*)
+	
+(*
+let myEscapeChars s = 
+	if (String.length s = 0) then "" else (
+		(myEscapeChar s.[0]) ^ myEscapeChars
+	)
+	for i=1 to (String.length s - 1) do 
+		if ((Char.code s.[i]) = 0) then (s.[i] <- "\\0") 
+	done
+*)
+	
 let cdata (str : string) =
-	let str = replace "]]>" "]]]]><![CDATA[>" str (* escapes "]]>" *)
-	in
+	(* let str = replace "]]>" "]]]]><![CDATA[>" str in *) (* escapes "]]>" *)
+	(* let str = replace null "\\0" str in *)
+	(* let str = String.escaped str in *)
 	"<![CDATA[" ^ str ^ "]]>"
 
 let rec printAttribs (attribs) =
 	match attribs with 
 		| Attrib (name, data) :: xs -> 
-			" " ^ name ^ "=\"" ^ (escapeForXML data) ^ "\"" ^ printAttribs xs
+			" " ^ name ^ "=\"" ^ data ^ "\"" ^ printAttribs xs
 		| [] -> ""
 	
 let rec concatN n s =
@@ -88,20 +106,19 @@ let rec concatN n s =
 let printCell (name : string) (attribs) (contents : string) =
 	" <" ^ name ^ (printAttribs attribs) ^ ">" ^ contents ^ "</" ^ name ^ "> "
 	
-let printList f x =
+let printFlatList f x =
 	List.fold_left (fun aux arg -> aux ^ "" ^ (f arg)) "" x
 
 let wrap (d1) (d2) = 	
-	printCell d2 [] (printList (fun x -> x) d1)
-
-let toString s =
-	"\"" ^ (escape_string s) ^ "\""
-
+	printCell d2 [] (printFlatList (fun x -> x) d1)
+let printList f x =
+	wrap [List.fold_left (fun aux arg -> aux ^ "" ^ (f arg)) "" x] "List"
 	
 (* this is where the recursive printer starts *)
 	
 let rec cabsToXML ((filename, defs) : file) (sourceCode : string) = 
-	"<?xml version=\"1.0\"?>\n" ^
+(* encoding="utf-8"  *)
+	"<?xml version=\"1.1\" encoding=\"utf-8\" ?>\n" ^
 	printTranslationUnit filename sourceCode defs
 			
 and printTranslationUnit (filename : string) (sourceCode : string) defs =
@@ -125,11 +142,11 @@ and printDef def =
 		| ONLYTYPEDEF (a, b) -> 
 			printDefinitionLoc (wrap ((printSpecifier a) :: []) "OnlyTypedef") b
 		| GLOBASM (a, b) ->
-			printDefinitionLoc (wrap (a :: []) "GlobAsm") b
+			printDefinitionLoc (wrap ((printRawString a) :: []) "GlobAsm") b
 		| PRAGMA (a, b) ->
 			printDefinitionLoc (wrap ((printExpression a) :: []) "Pragma") b
 		| LINKAGE (a, b, c) ->
-			printDefinitionLoc (wrap (a :: (printDefs c) :: []) "Linkage") b
+			printDefinitionLoc (wrap ((printRawString a) :: (printDefs c) :: []) "Linkage") b
 		| TRANSFORMER (a, b, c) ->
 			printDefinitionLoc (wrap ((printDef a) :: (printDefs b) :: []) "Transformer") c
 		| EXPRTRANSFORMER (a, b, c) ->
@@ -143,8 +160,9 @@ and printSingleName (a, b) =
 	wrap ((printSpecifier a) :: (printName b) :: []) "SingleName"
 and printAttr a b = wrap (a :: (printAttributeList b) :: []) "AttributeWrapper"
 and printBlock a = 
-	let blockNum = (string_of_int (counter := (!counter + 1); !counter)) in
-	let idCell = printCell "Id" [] blockNum in
+	let blockNum = ((counter := (!counter + 1); !counter)) in
+	let blockNumCell = (printRawInt blockNum) in
+	let idCell = printCell "BlockId" [] blockNumCell in
 	let block = 
 	wrap (idCell :: (printBlockLabels a.blabels) :: (printStatementList a.bstmts) :: []) "Block" in
 	(* printCell "Block" attribs ((printBlockLabels a.blabels) ^ (printStatementList a.bstmts)) in *)
@@ -255,9 +273,21 @@ and printExpressionList defs =
 and printBuiltin (sort : string) (data : string) =
 	printCell "RawData" [Attrib("sort", sort)] (cdata data)
 and printRawString s =
-	printBuiltin "String" s
+	printBuiltin "String" (Base64.encode_string s)
+(* &#38; *)
+
+(* Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF] *)
+	
+and printRawFloat f =
+	printRawFloatString (string_of_float f)
+and printRawFloatString s =
+	printBuiltin "Float" s
 and printRawInt i =
-	printBuiltin "Int" (string_of_int i)
+	printRawIntString (string_of_int i)
+and printRawIntString s =
+	printBuiltin "Int" s
+(* and printRawInt64 i =
+	printBuiltin "Int" (Int64.to_string i) *)
 and string_of_list_of_int64 (xs : int64 list) =
 	let length = List.length xs in
 	let buffer = Buffer.create length in
@@ -304,14 +334,15 @@ and printHexFloatConstant f =
 	let exponentPart :: [] = Str.split (Str.regexp "[+]") exponentPart in
 	let exponentPart = int_of_string exponentPart in
 	
-	let wholePart = printRawInt (int_of_string ("0x" ^ wholePart)) in
-	let fractionalPart = printRawInt (int_of_string ("0x" ^ fractionalPart)) in
+	let significand = wholePart ^ "." ^ fractionalPart in
+	let approx = float_of_string ("0x" ^ significand) in
+	let approx = approx *. (2. ** (float_of_int exponentPart)) in
 	let exponentPart = printRawInt exponentPart in
-	
-	let wholePart = printCell "WholePart" [] wholePart in
-	let fractionalPart = printCell "FractionalHexPart" [] fractionalPart in
-	let exponentPart = printCell "ExponentPart" [] exponentPart in
-	(wrap ((wholePart) :: (fractionalPart) :: (exponentPart) :: []) "HexFloatConstant")
+	let significandPart = printRawString significand in
+	let significandPart = printCell "Significand" [] significandPart in
+	let exponentPart = printCell "Exponent" [] exponentPart in
+	let approxPart = printRawFloat approx in
+	(wrap (significandPart :: exponentPart :: approxPart :: []) "HexFloatConstant")
 	(* let significand = wholePart +. fractionalPart in
 	let result = significand *. (2. ** (float_of_int exponentPart)) in
 	wrap ((string_of_int (int_of_float wholePart)) :: (string_of_float fractionalPart) :: (string_of_int exponentPart) :: (string_of_float result) :: []) "HexFloatConstant" *)
@@ -331,17 +362,20 @@ and printDecFloatConstant f =
 		| "" :: [] -> "0"
 		| x :: [] -> x
 		) in
+	let stringRep = wholePart ^ "." ^ fractionalPart ^ "e" ^ exponentPart in
 	let exponentPart :: [] = Str.split (Str.regexp "[+]") exponentPart in
 	let exponentPart = int_of_string exponentPart in
 	
-	let wholePart = printRawInt (int_of_string wholePart) in
-	let fractionalPart = printRawInt (int_of_string fractionalPart) in
-	let exponentPart = printRawInt exponentPart in
+	let significand = wholePart ^ "." ^ fractionalPart in
+	(* let approx = float_of_string significand in
+	let approx = approx *. (10. ** (float_of_int exponentPart)) in *)
 	
-	let wholePart = printCell "WholePart" [] wholePart in
-	let fractionalPart = printCell "FractionalPart" [] fractionalPart in
-	let exponentPart = printCell "ExponentPart" [] exponentPart in
-	(wrap ((wholePart) :: (fractionalPart) :: (exponentPart) :: []) "DecimalFloatConstant")
+	let significandPart = printRawString significand in
+	let exponentPart = printRawInt exponentPart in
+	let approxPart = printRawFloatString stringRep in
+	let significandPart = printCell "Significand" [] significandPart in
+	let exponentPart = printCell "Exponent" [] exponentPart in
+	(wrap (significandPart :: exponentPart :: approxPart :: []) "DecimalFloatConstant")
 	
 and printFloatLiteral r =
 	let (tag, r) = splitFloat ([], r) in
@@ -357,14 +391,17 @@ and printFloatLiteral r =
 	| "L" :: [] -> wrap (num :: []) "L"
 	| [] -> wrap (num :: []) "NoSuffix"
 and printHexConstant (i : string) =
-	let inDec = int_of_string ("0x" ^ i) in
-	wrap [printRawInt inDec] "HexConstant"
+	(* let inDec = Int64.of_string ("0x" ^ i) in 
+	wrap [printRawInt64 inDec] "HexConstant" *)
+	wrap [printRawString i] "HexConstant"
 and printOctConstant (i : string) =
-	let inDec = int_of_string ("0o" ^ i) in
-	wrap [printRawInt inDec] "OctalConstant"
+	(* let inDec = Int64.of_string ("0o" ^ i) in
+	wrap [printRawInt64 inDec] "OctalConstant" *)
+	wrap [printRawIntString i] "OctalConstant"
 and printDecConstant (i : string) =
-	let inDec = int_of_string i in
-	wrap [printRawInt inDec] "DecimalConstant"
+	(* let inDec = Int64.of_string i in
+	wrap [printRawInt64 inDec] "DecimalConstant" *)
+	wrap [printRawIntString i] "DecimalConstant"
 and printIntLiteral i =
 	let (tag, i) = splitInt ([], i) in
 	let num = (
@@ -392,11 +429,13 @@ and printExpression exp =
 	| NOTHING -> printCell "NothingExpression" [] ""
 	| PAREN (exp1) -> wrap ((printExpression exp1) :: []) "Paren"
 	| LABELADDR (s) -> wrap (s :: []) "GCCLabelOperator"
-	| QUESTION (exp1, exp2, exp3) -> wrap ((printExpression exp1) :: (printExpression exp2) :: (printExpression exp3) :: []) "_?_:_"
+	| QUESTION (exp1, exp2, exp3) -> wrap ((printExpression exp1) :: (printExpression exp2) :: (printExpression exp3) :: []) "Conditional"
 	(* special case below for the compound literals.  i don't know why this isn't in the ast... *)
 	| CAST ((spec, declType), initExp) -> 
 		let castPrinter x = wrap ((printSpecifier spec) :: (printDeclType declType) :: x :: []) "Cast" in
-		let compoundLiteralPrinter x = wrap ((string_of_int ((counter := (!counter + 1)); !counter)) :: (printSpecifier spec) :: (printDeclType declType) :: x :: []) "CompoundLiteral"
+		let id = (counter := (!counter + 1)); !counter in
+		let compoundLiteralIdCell = printCell "CompoundLiteralId" [] (printRawInt id) in
+		let compoundLiteralPrinter x = wrap (compoundLiteralIdCell :: (printSpecifier spec) :: (printDeclType declType) :: x :: []) "CompoundLiteral"
 		in printInitExpressionForCast initExp castPrinter compoundLiteralPrinter
 		(* A CAST can actually be a constructor expression *)
 	| CALL (exp1, expList) -> wrap ((printExpression exp1) :: (printExpressionList expList) :: []) "Call"
@@ -414,7 +453,7 @@ and printExpression exp =
 	| MEMBEROF (exp, fld) -> wrap ((printExpression exp) :: (printIdentifier fld) :: []) "Dot"
 	| MEMBEROFPTR (exp, fld) -> wrap ((printExpression exp) :: (printIdentifier fld) :: []) "Arrow"
 	| GNU_BODY block -> wrap ((printBlock block) :: []) "GnuBody"
-	| EXPR_PATTERN s -> wrap ((toString s) :: []) "ExpressionPattern"
+	| EXPR_PATTERN s -> wrap ((printRawString s) :: []) "ExpressionPattern"
 and getUnaryOperator op =
 	let name = (
 	match op with
@@ -485,33 +524,37 @@ and printWhile exp stat =
 and printDoWhile exp stat =
 	wrap ((printExpression exp) :: (printStatement stat) :: []) "DoWhile"
 and printFor fc1 exp2 exp3 stat =
-	wrap ((string_of_int ((counter := (!counter + 1)); !counter)) :: (printForClause fc1) :: (printExpression exp2) :: (printExpression exp3) :: (printStatement stat) :: []) "For"
+	let newForIdCell = printCell "ForId" [] (printRawInt ((counter := (!counter + 1)); !counter)) in
+	wrap (newForIdCell :: (printForClause fc1) :: (printExpression exp2) :: (printExpression exp3) :: (printStatement stat) :: []) "For"
 and printForClause fc = 
 	match fc with
 	| FC_EXP exp1 -> wrap ((printExpression exp1) :: []) "ForClauseExpression"
 	| FC_DECL dec1 -> wrap ((printDef dec1) :: []) "ForClauseDeclaration"
 and printBreak =
-	"Break"
+	printCell "Break" [] ""
 and printContinue =
-	"Continue"
+	printCell "Continue" [] ""
 and printReturn exp =
 	wrap ((printExpression exp) :: []) "Return"
 and printSwitch exp stat =
 	let newSwitchId = ((counter := (!counter + 1)); !counter) in
 	switchStack := newSwitchId :: !switchStack;
 	currentSwitchId := newSwitchId;
-	let idCell = printCell "Id" [] (string_of_int newSwitchId) in
+	let idCell = printCell "SwitchId" [] (printRawInt newSwitchId) in
 	let retval = wrap (idCell :: (printExpression exp) :: (printStatement stat) :: []) "Switch" in
 	(* printCell "Switch" [Attrib ("id", string_of_int newSwitchId)] (printList (fun x -> x) ((printExpression exp) :: (printStatement stat) :: [])) in *)
 	switchStack := List.tl !switchStack;
 	currentSwitchId := List.hd !switchStack;
 	retval 
 and printCase exp stat =
-	wrap ((string_of_int !currentSwitchId) :: (string_of_int (counter := (!counter + 1); !counter)) :: (printExpression exp) :: (printStatement stat) :: []) "Case"
+	let switchIdCell = printCell "SwitchId" [] (printRawInt !currentSwitchId) in
+	let caseIdCell = printCell "CaseId" [] (printRawInt (counter := (!counter + 1); !counter)) in
+	wrap (switchIdCell :: caseIdCell :: (printExpression exp) :: (printStatement stat) :: []) "Case"
 and printCaseRange exp1 exp2 stat =
 	wrap ((printExpression exp1) :: (printExpression exp2) :: (printStatement stat) :: []) "CaseRange"
 and printDefault stat =
-	wrap ((string_of_int !currentSwitchId) :: (printStatement stat) :: []) "Default"
+	let switchIdCell = printCell "SwitchId" [] (printRawInt !currentSwitchId) in
+	wrap (switchIdCell :: (printStatement stat) :: []) "Default"
 and printLabel str stat =
 	wrap ((printIdentifier str) :: (printStatement stat) :: []) "Label"	
 and printGoto name =
@@ -560,11 +603,11 @@ and printEnumItemList a =
 and printBlockLabels a =
 	printList (fun x -> x) a
 and printAttribute (a, b) =
-	wrap (("\"" ^ a ^ "\"") :: (printExpressionList b) :: []) "Attribute"
+	wrap ((printRawString a) :: (printExpressionList b) :: []) "Attribute"
 and printEnumItem (str, expression, cabsloc) =
 	wrap ((wrap ((printIdentifier str) :: (printExpression expression) :: []) "EnumItem") :: (printCabsLoc cabsloc) :: []) "EnumItemLoc"
 and printSpecifier a =
-	wrap (printSpecElemList a :: []) "Specifiers"
+	wrap (printSpecElemList a :: []) "Specifier"
 and printSpecElemList a =
 	printList printSpecElem a
 and printSingleNameList a =

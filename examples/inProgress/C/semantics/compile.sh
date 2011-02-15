@@ -22,12 +22,12 @@ function addOption {
 addOption "-c" "Compile and assemble, but do not link"
 addOption "-d" "Does not delete intermediate files"
 addOption "-o <file>" "Place the output into <file>"
-addOption "-s" "Ignored"
+addOption "-s" "Does not link against the standard library"
 addOption "-v" "Prints version information"
-addOption "-w" "Ignored"
+addOption "-w" "Does not print warning messages"
+addOption "-l <name>" "Ignored"
 
 oval=
-gflag=
 warnFlag=
 myDirectory=`dirname $0`
 inputFile=
@@ -54,16 +54,14 @@ function usage {
 }
 
 function getoptsFunc {
-	while getopts ':cdg:o:vsw' OPTION
+	while getopts ':cdl:o:vsw' OPTION
 	do
 		case $OPTION in
 		c)	compileOnlyFlag="-c"
 			;;
 		d)	dumpFlag="-d"
 			;;
-		g)	gflag=1
-			gval="$OPTARG"
-			;;
+		l)	;;
 		o)	oflag=1
 			oval="$OPTARG"
 			;;
@@ -158,15 +156,9 @@ do
 	maudeInput=$inputDirectory/$baseName.gen.maude
 	localOval="$baseName.o"
 	set -o errexit
-	
-	if [ "$gflag" ]; then
-		garg="-g $gval"
-	else 
-		garg=""
-	fi
 
 	set +o errexit
-	$myDirectory/compileProgram.sh $garg $warnFlag $dumpFlag $inputFile
+	$myDirectory/compileProgram.sh $warnFlag $dumpFlag $inputFile
 	if [ "$?" -ne 0 ]; then
 		die "compilation failed" 3
 	fi

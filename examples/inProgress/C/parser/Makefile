@@ -14,7 +14,7 @@ OCAML_YACC = ocamlyacc
 OCAML_LINK = ocamlopt $(OCAMLOPT_FLAGS)
 
 # these are partially ordered by inclusion.  don't know how to avoid manually ordering these
-MODULES = errormsg.cmx longarray.cmx growArray.cmx escape.cmx cabshelper.cmx whitetrack.cmx cprint.cmx lexerhack.cmx cabs.cmx clexer.cmx cparser.cmx frontc.cmx cabsPrinter.cmx xmlPrinter.cmx cabsDriver.cmx
+MODULES = base64.cmx errormsg.cmx longarray.cmx growArray.cmx escape.cmx cabshelper.cmx whitetrack.cmx cprint.cmx lexerhack.cmx cabs.cmx clexer.cmx cparser.cmx frontc.cmx cabsPrinter.cmx xmlPrinter.cmx cabsDriver.cmx
 
 #IOXML = ioxml/ioXML.cmx ioxml/pa_ioXML.cmo
 .PHONY: all cleanOnMakefileChange clean 
@@ -47,6 +47,7 @@ cabsDriver.cmx cabsDriver.cmi: cparser.cmi frontc.cmi clexer.cmi cabsPrinter.cmi
 frontc.cmx frontc.cmi: errormsg.cmi whitetrack.cmi cprint.cmi clexer.cmi
 clexer.cmx clexer.cmi: lexerhack.cmi cparser.cmi cabshelper.cmi
 cabsPrinter.cmx cabsPrinter.cmi: cabs.cmi escape.cmi 
+xmlPrinter.cmx xmlPrinter.cmi: cabs.cmi
 #xmlPrinter.cmi
 #xmlPrinter.cmx xmlPrinter.cmi: $(IOXML)
 %.cmx %.cmi: %.ml 

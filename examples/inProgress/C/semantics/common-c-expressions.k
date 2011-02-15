@@ -387,7 +387,9 @@ and ll or LL
 		
 	op hexOrOctalConstant : K -> K 
 	eq HexConstant(S:String) = hexOrOctalConstant(String2Rat(simplifyForHex(S:String), 16)) 
-	eq OctalConstant(I:Int) = hexOrOctalConstant(truncRat(String2Rat(Rat2String(I:Int, 10), 8))) 
+	--- eq HexConstant(I:Int) = hexOrOctalConstant(I:Int)
+	eq OctalConstant(N:Nat) = hexOrOctalConstant(truncRat(String2Rat(Rat2String(N:Nat, 10), 8))) --- truncRat is just for sorts
+	--- eq OctalConstant(I:Int) = hexOrOctalConstant(I:Int)
 	
 	rule NoSuffix(hexOrOctalConstant(I:Int)) =>
 		if ((I:Int <=Int max(int)) andBool (I:Int >=Int min(int))) then tv(I:Int, int) else
@@ -479,7 +481,9 @@ and ll or LL
 	--- ceq 0 ^Rat I:Int = 0
 		--- if I:Int <Int 0 
 	
-	eq HexFloatConstant(?, ?, ?, F:Float) = DecimalFloatConstant(F:Float) 
+	--- FIXME
+	--- eq HexFloatConstant(?, ?, ?, F:Float) = DecimalFloatConstant(F:Float) 
+	
 	--- ceq HexFloatConstant(SigWhole:Nat, SigFrac:NzNat, Exp:Int) 
 		--- = DecimalFloatConstant(Rat2Float((SigWhole:Nat +Rat (1 /Rat SigFrac:NzNat)) *Rat (2 ^Rat Exp:Int)))
 		--- if SigFrac:NzNat =/=Bool 0 
@@ -488,11 +492,21 @@ and ll or LL
 		--- if SigFrac:Nat ==Bool 0 
 	
 	---C99 6.4.4.2:4 An unsuffixed floating constant has type double. If suffixed by the letter f or F, it has type float. If suffixed by the letter l or L, it has type long double
-	rule NoSuffix(DecimalFloatConstant(F:Float)) => tv(F:Float, double)
+	---FIXME
+	
+	op reducedFloat : Float -> K
+	--- eq DecimalFloatConstant(WholePart:Int, FracPart:Int, ExpPart:Int) 
+		--- = reducedFloat(Rat2Float(WholePart:Int +Rat (1 /Rat FracPart:Int)) *Float (10.0 ^Float Int2Float(ExpPart:Int)))
+	--- eq HexFloatConstant(WholePart:Int, FracPart:Int, ExpPart:Int) 
+		--- = reducedFloat(Rat2Float(WholePart:Int +Rat (1 /Rat FracPart:Int)) *Float (2.0 ^Float Int2Float(ExpPart:Int)))
+	eq DecimalFloatConstant(?, ?, F:Float) = reducedFloat(F:Float)
+	eq HexFloatConstant(?, ?, F:Float) = reducedFloat(F:Float)
+	
+	rule NoSuffix(reducedFloat(F:Float)) => tv(F:Float, double)
 		[structural] 
-	rule L(DecimalFloatConstant(F:Float)) => tv(F:Float, long-double)
+	rule L(reducedFloat(F:Float)) => tv(F:Float, long-double)
 		[structural] 
-	rule F(DecimalFloatConstant(F:Float)) => tv(F:Float, float)
+	rule F(reducedFloat(F:Float)) => tv(F:Float, float)
 		[structural] 
 
 endkm
