@@ -1,130 +1,117 @@
 in dsml.k
 
-kmod META-MODEL-TEST is including META-MODEL
-rule [load-instance-name-to-K-cell] : 
-    <instance_>
-       <instName> objName:Id </instName>
-       <checked> false => true </checked> 
-    <_/instance> 
-  <k_>  . => objName  <_/k>  
-  <ccPhase> init </ccPhase>
 
-rule [end-init-phase-when-all-loaded] : 
-<model>
-(<modelName> n:Id </modelName>)
-B:Bag => unCheck(B:Bag)
-</model>
-<ccPhase> init => checkInstances </ccPhase>
-if allChecked(B)
+kmod CONFORMANCE is including META-MODEL
 
-syntax Bool ::= allChecked ( Bag ) 
-
-rule allChecked(((<instance_> <checked> false  </checked>  <_/instance>) B)) => false [structural]
-rule allChecked(((<instance_> <checked> true </checked>  <_/instance>) B)) =>  allChecked(B)  [structural]
-rule allChecked(.Bag) => true  [structural]
-
- syntax Bag ::= unCheck( Bag )
-
-
-rule unCheck(((<instance> <instName> objName </instName> <checked> b:Bool </checked>  <ofClass> className:Id </ofClass> <attributes> M:Map </attributes></instance>) B)) => 
- (<instance> <instName> objName </instName> <checked> false </checked>  <ofClass> className </ofClass> <attributes>  M </attributes></instance>) unCheck(B)
-[structural]
-
-rule unCheck(.Bag) => .Bag [structural]
-
-
-/*only integer & bool types, and does not take inheritance into account, for now */
-
-syntax Bool ::= consistentAttributes( Map , Map )
-
-
-rule consistentAttributes( .Map, M:Map) => true [structural]
-rule consistentAttributes( ((attr:Id |->  _ ) M':Map), .Map) => false [structural]
-rule  consistentAttributes( ((attr |->  i:Int) M'),  ((attr |-> 'Int ) M)) =>
-consistentAttributes(M',M) [structural]
-rule consistentAttributes( ((attr |->  b:Bool) M'),  ((attr |-> 'Bool ) M)) =>
-consistentAttributes(M',M) [structural]
-
- 
-
-rule [delete-instance-names-with-correct-classes-and-attributes-from-K-cell] :
-<class_>
-<className> className:Id </className>
-<declAttributes> M </declAttributes>
-<_/class> 
-<instance_>
-       <instName> objName </instName>
-       <ofClass> className </ofClass> 
-       <attributes> M' </attributes>
-<_/instance> 
-<k_> objName => (.) <_/k>
-<ccPhase> checkInstances </ccPhase>
-if consistentAttributes(M', M)
-
-
-rule [goto-next-phase-when-all-instances-classes-and-attributes-OK] :
-<ccPhase> checkInstances => checkLinks </ccPhase> 
-<k> .K </k>
-
-
-rule [reload-instance-name-to-K-cell] : 
-    <instance_>
-       <instName> objName </instName>
-       <checked> false => true </checked> 
-    <_/instance> 
-  <k_>  . => objName  <_/k>  
-  <ccPhase> checkLinks </ccPhase>
+syntax K ::= checkConf( Id ) |  checkStruct ( Id ) | checkOCL ( Id ) | checkAttr ( Bag ) |  checkLinks ( Bag )
 
 
 
 
+rule
+<k> checkConf(Mod:Id) => checkStruct(Mod)~>checkOCL(Mod) <_/k> 
 
-  syntax Bag ::= testConfig
+
+rule <k> checkStruct(Mod) => checkAttr(INST:Bag)~>checkLinks(INST)  <_/k>
+     <model> <modelName> Mod </modelName> INST </model> 
+
+
+rule <k> checkAttr(.Bag) => (.) <_/k> 
+
+rule <k> checkAttr((<instance_> 
+                      <attributes> ATTRINST:Map </attributes>
+                      <ofClass> C:Id </ofClass> <_/instance>
+                   ) REST:Bag)
+         =>
+         consistentAttributes(ATTRINST, ATTRCLS:Map)~>checkAttr(REST)
+     <_/k>
+     <class_>
+       <className> C</className>
+       <declAttributes> ATTRCLS </declAttributes>
+     <_/class>
+
+
+syntax K ::= consistentAttributes( Map , Map ) |  ERROR-UNDEFINED-ATTRIBUTE ( Id )
+
+rule consistentAttributes( .Map, Map:Map) => . [structural]
+
+rule  consistentAttributes( (attr:Id |->  typedVal(v:Val,T:Type)) Map':Map,  
+                            ((attr |-> T ) Map))
+      =>
+      consistentAttributes(Map',Map)
+      if isScalar(T)
+      [structural]
+
+rule  <k>consistentAttributes( (attr:Id |->  typedVal(v:Val,T:Type)) Map':Map,  
+                            ((attr |-> T ) Map))
+      =>
+      consistentAttributes(Map',Map)
+      <_/k>
+      <instName> v </instName>
+      if isScalar(T) ==Bool false
+      [structural]
+
+rule consistentAttributes( (attr |->  typedVal(_,T:Type) Map'), .Map)
+     =>
+     ERROR-UNDEFINED-ATTRIBUTE(attr) 
+    [structural] 
+
 
 /*
-  macro testConfig =
-  <T_>
-    <instName> object  </instName>
-    <checked> false </checked>
-  <_/T>
+ syntax Bool  ::= unknownType ( Type , Map ) 
+
+rule unknownType(T, (_ |-> T) _) => false [structural]
+rule unknownType(T, ((_ |-> T':Type) M')) => unknownType(T, M') if T' =/= T [structural] --- how to test difference?
+rule unknownType(T, .Map) = true [structural] 
+
 */
 
-syntax Id ::=  'a | 'b | 'A | 'B | 'O | 'Z | 'W | 'attr1 | 'attr2 | 'Int | 'Bool
-syntax Val ::= Int | Bool 
-syntax K ::= Val
+ syntax Bag ::= testConfig
+
+
+
+syntax Id ::=  a | b | `A | `B | `M | `Z | `W | attr1 | attr2 | attr3 
+syntax Val ::= Int | Bool | String | Id 
+//syntax Type ::= Id 
+syntax TypedVal ::= typedVal( Val , Type )
+syntax K ::= TypedVal
+
 
 macro testConfig = 
  <T_>
 <metamodel_>
   <classes>
     <class> 
-      <className> 'A </className> 
+      <className> A </className> 
       <extends> object </extends>
-      <declAttributes> 'attr1 |-> 'Int </declAttributes >
+      <declAttributes> attr1 |-> int attr3 |-> B </declAttributes >
     </class>
     <class>
-      <className> 'B </className> 
+      <className> B </className> 
      <extends> object </extends>
-      <declAttributes> 'attr2 |-> 'Bool </declAttributes >
+      <declAttributes> attr2 |-> bool </declAttributes >
     <_/class>
   </classes>
 <_/metamodel>
 <model>
-      <modelName> 'O </modelName>
+      <modelName> M </modelName>
       <instance>
-                      <instName>  'a </instName>
-                      <ofClass> 'A </ofClass>
-                       <attributes> 'attr1 |-> 1 </attributes>
-                      <checked> false </checked> 
+                      <instName>  a </instName>
+                      <ofClass> A </ofClass>
+                       <attributes>
+                          attr1 |-> typedVal(1, int) 
+                          attr3 |-> typedVal(b, B)
+                       </attributes>
        
        </instance>
        <instance>
-                      <instName> 'b </instName>
-                       <ofClass> 'B </ofClass>
-                       <attributes> 'attr2 |-> true </attributes>
-                       <checked> false </checked> 
+                      <instName> b </instName>
+                       <ofClass> B </ofClass>
+                       <attributes> attr2 |-> typedVal(true, bool) </attributes>
        </instance>
 </model>
+<k> checkConf(M) </k>
 <_/T>
+
 
 endkm

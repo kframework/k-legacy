@@ -21,11 +21,19 @@ kmod META-MODEL is including OCL-SOLVER
 
   syntax Id ::= object 
 
-  syntax CCPhase ::= init | checkInstances  | checkLinks /*Vlad : conformance-checking phase */
-
-  syntax K ::= Id | undefined | Bool | CCPhase
+ 
+  syntax K ::= Id | undefined | Bool 
 
   syntax ListItem ::= Id : KLabel [prec 20] | Formula
+
+  syntax Type ::= int | bool | string | Id
+
+  syntax Bool ::= isScalar ( Type )
+
+  rule isScalar(int) => true [structural]
+  rule isScalar(bool) => true [structural]
+  rule isScalar(string) => true [structural]
+  rule isScalar(Id:Id) => false [structural]
 
 
 /*
@@ -57,12 +65,10 @@ kmod META-MODEL is including OCL-SOLVER
                          <instName> undefined </instName>
                          <ofClass> undefined </ofClass>
                          <attributes> .Map </attributes>
-                         <checked> false </checked> /*Vlad: added "checked" field*/
                       </instance*>
                    </model*>
                  </models>
                 <k> .K </k> /*Vlad: added K cell for checking conformance */
-                <ccPhase> init </ccPhase> /*conformance-checking phase */
                 </T>
 
  
