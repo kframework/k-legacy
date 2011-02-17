@@ -16,6 +16,7 @@ use lib $path;
 use Regexp::Common;
 use Tree::Nary;
   
+my $maude = "maude";
 my $language_file_name = "?";
 my $config_tree;
 my $iteration_cells = {};
@@ -1517,7 +1518,7 @@ sub uniq
 #       line numbers metadata                 #
 ###############################################
 
-my @k_attributes = qw(strict metadata prec format assoc comm id hybrid gather ditto seqstrict structural large);
+my @k_attributes = qw(strict metadata prec format assoc comm id hybrid gather ditto seqstrict structural large latex);
 my $k_attributes_pattern = join("|",  @k_attributes);
 
 
@@ -1559,24 +1560,24 @@ sub add_line_numbers
 
             $temp =~ s/\Q$tmp\E/$rule/sg;
         }
-        elsif ($2 eq "syntax")
-        {
-            my $syntax = $1;
-            my ($tmp, $syntax_line) = ($syntax, countlines("$`"));
+#        elsif ($2 eq "syntax")
+#        {
+#            my $syntax = $1;
+#            my ($tmp, $syntax_line) = ($syntax, countlines("$`"));
             
-            while ($syntax =~ /(?:(::=|\|))([^\|]+)/sg)
-            {
-                my $rule_line = countlines("$`") + $syntax_line;
-                my $spacess = "";
-                my $item = $2;
-                $item =~ s/(\s+)$/{$spacess = $1;}/sge;
-                my $item2 = $item;
-                $item =~ s!(\[([^\]]*?($k_attributes_pattern)[^\]]*?)\])![$2 metadata "location($file:$rule_line)"]!sg;
-                $tmp =~ s/\Q$item2\E/$item/sg;
-            }
+#            while ($syntax =~ /(?:(::=|\|))([^\|]+)/sg)
+#            {
+#                my $rule_line = countlines("$`") + $syntax_line;
+#                my $spacess = "";
+#                my $item = $2;
+#                $item =~ s/(\s+)$/{$spacess = $1;}/sge;
+#                my $item2 = $item;
+#                $item =~ s!(\[([^\]]*?($k_attributes_pattern)[^\]]*?)\])![$2 metadata "location($file:$rule_line)"]!sg;
+#                $tmp =~ s/\Q$item2\E/$item/sg;
+#            }
             
-            $temp =~ s/\Q$syntax\E/$tmp/sg;
-        }
+#            $temp =~ s/\Q$syntax\E/$tmp/sg;
+#        }
         elsif ($2 eq "macro")
         {
             my $macro = $1;
@@ -1936,6 +1937,64 @@ sub solve_latex_comments
 ######################
 # end latex comments #
 ######################
+
+# Special: this doesn't stop if there are errors in maude
+# Running Maude (cross platform)
+sub run_maude_ 
+{
+	my $input_file = "IN.maude";
+
+	my ($message,@commands) = @_;
+	print $message if $verbose;
+	open FILE,">",$input_file or die "Cannot create $input_file\n";
+	print FILE "\n@commands\n";
+	close FILE;
+
+	# call maude
+	my $result = `$maude $input_file 2>&1`;
+
+	# clean
+	unlink $input_file;
+
+	# return output
+ 	return $result;
+}
+
+
+sub check_incompatible
+{
+	my $file = shift;
+	$file =~ s/\.[a-z]+$//sg;
+
+	my $module = shift;	
+
+	local $_ = run_maude_("some message ..",
+			"load $file\n",
+			"red in META-LEVEL : sameKind(upModule('$module, true), 'K, 'List) . \n",
+			"red in META-LEVEL : sameKind(upModule('$module, true), 'K, 'Map) . \n",
+			"red in META-LEVEL : sameKind(upModule('$module, true), 'K, 'Bag) . \n",
+			"red in META-LEVEL : sameKind(upModule('$module, true), 'K, 'Set) . \n",
+			"red in META-LEVEL : sameKind(upModule('$module, true), 'List, 'Map) . \n",
+			"red in META-LEVEL : sameKind(upModule('$module, true), 'List, 'Bag) . \n",
+			"red in META-LEVEL : sameKind(upModule('$module, true), 'List, 'Set) . \n",
+			"red in META-LEVEL : sameKind(upModule('$module, true), 'Map, 'Bag) . \n",
+			"red in META-LEVEL : sameKind(upModule('$module, true), 'Map, 'Set) . \n",
+			"red in META-LEVEL : sameKind(upModule('$module, true), 'Bag, 'Set) . \n",
+			"q" 
+	);
+
+	my $out = $_;
+	while ($out =~ /reduce\s+in\s+META-LEVEL\s+:\s+sameKind\(upModule\('$module,\s+true\),\s+'([a-zA-Z]+),\s'([a-zA-Z]+)\)(.*?)result\s+Bool:\s+true/sg)
+	{
+		my ($sort1, $sort2, $wr) = ($1, $2, $3);
+		if ($wr =~ /tuple\s+is\s+\(([a-zA-Z]+)/)
+		{
+			print "$1 is subsorted to both $sort1 and $sort2.\n";
+			exit(1);
+		}
+	}
+
+}
 
 1;
 
