@@ -1,8 +1,5 @@
-require ../../../k-prelude
-require k-visitor
-require substitution
-
-kmod OCL-SYNTAX is including K + PL-ID + PL-INT + PL-BOOL + SUBSTITUTION
+in ../../k-prelude
+kmod OCL-SYNTAX is including K + PL-ID + PL-INT + PL-BOOL
 
 
   syntax Var ::= Id
@@ -60,16 +57,26 @@ syntax CExp ::= empty
                 | let Var `: Type `= CExp in  CExp //[strict(3)] ?
                 | if BExp then CExp else CExp endif [strict(1)]
 
-//syntax K ::= CExp
 
 
-// some identifiers to test with...
-// in general these will depend on a given metamodel
-/*
-syntax Class ::= c1 | c2 
-
-syntax Attr ::= a1 | a2 | a3
-
-syntax Var ::= x | y | z
-*/
 endkm
+
+kmod ASSOC is including OCL-SYNTAX
+// merge with OCL semantics
+// the results of evaluating OCL expressions
+
+syntax KResult ::= ValSet 
+syntax CExp ::= ValSet 
+syntax AExp ::= Int
+syntax BExp ::= Bool
+
+
+
+syntax ValSet ::= .ValSet | Val | ValSet ValSet [hybrid assoc comm id: .ValSet]
+                | ValSet `Inter ValSet
+                | ValSet `Diff ValSet
+
+syntax Val ::= Bool | Int  | instVal ( Bag ) // or better, instVal(BagItem)
+
+endkm
+
