@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+# !usr/bin/perl -w
 use strict;
 use warnings;
 use File::Spec;
@@ -15,7 +15,6 @@ BEGIN {
 use lib $path;
 use Regexp::Common;
 use Tree::Nary;
-# use XML::DOM;
   
 my $maude = "maude";
 my $language_file_name = "?";
@@ -266,9 +265,7 @@ sub validate_open_cells()
 }
 
 # sub checks if there is a morphism between rule tree and configuration tree
-# now, when the xml parser for configurations is available this function is 
-# renamed into validate_node
-sub validate_node_()
+sub validate_node()
 {
     # get current node and ref to arguments
     my ($node, $ref) = (shift, shift);
