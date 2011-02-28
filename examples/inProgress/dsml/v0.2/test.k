@@ -35,7 +35,7 @@ macro testConfig =
             <ofClass>  classA </ofClass>
             <attributes>
                (attr1 |-> typedElt(wBag(wId(a)), colInst))
-               (attr3 |-> typedElt(wBag(wInt(1) wInt(2) wInt(3)), colInt ))
+               (attr3 |-> typedElt(wBag(wInt(1)), colInt ))
             </attributes>
           </instance>
           <instance>
@@ -45,10 +45,11 @@ macro testConfig =
           </instance>
        </model> 
      </models>
-     <k>  isEmpty(wBag(.Bag) # attr1) </k> 
+     <k>    allInstances(classA) ->forAll(x | true ) </k> 
      <temp> .Bag </temp>
   </T>
 
+syntax Id ::= x
 
 
 endkm 

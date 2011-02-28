@@ -3,6 +3,30 @@ require substitution
 kmod OCL-SEMANTICS is including META-MODEL  +  SUBSTITUTION
 
 //PRELIMINARIES
+// values
+// bag items, i.e., values, can be wrapped Booleans, Integers, and other bag items (for instances)
+// we also allow for wrapped identifiers
+//
+
+syntax BagItem ::=  wBool ( Bool ) | wInt ( Int ) | 
+                    wId ( Id ) 
+
+syntax ValCExp ::=  wBag ( Bag ) [metadata "builtin wrapper"]
+
+syntax CExp ::= ValCExp
+
+syntax KResult ::= ValCExp | Int | Bool 
+
+
+
+//basic types
+syntax Id ::= int | bool | colInt | colBool
+
+// for  attributes in metamodel instances
+syntax K ::= typedElt ( K , Id )
+
+
+
 // a few structural rule about sets of values
 syntax Bag ::= Bag `Inter Bag
 
@@ -35,7 +59,7 @@ syntax Bool ::= subset ( Bag , Bag )
 rule subset(.Bag,  V) => true 
 rule subset((v:BagItem V), V':Bag) => if (v  inBag  V') then subset(V,V') else false fi 
 
-
+// structural 
 //SEMANTICS
 // semantics of arithmetical expressions
 rule A1:Int + A2:Int => A1 +Int A2
@@ -65,18 +89,55 @@ rule not B1 => notBool B1
 
 rule isEmpty(wBag(.Bag)) => true 
 
-rule isEmpty(wBag(BagIt:BagItem BB:Bag)) => false 
+rule isEmpty(wBag(BagIt:BagItem _)) => false 
 
 rule wBag(C1:Bag) myin wBag(C2:Bag) => subset(C1,C2)
 rule wBag(C1:Bag) in* wBag(C2:Bag) => subset(C1,C2) andBool (card(C1) <Int card(C2))
 rule wBag(C1) notin wBag(C2) => notBool (subset(C1,C2)) 
 rule wBag(C1) notin* wBag(C2) => notBool (subset(C1,C2) andBool (card(C1) <Int card(C2)))
 
-// no rule necessary for equality because it is trivial 
-//rule wBag(C1) = wBag(C2) => C1 ==Bool C2
+
+rule (wBag(C1) = wBag(C2)) => C1 ==Bool C2
 
 // TODO: forAll, exists - need syntactical substitution
 
+
+rule wBag(.Bag) ->forAll(_| _) => true
+/*
+rule wBag((wInt(I:Int) B:Bag)) ->forAll( Var:Id | BEXP:BExp ) =>
+kIf BEXP[I/Var] 
+then wBag(B) ->forAll( Var | BEXP)
+else false
+endkIf
+*/
+
+
+rule wBag((BI:BagItem B:Bag)) ->forAll( Var:Id | BEXP:BExp ) =>
+kIf BEXP[unWrap(BI)/Var] 
+then wBag(B) ->forAll( Var | BEXP)
+else false
+endkIf
+
+syntax UnWrapped ::= Bool | Int | Id 
+
+syntax UnWrapped ::= unWrap ( BagItem )
+
+rule unWrap(wInt(iv:Int)) => iv
+rule unWrap(wBool(bv:Bool)) => bv
+rule unWrap(wId(idv:Id)) => idv
+
+
+syntax Bool ::= kIf K then BExp else BExp endkIf [strict (1)]
+
+rule kIf true[uw:UnWrapped  /Var]  then thenBranch:BExp else elseBranch:BExp endkIf => thenBranch
+rule kIf false[uw:UnWrapped /Var]  then thenBranch else elseBranch endkIf => elseBranch
+
+
+rule wBag((BI:BagItem B:Bag)) ->forAll( Var:Id | BEXP:BExp ) =>
+kIf BEXP[BI / Var] 
+then wBag(B) ->forAll( Var | BEXP)
+else false
+endkIf
 
 //semantics for Collection expressions
 // rule for empty
@@ -135,23 +196,18 @@ syntax Id ::= applied
 
 // apparently heating equation kicks in before this gets the chance to apply
 // so, something is KResult too early... or is it KProper ??
- rule <k> (wBag(.Bag) # AT) => wBag(B:Bag) </k> <temp> B => wId(applied) </temp> 
+ 
+// case 0 : the bag of instances whose AT we are trying to get is empty: dissolve
+rule <k> (wBag(.Bag) # AT) => wBag(B:Bag) <_/k> <temp> B => . </temp> 
 
 
 // NB all elements in CExp are assumed to have the attribute Id
 // may add error rules in the future
 
-// case 0 : the bag of instances whose AT we are trying to get is empty: dissolve
 
-/*
-rule <k>  wBag(  .Bag
-              ) # AT
-       => wBag(.Bag)
- <_/k>  [structural]
-*/
 
 // case 1 : the bag of instances whose AT we are trying to get is nonempty
-//the attribute AT is a bag of values 
+//the attribute AT is a bag of ints, bools... 
 // the value of AT is stored in temp cell
 rule <k>  wBag(  <instance_>
                      <attributes_> AT:Id |-> typedElt(wBag(B), T:Id) <_/attributes>        
@@ -224,12 +280,13 @@ rule getInstancesByName(
         [structural]
 
 
-rule getInstancesByName( (wId(INSTNAME) NAMES:Bag), ALLINSTANCES)
-             =>   
-                  getInstancesByName(NAMES, ALLINSTANCES)
-if notBool isPresent(INSTNAME,ALLINSTANCES)
-        [structural]
-
+// should be error
+//rule getInstancesByName( (wId(INSTNAME) NAMES:Bag), ALLINSTANCES)
+//             =>   
+//                  getInstancesByName(NAMES, ALLINSTANCES)
+//if notBool isPresent(INSTNAME,ALLINSTANCES)
+//        [structural]
+/*
 syntax Bool ::=  isPresent ( Id , Bag )
 
 rule isPresent(INSTNAME, 
@@ -254,7 +311,7 @@ rule isPresent(INSTNAME,
 
 
 rule isPresent(INSTNAME, .Bag ) => false [structural] 
-
+*/
 
 
 
@@ -270,7 +327,7 @@ rule <k> wBag(C1) diff wBag(C2) => wBag(C1 Diff C2)  <_/k>
 rule <k> if true then CEXP1:CExp else CEXP2:CExp endif => CEXP1 <_/k> [structural]
 rule <k> if false then CEXP1 else CEXP2 endif => CEXP1 <_/k> [structural]
 
-// rule <k> let  X:Id =  CEXP1 in CEXP2  endlet => CEXP2[CEXP1/X] <_/k> [structural]
+rule <k> let  X:Id =  CEXP1 in CEXP2  endlet => CEXP2[CEXP1/X] <_/k> [structural]
 
 // AUXILIARY DEFINITIONS
 

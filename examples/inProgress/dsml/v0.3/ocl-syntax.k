@@ -1,7 +1,7 @@
 require ../../../../k-prelude
 
-
-kmod OCL-SYNTAX is including K  + PL-ID + PL-INT  + PL-BOOL 
+//change names
+kmod OCL-SYNTAX is including K  + PL-ID + PL-INT  + PL-BOOL + PL-STRING
 
 
 // Expressions : Arithmetical
@@ -25,23 +25,29 @@ syntax BExp ::= Bool | Id
                | BExp or BExp        [strict]
                | BExp implies BExp [strict]
                | BExp equiv BExp [strict]
-               | not BExp           [strict]
-               | CExp myin CExp [strict] 
+               | not BExp          [strict]
+               | CExp in CExp [strict] 
                | CExp in* CExp [strict] //strict inclusion
                | CExp notin CExp [strict] // negation of in
                | CExp notin* CExp [strict] // negation of in*
+               | isEmpty ( CExp ) [strict]
                | CExp = CExp 
                | CExp ->forAll( Id  `| BExp ) [strict (1)]
                | CExp ->exists( Id  `| BExp ) [strict (1)]
-               | isEmpty ( CExp ) [strict]
                
-  
+// Expressions : Strings               
+
+syntax SExp ::= String | Id
+                | SExp ++ SExp [strict] 
+
 // Expressions : Collections
  
 syntax CExp ::= empty
-                | allInstances ( Id ) // "basic constructor" for expressions
+                | allInstances ( Id ) 
+                | Id : Id
                 | AExp [strict]
                 | BExp [strict]
+                | SExp [strict]
                 | CExp # Id [strict(1)]  // period generates ambiguity
                 | CExp union CExp [strict]
                 | CExp inter CExp [strict]
@@ -51,37 +57,17 @@ syntax CExp ::= empty
                 | let Id `=   CExp  in CExp endlet [strict(2)]
                 | if BExp then CExp else CExp endif [strict(1)]
 
+// need mixed expressions "CEXP + String" (and many others...)  
+                | CExp ++ SExp [strict]
+                | SExp ++ CExp [strict]
+                | CExp ++ CExp [strict]
+
+
+
 
 // contents of K cell : Collection expressions
 syntax K ::= CExp
 
 
-
-// wrapping bags to KResults
-syntax KResult ::=  wBag( Bag ) [metadata "builtin wrapper"]
-
-// bag items, i.e., values, can be wrapped Booleans, Integers, and other bag items (for instances)
-// we also allow for wrapped identifiers
-//
-
-syntax BagItem ::=  wBool( Bool ) | wInt ( Int ) | wId ( Id ) 
-syntax CExp ::= KResult
-
-/*
-syntax AExp ::= Int
-syntax BExp ::= Bool
-*/
-
-syntax BExp ::= Bool
-syntax AExp ::= KResult
-syntax BExp ::= KResult
-
-//basic types
-syntax Id ::= int | bool | colInt | colBool
-
-// for  attributes in metamodel instances
-syntax K ::= typedElt ( K , Id )
-
-syntax Id ::= x 
 
 endkm
