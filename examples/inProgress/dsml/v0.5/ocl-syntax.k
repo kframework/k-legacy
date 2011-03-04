@@ -1,6 +1,6 @@
 require ../../../../k-prelude
 
-kmod OCL-SYNTAX is including K  + PL-ID + PL-INT  + PL-BOOL + PL-STRING
+kmod OCL-SYNTAX is including PL-ID + PL-INT  + PL-BOOL + PL-STRING
 
 
 
@@ -19,16 +19,14 @@ syntax Exp ::= Id
                | Exp <= Exp        [strict]
                | Exp > Exp         [strict]
                | Exp >= Exp        [strict]
+               | Exp and Exp       [strict(1)]  
+               | Exp or Exp        [strict(1)]
+               | Exp implies Exp [strict(1)]
+               | not Exp [strict]
                | Exp = Exp        [strict]
-               | Exp <> Exp        [strict]
-               | Exp and Exp       [strict]  
-               | Exp or Exp        [strict]
-               | Exp implies Exp [strict]
-               | not Exp          [strict]
                | Exp includes Exp [strict] 
                | Exp excludes Exp [strict] 
                | isEmpty ( Exp ) [strict]
-               | Exp = Exp 
                | Exp ->forAll( Id  `| Exp ) [strict (1)]
                | Exp ->exists( Id  `| Exp ) [strict (1)]
                
@@ -44,8 +42,6 @@ syntax Exp ::= Id
                 | Id : Id
                 | Exp # Id [strict(1)]  // period generates ambiguity
                 | Exp union Exp [strict]
-                | Exp inter Exp [strict]
-                | Exp diff Exp [strict]
                 | Exp ->select( Id `| Exp ) [strict (1)]
                 | Exp ->collect( Id  `| Exp )  [strict (1)]
                 | let Id `=   Exp  in Exp endlet [strict(2)]
@@ -53,11 +49,9 @@ syntax Exp ::= Id
 
 // oclType
 
-                | oclType ( Exp )
+                | oclType ( Exp ) [strict]
 
 
-// contents of K cell : Expressions
-syntax K ::= Exp
 
 
 

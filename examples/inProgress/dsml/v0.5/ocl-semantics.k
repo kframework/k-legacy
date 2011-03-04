@@ -1,177 +1,77 @@
+require ocl-syntax
 require meta-model
+require values
 require substitution
-kmod OCL-SEMANTICS is including META-MODEL  +  SUBSTITUTION 
+kmod OCL-SEMANTICS is including OCL-SYNTAX + META-MODEL + VALUES  +  SUBSTITUTION 
 
-//PRELIMINARIES
-// values
-
-//Collection values shall be wrapped bags of items. Items are wrapped ints, bools, 
-//or pairs (instanceaName : ClassNameinstance names of class name
-//the items are wrapped usng the predefined construction BagItem : K -> BagItem
-
-syntax Collection ::=  val ( Bag ) 
-
-// values of expressions
-syntax Val ::= Collection | Int | Bool | String
 
 syntax Exp ::= Val
-
-// result of evaluation
-syntax KResult ::= Val
-
-
-
-syntax Val ::=  Id 
-syntax Id ::= top | int | bool | string
-
-// basic types
-
-// for  attributes in metamodel instances
-syntax K ::= typedElt ( K , Id )
-
-
-
-// a few structural rule about sets of values
-syntax Bag ::= Bag interBag Bag
-
-rule  (v:BagItem V1:Bag) interBag (v:BagItem V2:Bag) => v (V1 interBag V2) [structural]
-rule (v V1) interBag V2 =>  V1 interBag V2 if notBool (v  in  V2) [structural]
-rule .Bag interBag V:Bag => .Bag [structural]
-rule V interBag .Bag => .Bag [structural]
-
-
-syntax Bag ::= Bag diffBag Bag
-rule (v V1) diffBag (v V2) => V1 diffBag V2 [structural]
-rule (v V1) diffBag V2 => v (V1 diffBag V2) if notBool (v  in  V2) [structural]
-rule .Bag diffBag V:Bag => .Bag [structural]
-rule V diffBag .Bag => V [structural]
-
-
-//  card predicate
-syntax Int ::= card ( Bag )
-rule card(.Bag) => 0 [structural]
-rule card(v:BagItem V:Bag) => 1 +Int card(V) [structural]
-
-
-// subset predicate
-syntax Bool ::= subset ( Bag , Bag ) 
-rule subset(.Bag,  V) => true  [structural]
-rule subset((v:BagItem V), V':Bag) =>
- if (v  in  V') then subset(V,V') else false fi  [structural]
+// contents of K cell : Expressions
+syntax K ::= Exp
 
 //SEMANTICS
 //identifiers evaluate to themselves: no rule needed
 
 // ARITHMETICAL EXPRESSIONS
-// "pure" expressions : only ints
+// Note : most mixed scalar/nonscalar combinations are handled in VALUES module
+// in a generic, operator-independent way
 rule A1:Int + A2:Int => A1 +Int A2  [structural]
 rule A1 * A2 => A1 *Int A2  [structural]
 rule A1 / A2 => A1 /Int A2 if notBool (A2 ==Int 0)  [structural]
 rule (- A1) => -Int A1  [structural]
 
-
-// "hybrid" expressions : ints and/or singleton collections
-rule val(BagItem(A1)) + A2 => val(BagItem(A1 +Int A2)) [structural]
-rule  A1 +  val(BagItem(A2)) => val(BagItem(A1 +Int A2)) [structural]
-rule  val(BagItem(A1)) +  val(BagItem(A2)) => val(BagItem(A1 +Int A2)) [structural]
-rule val(BagItem(A1)) / A2 => val(BagItem(A1 /Int A2)) if notBool (A2 ==Int 0)  [structural]
-rule  A1 /  val(BagItem(A2)) => val(BagItem(A1 /Int A2)) if notBool (A2 ==Int 0) [structural]
-rule  val(BagItem(A1)) /  val(BagItem(A2)) => val(BagItem(A1 /Int A2)) if notBool (A2 ==Int 0) [structural]
-rule (-  val(BagItem(A1))) => val(BagItem(  -Int A1))  [structural]
 rule (val(B:Bag) .size()) => card(B)  [structural]
-
-
+// some mixed scalar/nonscalar non handled in VALUES (not "generic" enough)
+rule (I:Int .size()) => 1  [structural]
+rule (bbb:Bool .size()) => 1  [structural]
+rule (Str:String .size()) => 1  [structural]
 
 // BOOLEAN
-// "pure" expressions 
 rule A1 < A2 => A1 <Int A2  [structural]
 rule A1 <= A2 => A1 <=Int A2  [structural]
 rule A1 > A2 => A1 >Int A2  [structural]
 rule A1 >= A2 => A1 >=Int A2  [structural]
+// because and etc are strict only in first arg
+rule true and E:Exp => E  [structural]
+rule false and E => false  [structural]
+
+rule true or E => true  [structural]
+rule false or E => E  [structural]
+
+rule true implies E => E  [structural]
+rule false implies E => true  [structural]
+
+rule not B1:Bool => notBool B1  [structural]
+
+
+// equality,  for all types
+
+rule (Id1:Id = Id2:Id) => Id1 ==Bool Id2 [structural]
 rule A1 = A2 => A1 ==Int A2  [structural]
-rule A1 <> A2 => notBool (A1 ==Int A2)  [structural]
-rule B1:Bool and B2:Bool => B1 andBool B2  [structural]
-rule B1 or B2 => B1 orBool B2  [structural]
-rule B1 implies B2 => (notBool B1) orBool B2  [structural] 
-rule not B1 => notBool B1  [structural]
-
-// "hybrid"
-rule A1 < val(BagItem(A2)) => val(BagItem(A1 <Int A2))  [structural]
-rule val(BagItem(A1)) < A2 => val(BagItem(A1 <Int A2))  [structural]
-rule val(BagItem(A1)) < val(BagItem(A2)) => val(BagItem(A1 <Int A2))  [structural]
+rule (Str1 = Str2) => Str1 ==Bool Str2 [structural]
+rule (B1 = B2:Bool) =>  B1 ==Bool B2 [structural]
+// for non-scalar types, equality = equality of bags
+// this relies on the invariant that there is at most
+// one pair (instance name, class name) per model.
+rule (val(C1) = val(C2)) => C1 ==Bool C2 [structural]
 
 
-rule A1 <= val(BagItem(A2)) => val(BagItem(A1 <=Int A2))  [structural]
-rule val(BagItem(A1)) <= A2 => val(BagItem(A1 <=Int A2))  [structural]
-rule val(BagItem(A1)) <= val(BagItem(A2)) => val(BagItem(A1 <=Int A2))  [structural]
-
-rule A1 >= val(BagItem(A2)) => val(BagItem(A1 >=Int A2))  [structural]
-rule val(BagItem(A1)) >= A2 => val(BagItem(A1 >=Int A2))  [structural]
-rule val(BagItem(A1)) >= val(BagItem(A2)) => val(BagItem(A1 >=Int A2))  [structural]
-
-rule A1 = val(BagItem(A2)) => val(BagItem(A1 ==Int A2))  [structural]
-rule val(BagItem(A1)) = A2 => val(BagItem(A1 ==Int A2))  [structural]
-rule val(BagItem(A1)) = val(BagItem(A2)) => val(BagItem(A1 ==Int A2))  [structural]
-
-rule A1 <> val(BagItem(A2)) => val(BagItem(notBool(A1 ==Int A2)))  [structural]
-rule val(BagItem(A1))  <> A2  => val(BagItem(notBool(A1 ==Int A2)))  [structural]
-rule val(BagItem(A1))  <>  val(BagItem(A2))  => val(BagItem(notBool(A1 ==Int A2)))  [structural]
-
-
-rule B1:Bool and val(BagItem(B2:Bool)) => val(BagItem(B1 andBool B2))  [structural]
-rule val(BagItem(B1:Bool)) and B2:Bool => val(BagItem(B1 andBool B2))  [structural]
-rule val(BagItem(B1:Bool)) and val(BagItem(B2:Bool)) => val(BagItem(B1 andBool B2))  [structural]
-
-
-rule B1:Bool or val(BagItem(B2:Bool)) => val(BagItem(B1 orBool B2))  [structural]
-rule val(BagItem(B1:Bool)) or B2:Bool => val(BagItem(B1 orBool B2))  [structural]
-rule val(BagItem(B1:Bool)) or val(BagItem(B2:Bool)) => val(BagItem(B1 orBool B2))  [structural]
-
-
-rule B1:Bool implies val(BagItem(B2:Bool)) => val(BagItem( (notBool B1) orBool B2))  [structural]
-rule val(BagItem(B1:Bool)) implies B2:Bool => val(BagItem( (notBool B1) orBool B2))  [structural]
-rule val(BagItem(B1:Bool)) implies val(BagItem(B2:Bool)) => val(BagItem( (notBool B1) orBool B2))  [structural]
-
-
-
-
-
-rule not val(BagItem(B1)) => val(BagItem(notBool B1))  [structural]
-
-
-
-
+//includes, excludes
 rule val(C1:Bag) includes val(C2:Bag) => subset(C2,C1)  [structural]
 rule val(C1:Bag) excludes val(.Bag) => true  [structural]
-rule val(Bg:BagItem C1:Bag) excludes val(Bg:BagItem C2:Bag) => 
-if (Bg in C1) 
+rule val(Bg:BagItem C1:Bag) excludes val(Bg':BagItem C2:Bag) => 
+if (Bg ==Bool Bg') 
 then false 
 else  val(Bg:BagItem C1:Bag) excludes val(C2:Bag) 
 fi  [structural]
-
-// equality.  Note that equality of pairs (instanceName : instanceClass)
-// is enough to ensure that the corresponding instances (incl attributes)
-// are indeed equal, since by hypothesis there is at most one pair 
-// (instanceName : instanceClass) per model
-rule (val(C1) = val(C2)) => C1 ==Bool C2 [structural]
-rule (Str1 = Str2) => Str1 ==Bool Str2 [structural]
-rule (val(BagItem(Str1)) = Str2) => Str1 ==Bool Str2 [structural]
-rule (Str1 = val(BagItem(Str2))) => Str1 ==Bool Str2 [structural]
-
-rule (A1 = A2) =>  A1 ==Int A2 [structural]
-rule (val(BagItem(A1)) = A2) =>  A1 ==Int A2 [structural]
-rule (A1 = val(BagItem(A2))) =>  A1 ==Int A2 [structural]
-
-rule (B1 = B2:Bool) =>  B1 ==Bool B2 [structural]
-rule (val(BagItem(B1)) = B2:Bool) =>  B1 ==Bool B2 [structural]
-rule (B1 = val(BagItem(B2:Bool))) =>  B1 ==Bool B2 [structural]
-
-rule (Id1:Id = Id2:Id) => Id1 ==Bool Id2 [structural]
 
 
 // isEmpty
 rule isEmpty(val(.Bag)) => true [structural]
 rule isEmpty(val(BagIt:BagItem _)) => false  [structural]
+// no need to define isEmpty() for scalars (it should be an error)
+
+
 
 //forAll
 // overloading the substitution operator to  expressions
@@ -194,8 +94,6 @@ endif
 syntax K ::= open ( BagItem )
 rule open(BagItem(kv:K)) => kv [structural]
 
-
-
 //exists 
 rule  <k> val(.Bag) ->exists(_| _) => false <_/k> [structural]
 rule <k>
@@ -208,18 +106,14 @@ endif
 [structural]
 
 //STRINGS
-//"pure"
 rule Str1:String ++ Str2:String => Str1 +String Str2 [structural]
-//"hybrid"
-rule val(BagItem(Str1)) ++ Str2 => val(BagItem(Str1 +String Str2)) [structural]
-rule Str2 ++ val(BagItem(Str1)) => val(BagItem(Str1 +String Str2)) [structural]
-rule val(BagItem(Str1)) ++ val(BagItem(Str2))   => val(BagItem(Str1 +String Str2)) [structural]
+
 
 // COLLECTIONS
 // rule for empty
 rule <k> empty => val(.Bag) <_/k> [structural]
 
-// rules Class .allInstances
+// rules allInstances(Class)
 rule <k> allInstances(Cls:Id) => val(collectInstanceNames(Cls, INST:Bag)) <_/k>  
        //NB one model only!
        <models>
@@ -259,52 +153,59 @@ rule <k> INAME : Cls => val(BagItem(INAME : Cls)) <_/k> [structural]
 
 
 // rule for CExp # Id [strict] 
-// NB all elements in CExp are assumed to have the attribute Id
-// may write a typechecker in the future
+// CARE all elements in CExp are assumed to have the attribute Id!!!
+// may write a typechecker in the future to check that
+
+syntax K ::= * Nat
+kvar N N' : Nat 
+syntax K ::= [  K , K ]
+
+// initialisation : head of computation replaced by *N
+rule <k>  val(REMAINING:Bag) # AT:Id
+           =>
+           * N
+ <_/k>
+// [expression, index to its value]  stored in mem at index N, its value at N+1
+ <mem_> . => (N |->  [ val(REMAINING) # AT:Id  , N +Nat 1]
+              N +Nat 1 |-> val(.Bag))
+ <_/mem>
+ <nextLoc> N => N +Nat 2 </nextLoc> // N updated
+
+
+// loop step : while *N is head of computation
+ rule <k> * N <_/k>
+// perform one step - reduce expression at N, store intermediary result in N+1
+ <mem_> N |->  [(val(BagItem(INAME : Cls) REMAINING:Bag) # AT:Id => val(REMAINING) # AT), N']
+             N' |-> val ( _ (.Bag => B))
+ <_/mem>
+// find INSNAME, Cls instance in model
+ <models>
+ <model_>
+ <instance>
+ <instName> INAME </instName>
+ <ofClass> Cls </ofClass>
+//use its attribute values at AT
+ <attributes_> AT |-> typedElt(val(B:Bag),T:Id) <_/attributes>
+ </instance>
+ <_/model>
+ </models>
+      [structural]
+
+//last step : replace head of computation by result, empty locations in memory
+ rule <k>  * N => val(B) <_/k>
+ <mem_> ((N |-> [(val(.Bag) # AT), N'])
+        (N' |-> val(B))) => .
+ <_/mem>
+ [structural]
 
 
 
-// when finished, the bag of instances whose AT we are trying to get is empty: 
-// take result from temp cell and dissolve
-rule <k> (val(.Bag) # AT) => val(B:Bag) <_/k> <temp> B => . </temp> 
-[structural]
-
-
-
-// when not finished, the bag of instances whose AT we are trying to get is nonempty
-// the value of AT is stored in temp cell
-// CARE : all attribute values should be collections !!!!
-rule <k>  val(BagItem(INAME : Cls) REMAINING:Bag) # AT:Id
-       => val(REMAINING) # AT
- <_/k>   
-<models>
-   <model_>
-      <instance> 
-          <instName> INAME </instName>
-          <ofClass> Cls </ofClass>
-          <attributes_> AT |-> typedElt(val(B:Bag),T:Id) <_/attributes> 
-      </instance> 
-   <_/model>
-</models>
- <temp_> 
-  .Bag => B
- <_/temp>
-[structural]
-
-//including
-
-rule <k> val(C1) Including I:Int  =>  val(C1 BagItem(I)) <_/k> [structural]
-rule <k> val(C1) Including Str1  => val(C1 BagItem(Str1)) <_/k> [structural]
-rule <k> val(C1) Including bbb:Bool =>  val(C1 BagItem(bbb)) <_/k> [structural]
-rule <k> val(C1) Including val(C2)  =>   val(C1) union val(C2) <_/k> [structural]
-
-
-//union, intersection, difference
-// "pure"
+//union: also with scalar types
 rule <k> val(C1) union val(C2)   => val(C1 C2) <_/k> [structural]
-rule <k> val(C1) inter val(C2) => val(C1 interBag C2) <_/k> [structural]
-rule <k> val(C1) diff val(C2) => val(C1 diffBag C2)  <_/k> [structural]
-
+// this case not handled by generic rule for mixing scalar/nonscalar due to circularity
+rule <k> Val1:Val union Val2:Val   => val(BagItem(Val1) BagItem(Val2)) <_/k> 
+if isScalar((Val1)) andBool isScalar((Val2))
+[structural]
 
 
 //collect: by analogy with forAll, exists
@@ -312,56 +213,32 @@ rule <k> val(.Bag) ->collect(_|_) => val(.Bag)  <_/k> [structural]
 
 rule <k>
  val(( BI:BagItem B:Bag)) ->collect( Var:Id | CEXP:Exp ) =>
-   (val(B) ->collect( Var | CEXP))  Including CEXP[open(BI)/Var]
+   (val(B) ->collect( Var | CEXP))  union CEXP[open(BI)/Var]
 <_/k>
  [structural]
 
-syntax Exp ::=  Exp `Including Exp [strict] // add 2nd arg (element) to 1st arg collection
 
+//select : uses the same generic approach for handling intermediary results as #AT
+rule <k>  val(B) ->select( Var| BEXP:Exp )
+           =>
+           * N
+ <_/k>
+ <mem_> . => (N |-> [val(B)->select( Var| BEXP:Exp)  , N +Nat 1]
+              N +Nat 1 |-> val(.Bag))
+ <_/mem>
+ <nextLoc> N => N +Nat 2 </nextLoc>
 
-//select
-// base case: when there is nothing select: take result from temp cell
+ rule <k> * N <_/k>
+ <mem_> N |->  [val(BI B)->select( Var| BEXP:Exp) => (val(B) ->select( Var| BEXP:Exp)), N']
+        N'|->  (EXP:Exp => EXP union (if BEXP[open(BI)/Var] then val(BI) else val(.Bag) endif))
+ <_/mem>
+      [structural]
 
-rule <k>
-val(.Bag) ->select(_|_) => val(B) <_/k>
-<comp>
- B => .
-</comp>
-[structural]
-
-
-syntax Id ::= toto1 | toto2
-
-
-syntax K ::= `@temp ( K ) [strict]
-
-//inductive step : place the result in wrapped form at the head of the computation
-
-
-rule <k>( val(( BI B)) ->select( Var| BEXP:Exp )) => 
-@temp(if BEXP[open(BI)/Var] then val(BI) else val(.Bag) endif ) 
-~> (val(B) ->select( Var | BEXP))
-<_/k>
-//[structural]
-
-
-/* 
-rule <k>( val(( BI1:BagItem BI2:BagItem B)) ->select( Var| BEXP:Exp )) => 
-@temp(if BEXP[open(BI2)/Var] then val(BI2) else val(.Bag) endif ) ~> toto1 ~>
-@temp(if BEXP[open(BI1)/Var] then val(BI1) else val(.Bag) endif )  
-~> (val(B) ->select( Var | BEXP))
-<_/k>
-// [structural]
-*/
-// and when it's evaluated, place result in temp cell
-
-
-rule
-<k> @temp(val(BI))  => . <_/k>
-<comp_> 
-. => BI
-<_/comp>
-//[structural]
+ rule <k>  * N => EXP <_/k>
+ <mem_> ((N |-> [val(.Bag)->select(Var| BEXP:Exp), N'])
+        (N' |-> EXP)) => .
+ <_/mem>
+ [structural]
 
 
 
@@ -371,22 +248,15 @@ rule <k> let  X:Id =  CEXP1 in CEXP2  endlet => CEXP2[CEXP1/X] <_/k> [structural
 // if
 rule <k> if true then CEXP1:Exp else CEXP2:Exp endif => CEXP1 <_/k> [structural]
 rule <k> if false then CEXP1 else CEXP2 endif => CEXP2 <_/k> [structural]
+
+// condition can be a non-scalar (non handled by generic rules in VALUES)
 rule <k> if val(BagItem(true)) then CEXP1:Exp else CEXP2:Exp endif => CEXP1 <_/k> [structural]
 rule <k> if val(BagItem(false)) then CEXP1 else CEXP2 endif => CEXP2 <_/k> [structural]
 
-
-
-
-
-
-
-
-//oclType
-// for ariyhmetical, boolean, string expressions: just returns their basic type
+//oclType : computes the type of an already evaluated expression
+// for arithmetical, boolean, string expressions: just returns their basic type
 // for collections: computes the lub (least upper bound) of types of elements inside
-syntax  Exp ::= oclType ( Exp ) [strict]
 
- 
 // arithmetical, boolean, string
 rule oclType(A1) => int [structural]
 rule oclType(B1) => bool [structural]
@@ -400,45 +270,31 @@ rule oclType(val(BagItem (A1))) => int  [structural]
 rule oclType(val(BagItem (B1))) => bool  [structural]
 rule oclType(val(BagItem (Str1))) => string  [structural]
 
+// collections of int, bool, string
 rule  oclType(val(BagItem (A1) BagItem(A2) B:Bag)) =>
       oclType(val(BagItem(A2) B:Bag)) [structural]
-
 rule  oclType(val(BagItem (B1) BagItem(B2) B:Bag)) =>
       oclType(val(BagItem(B2) B:Bag)) [structural]
-
 rule  oclType(val(BagItem (Str1) BagItem(Str2) B:Bag)) =>
       oclType(val(BagItem(Str2) B:Bag)) [structural]
 
+//mixtures : return top
+rule  oclType(val(BagItem (A1) BagItem(B1) _)) => top [structural]
+rule  oclType(val(BagItem (A1) BagItem(Str1) _)) => top [structural]
+rule  oclType(val(BagItem (A1) BagItem(_ : _) _)) => top [structural]
+rule  oclType(val(BagItem (B1) BagItem(Str1) _)) => top [structural]
+rule  oclType(val(BagItem (B1) BagItem(_ : _) _)) => top [structural]
+rule  oclType(val(BagItem (Str1) BagItem(_ : _) _)) => top [structural]
 
-rule  oclType(val(BagItem (A1) BagItem(B1) B:Bag)) =>
-      top [structural]
-
-rule  oclType(val(BagItem (A1) BagItem(Str1) B:Bag)) =>
-      top [structural]
-
-rule  oclType(val(BagItem (A1) BagItem(_ : _) B:Bag)) =>
-      top [structural]
-
-rule  oclType(val(BagItem (B1) BagItem(Str1) B:Bag)) =>
-      top [structural]
-
-rule  oclType(val(BagItem (B1) BagItem(_ : _) B:Bag)) =>
-      top [structural]
-
+// isntances
 rule oclType(val(BagItem (_ : Cls))) => Cls  [structural]
-
-
 rule oclType (val(BagItem (_: Cls) BagItem (Ins2:Id : Cls)  B:Bag))
  => oclType (val(BagItem (Ins2 : Cls)  B:Bag))  [structural]
-
-
-
 // for now, the lub of two distinct classes is just "top"
 // will change in the future when we add inheritance
 rule oclType (val(BagItem (_ : Cls) BagItem (_ : Cls':Id)  _))
 => top if notBool (Cls ==Bool Cls')  [structural]
-
-
+// and finally, empty
 rule oclType(val(.Bag)) => top [structural]
  
 endkm
