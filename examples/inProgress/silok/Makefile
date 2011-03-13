@@ -4,15 +4,23 @@ KCOMPILE ?= ../../../tools/kompile.pl
 
 # this is the name of the main maude module 
 
- LANGUAGE_NAME = SILOK-CONCRETE-SEMANTICS
+# LANGUAGE_NAME = SILOK-CONCRETE-SEMANTICS
+ LANGUAGE_NAME = SILOK-ABSTRACT-SEMANTICS
+# LANGUAGE_NAME = SILOK-SYMBOLIC-SEMANTICS
 
 # this are all interesting modules (used to latexify)
-LANGUAGE_MODULES = SILOK-SYNTAX SILOK-BASIC-SEMANTICS SILOK-CONCRETE-SEMANTICS 
+# LANGUAGE_MODULES = SILOK-SYNTAX SILOK-BASIC-SEMANTICS SILOK-CONCRETE-SEMANTICS 
+ LANGUAGE_MODULES = SILOK-SYNTAX SILOK-BASIC-SEMANTICS SILOK-ABSTRACT-SEMANTICS 
+# LANGUAGE_MODULES = SILOK-SYNTAX SILOK-BASIC-SEMANTICS SILOK-SYMBOLIC-SEMANTICS 
 
 LATEX_STYLE = bb
 
 # this is the basename of the main file
-MAIN_FILE = silok-concrete-semantics
+# MAIN_FILE = silok-concrete-semantics
+# MAIN_FILE = silok-abstract-semantics
+# MAIN_FILE = silok-symbolic-semantics
+# MAIN_FILE = silok-abstract-semantics-dl
+ MAIN_FILE = silok-abstract-semantics-refactored
 
 # these are additional files that when changed will force rebuilding the semantics
 #ADDITIONAL_DEPENDENCIES = 
