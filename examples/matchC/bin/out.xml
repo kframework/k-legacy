@@ -5,7 +5,7 @@
    <term op="prog" kind="[List`{K`},Builtins]"/>
   </term>
  </rewrite>
- <result total-rewrites="100475" real-time-ms="138" cpu-time-ms="137" rewrites-per-second="728190">
+ <result total-rewrites="100483" real-time-ms="138" cpu-time-ms="137" rewrites-per-second="728248">
   <term op="&lt;_>_&lt;/_>" sort="BagItem">
    <term op="top" sort="CellLabel"/>
    <term op="__" sort="NeBag">
@@ -189,7 +189,7 @@
             <term op="&lt;_>_&lt;/_>" sort="BagItem">
              <term op="stack" sort="CellLabel"/>
              <term op="!ListItem" sort="FEListItem">
-              <term op="&quot;configVar5_stack&quot;" sort="String"/>
+              <term op="&quot;stack_frame_5&quot;" sort="String"/>
              </term>
              <term op="stack" sort="CellLabel"/>
             </term>
@@ -394,7 +394,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar5_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_5&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -415,7 +415,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar5_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_5&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -630,7 +630,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar6_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_6&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -651,7 +651,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar6_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_6&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -682,7 +682,7 @@
                  <term op="'cleanFrameSubst`(_`)" sort="KProperLabel"/>
                  <term op="_`(_`)" sort="KResult">
                   <term op="List`{MathObj++`}_" sort="KResultLabel">
-                   <term op="&quot;configVar6&quot;" sort="String"/>
+                   <term op="&quot;frame_6&quot;" sort="String"/>
                   </term>
                   <term op=".List`{K`}" sort="List`{KResult`}"/>
                  </term>
@@ -869,7 +869,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar7_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_7&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -890,7 +890,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar7_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_7&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -921,7 +921,7 @@
                  <term op="'cleanFrameSubst`(_`)" sort="KProperLabel"/>
                  <term op="_`(_`)" sort="KResult">
                   <term op="List`{MathObj++`}_" sort="KResultLabel">
-                   <term op="&quot;configVar7&quot;" sort="String"/>
+                   <term op="&quot;frame_7&quot;" sort="String"/>
                   </term>
                   <term op=".List`{K`}" sort="List`{KResult`}"/>
                  </term>
@@ -1059,7 +1059,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar0_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -1080,7 +1080,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar0_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -1183,7 +1183,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar0_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -1204,7 +1204,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar0_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -1323,7 +1323,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar1_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_1&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -1344,7 +1344,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar1_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_1&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -1653,7 +1653,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -1674,7 +1674,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -1779,7 +1779,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -1800,7 +1800,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -2009,14 +2009,14 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="out" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar3_out&quot;" sort="String"/>
+                        <term op="&quot;out_frame_3&quot;" sort="String"/>
                        </term>
                        <term op="out" sort="CellLabel"/>
                       </term>
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar3_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_3&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -2416,7 +2416,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="in" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar4_in&quot;" sort="String"/>
+                        <term op="&quot;in_frame_4&quot;" sort="String"/>
                        </term>
                        <term op="in" sort="CellLabel"/>
                       </term>
@@ -2433,7 +2433,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar4_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_4&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -2674,7 +2674,7 @@
             <term op="&lt;_>_&lt;/_>" sort="BagItem">
              <term op="heap" sort="CellLabel"/>
              <term op="!MapItem" sort="FEMapItem">
-              <term op="&quot;configVar5_heap&quot;" sort="String"/>
+              <term op="&quot;heap_frame_5&quot;" sort="String"/>
              </term>
              <term op="heap" sort="CellLabel"/>
             </term>
@@ -2835,7 +2835,7 @@
               </term>
               <term op="_&lt;-_" sort="SubstItem">
                <term op="!ListItem" sort="FEListItem">
-                <term op="&quot;configVar3_out&quot;" sort="String"/>
+                <term op="&quot;out_frame_3&quot;" sort="String"/>
                </term>
                <term op="stream" sort="ListItem">
                 <term op="Out" sort="FreeSeq"/>
@@ -2843,16 +2843,16 @@
               </term>
               <term op="_&lt;-_" sort="SubstItem">
                <term op="!ListItem" sort="FEListItem">
-                <term op="&quot;configVar3_stack&quot;" sort="String"/>
+                <term op="&quot;stack_frame_3&quot;" sort="String"/>
                </term>
                <term op="FreeListItem" sort="FreeListItem">
-                <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                <term op="&quot;stack_frame_2&quot;" sort="String"/>
                </term>
               </term>
               <term op="_&lt;-_" sort="SubstItem">
                <term op="!H" sort="FEMapItem"/>
                <term op="FreeMapItem" sort="FreeMapItem">
-                <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                <term op="&quot;heap_frame_2&quot;" sort="String"/>
                </term>
               </term>
              </term>
@@ -3070,14 +3070,14 @@
                     <term op="&lt;_>_&lt;/_>" sort="BagItem">
                      <term op="out" sort="CellLabel"/>
                      <term op="!ListItem" sort="FEListItem">
-                      <term op="&quot;configVar3_out&quot;" sort="String"/>
+                      <term op="&quot;out_frame_3&quot;" sort="String"/>
                      </term>
                      <term op="out" sort="CellLabel"/>
                     </term>
                     <term op="&lt;_>_&lt;/_>" sort="BagItem">
                      <term op="stack" sort="CellLabel"/>
                      <term op="!ListItem" sort="FEListItem">
-                      <term op="&quot;configVar3_stack&quot;" sort="String"/>
+                      <term op="&quot;stack_frame_3&quot;" sort="String"/>
                      </term>
                      <term op="stack" sort="CellLabel"/>
                     </term>
@@ -3223,7 +3223,7 @@
             <term op="&lt;_>_&lt;/_>" sort="BagItem">
              <term op="stack" sort="CellLabel"/>
              <term op="FreeListItem" sort="FreeListItem">
-              <term op="&quot;configVar2_stack&quot;" sort="String"/>
+              <term op="&quot;stack_frame_2&quot;" sort="String"/>
              </term>
              <term op="stack" sort="CellLabel"/>
             </term>
@@ -3500,7 +3500,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar5_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_5&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -3521,7 +3521,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar5_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_5&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -3736,7 +3736,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar6_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_6&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -3757,7 +3757,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar6_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_6&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -3788,7 +3788,7 @@
                  <term op="'cleanFrameSubst`(_`)" sort="KProperLabel"/>
                  <term op="_`(_`)" sort="KResult">
                   <term op="List`{MathObj++`}_" sort="KResultLabel">
-                   <term op="&quot;configVar6&quot;" sort="String"/>
+                   <term op="&quot;frame_6&quot;" sort="String"/>
                   </term>
                   <term op=".List`{K`}" sort="List`{KResult`}"/>
                  </term>
@@ -3975,7 +3975,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar7_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_7&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -3996,7 +3996,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar7_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_7&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -4027,7 +4027,7 @@
                  <term op="'cleanFrameSubst`(_`)" sort="KProperLabel"/>
                  <term op="_`(_`)" sort="KResult">
                   <term op="List`{MathObj++`}_" sort="KResultLabel">
-                   <term op="&quot;configVar7&quot;" sort="String"/>
+                   <term op="&quot;frame_7&quot;" sort="String"/>
                   </term>
                   <term op=".List`{K`}" sort="List`{KResult`}"/>
                  </term>
@@ -4165,7 +4165,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar0_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -4186,7 +4186,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar0_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -4289,7 +4289,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar0_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -4310,7 +4310,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar0_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -4429,7 +4429,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar1_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_1&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -4450,7 +4450,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar1_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_1&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -4759,7 +4759,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -4780,7 +4780,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -4885,7 +4885,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -4906,7 +4906,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -5115,14 +5115,14 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="out" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar3_out&quot;" sort="String"/>
+                        <term op="&quot;out_frame_3&quot;" sort="String"/>
                        </term>
                        <term op="out" sort="CellLabel"/>
                       </term>
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar3_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_3&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -5522,7 +5522,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="in" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar4_in&quot;" sort="String"/>
+                        <term op="&quot;in_frame_4&quot;" sort="String"/>
                        </term>
                        <term op="in" sort="CellLabel"/>
                       </term>
@@ -5539,7 +5539,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar4_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_4&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -5781,7 +5781,7 @@
              <term op="heap" sort="CellLabel"/>
              <term op="__" sort="NeMap">
               <term op="FreeMapItem" sort="FreeMapItem">
-               <term op="&quot;configVar2_heap&quot;" sort="String"/>
+               <term op="&quot;heap_frame_2&quot;" sort="String"/>
               </term>
               <term op="_`(_`)`(_`)" sort="MapItem">
                <term op="list" sort="HeapLabel"/>
@@ -6052,7 +6052,7 @@
               </term>
               <term op="_&lt;-_" sort="SubstItem">
                <term op="!ListItem" sort="FEListItem">
-                <term op="&quot;configVar3_out&quot;" sort="String"/>
+                <term op="&quot;out_frame_3&quot;" sort="String"/>
                </term>
                <term op="stream" sort="ListItem">
                 <term op="Out" sort="FreeSeq"/>
@@ -6060,16 +6060,16 @@
               </term>
               <term op="_&lt;-_" sort="SubstItem">
                <term op="!ListItem" sort="FEListItem">
-                <term op="&quot;configVar3_stack&quot;" sort="String"/>
+                <term op="&quot;stack_frame_3&quot;" sort="String"/>
                </term>
                <term op="FreeListItem" sort="FreeListItem">
-                <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                <term op="&quot;stack_frame_2&quot;" sort="String"/>
                </term>
               </term>
               <term op="_&lt;-_" sort="SubstItem">
                <term op="!H" sort="FEMapItem"/>
                <term op="FreeMapItem" sort="FreeMapItem">
-                <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                <term op="&quot;heap_frame_2&quot;" sort="String"/>
                </term>
               </term>
              </term>
@@ -6161,7 +6161,7 @@
                     <term op="&lt;_>_&lt;/_>" sort="BagItem">
                      <term op="stack" sort="CellLabel"/>
                      <term op="FreeListItem" sort="FreeListItem">
-                      <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                      <term op="&quot;stack_frame_2&quot;" sort="String"/>
                      </term>
                      <term op="stack" sort="CellLabel"/>
                     </term>
@@ -6423,7 +6423,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar5_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_5&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -6444,7 +6444,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="heap" sort="CellLabel"/>
                                <term op="!MapItem" sort="FEMapItem">
-                                <term op="&quot;configVar5_heap&quot;" sort="String"/>
+                                <term op="&quot;heap_frame_5&quot;" sort="String"/>
                                </term>
                                <term op="heap" sort="CellLabel"/>
                               </term>
@@ -6659,7 +6659,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar6_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_6&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -6680,7 +6680,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="heap" sort="CellLabel"/>
                                <term op="!MapItem" sort="FEMapItem">
-                                <term op="&quot;configVar6_heap&quot;" sort="String"/>
+                                <term op="&quot;heap_frame_6&quot;" sort="String"/>
                                </term>
                                <term op="heap" sort="CellLabel"/>
                               </term>
@@ -6711,7 +6711,7 @@
                          <term op="'cleanFrameSubst`(_`)" sort="KProperLabel"/>
                          <term op="_`(_`)" sort="KResult">
                           <term op="List`{MathObj++`}_" sort="KResultLabel">
-                           <term op="&quot;configVar6&quot;" sort="String"/>
+                           <term op="&quot;frame_6&quot;" sort="String"/>
                           </term>
                           <term op=".List`{K`}" sort="List`{KResult`}"/>
                          </term>
@@ -6898,7 +6898,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar7_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_7&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -6919,7 +6919,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="heap" sort="CellLabel"/>
                                <term op="!MapItem" sort="FEMapItem">
-                                <term op="&quot;configVar7_heap&quot;" sort="String"/>
+                                <term op="&quot;heap_frame_7&quot;" sort="String"/>
                                </term>
                                <term op="heap" sort="CellLabel"/>
                               </term>
@@ -6950,7 +6950,7 @@
                          <term op="'cleanFrameSubst`(_`)" sort="KProperLabel"/>
                          <term op="_`(_`)" sort="KResult">
                           <term op="List`{MathObj++`}_" sort="KResultLabel">
-                           <term op="&quot;configVar7&quot;" sort="String"/>
+                           <term op="&quot;frame_7&quot;" sort="String"/>
                           </term>
                           <term op=".List`{K`}" sort="List`{KResult`}"/>
                          </term>
@@ -7088,7 +7088,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="stack" sort="CellLabel"/>
                                 <term op="FreeListItem" sort="FreeListItem">
-                                 <term op="&quot;configVar0_stack&quot;" sort="String"/>
+                                 <term op="&quot;stack_frame_0&quot;" sort="String"/>
                                 </term>
                                 <term op="stack" sort="CellLabel"/>
                                </term>
@@ -7109,7 +7109,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="heap" sort="CellLabel"/>
                                 <term op="FreeMapItem" sort="FreeMapItem">
-                                 <term op="&quot;configVar0_heap&quot;" sort="String"/>
+                                 <term op="&quot;heap_frame_0&quot;" sort="String"/>
                                 </term>
                                 <term op="heap" sort="CellLabel"/>
                                </term>
@@ -7212,7 +7212,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="stack" sort="CellLabel"/>
                                 <term op="FreeListItem" sort="FreeListItem">
-                                 <term op="&quot;configVar0_stack&quot;" sort="String"/>
+                                 <term op="&quot;stack_frame_0&quot;" sort="String"/>
                                 </term>
                                 <term op="stack" sort="CellLabel"/>
                                </term>
@@ -7233,7 +7233,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="heap" sort="CellLabel"/>
                                 <term op="FreeMapItem" sort="FreeMapItem">
-                                 <term op="&quot;configVar0_heap&quot;" sort="String"/>
+                                 <term op="&quot;heap_frame_0&quot;" sort="String"/>
                                 </term>
                                 <term op="heap" sort="CellLabel"/>
                                </term>
@@ -7352,7 +7352,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar1_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_1&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -7373,7 +7373,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="heap" sort="CellLabel"/>
                                <term op="!MapItem" sort="FEMapItem">
-                                <term op="&quot;configVar1_heap&quot;" sort="String"/>
+                                <term op="&quot;heap_frame_1&quot;" sort="String"/>
                                </term>
                                <term op="heap" sort="CellLabel"/>
                               </term>
@@ -7682,7 +7682,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="stack" sort="CellLabel"/>
                                 <term op="FreeListItem" sort="FreeListItem">
-                                 <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                                 <term op="&quot;stack_frame_2&quot;" sort="String"/>
                                 </term>
                                 <term op="stack" sort="CellLabel"/>
                                </term>
@@ -7703,7 +7703,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="heap" sort="CellLabel"/>
                                 <term op="FreeMapItem" sort="FreeMapItem">
-                                 <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                                 <term op="&quot;heap_frame_2&quot;" sort="String"/>
                                 </term>
                                 <term op="heap" sort="CellLabel"/>
                                </term>
@@ -7808,7 +7808,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="stack" sort="CellLabel"/>
                                 <term op="FreeListItem" sort="FreeListItem">
-                                 <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                                 <term op="&quot;stack_frame_2&quot;" sort="String"/>
                                 </term>
                                 <term op="stack" sort="CellLabel"/>
                                </term>
@@ -7829,7 +7829,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="heap" sort="CellLabel"/>
                                 <term op="FreeMapItem" sort="FreeMapItem">
-                                 <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                                 <term op="&quot;heap_frame_2&quot;" sort="String"/>
                                 </term>
                                 <term op="heap" sort="CellLabel"/>
                                </term>
@@ -8038,14 +8038,14 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="out" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar3_out&quot;" sort="String"/>
+                                <term op="&quot;out_frame_3&quot;" sort="String"/>
                                </term>
                                <term op="out" sort="CellLabel"/>
                               </term>
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar3_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_3&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -8445,7 +8445,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="in" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar4_in&quot;" sort="String"/>
+                                <term op="&quot;in_frame_4&quot;" sort="String"/>
                                </term>
                                <term op="in" sort="CellLabel"/>
                               </term>
@@ -8462,7 +8462,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar4_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_4&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -8704,7 +8704,7 @@
                      <term op="heap" sort="CellLabel"/>
                      <term op="__" sort="NeMap">
                       <term op="FreeMapItem" sort="FreeMapItem">
-                       <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                       <term op="&quot;heap_frame_2&quot;" sort="String"/>
                       </term>
                       <term op="_`(_`)`(_`)" sort="MapItem">
                        <term op="list" sort="HeapLabel"/>
@@ -8975,7 +8975,7 @@
             <term op="&lt;_>_&lt;/_>" sort="BagItem">
              <term op="stack" sort="CellLabel"/>
              <term op="FreeListItem" sort="FreeListItem">
-              <term op="&quot;configVar2_stack&quot;" sort="String"/>
+              <term op="&quot;stack_frame_2&quot;" sort="String"/>
              </term>
              <term op="stack" sort="CellLabel"/>
             </term>
@@ -9257,7 +9257,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar5_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_5&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -9278,7 +9278,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar5_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_5&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -9493,7 +9493,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar6_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_6&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -9514,7 +9514,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar6_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_6&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -9545,7 +9545,7 @@
                  <term op="'cleanFrameSubst`(_`)" sort="KProperLabel"/>
                  <term op="_`(_`)" sort="KResult">
                   <term op="List`{MathObj++`}_" sort="KResultLabel">
-                   <term op="&quot;configVar6&quot;" sort="String"/>
+                   <term op="&quot;frame_6&quot;" sort="String"/>
                   </term>
                   <term op=".List`{K`}" sort="List`{KResult`}"/>
                  </term>
@@ -9732,7 +9732,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar7_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_7&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -9753,7 +9753,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar7_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_7&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -9784,7 +9784,7 @@
                  <term op="'cleanFrameSubst`(_`)" sort="KProperLabel"/>
                  <term op="_`(_`)" sort="KResult">
                   <term op="List`{MathObj++`}_" sort="KResultLabel">
-                   <term op="&quot;configVar7&quot;" sort="String"/>
+                   <term op="&quot;frame_7&quot;" sort="String"/>
                   </term>
                   <term op=".List`{K`}" sort="List`{KResult`}"/>
                  </term>
@@ -9922,7 +9922,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar0_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -9943,7 +9943,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar0_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -10046,7 +10046,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar0_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -10067,7 +10067,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar0_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -10186,7 +10186,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar1_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_1&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -10207,7 +10207,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar1_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_1&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -10516,7 +10516,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -10537,7 +10537,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -10642,7 +10642,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -10663,7 +10663,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -10872,14 +10872,14 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="out" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar3_out&quot;" sort="String"/>
+                        <term op="&quot;out_frame_3&quot;" sort="String"/>
                        </term>
                        <term op="out" sort="CellLabel"/>
                       </term>
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar3_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_3&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -11279,7 +11279,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="in" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar4_in&quot;" sort="String"/>
+                        <term op="&quot;in_frame_4&quot;" sort="String"/>
                        </term>
                        <term op="in" sort="CellLabel"/>
                       </term>
@@ -11296,7 +11296,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar4_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_4&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -11538,7 +11538,7 @@
              <term op="heap" sort="CellLabel"/>
              <term op="__" sort="NeMap">
               <term op="FreeMapItem" sort="FreeMapItem">
-               <term op="&quot;configVar2_heap&quot;" sort="String"/>
+               <term op="&quot;heap_frame_2&quot;" sort="String"/>
               </term>
               <term op="_`(_`)`(_`)" sort="MapItem">
                <term op="list" sort="HeapLabel"/>
@@ -11879,7 +11879,7 @@
               </term>
               <term op="_&lt;-_" sort="SubstItem">
                <term op="!ListItem" sort="FEListItem">
-                <term op="&quot;configVar3_out&quot;" sort="String"/>
+                <term op="&quot;out_frame_3&quot;" sort="String"/>
                </term>
                <term op="stream" sort="ListItem">
                 <term op="Out" sort="FreeSeq"/>
@@ -11887,16 +11887,16 @@
               </term>
               <term op="_&lt;-_" sort="SubstItem">
                <term op="!ListItem" sort="FEListItem">
-                <term op="&quot;configVar3_stack&quot;" sort="String"/>
+                <term op="&quot;stack_frame_3&quot;" sort="String"/>
                </term>
                <term op="FreeListItem" sort="FreeListItem">
-                <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                <term op="&quot;stack_frame_2&quot;" sort="String"/>
                </term>
               </term>
               <term op="_&lt;-_" sort="SubstItem">
                <term op="!H" sort="FEMapItem"/>
                <term op="FreeMapItem" sort="FreeMapItem">
-                <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                <term op="&quot;heap_frame_2&quot;" sort="String"/>
                </term>
               </term>
              </term>
@@ -11977,7 +11977,7 @@
                     <term op="&lt;_>_&lt;/_>" sort="BagItem">
                      <term op="stack" sort="CellLabel"/>
                      <term op="FreeListItem" sort="FreeListItem">
-                      <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                      <term op="&quot;stack_frame_2&quot;" sort="String"/>
                      </term>
                      <term op="stack" sort="CellLabel"/>
                     </term>
@@ -12239,7 +12239,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar5_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_5&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -12260,7 +12260,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="heap" sort="CellLabel"/>
                                <term op="!MapItem" sort="FEMapItem">
-                                <term op="&quot;configVar5_heap&quot;" sort="String"/>
+                                <term op="&quot;heap_frame_5&quot;" sort="String"/>
                                </term>
                                <term op="heap" sort="CellLabel"/>
                               </term>
@@ -12475,7 +12475,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar6_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_6&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -12496,7 +12496,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="heap" sort="CellLabel"/>
                                <term op="!MapItem" sort="FEMapItem">
-                                <term op="&quot;configVar6_heap&quot;" sort="String"/>
+                                <term op="&quot;heap_frame_6&quot;" sort="String"/>
                                </term>
                                <term op="heap" sort="CellLabel"/>
                               </term>
@@ -12527,7 +12527,7 @@
                          <term op="'cleanFrameSubst`(_`)" sort="KProperLabel"/>
                          <term op="_`(_`)" sort="KResult">
                           <term op="List`{MathObj++`}_" sort="KResultLabel">
-                           <term op="&quot;configVar6&quot;" sort="String"/>
+                           <term op="&quot;frame_6&quot;" sort="String"/>
                           </term>
                           <term op=".List`{K`}" sort="List`{KResult`}"/>
                          </term>
@@ -12714,7 +12714,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar7_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_7&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -12735,7 +12735,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="heap" sort="CellLabel"/>
                                <term op="!MapItem" sort="FEMapItem">
-                                <term op="&quot;configVar7_heap&quot;" sort="String"/>
+                                <term op="&quot;heap_frame_7&quot;" sort="String"/>
                                </term>
                                <term op="heap" sort="CellLabel"/>
                               </term>
@@ -12766,7 +12766,7 @@
                          <term op="'cleanFrameSubst`(_`)" sort="KProperLabel"/>
                          <term op="_`(_`)" sort="KResult">
                           <term op="List`{MathObj++`}_" sort="KResultLabel">
-                           <term op="&quot;configVar7&quot;" sort="String"/>
+                           <term op="&quot;frame_7&quot;" sort="String"/>
                           </term>
                           <term op=".List`{K`}" sort="List`{KResult`}"/>
                          </term>
@@ -12904,7 +12904,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="stack" sort="CellLabel"/>
                                 <term op="FreeListItem" sort="FreeListItem">
-                                 <term op="&quot;configVar0_stack&quot;" sort="String"/>
+                                 <term op="&quot;stack_frame_0&quot;" sort="String"/>
                                 </term>
                                 <term op="stack" sort="CellLabel"/>
                                </term>
@@ -12925,7 +12925,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="heap" sort="CellLabel"/>
                                 <term op="FreeMapItem" sort="FreeMapItem">
-                                 <term op="&quot;configVar0_heap&quot;" sort="String"/>
+                                 <term op="&quot;heap_frame_0&quot;" sort="String"/>
                                 </term>
                                 <term op="heap" sort="CellLabel"/>
                                </term>
@@ -13028,7 +13028,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="stack" sort="CellLabel"/>
                                 <term op="FreeListItem" sort="FreeListItem">
-                                 <term op="&quot;configVar0_stack&quot;" sort="String"/>
+                                 <term op="&quot;stack_frame_0&quot;" sort="String"/>
                                 </term>
                                 <term op="stack" sort="CellLabel"/>
                                </term>
@@ -13049,7 +13049,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="heap" sort="CellLabel"/>
                                 <term op="FreeMapItem" sort="FreeMapItem">
-                                 <term op="&quot;configVar0_heap&quot;" sort="String"/>
+                                 <term op="&quot;heap_frame_0&quot;" sort="String"/>
                                 </term>
                                 <term op="heap" sort="CellLabel"/>
                                </term>
@@ -13168,7 +13168,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar1_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_1&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -13189,7 +13189,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="heap" sort="CellLabel"/>
                                <term op="!MapItem" sort="FEMapItem">
-                                <term op="&quot;configVar1_heap&quot;" sort="String"/>
+                                <term op="&quot;heap_frame_1&quot;" sort="String"/>
                                </term>
                                <term op="heap" sort="CellLabel"/>
                               </term>
@@ -13498,7 +13498,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="stack" sort="CellLabel"/>
                                 <term op="FreeListItem" sort="FreeListItem">
-                                 <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                                 <term op="&quot;stack_frame_2&quot;" sort="String"/>
                                 </term>
                                 <term op="stack" sort="CellLabel"/>
                                </term>
@@ -13519,7 +13519,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="heap" sort="CellLabel"/>
                                 <term op="FreeMapItem" sort="FreeMapItem">
-                                 <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                                 <term op="&quot;heap_frame_2&quot;" sort="String"/>
                                 </term>
                                 <term op="heap" sort="CellLabel"/>
                                </term>
@@ -13624,7 +13624,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="stack" sort="CellLabel"/>
                                 <term op="FreeListItem" sort="FreeListItem">
-                                 <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                                 <term op="&quot;stack_frame_2&quot;" sort="String"/>
                                 </term>
                                 <term op="stack" sort="CellLabel"/>
                                </term>
@@ -13645,7 +13645,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="heap" sort="CellLabel"/>
                                 <term op="FreeMapItem" sort="FreeMapItem">
-                                 <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                                 <term op="&quot;heap_frame_2&quot;" sort="String"/>
                                 </term>
                                 <term op="heap" sort="CellLabel"/>
                                </term>
@@ -13854,14 +13854,14 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="out" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar3_out&quot;" sort="String"/>
+                                <term op="&quot;out_frame_3&quot;" sort="String"/>
                                </term>
                                <term op="out" sort="CellLabel"/>
                               </term>
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar3_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_3&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -14261,7 +14261,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="in" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar4_in&quot;" sort="String"/>
+                                <term op="&quot;in_frame_4&quot;" sort="String"/>
                                </term>
                                <term op="in" sort="CellLabel"/>
                               </term>
@@ -14278,7 +14278,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar4_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_4&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -14520,7 +14520,7 @@
                      <term op="heap" sort="CellLabel"/>
                      <term op="__" sort="NeMap">
                       <term op="FreeMapItem" sort="FreeMapItem">
-                       <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                       <term op="&quot;heap_frame_2&quot;" sort="String"/>
                       </term>
                       <term op="_`(_`)`(_`)" sort="MapItem">
                        <term op="list" sort="HeapLabel"/>
@@ -14810,7 +14810,7 @@
             <term op="&lt;_>_&lt;/_>" sort="BagItem">
              <term op="stack" sort="CellLabel"/>
              <term op="FreeListItem" sort="FreeListItem">
-              <term op="&quot;configVar2_stack&quot;" sort="String"/>
+              <term op="&quot;stack_frame_2&quot;" sort="String"/>
              </term>
              <term op="stack" sort="CellLabel"/>
             </term>
@@ -15092,7 +15092,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar5_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_5&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -15113,7 +15113,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar5_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_5&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -15328,7 +15328,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar6_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_6&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -15349,7 +15349,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar6_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_6&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -15380,7 +15380,7 @@
                  <term op="'cleanFrameSubst`(_`)" sort="KProperLabel"/>
                  <term op="_`(_`)" sort="KResult">
                   <term op="List`{MathObj++`}_" sort="KResultLabel">
-                   <term op="&quot;configVar6&quot;" sort="String"/>
+                   <term op="&quot;frame_6&quot;" sort="String"/>
                   </term>
                   <term op=".List`{K`}" sort="List`{KResult`}"/>
                  </term>
@@ -15567,7 +15567,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar7_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_7&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -15588,7 +15588,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar7_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_7&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -15619,7 +15619,7 @@
                  <term op="'cleanFrameSubst`(_`)" sort="KProperLabel"/>
                  <term op="_`(_`)" sort="KResult">
                   <term op="List`{MathObj++`}_" sort="KResultLabel">
-                   <term op="&quot;configVar7&quot;" sort="String"/>
+                   <term op="&quot;frame_7&quot;" sort="String"/>
                   </term>
                   <term op=".List`{K`}" sort="List`{KResult`}"/>
                  </term>
@@ -15757,7 +15757,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar0_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -15778,7 +15778,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar0_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -15881,7 +15881,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar0_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -15902,7 +15902,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar0_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -16021,7 +16021,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar1_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_1&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -16042,7 +16042,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar1_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_1&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -16351,7 +16351,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -16372,7 +16372,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -16477,7 +16477,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -16498,7 +16498,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -16707,14 +16707,14 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="out" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar3_out&quot;" sort="String"/>
+                        <term op="&quot;out_frame_3&quot;" sort="String"/>
                        </term>
                        <term op="out" sort="CellLabel"/>
                       </term>
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar3_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_3&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -17114,7 +17114,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="in" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar4_in&quot;" sort="String"/>
+                        <term op="&quot;in_frame_4&quot;" sort="String"/>
                        </term>
                        <term op="in" sort="CellLabel"/>
                       </term>
@@ -17131,7 +17131,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar4_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_4&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -17373,7 +17373,7 @@
              <term op="heap" sort="CellLabel"/>
              <term op="__" sort="NeMap">
               <term op="FreeMapItem" sort="FreeMapItem">
-               <term op="&quot;configVar2_heap&quot;" sort="String"/>
+               <term op="&quot;heap_frame_2&quot;" sort="String"/>
               </term>
               <term op="_`(_`)`(_`)" sort="MapItem">
                <term op="list" sort="HeapLabel"/>
@@ -17738,7 +17738,7 @@
               </term>
               <term op="_&lt;-_" sort="SubstItem">
                <term op="!ListItem" sort="FEListItem">
-                <term op="&quot;configVar3_out&quot;" sort="String"/>
+                <term op="&quot;out_frame_3&quot;" sort="String"/>
                </term>
                <term op="stream" sort="ListItem">
                 <term op="Out" sort="FreeSeq"/>
@@ -17746,16 +17746,16 @@
               </term>
               <term op="_&lt;-_" sort="SubstItem">
                <term op="!ListItem" sort="FEListItem">
-                <term op="&quot;configVar3_stack&quot;" sort="String"/>
+                <term op="&quot;stack_frame_3&quot;" sort="String"/>
                </term>
                <term op="FreeListItem" sort="FreeListItem">
-                <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                <term op="&quot;stack_frame_2&quot;" sort="String"/>
                </term>
               </term>
               <term op="_&lt;-_" sort="SubstItem">
                <term op="!H" sort="FEMapItem"/>
                <term op="FreeMapItem" sort="FreeMapItem">
-                <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                <term op="&quot;heap_frame_2&quot;" sort="String"/>
                </term>
               </term>
              </term>
@@ -17819,7 +17819,7 @@
                     <term op="&lt;_>_&lt;/_>" sort="BagItem">
                      <term op="in" sort="CellLabel"/>
                      <term op="!ListItem" sort="FEListItem">
-                      <term op="&quot;configVar4_in&quot;" sort="String"/>
+                      <term op="&quot;in_frame_4&quot;" sort="String"/>
                      </term>
                      <term op="in" sort="CellLabel"/>
                     </term>
@@ -17836,7 +17836,7 @@
                     <term op="&lt;_>_&lt;/_>" sort="BagItem">
                      <term op="stack" sort="CellLabel"/>
                      <term op="!ListItem" sort="FEListItem">
-                      <term op="&quot;configVar4_stack&quot;" sort="String"/>
+                      <term op="&quot;stack_frame_4&quot;" sort="String"/>
                      </term>
                      <term op="stack" sort="CellLabel"/>
                     </term>
@@ -18098,7 +18098,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar5_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_5&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -18119,7 +18119,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="heap" sort="CellLabel"/>
                                <term op="!MapItem" sort="FEMapItem">
-                                <term op="&quot;configVar5_heap&quot;" sort="String"/>
+                                <term op="&quot;heap_frame_5&quot;" sort="String"/>
                                </term>
                                <term op="heap" sort="CellLabel"/>
                               </term>
@@ -18334,7 +18334,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar6_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_6&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -18355,7 +18355,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="heap" sort="CellLabel"/>
                                <term op="!MapItem" sort="FEMapItem">
-                                <term op="&quot;configVar6_heap&quot;" sort="String"/>
+                                <term op="&quot;heap_frame_6&quot;" sort="String"/>
                                </term>
                                <term op="heap" sort="CellLabel"/>
                               </term>
@@ -18386,7 +18386,7 @@
                          <term op="'cleanFrameSubst`(_`)" sort="KProperLabel"/>
                          <term op="_`(_`)" sort="KResult">
                           <term op="List`{MathObj++`}_" sort="KResultLabel">
-                           <term op="&quot;configVar6&quot;" sort="String"/>
+                           <term op="&quot;frame_6&quot;" sort="String"/>
                           </term>
                           <term op=".List`{K`}" sort="List`{KResult`}"/>
                          </term>
@@ -18573,7 +18573,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar7_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_7&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -18594,7 +18594,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="heap" sort="CellLabel"/>
                                <term op="!MapItem" sort="FEMapItem">
-                                <term op="&quot;configVar7_heap&quot;" sort="String"/>
+                                <term op="&quot;heap_frame_7&quot;" sort="String"/>
                                </term>
                                <term op="heap" sort="CellLabel"/>
                               </term>
@@ -18625,7 +18625,7 @@
                          <term op="'cleanFrameSubst`(_`)" sort="KProperLabel"/>
                          <term op="_`(_`)" sort="KResult">
                           <term op="List`{MathObj++`}_" sort="KResultLabel">
-                           <term op="&quot;configVar7&quot;" sort="String"/>
+                           <term op="&quot;frame_7&quot;" sort="String"/>
                           </term>
                           <term op=".List`{K`}" sort="List`{KResult`}"/>
                          </term>
@@ -18763,7 +18763,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="stack" sort="CellLabel"/>
                                 <term op="FreeListItem" sort="FreeListItem">
-                                 <term op="&quot;configVar0_stack&quot;" sort="String"/>
+                                 <term op="&quot;stack_frame_0&quot;" sort="String"/>
                                 </term>
                                 <term op="stack" sort="CellLabel"/>
                                </term>
@@ -18784,7 +18784,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="heap" sort="CellLabel"/>
                                 <term op="FreeMapItem" sort="FreeMapItem">
-                                 <term op="&quot;configVar0_heap&quot;" sort="String"/>
+                                 <term op="&quot;heap_frame_0&quot;" sort="String"/>
                                 </term>
                                 <term op="heap" sort="CellLabel"/>
                                </term>
@@ -18887,7 +18887,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="stack" sort="CellLabel"/>
                                 <term op="FreeListItem" sort="FreeListItem">
-                                 <term op="&quot;configVar0_stack&quot;" sort="String"/>
+                                 <term op="&quot;stack_frame_0&quot;" sort="String"/>
                                 </term>
                                 <term op="stack" sort="CellLabel"/>
                                </term>
@@ -18908,7 +18908,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="heap" sort="CellLabel"/>
                                 <term op="FreeMapItem" sort="FreeMapItem">
-                                 <term op="&quot;configVar0_heap&quot;" sort="String"/>
+                                 <term op="&quot;heap_frame_0&quot;" sort="String"/>
                                 </term>
                                 <term op="heap" sort="CellLabel"/>
                                </term>
@@ -19027,7 +19027,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar1_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_1&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -19048,7 +19048,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="heap" sort="CellLabel"/>
                                <term op="!MapItem" sort="FEMapItem">
-                                <term op="&quot;configVar1_heap&quot;" sort="String"/>
+                                <term op="&quot;heap_frame_1&quot;" sort="String"/>
                                </term>
                                <term op="heap" sort="CellLabel"/>
                               </term>
@@ -19357,7 +19357,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="stack" sort="CellLabel"/>
                                 <term op="FreeListItem" sort="FreeListItem">
-                                 <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                                 <term op="&quot;stack_frame_2&quot;" sort="String"/>
                                 </term>
                                 <term op="stack" sort="CellLabel"/>
                                </term>
@@ -19378,7 +19378,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="heap" sort="CellLabel"/>
                                 <term op="FreeMapItem" sort="FreeMapItem">
-                                 <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                                 <term op="&quot;heap_frame_2&quot;" sort="String"/>
                                 </term>
                                 <term op="heap" sort="CellLabel"/>
                                </term>
@@ -19483,7 +19483,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="stack" sort="CellLabel"/>
                                 <term op="FreeListItem" sort="FreeListItem">
-                                 <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                                 <term op="&quot;stack_frame_2&quot;" sort="String"/>
                                 </term>
                                 <term op="stack" sort="CellLabel"/>
                                </term>
@@ -19504,7 +19504,7 @@
                                <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                 <term op="heap" sort="CellLabel"/>
                                 <term op="FreeMapItem" sort="FreeMapItem">
-                                 <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                                 <term op="&quot;heap_frame_2&quot;" sort="String"/>
                                 </term>
                                 <term op="heap" sort="CellLabel"/>
                                </term>
@@ -19713,14 +19713,14 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="out" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar3_out&quot;" sort="String"/>
+                                <term op="&quot;out_frame_3&quot;" sort="String"/>
                                </term>
                                <term op="out" sort="CellLabel"/>
                               </term>
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar3_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_3&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -20120,7 +20120,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="in" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar4_in&quot;" sort="String"/>
+                                <term op="&quot;in_frame_4&quot;" sort="String"/>
                                </term>
                                <term op="in" sort="CellLabel"/>
                               </term>
@@ -20137,7 +20137,7 @@
                               <term op="&lt;_>_&lt;/_>" sort="BagItem">
                                <term op="stack" sort="CellLabel"/>
                                <term op="!ListItem" sort="FEListItem">
-                                <term op="&quot;configVar4_stack&quot;" sort="String"/>
+                                <term op="&quot;stack_frame_4&quot;" sort="String"/>
                                </term>
                                <term op="stack" sort="CellLabel"/>
                               </term>
@@ -20379,7 +20379,7 @@
                      <term op="heap" sort="CellLabel"/>
                      <term op="__" sort="NeMap">
                       <term op="FreeMapItem" sort="FreeMapItem">
-                       <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                       <term op="&quot;heap_frame_2&quot;" sort="String"/>
                       </term>
                       <term op="_`(_`)`(_`)" sort="MapItem">
                        <term op="list" sort="HeapLabel"/>
@@ -20776,7 +20776,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="in" sort="CellLabel"/>
                         <term op="!ListItem" sort="FEListItem">
-                         <term op="&quot;configVar4_in&quot;" sort="String"/>
+                         <term op="&quot;in_frame_4&quot;" sort="String"/>
                         </term>
                         <term op="in" sort="CellLabel"/>
                        </term>
@@ -20793,7 +20793,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="!ListItem" sort="FEListItem">
-                         <term op="&quot;configVar4_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_4&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -20951,7 +20951,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -20972,7 +20972,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -21053,7 +21053,7 @@
             <term op="&lt;_>_&lt;/_>" sort="BagItem">
              <term op="stack" sort="CellLabel"/>
              <term op="FreeListItem" sort="FreeListItem">
-              <term op="&quot;configVar2_stack&quot;" sort="String"/>
+              <term op="&quot;stack_frame_2&quot;" sort="String"/>
              </term>
              <term op="stack" sort="CellLabel"/>
             </term>
@@ -21335,7 +21335,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar5_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_5&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -21356,7 +21356,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar5_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_5&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -21571,7 +21571,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar6_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_6&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -21592,7 +21592,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar6_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_6&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -21623,7 +21623,7 @@
                  <term op="'cleanFrameSubst`(_`)" sort="KProperLabel"/>
                  <term op="_`(_`)" sort="KResult">
                   <term op="List`{MathObj++`}_" sort="KResultLabel">
-                   <term op="&quot;configVar6&quot;" sort="String"/>
+                   <term op="&quot;frame_6&quot;" sort="String"/>
                   </term>
                   <term op=".List`{K`}" sort="List`{KResult`}"/>
                  </term>
@@ -21810,7 +21810,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar7_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_7&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -21831,7 +21831,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar7_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_7&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -21862,7 +21862,7 @@
                  <term op="'cleanFrameSubst`(_`)" sort="KProperLabel"/>
                  <term op="_`(_`)" sort="KResult">
                   <term op="List`{MathObj++`}_" sort="KResultLabel">
-                   <term op="&quot;configVar7&quot;" sort="String"/>
+                   <term op="&quot;frame_7&quot;" sort="String"/>
                   </term>
                   <term op=".List`{K`}" sort="List`{KResult`}"/>
                  </term>
@@ -22000,7 +22000,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar0_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -22021,7 +22021,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar0_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -22124,7 +22124,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar0_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -22145,7 +22145,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar0_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_0&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -22264,7 +22264,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar1_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_1&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -22285,7 +22285,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="heap" sort="CellLabel"/>
                        <term op="!MapItem" sort="FEMapItem">
-                        <term op="&quot;configVar1_heap&quot;" sort="String"/>
+                        <term op="&quot;heap_frame_1&quot;" sort="String"/>
                        </term>
                        <term op="heap" sort="CellLabel"/>
                       </term>
@@ -22594,7 +22594,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -22615,7 +22615,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -22720,7 +22720,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="stack" sort="CellLabel"/>
                         <term op="FreeListItem" sort="FreeListItem">
-                         <term op="&quot;configVar2_stack&quot;" sort="String"/>
+                         <term op="&quot;stack_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="stack" sort="CellLabel"/>
                        </term>
@@ -22741,7 +22741,7 @@
                        <term op="&lt;_>_&lt;/_>" sort="BagItem">
                         <term op="heap" sort="CellLabel"/>
                         <term op="FreeMapItem" sort="FreeMapItem">
-                         <term op="&quot;configVar2_heap&quot;" sort="String"/>
+                         <term op="&quot;heap_frame_2&quot;" sort="String"/>
                         </term>
                         <term op="heap" sort="CellLabel"/>
                        </term>
@@ -22950,14 +22950,14 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="out" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar3_out&quot;" sort="String"/>
+                        <term op="&quot;out_frame_3&quot;" sort="String"/>
                        </term>
                        <term op="out" sort="CellLabel"/>
                       </term>
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar3_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_3&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -23357,7 +23357,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="in" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar4_in&quot;" sort="String"/>
+                        <term op="&quot;in_frame_4&quot;" sort="String"/>
                        </term>
                        <term op="in" sort="CellLabel"/>
                       </term>
@@ -23374,7 +23374,7 @@
                       <term op="&lt;_>_&lt;/_>" sort="BagItem">
                        <term op="stack" sort="CellLabel"/>
                        <term op="!ListItem" sort="FEListItem">
-                        <term op="&quot;configVar4_stack&quot;" sort="String"/>
+                        <term op="&quot;stack_frame_4&quot;" sort="String"/>
                        </term>
                        <term op="stack" sort="CellLabel"/>
                       </term>
@@ -23616,7 +23616,7 @@
              <term op="heap" sort="CellLabel"/>
              <term op="__" sort="NeMap">
               <term op="FreeMapItem" sort="FreeMapItem">
-               <term op="&quot;configVar2_heap&quot;" sort="String"/>
+               <term op="&quot;heap_frame_2&quot;" sort="String"/>
               </term>
               <term op="_`(_`)`(_`)" sort="MapItem">
                <term op="list" sort="HeapLabel"/>
