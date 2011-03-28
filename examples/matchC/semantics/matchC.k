@@ -5,6 +5,8 @@ load ../lib/fol
 load ../heap_patterns/list
 load ../heap_patterns/binary_tree
 load ../heap_patterns/io
+load ../heap_patterns/stack
+
 
 kmod MATCHC is
   including MATCHC-SEMANTICS
@@ -13,6 +15,7 @@ kmod MATCHC is
           + LIST-HP
           + BINARY-TREE-HP
           + IO-PATTERN
+          + STACK-PATTERN
 
 
   kvar N : Nat
@@ -58,7 +61,6 @@ Output
   rule
     <funTask>
       <funId> .K </funId>
-      <funCounter> N </funCounter>
     </funTask>
   =>
     .Bag
@@ -66,15 +68,19 @@ Output
   rule
     <funTask>
       <funId> id(S) </funId>
-      <funCounter> N </funCounter>
     </funTask>
   =>
     .Bag
-  ---[structural print "maude-outputChecking " S "...Done!"]
+  [structural]
+  rule
+    <tasks> .Bag </tasks>
+  =>
+    .Bag 
+  [structural]
   rule
     <feasible> I => I +Int 1 </feasible>
-    (
-      <tasks>
+    <mainOut> .List => L </mainOut>
+    <tasks_>
         <funTask>
           <funId> id("main") </funId>
           <task_>
@@ -82,13 +88,10 @@ Output
             <k> .K </k>
             <out> L </out>
           <_/task>
-          <funCounter> N </funCounter>
         </funTask>
-      </tasks>
-    => 
-      <out> L </out>
-    )
-  ---[structural print "maude-outputChecking \"main\"..Done!\nmaude-timerVerifying program...Done!"]
-  [structural print "maude-output-rewritesDONE!"]
+      =>
+        .Bag
+    <_/tasks>
+  [structural]
 endkm
 

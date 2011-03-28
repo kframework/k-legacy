@@ -1603,7 +1603,7 @@ sub add_line_no_mb
 	local $_ = shift;
 	my $temp = $_;
 
-	while($temp =~ /(mb\s+(configuration|context)\s.*?)(\s+\.\s+)(?=($kmaude_keywords_pattern|var|op|mb|eq|ceq))/sg)
+	while($temp =~ /(mb\s+(configuration|context)\s.*?)(\s+\.\s+)(?=($kmaude_keywords_pattern|var|op|mb|eq|ceq|endm))/sg)
 	{
 		my ($content, $end, $line) = ($1, $3, $lines + countlines($`));
 		s/\Q$content$end\E/$content [metadata "location($file:$line)"]$end/sg;
@@ -1951,7 +1951,9 @@ sub solve_latex_comments
 	s!($latex_comment)!{
 		my $l = countlines($`) + $lno - 1;
 		local $_ = $+;
-		"mb latex \"\\\\".get_newcommand($_)."\" : KSentence [metadata \"location($file:$l)\"] .";
+	        my $me = $_;
+	        $me =~ s/[^\n]//sg;
+		"mb latex \"\\\\".get_newcommand($_)."\" : KSentence [metadata \"location($file:$l)\"] .$me";
 	}!sge;
 
 	$_;
@@ -1974,7 +1976,9 @@ sub run_maude_
 	close FILE;
 
 	# call maude
-	my $result = `$maude $input_file 2>&1`;
+    
+    my $input = abs_path($input_file);
+	my $result = `$maude $input 2>&1`;
 
 	# clean
 	unlink $input_file;

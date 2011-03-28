@@ -28,26 +28,27 @@ public class KDefinition
     cells.put(  "feasible",   new Cell("feasible"));
     cells.put("infeasible", new Cell("infeasible"));
     cells.put(     "check",      new Cell("check", false));
-    cells.put(     "tasks",      new Cell("tasks"));
-    cells.put(   "funTask",    new Cell("funTask"));
+    cells.put(   "mainOut",    new Cell("mainOut"));
+    cells.put(     "tasks",      new Cell("tasks",  true, 1));
+    cells.put(   "funTask",    new Cell("funTask",  true, 2));
     cells.put(     "funId",      new Cell("funId"));
     cells.put(      "task",       new Cell("task"));
     cells.put(  "taskType",   new Cell("taskType", false));
     cells.put(    "config",     new Cell("config"));
-    cells.put(   "program",    new Cell("program", false));
+    cells.put(   "program",    new Cell("program",  true));
     cells.put(    "struct",     new Cell("struct", false));
     cells.put(       "fun",        new Cell("fun", false));
     cells.put(         "k",          new Cell("k",  true, 5));
     cells.put(       "env",        new Cell("env"));
+    cells.put(     "fname",      new Cell("fname", false));
     cells.put(     "stack",      new Cell("stack"));
     cells.put(      "tenv",       new Cell("tenv", false));
     cells.put(      "heap",       new Cell("heap"));
     cells.put(        "in",         new Cell("in"));
     cells.put(       "out",        new Cell("out"));
-    cells.put(   "counter",    new Cell("counter"));
+    cells.put(   "counter",    new Cell("counter", false));
     cells.put(      "form",       new Cell("form"));
     cells.put(     "subst",      new Cell("subst"));
-    cells.put("funCounter", new Cell("funCounter"));
   }
 
   static void initRenameOp()
@@ -56,20 +57,20 @@ public class KDefinition
     renameOp.put("FalseFormula", "false");
     renameOp.put(".Subst", ".");
 
-    renameOp.put("_===_", "_ = _");
+    renameOp.put("_===_", "_=_");
 
-    renameOp.put("_+Int_", "_ + _");
-    renameOp.put("_-Int_", "_ - _");
-    renameOp.put("_*Int_", "_ * _");
-    renameOp.put("_/Int_", "_ / _");
-    renameOp.put("_%Int_", "_ % _");
-    renameOp.put("_>Int_", "_ > _");
-    renameOp.put("_>=Int_", "_ >= _");
-    renameOp.put("_<Int_", "_ < _");
-    renameOp.put("_<=Int_", "_ <= _");
+    renameOp.put("_+Int_", "_+_");
+    renameOp.put("_-Int_", "_-_");
+    renameOp.put("_*Int_", "_*_");
+    renameOp.put("_/Int_", "_/_");
+    renameOp.put("_%Int_", "_%_");
+    renameOp.put("_>Int_", "_>_");
+    renameOp.put("_>=Int_", "_>=_");
+    renameOp.put("_<Int_", "_<_");
+    renameOp.put("_<=Int_", "_<=_");
     renameOp.put("-Int_", "-_");
 
-    renameOp.put("'_`,`,`,_", "'_`, _");
+    renameOp.put("'_`,`,`,_", "'_`,_");
     renameOp.put("_;;_", "__");
 
     renameOp.put("tv`(_`,_`)", "`(`(_`) _`)");

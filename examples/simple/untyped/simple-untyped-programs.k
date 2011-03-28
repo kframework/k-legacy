@@ -5,18 +5,17 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
               | main | divide2 | collatz | dummy1 | dummy2 | init | reverse 
               | printAll | writeArray | insertionSort | bubbleSort | siftDown 
               | heapSort | map | done | root | bottom | maxChild | temp
-              | numbers | size | readArray | printArray
+              | numbers | size | readArray | printArray | mulArray | transArray
 
   syntax Stmts ::= pFactorial | pCollatz | pInsertionSort1 | pInsertionSort2
                  | pInsertionSort3 | pInsertionSort4 | pBubbleSort
-                 | pHeapSort | pSorting | pex01 | pArrays
+                 | pHeapSort | pSorting | pex01 | pArrays  
 
   macro pFactorial =
        var x;
 
        function f(y) {
-         var t;
-	 t = 1;
+         var t=1;
          for i = 1 to y do
 	   t = t*i;
 	 return t;
@@ -29,12 +28,10 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
 
 
   macro pCollatz =
-       var n;
-       var m;
+       var n, m;
 
        function divide2(dummy1, r, dummy2) {
-         var q;
-	 q = 0;
+         var q=0;
 	 while not r <= 1 do {
 	   r = r - 2;
 	   q = q + 1;
@@ -43,8 +40,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
        }
 
        function collatz() {
-         var s;
-         s = 0;
+         var s=0;
 	 write(n);
          while n > 1 do {
 	   s = s+1;
@@ -79,15 +75,11 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
        }
 
        function main() {
-         var n;
-         n = 10;
+         var n=10;
          init(n);
          printAll(n);
          for i = 1 to n - 1 do {
-           var j;
-           var v;
-           v = x[i];
-           j = i - 1;
+           var j=i - 1, v=x[i];
            while (j >= 0 and ((x[j]) > v)) do {
              x[j + 1] = x[j];
              j = j - 1;
@@ -112,16 +104,12 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
        }
 
        function main() {
-         var n;
-         n = 30;
+         var n = 30;
          init(n);
          printAll(n);
          write(-1);
          for i = 1 to n - 1 do {
-           var j;
-           var v;
-           v = x[i];
-           j = i - 1 ;
+           var j = i - 1, v = x[i];
            while (j >= 0) do {
              if x[j] > v then x[j+1] = x[j];
              j = j - 1;
@@ -144,17 +132,12 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
        }
 
        function main() {
-         var x[100];
-         var n;
-         n = 30;
+         var x[100], n = 30;
          init(x,n);
          printAll(x,n);
          write(-1);
          for i = 1 to n - 1 do {
-           var j;
-           var v;
-           v = x[i];
-           j = i - 1;
+           var j = i - 1, v = x[i];
            while (j >= 0) do {
              if x[j] > v then x[j+1] = x[j];
              j = j - 1;
@@ -179,17 +162,11 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
        }
 
        function main() {
-         var x;
-         var n;
-         n = 30;
-         x = init(n);
+         var n = 30, x = init(n);
          printAll(x,n);
          write(-1);
          for i = 1 to n - 1 do {
-           var j;
-           var v;
-           v = x[i];
-           j = i - 1;
+           var j = i - 1, v = x[i];
            while (j >= 0) do {
              if x[j] > v then x[j+1] = x[j];
              j = j - 1;
@@ -215,8 +192,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
        }
 
        function main() {
-         var x;
-         x = read();
+         var x = read();
          for y = 0 to (x - 1) do {
 	   v[y] = read();
 	   write(v[y]);
@@ -232,10 +208,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
         var numbers[100];
 
         function siftDown(root, bottom) {
-       	var done;
-       	var maxChild;
-       	var temp;
-       	done = false;
+       	var done = false, maxChild, temp;
        
        	while (root*2 <= bottom and not done) do {
        	if (root*2 == bottom) then {
@@ -256,9 +229,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
     }
 
     function heapSort(size){
-      var temp;
-      var i;
-      i = (size/2) - 1;
+      var temp, i = (size/2) - 1;
       while (i >= 0) do {
          siftDown(i, size - 1);
          i = i - 1;
@@ -274,8 +245,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
     }
 
     function main() {
-      var x ;
-      x = read() ;
+      var x = read() ;
       for i = 0 to (x - 1) do {
         numbers[i] = read();
       }
@@ -300,11 +270,9 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
        }
 
        function reverse(x) {
-         var n;
-         n = sizeOf(x);
+         var n = sizeOf(x);
          for i = 0 to n/2 - 1 do {
-           var t;
-           t = x[i];
+           var t = x[i];
            x[i] = x[n - i - 1];
            x[n - i - 1] = t;
          }
@@ -318,10 +286,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
 
        function insertionSort(x) {
          for i = 1 to sizeOf(x) - 1 do {
-           var v;
-           v = x[i];
-           var j;
-           j = i - 1;
+           var v = x[i], j = i - 1;
            while (j >= 0) do {
              if x[j] > v then
                x[j+1] = x[j];
@@ -332,22 +297,18 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
        }
 
        function bubbleSort(v) {
-         var n;
-         n = sizeOf(v);
+         var n = sizeOf(v);
          for i = 0 to n - 1 do
            for j = 0 to n - 2 do
              if v[j] > v[j+1] then {
-               var t;
-               t = v[j+1];
+               var t = v[j+1];
                v[j+1] = v[j];
                v[j] = t;
              }
        }
 
        function siftDown(x, root, bottom) {
-         var done;
-         done = false;
-         var maxChild;
+         var done = false, maxChild;
          while (root*2 <= bottom and not done) do {
            if (root*2 == bottom) then {
              maxChild = root*2;
@@ -359,8 +320,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
                   maxChild = root*2 + 1;
                 }
            if (x[root] < x[maxChild]) then {
-             var t;
-             t = x[root];
+             var t = x[root];
              x[root] = x[maxChild];
              x[maxChild] = t;
              root = maxChild;
@@ -372,18 +332,14 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
        }
 
        function heapSort(x){
-         var n;
-         n = sizeOf(x);
-         var i;
-         i = n/2 - 1;
+         var n = sizeOf(x), i = n/2 - 1;
          while (i >= 0) do {
            siftDown(x, i, n - 1);
            i = i - 1;
          }
          i = n - 1;
          while (i >= 1 ) do {
-           var t;
-           t = x[0];
+           var t = x[0];
            x[0] = x[i] ;
            x[i] = t;
            siftDown(x, 0, i - 1);
@@ -392,11 +348,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
        }
 
        function main() {
-         var x;
-         var n;
-         n = 10;
-         x = init(n);
-         var f[11];
+         var n = 10, x = init(n), f[11];
          f[ 0] = writeArray;
          f[ 1] = reverse;
          f[ 2] = writeArray;
@@ -411,39 +363,45 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
          map(f,x);
        }
 
-***( --- multidimensional arrays to be done
   macro pArrays =
     function readArray(a) {
-      var i; var j; var m; var n; m = sizeOf(a) - 1; n = sizeOf(a[0]) - 1;
+      var m = sizeOf(a) - 1, n = sizeOf(a[0]) - 1;
       for i = 0 to m do
           for j = 0 to n do a[i][j]=read();
     }
     function printArray(a) {
-      var i; var j; var m; var n; m = sizeOf(a) - 1; n = sizeOf(a[0]) - 1;
+      var m = sizeOf(a) - 1, n = sizeOf(a[0]) - 1;
       for i = 0 to m do
-          for j = 0 to n do write(a[i][j]);
+          for j = 0 to n do write(a[i,j]);
+    }
+    function transArray(a) {
+      var  m = sizeOf(a) - 1,  n = sizeOf(a[0]) - 1, b[n+1,m+2];
+      for i = 0 to m do
+          for j = 0 to n do
+              b[j,i]=a[i,j];
+      return b;
+    }
+    function mulArray(a,b) {
+      var m = sizeOf(a) - 1, n=sizeOf(b) - 1, p=sizeOf(b[0]) - 1, c[m+1,p+1];
+      for i=0 to m do for j=0 to p do for k=0 to n do
+          c[i,j]=c[i,j]+a[i,k]*b[k,j];
+      return c;
     }
     function main() {
-      var x;
-      x = read();
-      var y;
-      y = read();
-      var a[x][y];
+      var x = read(), y = read(), a[x,y];
       readArray(a);
-      printArray(a);
+      printArray(mulArray(a,transArray(a)));
     }
-***)
+
 
 --- programs to test exceptions
 
   syntax Stmts ::= pExceptions1
   macro pExceptions1 =
     function main() {
-      var e;
-      e = 100;
+      var e = 100;
       try {
-        var x;
-        x = 5;
+        var x = 5;
         if (x >= 0) then throw x+2;
         write(20);  --- should not be written
       } catch(e) {
@@ -478,9 +436,8 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
   syntax Stmts ::= pExceptions3
   macro pExceptions3 =
     function main() {
-      var x;
-      x = 1;
-      try { x = x + 1; throw x; var y; y = x/0;}     --- division by zero unreachable
+      var x = 1;
+      try { x = x + 1; throw x; var y = x/0;}     --- division by zero unreachable
       catch(y) {x = x+1;}
       write(x);
     }
@@ -489,9 +446,8 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
   syntax Stmts ::= pExceptions4
   macro pExceptions4 =
     function main() {
-      var x;
-      x = 1;
-      try { var x; x = 5; throw x; var y; y = x/0;}  --- division by zero unreachable
+      var x = 1;
+      try { var x = 5; throw x; var y = x/0;}  --- division by zero unreachable
       catch(y) {y = y + 2; write(y);}                --- new y here, the one declared by catch
       write(x);
     }
@@ -502,8 +458,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
     var x;
 
     function f(y) {
-      var t;
-      t = 1;
+      var t = 1;
       try{
         write(t);
         throw 5;
@@ -527,8 +482,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
     var x;
 
     function f(y) {
-      var t;
-      t = 1;
+      var t = 1;
       try{
         write(t);
         write(8);
@@ -550,7 +504,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
   macro pExceptions7 =
     function main() {
       var e;
-      try { var x; x = 2; write(x); throw ( ++x + x ); }
+      try { var x = 2; write(x); throw ( ++x + x ); }
       catch(e) { write(e); }
     }
 --- 2 6 or 2 5
@@ -563,7 +517,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
        try {
          try {
            try {
-             var x; x = 1; write(x); throw ++x;
+             var x = 1; write(x); throw ++x;
            } catch(e) {
              write(e);
              throw ++e;
@@ -584,9 +538,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
 
   syntax Stmts ::= pExceptions9
   macro pExceptions9 =
-    var x;
-    var y;
-    var z;
+    var x, y, z;
 
     function g() {
       throw 15;
@@ -627,8 +579,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
 
   syntax Stmts ::= pExceptions11
   macro pExceptions11 =
-    var i;
-    var j;
+    var i, j;
 
     function main() {
       i = 0;
@@ -643,8 +594,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
 
   syntax Stmts ::= pExceptions12
   macro pExceptions12 =
-    var i;
-    var j;
+    var i, j;
 
     function main() {
       i = 0;
@@ -708,8 +658,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
   macro pThreads1 =
     var x;
     function main() {
-      var factorialOf;
-      factorialOf = 5;
+      var factorialOf = 5;
       x = 1;
       for i = 1 to factorialOf do {
         spawn multX(i);
@@ -730,8 +679,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
   syntax Stmts ::= pThreads2
   macro pThreads2 =
     function main() {
-      var x;
-      x = 5;
+      var x = 5;
       spawn x=x+2;
       spawn x=x*2;
       spawn x=11;
@@ -742,8 +690,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
   syntax Stmts ::= pThreads3
   macro pThreads3 =
     function main() {
-      var x;
-      x = 1;
+      var x = 1;
       spawn {rendezvous 1; write(x); rendezvous 2;}
       spawn {rendezvous 3; write(x); rendezvous 4;}
       write(x);
@@ -757,8 +704,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
   syntax Stmts ::= pThreads4
   macro pThreads4 =
     function main() {
-      var x;
-      x = 1;
+      var x = 1;
       spawn {x = x+1; rendezvous 1;}
       x = x+1;
       rendezvous 1;
@@ -771,8 +717,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
   syntax Stmts ::= pThreads5
   macro pThreads5 =
     function main() {
-      var x;
-      x = 1;
+      var x = 1;
       spawn {acquire 1; x = x+1; release 1; rendezvous 1;}
       acquire 1;
        x = x+1;
@@ -791,7 +736,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
          try {
            try {
              try {
-               var x; x = 1; write(x); throw ++x;
+               var x = 1; write(x); throw ++x;
              } catch(e) {
                write(e);
                throw ++e;
@@ -814,7 +759,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
          try {
            try {
              try {
-               var x; x = 1; write(x); throw ++x;
+               var x = 1; write(x); throw ++x;
              } catch(e) {
                write(e);
                throw ++e;
@@ -837,8 +782,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
 
   syntax Stmts ::= pThreads7
   macro pThreads7 =
-    var x;
-    var y;
+    var x, y;
 
     function main() {
       x = 1;
@@ -853,8 +797,7 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
   syntax Stmts ::= pThreads8
   macro pThreads8 =
     function main() {
-      var x;
-      x = 5;
+      var x = 5;
       spawn x = 7;
       write ( x );
     }
@@ -878,8 +821,8 @@ kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
   syntax Stmts ::= pThreads10
   macro pThreads10 =
     function main() {
-      spawn { var x; x = 2; write(x); }
-      spawn { var x; x = 3; write(x); }
+      spawn { var x = 2; write(x); }
+      spawn { var x = 3; write(x); }
     }
 --- 2 3 (twice - depending upon which of the two threads allocates first)
 --- 3 2 (twice - same)

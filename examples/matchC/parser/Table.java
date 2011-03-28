@@ -15,6 +15,11 @@ public class Table {
   }
 
   static class Cell {
+    public static final int NONE = 0;
+    public static final int LEFT = 1;
+    public static final int RIGHT = 2;
+    public static final int BOTH = 3;
+
     public static final Cell
       CONFIG  = new Cell("config",  Sort.BAG,  false, null  ),
       PROGRAM = new Cell("program", Sort.K,    true,  CONFIG),
@@ -23,6 +28,7 @@ public class Table {
       K       = new Cell("k",       Sort.K,    true,  CONFIG),
       ENV     = new Cell("env",     Sort.MAP,  true,  CONFIG),
       STACK   = new Cell("stack",   Sort.LIST, false, CONFIG),
+      FNAME   = new Cell("fname",   Sort.K,    true,  CONFIG),
       TENV    = new Cell("tenv",    Sort.MAP,  true,  CONFIG),
       HEAP    = new Cell("heap",    Sort.MAP,  false, CONFIG),
       IN      = new Cell("in",      Sort.LIST, false, CONFIG),
@@ -59,6 +65,7 @@ public class Table {
     labelToCell = new HashMap<String, Cell>();
 
   public static final Set<String> progIdentifiers = new HashSet<String>();
+  public static final Set<String> funIdentifiers = new HashSet<String>();
   public static final Set<String> annotIdentifiers = new HashSet<String>();
 
   public static final Map<String, String>
@@ -106,21 +113,23 @@ public class Table {
     }
   }
 
-  static String varStringRoot = "configVar";
+  static String varStringRoot = "frame";
   static int varCount = 0;
   static String varString = "";
 
   public static void genVarString(String prefix) {
-    varString = prefix + varStringRoot + varCount++;
+    varString = prefix + varStringRoot + "_" + varCount++;
   }
 
   public static void init() {
     Cell.CONFIG.cells.add(Cell.PROGRAM);
     Cell.CONFIG.cells.add(Cell.STRUCT );
     Cell.CONFIG.cells.add(Cell.FUN    );
-    Cell.CONFIG.cells.add(Cell.K      );
+    // no k cell for now
+    // Cell.CONFIG.cells.add(Cell.K      );
     Cell.CONFIG.cells.add(Cell.ENV    );
     Cell.CONFIG.cells.add(Cell.STACK  );
+    Cell.CONFIG.cells.add(Cell.FNAME  );
     Cell.CONFIG.cells.add(Cell.TENV   );
     Cell.CONFIG.cells.add(Cell.HEAP   );
     Cell.CONFIG.cells.add(Cell.IN     );
@@ -134,6 +143,7 @@ public class Table {
     labelToCell.put("k",       Cell.K      );
     labelToCell.put("env",     Cell.ENV    );
     labelToCell.put("stack",   Cell.STACK  );
+    labelToCell.put("fname",   Cell.FNAME  );
     labelToCell.put("tenv",    Cell.TENV   );
     labelToCell.put("heap",    Cell.HEAP   );
     labelToCell.put("in",      Cell.IN     );

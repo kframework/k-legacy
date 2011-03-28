@@ -1,8 +1,10 @@
 import javax.swing.tree.TreeNode;
 
 import java.util.Enumeration;
+import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Arrays;
 
 
@@ -11,49 +13,88 @@ public class KTreeNode implements TreeNode
 
   final static int DEFAULT_COUNT = 5;
 
-  String content;
-  boolean isKDefinition;
-
-  int visibleCount;
-  final int visibleInc = 1;
+  static Wrapper wrapper = new Wrapper();
 
   final KTreeNode parent;
-  final ArrayList<KTreeNode> children;
-  final KTreeNode ldotsNode;
+  final List<KTreeNode> children;
 
-  static StringBuilder buffer = new StringBuilder(1048576);
+  final String content;
+  //boolean isKDefinition;
+
+  int maxVisibleSize;
+  final List<KTreeNode> visibleChildren;
+  //final KTreeNode ldotsNode;
+  //final int visibleInc = 1;
 
 
   public KTreeNode(KTreeNode parent)
   {
-    this(parent, "", 0);
+    this(parent, "", -1);
   }
 
   public KTreeNode(KTreeNode parent, String content)
   {
-    this(parent, content, 0);
+    this(parent, content, -1);
   }
 
-  public KTreeNode(KTreeNode parent, String content, int visibleCount)
+  public KTreeNode(KTreeNode parent, String content, int maxVisibleSize)
   {
     this.parent = parent;
     children = new ArrayList<KTreeNode>(); 
     this.content = content;
-    this.visibleCount = visibleCount;
-
-    if (visibleCount != 0)
-    {
-      ldotsNode = new KTreeNode(this, "...", 0);
-      ldotsNode.add(new KTreeNode(ldotsNode));
-    }
-    else
-      ldotsNode = null;
+    this.maxVisibleSize = maxVisibleSize;
+    visibleChildren = new ArrayList<KTreeNode>();
   }
 
 
   public void add(KTreeNode node)
   {
+    if (maxVisibleSize < 0 || children.size() < maxVisibleSize)
+      visibleChildren.add(node);
+    else if (children.size() == maxVisibleSize)
+    {
+      KTreeNode ldotsNode = new KTreeNode(this, "...");
+      ldotsNode.add(new KTreeNode(ldotsNode));
+      visibleChildren.add(ldotsNode);
+    }
     children.add(node);
+  }
+
+  public void addAll(Collection<KTreeNode> nodeCollection)
+  {
+    for (KTreeNode node : nodeCollection)
+    {
+      add(node);
+    }
+  }
+
+  public void expand()
+  {
+    if (maxVisibleSize < 0 || children.size() <= maxVisibleSize)
+      return;
+
+    maxVisibleSize += DEFAULT_COUNT;
+
+    KTreeNode ldotsNode = visibleChildren.remove(visibleChildren.size() - 1);
+    int newVisibleSize = Math.min(children.size(), maxVisibleSize);
+    for (int index = visibleChildren.size(); index < newVisibleSize; ++index)
+    {
+      visibleChildren.add(children.get(index));
+    }
+    if (maxVisibleSize < children.size())
+      visibleChildren.add(ldotsNode);
+  }
+
+  public KTreeNode[] getPath()
+  {
+    LinkedList<KTreeNode> path = new LinkedList<KTreeNode>();
+    KTreeNode node = this;
+    while (node != null)
+    {
+      path.addFirst(node);
+      node = node.getParent();
+    }
+    return (KTreeNode[]) path.toArray();
   }
 
   public String getContent()
@@ -61,9 +102,58 @@ public class KTreeNode implements TreeNode
     return content;
   }
 
-  public void setContent(String content)
+
+  public String treeToString()
   {
-    this.content = content;
+    wrapper.setLeftMargin(0);
+    wrapper.clean();
+    bufferedTreeToString();
+    return wrapper.toString();
+  }
+
+  private void bufferedTreeToString()
+  {
+    int size = children.size();
+    if (size > 0)
+    {
+      if (!KDefinition.cells.get(content).visible)
+      {
+        wrapper.append("<" + content + "> ... </" + content + ">");
+        return;
+      }
+
+      wrapper.append("<" + content + ">");
+      wrapper.setLeftMargin(wrapper.getLeftMargin() + 2);
+      if (size > 1 || children.get(0).children.size() > 0)
+      {
+        int items = KDefinition.cells.get(content).items;
+        if (items >= 0 && items < size)
+          size = items;
+
+        for (int index = 0; index < size; ++index)
+        {
+          wrapper.append("\n");
+          children.get(index).bufferedTreeToString();
+        }
+        if (size < children.size())
+        {
+          wrapper.append("\n");
+          wrapper.append("...");
+        }
+        wrapper.setLeftMargin(wrapper.getLeftMargin() - 2);
+        wrapper.append("\n");
+      }
+      else
+      {
+        wrapper.append(" ");
+        children.get(0).bufferedTreeToString();
+        wrapper.append(" ");
+        wrapper.setLeftMargin(wrapper.getLeftMargin() - 2);
+      }
+      wrapper.append("</" + content + ">");
+    }
+    else
+      wrapper.append(content);
   }
 
   public String toString()
@@ -77,53 +167,104 @@ public class KTreeNode implements TreeNode
    */
   public Enumeration children()
   {
+    //return new Enumeration() { } ;
     return null;
   }
 
   public boolean getAllowsChildren()
   {
-    return true;
+    return !isLeaf();
   }
 
   public TreeNode getChildAt(int childIndex)
   {
-    if (visibleCount == 0 || childIndex < visibleCount - 1)
-      return children.get(childIndex);
-    else if (childIndex == visibleCount - 1)
-      return ldotsNode;
-    else
-      return null;
+    return visibleChildren.get(childIndex);
   }
   
   public int getChildCount()
   {
-    if (visibleCount == 0 || children.size() <= visibleCount) 
-      return children.size();
-    else
-      return visibleCount;
+    return visibleChildren.size();
   }
 
   public int getIndex(TreeNode node)
   {
-    if (visibleCount == 0 || children.size() <= visibleCount) 
-      return children.indexOf(node);
-    else if (ldotsNode.equals(node))
-      return visibleCount - 1;
-   else
-      return -1;
+    return visibleChildren.indexOf(node);
   }
 
-  public TreeNode getParent()
+  public KTreeNode getParent()
   {
     return parent;
   }
 
   public boolean isLeaf()
   {
-    return children.size() == 0;
+    return visibleChildren.size() == 0;
   }
 
 
+  /*
+   * Static methods to construct KTree from a Term
+   */
+  public static List<KTreeNode> format2(KTreeNode parent, String prefix,
+                                        MaudeTerm term)
+  {
+    if ("<_>_</_>".equals(term.getOp()))
+    {
+      List nodeList = new ArrayList<KTreeNode>();
+      nodeList.add(formatCell2(parent, term));
+      return nodeList;
+    }
+    else
+      return formatContent2(parent, prefix, term);
+  }
+
+  public static KTreeNode formatCell2(KTreeNode parent, MaudeTerm term)
+  {
+    String cellLabel = term.subterms().get(0).getOp();      
+    MaudeTerm cellContent = term.subterms().get(1);
+    int items = KDefinition.cells.get(cellLabel).items;
+    KTreeNode node = new KTreeNode(parent, cellLabel, items);
+
+    if (KDefinition.assocOp.contains(cellContent.getOp()))
+    {
+      String assocOp = cellContent.getOp();
+      String prefixOp = assocOp.substring(1).replace('_', ' ').trim();
+      String prefix = "";
+      for (MaudeTerm cellItem : cellContent.subterms())
+      {
+        node.addAll(format2(node, prefix, cellItem));
+        prefix = prefixOp;
+      }
+    }
+    else
+    {
+      node.addAll(format2(node, "", cellContent));
+    }
+
+    return node;
+  }
+
+  public static List<KTreeNode> formatContent2(KTreeNode parent, String prefix,
+                                               MaudeTerm term)
+  {
+    DefaultTerm.itemize(term);
+    List<String> stringItems = DefaultTerm.stringItems();
+    List<MaudeTerm> termItems = DefaultTerm.termItems();
+
+    List nodeList = new ArrayList<KTreeNode>();
+    stringItems.set(0, prefix + stringItems.get(0));
+    if (!"".equals(stringItems.get(0)))
+      nodeList.add(new KTreeNode(parent, stringItems.get(0)));
+    for (int index = 0; index < termItems.size(); ++index)
+    {
+      MaudeTerm termItem = termItems.get(index);
+      String stringItem = stringItems.get(index + 1);
+      nodeList.add(formatCell2(parent, termItem));
+      if (!"".equals(stringItem))
+        nodeList.add(new KTreeNode(parent, stringItem));
+    }
+    return nodeList;
+  }
 /*
   public static KTreeNode format(KTreeNode parent, MaudeTerm term)
   {
@@ -254,115 +395,6 @@ public class KTreeNode implements TreeNode
     return buffer;
   }
 */
-
-  public static KTreeNode format2(KTreeNode parent, String prefix,
-                                  MaudeTerm term)
-  {
-    if ("<_>_</_>".equals(term.getOp()))
-      return formatKDefinition2(parent, term);
-    else
-      return formatContent2(parent, prefix, term);
-  }
-
-  public static KTreeNode formatKDefinition2(KTreeNode parent, MaudeTerm term)
-  {
-    String cellLabel = term.subterms().get(0).getOp();      
-    MaudeTerm cellContent = term.subterms().get(1);
-    KTreeNode node = new KTreeNode(parent, cellLabel);
-
-    if (KDefinition.assocOp.contains(cellContent.getOp()))
-    {
-      String assocOp = cellContent.getOp();
-      String prefixOp = assocOp.substring(1, assocOp.length() - 1);
-      char[] spaces = new char[prefixOp.length()];
-      Arrays.fill(spaces , ' ');
-      String prefix = new String(spaces);
-      for (MaudeTerm cellItem : cellContent.subterms())
-      {
-        node.add(format2(node, prefix, cellItem));
-        prefix = prefixOp;
-      }
-    }
-    else
-    {
-      node.add(format2(node, "", cellContent));
-    }
-
-    return node;
-  }
-
-  public static KTreeNode formatContent2(KTreeNode parent, String prefix,
-                                         MaudeTerm term)
-  {
-    buffer.setLength(0);
-    buffer.append(prefix);
-    String content = term.toMaudeString(buffer, 0).toString();
-    KTreeNode node = new KTreeNode(parent, content);
-
-    return node;
-  }
-
-  public String toKString()
-  {
-    buffer.setLength(0);
-    return toKString(0).toString();
-  }
-
-  private StringBuilder toKString(int indent)
-  {
-    int size = children.size();
-    if (size > 0)
-    {
-      if (!KDefinition.cells.get(content).visible)
-      {
-        buffer.append("<" + content + "> ... </" + content + ">");
-        return buffer;
-      }
-
-      buffer.append("<" + content + ">");
-      if (size > 1 || children.get(0).children.size() > 0)
-      {
-        int items = KDefinition.cells.get(content).items;
-        if (items != 0 && items < size)
-          size = items;
-
-        for (int index = 0; index < size; ++index)
-        {
-          buffer.append("\n");
-          for (int i = 0; i <= indent; ++i)
-          {
-            buffer.append("  "); 
-          }
-          children.get(index).toKString(indent + 1);
-        }
-        if (size < children.size())
-        {
-          buffer.append("\n");
-          for (int i = 0; i <= indent; ++i)
-          {
-            buffer.append("  "); 
-          }
-          buffer.append("...");
-        }
-        buffer.append("\n");
-        for (int i = 0; i < indent; ++i)
-        {
-          buffer.append("  ");
-        }
-      }
-      else
-      {
-        buffer.append(" "); 
-        children.get(0).toKString(indent + 1);
-        buffer.append(" "); 
-      }
-      buffer.append("</" + content + ">");
-    }
-    else
-      buffer.append(content);
-
-    return buffer;
-  }
 
 }
 

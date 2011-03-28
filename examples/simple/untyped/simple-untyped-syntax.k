@@ -2,26 +2,22 @@
 --- SIMPLE-UNTYPED-SYNTAX module ---
 ------------------------------------
 
-kmod SIMPLE-UNTYPED-SYNTAX is including PL-INT + PL-ID
+kmod SIMPLE-UNTYPED-SYNTAX is including PL-INT + PL-ID + K-LATEX
 
---- Identifiers
+//@ \subsection*{Identifiers}
 --- Special identifier for the function "main"
   syntax Id ::= main
 
---- Variables; we include arrays here as well, a[x][y][z]
-  syntax Var ::= Id
-               | Var [ Exp ]       [strict prec 1]
 
---- Declarations
+//@ \subsection*{Declarations}
 --- There are two types of declarations: for variables (including arrays) and for functions
-  syntax Decl ::= var Var ;
+  syntax Decl ::= var List{Exp} ;
                 | function Id ( ) Stmt
                 | function Id ( List{Id} ) Stmt
 
---- Expressions
-  syntax Exp ::= Int | Bool
-               | Var
-               | ++ Id             [prec 0]
+//@ \subsection*{Expressions}
+  syntax Exp ::= Int | Bool | Id
+               | ++ Exp             [prec 0]
                | Exp + Exp         [strict prec 33 gather(E e)]
                | Exp - Exp         [strict prec 33 gather(E e)]
                | Exp * Exp         [strict prec 31 gather(E e)]
@@ -34,27 +30,27 @@ kmod SIMPLE-UNTYPED-SYNTAX is including PL-INT + PL-ID
                | Exp >= Exp        [strict prec 37]
                | Exp == Exp        [strict prec 37]
                | Exp != Exp        [strict prec 37]
-               | Exp and Exp       [strict prec 55 gather(E e)]
-               | Exp or Exp        [strict prec 59 gather(E e)]
-               | not Exp           [strict prec 53]
-               | Exp [ Exp ]       [ditto]
+               | Exp and Exp       [strict prec 39 gather(E e)]
+               | Exp or Exp        [strict prec 39 gather(E e)]
+               | not Exp           [strict prec 38]
+               | Exp [ List{Exp} ] [strict prec 1] 
                | sizeOf ( Exp )    [strict]
                | Exp ( )
                | Exp ( List{Exp} ) [strict prec 2]
                | read ( )
+               | Exp = Exp         [strict(2) prec 40  gather (e E)]
 
---- Statements
+//@ \subsection*{Statements}
   syntax Stmt ::= { }
                 | { Stmts }
-                | Exp = Exp ;                [strict(2)]
-                | Exp ;                      [strict]
-                | if Exp then Stmt else Stmt [strict(1)]
-                | if Exp then Stmt
-                | while Exp do Stmt
-                | for Id = Exp to Exp do Stmt
+                | Exp ;                      [strict prec 45]
+                | if Exp then Stmt else Stmt [strict(1) prec 90]
+                | if Exp then Stmt           [prec 89]
+                | while Exp do Stmt          [prec 90]
+                | for Id = Exp to Exp do Stmt[prec 90]
                 | return Exp ;               [strict]
                 | write ( Exp ) ;            [strict]
-                | try Stmt catch ( Id ) Stmt
+                | try Stmt catch ( Id ) Stmt [prec 90]
                 | throw Exp ; [strict]
                 | spawn Stmt [prec 90]
                 | acquire Exp ;              [strict]
@@ -66,7 +62,7 @@ kmod SIMPLE-UNTYPED-SYNTAX is including PL-INT + PL-ID
 
 
 -----------------------------------------------------------------------------
---- Lists should be eventually builtin; for now, they need to be declared ---
+/*@ \subsubsection*{Lists} should be eventually builtin; for now, they need to be declared  */
 -----------------------------------------------------------------------------
 --- List{Id}; the hybrid attribute says that a list of results becomes itself a result
   syntax List{Id} ::= Id
@@ -90,4 +86,7 @@ kmod SIMPLE-UNTYPED-DESUGARED-SYNTAX is including SIMPLE-UNTYPED-SYNTAX
   macro (for X:Id = E1:Exp to E2:Exp do S) = {var X; X=E1; while X <= E2 do {S X=X+1;}}
   macro function F:Id() S = function F(.List{Id}) S
   macro E() = E(.List{Id})
+
+  macro var E,E':Exp,El:List{Exp}; = var E; var E',El;
+  macro var X; = var X=0;
 endkm

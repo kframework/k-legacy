@@ -1,5 +1,5 @@
 mod MATHEMATICAL-SEQUENCE-BUILTIN-MODULE is
-  inc MATHEMATICAL-INT-BUILTIN-MODULE .
+  inc MATHEMATICAL-INT-BUILTIN-MODULE + PL-STRING .
 
   sorts PESeq FESeq FreeSeq NeSeq Seq Seq++ NeSeq++ . 
   subsort NeSeq < Seq .
@@ -11,9 +11,11 @@ mod MATHEMATICAL-SEQUENCE-BUILTIN-MODULE is
   subsort Seq < MathObj .
   subsort Seq++ < MathObj++ .
  
-  op PESeq : Nat -> PESeq .
-  op FESeq : Nat -> FESeq .
+  op ?Seq : Nat -> PESeq .
+  op !Seq : Nat -> FESeq .
+  op !Seq : String -> FESeq .
   op FreeSeq : Nat -> FreeSeq .
+  op FreeSeq : String -> FreeSeq .
   op skolem : Nat PESeq -> FreeSeq [ditto] .
   op co-skolem : Nat FreeSeq -> FESeq [ditto] .
 
@@ -81,10 +83,13 @@ mod MATHEMATICAL-SEQUENCE-BUILTIN-MODULE is
 
   eq rev(rev(A)) = A .
   eq rev(A1) === rev(A2) = A1 === A2 .
+  eq rev(A) === epsilon = A === epsilon .
   eq len(A) === 0 = A === epsilon .
   eq @(len(A) >=Int 0) = TrueFormula . 
   eq @((-Int len(A)) >=Int 0) = A === epsilon .
   eq len(rev(A)) = len(A) .
+  eq len(A) === len(A1) /\ A === A1 @ A2 = A === A1 /\ A2 === epsilon .
+  eq len(A) === len(A2) /\ A === A1 @ A2 = A === A2 /\ A1 === epsilon .
 
  ceq len(NeA1) === N /\ NeA1 @ NeA2 === NeB @ B
    = len(NeA1) === N /\ NeA1 === NeB /\ NeA2 === B

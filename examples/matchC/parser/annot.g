@@ -14,14 +14,16 @@ tokens {
   END_ANNOT = '*/';
   LINE_ANNOT = '//@';
 
-  PRE = 'pre';
-  POST = 'post';
-  ASSUME = 'assume';
-  ASSERT = 'assert';
-  INVARIANT = 'invariant';
-  SKIP = 'skip';
-  VERIFY = 'verify';
-  BREAKPOINT = 'breakpoint';
+  SPECIFICATION;
+  CONFIG;
+  REQUIRES;
+  ENSURES;
+  ASSUME;
+  ASSERT;
+  INVARIANT;
+  SKIP;
+  VERIFY;
+  BREAKPOINT;
   VAR;
 
   DOT = '.';
@@ -29,7 +31,6 @@ tokens {
   COMMA = ',';
   LPAREN = '(';
   RPAREN = ')'; 
-  ANY = '_';
 
   DISJ = '\\/';
   CONJ = '/\\';
@@ -58,6 +59,8 @@ tokens {
   SEQ;
   MSET;
 
+  REW = '=>';
+
   // MAP;
   MAP_UNIT = '.Map';
   MAP_ITEM = 'MapItem';
@@ -69,9 +72,7 @@ tokens {
   BAG_UNIT = '.Bag';
   BAG_ITEM = 'BagItem';
 
-  CONFIG;
   CELL;
-  LABEL;
 
   // LIST;
   LIST_UNIT = '.List';
@@ -103,28 +104,67 @@ tokens {
 }
 
 
+//annot
+//  : (BEGIN_ANNOT | LINE_ANNOT)
+//    ( pattern_directive pattern -> ^(pattern_directive ^(LIST pattern))
+//    | directive -> directive
+//    )+
+//    END_ANNOT?
+//  ;
+
+annot_text
+  : BEGIN_ANNOT! annot END_ANNOT!
+  | LINE_ANNOT! annot
+  ;
+
 annot
-  : (BEGIN_ANNOT | LINE_ANNOT)
-    ( pattern_directive pattern -> ^(pattern_directive ^(LIST pattern))
-    | directive -> directive
-    )
-    END_ANNOT?
+  : function_annot
+  | line_annot
+  | tool_annot
   ;
 
-pattern_directive
-  : PRE { Table.genVarString(""); }
-  | POST
-  | ASSUME { Table.genVarString("!"); }
-  | ASSERT { Table.genVarString("!"); }
-  | INVARIANT { Table.genVarString("!"); }
+function_annot
+  : config requires ensures { Table.genVarString(""); }
+    -> ^(SPECIFICATION config requires ensures)
   ;
 
-directive
+config
+  : config_keyword configuration -> ^(WRAPPER["wbag_"] configuration)
+  | -> ^(WRAPPER["wbag_"] ^(CONFIG[""] BAG))
+  ;
+
+config_keyword
+  : { "config".equals(input.LT(1).getText()) }? IDENTIFIER
+    -> CONFIG[$IDENTIFIER]
+  | CONFIG
+  ;
+
+requires
+  : REQUIRES formula -> ^(WRAPPER["Formula_"] formula)
+  | -> ^(WRAPPER["Formula_"] FORMULA_TRUE)
+  ;
+
+ensures
+  : ENSURES formula -> ^(WRAPPER["Formula_"] formula)
+  | -> ^(WRAPPER["Formula_"] FORMULA_TRUE)
+  ;
+
+line_annot
+  : line_keyword pattern { Table.genVarString("!"); }
+    -> ^(line_keyword ^(WRAPPER["wlist_"] pattern))
+  ;
+
+line_keyword
+  : ASSUME
+  | ASSERT
+  | INVARIANT
+  ;
+
+tool_annot
   : SKIP
   | VERIFY
   | BREAKPOINT
   | VAR
-    // ids+=IDENTIFIER (COMMA ids+=IDENTIFIER)* COLON sort=IDENTIFIER
     ids+=IDENTIFIER (COMMA ids+=IDENTIFIER)* COLON sort
     {
       for (Object id : $ids) {
@@ -141,6 +181,8 @@ sort
   | MAP_ITEM 
   ;
 
+
+/*
 pattern
   : disjunctive_pattern
   ;
@@ -162,34 +204,51 @@ options { backtrack = true; }
   | formula
     -> ^(CONJ["/\\"] ^(CONFIG[""] BAG) formula)
   ;
+*/
 
+
+pattern
+options { backtrack = true; }
+  : configuration
+    ( -> ^(CONJ["/\\"] configuration FORMULA_TRUE)
+    | CONJ formula -> ^(CONJ configuration formula)
+    )
+  | formula -> ^(CONJ["/\\"] ^(CONFIG[""] BAG) formula)
+  ;
 
 configuration
   : bag -> ^(CONFIG[""] bag)
   ;
 
+
 //term_list
 //  : term (COMMA term)* -> ^(TERM_LIST term+)
 //  ;
 
-term
-options { backtrack = true; }
-  : map
-  | bag
-  | list
-  | k
-  ;
+//term
+//options { backtrack = true; }
+//  : map
+//  | bag
+//  | list
+//  | k
+//  ;
 
 
 /*
  * Grammar rules for map parsing
  */
 map
-  //: map_item+ -> ^(MAP map_item+)
+  : map_rewrite
+  ;
+
+map_rewrite
+  : map_term ((REW map_term)=> REW^ map_term)?
+  ;
+
+map_term
   : map_item (COMMA map_item)* -> ^(MAP map_item+)
   | map_unit -> MAP
   ;
-
 
 map_unit
   : DOT
@@ -247,6 +306,14 @@ heap_pattern_name
  * Grammar rules for bag parsing
  */
 bag
+  : bag_rewrite
+  ;
+
+bag_rewrite
+  : bag_term (REW^ bag_term)?
+  ;
+
+bag_term
   : bag_item+ -> ^(BAG bag_item+)
   | bag_unit -> BAG
   ;
@@ -277,7 +344,36 @@ bag_constructor
  * Grammar rules for list parsing
  */
 list
-  : mathematical_object -> ^(STREAM["stream"] mathematical_object)
+  : list_rewrite
+  ;
+
+list_rewrite
+  : list_term (REW^ list_term)?
+  ;
+
+list_term
+  : list_item+ -> ^(BAG list_item+)
+  | list_unit -> LIST
+  ;
+
+list_unit
+  : DOT
+  | LIST_UNIT
+  ;
+
+list_item
+  : IDENTIFIER
+  | list_constructor
+  // | infix_list
+  | LPAREN! list RPAREN!
+  ;
+
+list_constructor
+  : LIST_ITEM^ LPAREN! k RPAREN!
+  ;
+
+stream_list
+  : k -> ^(STREAM["stream"] k)
   ;
 
 
@@ -285,43 +381,42 @@ list
  * Grammar rules for cell parsing (for now only closed cells)
  */
 cell
-options { backtrack = true; }
-  : map_cell
-  | bag_cell
-  | list_cell
-  | k_cell
+scope {
+  String cellLabel;
+  int cellOpen;
+
+}
+@init {
+  $cell::cellOpen = Table.Cell.NONE;
+}
+  : open_cell_tag cell_content close_cell_tag
+    -> ^(CELL[Integer.toString($cell::cellOpen)]
+         open_cell_tag cell_content close_cell_tag
+       )
   ;
 
-map_cell
-  : '<' IDENTIFIER '>' { Table.labelToCell.containsKey($IDENTIFIER.text) }?
-    { Table.labelToCell.get($IDENTIFIER.text).sort.equals(Table.Sort.MAP) }?
-    map cell_end[$IDENTIFIER.text]
-    -> ^(CELL LABEL[$IDENTIFIER.text] map LABEL[$IDENTIFIER.text])
+open_cell_tag
+  : '<'! IDENTIFIER ('>'! | '_>'! { $cell::cellOpen |= Table.Cell.LEFT; })
+    { $cell::cellLabel = $IDENTIFIER.text; }
   ;
 
-bag_cell
-  : '<' IDENTIFIER '>' { Table.labelToCell.containsKey($IDENTIFIER.text) }?
-    { Table.labelToCell.get($IDENTIFIER.text).sort.equals(Table.Sort.BAG) }?
-    bag cell_end[$IDENTIFIER.text]
-    -> ^(CELL LABEL[$IDENTIFIER.text] bag LABEL[$IDENTIFIER.text])
+cell_content
+  : { Table.Sort.MAP.equals(Table.labelToCell.get($cell::cellLabel).sort) }?=>
+    map
+  | { Table.Sort.BAG.equals(Table.labelToCell.get($cell::cellLabel).sort) }?=>
+    bag
+  | { Table.Sort.LIST.equals(Table.labelToCell.get($cell::cellLabel).sort)
+      && !"in".equals($cell::cellLabel) && !"out".equals($cell::cellLabel) }?=>
+    list
+  | { "in".equals($cell::cellLabel) || "out".equals($cell::cellLabel) }?=>
+    stream_list
+  | { Table.Sort.K.equals(Table.labelToCell.get($cell::cellLabel).sort) }?=>
+    k
   ;
 
-list_cell
-  : '<' IDENTIFIER '>' { Table.labelToCell.containsKey($IDENTIFIER.text) }?
-    { Table.labelToCell.get($IDENTIFIER.text).sort.equals(Table.Sort.LIST) }?
-    list cell_end[$IDENTIFIER.text]
-    -> ^(CELL LABEL[$IDENTIFIER.text] list LABEL[$IDENTIFIER.text])
-  ;
-
-k_cell
-  : '<' IDENTIFIER '>' { Table.labelToCell.containsKey($IDENTIFIER.text) }?
-    { Table.labelToCell.get($IDENTIFIER.text).sort.equals(Table.Sort.K) }?
-    k cell_end[$IDENTIFIER.text]
-    -> ^(CELL LABEL[$IDENTIFIER.text] k LABEL[$IDENTIFIER.text])
-  ;
-
-cell_end[String label]
-  : '</' IDENTIFIER '>' { $IDENTIFIER.text.equals($label) }?
+close_cell_tag
+  : ('</'! | '<_/'! { $cell::cellOpen |= Table.Cell.RIGHT; })  IDENTIFIER '>'!
+    { $cell::cellLabel.equals($IDENTIFIER.text) }?
   ;
 
 
@@ -334,6 +429,14 @@ k_list
   ;
 
 k
+  : k_rewrite
+  ;
+
+k_rewrite
+  : k_term ((REW k_term)=> REW^ k_term)?
+  ;
+
+k_term
   : formula (K_ARROW^ formula)*
   ;
 
@@ -346,8 +449,7 @@ formula
   ;
 
 disjunction_formula
-  : conjunction_formula
-    ((DISJ conjunction_formula)=> DISJ^ conjunction_formula)*
+  : conjunction_formula (DISJ^ conjunction_formula)*
   ;
 
 conjunction_formula
@@ -417,8 +519,8 @@ primary_term
   ;
 
 constant
-  : DOT -> K_UNIT
-  | K_UNIT
+  //: DOT -> K_UNIT
+  : K_UNIT
   | FORMULA_TRUE
   | FORMULA_FALSE
   | DECIMAL_LITERAL
@@ -433,14 +535,6 @@ constant
 constructor
   : '[' mathematical_object_list ']' -> ^(SEQ mathematical_object_list)
   | '{' mathematical_object_list '}' -> ^(MSET mathematical_object_list)
-  ;
-
-primary_sequence
-  : '[' mathematical_object_list ']' -> ^(SEQ mathematical_object_list)
-  ;
-
-primary_multiset
-  : '{' mathematical_object_list '}' -> ^(MSET mathematical_object_list)
   ;
 
 infix_term
@@ -459,7 +553,18 @@ K_ARROW : '~>' ;
 K_LIST_UNIT : '.List{K}' ;
 K_LIST_COMMA : ',,' ;
 
+
+CONFIG : 'configuration' | 'cfg' ;
+REQUIRES : 'requires' | 'req' ;
+ENSURES : 'ensures' | 'ens' ;
+ASSUME : 'assume' ;
+ASSERT : 'assert' ;
+INVARIANT : 'invariant' | 'inv' ;
+SKIP : 'skip' ;
+VERIFY : 'verify' ;
+BREAKPOINT : 'breakpoint' ;
 VAR : 'var' { isVar = true; };
+
 
 IDENTIFIER
   : ('?' | '!')? LETTER (LETTER | DIGIT)*
@@ -471,7 +576,6 @@ LETTER
   :  '$'
   |  'A'..'Z'
   |  'a'..'z'
-  |  '_'
   ;
 
 fragment
