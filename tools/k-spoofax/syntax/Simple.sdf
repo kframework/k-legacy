@@ -1,0 +1,85 @@
+%% Grammar for Simple
+module Simple[Atom]
+imports Common %% For Comments and whitespace
+exports
+context-free start-symbols
+	Exported
+
+context-free syntax
+	
+Language -> Exported {cons("Syntax")}
+	
+Exp -> Language
+Stmts -> Language
+		
+Stmts -> Start
+
+Decl -> Sentence
+Stmt -> Sentence
+Sentence* -> Stmts {right}
+
+"{" Stmts "}" -> Stmt {cons("Block")}
+"return" Exp  ";" -> Stmt {cons("Return")}
+Exp ";" -> Stmt {cons("ExpStmt")}
+"while" Exp "do" Stmt -> Stmt {cons("While")}
+"if" Exp "then" Stmt "else" Stmt -> Stmt
+"if" Exp "then" Stmt -> Stmt
+
+	
+"var" ListOfExp ";" -> Decl {cons("VarDecl")}
+%% "function" ID "(" ")" Stmt -> Decl
+"function" ID "(" ListOfId ")" Stmt -> Decl {cons("FunDecl")}
+
+INT -> Exp {cons("SyntaxInt"), avoid}
+BOOL -> Exp {cons("SyntaxBool"), avoid}
+ID -> Exp {cons("SyntaxId"), avoid}
+
+"++" Exp -> Exp
+"-" Exp -> Exp
+
+Exp "[" ListOfExp "]" -> Exp
+"sizeOf" "(" Exp ")" -> Exp
+ID "(" ListOfExp ")" -> Exp
+"read" "(" ")" -> Exp
+"(" Exp ")" -> Exp {bracket}
+
+{ID ","}* -> ListOfId
+{Exp ","}* -> ListOfExp
+
+
+context-free priorities
+{	
+	Exp "*" Exp -> Exp {left, cons("Mult")}
+	Exp "/" Exp -> Exp {left, cons("Div")}
+	Exp "%" Exp -> Exp {left, cons("Mod")}
+} > {
+	Exp "+" Exp -> Exp {left, cons("Add")}
+	Exp "-" Exp -> Exp {left, cons("Sub")}
+} > {
+	Exp "<" Exp -> Exp {cons("LT")}
+	Exp "<=" Exp -> Exp {cons("LTE")}
+	Exp ">" Exp -> Exp {cons("GT")}
+	Exp ">=" Exp -> Exp {cons("GTE")}
+	Exp "==" Exp -> Exp {cons("Eq")}
+	Exp "!=" Exp -> Exp {cons("Neq")}
+} > {
+	Exp "and" Exp -> Exp {left, cons("And")}
+	Exp "or" Exp -> Exp {left, cons("Or")}
+} > {
+	"not" Exp -> Exp {cons, cons("Not")}
+} > {
+	Exp "=" Exp -> Exp {right, cons("Assign")}
+}
+
+lexical syntax
+
+
+%%                 | for Id = Exp to Exp do Stmt[prec 90]
+%%                 | write ( Exp ) ;            [strict]
+%%                 | try Stmt catch ( Id ) Stmt [prec 90]
+%%                 | throw Exp ; [strict]
+%%                 | spawn Stmt [prec 90]
+%%                 | acquire Exp ;              [strict]
+%%                 | release Exp ;              [strict]
+%%                 | rendezvous Exp ;           [strict]
+
