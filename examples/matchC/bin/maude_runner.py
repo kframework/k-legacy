@@ -17,7 +17,7 @@ def default_filter(line):
 
 
 def run(args, filter=default_filter, epilog=''):
-    cmd = ['maude'] + args
+    cmd = ['unbuffer', 'maude'] + args
 
     print "Loading Maude .......",
     start = time.time()
