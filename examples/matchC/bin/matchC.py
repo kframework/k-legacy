@@ -8,7 +8,7 @@ import tempfile
 import time
 
 from ansi_colors import *
-import maude_runner
+import run_maude
 
 k_root_dir = os.path.expanduser(os.path.join('~', 'k-framework'))
 k_tools_dir = os.path.join(k_root_dir, 'tools')
@@ -65,7 +65,7 @@ def verify(prog_filename, log=None):
     if log != None:
         args += ['-xml-log=' + log]
     args += [prog_filename]
-    maude_runner.run(args, filter=output_filter, epilog='DONE! ')
+    run_maude.run(args, filter=output_filter, epilog='DONE! ')
 
     if verified:
         print green_color + 'Verification succeeded!' + no_color, statistics

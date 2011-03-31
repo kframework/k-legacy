@@ -1,3 +1,5 @@
+import pty
+import os
 import subprocess
 import time
 
@@ -17,12 +19,17 @@ def default_filter(line):
 
 
 def run(args, filter=default_filter, epilog=''):
-    cmd = ['unbuffer', 'maude'] + args
+    cmd = ['maude'] + args
+    if os.name == 'posix':
+        cmd += ['python', 'run_pty.py'];
+        print "ana .......",
 
     print "Loading Maude .......",
     start = time.time()
 
-    maude = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    #(master_fd, slave_fd) = pty.openpty()
+    #maude = subprocess.Popen(cmd, stdin=None, stdout=slave_fd)
+    maude = subprocess.Popen(cmd, stdin=None, stdout=subprocess.PIPE)
 
     while True:
         line = maude.stdout.readline()
