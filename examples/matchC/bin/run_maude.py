@@ -1,3 +1,5 @@
+#!/usr/local/bin/python3
+
 import pty
 import os
 import subprocess
@@ -15,33 +17,24 @@ reset_flag = 'r'
 open_flag = 'o'
 
 
+def format_timer(timer):
+    return '[' + yellow_color + '%.3f' % timer + 's' + no_color + ']'
+
+
 def default_filter(line):
     return
 
 
 def run(args, filter=default_filter, epilog=''):
     cmd = ['maude'] + args
-    #if os.name == 'posix':
-    #    cmd = ['python', 'bin/run_pty.py'] + cmd;
 
-    tell_list = [sys.stdout.tell()]
-    #print "Loading Maude .......",
-    #sys.stdout.flush()
-    os.write(sys.stdout.fileno(), "Loading Maude ....... ")
-    os.fsync(sys.stdout.fileno())
-    tell_list += [sys.stdout.tell()]
+    print("Loading Maude .......", end=' ')
     start = time.time()
 
     if os.name == 'posix':
-        """
         (master, slave) = pty.openpty()
-        maude = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=slave,
-                                 close_fds=True)
+        maude = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=slave)
         maude_out = os.fdopen(master, 'r')
-        """
-        maude = subprocess.Popen(['python', 'bin/run_pty.py'] + cmd,
-                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        maude_out = maude.stdout
     else:
         maude = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                                  stdout=subprocess.PIPE)
@@ -49,17 +42,11 @@ def run(args, filter=default_filter, epilog=''):
     maude.stdin.close()
 
     while True:
-        #line = maude.stdout.readline()
         line = maude_out.readline()
         if line.startswith("Bye"):
             end = time.time()
             elapsed = round(end - start, 3)
-            time_display = yellow_color + '%.3f' % elapsed + 's' + no_color
-            #print epilog + '[' + time_display + ']'
-            tell_list += [sys.stdout.tell()]
-            os.write(sys.stdout.fileno(), epilog + '[' + time_display + ']\n')
-            os.fsync(sys.stdout.fileno())
-            tell_list += [sys.stdout.tell()]
+            print(epilog + ' ' + format_timer(elapsed))
             break
 
         print_suffix_index = line.find(print_suffix)
@@ -87,26 +74,14 @@ def run(args, filter=default_filter, epilog=''):
             if isReset: start = end
 
             formated_line = content
-            #print content,
             if isTimer:
-                time_display = yellow_color + '%.3f' % elapsed + 's' + no_color
-                formated_line += ' [' + time_display + ']'
-                #print '[' + time_display + ']',
-            if not isOpen:
-                #print# sys.stdout.tell()
-                #print# sys.stdout.tell()
-                formated_line += '\n'
+                formated_line += ' ' + format_timer(elapsed)
+            if isOpen:
+                print(formated_line, end=' ')
             else:
-                formated_line += ' '
-            while formated_line:
-                tell_list += [sys.stdout.tell()]
-                n = os.write(sys.stdout.fileno(), formated_line)
-                formated_line = formated_line[n:]
-                os.fsync(sys.stdout.fileno())
-                tell_list += [sys.stdout.tell()]
+                print(formated_line)
         else:
             filter(line)
     maude.wait()
-    print
-    print tell_list
+
 
