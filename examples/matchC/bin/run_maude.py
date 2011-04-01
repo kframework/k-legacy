@@ -31,11 +31,15 @@ def run(args, filter=default_filter, epilog=''):
     print("Loading Maude .......", end=' ')
     start = time.time()
 
-    if os.name == 'posix':
-        (master, slave) = pty.openpty()
-        maude = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=slave)
-        maude_out = os.fdopen(master, 'r')
-    else:
+    maude = None
+    if os.name == 'posix' or os.name == 'mac':
+        try:
+            (master, slave) = pty.openpty()
+            maude_out = os.fdopen(master, 'r')
+            maude = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=slave)
+        except OSError:
+            maude = None 
+    if maude == None:
         maude = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                                  stdout=subprocess.PIPE)
         maude_out = maude.stdout
@@ -82,6 +86,6 @@ def run(args, filter=default_filter, epilog=''):
                 print(formated_line)
         else:
             filter(line)
-    maude.wait()
+    return maude.wait()
 
 

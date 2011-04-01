@@ -66,7 +66,8 @@ def verify(prog_filename, log=None):
     if log != None:
         args += ['-xml-log=' + log]
     args += [prog_filename]
-    run_maude.run(args, filter=output_filter, epilog='DONE!')
+    retcode = run_maude.run(args, filter=output_filter, epilog='DONE!')
+    if retcode != 0: sys.exit(retcode)
 
     if verified:
         print(green_color + 'Verification succeeded!' + no_color, statistics)
