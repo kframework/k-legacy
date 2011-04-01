@@ -14,29 +14,24 @@
 
 module Language.K where
 
-import Text.Parsec
 import Control.Applicative ((<$>))
+import Text.Parsec
 
--- | A nice type synonym to reduce clutter while still keeping things generic.
-type GenParsecT a = (Stream s m Char) => ParsecT s u m a
+import Internal.Lexer
+
+-- | Reduce clutter while still keeping the types generic.
+type Parser a = (Stream s m Char) => ParsecT s u m a
 
 -- | Parse a K term
-kterm :: GenParsecT String
-kterm = kempty <|> kbuiltin <|> kapp
+kterm :: Parser String
+kterm = kempty <|> kapp
 
 -- | Parse the K identity element
-kempty :: GenParsecT String
+kempty :: Parser String
 kempty = string ".List{K}"
 
--- | Parse a K builtin: Int 42(.List{K})
--- TODO: how to capture builtins generically?
-kbuiltin :: GenParsecT String
-kbuiltin = do
-    choice $ map symbol ["String", "Int"]
-    manyTill anyChar (try (symbol "(.List{K})"))
-
 -- | Parse a K application: KLabel(K1,,K2)
-kapp :: GenParsecT String
+kapp :: Parser String
 kapp = do
     (label, argc) <- klabel
     argv <- parens (kterm `sepBy` (symbol ",,"))
@@ -46,27 +41,53 @@ kapp = do
               | argc /= length argv = fail "unexpected number of arguments"
               | otherwise = return $ label ++ " " ++ parenthesize argv
 
+{- KLabels -}
+
+-- | A KLabel is its name and its number of arguments
+type KLabel = (String, Int)
+
+-- | Parse a KLabel
+klabel :: Parser KLabel
+klabel = genklabel <|> kbuiltin
+
 -- | Parse generated K label: 'Foo___
--- TODO: this does not capture all K labels, only "generated" ones.
-klabel :: GenParsecT (String, Int)
-klabel = do
+genklabel :: Parser KLabel
+genklabel = do
     char '\''
     name <- maudeIdentifier
     argc <- length <$> many (char '_')
     return (name, argc)
+
+-- | Parse a K builtin
+kbuiltin :: Parser KLabel
+kbuiltin = flip (,) 0 <$> (kint <|> kstring)
+
+-- | Parse an Int builtin: Int 42
+kint :: Parser String
+kint = do
+    symbol "Int"
+    i <- integer
+    return (show i)
+
+-- | Parse a String builtin: String "hello"
+kstring :: Parser String
+kstring = do
+    symbol "String"
+    s <- stringLiteral
+    return (show s)
 
 {- Maude identifiers -}
 
 -- | Note that this does not capture all Maude identifiers since, for K, we
 -- assume identifiers will not contain '_'  and that '`' will not be used to
 -- escape spaces.
-maudeIdentifier :: GenParsecT String
+maudeIdentifier :: Parser String
 maudeIdentifier = many maudeIdChar
 
-maudeIdChar :: GenParsecT Char
+maudeIdChar :: Parser Char
 maudeIdChar = noneOf ("`_ " ++ maudeIdSpecialChars) <|> maudeIdEscape
 
-maudeIdEscape :: GenParsecT Char
+maudeIdEscape :: Parser Char
 maudeIdEscape = char '`' >> oneOf maudeIdSpecialChars
 
 -- | 3.1: The characters ‘{’, ‘}’, ‘(’, ‘)’, ‘[’, ‘]’ and ‘,’ are special, in
@@ -80,15 +101,9 @@ maudeIdSpecialChars = "{}()[],"
 parenthesize :: [String] -> String
 parenthesize = unwords . map (\x -> "(" ++ x ++ ")")
 
--- | @parens p@ parses @p@ enclosed in parenthesis
-parens :: (Stream s m Char) => ParsecT s u m a -> ParsecT s u m a
-parens = between (symbol "(") (symbol ")")
-
--- | Parse a string and skip trailing whitespace.
-symbol :: (Stream s m Char) => String -> ParsecT s u m String
-symbol s = do { r <- string s; spaces; return r }
-
 {- Test cases -}
 
+-- TODO: Use HUnit
 test1 = parseTest kterm "'NegApp_('Lit_('Int_(Int 42(.List{K}))))"
-test2 = parseTest kterm "'Let__('BDecls_('`(:`)__('FunBind_('`(:`)__('Match______('SrcLoc___(String \"unknown.hs\"(.List{K}),,Int 0(.List{K}),,Int 0(.List{K})),,'Ident_(String \"ok0\"(.List{K})),,'`(:`)__('PVar_('Ident_(String \"x\"(.List{K}))),,'`[`](.List{K})),,'Nothing(.List{K}),,'UnGuardedRhs_('Var_('UnQual_('Ident_(String \"foo\"(.List{K}))))),,'BDecls_('`[`](.List{K}))),,'`(:`)__('Match______('SrcLoc___(String \"unknown.hs\"(.List{K}),,Int 0(.List{K}),,Int 0(.List{K})),,'Ident_(String \"ok0\"(.List{K})),,'`(:`)__('PWildCard(.List{K}),,'`[`](.List{K})),,'Nothing(.List{K}),,'UnGuardedRhs_('App__('Var_('UnQual_('Ident_(String \"fail\"(.List{K})))),,'Lit_('String_(String \"pattern fail\"(.List{K}))))),,'BDecls_('`[`](.List{K}))),,'`[`](.List{K})))),,'`[`](.List{K}))),,'InfixApp___('Var_('UnQual_('Ident_(String \"xs\"(.List{K})))),,'QVarOp_('UnQual_('Symbol_(String \">>=\"(.List{K})))),,'Var_('UnQual_('Ident_(String \"ok0\"(.List{K}))))))"
+test2 = parseTest kterm "'Lit_('String_(String \"hello\"(.List{K})))"
+test3 = parseTest kterm "'Let__('BDecls_('`(:`)__('FunBind_('`(:`)__('Match______('SrcLoc___(String \"unknown.hs\"(.List{K}),,Int 0(.List{K}),,Int 0(.List{K})),,'Ident_(String \"ok0\"(.List{K})),,'`(:`)__('PVar_('Ident_(String \"x\"(.List{K}))),,'`[`](.List{K})),,'Nothing(.List{K}),,'UnGuardedRhs_('Var_('UnQual_('Ident_(String \"foo\"(.List{K}))))),,'BDecls_('`[`](.List{K}))),,'`(:`)__('Match______('SrcLoc___(String \"unknown.hs\"(.List{K}),,Int 0(.List{K}),,Int 0(.List{K})),,'Ident_(String \"ok0\"(.List{K})),,'`(:`)__('PWildCard(.List{K}),,'`[`](.List{K})),,'Nothing(.List{K}),,'UnGuardedRhs_('App__('Var_('UnQual_('Ident_(String \"fail\"(.List{K})))),,'Lit_('String_(String \"pattern fail\"(.List{K}))))),,'BDecls_('`[`](.List{K}))),,'`[`](.List{K})))),,'`[`](.List{K}))),,'InfixApp___('Var_('UnQual_('Ident_(String \"xs\"(.List{K})))),,'QVarOp_('UnQual_('Symbol_(String \">>=\"(.List{K})))),,'Var_('UnQual_('Ident_(String \"ok0\"(.List{K}))))))"

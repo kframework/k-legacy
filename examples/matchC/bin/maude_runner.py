@@ -1,9 +1,4 @@
-#!/usr/local/bin/python3
-
-import pty
-import os
 import subprocess
-import sys
 import time
 
 from ansi_colors import *
@@ -17,40 +12,25 @@ reset_flag = 'r'
 open_flag = 'o'
 
 
-def format_timer(timer):
-    return '[' + yellow_color + '%.3f' % timer + 's' + no_color + ']'
-
-
 def default_filter(line):
     return
 
 
 def run(args, filter=default_filter, epilog=''):
-    cmd = ['maude'] + args
+    cmd = ['unbuffer', 'maude'] + args
 
-    print("Loading Maude .......", end=' ')
+    print "Loading Maude .......",
     start = time.time()
 
-    maude = None
-    if os.name == 'posix' or os.name == 'mac':
-        try:
-            (master, slave) = pty.openpty()
-            maude_out = os.fdopen(master, 'r')
-            maude = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=slave)
-        except OSError:
-            maude = None 
-    if maude == None:
-        maude = subprocess.Popen(cmd, stdin=subprocess.PIPE,
-                                 stdout=subprocess.PIPE)
-        maude_out = maude.stdout
-    maude.stdin.close()
+    maude = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 
     while True:
-        line = maude_out.readline()
+        line = maude.stdout.readline()
         if line.startswith("Bye"):
             end = time.time()
             elapsed = round(end - start, 3)
-            print(epilog + ' ' + format_timer(elapsed))
+            time_display = yellow_color + '%.3f' % elapsed + 's' + no_color
+            print epilog + '[' + time_display + ']'
             break
 
         print_suffix_index = line.find(print_suffix)
@@ -70,22 +50,22 @@ def run(args, filter=default_filter, epilog=''):
                 else:
                     isFormat = False
             if not isFormat:
-                filter(line)
+                print line,
                 continue
 
             end = time.time()
             elapsed = round(end - start, 3)
             if isReset: start = end
 
-            formated_line = content
+            print content,
             if isTimer:
-                formated_line += ' ' + format_timer(elapsed)
-            if isOpen:
-                print(formated_line, end=' ')
-            else:
-                print(formated_line)
+                time_display = yellow_color + '%.3f' % elapsed + 's' + no_color
+                if isOpen:
+                  print '[' + time_display + ',',
+                else:
+                  print '[' + time_display + ']',
+            if not isOpen:
+                print
         else:
             filter(line)
-    return maude.wait()
-
 

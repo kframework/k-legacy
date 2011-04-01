@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/local/bin/python
 
 import argparse
 import os
@@ -8,8 +8,7 @@ import tempfile
 import time
 
 from ansi_colors import *
-import run_maude
-
+import maude_runner
 
 k_root_dir = os.path.expanduser(os.path.join('~', 'k-framework'))
 k_tools_dir = os.path.join(k_root_dir, 'tools')
@@ -45,10 +44,10 @@ def compile(in_filename, out_filename):
     in_file = open(in_filename, 'r')
     out_file = open(out_filename, 'w')
 
-    print('Compiling program ...', end='')
-    start = time.time()
     out_file.writelines(ml_prog_header)
     out_file.flush()
+    start = time.time()
+    print 'Compiling program ...',
 
     retcode = subprocess.call(cmd, bufsize=-1, stdin=in_file, stdout=out_file)
     if retcode != 0: sys.exit(retcode)
@@ -58,7 +57,7 @@ def compile(in_filename, out_filename):
     out_file.close()
     end = time.time()
     elapsed = yellow_color + "%.3f" % round(end - start, 3) + "s" + no_color
-    print(' DONE! [' + elapsed + ']')
+    print 'DONE! [' + elapsed + ']'
 
 
 def verify(prog_filename, log=None):
@@ -66,15 +65,14 @@ def verify(prog_filename, log=None):
     if log != None:
         args += ['-xml-log=' + log]
     args += [prog_filename]
-    retcode = run_maude.run(args, filter=output_filter, epilog='DONE!')
-    if retcode != 0: sys.exit(retcode)
+    maude_runner.run(args, filter=output_filter, epilog='DONE! ')
 
     if verified:
-        print(green_color + 'Verification succeeded!' + no_color, statistics)
+        print green_color + 'Verification succeeded!' + no_color, statistics
     else:
-        print(red_color + 'Verification failed!' + no_color, statistics)
+        print red_color + 'Verification failed!' + no_color, statistics
     if output_stream != None:
-        print('Output:', output_stream)
+        print 'Output:', output_stream
 
 
 verified = True
@@ -166,16 +164,16 @@ def main():
               log_file, args.output]
 
         start = time.time()
-        print('Generating error ....', end="")
+        print 'Generating error ....',
 
         retcode = subprocess.call(cmd)
         if retcode != 0: sys.exit(retcode)
 
         end = time.time()
         elapsed = yellow_color + "%.3f" % round(end - start, 3) + "s" + no_color
-        print(' DONE! [' + elapsed + ']')
+        print 'DONE! [' + elapsed + ']'
 
-        print('Check ' + args.output + ' for the complete output.')
+        print 'Check ' + args.output + ' for the complete output.'
 
     if args.display:
         cmd = ['java', '-cp', ml_viewer_dir, ml_viewer_visual_main_class,
