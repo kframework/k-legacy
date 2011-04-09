@@ -32,9 +32,11 @@ syntax K ::= List{Id}
 syntax Id ::= object | undefined // to be extended later with class and instance names
 
 
---- List{Id}
+
  syntax List{Id}  ::= Id | .List{Id} 
                     | List{Id} , List{Id} [prec 70 assoc id: .List{Id} strict hybrid]
+
+
 
 //syntax SetItem ::= class ( Id )
 
@@ -44,7 +46,7 @@ syntax Id ::= object | undefined // to be extended later with class and instance
                     <classes>
                       <class multiplicity = "*" >
                          <className> undefined </className> 
-                         <extends> .List{Id} </extends>
+                         <extends> .Bag </extends>
                          <declAttributes> .Map  </declAttributes>
                       </class>
                     </classes>

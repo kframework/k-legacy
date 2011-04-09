@@ -75,8 +75,7 @@ syntax Bag ::= initConfig
 				initialState
 			</className>
 			<extends>
-				state, 
-			 .List{Id}
+				BagItem(state) 
 			</extends>
 			<declAttributes>
 				(out|->transition)

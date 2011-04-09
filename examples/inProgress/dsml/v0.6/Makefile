@@ -1,18 +1,24 @@
 # KCOMPILE can be set by whoever calls this file
 # e.g., `make KCOMPILE=xxxxx`
-KCOMPILE ?= ../../../../../tools/kompile.pl
+KCOMPILE ?= ../../../../tools/kompile.pl
 
 # this is the name of the main maude module 
 
- LANGUAGE_NAME = AUTOMATA
+# LANGUAGE_NAME = OCL-SYNTAX
+# LANGUAGE_NAME = META-MODEL
+# LANGUAGE_NAME = OCL-SEMANTICS
+ LANGUAGE_NAME = TEST
 
 # this are all interesting modules (used to latexify)
-LANGUAGE_MODULES = OCL-SYNTAX META-MODEL OCL-SEMANTICS
+#LANGUAGE_MODULES = 
 
 LATEX_STYLE = bb
 
-
- MAIN_FILE = automata
+# this is the basename of the main file
+# MAIN_FILE = ocl-syntax
+# MAIN_FILE = meta-model
+# MAIN_FILE = ocl-semantics
+ MAIN_FILE = test
 
 # these are additional files that when changed will force rebuilding the semantics
 #ADDITIONAL_DEPENDENCIES = 

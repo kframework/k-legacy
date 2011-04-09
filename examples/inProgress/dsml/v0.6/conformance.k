@@ -10,6 +10,7 @@ kvar INSTANCES REST B RESTBAG RESTINSTANCES : Bag
 kvar ATTRCLS ATTRINST Map Map' Map'' : Map 
 kvar C T nm INSNAME attr : Id 
 kvar OCL : List
+kvar LL : List{Id}
 kvar E : Exp
 kvar v : Val
 
@@ -18,13 +19,13 @@ syntax K ::= checkConformance
 
 rule
 
-//<k> checkConformance => checkStructure(INSTANCES)~>checkOCL(OCL)<_/k> 
-//<metamodel_> <oclConstraints> OCL => . </oclConstraints> <_/metamodel>
-//<models> <model> <modelName> nm </modelName> INSTANCES </model> </models>
+<k> checkConformance => checkStructure(INSTANCES)~>checkOCL(OCL)<_/k> 
+<metamodel_> <oclConstraints> OCL => . </oclConstraints> <_/metamodel>
+<models> <model> <modelName> nm </modelName> INSTANCES </model> </models>
 
 
-<k> checkConformance => checkOCL(OCL)<_/k> 
-<metamodel_> <oclConstraints> OCL </oclConstraints> <_/metamodel>
+//<k> checkConformance => checkOCL(OCL)<_/k> 
+//<metamodel_> <oclConstraints> OCL </oclConstraints> <_/metamodel>
 
 
 
@@ -42,7 +43,7 @@ rule <k> checkStructure(
                     <_/instance>
                        ) REST)
          => 
-         consistentAttributes(ATTRINST, ATTRCLS, INSTANCES)~>checkStructure(REST)
+         consistentAttributes(ATTRINST, ATTRCLS)~>checkStructure(REST)
      <_/k>
  <metamodel_>
     <classes_>
@@ -52,37 +53,40 @@ rule <k> checkStructure(
      <_/class>
      <_/classes>
  <_/metamodel>
-     <models> // one model only
-      <model>
-        <modelName> nm </modelName>
-          INSTANCES
-      </model>
-     </models>
 
-syntax K ::= consistentAttributes( Map , Map , Bag )
 
-rule consistentAttributes( .Map, _, _ ) => . [structural]
+syntax K ::= consistentAttributes( Map , Map )
+
+rule <k> consistentAttributes( .Map, _ ) => . <_/k> 
 
 
 // for scalar types : just check that the attribute is declared in metamodel
-rule  consistentAttributes( (attr |->  typedElt(v,T)) Map',  
-                            (attr |-> T ) Map'', B)
+rule  <k> consistentAttributes( (attr |->  typedElt(v,T)) Map',  
+                            (attr |-> T ) Map'')
       =>
-      consistentAttributes(Map',Map'',B)
+      consistentAttributes(Map',Map'') <_/k>
       if notBool isClass(T)
-      [structural]
 
 
-//syntax K ::= toto
+
 
 // for non-scalar types (classes or collections of classes) : check that instances are also 
 // in the model and are of the correct (declared) type
 rule  <k> consistentAttributes( (attr |->  typedElt(v,T)) Map',  //T here may be a subtype of
-                            ((attr |-> T ) Map''), INSTANCES)   // T here
+                            (attr |-> T ) Map'')   // T here
       => 
-      allPresentAndWellTyped(v,T, INSTANCES)~>consistentAttributes(Map',Map'',INSTANCES)
+      allPresentAndWellTyped(v)~>consistentAttributes(Map',Map'')
       <_/k>
       if isClass(T)    
+      [structural]
+
+//or of a supertype
+rule  <k> consistentAttributes( (attr |->  typedElt(v,T)) Map',  
+                            ((attr |-> T':Id ) Map''))
+      => 
+       sbType(T,T')~>allPresentAndWellTyped(v)~>consistentAttributes(Map',Map'')
+      <_/k>
+      if isClass(T) andBool notBool (T ==Bool T')
       [structural]
 
 
@@ -94,23 +98,44 @@ rule isClass(C) => true
 if (( C =/=Bool int) andBool (C =/=Bool bool) andBool  (C =/=Bool string)) [structural]
 
 
-syntax K ::= allPresentAndWellTyped( Val , Id , Bag )
 
-rule allPresentAndWellTyped(val(.Bag), _, _) => . [structural]
-rule allPresentAndWellTyped(val(BagItem(INSNAME : T) RESTBAG), T, 
-                (<instance>
-                  <instName> INSNAME </instName>
-                  <ofClass> T </ofClass>
-                  <attributes> ATTRINST </attributes>
-                 </instance> RESTINSTANCES )) 
-     => 
-       allPresentAndWellTyped(val(RESTBAG), T, 
-                (<instance>
-                  <instName> INSNAME </instName>
-                  <ofClass> T </ofClass> 
-                  <attributes> ATTRINST </attributes>
-                 </instance> RESTINSTANCES )) 
-    [structural]
+syntax K ::= sbType( Id , Id )
+
+
+rule <k> sbType(T,T') => . <_/k>
+<metamodel_>
+    <classes_>
+     <class_>
+       <className> T </className>
+       <extends> BagItem(T') B </extends>
+     <_/class>
+     <_/classes>
+ <_/metamodel> 
+
+
+//syntax K ::=  Id isIn  List{Id}
+
+//rule <k> (T isIn T )  => . <_/k> 
+//rule <k> T isIn  (T',L) =>  T isIn L <_/k> if notBool (T ==Bool T)
+
+
+
+syntax K ::= allPresentAndWellTyped( Val )
+// all elements in a collection must exist as such among instances (including classes)
+rule <k> allPresentAndWellTyped(val(.Bag)) => . <_/k> 
+
+rule <k> allPresentAndWellTyped(val(BagItem(INSNAME : T) RESTBAG)) =>  
+         allPresentAndWellTyped(val(RESTBAG))
+     <_/k>
+<models> 
+  <model_> 
+       <instance_>
+       <instName> INSNAME </instName>
+        <ofClass> T </ofClass>
+      <_/instance>
+  <_/model> 
+</models> 
+
 
 
 syntax K ::= checkOCL ( List )
