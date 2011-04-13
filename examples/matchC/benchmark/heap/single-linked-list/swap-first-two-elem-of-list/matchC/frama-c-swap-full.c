@@ -1,16 +1,22 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-struct listNode {
+struct nodeList {
   int val;
-  struct listNode *next;
+  struct nodeList *next;
 };
 
-struct listNode* swap(struct listNode* x)
-/* rule <k> $ => return ?x; </k> <heap_> list(x)([y] @ [z] @ A) => list(?x)([z] @ [y] @ A) <_/heap> 
-    if ~(x = 0) */
+struct nodeList* swap(struct nodeList* x)
+/*@ pre < config > 
+             < env > x |-> x0 </ env > 
+             < heap > list(x0)([v1] @ [v2] @ A) H </ heap > 
+             < form > ~(x0 === 0) </ form > C </ config > */
+/*@ post < config > 
+             < env > ?rho </ env > 
+             < heap > list(?x)([v2] @ [v1] @ A) H </ heap > 
+             < form > returns ?x </ form > C </ config > */
 {
-  struct listNode* p;
+  struct nodeList* p;
   p = x;
   x = x->next;
   p->next = x->next;
@@ -18,65 +24,74 @@ struct listNode* swap(struct listNode* x)
   return x;
 }
 
-struct listNode* create(int n)
+struct nodeList* create(int n)
 {
-	struct listNode *x;
-	struct listNode *y;
-	x = 0;
-	while (n)
-	{
-		y = x;
-		x = (struct listNode*)malloc(sizeof(struct listNode));
-		x->val = n;
-		x->next = y;
-		n -= 1;
-	}
-	return x;
+  struct nodeList *x;
+  struct nodeList *y;
+  x = 0;
+  while (n)
+  {
+    y = x;
+    x = (struct nodeList*)malloc(sizeof(struct nodeList));
+    x->val = n;
+    x->next = y;
+    n -= 1;
+  }
+  return x;
 }
 
-void destroy(struct listNode* x)
-//@ rule <k> $ => return; </k><heap_> list(x)(A) => . <_/heap>
+struct nodeList* print(struct nodeList* x)
+/*@ pre < config > 
+             < env > x |-> x0 </ env > 
+             < heap > list(x0)(A) H </ heap > 
+             < form > TrueFormula </ form > C </ config > */
+/*@ post < config > 
+             < env > ?rho </ env > 
+             < heap > list(x0)(A) H </ heap > 
+             < form > returns x0 </ form > C </ config > */
 {
-	struct listNode *y;
-	
-	//@ inv <heap_> list(x)(?A) <_/heap>
-	while(x)
-	{
-		y = x->next;
-		free(x);
-		x = y;
-	}
+  struct nodeList* smth;
+  smth = x;
+/*@ invariant < config > 
+             < env > x |-> x0  smth |-> ?s </ env > 
+             < heap > lseg(x0,?s)(?A) list(?s)(?A') H </ heap > 
+             < form > A === ?A @ ?A' </ form > C </ config > */
+  while(smth != 0)
+  {
+    printf("%d ", smth->val);
+    smth = smth->next;
+  }
+  printf("\n");
+  return x;
 }
 
-
-void print(struct listNode* x)
-/*@ rule <k> $ => return; </k>
- <heap_> list(x)(A) <_/heap>
- <out_> epsilon => A </out> */
-{
-	/*@ inv <heap_> lseg(old(x),x)(?A1), list(x)(?A2) <_/heap> <out_> ?A1 </out>
-	 /\ A = ?A1 @ ?A2 */
-	while(x)
-	{
-		printf("%d ",x->val);
-		x = x->next;
-	}
-	printf("\n"); 
-}
-
+/*@ verify */
 int main()
 {
-  struct listNode *x;
-  struct listNode *y;
+  struct nodeList *x;
+  struct nodeList *y;
   x = create(5);
-  /*@ assert < heap > list(x)([1, 2, 3, 4, 5]) </ heap > */
+  // /*@ assert < config > 
+             // < env > x |-> ?x  y |-> ?x </ env > 
+             // < heap > list(?x)([1, 2, 3, 4, 5]) </ heap > 
+             // < form > TrueFormula </ form > </ config > */
   print(x);
+  x->next = x->next;
+  x->next->next = x->next->next;
   x = swap(x);
-  /*@ assert < heap > list(x)([2, 1, 3, 4, 5]) </ heap > */
   print(x);
   
   return 0;
 }
 
-//@ var n, y, z : Int
-//@ var A, B, C : Seq
+
+/*@ var ?x ?y ?p ?i ?v ?s : ?Int */
+/*@ var x0 v0 v1 v2 : FreeInt */
+/*@ var !v1 !v2 : !Int */
+/*@ var ?B ?C ?A1 ?A2 ?A ?A' : ?Seq */
+/*@ var !A !A1 !A2 : !Seq */
+/*@ var A B : FreeSeq */
+/*@ var ?rho ?H : ?MapItem */
+/*@ var !rho !H : !MapItem */
+/*@ var H : FreeMapItem */
+/*@ var C : FreeBagItem */

@@ -8,7 +8,9 @@ struct listNode {
 };
 
 int length(struct listNode* x)
-/*@ rule <k> $ => return len(A); </k> <heap_> list(x)(A) => list(x)(A) <_/heap> */
+/*@ cfg  <heap_> list(x)(A) => list(x0)(A) <_/heap> 
+    req x = x0
+    ens returns(len(A)) */
 {
   if (x == 0) return 0;
   else 
@@ -19,49 +21,48 @@ int length(struct listNode* x)
 
 struct listNode* create(int n)
 {
-	struct listNode *x;
-	struct listNode *y;
-	x = 0;
-	while (n)
-	{
-		y = x;
-		x = (struct listNode*)malloc(sizeof(struct listNode));
-		x->val = n;
-		x->next = y;
-		n -= 1;
-	}
-	return x;
+  struct listNode *x;
+  struct listNode *y;
+  x = 0;
+  while (n)
+  {
+    y = x;
+    x = (struct listNode*)malloc(sizeof(struct listNode));
+    x->val = n;
+    x->next = y;
+    n -= 1;
+  }
+  return x;
 }
 
 void destroy(struct listNode* x)
-//@ rule <k> $ => return; </k><heap_> list(x)(A) => . <_/heap>
+//@ cfg  <heap_> list(x)(?A) => . <_/heap>
 {
-	struct listNode *y;
-	
-	//@ inv <heap_> list(x)(?A) <_/heap>
-	while(x)
-	{
-		y = x->next;
-		free(x);
-		x = y;
-	}
-}
+  struct listNode *y;
 
+  //@ invariant <heap_> list(x)(?A) <_/heap>
+  while(x)
+  {
+    y = x->next;
+    free(x);
+    x = y;
+  }
+}
 
 void print(struct listNode* x)
-/*@ rule <k> $ => return; </k>
- <heap_> list(x)(A) <_/heap>
- <out_> epsilon => A </out> */
+/*@ cfg <heap_> list(x0)(A) <_/heap> <out_> epsilon => A </out>
+    req x = x0 */
 {
-	/*@ inv <heap_> lseg(old(x),x)(?A1), list(x)(?A2) <_/heap> <out_> ?A1 </out>
-	 /\ A = ?A1 @ ?A2 */
-	while(x)
-	{
-		printf("%d ",x->val);
-		x = x->next;
-	}
-	printf("\n"); 
+  /*@ inv <heap_> lseg(x0,x)(?A1), list(x)(?A2) <_/heap> <out_> ?A1 </out>
+          /\ A = ?A1 @ ?A2 */
+  while(x)
+  {
+    printf("%d ",x->val);
+    x = x->next;
+  }
+  printf("\n"); 
 }
+
 
 int main()
 {
