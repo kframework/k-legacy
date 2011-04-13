@@ -8,7 +8,7 @@ struct listNode {
 };
 
 int summ(struct listNode* a)
-//@ rule <k> $ => return thesum(A); <heap_> list(a)(A) => list(a)(A) <_/heap>
+//@ rule <k> $ => return thesum(A); </k> <heap_> list(a)(A) => list(a)(A) <_/heap>
 {
   int s;
   struct listNode* x;
