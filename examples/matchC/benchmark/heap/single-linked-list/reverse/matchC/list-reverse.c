@@ -9,14 +9,15 @@ struct listNode {
 
 
 struct listNode* reverse(struct listNode *x)
-/*@ rule <k> $ => return ?p; </k>
- <heap_> list(x)(A) => list(?p)(rev(A)) <_/heap> */
+//@ pre  <heap> list(x)(A), H </heap>
+//@ post <heap> list(p)(rev(A)), H </heap> /\ returns(p)
 {
   struct listNode *p;
   struct listNode *y;
 
   p = 0 ;
-  //@ inv <heap_> list(p)(?B), list(x)(?C) <_/heap> /\ A = rev(?B) @ ?C
+  /*@ invariant <heap> list(p)(?B), list(x)(?C), H </heap>
+                /\ A = rev(?B) @ ?C */
   while(x) {
     y = x->next;
     x->next = p;
@@ -44,11 +45,12 @@ struct listNode* create(int n)
 }
 
 void destroy(struct listNode* x)
-//@ rule <k> $ => return; </k><heap_> list(x)(A) => . <_/heap>
+//@ pre  <heap> list(x)(?A), H </heap>
+//@ post <heap> H </heap>
 {
   struct listNode *y;
 
-  //@ inv <heap_> list(x)(?A) <_/heap>
+  //@ invariant <heap> list(x)(?A), H </heap>
   while(x)
   {
     y = x->next;
@@ -59,12 +61,11 @@ void destroy(struct listNode* x)
 
 
 void print(struct listNode* x)
-/*@ rule <k> $ => return; </k>
- <heap_> list(x)(A) <_/heap>
- <out_> epsilon => A </out> */
+//@ pre  <heap>  list(x)(A), H </heap><out> B </out> /\ x = x0
+//@ post <heap> list(x0)(A), H </heap><out> B @ A </out>
 {
-	/*@ inv <heap_> lseg(old(x),x)(?A1), list(x)(?A2) <_/heap> <out_> ?A1 </out>
-	 /\ A = ?A1 @ ?A2 */
+  /*@ invariant <heap> lseg(x0,x)(?A1), list(x)(?A2), H </heap>
+                <out> B @ ?A1 </out> /\ A = ?A1 @ ?A2 */
   while(x)
   {
     printf("%d ",x->val);
@@ -84,11 +85,11 @@ int main()
   x = reverse(x);
   //@ assert <heap> list(x)([5, 4, 3, 2, 1]) </heap>
   destroy(x);
-  //@ assert <heap> . </heap>
   return 0;
 }
 
 
 //@ var n : Int
 //@ var A, B, C : Seq
+//@ var H : MapItem
 
