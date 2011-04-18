@@ -1,6 +1,8 @@
 require ../../../../k-prelude
 
-kmod VALUES is including K + PL-ID + PL-INT + PL-STRING
+
+
+kmod VALUES is including  K + PL-ID + PL-INT + PL-STRING
 syntax Collection ::=  val ( Bag ) 
 
 // values of expressions
@@ -8,13 +10,12 @@ syntax Val ::= Collection | Int | Bool | String
 // basic types
 syntax Id ::= top | int | bool | string 
 // and id's for class types, are possible values of expressions (the oclType function)
-syntax Val ::=  Id 
+//syntax Val ::=  Id 
 
 
 
 // result of evaluation
 syntax KResult ::= Val
-
 
 
 //  card predicate
@@ -32,6 +33,7 @@ rule subset((v:BagItem V), V':Bag) =>
 
 // general rules for mixing scalar and non-scalar values
 // for binary operators
+//(*)
 rule KL:KLabel(val(BagItem(Val1:Val)),,val(BagItem(Val2:Val))) => KL:KLabel(Val1,, Val2) 
 if (binaryOp(KL))  andBool isScalar((Val1)) andBool isScalar((Val2))
 [structural]
@@ -47,6 +49,7 @@ if (binaryOp(KL))  andBool isScalar((Val1)) andBool isScalar((Val2))
 [structural]
 
 // "critical pair"? with previous one : C1 = BagItem(Val1)
+// solved by (*)
 rule KL:KLabel( val(C1:Bag),,Val2:Val) => KL:KLabel(val(C1),, val(BagItem(Val2)))
 if (binaryOp(KL))  andBool  isScalar((Val2))
 [structural]
@@ -81,19 +84,35 @@ macro unaryOp(KL) =
 )
 
 
-syntax Bool ::= isScalar ( Val )
-rule isScalar(I:Int) => true [structural]
-rule isScalar(bbb:Bool) => true [structural]
-rule isScalar(Str:String) => true [structural]
-rule isScalar(ID:Id) => false [structural]
-rule isScalar(bbb:Bool) => true [structural]
-rule isScalar(Str:String) => true [structural]
-rule isScalar(val(C1)) => false [structural]
-
 
 rule KL:KLabel(val(BagItem(Val1:Val))) => KL:KLabel(Val1) 
 if (unaryOp(KL))  
 andBool isScalar((Val1)) 
 [structural]
+
+
+// scalar values
+
+syntax Bool ::= isScalar ( Val )
+rule isScalar(I:Int) => true [structural]
+rule isScalar(bbb:Bool) => true [structural]
+rule isScalar(Str:String) => true [structural]
+// isEnumType defined in EXTRACTED-INFO
+rule isScalar((obj:Id):(typ:Id))  => isEnum(typ) [structural]
+
+rule isScalar(val(C1)) => false [structural]
+
+
+
+
+syntax Id ::= activityState | timeState 
+
+// enumeration types
+syntax Bool ::= isEnum ( Id )
+
+//rule isEnum ( activityState ) => true [structural]
+//rule isEnum(timeState) => true [structural]
+rule isEnum(Id:Id) => false
+if notBool( Id ==Bool activityState orBool Id ==Bool timeState)  [structural]
 
 endkm
