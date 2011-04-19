@@ -1,0 +1,257 @@
+---load pl-builtins
+load ../../../k-prelude
+
+
+mod PL-INT32 is including PL-INT + PL-BOOL .
+
+  sort Int32 .
+  subsorts Int < Int32 < Builtins .
+
+  --- maxint and minint
+  op maxint32 : -> Int32 .
+  op minint32 : -> Int32 .
+  eq maxint32 = 2147483647 .
+  eq minint32 = (0 -Int maxint32) -Int 1 .  
+
+  op _+Int32_ : Int32 Int32 -> Int32 [assoc comm prec 33] .
+  op _+Int_ : Int32 Int32 -> Int32 [ditto] .
+  vars A B : Int32 .
+  eq A +Int32 B = A +Int B .
+  
+  op _-Int32_ : Int32 Int32 -> Int32 [prec 33 gather (E e)] .
+  op _-Int_ : Int32 Int32 -> Int32 [ditto] .
+  eq A -Int32 B = A -Int B .
+
+  op _*Int32_ : Int32 Int32 -> Int32 [assoc comm prec 31] .
+  op _*Int_ : Int32 Int32 -> Int32 [ditto] .
+  eq A *Int32 B = A *Int B .
+
+  op _/Int32_ : Int32 Int32 -> Int32 [prec 31 gather (E e)] .
+  op _/Int_ : Int32 Int32 -> Int32 [ditto] .
+  eq A /Int32 B = A /Int B .
+
+  op _&Int32_ : Int32 Int32 -> Int32 [assoc comm prec 53] .
+  op _&Int_ : Int32 Int32 -> Int32 [ditto] .
+  eq A &Int32 B = A &Int B .
+
+  op _|Int32_ : Int32 Int32 -> Int32 [assoc comm prec 57] .
+  op _|Int_ : Int32 Int32 -> Int32 [ditto] .
+  eq A |Int32 B = A |Int B .
+
+  op _xorInt32_ : Int32 Int32 -> Int32 [assoc comm prec 55] .
+  op _xorInt_ : Int32 Int32 -> Int32 [ditto] .
+  eq A xorInt32 B = A xorInt B .
+
+  op ~Int32_ : Int32 -> Int32 . 
+  op ~Int_ : Int32 -> Int32 [ditto] .
+  eq ~Int32 A  = ~Int A . 
+
+  op _>>Int32_ : Int32 Nat -> Int32 [prec 35 gather (E e)] .
+  op _>>Int_ : Int32 Nat -> Int32 [ditto] .
+  op _>>Int32_ : Int32 Int32 -> Int32 [ditto] .
+  var C : Nat .
+  var B1 : Int32 .
+  eq A >>Int32 C = A >>Int C .
+  eq A >>Int32 B1 = A <<Int32 (~Int32 B1) [owise] .
+
+  op _<<Int32_ : Int32 Nat -> Int32 [prec 35 gather (E e)] .
+  op _<<Int_ : Int32 Nat -> Int32 [ditto] .
+  op _<<Int32_ : Int32 Int32 -> Int32 [ditto] .
+  eq A <<Int32 C = A <<Int C .
+  eq A <<Int32 B1 = A >>Int32 (~Int32 B1) [owise] .
+
+  op _<Int32_ : Int32 Int32 -> Bool [prec 37] .
+  op _<Int_ : Int32 Int32 -> Bool [ditto] .
+  eq A <Int32 B = A <Int B .
+
+  op _<=Int32_ : Int32 Int32 -> Bool [prec 37] .
+  op _<=Int_ : Int32 Int32 -> Bool [ditto] .
+  eq A <=Int32 B = A <=Int B .
+
+  op _>Int32_ : Int32 Int32 -> Bool [prec 37] .
+  op _>Int_ : Int32 Int32 -> Bool [ditto] .
+  eq A >Int32 B = A >Int B .
+
+  op _>=Int32_ : Int32 Int32 -> Bool [prec 37] .
+  op _>=Int_ : Int32 Int32 -> Bool [ditto] .
+  eq A >=Int32 B = A >=Int B .
+
+  op _%Int32_ : Int32 Int32 -> Int32 [prec 31 gather (E e)] .
+  op _%Int_ : Int32 Int32 -> Int32 [ditto] .
+  eq A %Int32 B = A %Int B .
+
+  op _==Int32_ : Int32 Int32 -> Bool [prec 37] .
+  op _==Int_ : Int32 Int32 -> Bool [ditto] .
+  eq A ==Int32 B = A ==Int B .
+
+  op ovf32(_,_) : Int32 Int32 -> Int32 .
+  ceq ovf32(A,B) = 1 if (A +Int32 B) >Int32 maxint32 .
+  ceq ovf32(A,B) = 1 if (A +Int32 B) <Int32 minint32 .
+  eq ovf32(A,B) = 0 [owise] .
+
+  op udf32(_,_) : Int32 Int32 -> Int32 .
+  eq udf32(A,B) = ovf32(A,B) .
+
+  --- for symbolic execution
+  sorts SyInt32 Val32 .
+  subsort Int32 SyInt32 < Val32 < Builtins .
+  op syint32 : -> SyInt32 .
+
+  op isSymbolic : Val32 -> Bool .
+  eq isSymbolic (syint32) = true .
+  eq isSymbolic (Value:Val32) = false [owise] .
+
+endm
+
+
+mod PL-UNSIGNED-INT32 is including PL-INT .
+
+  sort UInt32 .
+  subsorts Int < UInt32 < Builtins .
+  
+  op _+UInt32_ : UInt32 UInt32 -> UInt32 [assoc comm prec 33] .
+  op _+Int_ : UInt32 UInt32 -> UInt32 [ditto] .
+  vars A B : UInt32 .
+  eq A +UInt32 B = A +Int B .
+  
+  op _-UInt32_ : UInt32 UInt32 -> UInt32 [prec 33 gather (E e)] .
+  op _-Int_ : UInt32 UInt32 -> UInt32 [ditto] .
+  eq A -UInt32 B = A -Int B .
+
+  op _*UInt32_ : UInt32 UInt32 -> UInt32 [assoc comm prec 31] .
+  op _*Int_ : UInt32 UInt32 -> UInt32 [ditto] .
+  eq A *UInt32 B = A *Int B .
+
+  op _/UInt32_ : UInt32 UInt32 -> UInt32 [prec 31 gather (E e)] .
+  op _/Int_ : UInt32 UInt32 -> UInt32 [ditto] .
+  eq A /UInt32 B = A /Int B .
+
+  op _&UInt32_ : UInt32 UInt32 -> UInt32 [assoc comm prec 53] .
+  op _&Int_ : UInt32 UInt32 -> UInt32 [ditto] .
+  eq A &UInt32 B = A &Int B .
+
+  op _|UInt32_ : UInt32 UInt32 -> UInt32 [assoc comm prec 57] .
+  op _|Int_ : UInt32 UInt32 -> UInt32 [ditto] .
+  eq A |UInt32 B = A |Int B .
+
+  op _xorUInt32_ : UInt32 UInt32 -> UInt32 [assoc comm prec 55] .
+  op _xorInt_ : UInt32 UInt32 -> UInt32 [ditto] .
+  eq A xorUInt32 B = A xorInt B .
+
+  op ~UInt32_ : UInt32 -> UInt32 . 
+  op ~Int_ : UInt32 -> UInt32 [ditto] .
+  eq ~UInt32 A  = ~Int A . 
+
+  op _>>UInt32_ : UInt32 Nat -> UInt32 [prec 35 gather (E e)] .
+  op _>>Int_ : UInt32 Nat -> UInt32 [ditto] .
+  var C : Nat .
+  eq A >>UInt32 C = A >>Int C .
+
+  op _<<UInt32_ : UInt32 Nat -> UInt32 [prec 35 gather (E e)] .
+  op _<<Int_ : UInt32 Nat -> UInt32 [ditto] .
+  eq A <<UInt32 C = A <<Int C .
+
+  op _<UInt32_ : UInt32 UInt32 -> Bool [prec 37] .
+  op _<Int_ : UInt32 UInt32 -> Bool [ditto] .
+  eq A <UInt32 B = A <Int B .
+
+  op _<=UInt32_ : UInt32 UInt32 -> Bool [prec 37] .
+  op _<=Int_ : UInt32 UInt32 -> Bool [ditto] .
+  eq A <=UInt32 B = A <=Int B .
+
+  op _>UInt32_ : UInt32 UInt32 -> Bool [prec 37] .
+  op _>Int_ : UInt32 UInt32 -> Bool [ditto] .
+  eq A >UInt32 B = A >Int B .
+
+  op _>=UInt32_ : UInt32 UInt32 -> Bool [prec 37] .
+  op _>=Int_ : UInt32 UInt32 -> Bool [ditto] .
+  eq A >=UInt32 B = A >=Int B .
+
+  op _%UInt32_ : UInt32 UInt32 -> UInt32 [prec 31 gather (E e)] .
+  op _%Int_ : UInt32 UInt32 -> UInt32 [ditto] .
+  eq A %UInt32 B = A %Int B .
+
+  op _==UInt32_ : UInt32 UInt32 -> Bool [prec 37] .
+  op _==Int_ : UInt32 UInt32 -> Bool [ditto] .
+  eq A ==UInt32 B = A ==Int B .
+
+  
+endm
+
+mod PL-INT16 is including PL-INT .
+
+  sort Int16 .
+  subsorts Int < Int16 < Builtins .
+
+  op _+Int16_ : Int16 Int16 -> Int16 [assoc comm prec 33] .
+  op _+Int_ : Int16 Int16 -> Int16 [ditto] .
+  vars A B : Int16 .
+  eq A +Int16 B = A +Int B .
+
+  op _-Int16_ : Int16 Int16 -> Int16 [prec 33 gather (E e) ] .
+  op _-Int_ : Int16 Int16 -> Int16 [ditto] .
+  eq A -Int16 B = A -Int B .
+
+  op _*Int16_ : Int16 Int16 -> Int16 [assoc comm prec 31] .
+  op _*Int_ : Int16 Int16 -> Int16 [ditto] .
+  eq A *Int16 B = A *Int B .
+
+  op _/Int16_ : Int16 Int16 -> Int16 [prec 33 gather (E e) ] .
+  op _/Int_ : Int16 Int16 -> Int16 [ditto] .
+  eq A /Int16 B = A /Int B .
+
+  op _&Int16_ : Int16 Int16 -> Int16 [assoc comm prec 53] .
+  op _&Int_ : Int16 Int16 -> Int16 [ditto] .
+  eq A &Int16 B = A &Int B .
+
+  op _|Int16_ : Int16 Int16 -> Int16 [assoc comm prec 57] .
+  op _|Int_ : Int16 Int16 -> Int16 [ditto] .
+  eq A |Int16 B = A |Int B .
+
+  op _xorInt16_ : Int16 Int16 -> Int16 [assoc comm prec 55] .
+  op _xorInt_ : Int16 Int16 -> Int16 [ditto] .
+  eq A xorInt16 B = A xorInt B .
+
+  op ~Int16_ : Int16 -> Int16 . 
+  op ~Int_ : Int16 -> Int16 [ditto] .
+  eq ~Int16 A  = ~Int A . 
+
+  op _>>Int16_ : Int16 Nat -> Int16 [prec 35 gather (E e)] .
+  op _>>Int_ : Int16 Nat -> Int16 [ditto] .
+  var C : Nat .
+  eq A >>Int16 C = A >>Int C .
+
+  op _<<Int16_ : Int16 Nat -> Int16 [prec 35 gather (E e)] .
+  op _<<Int_ : Int16 Nat -> Int16 [ditto] .
+  eq A <<Int16 C = A <<Int C .
+
+  op _<Int16_ : Int16 Int16 -> Bool [prec 37] .
+  op _<Int_ : Int16 Int16 -> Bool [ditto] .
+  eq A <Int16 B = A <Int B .
+
+  op _<=Int16_ : Int16 Int16 -> Bool [prec 37] .
+  op _<=Int_ : Int16 Int16 -> Bool [ditto] .
+  eq A <=Int16 B = A <=Int B .
+
+  op _>Int16_ : Int16 Int16 -> Bool [prec 37] .
+  op _>Int_ : Int16 Int16 -> Bool [ditto] .
+  eq A >Int16 B = A >Int B .
+
+  op _>=Int16_ : Int16 Int16 -> Bool [prec 37] .
+  op _>=Int_ : Int16 Int16 -> Bool [ditto] .
+  eq A >=Int16 B = A >=Int B .
+
+  op _%Int16_ : Int16 Int16 -> Int16 [prec 31 gather (E e)] .
+  op _%Int_ : Int16 Int16 -> Int16 [ditto] .
+  eq A %Int16 B = A %Int B .
+
+  op _==Int16_ : Int16 Int16 -> Bool [prec 37] .
+  op _==Int_ : Int16 Int16 -> Bool [ditto] .
+  eq A ==Int16 B = A ==Int B .
+
+endm
+
+mod TEST is including PL-INT32 + PL-UNSIGNED-INT32 + PL-INT16 .
+  
+endm
+
