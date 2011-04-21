@@ -1213,22 +1213,9 @@ sub compile {
 		}
 		if ($errorSet) {
 			print "ERROR:\n";
-			
-			# fix tokens
-			$_ =~ s/\(/\(/g;
-			$_ =~ s/\)/\)/g;
-			$_ =~ s/\{/\{/g;
-			$_ =~ s/\}/\}/g;
-			$_ =~ s/\,/\,/g;
-			
-			# fix spaces
-			$_ =~ s/ \{ /\{/g;
-			$_ =~ s/ \} /\}/g;
-			$_ =~ s/ \( /\(/g;
-			$_ =~ s/ \) /\)/g;
-			$_ =~ s/ \, /\, /g;
-			print $_;
 			print "Aborting the compilation\n";
+			my $unquotedOutput = unquote($maude_xml_file);
+			print "$unquotedOutput\n";
 			unlink($maude_xml_file);
 			exit(1);
 		}
