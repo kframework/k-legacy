@@ -9,69 +9,69 @@ struct listNode {
 
 
 struct listNode* reverse(struct listNode *x)
-//@ pre  <heap> list(x)(A), H </heap>
-//@ post <heap> list(p)(rev(A)), H </heap> /\ returns(p)
+/*@ rule <k> $ => return p1; </k>
+ <heap_> list(x)(A) => list(p1)(rev(A)) <_/heap> */
 {
-  struct listNode *p;
-  struct listNode *y;
-
-  p = 0 ;
-  /*@ invariant <heap> list(p)(?B), list(x)(?C), H </heap>
-                /\ A = rev(?B) @ ?C */
-  while(x) {
-    y = x->next;
-    x->next = p;
-    p = x;
-    x = y;
-  }
-
-  return p;
+	struct listNode *p;
+	
+	p = 0 ;
+	//@ inv <heap_> list(p)(?B), list(x)(?C) <_/heap> /\ A = rev(?B) @ ?C
+	while(x) {
+		struct listNode *y;
+		
+		y = x->next;
+		x->next = p;
+		p = x;
+		x = y;
+	}
+	
+	return p;
 }
 
 struct listNode* create(int n)
 {
-  struct listNode *x;
-  struct listNode *y;
-  x = 0;
-  while (n)
-  {
-    y = x;
-    x = (struct listNode*)malloc(sizeof(struct listNode));
-    x->val = n;
-    x->next = y;
-    n -= 1;
-  }
-  return x;
+	struct listNode *x;
+	struct listNode *y;
+	x = 0;
+	while (n)
+	{
+		y = x;
+		x = (struct listNode*)malloc(sizeof(struct listNode));
+		x->val = n;
+		x->next = y;
+		n -= 1;
+	}
+	return x;
 }
 
 void destroy(struct listNode* x)
-//@ pre  <heap> list(x)(?A), H </heap>
-//@ post <heap> H </heap>
+//@ rule <k> $ => return; </k><heap_> list(x)(A) => . <_/heap>
 {
-  struct listNode *y;
-
-  //@ invariant <heap> list(x)(?A), H </heap>
-  while(x)
-  {
-    y = x->next;
-    free(x);
-    x = y;
-  }
+	//@ inv <heap_> list(x)(?A) <_/heap>
+	while(x)
+	{
+		struct listNode *y;
+		
+		y = x->next;
+		free(x);
+		x = y;
+	}
 }
 
 
 void print(struct listNode* x)
-//@ pre  <heap>  list(x)(A), H </heap><out> B </out> /\ x = x0
-//@ post <heap> list(x0)(A), H </heap><out> B @ A </out>
+/*@ rule <k> $ => return; </k>
+ <heap_> list(x)(A) <_/heap>
+ <out_> epsilon => A </out> */
 {
-  /*@ invariant <heap> lseg(x0,x)(?A1), list(x)(?A2), H </heap>
-                <out> B @ ?A1 </out> /\ A = ?A1 @ ?A2 */
-  while(x)
-  {
-    printf("%d ",x->val);
-    x = x->next;
-  }
-  printf("\n"); 
+	/*@ inv <heap_> lseg(old(x), x)(?A1), list(x)(?A2) <_/heap> <out_> ?A1 </out>
+	 /\ A = ?A1 @ ?A2 */
+	while(x)
+	{
+		printf("%d ",x->val);
+		x = x->next;
+	}
+	printf("\n"); 
 }
 
 
