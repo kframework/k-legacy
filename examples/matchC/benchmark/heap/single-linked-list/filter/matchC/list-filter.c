@@ -1,19 +1,22 @@
-struct listNode {
+struct nodeList {
   int val;
-  struct listNode *next;
+  struct nodeList *next;
 };
 
 
-struct listNode* filter(struct listNode* x, int i)
-//@ rule <k> $ => return ?x; </k> <heap_> list(x)(A) => list(?x)(?A) <_/heap> if ~(contain(?A, i))
+struct nodeList* filter(struct nodeList* x, int i)
+/*@ pre < config > < env > x |-> ?x i |-> i0 </ env > < heap > list(?x)(A) </ heap > < form > TrueFormula </ form > </ config > */
+/*@ post < config > < env > ?rho </ env > < heap > list(?x)(?A) </ heap > < form > returns ?x /\ ~(contain(?A, i0)) </ form > </ config > */
 {
-	struct listNode* y;
-	struct listNode* z;
+	struct nodeList* y;
+	struct nodeList* z;
 	y = x;
   
-	if (x != 0)
-	{
-//@ inv <heap_> list(x)(?A) <_/heap>
+/*@ invariant < config > 
+              < env > x |-> ?x y |-> ?x z |-> 0 i |-> i0 </ env > 
+              < heap > list(?x)(A) </ heap > 
+              < form > TrueFormula </ form > 
+              </ config > */
 	while ((y->val == i) && (y != 0))
 	{
 		x = y->next;
@@ -23,8 +26,15 @@ struct listNode* filter(struct listNode* x, int i)
 	z = y;
 	y = y->next;
   
-/*@ inv <heap_> lseg(x,z)(?A), lseg(z,y)([?v]), list(y)(?B) <_/heap> /\
-		~(contain(?A, i)) /\ ~(?v = i) /\ ~(z = 0)  */
+/*@ invariant < config > 
+              < env > x |-> ?x y |-> ?y z |-> ?z i |-> i0 </ env > 
+              < heap > 
+                  lseg(?x,?z)(?A) 
+                  ?z |-> ?v : (nodeList . val)
+                  (?z +Int 1) |-> ?y : (nodeList . next)
+                  list(?y)(?B)
+              </ heap > 
+              < form > ~(contain(?A, i0)) /\ ~(?v === i0) /\ ~(?z === 0) </ form > </ config >  */
 	while(y != 0)
 	{
 		if(y->val == i)
@@ -40,19 +50,11 @@ struct listNode* filter(struct listNode* x, int i)
 		}
 	}
 	return x;
-	}
-	else {
-		return 0;
-	}
-
 }
 
 
-int main()
-{
-	return 0;
-}
-
-//@ var A, B : Seq
-//@ var v : Int
-
+/*@ var ?x ?y ?z ?v : ?Int */
+/*@ var i0 : FreeInt */
+/*@ var ?A ?B ?C : ?Seq */
+/*@ var A : FreeSeq */
+/*@ var ?rho ?H : ?MapItem */

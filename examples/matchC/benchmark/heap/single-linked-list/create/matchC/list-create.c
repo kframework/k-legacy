@@ -1,39 +1,24 @@
 #include <stdlib.h>
-#include <stdio.h>
 
-struct listNode {
+struct nodeList {
   int val;
-  struct listNode *next;
+  struct nodeList *next;
 };
 
-void print(struct listNode* x)
-/*@ rule <k> $ => return; </k>
- <heap_> list(x)(A) <_/heap>
- <out_> epsilon => A </out> */
+struct nodeList* create()
+/*@ pre <heap> . </heap> */
+/*@ post < config > < env > ?rho </ env > < heap > list(?x)([5] @ [6] @ [7]) </ heap > < form > returns ?x </ form > </ config > */
 {
-	/*@ inv <heap_> lseg(old(x), x)(?A1), list(x)(?A2) <_/heap> <out_> ?A1 </out>
-	 /\ A = ?A1 @ ?A2 */
-	while(x)
-	{
-		printf("%d ",x->val);
-		x = x->next;
-	}
-	printf("\n"); 
-}
-
-struct listNode* create()
-//@ rule <k> $ => return ?x; </k> <heap_> . => list(?x)([5, 6, 7]) <_/heap>
-{
-  struct listNode *x;
-  struct listNode *y;
-  x = (struct listNode*)malloc(sizeof(struct listNode));
+  struct nodeList *x;
+  struct nodeList *y;
+  x = (struct nodeList*)malloc(sizeof(struct nodeList));
   x->val = 7;
   x->next = 0;
-  y = (struct listNode*)malloc(sizeof(struct listNode));
+  y = (struct nodeList*)malloc(sizeof(struct nodeList));
   y->val = 6;
   y->next = x;
   x = y;
-  y = (struct listNode*)malloc(sizeof(struct listNode));
+  y = (struct nodeList*)malloc(sizeof(struct nodeList));
   y->val = 5;
   y->next = x;
   x = y;
@@ -41,12 +26,15 @@ struct listNode* create()
 }
 
 int main()
+/*@ pre < config > < env > (.).Map </ env > < heap > (.).Map </ heap > < form > TrueFormula </ form > </ config > */
+/*@ post < config > < env > ?rho </ env > < heap > ?H </ heap > < form > TrueFormula </ form > </ config > */
 {
-  struct listNode *x;
+  struct nodeList *x;
   x = create();
-  print(x);
   return 0;
 }
 
-//@ var A : Seq
 
+/*@ var ?x ?y : ?Int */
+/*@ var ?A : ?Seq */
+/*@ var ?rho ?H : ?MapItem */
