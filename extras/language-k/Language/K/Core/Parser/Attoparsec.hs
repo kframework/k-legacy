@@ -1,18 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Language.K.Parser.Attoparsec
+-- Module      :  Language.K.Core.Parser.Attoparsec
 -- Copyright   :  (c) David Lazar, 2011
--- License     :  BSD3
+-- License     :  MIT
 --
 -- Maintainer  :  lazar6@illinois.edu
 -- Stability   :  experimental
--- Portability :  non-portable
+-- Portability :  unknown
 --
 -- A small, incomplete Attoparsec parser for low-level K.
 -----------------------------------------------------------------------------
 
-module Language.K.Parser.Attoparsec where
+module Language.K.Core.Parser.Attoparsec where
 
 import Control.Applicative ((<|>), (<$>))
 import Data.Attoparsec.Char8

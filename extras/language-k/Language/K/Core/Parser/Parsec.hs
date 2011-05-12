@@ -1,24 +1,27 @@
 {-# LANGUAGE FlexibleContexts, Rank2Types #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Language.K.Parser.Parsec
+-- Module      :  Language.K.Core.Parser.Parsec
 -- Copyright   :  (c) David Lazar, 2011
--- License     :  BSD3
+-- License     :  MIT
 --
 -- Maintainer  :  lazar6@illinois.edu
 -- Stability   :  experimental
--- Portability :  non-portable
+-- Portability :  unknown
 --
 -- A small, incomplete Parsec parser for low-level K.
 -----------------------------------------------------------------------------
 
-module Language.K.Parser.Parsec where
+module Language.K.Core.Parser.Parsec where
 
 import Control.Applicative ((<$>))
 import Data.Char (isAlphaNum)
 import Text.Parsec
 
 import Internal.Lexer
+
+parseKterm :: String -> Either ParseError String
+parseKterm = parse kterm ""
 
 -- | Reduce clutter while still keeping the types generic.
 type Parser a = (Stream s m Char) => ParsecT s u m a

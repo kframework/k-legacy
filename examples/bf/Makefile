@@ -5,6 +5,7 @@ KCOMPILE ?= ../../tools/kompile
 # this is the name of the main maude module 
 LANGUAGE_NAME = BF
 
+# this are all interesting modules (used to latexify)
 LANGUAGE_MODULES = BF
 
 #this is the basename of the main file
