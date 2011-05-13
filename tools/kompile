@@ -1601,7 +1601,8 @@ sub maudify_module {
      # freeze all strings before spacifying
      s/(?=[^'])""/Freeze($&,"STRINGS")/sge;
      s/(?=[^'])("[^"]*?[^']")/Freeze($&,"STRINGS")/sge;
-     
+	     
+
      # freeze KLabels before spacifying
      my $klabelss = $decl;
      $klabelss =~ s/\s+$//s;
