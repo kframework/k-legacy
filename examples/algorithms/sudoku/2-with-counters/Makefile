@@ -1,6 +1,3 @@
-# KCOMPILE can be set by whoever calls this file
-# e.g., `make KCOMPILE=xxxxx`
-KCOMPILE ?= $(shell which kompile)
 
 # this is the name of the main maude module 
 LANGUAGE_NAME = SUDOKU
@@ -14,5 +11,5 @@ MAIN_FILE = sudoku
 # this is a space-separated list of basename maude files to run
 TESTS = sudoku-test.m
 
-TOOL_DIR = $(dir $(KCOMPILE))
+TOOL_DIR =  $(K_BASE)/tools/
 include $(TOOL_DIR)make-helper.mk

@@ -1,15 +1,33 @@
-TEST_DIRS = modules/tests/exp modules/tests/lambda modules/tests/mu \
-	    modules/tests/io modules/tests/imp modules/tests/halt \
-            modules/tests/callcc modules/tests/threads modules/tests/agents \
-	    modules/tests/quote-unquote \
-	    algorithms/sort algorithms/dijkstra \
-            agent lambda/simply-typed \
-        challenge imp/fully-labeled imp/fully-syntactic imp/labeled-syntax imppp \
-        simple/untyped simple/typed/dynamic simple/typed/static \
-        skool/typed/dynamic \
-	kernelC \
-	exp/untyped exp/type-inference fun/untyped \
-	Thue bf befunge93
+TEST_DIRS = algorithms/sort \
+	    algorithms/dijkstra \
+	    algorithms/primes \
+	    algorithms/sudoku/1-direct-definition \
+	    algorithms/sudoku/2-with-counters \
+	    algorithms/sudoku/3-with-decrement \
+	    algorithms/sudoku/4-with-squares \
+	    languages/classic/exp/untyped \
+	    languages/classic/exp/type-inference \
+	    languages/classic/lambda/simply-typed \
+	    languages/classic/pcf/untyped \
+	    languages/classic/lambda/polymorphism/system-F \
+	    languages/research/imppp \
+	    languages/research/simple/untyped \
+	    languages/research/simple/typed/dynamic \
+	    languages/research/simple/typed/static \
+	    languages/research/skool/typed/dynamic \
+	    languages/research/skool/typed/static \
+	    languages/research/skool/untyped \
+	    languages/research/fun/untyped \
+	    languages/research/agent \
+	    languages/research/challenge \
+	    languages/research/kernelC \
+	    languages/esoteric/Thue \
+	    languages/esoteric/bf \
+	    languages/esoteric/befunge93 \
+	    #languages/classic/imp/fully-labeled \
+	    #languages/classic/imp/fully-syntactic \
+	    #languages/classic/imp/labeled-syntax \
+	    #languages/classic/imp/no-syntax 
 
 .PHONY: all build test clean
 
