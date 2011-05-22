@@ -1,12 +1,48 @@
 
-kmod IMP-SYNTAX is including PL-INT + PL-ID   --- built-in integers and variable identifiers
+kmod IMP-SYNTAX is
+/*@ \section{Syntax}
+This module defines the syntax of IMP.  There are three syntactic
+categories: arithmetic expressions, Boolean expressions, and statements.
+We considered a minimal number of constructs in IMP, each showing
+something different. */
+
+/*@ We first include the builtin integers and identifiers, which are particular
+arithmetic expressions. */
+
+  including PL-INT + PL-ID + K-LATEX
+
+/*@ \subsection{Arithmetic Expressions}
+In addition to integers and identifiers, the IMP expressions also include
+an addition and a division construct.  We did not include other constructs,
+e.g. multiplication, because they are essentially almost identical to addition
+or to division; note that division is different from addition, because of
+division-by-zero. */
+
   syntax AExp ::= Id | Int
                 | AExp + AExp                  [prec 33 gather (E e) strict]
                 | AExp / AExp                  [prec 31 gather (E e) strict]
+
+/*@ \subsection{Boolean Expressions}
+We only consider three basic Boolean constructs (one relational operator,
+negation, and a short-circuited conjunction), in addition to the builtin
+Booleans.  The module of builtin Booleans (PL-BOOL) does not need to be
+explicitly included, because is is implicitly included via the builtin
+integers.  Note that the Boolean expression construct \texttt{and} is
+"strict(1)" instead of just "strict"; that is because we want to give
+it a short-circuited semantics. */
+
   syntax BExp ::= Bool
                 | AExp <= AExp                 [prec 37 strict]
                 | not BExp                     [prec 53 strict]
                 | BExp and BExp                [prec 55 strict(1)]
+
+/*@ \subsection{Statements}
+IMP has five statement constructs: the empty statement, assignment,
+sequential composition, conditional and while.  Note that ";" is a
+statement terminator instead of a statement separator, the latter
+being a white space (or more).  Note that the conditional is strict
+only in its condition, and that \texttt{while} is not strict at all. */
+
   syntax Stmt ::= skip ;
                 | Id = AExp ;                  [prec 40 strict(2)]
                 | Stmt Stmt                    [prec 60 gather (e E)]
@@ -93,13 +129,21 @@ endkm
 
 
 kmod IMP-SEMANTICS is including IMP-SYNTAX + K
-  syntax K ::= AExp | BExp | Stmt
-  syntax KResult ::= Int | Bool
+/*@ \section{Semantics}
+This module defines the entire \K semantics of IMP.  Recall that a \K
+semantics consists of three steps: defining the configuration, defining
+the \K results, and defining the semantic rules. */
 
+/*@ \subsection{Configuration}
+The configuration of IMP is very simple: it only contains a computation
+cell and a state cell.
+*/
   configuration <T color="yellow">
                   <k color="green"> .K </k>
                   <state color="red"> .Map </state>
                 </T>
+
+  syntax KResult ::= Int | Bool
 
   rule <k> X:Id => Sigma(X) <_/k> <state> Sigma:Map </state>
   rule I1:Int + I2:Int => I1 +Int I2
