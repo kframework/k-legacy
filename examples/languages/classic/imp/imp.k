@@ -132,22 +132,37 @@ kmod IMP-SEMANTICS is including IMP-SYNTAX + K
 /*@ \section{Semantics}
 This module defines the entire \K semantics of IMP.  Recall that a \K
 semantics consists of three steps: defining the configuration, defining
-the \K results, and defining the semantic rules. */
+the \K results, and defining the semantic rules.  These can be defined
+in any order, though we typically first define the configuration and the
+results (in any order) and then the rules. */
 
 /*@ \subsection{Configuration}
 The configuration of IMP is very simple: it only contains a computation
-cell and a state cell.
-*/
+cell labeled \textsf{k} and a state cell labeled \textsf{state}. */
+
   configuration <T color="yellow">
                   <k color="green"> .K </k>
                   <state color="red"> .Map </state>
                 </T>
 
+/*@ \subsection{Results}
+IMP only has two types of results: integers and Booleans. */
+
   syntax KResult ::= Int | Bool
 
+/*@ \subsection{Arithmetic Expressions}
+The \K semantics of each arithmetic construct is defined below.
+We need to do nothing for integers. */
+
+/*@ \subsubsection{Variable Lookup}
+A program variable $X$ is looked up in state $\Large\sigma$ using the
+builtin map lookup operation 
+*/
   rule <k> X:Id => Sigma(X) <_/k> <state> Sigma:Map </state>
   rule I1:Int + I2:Int => I1 +Int I2
   rule I1 / I2 => I1 /Int I2  if I2 =/=Bool 0 
+
+
   rule I1 <= I2 => I1 <=Int I2
   rule not(T:Bool) => notBool T  
   rule true and B:BExp => B  
