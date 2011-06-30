@@ -3,6 +3,7 @@ load anon-consts
 mod ANONYMOUS-CONSTANTS-META is
   including ANONYMOUS-CONSTANTS .
   including META-LEVEL .
+  including COMPILATION-ATTRS .
   var AnonConsts NoAnonConsts : String .
   var QAnonConsts QNoAnonConsts : Qid .  var M : Module .
   op resolveAnonConsts : String String ~> Module .
@@ -11,8 +12,8 @@ mod ANONYMOUS-CONSTANTS-META is
   op resolveAnonConsts : Qid Qid ~> Module .
   eq resolveAnonConsts(QAnonConsts,QNoAnonConsts) 
    = resolveAnonymousConsts(QNoAnonConsts, upModule(QAnonConsts, false), upModule(QAnonConsts, true)) .
-  op compileANONYMOUS-CONSTANTS : Module ~> Module .
-  eq compileANONYMOUS-CONSTANTS(M) = resolveAnonymousConsts(getName(M),M, flatten(M)) .
+  op compileANONYMOUS-CONSTANTS : Module AttrSet ~> Module .
+  eq compileANONYMOUS-CONSTANTS(M, AS:AttrSet) = resolveAnonymousConsts(getName(M),M, flatten(M)) .
 endm
 
 mod ANONYMOUS-CONSTANTS-LOOP is 

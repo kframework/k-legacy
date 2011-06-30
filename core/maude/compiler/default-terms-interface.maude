@@ -3,6 +3,7 @@ load default-terms
 mod DEFAULT-TERMS-META is
   including DEFAULT-TERMS .
   including META-LEVEL .
+  including COMPILATION-ATTRS .
   var DefaultTerms NoDefaultTerms Config : String .  var M : Module .
   var QDefaultTerms QNoDefaultTerms QConfig : Qid .
   op resolveDefaultTerms : String String String ~> Module .
@@ -17,8 +18,8 @@ mod DEFAULT-TERMS-META is
   eq resolveDefaultTerms(QNoDefaultTerms,M,T)
    = if T :: Term then defaultTerms(QNoDefaultTerms,M,T) else M fi .
 
-  op compileDEFAULT-TERMS : Module ~> Module .
-  eq compileDEFAULT-TERMS(M) = resolveDefaultTerms(getName(M), M, extractConfTerm(M)) .
+  op compileDEFAULT-TERMS : Module AttrSet ~> Module .
+  eq compileDEFAULT-TERMS(M, AS:AttrSet) = resolveDefaultTerms(getName(M), M, extractConfTerm(M)) .
 endm
 
 mod DEFAULT-TERMS-LOOP is 

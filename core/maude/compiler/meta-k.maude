@@ -57,7 +57,7 @@ fmod META-K-MODULES is
   including META-MODULE .
   op kModules : ~> SortSet [memo] .
   eq kModules 
-   = 'K-TECHNIQUE ; 'K-SENTENCE ; 'K-WHERE ; 'K-PROPER ; 'K-STRICNESS ; 'K-CONTEXTS ; 
+   = 'K-TECHNIQUE ; 'K-RESULT ; 'K-SENTENCE ; 'K-WHERE ; 'K-PROPER ; 'K-STRICNESS ; 'K-CONTEXTS ; 
      'K-WRAPPERS-LABELS ; 'K-WRAPPERS ; 'K-RULES ; 'K-POLYMORPHIC-VARIABLES ; 
      'K-OPEN-CELLS ; 'K-CONFIG ; 'K-DESTRUCTORS ; 'K-QUOTED-LABELS ;
      'K-CONDITION-SEARCH ; 'K-LATEX .
@@ -218,8 +218,9 @@ endfm
 fmod META-K-RULES is including K-SORTS .
   including META-MODULE-EXTRAS .
   var O Q : Qid . var T T' T1 T2 Trm Cxt : Term . var S : Type . var C : Term . 
-  var Cond Tl : TermList . var N : Nat . var V : Variable . var Ct : Constant .
-  var AS : AttrSet .  var RK : KRuleKind . var Str : String .
+  var Cond Cond' Tl : TermList . var N : Nat . var V : Variable . var Ct : Constant .
+  var AS : AttrSet .  var RK : KRuleKind . var Str : String . 
+  var Op : OpDecl .  var OPDS : OpDeclSet .
 
   sort KRuleKind .
   ops krl kcrl : -> KRuleKind .
@@ -231,6 +232,10 @@ fmod META-K-RULES is including K-SORTS .
 
   op replaceS : -> Qid .
   eq replaceS = '_=>_ .
+
+  op removeRuleOps : OpDeclSet -> OpDeclSet .
+  eq removeRuleOps(Op OPDS) = if getName(Op) == symbol krl or-else getName(Op) == symbol kcrl then removeRuleOps(OPDS) else Op removeRuleOps(OPDS) fi .
+  eq removeRuleOps(none) = none .
 
   op getKRuleKind : Qid ~> KRuleKind . 
   eq getKRuleKind(Q) = if Q == symbol krl then krl else if Q == symbol kcrl then kcrl else error(Q) fi fi .
@@ -259,6 +264,9 @@ fmod META-K-RULES is including K-SORTS .
   eq setContents({RK,T,Cond,AS}, T') = {RK,T',Cond,AS} .
   eq setContents({RK,T,Cond,AS}, errorT(Trm,Cxt,Str)) 
    = {RK,errorT(Trm,T,Str),Cond,AS} .
+
+  op setCondition : KRuleSplit TermList -> KRuleSplit .
+  eq setCondition({RK,T,Cond,AS}, Cond') = {RK,T,Cond',AS} .
 
   op plugKRule : KRuleSplit ~> MembAx .
   eq plugKRule({RK,T,empty,AS}) = (mb symbol(RK)[T] : KSentence [AS] .) .
@@ -575,7 +583,7 @@ endfm
 fmod META-K-LABELS is
   including META-K-MODULE .
   including META-LEVEL .
-  var Q : Qid . var T : Type .  var Str : String .
+  var Q : Qid . var T T' : Type .  var Str : String .
 
   op klistLabelS : -> Qid .
   eq klistLabelS = 'kList .
@@ -594,6 +602,26 @@ fmod META-K-LABELS is
    = if find(Str,"hybrid",0) :: Nat then KHybridLabel
      else if T == KProper then KProperLabel
      else if T == KResult then KResultLabel else KLabel fi fi fi .
+
+  op getAuxKLabels : OpDeclSet OpDeclSet -> OpDeclSet .
+  eq getAuxKLabels(OPDS, Op OPDS') = getAuxKLabel(OPDS, Op) getAuxKLabels(OPDS, OPDS') .
+  eq getAuxKLabels(OPDS, none) = none [print "Done finding aux labels for " OPDS].
+
+  op getAuxKLabel : OpDeclSet OpDecl -> OpDeclSet .
+  eq getAuxKLabel(OPDS (op Q : nil -> T [metadata("generated label")] .), op Q : nil -> T' [AS] .) 
+   =  (op Q : nil -> T [metadata("generated label")] .) [print "generated label " Q] .
+  eq getAuxKLabel(OPDS, Op) = none [owise print "no generated label for " Op] .
+
+  op getGeneratedLabels : OpDeclSet -> OpDeclSet .
+  eq getGeneratedLabels(Op OPDS) = if isGeneratedLabel(Op) then Op  getGeneratedLabels(OPDS) else getGeneratedLabels(OPDS) fi .
+  eq getGeneratedLabels(none) = none .
+
+  op isGeneratedLabel : OpDecl -> Bool .
+  eq isGeneratedLabel((op Q : nil -> T [metadata("generated label")] .)) = true .
+  eq isGeneratedLabel(Op) = false [owise] . 
+  
+
+  var OPDS OPDS' : OpDeclSet .  var Op : OpDecl .  var AS : AttrSet .
 endfm
 
 fmod K-STRICTNESS-OPS is including META-LEVEL .
@@ -729,11 +757,14 @@ fmod STRICT-ATTRS is
 
   eq metadata(khybrid AS) = metadata(metadata("hybrid") AS) .
   eq metadata(karity(N) AS) = metadata(metadata("arity " + string(N,10)) AS) .
-  eq metadata(kstrict(Il, Ql) AS) = metadata(metadata("strict(" + IntList2String(Il) + ") in (" + QidList2String(Ql) + ")") AS) . 
-  eq metadata(seqkstrict(Il, Ql) AS) = metadata(metadata("seqstrict(" + IntList2String(Il) + ") in (" + QidList2String(Ql) + ")") AS) . 
+  
+  eq metadata(kstrict(nil, Ql) AS) = metadata(metadata("strict in (" + QidList2String(Ql) + ")") AS) . 
+  eq metadata(seqkstrict(nil, Ql) AS) = metadata(metadata("seqstrict in (" + QidList2String(Ql) + ")") AS) . 
+  eq metadata(kstrict(NeIl, Ql) AS) = metadata(metadata("strict(" + IntList2String(NeIl) + ") in (" + QidList2String(Ql) + ")") AS) . 
+  eq metadata(seqkstrict(NeIl, Ql) AS) = metadata(metadata("seqstrict(" + IntList2String(NeIl) + ") in (" + QidList2String(Ql) + ")") AS) . 
 
   var AS : AttrSet . var A : Attr .  var N : Nat .  var Ql : QidList . 
-  var Il : IntList .
+  var NeIl : NeIntList .
 endfm
 
 fmod SYNTAX-ATTRS is
@@ -786,6 +817,15 @@ fmod LOCATION-ATTRS is
   eq metadata(klocation(S) AS) = metadata(metadata("location(" + S + ")") AS) .
 
   var AS : AttrSet . var S : String .
+endfm
+
+fmod COMPILATION-ATTRS is
+  including META-ATTRS .
+  including RULES-ATTRS .
+
+  op structurals : AttrSet -> Attr .
+  op computationals : AttrSet -> Attr .
+  op supercools : AttrSet -> Attr .
 endfm
 
 fmod K-ATTRS is 
@@ -858,8 +898,9 @@ endfm
 fmod META-K-LEAST-SORTS is
   including META-LEVEL-EXTRAS .
   including META-K-RULES .
+  including META-K-BUILTINS .
+  including META-K-MODULE .
 
- op errorT : Term Type -> [Type] .
 
  op leastSortsT : Module Term ~> Type .
  eq leastSortsT(M,C) = leastSort(M,C) .
@@ -872,8 +913,8 @@ fmod META-K-LEAST-SORTS is
  eq leastSortsTs(M, Trms) = leastSortsTs(M, Trms, nil) .
  eq leastSortsTs(M, empty, TlS) = TlS .
  eq leastSortsTs(M, (Trm, Trms), TlS) = leastSortsTs(M, Trms, leastSortsT(M, Trm), TlS) .
- eq leastSortsTs(M, Trms, errorT(Trm,T), TlS) = errorT(Trm,T) .
- eq leastSortsTs(M, Trms, SS, TlS) = leastSortsTs(M, Trms, TlS # SS) .
+ eq leastSortsTs(M, Trms, errorS(Trm,T,Str), TlS) = errorS(Trm,T, Str) .
+ eq leastSortsTs(M, Trms, SS, TlS) = leastSortsTs(M, Trms, TlS # SS) [print "leastSortsTs " Trms "; " TlS "; " SS].
 
  op leastSortsT : Module Term TypeListSet ~> SortSet .
  op leastSortsT : Module Term SortSet TypeListSet ~> SortSet .
@@ -886,17 +927,21 @@ fmod META-K-LEAST-SORTS is
   = leastSortsT(M, Trm, $leastSortsT(M, Trm, Tl), SS, TlSK) . 
  
  eq leastSortsT(M, Trm, NSS, TlSK) = NSS .
- eq leastSortsT(M, Trm, none, errorT(Trm',T) ; TlSK) = errorT(Trm',T) .
+--- eq leastSortsT(M, Trm, none, errorT(Trm',T) ; TlSK) = errorT(Trm',T) .
  eq leastSortsT(M, 'context_[Trm], none, TlSK) 
-  = errorT('context_[Trm],'`[All`contexts`should`have`sort`K`]) [owise] .
- eq leastSortsT(M, Trm, none, TlSK) = errorT(Trm, leastSort(M,Trm)) [owise print "no sorts found. generating error. unchecked " TlSK] .
+  = errorS('context_[Trm],leastSort(M, Trm), "All contexts should have sort K") [owise] .
+ eq leastSortsT(M, Trm, none, TlSK) = errorS(Trm, leastSort(M,Trm),"no suitable least sorts found") [owise print "no sorts found. generating error. unchecked " TlSK] .
 
  eq leastSortsT(M, Trm, SS, SS', TlSK) = leastSortsT(M, Trm, SS ; SS', TlSK)  .
  eq leastSortsT(M, Trm, SS:[SortSet], SS', TlSK) 
-  = leastSortsT(M, Trm, SS', TlSK) [owise] .
+  = leastSortsT(M, Trm, SS', TlSK) [print "Defaulting to " SS' "; reason: " SS:[SortSet] owise] .
+
+
+ op removeBuiltins : SortSet -> SortSet .
+ eq removeBuiltins(SS) = removeSorts(SS, Builtins) .
 
  eq $leastSortsT(M, 'if_then_else_fi[Trms], T T' T'') 
-  = leastSortsIf('if_then_else_fi[Trms], leastSort(M, 'if_then_else_fi[Trms]), sortLeq(M, T, 'Bool), lubSorts(M, T', T'')) .
+  = leastSortsIf('if_then_else_fi[Trms], leastSort(M, 'if_then_else_fi[Trms]), sortLeq(M, T, 'Bool), removeBuiltins(lubSorts(M, T', T''))) .
 
  eq $leastSortsT(M, 'configuration_[Trm], S) = 'KSentence .
  eq $leastSortsT(M, 'rule_[Trm], S) = 'KSentence .
@@ -905,23 +950,25 @@ ceq $leastSortsT(M, 'context_[Trm], S) = 'KSentence if sortLeq(M,S,'K) .
 ceq $leastSortsT(M, 'context_if_[Trms], S T') = 'KSentence if sortLeq(M,T','Bool).
 
 ceq $leastSortsT(M, Q[T1,T2], T T') 
-  = leastSortsRed(Q[T1,T2], leastSort(M, Q[T1,T2]), lubSorts(M, T, T')) 
- if Q == replaceS . 
+  = leastSortsRed(M, Q[T1,T2], leastSort(M, Q[T1,T2]), removeBuiltins(lubSorts(M, T, T'))) 
+ if Q == replaceS [print "leastSortsRed: " T1 "; " T2 "; " T "; " T'] . 
  eq $leastSortsT(M, Q[Trms], Tl) = leastSort(M, Q[genXVars(Tl)]) [owise ] .
 
  op leastSortsIf : Term Type Bool TypeSet ~> SortSet .
  eq leastSortsIf(Trm, T, true, NSS) = NSS .
- eq leastSortsIf(Trm, T, B:[Bool], TS:[TypeSet]) = errorT(Trm, T) [owise] .
+ eq leastSortsIf(Trm, T, B:[Bool], TS:[TypeSet]) = errorS(Trm, T, "condition not of sort Bool") [owise] .
 
- op leastSortsRed : Term Type SortSet ~> SortSet .
- eq leastSortsRed(Trm, T, NSS) = NSS .
- eq leastSortsRed(Trm, T, none) = errorT(Trm, T) .
+ op leastSortsRed : Module Term Type SortSet ~> SortSet .
+ eq leastSortsRed(M, Trm, T, S) = S .
+ eq leastSortsRed(M, Trm, T, NSS) = if checkSubsorts(M, NSS, K) then K else  errorS(Trm, T,"More than one minimal subsort. ") fi [owise print "More than one minimal subsort: " NSS] .
+
+
 
   vars M : Module . var Q : Qid . var Trms : TermList . 
   var Trm Trm' T1 T2 : Term .  var C : Constant . var V : Variable .
   var T T' T'' : Type . var S : Sort .   var Tl : TypeList .
   var SS SS' : SortSet . var NSS : NeSortSet . var TS : TypeSet .
-  var TlS : TypeListSet .  var TlSK : [TypeListSet] .
+  var TlS : TypeListSet .  var TlSK : [TypeListSet] .  var Str : String .
 endfm
 
 
@@ -933,6 +980,4 @@ fmod META-K-COOL is
   
   var Q : Qid .
 endfm
-
-
 

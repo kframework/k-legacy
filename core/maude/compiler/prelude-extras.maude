@@ -325,6 +325,9 @@ fmod META-TERM-EXTRAS is
   op nth : TermList Nat ~> Term .
   eq nth((Tr, Trl), 0) = Tr .
   eq nth((Tr, Trl), s(N)) = nth(Trl, N) .
+
+  op getTopSymbol : Term ~> Qid .
+  eq getTopSymbol(Q[Trl]) = Q .
 endfm
 
 
@@ -338,11 +341,11 @@ fmod META-K-ERROR is
   op errorMb : [Term] Term String AttrSet -> [MembAx] .
   op errorEq : [Term] Term String AttrSet -> [Equation] .
   op errorRl : [Term] Term String AttrSet -> [Rule] .
-  op errorM : Module [Term] Term String AttrSet -> [Module] .
-  eq Q[Trms,errorT(Trm, Cxt, Str),Trms'] = errorT(Trm, Q[Trms,Cxt,Trms'], Str) .
-  eq (mb errorT(Trm,Cxt,Str) : Type [AS] .) = errorMb(Trm,Cxt,Str,AS) .
-  eq (cmb errorT(Trm,Cxt,Str) : Type if Cond [AS] .) = errorMb(Trm,Cxt,Str,AS) .
-  eq mod Q is Including sorts Sorts . Subsorts OPDS (errorMb(Trm,Cxt,Str,AS) Mbs) Eqs Rls endm = errorM(mod Q is Including sorts Sorts . Subsorts OPDS none none none endm, Trm, Cxt, Str, AS) .
+  op errorM : AttrSet String [Term] Term Module -> [Module] .
+  eq Q[Trms,errorT(Trm, Cxt, Str),Trms'] = errorT(Trm, Q[Trms,Cxt,Trms'], Str) [print "errorT propagated past " Q] .
+  eq (mb errorT(Trm,Cxt,Str) : Type [AS] .) = errorMb(Trm,Cxt,Str,AS) [print "errorT propagated past mb"] .
+  eq (cmb errorT(Trm,Cxt,Str) : Type if Cond [AS] .) = errorMb(Trm,Cxt,Str,AS)  [print "errorT propagated past cmb"] .
+  eq mod Q is Including sorts Sorts . Subsorts OPDS (errorMb(Trm,Cxt,Str,AS) Mbs) Eqs Rls endm = errorM(AS, Str, Trm, Cxt, mod Q is Including sorts Sorts . Subsorts OPDS none none none endm)  [print "errorT propagated to module"] .
   eq (ceq errorT(Trm,Cxt,Str) = Trm' if Cond [AS] .) = errorEq(Trm,Cxt,Str,AS) .
   eq (ceq Trm' = errorT(Trm,Cxt,Str) if Cond [AS] .) = errorEq(Trm,Cxt,Str,AS) .
   eq (eq errorT(Trm,Cxt,Str) = Trm' [AS] .) = errorEq(Trm,Cxt,Str,AS) .
@@ -351,11 +354,11 @@ fmod META-K-ERROR is
   eq (crl Trm' => errorT(Trm,Cxt,Str) if Cond [AS] .) = errorRl(Trm,Cxt,Str,AS) .
   eq (rl errorT(Trm,Cxt,Str) => Trm' [AS] .) = errorRl(Trm,Cxt,Str,AS) .
   eq (rl Trm' => errorT(Trm,Cxt,Str) [AS] .) = errorRl(Trm,Cxt,Str,AS) .
-  eq mod Q is Including sorts Sorts . Subsorts OPDS ( Mbs) (errorEq(Trm,Cxt,Str,AS) Eqs) Rls endm = errorM(mod Q is Including sorts Sorts . Subsorts OPDS none none none endm, Trm, Cxt, Str, AS) .
-  eq mod Q is Including sorts Sorts . Subsorts OPDS ( Mbs) ( Eqs) (errorRl(Trm,Cxt,Str,AS)Rls) endm = errorM(mod Q is Including sorts Sorts . Subsorts OPDS none none none endm, Trm, Cxt, Str, AS) .
+  eq mod Q is Including sorts Sorts . Subsorts OPDS ( Mbs) (errorEq(Trm,Cxt,Str,AS) Eqs) Rls endm = errorM(AS, Str, Trm, Cxt, mod Q is Including sorts Sorts . Subsorts OPDS none none none endm) .
+  eq mod Q is Including sorts Sorts . Subsorts OPDS ( Mbs) ( Eqs) (errorRl(Trm,Cxt,Str,AS)Rls) endm = errorM(AS, Str, Trm, Cxt, mod Q is Including sorts Sorts . Subsorts OPDS none none none endm) .
 
   op checkModule : Module ~> Module .
-  eq checkModule(M) = if wellFormed(M) then M else errorM(upModule('META-MODULE, false),upTerm(M),'`[`]:Qid,"Module obtained but not well-formed",none) fi .
+  eq checkModule(M) = if wellFormed(M) then M else errorM(none, "Module obtained but not well-formed", upTerm(M), '`[`]:Qid, upModule('META-MODULE, false)) fi .
   op checkTerm : Module Term ~> Term .
   eq checkTerm(M,Trm) = if wellFormed(M,Trm) then Trm else errorT(Trm,mkVariable('`[`],'Univesal),"Term not well formed") fi .
 
@@ -442,8 +445,8 @@ fmod META-MODULE-EXTRAS is
 
   op removeImports : Module ImportList -> Module .
   eq removeImports(M, IL) = setImports(M, removeImports(getImports(M), IL)) .
-  eq removeImports(errorM(U, Trm, Cxt, Str, AS), IL:[ImportList]) 
-   = errorM(U, Trm, Cxt, Str, AS) .
+  eq removeImports(errorM(AS, Str, Trm, Cxt, U), IL:[ImportList]) 
+   = errorM(AS, Str, Trm, Cxt, U) .
 
 
   op removeImports : ImportList ImportList -> ImportList .
@@ -509,8 +512,8 @@ fmod META-MODULE-EXTRAS is
   eq setName(th nullHeader is IL sorts SS . SSDS OPDS MAS EqS RlS endth, MN) 
     = th MN is IL sorts SS . SSDS OPDS MAS EqS RlS endth .
 
-  eq setName(errorM(U, Trm, Cxt, Str, AS), MN:[ModuleExpression]) 
-   = errorM(U, Trm, Cxt, Str, AS) .
+  eq setName(errorM(AS, Str, Trm, Cxt, U), MN:[ModuleExpression]) 
+   = errorM(AS, Str, Trm, Cxt, U) .
 
 
   eq setImports(mod H is IL sorts SS . SSDS OPDS MAS EqS RlS endm, IL')
@@ -530,8 +533,8 @@ fmod META-MODULE-EXTRAS is
     = fmod H is IL sorts SS . SSDS OPDS' MAS EqS endfm .
   eq setOps(fth MN is IL sorts SS . SSDS OPDS MAS EqS endfth, OPDS')
     = fth MN is IL sorts SS . SSDS OPDS' MAS EqS endfth .
-  eq setOps(errorM(U, Trm, Cxt, Str, AS), Ops:[OpDeclSet]) 
-   = errorM(U, Trm, Cxt, Str, AS) .
+  eq setOps(errorM(AS, Str, Trm, Cxt, U), Ops:[OpDeclSet]) 
+   = errorM(AS, Str, Trm, Cxt, U) .
 
   eq setSubsorts(mod H is IL sorts SS . SSDS OPDS MAS EqS RlS endm, SSDS')
     = mod H is IL sorts SS . SSDS' OPDS MAS EqS RlS endm . 
@@ -552,9 +555,9 @@ fmod META-MODULE-EXTRAS is
     = fth MN is IL sorts SS . SSDS OPDS MAS' EqS endfth .
 
   eq setMbs(U, (errorMb(Trm,Cxt,Str,AS) Mbs:[MembAxSet]))  
-   = errorM(removeSemantics(U), Trm, Cxt, Str, AS) .
-  eq setMbs(errorM(U, Trm, Cxt, Str, AS), Mbs:[MembAxSet]) 
-   = errorM(U, Trm, Cxt, Str, AS) .
+   = errorM(AS, Str, Trm, Cxt, removeSemantics(U)) [print "error propoagated to module level"] .
+  eq setMbs(errorM(AS, Str, Trm, Cxt, U), Mbs:[MembAxSet]) 
+   = errorM(AS, Str, Trm, Cxt, U) .
 
 
   eq setEqs(mod H is IL sorts SS . SSDS OPDS MAS EqS RlS endm, EqS')
@@ -567,9 +570,9 @@ fmod META-MODULE-EXTRAS is
     = fth MN is IL sorts SS . SSDS OPDS MAS EqS' endfth .
 
   eq setEqs(U, (errorEq(Trm,Cxt,Str,AS) Eqs:[EquationSet]))  
-   = errorM(removeSemantics(U), Trm, Cxt, Str, AS) .
-  eq setEqs(errorM(U, Trm, Cxt, Str, AS), Eqs:[EquationSet]) 
-   = errorM(U, Trm, Cxt, Str, AS) .
+   = errorM(AS, Str, Trm, Cxt, removeSemantics(U)) .
+  eq setEqs(errorM(AS, Str, Trm, Cxt, U), Eqs:[EquationSet]) 
+   = errorM(AS, Str, Trm, Cxt, U) .
 
 
 
@@ -592,9 +595,9 @@ fmod META-MODULE-EXTRAS is
       fi .
  
   eq setRls(U, (errorRl(Trm,Cxt,Str,AS) Rls:[RuleSet]))  
-   = errorM(removeSemantics(U), Trm, Cxt, Str, AS) .
-  eq setRls(errorM(U, Trm, Cxt, Str, AS), Rls:[RuleSet]) 
-   = errorM(U, Trm, Cxt, Str, AS) .
+   = errorM(AS, Str, Trm, Cxt, removeSemantics(U)) .
+  eq setRls(errorM(AS, Str, Trm, Cxt, U), Rls:[RuleSet]) 
+   = errorM(AS, Str, Trm, Cxt, U) .
 
   eq setSorts(mod H is IL sorts SS . SSDS OPDS MAS EqS RlS endm, SS')
     = mod H is IL sorts SS' . SSDS OPDS MAS EqS RlS endm .
@@ -612,7 +615,7 @@ fmod META-MODULE-EXTRAS is
   eq addEqs(EqS, U) = setEqs(U, (EqS getEqs(U))) .
   eq addRls(RlS, U) = setRls(U, (RlS getRls(U))) .
   eq addRls(errorRl(Cxt:[Term], T:[Term], Str:String, AS:AttrSet), U) 
-   = errorM(U, Cxt:[Term], T:[Term], Str:String, AS:AttrSet) .
+   = errorM(AS:AttrSet, Str:String, T:[Term], Cxt:[Term], U) .
   eq addImports(IL, U) = setImports(U, (getImports(U) IL)) .
 
   eq emptyFModule 
@@ -653,8 +656,8 @@ fmod META-MODULE-EXTRAS is
   op $intersect : TypeSet TypeSet TypeSet -> TypeSet .
   var A : TypeSet .
 
-  eq intersection (TS, none) = none .
-  eq intersection (TS, TS') = $intersect (TS, TS', none) [owise] .
+  eq intersection (TS, none) = none [print "empty intersection"] .
+  eq intersection (TS, TS') = $intersect (TS, TS', none) [owise print "intersecting " TS " with " TS'] .
   eq $intersect (none, TS', A) = A .
   eq $intersect (T ; TS, TS', A) = $intersect (TS, TS', if T in TS' then T ; A else A fi) .
 
@@ -760,6 +763,9 @@ fmod META-MODULE-EXTRAS is
   eq generateImports(none) = nil .
   eq generateImports(S ; SS) = (including S .) generateImports(SS) .
 
+
+  op getName : OpDecl -> Qid .
+  eq getName((op Q : Tl -> T [AS] .)) = Q .
 
   op coGetOps : OpDeclSet SortSet ~> OpDeclSet .
   eq coGetOps(none, SS) = none .
@@ -922,9 +928,10 @@ fmod META-LEVEL-EXTRAS is
   including NAT-LIST-EXTRAS .
   including STRING-EXTRAS .
 
-  var M M' : Module . var T T' T'' : Type . var K : Kind . var Tl Tl' : TypeList .
+  var M M' : Module . var K : Kind . 
+  var Tl Tl' Tl1 Tl2 : TypeList . var T T' T'' T1 T2 : Type .
   var OPDS OPDS' : OpDeclSet .  var Op Op' : OpDecl .
-  var AS AS' : AttrSet . var Q Q' : Qid .  var Ct : Constant .
+  var AS AS' AS1 AS2 : AttrSet . var Q Q' : Qid .  var Ct : Constant .
   var Trm Trm' : Term . var Trms : TermList .  var Nl : NatList .
   var S S' : Sort  . var SS SS' : SortSet . var NeSS : NeSortSet .
   var N N' : Nat .  var IL : ImportList .  var MS : ModuleSet .
@@ -966,13 +973,25 @@ fmod META-LEVEL-EXTRAS is
   [owise] .
   eq sortsLeq(M, nil,nil) = true .
 
+ op errorS : Term Type String -> [Type] .
+ op errorSOp : Term Type String -> [OpDecl] .
+
   op findOp : Module OpDeclSet Qid TypeList Type ~> OpDecl .
+
+  eq findOp(M, OPDS, Q, Tl1 errorS(Trm, T, Str) Tl2, T') 
+   = errorSOp(Trm, T, Str) .
+   
+  eq findOp(M, OPDS, Q, Tl,  errorS(Trm, T, Str)) 
+   = errorSOp(Trm, T, Str) .
+   
   eq findOp(M, OPDS, Q, nil, 'FiniteFloat)
    =  (op Q : nil -> 'FiniteFloat [none] .) .
   eq findOp(M, OPDS, Q, nil, 'String)
    =  (op Q : nil -> 'String [none] .) .
   eq findOp(M, OPDS, Q, nil, 'Char)
    =  (op Q : nil -> 'Char [none] .) .
+  eq findOp(M, OPDS, '_=>_, T T', T'')
+   =  (op '_=>_ : T'' T'' -> T'' [none] .) .
   eq findOp(M, OPDS, '_==Bool_, T T', T'')
    =  (op '_==Bool_ : dup(lubSorts(M,T,T'),2) -> 'Bool [none] .) .
   eq findOp(M, OPDS, '_=/=Bool_, T T', T'')
@@ -980,13 +999,23 @@ fmod META-LEVEL-EXTRAS is
  ceq findOp(M, OPDS (op 'sNat_ : Tl' -> T' [AS] .), Q, Tl, T)
    =  (op 'sNat_ : Tl' -> T' [AS] .)
   if substr(string(Q), 0, length("sNat_^")) = "sNat_^" .
- ceq findOp(M, OPDS (op Q : T' T' -> T' [AS assoc] .), Q, Tl, S)
+  eq findOp(M, OPDS (op Q : Tl1 -> T1 [AS1] .) (op Q : Tl2 -> T2 [AS2] .), Q, Tl, T)
+   = $findOp(M, OPDS (op Q : Tl1 -> T1 [AS1] .) (op Q : Tl2 -> T2 [AS2] .), Q, Tl, T) .
+
+  eq findOp(M, OPDS (op Q : Tl' -> T' [AS poly(Nl)] .), Q, Tl, T) 
+   = $findOp(M, OPDS (op Q : Tl' -> T' [AS poly(Nl)] .), Q, Tl, T) .
+
+  eq findOp(M, OPDS (op Q : Tl' -> T' [AS] .), Q, Tl, T) 
+   = (op Q : Tl' -> T' [AS] .) [owise] .
+  
+  op $findOp : Module OpDeclSet Qid TypeList Type ~> OpDecl .
+ ceq $findOp(M, OPDS (op Q : T' T' -> T' [AS assoc] .), Q, Tl, S)
    = (op Q : T' T' -> T' [AS assoc] .) 
   if sortLeq(M,S,T') and-then sortsLeq(M,Tl, dup(T',arity(Tl))) .
- ceq findOp(M, OPDS (op Q : T' T' -> T' [AS assoc] .), Q, Tl, T)
+ ceq $findOp(M, OPDS (op Q : T' T' -> T' [AS assoc] .), Q, Tl, T)
    = (op Q : T' T' -> T' [AS assoc] .) 
   if sameKind(M,T,T') and-then sortsLeq(M,Tl, dup(T',arity(Tl))) [owise] .
- ceq findOp(M, OPDS (op Q : Tl' -> T' [AS] .), Q, Tl, T)
+ ceq $findOp(M, OPDS (op Q : Tl' -> T' [AS] .), Q, Tl, T)
    = (op Q : mergeTypes(Tl, Tl', 1, getPoly(AS)) -> mergeTypes(T, T', 0, getPoly(AS)) [AS] .)
   if sortsLeq(M, T' Tl, T Tl', 0, getPoly(AS)) [owise] .
 
@@ -1018,14 +1047,14 @@ fmod META-LEVEL-EXTRAS is
   eq getRelatedSorts(M, none) = none .
 
   op lubSorts : Module Type Type -> TypeSet .
-  eq lubSorts(M, S, S') = minimalSort(M, intersection(greaterSorts(M, S), greaterSorts(M, S'))) .
+  eq lubSorts(M, S, S') = minimalSort(M, intersection(greaterSorts(M, S), greaterSorts(M, S'))) [print "Computing the minimal sorts for " S " and " S'].
   eq lubSorts(M, S, T) = T [owise] .
   eq lubSorts(M, T, S') = T [owise] .
  ceq lubSorts(M, T, T') = completeName(M,T) if sameKind(M, T, T') [owise] .
 
   op minimalSort : Module SortSet ~> SortSet .
   ceq minimalSort(M, S ; S' ; SS) = minimalSort(M, S' ; SS) if sortLeq(M, S',S) .
-  eq minimalSort(M, SS) = SS [owise] .
+  eq minimalSort(M, SS) = SS [owise print "minimal sort: " SS] .
 
   op lubSort : Module Term Term ~> Sort .
   eq lubSort(M, Trm, Trm') = lubSorts(M, leastSort(M, Trm), leastSort(M, Trm')) .
@@ -1124,6 +1153,10 @@ fmod META-LEVEL-EXTRAS is
    = if S' in getSorts(M) then (subsort S < S' .) generateSubsort(M, S, SS) else generateSubsort(M,S, SS) fi
   [owise] .
 
+  op checkSubsorts : Module TypeSet Type ~> Bool .
+  eq checkSubsorts(M, T ; TS, T') = sortLeq(M, T, T') and-then checkSubsorts(M, TS, T') . 
+  eq checkSubsorts(M, none, T') = true .
+
   op minimalOps : Module OpDeclSet ~> OpDeclSet .
   eq minimalOps(M, none) = none .
   eq minimalOps(M, Op) = Op .
@@ -1185,5 +1218,6 @@ fmod META-LEVEL-EXTRAS is
    =  errorT(T1:[Term], T2:[Term], Str:String) .
 
   var Nl1 Nl2 Nl' : NatList .
+  var TS : TypeSet .
 endfm
 

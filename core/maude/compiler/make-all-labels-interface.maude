@@ -3,6 +3,7 @@ load make-all-labels
 mod MAKE-ALL-LABELS-META is
   including MAKE-ALL-LABELS .
   including META-LEVEL-EXTRAS .
+  including COMPILATION-ATTRS .
   var NoAllLabels AllLabels : String .  var M : Module .
   var Q QNoAllLabels QAllLabels : Qid .  var IL : ImportList .
   op makeAllLabels : String String ~> Module .
@@ -10,8 +11,8 @@ mod MAKE-ALL-LABELS-META is
   op makeAllLabels : Qid Qid ~> Module .
   eq makeAllLabels(QNoAllLabels,QAllLabels) = makeAllLabels(QAllLabels, upModule(QNoAllLabels, false), upModule(QNoAllLabels, true), upModule('K-WRAPPERS,false)) .
 
-  op compileMAKE-ALL-LABELS : Module ~> Module .
-  eq compileMAKE-ALL-LABELS(M) = setName(makeAllLabels('-LABELS, M, flatten(M), upModule('K-WRAPPERS,false)), getName(M)) .
+  op compileMAKE-ALL-LABELS : Module AttrSet ~> Module .
+  eq compileMAKE-ALL-LABELS(M, AS:AttrSet) = setName(makeAllLabels('-LABELS, M, flatten(M), upModule('K-WRAPPERS,false)), getName(M)) .
 endm
 
 mod MAKE-ALL-LABELS-LOOP is 

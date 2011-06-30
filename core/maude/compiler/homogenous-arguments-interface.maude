@@ -5,6 +5,7 @@ mod HOMOGENOUS-ARGUMENTS-META is
   including META-LEVEL-EXTRAS .
   including META-K-MODULES .
   including META-K-BUILTINS .
+  including COMPILATION-ATTRS .
   var NoHomogenousArgs HomogenousArgs : String .  var M : Module .
   var Q QNoHomogenousArgs QHomogenousArgs : Qid .  var IL : ImportList .
   op makeHomogenousArgs : String String ~> Module .
@@ -12,8 +13,8 @@ mod HOMOGENOUS-ARGUMENTS-META is
   op makeHomogenousArgs : Qid Qid ~> Module .
   eq makeHomogenousArgs(QNoHomogenousArgs,QHomogenousArgs) = makeHomogenousArgs(QHomogenousArgs, upModule(QNoHomogenousArgs, false), upModule(QNoHomogenousArgs, true), empty) .
 
-  op compileHOMOGENOUS-ARGUMENTS : Module ~> Module .
-  eq compileHOMOGENOUS-ARGUMENTS(M) = setName(makeHomogenousArgs(getName(M), M, flatten(M), empty), getName(M)) .
+  op compileHOMOGENOUS-ARGUMENTS : Module AttrSet ~> Module .
+  eq compileHOMOGENOUS-ARGUMENTS(M, AS:AttrSet) = setName(makeHomogenousArgs(getName(M), M, flatten(M), empty), getName(M)) .
 endm
 
 mod HOMOGENOUS-ARGUMENTS-LOOP is 
