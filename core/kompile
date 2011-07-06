@@ -418,7 +418,7 @@ my @kmaude_keywords = qw(context rule macro eq ceq configuration op ops syntax k
 my $kmaude_keywords_pattern = join("|",map("\\b$_\\b",@kmaude_keywords));
 my $kmaude_kwds_pattern = join("|", @kmaude_keywords);
 
-my @k_attributes = qw(strict metadata prec format assoc comm id hybrid gather ditto seqstrict structural large latex hybrid);           
+my @k_attributes = qw(strict metadata prec format assoc comm id: hybrid gather ditto seqstrict structural large latex );           
 my $k_attributes_pattern = join("|",  @k_attributes);   
 
 my $k_sorts = "#Bag#BagItem#Bool#Builtins#CellLabel#CellKey#CellAttribute#Char#Int#K#KAssignments#KHybridLabel#KLabel#KResult#KResultLabel#KSentence#List#ListItem#List{KResult}#List{K}#Map#MapItem#Nat#NeBag#NeK#NeList#NeList{KResult}#NeList{K}#NeMap#NeSet#NzInt#NzNat#Set#SetItem#String#Zero";
@@ -494,7 +494,7 @@ my $flat = 0;
 my $shared = 0;
 my $k_auto_incl = 0;
 my $require_k_main = 0;
-my $k_nd = "";
+my $k_nd = 0;
 
 # latex, pdf, eps, ps, png, crop
 my $pdf = 0;
@@ -602,7 +602,7 @@ foreach (@ARGV) {
     }
     elsif (/^--?nd$/) {
        # $k_all_tools .= "-nd";
-       $k_nd = "-nd";
+       $k_nd = 1;
     }
     elsif (/^--?lint$/) {
        $k_all_tools =  File::Spec->catfile($k_tools_dir,"lint");
@@ -847,7 +847,7 @@ if (!$compile_only) {
     {
 		my @tmp = split(/\s+/, $klabels);
 		@tmp = uniq(@tmp);
-		my $tmp = "ops @tmp : -> KLabel [metadata \"generated label\"] . ";
+		my $tmp = "ops @tmp : -> KLabel [metadata \"generated-label=()\"] . ";
 		my $dir = cwd;
 		open FILE,">",$kshared or die "Cannot create $kshared\n";
 		my $prelude = basename($k_prelude);
@@ -1309,13 +1309,17 @@ sub compile {
 
 # # Compiling the input module $language_module_name
     if ($unquote) {
+        my $compile_command = "compile";
+        if ($k_nd) {
+          $compile_command .= "-nd";
+        }
 		# If unquote is set then do some changes
 		$_ = run_maude("Compiling the definition ... ",
 			"load $k_prelude\n",
 			"load $language_file_name\n",
 			"load $k_all_tools\n",
 			"set print attribute off .\n",
-			"rew compile$k_nd('$language_module_name) .\n",
+			"rew $compile_command('$language_module_name) .\n",
 			"quit\n");
 		
 		my @lines = split(/\n/, $_);
@@ -1341,16 +1345,25 @@ sub compile {
     }
     else
     {
+    my $compile_structurals = '"structural=()"';
+    my $compile_computationals = '""';
+    my $compile_supercools = '""';    
+    if ($k_nd)
+    {
+		$compile_computationals = '"computational=() nd=(true)"';
+		$compile_supercools = '"nd=(true)"';    
+    }
 	$_ = run_maude("Compiling the definition ... ",
 		"load $k_prelude\n",
 	    "load $language_file_name\n",
 	    "load $k_all_tools\n",
             "---(\n",
-            "red in COMPILE-ONESHOT : partialCompile(upModule('$language_module_name , false),'???) .\n",
+            "red in COMPILE-ONESHOT : partialCompile(upModule('$language_module_name , false),'???,\n",
+            "structurals(kstructural) computationals(none) supercools(none)) .\n",
             "quit\n",
             "---)\n",
 	    "loop compile .\n",
-	    "(compile$k_nd $language_module_name .)\n",
+	    "(compile $language_module_name structurals $compile_structurals computationals $compile_computationals supercools $compile_supercools .)\n",
 	    "quit\n");	
 		unlink($maude_xml_file);
     }
@@ -1544,11 +1557,12 @@ sub maudify_file {
     # Parse the configuration
     if (/configuration\s+(.*?)\s+(?=$kmaude_keywords_pattern)/sg)
     {
-	# print "FILE: $file\n";
-	parse_configuration($1, countlines($`), $file);
+		# print "FILE: $file\n";
+		parse_configuration($1, countlines($`), $file);
     }
     
-    
+    # resolve rule tags
+	$_ = rule_tags($_);    
     
 # add line numbers metadata
     $_ = add_line_numbers($_, $file);
@@ -1561,13 +1575,13 @@ sub maudify_file {
 # solve modules in imports
     s!^(\s*)(in|load|require)(\s+)(\S+)!
     {
-	my ($spaces1, $imp, $spaces2, $path_imp) = ($1, $2, $3, $4);
-	if ( $path_imp =~ m/modules/ )
-	{
-	    $path_imp =~ s/^\///sg;
-	    $path_imp = File::Spec->catfile($k_base, $path_imp);
-	}
-	"$spaces1$imp$spaces2$path_imp";
+		my ($spaces1, $imp, $spaces2, $path_imp) = ($1, $2, $3, $4);
+		if ( $path_imp =~ m/modules/ )
+		{
+			$path_imp =~ s/^\///sg;
+			$path_imp = File::Spec->catfile($k_base, $path_imp);
+		}
+		"$spaces1$imp$spaces2$path_imp";
     }
     !sgme;
     
@@ -1692,7 +1706,7 @@ sub maudify_module {
     s!(<\s*\/?\s*[^\s<]+\s*>)(')!$1 $2!g;
 
     # get KLabels
-	# freeze strings :D
+	# freeze strings :-D
 #	print "$_\n\n";
     s/($string_pattern)/Freeze($&,"STRINGS")/sge;	
 #	print "$_\n\n";
@@ -1744,10 +1758,13 @@ sub maudify_module {
 #     print  "Stage:\n$_\n\n";
     
 # Step: Add missing spaces around tokens
-     # freeze all strings before spacifying
-#	print "$_\n\n";
+	# freeze all attributes
+	s/((?<!`)\[\s*($k_attributes_pattern).*?(?<!`)\])(\s*)(?=$kmaude_keywords_pattern)/{Freeze($1, "ATTR").$3;}/gse;
+
+#print "FROZEN: $_\n\n";
+
+    # freeze all strings before spacifying
 	s/($string_pattern)/Freeze($&,"STRINGS")/sge;
-#	print "$_\n\n";
 	my $klabelss = $decl;		
 	$klabelss =~ s/\s+$//s;		
 	my @kls = split(/\s+/, $klabelss);		
@@ -1757,9 +1774,11 @@ sub maudify_module {
 	}
 
 	$_ = spacify($_);
+
+	$_ = Unfreeze("ATTR", $_);
 	$_ = Unfreeze("STRINGS", $_);
-#	print "$_\n\n";	
 	$_ = Unfreeze("KLABEL", $_);
+
 #	print "$_\n\n";
 #	print "============================\n\n\n";
     
@@ -1771,20 +1790,12 @@ sub maudify_module {
     s! _ ! ? !gs;
 #     print  "Stage:\n$_\n\n";
     
-# Step: Change K attributes to Maude metadata
-	s!(?<=rule\s)(\s*\[.*?\])!Freeze($&, "NAMES")!sge;
-   	s/($string_pattern)/Freeze($&,"MPGF")/sge;
-	
-    s!(\[(?:\\.|[^\]])*\])!make_metadata($1)!gse;
-	#	s!(\[.*?\])!make_metadata($1)!gse;
-
-	$_ = Unfreeze("NAMES", $_);
-	$_ = Unfreeze("MPGF", $_);
-#     print  "Stage:\n$_\n\n";
 
 # Step: Change K statements into Maude statements
 	# freeze attributes first.. because sending parameters is dangerous: see ":"!!!
-    	s/(\[[^\]]*?($k_attributes_pattern)[^\]]*?\])/Freeze($&, "ATTR")/gse;
+	s/((?<!`)\[\s*($k_attributes_pattern).*?(?<!`)\])(\s*)(?=$kmaude_keywords_pattern)/{Freeze($1, "ATTR").$3;}/gse;
+#	s/(\[[^\]]*?($k_attributes_pattern)[^\]]*?\])/Freeze($&, "ATTR")/gse;
+	
 	# also freeze rule names
 	s!(?<=rule\s)(\s*\[.*?\])!Freeze($&, "NAMES")!sge;
 
@@ -1793,11 +1804,11 @@ sub maudify_module {
 
 	# unfreeze if there are still frozen attributes
 	$_ = Unfreeze("ATTR", $_);
-#	 print  "Stage:\n$_\n\n";
+#	print  "Stage:\n$_\n\n";
    
 # Step: add line numbers for mb configuration and latex 
 	$_ = add_line_no_mb($file, $mno, $_);
-#	print $_;
+#	print "Stage: \n$_\n\n";
 	
 # Step: Unfreeze everything still frozen
     $_ = Unfreeze("ANONYMOUS", $_);
@@ -1963,10 +1974,14 @@ sub make_ops {
 		}
 
 
+	
 	# unfreeze here what was frozen in $production
 	$attributes = Unfreeze("MYS", $attributes);
+
+	$attributes = op_tags($attributes);
 	
-# print "Add metadata to: $attributes\n\n";
+#	print "Add metadata to: $attributes\n\n";
+
 
 #		print "PROD: $production\n\n";
 # Generate the Maude replacement of the K syntactic construct
@@ -1975,10 +1990,6 @@ sub make_ops {
 		$random =~ s/[a-z_]//sg;
 		if ($latex || $pdf || $ps || $crop || $eps || $png)
 		{
-#			my $tmp_attr = $attributes;
-#			$tmp_attr =~ s/\[/[metadata \"latex(renameTo \\\\crlbracket)\"/s if ($attributes ne "" && $attributes !~ /metadata/s);
-#			$tmp_attr =~ s/metadata(\s+)\"(.*?)\"/metadata$1\"$2 latex(renameTo \\\\crlbracket)\" /s if ($attributes ne "" && $attributes =~ /metadata/s);
-			
 			$result .= ($production eq "_")
 						? "$space4 subsort @sorts < $result_sort op k2Latex@sorts"."2$result_sort$random"."_ : @sorts -> $result_sort $attributes $space5 "
 						: "$space4 op $production : @sorts -> $result_sort$space5 $attributes ";
@@ -2013,28 +2024,33 @@ sub make_latex {
 
 sub k2maude {
     local ($_) = @_;
-#	print "TODO: $_\n";
 
     $_ = Unfreeze("ATTR", $_);
 	$_ = Unfreeze("NAMES", $_);
 
+#	print "TODO: $_\n";
+
+	# macros
     s/macro(\s)/eq$1/gs;
+    
     switch ($_) {
 	case /^kmod/                    { s/kmod/mod/; }
 	case /^endkm/                   { s/endkm/endm/; }
 	case /^$default_freezer/        {}
-	case /^mb/						{}
+	case /^mb/						{
+										s/^mb\s+latex(.*\S)(\s*)$/mb latex $1 .$2/sg;
+									}
 	case /^kvar/                    { s/k(var.*\S)(?=\s*)/$1 ./; }
-	case /^rule/                    { s/^(.*\S)(\s*)$/mb $1 : KSentence .$2/sg;
-					  s!(\[[^\[\]]*\]) : (KSentence)!
-					    (rule_attribute($1))?": $2 $1":"$1 : $2"!se;
-					  s!^mb(\s+)rule(\s+\[[^\[\]]*\]\s*:)!mb$2$1rule!s;
-				        }
-        case /^context/                 { s/^(.*\S)(\s*)$/mb $1 : KSentence .$2/sg;
-					  s!(\[[^\[\]]*\]) : (KSentence)!
-					    (rule_attribute($1))?": $2 $1":"$1 : $2"!se;
-					  s!^mb(\s+)context(\s+\[[^\[\]]*\]\s*:)!mb$2$1context!s;
-				        }
+ 	case /^rule/                    { s/^(.*\S)(\s*)$/mb $1 : KSentence .$2/sg;
+									  s!(\[[^\[\]]*\]) : (KSentence)!
+									  (rule_attribute($1))?": $2 $1":"$1 : $2"!se;
+									  s!^mb(\s+)rule(\s+\[[^\[\]]*\]\s*:)!mb$2$1rule!s;
+									}
+	case /^context/                 { s/^(.*\S)(\s*)$/mb $1 : KSentence .$2/sg;
+									  s!(\[[^\[\]]*\]) : (KSentence)!
+									  (rule_attribute($1))?": $2 $1":"$1 : $2"!se;
+									  s!^mb(\s+)context(\s+\[[^\[\]]*\]\s*:)!mb$2$1context!s;
+							        }
 	case /^(configuration)/         { s/^(.*\S)(\s*)$/mb $1 : KSentence .$2/s; }
 	else                            { s/(\S)(\s*)$/$1 .$2/s; }
     }
@@ -2083,7 +2099,7 @@ sub make_metadata {
 #			print "Latex attribute $1\n";
 			my $la = $1;
 			$la = Unfreeze("M", $la);
-			push(@k_attributes, "latex(renameTo \\\\".get_newcommand($la).")") if ($latex || $pdf || $crop || $ps || $eps || $png);
+			push(@k_attributes, "latex=(renameTo \\\\".get_newcommand($la).")") if ($latex || $pdf || $crop || $ps || $eps || $png);
 	    }
 	    else {
 #			print "Push: $_\n\n";
@@ -2138,9 +2154,10 @@ sub get_newcommand
     my $n = $newcommand_counter++;
     my $newcommand = $newcommand_prefix.chr(65 + $n % $newcommand_base);
     while ($n >= $newcommand_base) {
-	$n /= $newcommand_base;
-	$newcommand .= chr(65 + $n % $newcommand_base);
+		$n /= $newcommand_base;
+		$newcommand .= chr(65 + $n % $newcommand_base);
     }
+
     my @args = sort /{#(\d+)}/gms;
     my $max = $args[$#args];
     my $args = @args ? "\[$max\]" : "";

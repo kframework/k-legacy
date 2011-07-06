@@ -27,7 +27,7 @@ mod STRICTOPS2CXT is
   eq kstrict(Ints, Q NQIL) = kstrict(Ints, Q) kstrict(Ints, NQIL) .
   eq seqkstrict(Ints, Q NQIL) = seqkstrict(Ints, Q) seqkstrict(Ints, NQIL) .
   op strictCell : Qid -> Attr .
-  eq strictCell(Q) = metadata("strict in (" + string(Q) + ")") .
+  eq strictCell(Q) = kstrict(nil,Q) .
  
 --- resolving lists 
   op strictOps2cxtOp : OpDecl ~> MembAxSet .
@@ -40,6 +40,8 @@ mod STRICTOPS2CXT is
   eq strictOps2cxtOp(op Q : nil -> Ty [AS seqkstrict(Ints, Q')] .)
    = seqstrictOps2cxtMbs(mkConstant(Q, Ty), Ints, Q', -1, AS) [owise] .
   eq strictOps2cxtOp(Op) = none [owise] .
+  eq strictOps2cxtOp(errorOp(Str, AS)) 
+   = errorMb('`[`]:K,'`[`]:K,Str,AS) .
 
   op strictOps2cxtMbs : Qid IntList Qid Int  AttrSet ~> MembAxSet .
 --- regardless of arity
