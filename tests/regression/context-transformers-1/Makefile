@@ -1,9 +1,9 @@
 
 # this is the name of the main maude module 
-LANGUAGE_NAME = ISSUE
+LANGUAGE_NAME = CONTEXT-TRANSFORMERS-TEST
 
 # this is the name of the interesting modules (used by make latex/pdf) 
-LANGUAGE_MODULES = ISSUE
+LANGUAGE_MODULES = CONTEXT-TRANSFORMERS-TEST
 
 #this is the basename of the main file
 MAIN_FILE = example
@@ -11,7 +11,5 @@ MAIN_FILE = example
 # this is a space-separated list of basename maude files to run
 TESTS = test.m
 
-COMPILE_OPTIONS = -supercool "nd(true)"
-
-TOOL_DIR = $(K_BASE)/tools/
+TOOL_DIR =  $(K_BASE)/tools/
 include $(TOOL_DIR)make-helper.mk
