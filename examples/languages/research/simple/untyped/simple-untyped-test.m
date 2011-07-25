@@ -43,6 +43,9 @@ rew run('pExceptions15) .
 --- Execute and search the state space ---
 ------------------------------------------
 
+rew run('pNondet) .
+search run('pNondet) =>! B:Bag .       --- 5 solutions, one of them undefined
+
 rew run('pThreads1) .
 ---search run('pThreads1) =>! B:Bag .  --- too many interleavings
 rew run('pThreads2) .

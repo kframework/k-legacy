@@ -2,7 +2,7 @@
 --- SIMPLE-UNTYPED-SYNTAX module ---
 ------------------------------------
 
-kmod SIMPLE-UNTYPED-SYNTAX is including #INT + #ID
+kmod SIMPLE-UNTYPED-SYNTAX is 
 
 /*@ \section{Syntax}
 We start by defining the SIMPLE syntax.  The language constructs discussed
@@ -52,7 +52,7 @@ strict in its second argument (for the same reason as the increment). */
                | Exp + Exp         [strict prec 33 gather(E e)]
                | Exp - Exp         [strict prec 33 gather(E e)]
                | Exp * Exp         [strict prec 31 gather(E e)]
-               | Exp / Exp         [strict prec 31 gather(E e)]
+               | Exp / Exp         [strict prec 31 gather(E e) nd]
                | Exp % Exp         [strict prec 31 gather(E e)]
                | - Exp             [strict]
                | Exp < Exp         [strict prec 37]
@@ -64,7 +64,7 @@ strict in its second argument (for the same reason as the increment). */
                | Exp and Exp       [strict prec 39 gather(E e)]
                | Exp or Exp        [strict prec 39 gather(E e)]
                | not Exp           [strict prec 38]
-               | Exp [ List{Exp} ] [strict prec 1] 
+               | Exp [ List{Exp} ] [strict prec 1]
                | sizeOf ( Exp )    [strict]
                | Exp ( )
                | Exp ( List{Exp} ) [strict prec 2]
