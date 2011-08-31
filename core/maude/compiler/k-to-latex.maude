@@ -243,7 +243,7 @@ var Eq : Equation .  var Eqs : EquationSet .
   op \value{_} : Term -> Term .
   op \myquote{_} : String -> QidList .
 
-  ceq printTerm(U,C) = \myquote{string(getName(C))} if getType(C) == 'String or getType(C) == 'Char  .
+  ceq printTerm(U,C) = \myquote{string(getName(C))} if getType(C) == String or getType(C) == Char  .
   
   eq printTerm(U,C) = \constant{getName(getOps(U),getName(C), getType(C))}{getType(C)} [owise] .
   eq printTerm(U,V) = \variable{ getName(V) }{getType(V)} .
@@ -283,7 +283,7 @@ var Eq : Equation .  var Eqs : EquationSet .
   ceq printTerm(U,Q[T1,T2]) = 
      printTerm(U,\reduce{T1}{T2}) 
    if Q = replaceS .
-  ceq printTerm(U, Q['0.Zero]) = printTerm(U, qid(string(N,10) + ".Nat")) 
+  ceq printTerm(U, Q['0.#Zero]) = printTerm(U, qid(string(N,10) + ".#Nat")) 
    if N := getNat(string(Q)) .
   ceq printTerm(U, '_`(_`)[Q,'_`,`,_[NeTl]]) = printTerm(U,Q'[NeTl])
    if substr(string(getName(Q)),0,1) = "'" 
@@ -315,10 +315,10 @@ var Eq : Equation .  var Eqs : EquationSet .
  
   op printTerm1 : Module Term -> QidList .
 
- ceq printTerm1(U, Q[Ct]) = tokenize(downTerm(Ct,"")) if Q == latexS .
+ ceq printTerm1(U, Q[Ct]) = tokenize(getString(Ct)) if Q == latexS .
  ceq printTerm1(U, '__[Tl1:TermList, Q[Ct], Tl2:TermList])
    = printTerm(U,merge(genQids(s countTerms(Tl1:TermList), '\somespace), Tl1:TermList))
-     tokenize(downTerm(Ct,""))
+     tokenize(getString(Ct))
      printTerm(U,merge(genQids(s countTerms(Tl2:TermList), '\somespace), Tl2:TermList))
   if Q == latexS .
  ceq printTerm1(U,Q[NeTl,T])
@@ -441,7 +441,7 @@ var Eq : Equation .  var Eqs : EquationSet .
   var KRS : KRuleSplit .  var KCS : KContextSplit . 
   var Mb : MembAx .  var MAS' : MembAxSet .
   eq mb(mb 'configuration_[T] : 'KSentence [AS] .) = config(T) .
-  eq mb(mb 'latex_[T] : 'KSentence [AS] .) = latex(downTerm(T,"")) .
+  eq mb(mb 'latex_[T] : 'KSentence [AS] .) = latex(getString(T)) .
  ceq mb(Mb) = rule(getLabel(getAttrs(Mb)),KRS)
   if KRS := splitKRule(metadataParse(Mb)) .
  ceq mb(Mb) = context(getLabel(getAttrs(Mb)),KCS) 
@@ -1125,7 +1125,7 @@ mod LATEX-PRINT-META is
   eq \sort{Q} = '\sort '`{ printSortQid(Q) '`} .
 
   op printSortQid : Qid -> QidList .
-  eq printSortQid(Q) = printQid(qid(replaceAll(string(Q), ("`{" |-> "\\{", "`}" |-> "\\}")))) .
+  eq printSortQid(Q) = printQid(qid(replaceAll(string(Q), ("`{" |-> "\\{", "`}" |-> "\\}", "#" |-> "\\#")))) .
 
    var C : Constant .  var V : Variable . var SC : SplitCell .
    op printConfig : Module Term -> QidList .

@@ -1,5 +1,5 @@
 kmod KERNELC-RELAXED-THREADS is 
-  including KERNELC-SEMANTICS + KERNELC-THREADS-SYNTAX
+  including KERNELC-SEMANTICS + KERNELC-SIMPLE-MALLOC + KERNELC-THREADS-SYNTAX
 
 /*@  \section{A relaxed memory model}
 
@@ -32,8 +32,9 @@ memory does contain $v$ at $a$;
 memory does contain $v$ at $a$; 
 */
   rule [global-deref]: <k> *N => V <_/k> <buffer> Mem </buffer> 
-      <mem_> N:Nat |-> V <_/mem> 
+      <mem_> N:#Nat |-> V <_/mem> 
     if notBool(N in locations(Mem))
+  [transition]
 
 
 //@\subsection{Rule 2} $p$ can read $v$ from its write buffer for address $a$ if $p$ is not blocked and has $v$ as the newest write to $a$ in its buffer; 
@@ -41,6 +42,7 @@ memory does contain $v$ at $a$;
   rule [local-deref] : <k> *N => V <_/k> 
        <buffer_> bwrite(N, V) Mem:List </buffer> 
     if notBool(N in locations(Mem))
+  [transition]
 
 //@\subsection{Rule 3} $p$ can read the stored value $v$ from its register $r$ at any time; this stays as in the original \KERNELC definition.
 
@@ -50,12 +52,13 @@ memory does contain $v$ at $a$;
 
   rule [buffer-write] : <k> *N = V => V <_/k> 
        <buffer_> .List => bwrite(N, V) </buffer> 
-    [structural]
+   
 
 //@\subsection{Rule 5} if $p$ is not blocked, it can silently dequeue the oldest write from its write buffer to memory; 
 
   rule [commit-write]: <blocked> false </blocked> <buffer> 
        (bwrite(N, V) => .) <_/buffer> <mem_> N |-> (_ => V) <_/mem>
+  [transition]
 
 //@\subsection{Rule 6} $p$ can write value $v$ to one of its registers $r$ at any time; this stays as in the original \KERNELC definition.
 
@@ -69,11 +72,13 @@ memory does contain $v$ at $a$;
   rule [acquire] : <k> acquire(N) => void <_/k> <id> T </id> 
         <buffer> .List </buffer> <locks> Locks:Map (. => N |-> T) </locks>
     if notBool(N in keys(Locks))
+  [transition]
 
 //@\subsection{Rule 9} if $p$ holds the lock, and its write buffer is empty, it can end a LOCK'd instruction. 
 
-  rule [release] : <k> release(N) => void <_/k> <id> T:Nat </id> 
+  rule [release] : <k> release(N) => void <_/k> <id> T:#Nat </id> 
        <buffer> .List </buffer> <locks_> N |-> T => .Map <_/locks>
+  [transition]
 
 
 //@\subsection{Initial configuration}  adds to \KERNELC's configuration a buffer for writes and a cell to maintain info whether a thread is blocked.
@@ -101,41 +106,43 @@ memory does contain $v$ at $a$;
 
   //@ Structural rules for maintaining the status of the blocked cell
   rule <k> acquire(N)  <_/k> <blocked> false => true </blocked> 
-       <locks_> N |-> T:Nat <_/locks>       [structural]
+       <locks_> N |-> T:#Nat <_/locks>      
   rule <k> acquire(N)  <_/k>  <blocked> true => false </blocked> 
        <locks_> Locks <_/locks>
-    if notBool(N in keys(Locks))       [structural]
+    if notBool(N in keys(Locks))      
 
 
   //@\subsection{Thread semantics} changes because now all synchronization constrcts are assumed to generate an MFENCE instruction, and thus need to ensure the buffer is empty.
 
   context 'spawn_('_`(_`)(_,,`[HOLE`]:K)) 
-  rule [spawn] : <k> 'spawn_('_`(_`)(X:Id,,Vl:List{Val})) => T <_/k> 
-                 <next> T:Nat => T +Int 1 </next> 
+  rule [spawn] : <k> 'spawn_('_`(_`)(X:#Id,,Vl:List{Val})) => T <_/k> 
+                 <next> T:#Nat => T +Int 1 </next> 
                  <buffer> .List </buffer> 
                  (. => <thread_> <k>'_`(_`)(X,,Vl)</k> <id> T </id> <_/thread>) 
+  [transition]
   rule (<thread_> <k> V:Val </k> <id> T </id> 
            <buffer> .List </buffer> 
-        <_/thread> => .)   <cthreads_> . => SetItem(T) <_/cthreads> [structural]
+        <_/thread> => .)   <cthreads_> . => SetItem(T) <_/cthreads>
 
   rule <k> join(N) => 0 <_/k>   <buffer> .List </buffer> 
-       <cthreads_> SetItem(N) <_/cthreads> [structural]
+       <cthreads_> SetItem(N) <_/cthreads>
 
-  rule [local-inc] : <k> (*N)++ => I:Int <_/k> 
+  rule [local-inc] : <k> (*N)++ => I:#Int <_/k> 
        <buffer_> bwrite(N, I) Mem:List (. => bwrite(N, I +Int 1)) </buffer> 
     if notBool(N in locations(Mem))
+  [transition]
 
   rule [global-inc]: <k> (*N)++ => I <_/k> 
        <buffer> Mem (. => bwrite(N, I +Int 1))</buffer> <mem_> N |-> I <_/mem> 
     if notBool(N in locations(Mem))
+  [transition]
 
  //@ Auxilliary helping semantic constructs
 
-  syntax ListItem ::= bwrite ( Nat , Val )
-  syntax K ::= Bool
+  syntax ListItem ::= bwrite ( #Nat , Val )
 
   syntax Set ::= locations List
  
-  rule locations(.List) => .Set [structural]
-  rule locations(bwrite(N, V) Mem) => SetItem(N) locations(Mem) [structural]
+  rule locations(.List) => .Set
+  rule locations(bwrite(N, V) Mem) => SetItem(N) locations(Mem)
 endkm

@@ -4,6 +4,7 @@ use File::Basename;
 use File::Spec;
 use File::Copy;
 use File::Path 2.07 qw( make_path remove_tree );
+use File::Spec::Link;
 use Switch;
 use Cwd;
 use Digest::MD5 qw(md5 md5_hex md5_base64);
@@ -57,11 +58,11 @@ my $maudify_only = 0;
 my $k_prelude_loaded = 0;
 
 # K tags variables
-my $flag_structural = "structural=()";
-my $flag_computational = "transition=()";
-my $flag_nd_strict = "supercool=()";
-my $structural = 0;
-my $computational = 0;
+my $flag_localtransition = "localtransition=()";
+my $flag_transition = "transition=()";
+my $flag_nd_strict = "nd=()";
+my $localtransition = 0;
+my $transition = 0;
 my $nd_strict = 0;
 my $pure = 0;
 
@@ -172,10 +173,10 @@ my $short_help_message =
   -file : the input source file (optional)
 
   Controlling non-determinism
-  -structural \"<tags>\" : tags to become equations 
   -transition \"<tags>\": tags to become rewrite rules 
-              also nondetermistic choice for strictness
-  -supercool \"<tags>\": tags for super cooling rules
+  -nd \"<tags>\": syntax tags triggering super heating
+                  nondetermistic choice for strictness
+  -localtransition \"<tags>\" : rule tags triggering super cooling
   tags are space-separated and can include the tag default
   default values: the name of the option.
 
@@ -203,7 +204,10 @@ my $short_help_message =
   Compile only one program options
   -pgm <filename> : specify the file where the program macro is
   -cmod <compiled module name> : specify the compiled module 
-			where the language is
+     where the language is
+  -cfile <compiled module file> : specify the file containing the 
+     compiled module. If this is missing, <compiled module file> 
+     will be considered LOWCAPS(cmod)-compiled
   -pmod <module name> : specify the module where the macro is
      If this is missing, <module name> will be considered ALLCAPS(pgm)
   -pname <macro name> : specify the name of the macro
@@ -320,18 +324,24 @@ sub terminate {
   above mentioned style, and thus could be used to alter the default
   typesetting macros.
   
-  The options -structural, -transition, and -supercool are designed
+  The options -transition, -nd, and -localtransition are designed
   to help fine-tuning the non-determinsm exposed by a definition by 
   changing the abstraction level of the rules and stricness axioms.
-  By default, only rules and heating rules tagged with the 'transition' tag 
-  are turned into rewrite rules and strictness rules tagged with 'supercool' 
-  generate heating rewrite rules, while rules tagged with 'supercool'
-  force the computation to cool completely before any other rule applies.
-  If a rule is tagged both structural and transition, it is considered
-  structural and thus turned into an equation. All rules with no specific 
-  transition/structural tag are considered structural.
+  The option '-nd' lists all the (tags of the) operations which are 
+  intended to be non-deterministic in the implementation.  The option 
+  '-localtransition' enriches the set of transitions to be used when 
+  exploring the behaviors of non-deterministic operations.  If one does 
+  not mention any local transitions, then only the transitions will be 
+  considered.
+  By default, rules tagged with the 'transition' tag 
+  are turned into rewrite rules, syntax/strictness rules tagged with 'nd' 
+  trigger the computing of the entire heating class, while rules tagged 
+  with either 'transition' or 'localtransition' force the computation to 
+  cool completely before any other rule applies.
+  All rules with no specific tag are considered structural and turned into
+  equations.
   The above options allow to change this behavior by specifying explicit
-  sets of tags which are to be handled as structural/transition/supercool.
+  sets of tags which are to be handled as transition/nd/localtransition.
   In addition one can add the reserved tag default to one of the categories
   to dictate the behavior for the rules with none of the specified tags.
   
@@ -390,18 +400,30 @@ sub terminate {
   and
   lang-flat.maude which is lang-flat.k maudified.
 
-  kompile lang -computational \"default\"
-  will transform into rewrite rules all rules which are tagged 
-  as structural.
+  ---- Syntax/Rule tags --- 
+  By default, 'kompile language.k' is equivalent to
 
-  kompile lang -structural \"nd(false) computational\" \\
-      -transition \"structural\" -supercool \"default\"
-  will transform into equations all rules which are tagged with either 
-  computational or nd(false), into rules all those tagged with 
-  structural, will generate rewrite rules for all heating rules tagged 
-  with structural, and will enforce complete cooling for all K rules 
-  containing the k cell.
+  kompile language.k -transition \"transition\" -nd \"nd\" 
+                    -localtransition \"localtransition\"
 
+  This way, one does not need to explicitly add the options above if 
+  one follows the naming convention for the tags.  On the other hand, 
+  if one used the implicit tags and one still wants to kompile the 
+  definition for interpretation speed, then one has to call kompile 
+  with the options
+
+  kompile language.k -transition \"\" -nd \"\" -localtransition \"\"
+
+  Also, once one adds a tag to a category, that category is not including 
+  the default tag anymore.  For example,
+
+  kompile language.k -transition \"nondet\"
+
+  does not include the tags \"transition\" into the -transition set 
+  anymore; it is actually equivalent to:
+
+  kompile language.k -transition \"nondet\"  -nd \"nd\" 
+                     -localtransition \"localtransition\"
 
 " if ($verbose || $help); 
     print "\nERROR: $_[0]\n\n" if defined $_[0];
@@ -444,7 +466,7 @@ my $latex_special = '[\\#\\$\\{\\}\\[\\]\\&\\^\\_\\%\\~\\\\]';
 my $kvar  = "[A-Za-z][A-Za-z0-9]*[']*";
 
 # Pattern matched by K sorts
-my $ksort = "[A-Z][A-Za-z0-9\\`\\+\\?\\!#]*(?:\\{[A-Z][A-Za-z0-9\\`\\+\\?\\!]*\\})?";
+my $ksort = "[A-Z#][A-Za-z0-9\\`\\+\\?\\!#]*(?:\\{[A-Z#][A-Za-z0-9\\`\\+\\?\\!]*\\})?";
 # TODO: test exhaustively :-)
 
 # Pattern matched by K variables
@@ -468,14 +490,15 @@ my $k_to_latex = File::Spec->catfile($k_tools_dir,"k-to-latex");
 my $k_latex_dir = File::Spec->catfile((File::Basename::fileparse($0))[1], 'latex');
 my $k_prelude = File::Spec->catfile($k_tools_dir,"..","lib","k-prelude");
 
+my $tokens_file = "all_tokens.tok";
 my @kmaude_keywords = qw(context rule macro eq ceq configuration op ops syntax kvar sort sorts subsort subsorts including kmod endkm mb tags);
 my $kmaude_keywords_pattern = join("|",map("\\b$_\\b",@kmaude_keywords));
 my $kmaude_kwds_pattern = join("|", @kmaude_keywords);
 
-my @k_attributes = qw(strict metadata prec format assoc comm id: hybrid gather ditto seqstrict structural large latex );           
+my @k_attributes = qw(strict metadata prec format assoc comm id: hybrid gather ditto seqstrict structural transition computational nd localtransition large latex );           
 my $k_attributes_pattern = join("|",  @k_attributes);   
 
-my $k_sorts = "#Bag#BagItem#Bool#Builtins#CellLabel#CellKey#CellAttribute#Char#Int#K#KAssignments#KHybridLabel#KLabel#KResult#KResultLabel#KSentence#List#ListItem#List{KResult}#List{K}#Map#MapItem#Nat#NeBag#NeK#NeList#NeList{KResult}#NeList{K}#NeMap#NeSet#NzInt#NzNat#Set#SetItem#String#Zero";
+my $k_sorts = ":Bag:BagItem:#Bool:CellLabel:CellKey:CellAttribute:#Char:#Int:K:KAssignments:KHybridLabel:KLabel:KResult:KResultLabel:KSentence:List:ListItem:List{KResult}:List{K}:Map:MapItem:#Nat:NeBag:NeK:NeList:NeList{KResult}:NeList{K}:NeMap:NeSet:#NzInt:#NzNat:Set:SetItem:#String:#Zero";
 
 my $comment = join("|", (
         "\\/\\/.*?\n",
@@ -532,9 +555,6 @@ my @all_sorts = ();
 # @all_tokens will hold all defined tokens
 my @all_tokens = @builtin_tokens;
 
-# a map with frozen strings
-my %freeze_map = ();
-
 # variables to store command line arguments
 my $style = "bb";
 my $compile_only = 0;
@@ -568,6 +588,7 @@ my $mset = 0;
 # variables to compile only one program
 my $compileProgram = 0;
 my $pgm   = "0";	# source file
+my $cfile = "";         # compiled file
 my $cmod  = "0";	# compiled module name
 my $pmod  = "0";	# program module name
 my $pname = "0";	# program name
@@ -621,6 +642,9 @@ foreach (@ARGV) {
 	}
 	elsif (($pname eq "?") && !/^-/) {
 		$pname = $_;
+	}
+	elsif (($cfile eq "?") && !/^-/) {
+		$cfile = $_;
 	}
 	elsif (($cmod eq "?") && !/^-/) {
 		$cmod = $_;
@@ -689,13 +713,13 @@ foreach (@ARGV) {
     elsif (/^--?crop$/) {
 		$crop = 1;
     }
-    elsif (/^--?structural$/) {
-		$structural = 1;
+    elsif (/^--?localtransition$/) {
+		$localtransition = 1;
     }
     elsif (/^--?transition$/) {
-		$computational = 1;
+		$transition = 1;
     }
-    elsif (/^--?supercool$/) {
+    elsif (/^--?nd$/) {
 		$nd_strict = 1;
     }
     elsif (/^--?pgm$/) { # start compile program param check
@@ -710,9 +734,13 @@ foreach (@ARGV) {
 		$compileProgram = 1;
 		$pmod = "?";
     }
-	elsif (/^--?pname$/) {
+    elsif (/^--?pname$/) {
 		$compileProgram = 1;
 		$pname = "?";
+    }
+    elsif (/^--?cfile$/) {
+		$compileProgram = 1;
+		$cfile = "?";
     } # end compile program param check
     elsif (/^--?style$/) {
 		$style = "?";
@@ -739,12 +767,12 @@ foreach (@ARGV) {
 	# do nothing
 	#	print "MODULES: $_\n";
     }
-    elsif ($structural || $computational || $nd_strict)
+    elsif ($localtransition || $transition || $nd_strict)
     {
     	# do nothing
     }
     else {
-		$language_file_name = getFullName($_);
+	$language_file_name = get_full_name($_);
     }
 }
 
@@ -815,24 +843,24 @@ if ($args =~ /--?crop\s+($modules_list)/)
 }
 
 # get tags
-if ($args =~ /\-\-?structural\s(.*)/s)
+if ($args =~ /\-\-?localtransition\s(.*)/s)
 {
-	$flag_structural = process_tags($1);
+	$flag_localtransition = process_tags($1);
 }
 
 if ($args =~ /\-\-?transition\s(.*)/s)
 {
-	$flag_computational = process_tags($1);
+	$flag_transition = process_tags($1);
 }
 
-if ($args =~ /\-\-?supercool\s(.*)/s)
+if ($args =~ /\-\-?nd\s(.*)/s)
 {
 	$flag_nd_strict = process_tags($1);
 }
 
-#print "STRUCT: $flag_structural\n";
-#print "COMP: $flag_computational\n";
+#print "TRANSITION: $flag_transition\n";
 #print "ND: $flag_nd_strict\n";
+#print "LOCALTRANSITION: $flag_localtransition\n";
 
 
 # Check if an input file was given and exit if not
@@ -924,6 +952,8 @@ if ($flat && !$maudify_only)
 	exit(0);
 }
 
+
+
 # Following is executed whenever the option -c was not selected
 if (!$compile_only) {
 # Maudify the .k|.kmaude files reachable from file "$language_file_name"
@@ -935,32 +965,32 @@ if (!$compile_only) {
     
     if ($klabels ne "")
     {
-		my @tmp = split(/\s+/, $klabels);
-		@tmp = uniq(@tmp);
-		my $tmp = "ops @tmp : -> KLabel [metadata \"generated-label=()\"] . ";
-		my $dir = cwd;
-		open FILE,">",$kshared or die "Cannot create $kshared\n";
-		my $prelude = basename($k_prelude);
+	my @tmp = split(/\s+/, $klabels);
+	@tmp = uniq(@tmp);
+	my $tmp = "ops @tmp : -> KLabel [metadata \"generated-label=()\"] . ";
+	my $dir = cwd;
+	open FILE,">",$kshared or die "Cannot create $kshared\n";
+	my $prelude = basename($k_prelude);
 #		print FILE "\*\*\*\(\n$k_license\n\)\*\*\*\n\n\n";
-		print FILE "mod K-SHARED is including K . \n\t$tmp\nendm";
-		close FILE;
-		push(@generated_files, $kshared);
-
-		# add shared in language_file_name.maude
-		my $top_file = $language_file_name;
-		$top_file =~ s!\..+?$!!sg; # delete extension
-		if ( -e "$top_file.maude" )
-		{
-			my $maudified = get_file_content("$top_file.maude");
-		
-			$maudified =~ s/^/in shared\.maude\n/sg;	
-
-			open FILE,">", "$top_file.maude" or die "Cannot open $top_file.maude\n";
-			print FILE $maudified;
-			close FILE;
-		}
+	print FILE "mod K-SHARED is including K . \n\t$tmp\nendm";
+	close FILE;
+	push(@generated_files, $kshared);
+	
+	# add shared in language_file_name.maude
+	my $top_file = $language_file_name;
+	$top_file =~ s!\..+?$!!sg; # delete extension
+	if ( -e "$top_file.maude" )
+	{
+	    my $maudified = get_file_content("$top_file.maude");
+	    
+	    $maudified =~ s/^/in shared\.maude\n/sg;	
+	    
+	    open FILE,">", "$top_file.maude" or die "Cannot open $top_file.maude\n";
+	    print FILE $maudified;
+	    close FILE;
 	}
-
+    }
+    
     
 #    print_header("Done with maudifying $language_file_name") if $verbose;
     print_header("Data resulting from maudifying $language_file_name") if $verbose;
@@ -1390,7 +1420,7 @@ sub compile {
 			"load $language_file_name\n",
 			"load $k_all_tools\n",
 			"set print attribute off .\n",
-			"rew compile('$language_module_name, structurals(metadataParse(\"$flag_structural\")) computationals(metadataParse(\"$flag_computational\")) supercools(metadataParse(\"$flag_nd_strict\"))) .\n",
+			"rew compile('$language_module_name, localtransitions(metadataParse(\"$flag_localtransition\")) transitions(metadataParse(\"$flag_transition\")) nds(metadataParse(\"$flag_nd_strict\"))) .\n",
 			"quit\n");
 		
 		my @lines = split(/\n/, $_);
@@ -1416,18 +1446,18 @@ sub compile {
     }
     else
     {
-    my $compile_structurals = "\"$flag_structural\"";
-    my $compile_computationals = "\"$flag_computational\"";
-    my $compile_supercools = "\"$flag_nd_strict\"";    
-    my $action = "(compile $language_module_name structurals $compile_structurals computationals $compile_computationals supercools $compile_supercools .)";
-    $action = "(purify $language_module_name structurals $compile_structurals computationals $compile_computationals supercools $compile_supercools .)" if $pure;
+    my $compile_localtransitions = "\"$flag_localtransition\"";
+    my $compile_transitions = "\"$flag_transition\"";
+    my $compile_nds = "\"$flag_nd_strict\"";    
+    my $action = "(compile $language_module_name transitions $compile_transitions nds $compile_nds localtransitions $compile_localtransitions .)";
+    $action = "(purify $language_module_name transitions $compile_transitions nds $compile_nds localtransitions $compile_localtransitions .)" if $pure;
 	$_ = run_maude("Compiling the definition ... ",
 		"load $k_prelude\n",
 	    "load $language_file_name\n",
 	    "load $k_all_tools\n",
             "---(\n",
             "rew in COMPILE-ONESHOT : partialCompile(upModule('$language_module_name , false),'???,\n",
-            "structurals(metadataParse(\"$flag_structural\")) computationals(metadataParse(\"$flag_computational\")) supercools(metadataParse(\"$flag_nd_strict\"))) .\n",
+            "localtransitions(metadataParse(\"$flag_localtransition\")) transitions(metadataParse(\"$flag_transition\")) nds(metadataParse(\"$flag_nd_strict\"))) .\n",
             "quit\n",
             "---)\n",
 	    "loop compile .\n",
@@ -1581,62 +1611,10 @@ sub maudify_file {
     my ($file,$indent) = @_;
 # If $file has extension .k, .kmaude or .maude then tests if $file exists and errors if not
     
-    # print "Process file: $file\n";
-    $file = getFullName($file);
-    
-    addFile(File::Spec->rel2abs($file));
     print $indent."Processing file $file\n" if $verbose;
     $indent .= "|   ";
 
-    # hardcoded for avoiding maudification for shared.maude
-    if ($file =~ /shared\.maude/)
-    {
-		return;
-    }
-    
-# Slurp all $file into $_;
-    local $/=undef; open FILE,"<",$file or die "Cannot open $file\n"; local $_ = <FILE>; close FILE;
-
-        # freeze
-	s/($comment)/Freeze($&, "CMTS")/sge;
-
-    # Step: remove tags
-    s!tags(\s.*?\S)(\s*)(?=$kmaude_keywords_pattern|CMTS)!{parse_tags($1);"$2";}!sge;    
-
-        # replace module with kmod and
-	# endmodule with endkm
-	s/(module)(.*?)(end\s+?module)/kmod$2endkm/sg;
-	
-	# replace including with imports
-	s/(?<!\S)imports(?!\S)/including/sg;
-
-
-	# append "is" if necessary
-	s/(kmod\s+\S+)(\s+)(?!is)/$1 is$2/sg;
-	
-	# unfreeze
-	$_ = Unfreeze("CMTS", $_);
-
-# Step: resolve latex comments
-	# store_intermodule_latex($_);
-    $_ = solve_latex($_) if ($latex || $png || $pdf || $ps || $crop || $eps);
-
-    # save comments
-    my ($noComments, $myComments) = remove_comments($_);
-    $_ = $noComments;
-    
-    # Parse the configuration
-    if (/configuration\s+(.*?)\s+(?=$kmaude_keywords_pattern)/sg)
-    {
-	# print "FILE: $file\n";
-	parse_configuration($1, countlines($`), $file);
-    }
-    
-    
-# add line numbers metadata
-    $_ = add_line_numbers($_, $file);
-
-#    print $_;
+    $_ = slurp_k($file, $latex || $png || $pdf || $ps || $crop || $eps);
     
     # resolve rule tags
     $_ = rule_tags($_);
@@ -1644,20 +1622,7 @@ sub maudify_file {
     
 # dots issue: change <cell>.</cell> into <cell> . </cell>
     s!<(.*?)>\.</\1>!<$1> \. </$1>!g;
-    
-# solve modules in imports
-    s!^(\s*)(in|load|require)(\s+)(\S+)!
-    {
-		my ($spaces1, $imp, $spaces2, $path_imp) = ($1, $2, $3, $4);
-		if ( $path_imp =~ m/modules/ )
-		{
-			$path_imp =~ s/^\///sg;
-			$path_imp = File::Spec->catfile($k_base, $path_imp);
-		}
-		"$spaces1$imp$spaces2$path_imp";
-    }
-    !sgme;
-    
+        
 # Replacing dots    
     $_ = replace_dots($_);
     my $temporary = $_;
@@ -1683,38 +1648,6 @@ sub maudify_file {
 	    add_tokens($_);
 	    print "DONE\n" if $verbose;
 	}
-	elsif ( m!^(?:in|load)\s+(\S+)! ) 
-	{
-	    maudify_file(maudify($1, $file), $indent);
-	    
-	    # store imported module
-	    store_import($1);
-	    
-	    s!\.k(maude)?\s*$!\.maude!s;
-	}
-	elsif ( m!^(?:require)\s+(\S+)! ) 
-	{
-	    # print "File $file require: $1\n";
-	    my $import = $1;
-	    if (required($import))
-	    {
-		maudify_file(maudify($1, $file), $indent);
-		
-		# store imported module
-		store_import($import);
-		
-		s!\.k(maude)?\s*$!\.maude!s;
-		s!require!in!sg;
-	    }
-	    else
-	    {
-		s!require\s+\S+!!;
-	    }
-	}
-	else 
-	{
-	    #	    print "Top level pattern:\n$_\n" if $verbose;
-	}
         $maudified = "$maudified$before$_$after";
     }
 
@@ -1722,8 +1655,8 @@ sub maudify_file {
     {
 #        print "ERROR: Cannot finish processing $file\n";
 #        print "ERROR: The following text does not parse:\n$_";
-		print generate_error("ERROR", 1, $file, "unknown line", "Cannot finish processing $file\n");
-		print generate_error("ERROR", 1, $file, "unknown line", "The following text does not parse:\n$_");
+	print generate_error("ERROR", 1, $file, "unknown line", "Cannot finish processing $file\n");
+	print generate_error("ERROR", 1, $file, "unknown line", "The following text does not parse:\n$_");
         exit(1);
     }
     
@@ -1733,7 +1666,7 @@ sub maudify_file {
     if ($file =~ /\.maude/) { return; }
     
     my $maude_file = ($file =~ /^(.*)\.k(?:maude)?$/)[0].".maude";
-	print generate_error("WARNING", 1, $file, "unknown line", "Unbalanced parentheses in file $maude_file\nMaude might not finish...\n") if (!balanced($maudified, '(', ')', '`'));
+    print generate_error("WARNING", 1, $file, "unknown line", "Unbalanced parentheses in file $maude_file\nMaude might not finish...\n") if (!balanced($maudified, '(', ')', '`'));
 #    print "Warning: Unbalanced parentheses in file $maude_file\nMaude might not finish...\n" if (!balanced($maudified, '(', ')', '`'));
 
 	# put comments back
@@ -1746,19 +1679,35 @@ sub maudify_file {
     print FILE $maudified;
     close FILE;
 
-	push(@generated_files, $maude_file);
+    push(@generated_files, $maude_file);
+
+# Step: put all tokens in .k
+    open F, ">", $tokens_file or print "Cannot save tokens!\n";
+    print F "@all_tokens";
+    close F;
+    push(@generated_files, $tokens_file);
 }
 
 
 sub maudify_module {
-    (my $file,my $mno, local $_) = @_;
+    (my $file, my $mno, local $_) = @_;
 
-	# add K or K-LATEX automatically.
-    $_ = addKandKLATEX($_, $file, $mno);
+    # add K or K-LATEX automatically.
+    $_ = addKandKLATEX($_, $file);
 
     build_module_tree($file, $_);
 #    print "Maudifying module with tokens @all_tokens\n";
 
+    # Parse the configuration
+    if (/configuration\s+(.*?)\s+(?=$kmaude_keywords_pattern)/sg)
+    {
+	if (defined $1)
+	{
+	    parse_configuration($1, countlines($`), $file);
+	}
+    }
+    
+    
     my $mname = $1 if /kmod\s+(\S+)/sg;
     if (!$k_auto_incl && $mname eq $language_module_name && !includesK($language_module_name))
     {
@@ -1812,8 +1761,8 @@ sub maudify_module {
     $_ = Unfreeze("MYSTRINGS", $_);
 #     print  "Stage:\n$_\n\n";
     
-# Step: Declare the on-the-fly variables
-    $_ = on_the_fly_kvars($_);
+# Step: Store the on-the-fly variables
+    my $vars = on_the_fly_kvars($_);
     #  print  "Stage:\n$_\n\n";
     
 # Step: Reduce cell notation with _ to cell notation with ...
@@ -1865,15 +1814,26 @@ sub maudify_module {
 		s/(\Q$kl\E)/Freeze($kl, "KLABEL")/sge;		
 	}
 
- 	$_ = spacify($_);
+        s/(subsorts?\s+.*?)(\s+)(?=$kmaude_keywords_pattern|STRINGS|ATTR|KLABEL)/{Freeze($1, "SUBSORTS") . $2;}/sge;
+        s/(sorts?\s+.*?)(\s+)(?=$kmaude_keywords_pattern|STRINGS|ATTR|KLABEL|SUBSORTS)/{Freeze($1, "SORTS") . $2;}/sge;
+
+# print ;
+        $_ = spacify($_);
 
 	$_ = Unfreeze("ATTR", $_);
 	$_ = Unfreeze("STRINGS", $_);
 	$_ = Unfreeze("KLABEL", $_);
+        $_ = Unfreeze("SUBSORTS", $_);
+        $_ = Unfreeze("SORTS", $_);
 
-#	print "$_\n\n";
+# print "$_\n\n";
 #	print "============================\n\n\n";
     
+# Step: Declare the on-the-fly variables
+    s/(?=endkm)/$vars?"$vars ":""/se;
+    #  print  "Stage:\n$_\n\n";
+
+
 # Step: Change .List into (.).List , etc.
     s!\.(K|List|Set|Bag|Map)([^\w\{])!(.).$1$2!gs;
 #    print  "Stage:\n$_\n\n";
@@ -1899,10 +1859,6 @@ sub maudify_module {
 	$_ = Unfreeze("ATTR", $_);
 #	print  "Stage:\n$_\n\n";
    
-# Step: add line numbers for mb configuration and latex 
-	$_ = add_line_no_mb($file, $mno, $_);
-#	print "Stage: \n$_\n\n";
-	
 # Step: Unfreeze everything still frozen
     $_ = Unfreeze("ANONYMOUS", $_);
 #    $_ = unfreeze($_);
@@ -1967,7 +1923,19 @@ sub make_ops {
 	my $sort_decl = "";
 	if ( ! (grep { "$_" eq "$result_sort" } @all_sorts) ) {
 	    $sort_decl = "sort $result_sort";
-	    push(@all_sorts, $result_sort);	    
+#	    print "ADD: $result_sort\n";
+	    push(@all_sorts, $result_sort);
+            my $oh_my = $result_sort;
+#          
+#          Code to add the sorts as tokens
+#
+#            $oh_my =~ s/`//gs;
+#            push(@all_tokens, $oh_my);
+#            print "OH_MY1: $oh_my\n";
+#            $oh_my =~ s/[{}]/`$&/gs;
+#            push(@all_tokens, $oh_my);
+#            print "OH_MY1: $oh_my\n";
+#	    print "ALL: @all_sorts\n\n";
 	}
 
         my $result = "$spaces1 $sort_decl $spaces2";
@@ -2141,7 +2109,13 @@ sub k2maude {
 									  (rule_attribute($1))?": $2 $1":"$1 : $2"!se;
 									  s!^mb(\s+)context(\s+\[[^\[\]]*\]\s*:)!mb$2$1context!s;
 							        }
-	case /^(configuration)/         { s/^(.*\S)(\s*)$/mb $1 : KSentence .$2/s; }
+	case /^(configuration)/         { 
+	                                    if (/^(.*\S)(\s+)\[\s*metadata/s)
+	                                    {
+						s/^(.*\S)(\s*)(\[\s*metadata.*\S)(\s*)$/mb $1$2 : KSentence $3 . $4/s;
+					    }
+	                                    else { s/^(.*\S)(\s*)/mb $1 : KSentence .$2/s; }
+	                                }
 	else                            { s/(\S)(\s*)$/$1 .$2/s; }
     }
     return $_;
@@ -2151,88 +2125,6 @@ sub k2maude {
 sub rule_attribute {
     local ($_) = @_;
     /metadata|label/;  # add more keywords/patterns to recognize rule attributes
-}
-
-
-# Extract the K attributes and make them Maude metadata
-sub make_metadata {
-    local ($_) = @_;
-    my @k_attributes = ();
-    my $have_k_attributes = 0;
-
-# Match the K specific attributes below and make them into metadata
-# Right now it assumes that no \" can appear inside the metadata string
-# Therefore, the latex attribute is expected to be outside
-
-	# unfreeze ...
-	$_ = Unfreeze("MPGF", $_);
-
-	# freeze locations
-#	s/location\(.*?\)/Freeze($&, "LOCATIONS")/sge;
-	
-	# this freezes the all string, including those inside latex declarations
-   	s/($string_pattern)/Freeze($&,"MTR")/sge;
-
-#	print "=========\nIN: $_\n=============\n";
-
-
-    s!(ditto|large|structural|hybrid|arity\s+\d+|(?:seq)?strict(?:\s*\((?:\s*\d+)*\s*\))?|latex\s+\w+)|metadata\s+(\w+)!
-    my $out = "";
-#	print "\tMatched: $&\n\n";
-	if (defined $1) {
-	    local $_ = $1;
-        $have_k_attributes = 1;
-		$_ = Unfreeze("MTR", $_);
-#		print "\tTDG: $_\n";
-		if (/^latex\s+"([^"]*?)"$/gs) 
-	    {
-#			print "Latex attribute $1\n";
-			my $la = $1;
-			$la = Unfreeze("M", $la);
-			push(@k_attributes, "latex=(renameTo \\\\".get_newcommand($la).")") if ($latex || $pdf || $crop || $ps || $eps || $png);
-	    }
-	    else {
-#			print "Push: $_\n\n";
-			push(@k_attributes, $_);
-	    }
-	    $out = "ditto" if $1 =~ m/ditto/;
-	}
-    else {
-		my $data = $2;
-		$data = Unfreeze("MTR", $data);
-		$data =~ s/(^")|("$)//sg;
-#			print "Here: $data\n";
-		push(@k_attributes, $data);
-      }
-		$out
-	!gse;
-    
-	$_ = Unfreeze("MTR", $_);
-#	print "STILL: $_\n";
-	
-#    print "K attributes: @k_attributes\n==============\n\n";
-
-    if (@k_attributes) 
-	{
-#	print "->@k_attributes<-\n";
-
-# print "META: $_\n";
-		if (/(metadata\s+)($string_pattern)/sg)
-		{
-			s!(metadata\s+)(\")(.*?)(\")!"$1$2$3 @k_attributes$4"!se;
-		}
-		else
-		{
-			s!(.)\]$!"$1".(($1=~/[\s\[]/s) ? "":" ")."metadata \"@k_attributes\"\]"!se;
-		}
-	#	print "$_\n";
-    }
-    elsif ($have_k_attributes) {
-        s/^\s*\[\s*\]\s*$//gs;
-    }
-
-#	print "OUT: $_\n\n";
-   return $_;
 }
 
 
@@ -2285,6 +2177,10 @@ sub on_the_fly_kvars {
     while (my ($key,$val) = each %kvar_decls) {
 	$kvars .= "kvar $key : $val ";
     }
+    
+    return $kvars;
+    
+    # deprecated
     s/(?=endkm)/$kvars?"$kvars ":""/se;
     return $_;
 }
@@ -2380,7 +2276,6 @@ sub add_sorts {
 # Extracting all the defined sorts
     my @sorts = /\ssorts?((?:\s+$ksort)+)\s+(?=\.|$kmaude_keywords_pattern)/gs;
 
-#    print "\nSORTS: @sorts\n";
 
     @sorts = split(/\s+/, "@sorts");
 	
@@ -2388,8 +2283,12 @@ sub add_sorts {
 # Add these sorts to @all_sorts
     @all_sorts = set(@all_sorts, @sorts);
 
+#    print "ALLSORTS: @all_sorts\n\n";
+#    print "SORTS: @sorts\n\n";
+    
 # Add all sorts with alphanumerics to @all_tokens as well
     @all_tokens = set(@all_tokens, grep /\W/, @sorts);
+#    print "ALLTOKENS: @all_tokens\n\n";
 }
 
 # Next subroutine takes a string (most likely a kmaude module),
@@ -2418,7 +2317,7 @@ sub spacify {
     }
 
 # Freeze all excluded substrings, which we do NOT want to be spacified
-    $lines =~ s/($exclude)/freeze($1)/gmse;
+    $lines =~ s/($exclude)/Freeze($1, $default_freezer)/gmse;
     
 # Spacify and then freeze each token in reversed topological order
 # This way, we are sure that a subtoken of a token will never be spacified
@@ -2432,7 +2331,7 @@ sub spacify {
     $lines =~ s/_/ _ /gs;
     
 # Next unfreeze all tokens and return the spacified string
-    return unfreeze($lines);
+    return Unfreeze($default_freezer, $lines);
 }
 
 
@@ -2473,62 +2372,10 @@ sub add_spaces {
 #    print "BEFORE: $before\nTOKEN: $token\nAFTER: $after\n\n";
     if ($before =~ /\w$/ && $token =~ /^\w/) { return "$before$token"; }
     if ($after =~ /^\w/ && $token =~ /\w$/) { return "$before$token"; }
-    return ($before.(($before =~ /$maude_special/) ? "":" ").freeze($token).(($after =~ /$maude_special/) ? "":" "));
+    return ($before.(($before =~ /$maude_special/) ? "":" ").Freeze($token, $default_freezer).(($after =~ /$maude_special/) ? "":" "));
 }
 
 
-# Makes certain (sub)strings special, so that they stay "frozen" until other substitutions are complete
-sub freeze {
-    my $string = shift;
-#    print "Freezing: |$string|\n";
-    my $marker = "$default_freezer\b";
-    if (@_) {
-	$marker = shift;
-    }
-    
-    return "$marker".join("$specialSymbol",map(ord,(split('',$string))))."$specialSymbol";
-}
-
-# Makes concrete all the frozen (sub)strings
-sub unfreeze {
-    my $all = shift;
-    my $marker = "$default_freezer\b";
-    if (@_) {
-	$marker = shift;
-    }
-
-    $all =~ s/$marker(\d+(?:$specialSymbol\d+)*)$specialSymbol/join("", map(chr, split("$specialSymbol",$1)))/gse;
-
-    return $all;
-}
-
-# a new version of freezing: use digest - md5
-sub Freeze
-{
-    my ($string, $marker) = (shift, shift);
-    my $frozen_string = $marker . md5_hex($string); #join("", map(ord, split('',md5($string))));
-    $freeze_map{$marker}{$frozen_string} = $string;
-    
-   return $frozen_string;
-}
-
-# unfreezing (newest version) : use digest - md5
-sub Unfreeze
-{
-    my ($marker, $all) = (shift, shift);
-    my $marker_map = $freeze_map{$marker};
-	if (defined $marker_map)
-	{
-		my %map = %$marker_map;
-
-		$all =~ s/($marker([a-f0-9]{32}))/defined $map{$1}?$map{$1}:$1/gse;
-
-	#    while (my ($key, $value) = each(%$marker_map)) {
-	#        $all =~ s/$key/$value/sg;
-	#    }
-	}
-    return $all;
-}
 
 # Takes a list and eliminates duplicates from it
 sub set {
@@ -2559,7 +2406,7 @@ sub add_subsorts
     $supersorts = "";
     foreach(@sorts)
     {
-		$supersorts .= "$_ " if ($k_sorts !~ /#$_#/);
+	$supersorts .= "$_ " if ($k_sorts !~ /:$_:/);
     }
     
     return if ($supersorts eq "");
@@ -2626,58 +2473,77 @@ sub add_subsorts
 # exit kompilation (the action is dedicated, the rest of the actions are ignored)
 sub compile_program
 {
-	if ($pgm eq "0" or $cmod eq "0") {
-		print "To compile a single program you need to specify at least -pgm and -cmod\n";
-		exit();
-	}
-	if ($pmod eq "0") {
-		$pmod = uc $pgm;
-	}
-	if ($pname eq "0") {
-		$pname = $pgm;
-	}
-	
-	maudify_file("$pgm.k", "");
-	my $maudified = get_file_content("$pgm.maude");
+    if ($pgm eq "0" or $cmod eq "0") {
+	print "To compile a single program you need to specify at least -pgm and -cmod\n";
+	exit();
+    }
+    if ($pmod eq "0") {
+	$pmod = uc $pgm;
+    }
+    if ($pname eq "0") {
+	$pname = $pgm;
+    }
+    if ($cfile eq "")
+    {
+	$cfile =  lc("$cmod-compiled.maude");
+    }
+ 
+    # retrieve tokens 
+    $tokens_file = ".k/$tokens_file";
+    if (!(-e $tokens_file))
+    {
+	print "You have to compile the definition first. Also make sure that file $tokens_file exists.\n";
+	exit(1);
+    }
+    
+    @all_tokens = split("\s", get_file_content($tokens_file));
+    # print "TOKENS: @all_tokens\n";
 
-	my $compile = 
-"set include PL-BOOL off .
-set include BOOL on .
-load \"$k_tools_dir/" . "prelude-extras\"
-load \"$k_tools_dir/" . "meta-k\"
-load \"$k_tools_dir/" . "printing\"
-
-load  \"$k_tools_dir/" . "compile-program-interface\"
----(
-set print attribute on .
-red in COMPILE-PROGRAM-META : compileProgram(\"$cmod\",\"$pmod\",\"$pname\") .
-q
----)
-loop compile-program .
-(compileProgram $cmod $pmod $pname .)
-q
-";
+    
+    maudify_file("$pgm.k", "");
+    my $maudified = get_file_content("$pgm.maude");
+    
+    my $compiled =  qx{ sed 2d $cfile};
+    
+    my $compile = 
+      "set include PL-BOOL off .
+  set include BOOL on .
+  load \"$k_tools_dir/" . "prelude-extras\"
+  load \"$k_tools_dir/" . "meta-k\"
+  load \"$k_tools_dir/" . "printing\"
+  load \"$k_tools_dir/" . "metadata-parsing\"
+  
+  load  \"$k_tools_dir/" . "compile-program-interface\"
+  ---(
+      set print attribute on .
+      red in COMPILE-PROGRAM-META : compileProgram(\"$cmod\",\"$pmod\",\"$pname\") .
+      q
+  ---)
+  loop compile-program .
+  (compileProgram $cmod $pmod $pname .)
+  q
+  ";
 
 	my $tempFile = "programCompile.tmp";
-	#open (MYFILE, ">programCompile.tmp");
+	# open (MYFILE, ">programCompile.tmp");
 	open MYFILE,">",$tempFile or die "Cannot create $tempFile\n";
-	print MYFILE "$maudified\n$compile\n";
+	print MYFILE "load \"$k_prelude\"\n$maudified\n$compiled\n$compile\n";
 	close(MYFILE);
-	push(@generated_files, $tempFile);
+	# push(@generated_files, $tempFile);
 	
 # run maude with this input
 	my $comp = run_maude("Compiling single program", "in programCompile.tmp");
 # verific? - vezi cum se face verificarea
-	#print "$comp\n";
+	# print "$comp\n";
 	$comp =~ /$begin_compiled_module(.*?)$end_compiled_module/s;
-	#print $1;
+	# print $1;
 
 #	unlink("programCompile.tmp");
 
 	open MYFILE,">","$pgm-compiled.maude" or die "Cannot create $tempFile\n";
-	print MYFILE "load \"$pgm\"\n$1";
+	print MYFILE "load \"$cfile\"\n$1";
 	close(MYFILE);
-	push(@generated_files, "$pgm-compiled.maude");
+#	push(@generated_files, "$pgm-compiled.maude");
 
 	exit();
 }
@@ -2799,7 +2665,7 @@ sub add_kprelude_sorts
 		$to_load .= ".maude" if $to_load !~ /\..+?/sg;
 
 		my $fullname = File::Spec->file_name_is_absolute($to_load) ? $to_load : File::Spec->catfile($to_load_dir, $to_load);
-		$fullname = getFullName($fullname);
+		$fullname = get_full_name($fullname);
 
 		my $var = get_file_content($fullname);
 		add_sorts($var);
@@ -2820,7 +2686,6 @@ sub addKandKLATEX
 {
 	my $content = shift;
 	my $file = shift;
-	my $mno = shift;
 	my $k = 0;
 	my $k_latex = 0;
 
@@ -2837,7 +2702,7 @@ sub addKandKLATEX
 	return $content if $k;
 	
 	my $prelude_sorts = $k_sorts;
-	$prelude_sorts =~ s/#/\|/sg;
+	$prelude_sorts =~ s/:/\|/sg;
 	$prelude_sorts =~ s/^\s*\|//;
 	$prelude_sorts =~ s/\|\s*$//;
 #	print "SORTS: $prelude_sorts\n\n";
