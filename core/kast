@@ -97,7 +97,7 @@ $pmod = uc($fname) if ($pmod eq "?");
 $suffix =~ s/^\.//;
 $lang = $suffix if ($lang eq "?");
 # 3. syntax module
-$syntax_module = uc $lang if ($syntax_module eq "?");
+$syntax_module = uc($lang) . "-SYNTAX" if ($syntax_module eq "?");
 
 # get the program
 local $_ = get_file_content($pgm);
@@ -122,7 +122,7 @@ s!($comment)!
     s/\S//gs;
     $_;
 }!gse;
-print "Removed tokens ...\n" if $verbose;
+print "Removed comments ...\n" if $verbose;
 
 
 # remove strings
@@ -168,10 +168,10 @@ for my $token (@all_tokens)
 
 
 # collect identifiers
-s/\s([a-zA-Z_]+)\s/
+s/\b([a-zA-Z_]+)(?=(\s|$_))/
 {
     push (@identifiers, $1);
-    " ";
+    "";
 }/sge;
 
 # unique Ids
@@ -190,6 +190,22 @@ $_ = $temp;
 $pgm =~ s/\..*$//s;
 my $ids = join(" | ", @identifiers);
 
+
+# remove comments
+s!($comment)!
+{
+    local $_ = $1;
+    s/\S//gs;
+    $_;
+}!gse;
+
+
+# replace found ids with id("...");
+#my @ordered_ids = reverse length_sort(@identifiers);
+#for my $id (@ordered_ids)
+#{
+#    s/($id)/id("$1")/sg;
+#}
 
 # create "header"
 my $header = "kmod $pmod is including $syntax_module\n\n  syntax $sort_ ::= $pgm\n";
@@ -232,6 +248,12 @@ my $pname = $pgm;
 my $cfile = "$lang-compiled.maude";
 my $cmod = uc($lang);
 
+if (!(-e $cfile))
+{
+    print "Cannot find the compiled definition ($cfile).\nCompile your definition first.\n";
+    exit(1);
+}
+
 my $maudified = get_file_content(".k/$tmp_file.maude");
 my $compiled =  qx{ sed 2d $cfile};                                                                                           
 
@@ -261,14 +283,16 @@ close(MYFILE);
 # push(@generated_files, $tempFile);
 
 # run maude with this input
-$output = `maude programCompile.tmp`;
+$output = `maude -no-wrap programCompile.tmp`;
 
 if ($output =~ /$begin_compiled_module(.*?)$end_compiled_module/sg)
 {
     # save
+    my $term = $1;
+    $term =~ s/^\s//sg;
     my $name = $pgm;
     open FILE, ">", "$fname.kast" or die "Cannot create $fname.kast\n";
-    print FILE $1;
+    print FILE $term;
     close FILE;
 }
 else 
