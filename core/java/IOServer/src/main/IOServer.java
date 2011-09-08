@@ -24,6 +24,7 @@ import commands.CommandReopen;
 import commands.CommandSeek;
 import commands.CommandUnknown;
 import commands.CommandWritebyte;
+import commands.CommandEnd;
 
 public class IOServer {
 
@@ -64,6 +65,7 @@ public class IOServer {
 
 				// accept
 				clientSocket = serverSocket.accept();
+				Logger.info(clientSocket.toString());
 
 				// parse input
 				Command command = parseCommand(clientSocket);
@@ -99,9 +101,14 @@ public class IOServer {
 			// TODO: here XML should be used...
 			// maudeId#command#args#
 			String[] args = inputLine.split("#");
+			String[] args1 = new String[args.length];
 			
-
-			return createCommand(args, clientSocket);
+			System.arraycopy(args, 1, args1,0, args.length-1);
+			
+			Command command = createCommand(args1, clientSocket);
+            
+            command.maudeId = Integer.parseInt(args[0]);
+			return command;
 
 		} catch (IOException e) {
 			return new CommandUnknown(new String[] { e.getLocalizedMessage() },
@@ -156,6 +163,11 @@ public class IOServer {
 		if (command.equals("eof")) {
 			return new CommandEof(args, socket); //, maudeId);
 		}
+		if (command.equals("end")) {
+		    CommandEnd c = new CommandEnd(args, socket);
+		    c.setPool(pool);
+		    return c;
+		}
 
 		return new CommandUnknown(args, socket); //, (long) 0);
 	}
@@ -165,9 +177,9 @@ public class IOServer {
 	 * @param reason
 	 * @param socket
 	 */
-	public static void fail(String reason, Socket socket) {
+	public static void fail(String msgId, String reason, Socket socket) {
 		
-		reason = "fail#" + reason + "###\n";
+		reason = msgId + "#fail#" + reason + "###\n";
 		
 		BufferedWriter output;
 		try {
@@ -180,12 +192,15 @@ public class IOServer {
 
 			// close everything
 			output.close();
-			
 			socket.close();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public static void fail(String reason, Socket socket) {
+		fail("-1", reason, socket);
 	}
 }
 
