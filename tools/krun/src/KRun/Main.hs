@@ -38,6 +38,7 @@ import KRun.XPath
 
 data KRun = KRun
     { krunSetVars :: [String]
+    , krunMaudeMode :: Bool
     , krunInFile  :: FilePath
     , krunPgmArgs :: [String]
     } deriving (Eq, Show, Data, Typeable)
@@ -46,6 +47,8 @@ kRunInit :: KRun
 kRunInit = KRun
     { krunSetVars = def &= explicit &= name "s" &= name "set" &= typ "VAR=str"
       &= help "Set VAR to str in the initial configuration"
+    , krunMaudeMode = def &= explicit &= name "m" &= name "maude"
+      &= help "Override the Output-mode to maude"
     , krunInFile = def &= typFile &= argPos 0
     , krunPgmArgs = def &= typ "PGM_ARGS" &= args
     } &= help "Execute K definitions."
@@ -55,7 +58,10 @@ main :: IO ()
 main = do
     krun <- cmdArgs kRunInit
     deskFile <- findDeskFile "."
-    desk <- parseDeskFile deskFile
+    desk' <- parseDeskFile deskFile
+
+    let desk = if krunMaudeMode krun then desk'{ outputMode = Maude } else desk'
+
     kmap <- case parseKeyVals $ map T.pack (krunSetVars krun) of
         Left err -> die $ "Unable to parse initial configuration value: " ++ err
         Right kmap -> return kmap
@@ -100,9 +106,11 @@ evalKastIO desk kmap = do
     -- write the file from which the wrapper will read the command to execute
     cmdh <- openFile cmdFile WriteMode
     let eval = constructEval kmap
+    T.hPutStrLn cmdh "set show command off ."
     T.hPutStr cmdh "erew "
     T.hPutStr cmdh eval
     T.hPutStrLn cmdh " ."
+    T.hPutStrLn cmdh "quit"
     hClose cmdh
 
     -- run the wrapper
@@ -156,24 +164,25 @@ flattenProgram desk pgm = case getParser desk of
 -- the K definition.
 runInternalKast :: Desk -> ProgramSource -> IO Kast
 runInternalKast desk (ProgramSource pgm) = do
-        tmpDir <- getTmpDir
-        (tmpFile, tmpHandle) <- openTempFile tmpDir "pgm.in"
-        tmpCanonicalFile <- canonicalizePath tmpFile
-        T.hPutStr tmpHandle pgm
-        hClose tmpHandle
-        let kastFile = tmpDir </> (takeBaseName tmpFile <.> ".kast")
-        let kastArgs = defaultKastArgs desk tmpCanonicalFile
-                    ++ ["-o", kastFile]
-        (ih, oh, eh, ph) <- runInteractiveProcess defaultKastCommand kastArgs Nothing Nothing
-        exitCode <- waitForProcess ph
-        exists <- doesFileExist kastFile
-        when (exitCode /= ExitSuccess || not exists) $
-            die $ "Failed to run kast command:\n"
-               ++ "kast " ++ intercalate " " kastArgs
-        kast <- T.readFile kastFile
-        removeFile kastFile
-        removeFile tmpFile
-        return (Kast kast)
+    tmpDir <- getTmpDir
+    (tmpFile, tmpHandle) <- openTempFile tmpDir "pgm.in"
+    tmpCanonicalFile <- canonicalizePath tmpFile
+    T.hPutStr tmpHandle pgm
+    hClose tmpHandle
+    let kastFile = tmpDir </> (takeBaseName tmpFile <.> ".kast")
+    let kastArgs = defaultKastArgs desk tmpCanonicalFile
+                ++ ["-o", kastFile]
+    kastExecutable <- getKastExecutable
+    (ih, oh, eh, ph) <- runInteractiveProcess kastExecutable kastArgs Nothing Nothing
+    exitCode <- waitForProcess ph
+    exists <- doesFileExist kastFile
+    when (exitCode /= ExitSuccess || not exists) $
+        die $ "Failed to run kast command:\n"
+           ++ "kast " ++ intercalate " " kastArgs
+    kast <- T.readFile kastFile
+    removeFile kastFile
+    removeFile tmpFile
+    return (Kast kast)
 
 getTmpDir :: IO FilePath
 getTmpDir = do
@@ -181,6 +190,11 @@ getTmpDir = do
     let tmpDir = cwd </> distDir </> "krun_tmp"
     createDirectoryIfMissing True tmpDir
     return tmpDir
+
+getKastExecutable :: IO FilePath
+getKastExecutable = do
+    kbase <- getEnv "K_BASE"
+    return $ kbase </> "core" </> "kast"
 
 trim :: String -> String
 trim = f . f
@@ -194,9 +208,6 @@ distDir = ".k"
 
 compiledFile :: Desk -> FilePath
 compiledFile desk = printf "%s-compiled.maude" (lowercase $ getMainModule desk)
-
-defaultKastCommand :: String
-defaultKastCommand = "kast"
 
 defaultKastArgs :: Desk -> FilePath -> [String]
 defaultKastArgs desk pgmFile =
