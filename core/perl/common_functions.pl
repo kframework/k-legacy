@@ -80,6 +80,10 @@ my $klabel_body = "$maude_backquoted\_$maude_backquoted";
 my $klabel = "'$klabel_body(?:[$parentheses\\s\\,])|$klabel_body(?=\\()";
 my $kvar  = "[A-Za-z][A-Za-z0-9]*";
 
+my $k_sorts = ":Bag:BagItem:#Bool:CellLabel:CellKey:CellAttribute:#Char:#Int:K:KAssignments:KHybridLabel:KLabel:KResult:KResultLabel:KSentence:List:ListItem:List{KResult}:List{K}:Map:MapItem:#Nat:NeBag:NeK:NeList:NeList{KResult}:NeList{K}:NeMap:NeSet:#NzInt:#NzNat:Set:SetItem:#String:#Zero";
+
+my $non_k_sorts = "Bag|BagItem|CellLabel|CellKey|CellAttribute|KAssignments|KHybridLabel|KLabel|KResultLabel|KSentence|List|ListItem|List{KResult}|List{K}|Map|MapItem|NeBag|NeList|NeList{KResult}|NeList{K}|NeMap|NeSet|Set|SetItem";
+
 
 # parametrize break
 my $latex_break = quotemeta("<br/>");
@@ -1297,18 +1301,18 @@ sub register_subsorts
     # get module name
     if (/k?mod\s+(\S*)\s+/)
     {
-		$module = $1;
+	$module = $1;
     }
     
-	my $local = $_;
+    my $local = $_;
 
     # register sorts
     while ($local =~ /sort\s+([^<]*?)\s+\./sg)
     {
-		$sorts_ .= "$1 ";
-		$localsorts .= "$1 ";
-		# only for declarations of sorts
-		$sortMap{$1} = $module;
+	$sorts_ .= "$1 ";
+	$localsorts .= "$1 ";
+	# only for declarations of sorts
+	$sortMap{$1} = $module;
     }
     
     # register subsorts and undeclared sorts
@@ -1380,7 +1384,7 @@ sub includesK
 		}
 		foreach(@mlist)
 		{
-			return 1 if includesK($_);
+		    return 1 if includesK($_);
 		}
     }
 
@@ -1404,15 +1408,24 @@ sub find_super_sorts
     }
 
     # add all supersorts to the final list only once
-    my $supersorts = "";
+    my $supersorts = " ";
     while(my ($k, $v) = each %supersortmap)
     {
 #	print "KEY: $k VALUE: $v\n";
 	my @values = split(/\s+/, $v);
+	my $bool = 0;
 	foreach(@values)
 	{
-	    $supersorts .= "$_ " if ($supersorts !~ /($_)/);
+#	    print "\tVAL: $k -> $_\n";
+	    $supersorts .= "$_ " if ($supersorts !~ /\s($_)\s/);
+#	    print "\t\tSSS:|$supersorts|\n";
+	    
+	    $bool = 1 if ($k_sorts !~ /:$_:/);
 	}
+	
+	$supersorts .= "$k " if ($supersorts !~ /\s($k)\s/) && ($bool == 1);
+	
+#	print "\n\n";
     }
     
 #    print "SUPER: $supersorts\n";
@@ -1424,6 +1437,34 @@ sub find_super_sorts
     # return the list
     $supersorts =~ s/\s+$//;
     $supersorts
+}
+
+sub find_k_sorts
+{
+    my $ksort = "[A-Z#][A-Za-z0-9\\`\\+\\?\\!#]*(?:\\{[A-Z#][A-Za-z0-9\\`\\+\\?\\!]*\\})?";
+    # remove the empty spaces at the end
+    my $my_sorts = $sorts_." ";
+#    print "SORTS: '$my_sorts' SUBSORTS: $subsortations\n";
+
+    # split the list
+    my $subs = $subsortations;
+    $subs =~ s/^/ /s if $subs !~ /^\s/s;
+    $subs =~ s/$/ /s if $subs !~ /\s$/s;
+
+    while ($subs =~ /\s($ksort)\s+<\s+($non_k_sorts)\s/sg) 
+    {
+      #print "detected sort $1\n";
+        $subs =~ s/\s($ksort)\s+<\s+($non_k_sorts)\s/
+        {
+        #   print "replacing sort $1\n";
+          $non_k_sorts .= "|$1";
+          "";
+        }/sge;
+    }
+    $my_sorts =~ s/(?<![0-9a-zA-Z`{}])($non_k_sorts)(?![0-9a-zA-Z`{}])//sg;
+    $my_sorts =~ s/\s+$//sg;
+#    print "Syntactic Sorts: $my_sorts\n";
+    $my_sorts;
 }
 
 # given a sort and a set subsortations
@@ -2348,7 +2389,6 @@ sub rule_tags
     
     while ( $all =~ /rule(.*?\s)(?=$kmaude_keywords_pattern)/sg )
     {
-#	print "rule$1\n";
 	
 	my $body = $1;
 	
@@ -2442,14 +2482,24 @@ sub rule_tags
     $_;
 }
     
+sub oper_tags
+{
+    local $_ = shift;
+    
+    my $temp = $_;
+    
+#    while($temp =~ /op(.*?)\[.*?\]\
 
+    $_;
+}
+    
 sub op_tags
 {
     local $_ = shift;
     
     my $attributes = $_;
     my @tagss = ();
-  
+    
     my $spaces = $1 if $attributes =~ /(\s*$)/sg;
     
 #    print "ATTR: $attributes\n";

@@ -485,7 +485,7 @@ my $klabel_body = "$maude_backquoted\_$maude_backquoted";
 my $klabel = "\'$klabel_body(?:[$parentheses\\s\\,])|$klabel_body(?=\\()";
 
 # Builtin tokens
-my @builtin_tokens = qw(=> = -> id: .K .List .Set .Bag .Map);
+my @builtin_tokens = qw(=> = -> id: .K .List .Set .Bag .Map true false);
 
 # A default freezer name, to be used as a prefix of frozen strings
 my $default_freezer = "FREEZER";
@@ -1638,14 +1638,14 @@ sub maudify_file {
  
 # resolve rule tags
     $_ = rule_tags($_);
-    
+        
 # dots issue: change <cell>.</cell> into <cell> . </cell>
     s!<(.*?)>\.</\1>!<$1> \. </$1>!g;
     
 # lists
     $_ = solve_lists($_);
 #    print;
-#    exit(1);
+#    exit;
     
 # Replacing dots    
     $_ = replace_dots($_);
@@ -1876,11 +1876,11 @@ sub maudify_module {
     
 # Step: Declare the on-the-fly variables
     s/(?=endkm)/$vars?"$vars ":""/se;
-    #  print  "Stage:\n$_\n\n";
+#      print  "Stage:\n$_\n\n";
 
 
 # Step: Change .List into (.).List , etc.
-    s!\.(K|List|Set|Bag|Map)([^\w\{])!(.).$1$2!gs;
+    s/\.(K|List|Set|Bag|Map)(?!(\w|(\s*\{)))/(.).$1/gs;
 #    print  "Stage:\n$_\n\n";
     
 # Step: Replace remaining _ by ? (spaces were put around _ by spacify)
@@ -2017,15 +2017,23 @@ sub make_ops {
 		my ($space4,$space5) = ("","");
 		$production =~ s/^(\s*)(.*?\S)(\s*)$/
 						{
-							$space4 = $1;
-							$space5 = $3;
-							$2
+						    $space4 = $1;
+						    $space5 = $3;
+						    $2
 						}/se;
 
 # Extracting the list of sorts in the production, then replacing the sorts by "_"
-		my @sorts = ($production =~ m/((?:^|\s)$ksort(?=\s|$))/g);
+#	    print "PROD: $production\n";
+	    my @sorts = ();
+	    while($production =~ m/((?:^|\s)$ksort(?=\s|$))/g)
+	    {
+		push(@sorts, $&);	
+	    }
+	    
+#	    print "PROD: $production\nSORTS: @sorts\n";
 		$production =~ s/(?:^|\s)$ksort(?=\s|$)/_/g;
 		$production =~ s/\s*_\s*/_/gs;
+#	    print "PROD: $production\n";
 
 #	    print "==============================\n";
 #	    print "Production1:\n$production\n";
@@ -2049,8 +2057,8 @@ sub make_ops {
 	    # put the strings back
 	    while ($strings =~ m/!&!&!(\".*?\")/g)
 	    {
-			my $str = $1;
-			$production =~ s/!&!&!/$str/;
+		my $str = $1;
+		$production =~ s/!&!&!/$str/;
 	    }
 	    
 	    
@@ -2095,6 +2103,8 @@ sub make_ops {
 		my $random = fresh("a", "b");
 		unlink($random);
 		$random =~ s/[a-z_]//sg;
+
+# print "SORTS: @sorts\n";
 		if ($latex || $pdf || $ps || $crop || $eps || $png)
 		{
 			$result .= ($production eq "_")
@@ -2442,7 +2452,8 @@ sub throw_error
 
 sub add_subsorts
 {
-    my $supersorts = find_super_sorts();
+    my $supersorts = find_k_sorts();
+#    print "SUPERSORTS: $supersorts\n";
     my @modules = split(/\s+/, getModuleList());
     my $dir = cwd;
     
@@ -2456,6 +2467,8 @@ sub add_subsorts
 	$supersorts .= "$_ " if ($k_sorts !~ /:$_:/);
     }
     
+#    print "SUPERSORTS: $supersorts\n";
+    
     return if ($supersorts eq "");
     
     # get all supersorts in an array
@@ -2464,45 +2477,46 @@ sub add_subsorts
     # search through all modules
     foreach(@modules)
     {
-		my $cmod = $_;
-		# get sorts for current module
-		my $sortlist = "#" . getModuleSorts($cmod) . "#" if defined(getModuleSorts($cmod));
-		$sortlist =~ s/ /#/g if defined($sortlist);
+	my $cmod = $_;
+	# get sorts for current module
+	my $sortlist = "#" . getModuleSorts($cmod) . "#" if defined(getModuleSorts($cmod));
+	$sortlist =~ s/ /#/g if defined($sortlist);
 	
-#		print "File: " . getModuleFile($_) . ", SORTS: $sortlist\n\n";
-
-		# if this module contains sorts
-		# and it is a module which includes K
-		# then add apropriate subsortations
-		if (defined($sortlist) && includesK($cmod))
-		{
-			# will collect declared sorts
-			my @decllist = ();
-			# search through supersorts all sorts contained by this module
-			foreach my $ss (@ssorts)
-			{
-				push(@decllist, $ss) if ($sortlist =~ /#$ss#/);
-			}
-
-			if (scalar(@decllist) > 0)
-			{
-		        # get module file
-				my $file = getModuleFile($_);
-			
-				# access its maude corresponding file
-				$file =~ s/\.k$/\.maude/;
-
-				# get content
-				my $content = get_file_content("$dir/$file");
+#	print "File: " . getModuleFile($_) . ", SORTS: $sortlist\n\n";
+	
+	# if this module contains sorts
+	# and it is a module which includes K
+	# then add apropriate subsortations
+	if (defined($sortlist) && includesK($cmod))
+	{
+	    # will collect declared sorts
+	    my @decllist = ();
+	    # search through supersorts all sorts contained by this module
+	    foreach my $ss (@ssorts)
+	    {
+		push(@decllist, $ss) if ($sortlist =~ /#$ss#/);
+	    }
+	    
+	    if (scalar(@decllist) > 0)
+	    {
+		# get module file
+		my $file = getModuleFile($_);
 		
-				my $o = "@decllist";
-				$content =~ s/mod(\s+)$_(\s.*?)endm/mod$1$_$2 subsorts $o < K \. endm/sg;
-
-				open FILE,">",$file or die "Cannot create $file\n";
-				print FILE $content;
-				close FILE;
-			}
-		}
+		# access its maude corresponding file
+		$file =~ s/\.k$/\.maude/;
+		
+		# get content
+		my $content = get_file_content("$dir/$file");
+		
+		my $o = "@decllist";
+                if ($o ne "") {
+                    $content =~ s/mod(\s+)$_(\s.*?)endm/mod$1$_$2 subsorts $o < K \. endm/sg;
+                  }
+		open FILE,">",$file or die "Cannot create $file\n";
+		print FILE $content;
+		close FILE;
+	    }
+	}
     }
     
 #    print "SUPERSORTS: $supersorts\n";

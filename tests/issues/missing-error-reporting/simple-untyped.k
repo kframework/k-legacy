@@ -1,9 +1,164 @@
+
+------------------------------------
+--- SIMPLE-UNTYPED-SYNTAX module ---
+------------------------------------
+
+module SIMPLE-UNTYPED-SYNTAX
+
+/*@ \section{Syntax}
+We start by defining the SIMPLE syntax.  The language constructs discussed
+above have the expected syntax and evaluation strategies.  Recall that in \K
+we annotate the syntax with appropriate strictness attributes, thus giving
+each language construct the desired evaluation strategy. */
+
+/*@ \subsection{Identifiers}
+The special identifier for the function ``main'' belongs to all programs.
+Each program may use additional identifiers, which need to be declared either
+automatically (when one uses an external parser) or manually
+(when one writes the program). */
+
+  syntax #Id ::= main
+
+/*@ \subsection{Declarations}
+There are two types of declarations: for variables (including arrays) and
+for functions.  As our current parser is ``algebraic'', the empty list needs
+to be identifiable as a constant (unlike in CFG grammars, where it can simply
+be the empty string/epsilon production).  Therefore, if only using the first
+syntactic production for function declarations below, one would need to
+explicitly specify the empty list constant for declaring a function with zero
+arguments.  To avoid having to do that, we add a separate function declaration
+production with explicitly no arguments; this will be shortly desugared into
+the first one. */
+
+  syntax Decl ::= var Exps ;
+                | function #Id ( Ids ) Stmt
+                | function #Id ( ) Stmt
+
+/*@ \subsection{Expressions}
+The expression constructs below are standard.  Increment (\texttt{++}) takes
+an expression rather than a variable because it can also increment an array
+element.  Arrays can be multidimensional and can hold other arrays, so their
+lookup operation takes a list of expressions as argument and applies to an
+expression (which can in particular be another array lookup), respectively.
+The construct \texttt{sizeof} gives the size of an array in number of elements
+of its first dimension.  Like for the declaration of functions above, we have
+separate syntax for function calls with zero arguments.  Note that almost all
+constructs are strict.  Exceptions are the increment (since its first argument
+gets updated, so it cannot be evaluated), the function call with zero
+arguments (because it will get desugared), and the assignment which is only
+strict in its second argument (for the same reason as the increment). */
+
+  syntax Exp ::= #Int | #Bool | #Id
+               | ++ Exp            [prec 0]
+               | Exp + Exp         [strict prec 33 gather(E e)]
+               | Exp - Exp         [strict prec 33 gather(E e)]
+               | Exp * Exp         [strict prec 31 gather(E e)]
+               | Exp / Exp         [strict prec 31 gather(E e) superheat]
+               | Exp % Exp         [strict prec 31 gather(E e)]
+               | - Exp             [strict]
+               | Exp < Exp         [strict prec 37]
+               | Exp <= Exp        [strict prec 37]
+               | Exp > Exp         [strict prec 37]
+               | Exp >= Exp        [strict prec 37]
+               | Exp == Exp        [strict prec 37]
+               | Exp != Exp        [strict prec 37]
+               | Exp and Exp       [strict prec 55 gather(E e)]
+               | Exp or Exp        [strict prec 59 gather(E e)]
+               | not Exp           [strict prec 53]
+               | Exp [ Exps ] [strict prec 1]
+               | sizeOf ( Exp )    [strict]
+               | Exp ( )
+               | Exp ( Exps ) [strict prec 2]
+               | read ( )
+               | Exp = Exp         [strict(2) prec 40  gather (e E)]
+
+/*@ \subsection{Statements}
+Most of the statement constructs are standard for imperative languages.
+We also syntactically distinguish between empty and non-empty blocks.
+Variables can be declared anywhere inside a block, their scope ending
+with the block.  Expressions are allowed to be used for their side-effects
+only (followed by a semicolon ``\texttt{;}'').  Functions are allowed to
+abruptly return.  The exceptions are parametric, i.e., one can throw a value
+which is bound to the variable declared by \texttt{catch}.  Threads can be
+dynamically created and terminated, and can synchronize with \texttt{acquire},
+\texttt{release} and \texttt{rendezvous}.  Note that the strictness attributes
+obey the intended evaluation strategy of the various constructs.  In
+particular, the if-then-else construct is strict only in its first argument
+(the if-then construct will be desugared into if-then-else), while the loops
+constructs are not strict in any arguments. */
+
+  syntax Stmt ::= { }
+                | { Stmts }
+                | Exp ;                        [strict prec 45]
+                | if Exp then Stmt else Stmt   [strict(1) prec 90]
+                | if Exp then Stmt             [prec 89]
+                | while Exp do Stmt            [prec 90]
+                | for #Id = Exp to Exp do Stmt  [prec 90]
+                | return Exp ;                 [strict]
+                | write ( Exp ) ;              [strict]
+                | try Stmt catch ( #Id ) Stmt   [prec 90]
+                | throw Exp ;                  [strict]
+                | spawn Stmt                   [prec 90]
+                | acquire Exp ;                [strict]
+                | release Exp ;                [strict]
+                | rendezvous Exp ;             [strict]
+
+  syntax Stmts ::= Decl | Stmt
+                 | Stmts Stmts                 [prec 100 gather(e E)]
+
+
+/*@ \subsection{Lists}
+Currently we have to explicitly declare the syntactic lists in this
+implementation of \K (they will be eventually builtin).
+Note that they are associative, strict and hybrid, which means that once they
+reach the top of the computation each of their elements is evaluated to a
+result and the obtained list of results is automatically considered to be a
+result.  We prefer to tag their units with the corresponding sort to avoid
+confusion.  */
+
+--- List{Id}; the hybrid attribute says that a list of results becomes a result
+  syntax Ids ::= List{#Id,","} [strict hybrid prec 70]
+
+--- List{Exp}
+  syntax Exps ::= List{Exp,","} [ditto]
+
+/*@ When a syntactic category extends another syntactic category,
+like our \textit{Exp} which extends \textit{Id}, it is {\em strongly}
+recommended that the corresponding lists over the former also extend the
+corresponding lists over the latter; e.g., \textit{List\{Exp\}} above
+extends \textit{List\{Id\}}.  ``Forgetting'' to add such productions
+is one of the most common mistakes users of \K make when using syntactic
+lists, which is one of the reasons for which we intend to automate this
+process and provide builtin lists over any syntactic category in a future
+version of this tool.  Until then, please pay attention to this important
+syntactic detail. */
+
+/*@ \section{Desugared Syntax}
+This part desugars some of SIMPLE's language constructs into core ones.
+We only want to give semantics to core constructs, so we get rid of the
+derived ones before we start the semantics.  All desugaring macros below are
+straightforward.  For the semantics, we can therefore assume that all
+functions take a list of arguments, that each conditional has both branches,
+that there are only \texttt{while} loops, and that each variable is
+declared alone and is initialized. */
+
+  macro if E:Exp then S:Stmt = if E then S else {}
+  macro (for X:#Id = E1:Exp to E2:Exp do S)
+      = {var X; X=E1; while X <= E2 do {S X=X+1;}}
+  macro function F:#Id() S = function F(.List{","}) S
+  macro E() = E(.List{","})
+  macro var E,El:List{Exp,","}; = var E; var El;
+  macro var X = E; = var X; X = E;
+end module
+
+
+
 ---------------------------------------
 --- SIMPLE-UNTYPED-SEMANTICS module ---
 ---------------------------------------
 
-module SIMPLE-UNTYPED-SEMANTICS
-  imports SIMPLE-UNTYPED-DESUGARED-SYNTAX
+module SIMPLE-UNTYPED
+  imports SIMPLE-UNTYPED-SYNTAX
 
 /*@ \section{Basic Semantic Infrastructure}
 Before one starts adding semantic rules to a \K definition, one needs to
@@ -36,7 +191,7 @@ function definitions cannot be nested). */
 
   syntax Val ::= #Int | #Bool
                | array ( #Nat , #Nat )
-               | lambda ( List{Id} , Stmt ) [latex "\lambda{#1}\,.\,{#2}"]
+               | lambda ( Ids , Stmt ) [latex "\lambda{#1}\,.\,{#2}"]
   syntax Exp ::= Val
 
 /*@ The inclusion of values in expressions follows the methodology of
@@ -66,8 +221,8 @@ terms of sort $\KResult$.  We use lists of values instead of values because,
 as discussed above, we want lists of expressions to evaluate to lists of
 values whenever scheduled for evaluation (by placing them on the top of the
 \textsf{k} cell). */
-
-  syntax KResult ::= List{Val}
+  
+  syntax KResult ::= Vals
 
 /*@ \section{Configuration}
 The \K configuration of SIMPLE consists of a top level cell, \textsf{T},
@@ -241,7 +396,7 @@ global variable before declaring a local function).  The type checker of
 SIMPLE, also defined in \K (see examples/simple/typed/static),
 discards programs which do not respect this requirement. */
 
-  rule <k> function F:#Id(Xl:List{Id}) S:Stmt => . ...</k>
+  rule <k> function F:#Id(Xl:List{#Id,","}) S:Stmt => . ...</k>
        <env> Env => Env[L/F] </env>
        <store>... . => L|->lambda(Xl,S) ...</store>
        <nextLoc> L => L +Nat 1 </nextLoc>
@@ -366,7 +521,7 @@ inconsistent state (since the exception block modifies it, but that
 modification should be irrelevant once the function returns). */
 
   syntax ListItem ::=  ( Map , K , Bag )
-  rule <k> _`(_`)(lambda(Xl,S), Vl:List{Val}) ~> K:K => S ~> return(0); </k>
+  rule <k> _`(_`)(lambda(Xl,S), Vl:List{Val,","}) ~> K:K => S ~> return(0); </k>
        <control> <fstack> . => (Env,K,C) ...</fstack> C:Bag </control>
        <env> Env => GEnv[N..N+Nat|Xl| / getList{K}(Xl)] </env>
        <genv> GEnv:Map </genv>
@@ -693,8 +848,8 @@ corresponding store lookup operation. */
 The following operation calculates the length of a list of identifiers.
 We make the two rules structural so they they do not count as computations. */
 
-  syntax #Nat ::= `| List{Id} `| [latex "\mid\!{#1}\!\mid"]
-  rule |.List{Id}| => 0 [structural]
+  syntax #Nat ::= `| Ids `| [latex "\mid\!{#1}\!\mid"]
+  rule |.List{","}| => 0 [structural]
   rule |X,Xl| => |Xl| +Nat 1 [structural]
 
 /*@ \subsection{Sequences of locations}
@@ -707,14 +862,13 @@ The two rules below are structural, for the same reason as above. */
   rule N1..N2:#Nat => N1 ,, (N1 +Nat 1)..N2 if N1 <Nat N2 [structural]
 
 /*@ \subsection{Lists of values}
-Currently we have to explicitly declare the syntactic lists (they will be
-eventually builtin).  We need lists of values as a separate syntactic category
+We need lists of values as a separate syntactic category
 because we want to allow lists of expressions (e.g., function arguments) to
 evaluate to such lists of values.  Note also that we defined lists of values
 as \K results (at the beginning of the SIMPLE semantics module). */
 
-  syntax List{Val} ::= Val | List{Val} , List{Val} [ditto]
-  syntax List{Exp} ::= List{Val}
+  syntax Vals ::= List{Val,","} [ditto]
 
 /*@ The semantics of SIMPLE is now complete. */
 end module
+

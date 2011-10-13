@@ -175,9 +175,8 @@ for my $token (@all_tokens)
     s/\Q$token\E/ /sg;
 }
 
-
 # collect identifiers
-s/\b([a-zA-Z_\$][a-zA-Z_0-9]*)(?=(\s|$))/
+s/\b([a-zA-Z_\$]\w*)\b/
 {
     push (@identifiers, $1);
     "";
@@ -249,7 +248,7 @@ $_ = Unfreeze("STRINGS", $_);
 
 my $to_reduce = "mod TEST is including $syntax_module .
   sort ParsedPrm .
-  op parse_ : Universal -> ParsedPrm [poly(1) strat(0 1)] .
+  op parse_ : Universal -> ParsedPrm [poly(1)] .
 endm
   
 red parse( $_ ) .
