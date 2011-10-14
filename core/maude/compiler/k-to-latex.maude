@@ -398,7 +398,6 @@ var Eq : Equation .  var Eqs : EquationSet .
    = op(op F : TyL -> Ty [ metadataParse(St) AS] .) [owise] .
 
   eq op(op F : TyL -> Ty [pair("generated","") AS] .) = empty .
-  eq op(op F : TyL -> Ty [pair("parser","") AS] .) = empty .
 
 ---  eq metadata("builtin wrapper") = none .
 
@@ -626,8 +625,9 @@ var Eq : Equation .  var Eqs : EquationSet .
     = ('\kseqstrict '`{ eMetaLatexPrint(NL) '`} '`{ strictCells(QIL) '`}
        ) .
   eq pair("tags","") = none .   
+  eq eMetaLatexPrint(M, pair("parser",Str)) = nil .   
   eq eMetaLatexPrint(M, (pair(Str,"") ))   
-    = ('\kattribute '`{ tokenize(latexify(Str)) '`}) .
+    = ('\kattribute '`{ tokenize(latexify(Str)) '`}) [owise] .
   eq eMetaLatexPrint(M, (pair(Str,Str') ))   
     = ('\kattribute  '`( tokenize(latexify(Str)) '`( tokenize(latexify(Str')) '`) '`}) [owise] .
   eq eMetaLatexPrint(M, (strat(NL) ))
