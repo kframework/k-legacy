@@ -18,22 +18,38 @@ parseKeyVals txts = case partitionEithers $ map (parseOnly keyVal) txts of
 keyVal = do
     key <- takeWhile1 (/= '=')
     char '='
-    val <- listOrBag
+    val <- try kmap <|> klist
     return (key, val)
 
-listOrBag = do
+kmap = do
     items <- many1 $ do
         skipSpace
-        i <- listOrBagItem
+        i <- mapItem
         skipSpace
         return i
-    return $ T.intercalate " " items
+    let map = T.intercalate "," $ items ++ ["(.).Map"]
+    return $ T.concat ["wmap(__(", map, "))(.List{K})"]
+
+mapItem = do
+    id <- takeWhile1 (/= '|')
+    string "|->"
+    k <- takeWhile1 (/= ' ')
+    return $ T.concat ["_|->_(# #id \"", id, "\"(.List{K}),# ", k, "(.List{K}))"]
+
+klist = do
+    items <- many1 $ do
+        skipSpace
+        i <- listItem
+        skipSpace
+        return i
+    let list = T.intercalate "," $ items ++ ["(.).List"]
+    return $ T.concat ["wlist(__(", list, "))(.List{K})"]
 
 -- TODO: assuming lists/bags of numbers for now.
 -- Strings or chars with ')' in them will break.
-listOrBagItem = do
-    ctor <- string "ListItem" <|> string "BagItem"
+listItem = do
+    ctor <- string "ListItem"
     char '('
     item <- takeWhile1 (/= ')')
     char ')'
-    return $ T.concat ["wlist(", ctor, "(# ", item, "(.List{K})))(.List{K})"]
+    return $ T.concat [ctor, "(# ", item, "(.List{K}))"]
