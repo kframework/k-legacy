@@ -34,6 +34,7 @@ data KLabel
     | Freezer K
     | FreezerMap String
     | WMap KMap
+    | WBag KBag
     deriving (Eq, Ord, Show, Data, Typeable)
 
 data KLabelPart
@@ -74,4 +75,5 @@ data CellContent
     | BagContent KBag
     | SetContent KSet
     | MapContent KMap
+    | NoParse String
     deriving (Eq, Ord, Show, Data, Typeable)

@@ -67,12 +67,12 @@ bagItem' = do
 cellItem :: Parser BagItem
 cellItem = do
     name <- startTag
-    content <- cellContent
+    content <- cellContent name
     endTag name
     return $ CellItem name content
 
-cellContent :: Parser CellContent
-cellContent = try mapContent <|> try bagContent <|> try listContent <|> try setContent <|> kContent
+cellContent :: String -> Parser CellContent
+cellContent name = try mapContent <|> try bagContent <|> try listContent <|> try setContent <|> try kContent <|> noParse name
 
 kContent :: Parser CellContent
 kContent = KContent <$> k
@@ -88,6 +88,9 @@ setContent = SetContent <$> kSet
 
 mapContent :: Parser CellContent
 mapContent = MapContent <$> kMap
+
+noParse :: String -> Parser CellContent
+noParse name = NoParse <$> manyTill anyChar (try . lookAhead $ endTag name)
 
 startTag :: Parser String
 startTag = do
@@ -177,7 +180,7 @@ mapItem = do
 
 -- | Parse a KLabel
 kLabel :: Parser KLabel
-kLabel = quotedKLabel <|> try kBuiltin <|> try freezer <|> try freezerMap <|> wmap
+kLabel = quotedKLabel <|> try kBuiltin <|> try freezer <|> try freezerMap <|> try wmap <|> wbag
        <?> "K label"
 
 freezer :: Parser KLabel
@@ -198,6 +201,13 @@ wmap = do
     spaces
     kmap <- optParens kMap
     return $ WMap kmap
+
+wbag :: Parser KLabel
+wbag = do
+    string "wbag"
+    spaces
+    kbag <- optParens kBag
+    return $ WBag kbag
 
 -- | Parse "quoted" K label: 'Foo___
 quotedKLabel :: Parser KLabel
