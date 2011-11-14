@@ -6,7 +6,7 @@ LANGUAGE_NAME = KOOL-UNTYPED
 LANGUAGE_MODULES = KOOL-UNTYPED-SYNTAX KOOL-UNTYPED
 
 LATEX_STYLE = bb
-#LATEX_TOPMATTER = README.tex
+LATEX_TOPMATTER = README.tex
 
 #this is the basename of the main file
 MAIN_FILE = kool-untyped
@@ -16,7 +16,7 @@ TESTS =
 
 
 # this is a space separated list of directories containing io_tests
-IO_TESTS = programs/tests
+IO_TESTS =
 
 # this is a flag used when calling krun to be used when doing io_tests
 IO_TEST_FLAG = "--output-mode=none"
