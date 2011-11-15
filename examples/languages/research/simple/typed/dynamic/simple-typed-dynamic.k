@@ -66,8 +66,7 @@ the desired evaluation strategies of the various language constructs .  */
                 | "return" Exp ";"                      [:strict:]
                 | "return" ";"
                 | "print" "(" Exps ")" ";"              [:strict:]
-                | "try" Stmt "catch" "(" Exp ")" Stmt   [:prec(90):]
-                   // Exp above allowed only for a typed identifier declaration
+                | "try" Stmt "catch" "(" #Id ")" Stmt   [:prec(90):]
                 | "throw" Exp ";"                       [:strict:]
                 | "spawn" Stmt                          [:prec(90):]
                 | "acquire" Exp ";"                     [:strict:]
@@ -111,6 +110,7 @@ semantics''.  */
                | "array" "(" Type "," #Nat "," #Nat ")"
                | "lambda" "(" Exps "," Stmt "," Type ")"
                      [:latex("(\lambda{#1}\,.\,{#2}):{#3}"):]
+  syntax Vals ::= List{Val,","}
   syntax Exp ::= Val
   syntax KResult ::= Val
 
@@ -219,10 +219,11 @@ When done with the first pass, call \texttt{main()}. */
 
 //@ \subsection{Expressions and statements}
 
-  rule <k> X => V:Val ...</k> <env>...X|->L...</env>
+  rule <k> X => V:Val ...</k>
+       <env>...X|->L...</env>
        <store>...L|->V...</store> [:transition:]
 
-  context ++([HOLE] => l-value([HOLE]))
+  context ++([HOLE] => lvalue([HOLE]))
 
   rule <k> ++loc(L) => I:#Int +Int 1 ...</k>
        <store>... L |-> (I => I +Int 1) ...</store> [:transition:]
@@ -253,7 +254,6 @@ When done with the first pass, call \texttt{main()}. */
 
 //@ Define function call and return together, to see their relationship.
 
-  syntax Vals ::= List{Val,","}
   syntax ListItem ::=  "(" Map "," K "," Bag ")"
   rule <k> _`(_`)(lambda(XTs, S, function from _ to T), Vs) ~> K
            => bindto(XTs,Vs) ~> S ~> return;
@@ -279,7 +279,7 @@ When done with the first pass, call \texttt{main()}. */
 
   rule <k> read() => I ...</k> <in> ListItem(I) => . ...</in> [:transition:]
 
-  context ([HOLE] => l-value([HOLE])) = _
+  context ([HOLE] => lvalue([HOLE])) = _
   rule <k> loc(L)=V => V ...</k> <store>... L |-> (K => V) ...</store>
     if typeOf(V) ==Bool typeOf(K:K)   [:transition:]
 
@@ -313,23 +313,24 @@ When done with the first pass, call \texttt{main()}. */
    rule <k> acquire V; => . ...</k> <holds>... . => V|->0 ...</holds>
         <busy> Busy (. => SetItem(V)) </busy>
      if notBool(V in Busy)   [:transition:]
-   rule <k> acquire V; => . ...</k> <holds>... V|->(N => N +Nat 1) ...</holds>
-   rule <k> release V; => . ...</k> <holds>... V|->(N => _-Int_(N,1)) ...</holds>
+   rule <k> acquire V; => . ...</k> <holds>...V|->(N => N +Nat 1)...</holds>
+   rule <k> release V; => . ...</k> <holds>...V|->(N => _-Int_(N,1))...</holds>
      if N >Nat 0
    // used prefix notation for -Int because of parsing problems
    rule <k> release V; => . ...</k> <holds>... V|->0 => . ...</holds>
         <busy>... SetItem(V)=>. ...</busy>
-   rule <k> rendezvous V; => . ...</k> <k> rendezvous V; => . ...</k> [:transition:]
+   rule <k> rendezvous V; => . ...</k>
+        <k> rendezvous V; => . ...</k> [:transition:]
 
 //@ \subsection{Auxiliary operations}
 
-//@ \texttt{l-value}
-  syntax Exp ::= "l-value" "(" K ")"
+//@ \texttt{lvalue}
+  syntax Exp ::= "lvalue" "(" K ")"
   syntax Val ::= "loc" "(" #Nat ")"
-  rule <k> l-value(X) => loc(L:#Nat) ...</k> <env>... X|->L ...</env>
-  context l-value(_[[HOLE]])
-  context l-value([HOLE][_])
-  rule <k> l-value(lookup(L)) => loc(L) ...</k>
+  rule <k> lvalue(X) => loc(L:#Nat) ...</k> <env>... X|->L ...</env>
+  context lvalue(_[[HOLE]])
+  context lvalue([HOLE][_])
+  rule <k> lvalue(lookup(L)) => loc(L) ...</k>
 
 //@ \texttt{lookup}
   syntax K ::= "lookup" "(" #Nat ")"
