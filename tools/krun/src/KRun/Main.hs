@@ -18,10 +18,8 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Foreign.Maude
-import Language.K.CellsToXml (cellsToXml')
 import Language.K.Core.NewParser
 import Language.K.Core.NewPretty
-import System.Console.CmdArgs
 import System.Directory
 import System.Environment
 import System.Exit
@@ -237,7 +235,7 @@ runInternalKast config (ProgramSource pgm) = do
         hPutStrLn stderr kastStderr
     when (exitCode /= ExitSuccess) $ do
         die $ "Fatal: kast returned a non-zero exit code: " ++ show exitCode
-           ++ "Attempted command:\n"
+           ++ "\nAttempted command:\n"
            ++ "kast " ++ intercalate " " kastArgs
     let kast = Kast (T.pack kastStdout)
     removeFile tmpFile
