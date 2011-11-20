@@ -107,7 +107,7 @@ constructs. */
 KOOL adds two nested cells to the configuration of SIMPLE.
 The cell \textsf{crntObj} holds data pertaining to the current object,
 that is, the object environment in which the code currently in cell
-\textsf{k} executed: \textsf{crntClass} holds the current class (which
+\textsf{k} executes: \textsf{crntClass} holds the current class (which
 can change as methods of the current object are invoked );
 \textsf{envStack} holds the stack of environments as a list,
 each layer corresponding to one class in the objects' instance class
@@ -162,10 +162,21 @@ The semantics of function declaration and invocation, including the
 use of the special \texttt{lambda} abstraction value, needs to change
 in order to account for the fact that methods are now invoked into
 their object's environment.  The semantics of function return actually
-stays unchanged.  Also, the semantics of program initialization is 
+stays unchanged.  Also, the semantics of program initialization is
 different: now we have to create an instance of the \texttt{main}
 class which also calls the constructor \texttt{main()}, while in
-SIMPLE we only had to invoke the function \texttt{main()}. */
+SIMPLE we only had to invoke the function \texttt{main()}. 
+Finally, the semantics of thread spawning needs to change, too: the
+parent thread needs to also share its object environment with the
+spawned thread (in addition to its local environment, like in SIMPLE).
+This is needed in order to be able to spawn method invokations under
+dynamic method dispatch; for example, ``\texttt{spawn run();}'' will
+need to look up the method \texttt{run()} in the newly created thread,
+operation which will most likely fail unless the child thread shares
+the same object environment as the parent thread.  Note that the
+\texttt{spawn} statement of KOOL is more permissive than the threads
+of Java.  In fact, the latter can be implemented in terms of
+\texttt{spawn}---see the program \texttt{threads.kool} for a sketch.  */
 
   syntax Val ::= #Int | #Bool | #String
                | "arrayRef" "(" #Nat "," #Nat ")"
@@ -285,21 +296,23 @@ SIMPLE we only had to invoke the function \texttt{main()}. */
        <control> <xstack> (X,S2,K,Env,C) => . ...</xstack> (_ => C) </control>
        <env> _ => Env </env>
 
-   rule <thread>... <k> spawn S => . ...</k> <env> Env </env> ...</thread>
-        (. => <thread>... <k> S </k> <env> Env </env> ...</thread>)
-   rule (<thread>... <k>.K</k> <holds> H:Map </holds> ...</thread> => .)
-        <busy> Busy:Set => Busy -Set keys(H) </busy>
-   rule <k> acquire V; => . ...</k> <holds>... . => V|->0 ...</holds>
-        <busy> Busy (. => SetItem(V)) </busy>
-     if notBool(V in Busy) [:transition:]
-   rule <k> acquire V; => . ...</k> <holds>...V|->(N => N +Nat 1)...</holds>
-   rule <k> release V; => . ...</k> <holds>...V|->(N => _-Int_(N,1))...</holds>
-     if N >Nat 0
-   // used prefix notation for -Int because of parsing problems
-   rule <k> release V; => . ...</k> <holds>... V|->0 => . ...</holds>
-        <busy>... SetItem(V)=>. ...</busy>
-   rule <k> rendezvous V; => . ...</k>
-        <k> rendezvous V; => . ...</k> [:transition:]
+/*@ thread spawning needs a new semantics, but the other concurrency
+constructs keep their semantics from SIMPLE. */
+//  rule <thread>... <k> spawn S => . ...</k> <env> Env </env> ...</thread>
+//       (. => <thread>... <k> S </k> <env> Env </env> ...</thread>)
+  rule (<thread>... <k>.K</k> <holds> H:Map </holds> ...</thread> => .)
+       <busy> Busy:Set => Busy -Set keys(H) </busy>
+  rule <k> acquire V; => . ...</k> <holds>... . => V|->0 ...</holds>
+       <busy> Busy (. => SetItem(V)) </busy>
+    if notBool(V in Busy) [:transition:]
+  rule <k> acquire V; => . ...</k> <holds>...V|->(N => N +Nat 1)...</holds>
+  rule <k> release V; => . ...</k> <holds>...V|->(N => _-Int_(N,1))...</holds>
+    if N >Nat 0
+  // used prefix notation for -Int because of parsing problems
+  rule <k> release V; => . ...</k> <holds>... V|->0 => . ...</holds>
+       <busy>... SetItem(V)=>. ...</busy>
+  rule <k> rendezvous V; => . ...</k>
+       <k> rendezvous V; => . ...</k> [:transition:]
 
   syntax Exp ::= "lvalue" "(" K ")"
   syntax Val ::= "loc" "(" #Nat ")"
@@ -312,6 +325,30 @@ SIMPLE we only had to invoke the function \texttt{main()}. */
   rule N1:#Nat..N2:#Nat => .List{K}              if N1  >Nat N2 [:structural:]
   rule N1:#Nat..N2:#Nat => N1 ,, (N1 +Nat 1)..N2 if N1 <=Nat N2 [:structural:]
 
+
+/*@ \subsection{Changes to SIMPLE Semantics}
+When we extend a language, sometimes we need to do more than just add
+new language constructs and semantics for them.  Sometimes we want to
+also extend the semantics of existing language constructs, in order to
+get more from them. */
+
+/*@ \subsubsection{Spawn}
+In our case here, we want to extend the semantics of \texttt{spawn} to
+also share the current object environment with the child thread, in
+addition to the current environment.  This extension will allow us to
+also use method invocations in the spawned statements, which will be
+thus looked up as expected, using dynamic method dispatch.  This
+lookup operation would fail if the child thread did not have access to
+its parent's object environment. */
+
+  rule <thread>... <k> spawn S => . ...</k>
+                   <env> Env </env>
+                   <crntObj> Obj </crntObj>
+       ...</thread>
+       (. => <thread>... <k> S </k>
+                         <env> Env </env>
+                         <crntObj> Obj </crntObj>
+             ...</thread>)
 
 //@ We next define the semantics of the additional KOOL features.
 
@@ -328,7 +365,7 @@ object (the first argument of \texttt{closure}) and the object
 environment stack (located in the object stored at the location
 specified as the second argument of \texttt{closure}). */
 
-  syntax Val ::= "obj" "(" Bag ")"
+  syntax Val ::= "objRef" "(" Bag ")"
                | "closure" "(" #Id "," #Nat "," Ids "," Stmt ")"
 
 /*@ \subsection{Class declaration}
@@ -463,14 +500,14 @@ delete it from the \textsf{crntObj} cell. */
   syntax K ::= storeObj
   rule <k> storeObj => . ...</k>
        <crntObj> Obj (<location> L </location> => .) </crntObj>
-       <store>... . => L |-> obj(Obj) ...</store>
+       <store>... . => L |-> objRef(Obj) ...</store>
 
 
 /*@ \subsection{Self reference}
 The semantics of \texttt{this} is straightforward: evaluate to the
 current object. */
 
-  rule <k> this => obj(Obj) ...</k>  
+  rule <k> this => objRef(Obj) ...</k>  
        <crntObj> Obj </crntObj>
 
 
@@ -499,7 +536,7 @@ invocations see the entire object, as needed for dynamic method dispatch. */
     if notBool(X in keys(Env))
 
   context ('_._(`[HOLE`]:K,,_)) if (`[HOLE`]:K =/=Bool super)
-  rule <k> _._(obj(<crntClass> Class </crntClass>
+  rule <k> _._(objRef(<crntClass> Class </crntClass>
                    <envStack>...ListItem(Class :: EnvC) EStack </envStack>),X)
         => lookupMember(<envStack>ListItem(Class :: EnvC) EStack</envStack>, X)
        ...</k>
@@ -547,7 +584,7 @@ method call or the array access.  */
 
   context '_`(_`)('_._(`[HOLE`]:K,,_),,_) if `[HOLE`]:K =/=Bool super 
 
-  rule <k> '_`(_`)(('_._(obj(Obj <envStack> EStack </envStack>),,X) 
+  rule <k> '_`(_`)(('_._(objRef(Obj <envStack> EStack </envStack>),,X) 
         => lookupMember(<envStack> EStack </envStack>, X)),,_) ...</k>
 
   rule <k> '_`(_`)(('_._(super,,X) 
@@ -578,7 +615,7 @@ that came with the semantics of SIMPLE that we borrowed (see above).  */
           <crntObj> Obj':Bag => <crntClass>Class</crntClass> Obj </crntObj>
         </control>
        <env> Env => . </env>
-       <store>... OL |-> obj(<crntClass>_:#Id</crntClass>Obj:Bag) ...</store>
+       <store>... OL |-> objRef(<crntClass>_:#Id</crntClass>Obj:Bag) ...</store>
 
 
 /*@ \subsection{Instance Of}
@@ -586,12 +623,12 @@ Searches the object environment for a layer corresponding to the
 desired class.  It returns \texttt{true} iff it can find the class,
 otherwise it returns \texttt{false}; it never gets stuck.  */
 
-  rule obj((_ <envStack> ListItem(Class::_) ...</envStack>)) instanceOf Class 
+  rule objRef((_ <envStack>ListItem(Class::_)...</envStack>)) instanceOf Class
     => true
-  rule obj((_ <envStack> ListItem(Class1::_)
+  rule objRef((_ <envStack> ListItem(Class1::_)
                       => . ...</envStack>)) instanceOf Class2 
     if Class1 =/=Bool Class2
-  rule obj((_ <envStack> .List </envStack>)) instanceOf Class
+  rule objRef((_ <envStack> .List </envStack>)) instanceOf Class
     => false
  
 /*@ \subsection{Cast}
@@ -603,8 +640,8 @@ available.  Moreover, the execution may complete successfully even
 in the presence of invalid casts, provided that each accessed member
 during the current execution is, or happens to be, available.  */
 
-  rule <k> cast obj((<crntClass> _:K </crntClass> Obj)) to Class
-        => obj(<crntClass> Class </crntClass> Obj) ...</k>
+  rule <k> cast objRef((<crntClass> _:K </crntClass> Obj)) to Class
+        => objRef(<crntClass> Class </crntClass> Obj) ...</k>
 
 /*@ \subsection{Objects as lvalues}
 The current machinery borrowed with the semantics of SIMPLE allows us
@@ -620,7 +657,7 @@ member's location based on the current class of the object. */
     if notBool(X in keys(Env))
 
   context lvalue(_._([HOLE],_))
-  rule <k> lvalue(_._(obj(<crntClass> Class </crntClass> 
+  rule <k> lvalue(_._(objRef(<crntClass> Class </crntClass> 
                           <envStack>...
                             ListItem(Class :: EnvC) EStack
                           </envStack>), X)
