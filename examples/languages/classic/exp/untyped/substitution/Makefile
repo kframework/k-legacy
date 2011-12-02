@@ -1,15 +1,15 @@
 
 # this is the name of the main maude module 
-LANGUAGE_NAME = EXP-TYPE-INFERENCE
+LANGUAGE_NAME = EXP-UNTYPED
 
 # this are all interesting modules (used to latexify)
-LANGUAGE_MODULES = EXP-SYNTAX EXP-TYPE-INFERENCE-DESUGARED-SYNTAX TYPES UNIFICATION EXP-TYPE-INFERENCE-SEMANTICS
+#LANGUAGE_MODULES = 
 
 #this is the basename of the main file
-MAIN_FILE = exp-type-inference
+MAIN_FILE = exp-untyped
 
 # this is a space-separated list of basename maude files to run
-TESTS = exp-type-inference-test.m
+TESTS = 
 
 TOOL_DIR =  $(K_BASE)/tools/
 include $(TOOL_DIR)make-helper.mk
