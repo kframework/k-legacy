@@ -2925,6 +2925,7 @@ sub remove_quotes
 
 	$tmp =~ s%KSYNQUOT(.*?)KSYNQUOT% `$1 %sg;
 	$tmp =~ s%\\(?=\")%%sg;
+	$tmp =~s!\\\\!\\!sg;
 	$tmp;
     }/gse;
 
