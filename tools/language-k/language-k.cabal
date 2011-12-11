@@ -26,13 +26,14 @@ Library
 
   Build-depends:
     base >= 4 && < 5,
+    mtl,
     parsec > 3,
     attoparsec,
     attoparsec-text,
     blaze-builder,
     bytestring,
     text,
-    ansi-wl-pprint,
+    ansi-wl-pprint >= 0.6,
     containers
 
   ghc-prof-options: -auto-all
