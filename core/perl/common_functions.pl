@@ -10,6 +10,7 @@ use Text::Wrap;
 $Text::Wrap::columns = 75;
 
 our @checksum_files; # used in checksumming kompile program to detect version changes
+our $preamble;
 my $path = ".";
 
 BEGIN {
@@ -581,6 +582,8 @@ sub fresh
     my ($fh, $filename) = tempfile($prefix . "XXXXXXXXXX", SUFFIX => $suffix);
     $filename;
 }
+
+
 
 # deletes all temporary files
 sub erase_temp
@@ -2687,6 +2690,7 @@ sub slurp_k
     # global pre-processing
     $_ = pre_process($_, $latex_, $file);
     
+#	print;
     # get file directory
     my $file_dir = dirname($file);
     
@@ -2764,8 +2768,13 @@ sub header
     "$surrounding\n*** $file ***\n$surrounding\n\n\n";
 }
 	
-	
-	
+my @modules = ();
+    
+sub get_all_modules
+{
+    \@modules;
+}
+    
 # ARGS: file content, $latex if enabled
 # RETURN: file content
 # Pre-process the main file:
@@ -2779,7 +2788,8 @@ sub pre_process
     local $_ = shift;
     my $latex_ = shift;
     my $file = shift;
-
+    my $random = 0;
+    
     # Step: replace module with kmod and
           # freeze strings
           s/($string_pattern)/Freeze($&,"YSTRINGS")/sge;
@@ -2804,6 +2814,43 @@ sub pre_process
           $_ = Unfreeze("CMTS", $_);
           # unfreeze comments
           $_ = Unfreeze("YSTRINGS", $_);
+
+    
+        # Freeze modules
+    s/(kmod.*?endkm)/Freeze($&, "KMOD")/sge;
+    
+    s/\/\*!(.*?)\*\//
+    {
+	$preamble = $1;
+	""
+    }/sme;
+
+    s/(\/\/@.*?$)/
+    {
+#	print "Comment: $1\n";
+	$random++;
+	Freeze(" kmod COMMENT-LATEX-GENERATED$random is   $1   endkm", "KMOD");
+    }/sme;
+    
+#    print ;
+    
+    s/(\/\*\@.*?\*\/)/
+    {
+#	print "Comment: $1\n";
+	$random++;
+	Freeze(" kmod COMMENT-LATEX-GENERATED$random is   $1   endkm", "KMOD");
+    }/sge;
+    
+# print;
+
+    $_ = Unfreeze("KMOD", $_);
+    # exit;
+
+    # collect all modules
+    while(/kmod\s+([A-Z0-9\-]+)\s+.*?endkm/sg)
+    {
+	push(@modules, $1) if ($1 ne "URIS" && $1 ne "K-VISITOR" && $1 ne "SUBSTITUTION");
+    }
     
     # Step: resolve latex comments
     $_ = solve_latex($_) if $latex_;

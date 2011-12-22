@@ -3,6 +3,104 @@
 // 1) Use an editor which can hide or color comments (K uses standard comments)
 // 2) Run the K pre-processor (kpp) on this file to remove all comments.
 
+/*!
+\setlength{\parindent}{1em}
+\title{IMP}
+\author{Grigore Ro\c{s}u (\texttt{grosu@illinois.edu})}
+\organization{University of Illinois at Urbana-Champaign}
+*/
+
+/*@ \section{Abstract}
+This is the \K semantic definition of the classic IMP language.
+IMP is considered a folklore language, without an official inventor,
+and has been used in many textbooks and papers, often with slight
+syntactic variations and often without being called IMP\@.  It includes
+the most basic imperative language constructs, namely basic constructs
+for arithmetic and Boolean expressions, and variable assignment,
+conditional, while loop and sequential composition constructs for statements.
+
+\paragraph{Note:}{
+Since IMP is so simple, we will use its semantics as an opportunity to
+explain some of the main features of the \K  prototype tool.  Other
+features will be explained in other \K definitions coming as part of
+this distribution.  For a quick introduction to the \K prototype, you
+are referred to the README file at the root of this
+distribution.  If you are interested in reading more about \K, please
+check the following paper:
+\begin{quote}
+Grigore Ro\c su, Traian-Florin \c Serb\u anu\c t\u a:
+\href{http://dx.doi.org/10.1016/j.jlap.2010.03.012}
+     {An overview of the K semantic framework}.
+
+Journal of Logic and Algebraic Programming, 79(6): 397-434 (2010)
+\end{quote}
+}
+
+\paragraph{Note:}{
+\K follows the
+\href{https://en.wikipedia.org/wiki/Literate_programming}{literate
+programming} approach.  The various semantic features defined in a \K
+module can be reordered at will and can be commented using normal
+comments like in C/C++/Java.  If those comments start with
+`\texttt{@}' preceded by no space (e.g.,
+`\texttt{//{@} {\textbackslash}section\{Variable declarations\}}'
+or
+`\texttt{/*{@} {\textbackslash}section\{Variable declarations\} {*}/}')
+then they are interpreted as formal \LaTeX\ documentation by the
+\texttt{kompile} tool when used with the option \texttt{-\,\!-pdf}
+(or \texttt{-\,\!-latex}).
+While comments are useful in general, they can annoy the expert user
+of \K.  To turn them off, you can do one of the following (unless you
+want to remove them manually): (1) Use an editor which can hide or
+color conventional C-like comments; or (2) Run the \K pre-processor
+(kpp) on the ASCII .k file, which outputs (to stdout) a variant of the
+\K definition with no comments.
+}
+
+\paragraph{Note:}{
+The \K tool provides modules for grouping language features.  While
+there are no rigid requirements or even guidelines on how to group
+features, we often put the language syntax in a separate module, so we
+can experiment with parsing programs before we attempt to give our
+language a semantics.  In the case of IMP, we call its syntax module
+\texttt{IMP-SYNTAX} and its semantics module \texttt{IMP}.  To compile
+the IMP definition into Maude, pass the \texttt{imp.k}
+(extension is optional) file to \texttt{kompile}:
+\begin{verbatim}
+$ kompile imp.k
+\end{verbatim}
+To compile it to a PDF document for visualization, use the command:
+\begin{verbatim}
+$ kompile imp.k --pdf
+\end{verbatim}
+To run programs, simply pass the program to \texttt{krun} in the
+directory where \texttt{imp.k} is:
+\begin{verbatim}
+$ krun programs/sumPgm.imp
+\end{verbatim}
+In general, the above commands work as shown for any language, say
+LANG, provided that you replace \texttt{IMP} by \texttt{LANG} and
+\texttt{imp} by \texttt{lang}, and provided that you type these
+commands in the directory where your language definition
+\texttt{lang.k} is.  If you want to use different naming
+conventions or to call these commands from other places, then type
+``\texttt{kompile -\,\!-help}'' and ``\texttt{krun -\,\!-help}'' for
+instructions.
+}
+
+\section{What You Will Learn Here}
+
+\begin{itemize}
+\item Basic notions about \K and how to write simple \K definitions.
+\item How to define a simple programming language in \K.
+\item How to use the \K tool for compilation to Maude and to \LaTeX/PDF.
+\item How to use the \K tool to execute programs using the semantics.
+\item How to customize the initial configuration using configuration
+variables and initializing them with \texttt{krun}.
+\end{itemize}
+*/
+
+
 module IMP-SYNTAX
 /*@ \section{Syntax}
 This module defines the syntax of IMP\@.
@@ -78,6 +176,8 @@ do below with the \textit{Ids}. */
   syntax Pgm ::= "var" Ids ";" Stmt  [prec(110)]
   syntax Ids ::= List{#Id,","}
 
+end module
+
 /*@ Before we move to the \K semantics, we would like to make some
 clarifications regarding the \K syntactic declarations and the current
 builtin parser in general.  First, you should not expect magic from
@@ -95,7 +195,6 @@ define additional syntax needed exclusively for the semantics.  We
 will discuss other particularities of the \K syntax on a by-need
 basis, as we define more complex languages (see other \K language
 definitions coming with this distribution of the \K tool). */
-end module
 
 module IMP
   imports IMP-SYNTAX
@@ -103,7 +202,21 @@ module IMP
 This module defines the semantics of IMP\@.  
 Before you start adding semantic rules to a \K definition, you need to
 define the basic semantic infrastructure consisting of definitions for
-{\em values/results} and the {\em configuration}. */
+{\em values/results} and the {\em configuration}.  The semantic rules,
+or the {\em \K rules}, are of two types: {\em structural} and
+{\em computational}.  Intuitively, structural rules rearrange the
+configuration so that computational rules can apply.  Structural rules
+therefore do not count as computational steps.  A \K semantics can be
+though of as a generator of transition systems or Kripke structures,
+one for each program.  It is only the computational rules that create
+steps, or transitions, in the corresponding transition systems or
+Kripke structures, the structural rules being unobservable at this
+level.  By default, rules are assumed computational.  If you want to
+explicitly make a rule structural, then you should include the
+tag/attribute \texttt{structural} in square brackets right after the
+rule.  These attributes may be taken into account by different \K
+tools, so it is highly recommended to spend a moment after each rule
+and think whether you want it to be structural or computational.  */
 
 /*@ \subsection{Values and results}
 IMP only has two types of values, or results of computations: integers
@@ -141,16 +254,17 @@ written \texttt{\texttildelow>} in ASCII) as a separator.  \K provides
 a distinguished sort, $K$, for computations.  The extension of the
 abstract syntax of your language into computations is done
 automatically when you declare constructs using the \texttt{syntax}
-keyword, so the \K semantic rules can now uniformly operate only on 
+keyword, so the \K semantic rules can uniformly operate only on 
 terms of sort $K$.  The intuition for computation structures of the
 form $t_1 \kra t_2 \kra \cdots \kra t_n$ is that the listed tasks are
 to be processed in order.  The initial computation typically contains
 the original program as its sole task, but rules can then modify it
-into sequences of tasks.  The strictness attributes that we use as
-syntactic annotations to language constructs in \K actually correspond
+into task sequences.  The strictness attributes, used as
+annotations to language constructs, actually correspond
 to rules over computations.  For example, the \texttt{strict(2)}
 attribute of the assignment statement above corresponds to the
-following two rules, which are generated automatically by the \K tool:
+following two structural rules, which are generated automatically by
+the \K tool:
 $$
 \begin{array}{l}
 X \texttt{:=}\ E \ \ \Rightarrow \ \ E \kra X \ \texttt{:=}\ \square
@@ -222,7 +336,7 @@ IMP does not need it.
 The configuration of IMP is trivial: it only contains two cells, one
 for the computation and another for the state.  For good encapsulation
 and clarity, we place the two cells inside another cell, the ``top'' cell
-which is labeled $\top$. */
+which is labeled \textsf{T}. */
 
   configuration <T color="yellow">
                   <k color="green"> $PGM:Pgm </k>
@@ -333,7 +447,7 @@ to modify the rules below to always match at the top of the \textsf{k}
 cell. */
 
   rule I1:#Int + I2:#Int => I1 +Int I2
-  rule I1 / I2 => I1 /Int I2  if I2 =/=Bool 0 
+  rule I1 / I2 => I1 /Int I2  when I2 =/=Bool 0 
 
 /*@ \subsection{Boolean expressions}
 The rules below are straightforward.  Note the short-circuited semantics
@@ -396,7 +510,7 @@ argument is allowed to be evaluated. */
 
 /*@ \subsubsection{While loop}
 We give the semantics of the \texttt{while} loop by unrolling.
-Note that the unrolling takes place only when the loop statement
+The unrolling takes place only when the loop statement
 reaches the top of the computation cell; otherwise the unrolling
 process may not terminate (recall that \K is a context-insensitive
 rewriting framework, not a reduction-based one).  Also, note that we
@@ -434,6 +548,6 @@ not for the rest of the computation. */
   rule [program-still-vars]:
        <k> var (X,Xs:Ids => Xs); _ </k>
        <state> Rho:Map (. => X |-> 0) </state>
-    if notBool(X in keys(Rho))
+    when notBool(X in keys(Rho))
   rule [program-no-vars]: <k> var .Ids; S => S </k>  [structural]
 end module

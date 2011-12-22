@@ -121,15 +121,11 @@ module SIMPLE-UNTYPED
 /*@ \section{Basic Semantic Infrastructure}
 Before one starts adding semantic rules to a \K definition, one needs to
 define the basic semantic infrastructure consisting of definitions for
-{\em values}, {\em computations} and the {\em configuration}.  The values
-are needed to know when to stop applying the heating rules corresponding
-to strictness or context declarations.   As values carry semantic, language
-dependent meaning, they cannot be  automatically inferred, so one cannot
-avoid this step.  The computation structures, or simply computations, are
-needed to properly include the language syntax under the K sort, as the \K
-semantics operates only on terms of sort $K$; fortunately, this can be done
-mostly automatically, except for the special result computations.  Finally,
-the configuration serves as a backbone for the process of configuration
+{\em values} and {\em configuration}.  As discussed in the \K
+definition of IMP, the values are needed to know when to stop applying
+the heating rules and when to start applying the cooling rules
+corresponding to strictness or context declarations.  The
+configuration serves as a backbone for the process of configuration
 abstraction which allows users to only mention the relevant cells in each
 semantic rule, the rest of the configuration context being inferred
 automatically.  Although the configuration could potentially be automatically
@@ -145,7 +141,8 @@ where the array's elements are contiguously allocated in the store, and
 (2) the size of the array.  Functions evaluate to function values as
 $\lambda$-abstractions (we do not need to evaluate functions to closures
 because each function is executed in the fixed global environment and
-function definitions cannot be nested). */
+function definitions cannot be nested).  Like in IMP and other
+languages, we finally tell the tool that values are \K results. */
 
   syntax Val ::= #Int | #Bool | #String
                | "arrayRef" "(" #Nat "," #Nat ")"
@@ -153,6 +150,7 @@ function definitions cannot be nested). */
                    [:latex("\lambda{#1}\,.\,{#2}"):]
   syntax Vals ::= List{Val,","}
   syntax Exp ::= Val
+  syntax KResult ::= Val 
 
 /*@ The inclusion of values in expressions follows the methodology of
 syntactic definitions (like, e.g., in SOS): extend the syntax of the language
@@ -162,25 +160,6 @@ original syntax of the language, and to parse them with the same (now extended
 with additional values) parser.  If writing the semantics directly on the \K
 AST, using the associated labels instead of the syntactic constructs, then one
 would not need to include values in expressions. */
-
-/*@ \subsection{Computations}
-Recall that in \K, the computations ``swallow'' the entire language syntax
-(note that the builtin module \texttt{K} is included).  Thus, every fragment
-of program is a particular computation, that is, a term of sort $K$.  Also,
-recall that computations have quite a simple syntax: abstract syntax trees
-(where the original language constructs become AST node labels, i.e.,
-constants of sort $\KLabel$) extended with the special {\em task
-sequentialization} construct $K ::= K \kra K$.  In addition to the sorts
-$K$ and $\KLabel$, the \K tool also has one more important sort related to
-computations, namely $\KResult$.  Distinguishing terms of sort $\KResult$ is
-not necessary in theory, but it is crucial in implementations of the \K
-framework, because it allows to distinguish a class of terms as irreducible
-and thus to more efficiently implement the heating/cooling process associated
-to the strictness attributes.  Below we state that all values are terms of
-sort $\KResult$. */
-
-  syntax KResult ::= Val 
-
 
 /*@ \section{Configuration}
 The \K configuration of SIMPLE consists of a top level cell, \textsf{T},
@@ -424,8 +403,8 @@ become values of expected sorts: */
   rule Str1:#String + Str2:#String => Str1 +String Str2
   rule _-_(I1,I2) => _-Int_(I1,I2)
   rule I1 * I2 => I1 *Int I2
-  rule I1 / I2 => I1 /Int I2 if I2 =/=Bool 0
-  rule I1 % I2 => I1 %Int I2 if I2 =/=Bool 0
+  rule I1 / I2 => I1 /Int I2 when I2 =/=Bool 0
+  rule I1 % I2 => I1 %Int I2 when I2 =/=Bool 0
   rule - I => -Int I
   rule I1 < I2 => I1 <Int I2
   rule I1 <= I2 => I1 <=Int I2
@@ -752,7 +731,7 @@ by the two rules below: */
 
    rule <k> acquire V; => . ...</k> <holds>... . => V|->0 ...</holds>
         <busy> Busy (. => SetItem(V)) </busy>
-     if notBool(V in Busy) [:transition:]
+     when notBool(V in Busy) [:transition:]
    rule <k> acquire V; => . ...</k> <holds>... V|->(N => N +Nat 1) ...</holds>
 
 /*@ \subsubsection{Release lock}
@@ -766,7 +745,7 @@ so other threads can acquire it if they need to. */
 
    rule <k> release V; => . ...</k>
         <holds>... V|->(N => _-Int_(N,1)) ...</holds>
-     if N >Nat 0
+     when N >Nat 0
    // used prefix notation for -Int because of parsing problems
    rule <k> release V; => . ...</k> <holds>... V|->0 => . ...</holds>
         <busy>... SetItem(V)=>. ...</busy>
@@ -833,8 +812,8 @@ given numbers.  The first number is expected to be no larger than the second.
 The two rules below are structural, for the same reason as above. */
 
   syntax List{K} ::= #Nat ".." #Nat
-  rule N1:#Nat..N2:#Nat => .List{K}              if N1  >Nat N2  [:structural:]
-  rule N1:#Nat..N2:#Nat => N1 ,, (N1 +Nat 1)..N2 if N1 <=Nat N2  [:structural:]
+  rule N1:#Nat..N2:#Nat => .List{K}              when N1  >Nat N2  [:structural:]
+  rule N1:#Nat..N2:#Nat => N1 ,, (N1 +Nat 1)..N2 when N1 <=Nat N2  [:structural:]
 
 /*@ The semantics of SIMPLE is now complete. */
 end module
