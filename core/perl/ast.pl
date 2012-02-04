@@ -62,7 +62,7 @@ sub get_ast_from_node
 	    $content .= get_ast_from_node($child) . ",,";
 	}
     }
-# print "Op: $op; Sort: $sort; Content: $content\n";
+#  print "Op: $op; Sort: $sort; Content: $content\n";
     $content =~ s/,,$//s;
 
     # #id("identifier")
@@ -79,11 +79,19 @@ sub get_ast_from_node
 # print "RUN1: Op: $op; Sort: $sort; Content: $content\n";
     
     # simple strings
-    if ($sort eq '#String')
+    if ($sort eq '#String' || $sort eq '#Char')
     {
 	return "# $op(.List{K})";
     }
 # print "RUN2: Op: $op; Sort: $sort; Content: $content\n";
+
+    # simple integers
+    if ($sort eq '#Int' || $sort eq '#Zero')
+    {
+	return "# $op(.List{K})";
+    }
+
+# print "RUN21: Op: $op; Sort: $sort; Content: $content\n";
     
     # numbers
     # naturals
@@ -104,15 +112,16 @@ sub get_ast_from_node
 # print "RUN4: Op: $op; Sort: $sort; Content: $content\n";
     
     # builtin sorts default
-    my $allksorts = get_builtin_sorts();
-    $allksorts = $1 if ($allksorts =~ m/NeSortSet:(.*?Bye)\./sg);
-    if ($allksorts =~ /\Q\'$sort\E/sg)
-    {
+#    my $allksorts = get_builtin_sorts();
+#    $allksorts = $1 if ($allksorts =~ m/NeSortSet:(.*?Bye)\./sg);
+#    print "ALL: $allksorts\n\n";
+#    if ($allksorts =~ m/\'\Q$sort\E/sg && )
+#    {
 #	print "\n$sort matched in $allksorts\n\n";
-#	print "RUN41: Op: $op; Sort: $sort; Content: $content\n";      
-	return "# $op(.List{K})" 	
-    }
-    elsif ($sort =~ /^#/sg)
+#	print "RUN41: Op: $op; Sort: $sort; Content: $content\n";
+#	return "# $op(.List{K})" 	
+#    }
+    if ($sort =~ /^#/sg)
     {
 #	print "RUN41: Op: $op; Sort: $sort; Content: $content\n";
 	return "# $op(" . flat($content) . ")(.List{K})";

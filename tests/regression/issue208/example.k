@@ -1,9 +1,7 @@
 kmod SKOOL-TYPED-SYNTAX is 
 
 --- List{Id}
-  syntax List{Id}  ::= #Id | .List{Bottom} [latex "\kdot{\it List\{Bottom\}}"]
-
-                     | List{Id} , List{Id}  [prec 70 assoc id: .List{Bottom} strict hybrid]
+  syntax Ids  ::= List{#Id,","} [prec 70]
 
 endkm
 
@@ -21,7 +19,7 @@ including SKOOL-TYPED-SYNTAX
   syntax K ::= lookupMember ( BagItem , #Id )  --- BagItem is the envStack cell, Id is the member name
   syntax CellLabel ::= env 
 
-  rule lookupMember(<envStack> _ :: <env> Env:Map </env>  => . <_/envStack>, X:#Id)
+  rule lookupMember(<envStack> _:#Id :: <env> Env:Map </env>  => . <_/envStack>, X:#Id)
     when notBool(X in keys(Env)) [structural]
 
 

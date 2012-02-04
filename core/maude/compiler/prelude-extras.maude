@@ -190,6 +190,11 @@ fmod STRING-EXTRAS is including MAP{String, String} + LIST{String} .
   eq allCaps(S) = replace(S, ("a" |-> "A", "b" |-> "B", "c" |-> "C", "d" |-> "D", "e" |-> "E", "f" |-> "F", "g" |-> "G", "h" |-> "H", "i" |-> "I", "j" |-> "J", "k" |-> "K", "l" |-> "K", "m" |-> "M", "n" |-> "N", "o" |-> "O", "p" |-> "P", "q" |-> "Q", "r" |-> "R", "s" |-> "S", "t" |-> "T", "u" |-> "U", "v" |-> "V", "w" |-> "W", "x" |-> "X", "y" |-> "Y", "z" |-> "Z")) .
 
 
+  op firstCaps : String -> String .
+  eq firstCaps("") = "" .
+  eq firstCaps(S) = allCaps(substr(S,0,1)) + substr(S,1,length(S)) .
+
+
   op smallCaps : String -> String .
   eq smallCaps(S) = replace(S, ("A" |-> "a", "B" |-> "b", "C" |-> "c", "D" |-> "d", "E" |-> "e", "F" |-> "f", "G" |-> "g", "H" |-> "h", "I" |-> "i", "J" |-> "j", "K" |-> "k", "L" |-> "k", "M" |-> "m", "N" |-> "n", "O" |-> "o", "P" |-> "p", "Q" |-> "q", "R" |-> "r", "S" |-> "s", "T" |-> "t", "U" |-> "u", "V" |-> "v", "W" |-> "w", "X" |-> "x", "Y" |-> "y", "Z" |-> "z")) .
 
@@ -335,6 +340,8 @@ fmod META-TERM-EXTRAS is
 
   op errorT : [Term] String String -> [Term] .
  op errorS : Term Type String -> [Type] .
+ op errorSOp : Term Type String -> [OpDecl] .
+
 
   var V : Variable . var Trl' Trl Trl'' : TermList .  var Tr Tr' : Term .
   var C : Constant . var Nz : NzNat . var N : Nat .  var Q : Qid .
@@ -531,17 +538,6 @@ fmod META-MODULE-EXTRAS is
   op removeSubsorts : Module SubsortDeclSet -> Module .
   eq removeSubsorts(M, SSDS) 
    = setSubsorts(M, removeSubsorts(getSubsorts(M),SSDS)) .
-
-  op removeAllSubsorts : SubsortDeclSet SortSet -> SubsortDeclSet .
-  eq removeAllSubsorts(SSDS (subsort S < S' .), S ; SS)
-   = removeAllSubsorts(SSDS, S ; SS) .
-  eq removeAllSubsorts(SSDS (subsort S < S' .), S' ; SS)
-   = removeAllSubsorts(SSDS, S' ; SS) .
-  eq removeAllSubsorts(SSDS, SS) = SSDS [owise] .
-
-  op removeAllSubsorts : Module SortSet -> Module .
-  eq removeAllSubsorts(M, SS) 
-   = setSubsorts(M, removeAllSubsorts(getSubsorts(M),SS)) .
   
   op removeOps : OpDeclSet OpDeclSet -> OpDeclSet .
   eq removeOps(OPDS (op Q : Tl -> T [AS] .), OPDS' (op Q : Tl -> T [AS'] .))
@@ -941,6 +937,8 @@ fmod META-MODULE-EXTRAS is
   op getTypes : Nat OpDecl ~> TypeList .
   eq getTypes(N, (op Q : Tl -> T [AS] .))
    = getTypes(N,Tl, arity(Tl), AS) .
+  eq getTypes(N, errorSOp(Trm, T, Str))
+   = errorS(Trm, T, Str) .
 
   op getTypes : Nat TypeList Nat AttrSet ~> TypeList .
   eq getTypes(N,Tl,N,AS) = Tl .
@@ -1048,6 +1046,14 @@ fmod META-MODULE-EXTRAS is
   eq getCond(mb T1 : T [AS] .) = nil .
   eq getCond(cmb T1 : T if Cond [AS] .) = Cond .
 
+
+  op _`[_`] : Condition Substitution ~> Condition .
+  eq (nil).Condition[Subst] = (nil).Condition .
+  eq (T1 = T2 /\ Cond)[Subst] = ((T1[Subst]) = (T2[Subst]) /\ (Cond[Subst])) .
+  eq (T1 := T2 /\ Cond)[Subst] = ((T1[Subst]) := (T2[Subst]) /\ (Cond[Subst])) .
+  eq (T1 => T2 /\ Cond)[Subst] = ((T1[Subst]) => (T2[Subst]) /\ (Cond[Subst])) .
+  eq (Trm : T /\ Cond)[Subst] = ((Trm[Subst]) : T /\ (Cond[Subst])) .
+
   op setTerm : MembAx Term -> MembAx .
   eq setTerm(mb T1 : T [AS] ., Trm) = (mb Trm : T [AS] .) .
   eq setTerm(cmb T1 : T if Cond [AS] ., Trm) = (cmb Trm : T if Cond [AS] .) .
@@ -1086,6 +1092,13 @@ fmod META-MODULE-EXTRAS is
   eq genXVars(nil) = empty .
   eq genXVars(T Tl) = mkVariable('X,T),genXVars(Tl) .
 
+
+  op genIndexedVars : IntList Sort -> TermList .
+  eq genIndexedVars(nil, S) = empty .
+  eq genIndexedVars(N Nl, S) 
+   = mkVariable(qid(string(S) + string(N, 10)), S), 
+     genIndexedVars(Nl, S) .
+
   op genVars : TypeList String -> TermList .
   eq genVars(Tl, Str) = genVars(Tl, Str, 1) .
 
@@ -1104,6 +1117,10 @@ fmod META-MODULE-EXTRAS is
   eq nth(T Tl, 0) = T .
   eq nth(T Tl, s(N)) = nth(Tl, N) .
 
+ op _[_] : MembAx Substitution ~> MembAx .
+ eq Mb[Subst] = plugMb(getTerm(Mb)[Subst],getType(Mb),getAttrs(Mb), 
+                       getCond(Mb)[Subst]) .
+
  op plugMb : Term Type AttrSet Condition -> MembAx .
  eq plugMb(Trm, T, AS, Cond) 
   = if Cond == nil
@@ -1112,6 +1129,10 @@ fmod META-MODULE-EXTRAS is
     fi .
  eq plugMb(errorT(T1':[Term], Cxt:String, Str:String), T, AS, Cond)
   = errorMb(T1':[Term], Cxt:String, Str:String, AS) .
+
+ op _[_] : Equation Substitution ~> Equation .
+ eq Eq[Subst] = plugEq(getLhs(Eq)[Subst],getRhs(Eq)[Subst],getAttrs(Eq), 
+                       getCond(Eq)[Subst]) .
 
  op plugEq : Term Term AttrSet Condition ~> Equation .
  eq plugEq(T1, T2, AS, Cond) 
@@ -1123,6 +1144,10 @@ fmod META-MODULE-EXTRAS is
   = errorEq(T1':[Term], Cxt:String, Str:String, AS) .
  eq plugEq(T1, errorT(T1':[Term], Cxt:String, Str:String), AS, Cond)
   = errorEq(T1':[Term], Cxt:String, Str:String, AS) .
+
+ op _[_] : Rule Substitution ~> Rule .
+ eq Rl[Subst] = plugRl(getLhs(Rl)[Subst],getRhs(Rl)[Subst],getAttrs(Rl), 
+                       getCond(Rl)[Subst]) .
 
  op plugRl : Term Term AttrSet Condition ~> Rule .
  eq plugRl(T1, T2, AS, Cond) 
@@ -1153,6 +1178,7 @@ fmod META-MODULE-EXTRAS is
   var Tl Tl' : TypeList .  var NTl : NeTypeList .  var T T' : Type . 
   var AS AS' : AttrSet .  var Attr : Attr .
   var NNl : NeNatList . var Nl : NatList . var N N' : Nat .
+  var Subst : Substitution .
 endfm
 
 fmod METADATA-EXTRAS is
@@ -1217,8 +1243,6 @@ fmod META-LEVEL-EXTRAS is
   [owise] .
   eq sortsLeq(M, nil,nil) = true .
 
- op errorSOp : Term Type String -> [OpDecl] .
-
   op findOp : Module OpDeclSet Qid TypeList Type ~> OpDecl .
 
   eq findOp(M, OPDS, Q, Tl1 errorS(Trm, T, Str) Tl2, T') 
@@ -1249,6 +1273,9 @@ fmod META-LEVEL-EXTRAS is
    = (op Q : Tl' -> T' [AS] .) [owise print "Op found: " Q " : " Tl' " -> " T] .
   
   op $findOp : Module OpDeclSet Qid TypeList Type ~> OpDecl .
+ ceq $findOp(M, OPDS (op Q : nil -> T' [AS] .), Q, nil, T)
+   = (op Q : nil -> T' [AS] .) 
+  if sameKind(M, T, T') .
  ceq $findOp(M, OPDS (op Q : T' T' -> T' [AS assoc] .), Q, Tl, S)
    = (op Q : T' T' -> T' [AS assoc] .) 
   if sortLeq(M,S,T') and-then sortsLeq(M,Tl, dup(T',arity(Tl)))  [print "Op found: " Q " : " T' T' " -> " T'].
@@ -1357,6 +1384,9 @@ fmod META-LEVEL-EXTRAS is
   op flatten : Module ModuleSet ~> Module .
   eq flatten(M, empty) = M .
   eq flatten(M, M' MS) = flatten(addModule(setImports(M',nil),M), MS) .
+
+  op maximalSorts : Module Sort -> SortSet [ditto] .
+  eq maximalSorts(M, S) = maximalSorts(M, getKind(M,S)) .
 
   op getMaximalSorts : Module SortSet -> SortSet .
   eq getMaximalSorts(M, none) = none .
