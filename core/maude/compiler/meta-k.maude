@@ -364,9 +364,15 @@ fmod META-K-RULES is including K-SORTS .
   eq setContents(R{T,Cond,AS}, T') = R{T',Cond,AS} .
   eq setContents(R{T,Cond,AS}, errorT(Trm,Cxt,Str)) 
    = R{errorT(Trm,Cxt,Str),Cond,AS} .
+  eq setContents(R{errorT(Trm,Cxt,Str),C,AS}, T')
+   = R{errorT(Trm,Cxt,Str),C,AS} .
 
   op setCondition : KRuleSplit TermList -> KRuleSplit .
   eq setCondition(R{T,Cond,AS}, Cond') = R{T,Cond',AS} .
+  eq setCondition(R{T,C,AS}, errorT(Trm,Cxt,Str))
+   = R{errorT(Trm,Cxt,Str),C,AS} .
+  eq setCondition(R{errorT(Trm,Cxt,Str),C,AS}, Cond)
+   = R{errorT(Trm,Cxt,Str),C,AS} .
 
   op plugKRule : KRuleSplit ~> MembAx .
   eq plugKRule(R{T,empty,AS}) = (mb symbol(krl)[T] : KSentence [metadata(AS)] .) .
@@ -715,7 +721,7 @@ fmod META-ANONYMOUS-VARIABLE is
 
 
   op getAnonConsts : Module ~> TypeSet .
-  eq getAnonConsts(M) = 'HOLE ; '? . ---getAnonConsts(getOps(M)) .
+  eq getAnonConsts(M) = '? . ---getAnonConsts(getOps(M)) .
 
   op getAnonConsts : OpDeclSet ~> SortSet .
   eq getAnonConsts(Op OPDS) = getAnonConsts(Op, OPDS) .
@@ -867,7 +873,7 @@ fmod K-STRICTNESS-OPS is including META-LEVEL .
   var Ty : Type .  var V : Variable .
 
   op hole : -> Term .
-  eq hole = 'HOLE:K .
+  eq hole = 'HOLE.K .
 
   op removeHole : TermList ~> TermList .
   eq removeHole((T, Trl)) = if T == hole then removeHole(Trl) else T,removeHole(Trl) fi .
