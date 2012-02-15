@@ -132,7 +132,7 @@ supercool and the superheat points in the computation. */
                   "else" Stmt      [prec(85) strict(1)]
                 | "while" BExp
                   "do" Stmt        [prec(85)]
-  syntax Ids ::= List{#Id,","}
+  syntax Ids ::= List{#Id,","}     [strict]
 
 /*@ \subsection{The new IMP++ constructs}
 The syntax of the new IMP++ constructs is self-explanatory.

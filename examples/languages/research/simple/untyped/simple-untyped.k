@@ -19,7 +19,7 @@ automatically (when one uses an external parser) or manually
 There are two types of declarations: for variables (including arrays) and
 for functions. */
 
-  syntax Ids ::= List{#Id,","} [:prec(70):]
+  syntax Ids ::= List{#Id,","} [:prec(70) strict:]
   syntax Exps ::= List{Exp,","}
 
   syntax Decl ::= "var" Exps ";"
