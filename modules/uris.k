@@ -5,39 +5,40 @@ module URIS
              | `#reopen ( #Nat , #String ) 
              | `#close ( #Nat ) 
              | `#fEof ( #Nat )
-             | `#flush ( #Nat )
              | `#tell ( #Nat ) 
              | `#seek ( #Nat , #Nat )
              | `#fPeekByte ( #Nat )
-             | `#fReadByte ( #Nat ) 
-             | `#fPutByte ( #Nat , #Nat )
-             | `String2DotK ( #String ) 
              | `String2Bool ( #String )
              | `#ioError ( #String )
+
+  declare #fPutByte : #Nat  #Nat -> K
+  declare #flush : #Nat -> K
+  declare #fReadByte : #Nat -> K
             
   syntax KResult ::= `#EOF 
-  rule #errorTCPSyntax("EOF") => #EOF
+  rule #errorTCPSyntax("EOF") => #EOF [anywhere]
 
-  rule #open(S:#String) => String2Int(#tcpRequest("open#" +String S +String "#")) 
+  define #open(S:#String) => String2Int(#tcpRequest("open#" +String S +String "#")) 
 
-  rule #close(N:#Nat) => String2DotK(#tcpRequest("close#" +String Int2String(N) +String "#"))
+  define #close(N:#Nat) => String2DotK(#tcpRequest("close#" +String Int2String(N) +String "#"))
 
-  rule String2DotK(#errorTCPSyntax(S)) => #ioError(S)
-  rule String2DotK(S) => .K when notBool(#isTCPError(S))
+  declare String2DotK : #String -> K
+  define String2DotK(#errorTCPSyntax(S)) => #ioError(S)
+  define String2DotK(S) => .K when notBool(#isTCPError(S))
   
-  rule String2Bool("0") => false
-  rule String2Bool("1") => true
+  rule String2Bool("0") => false [anywhere]
+  rule String2Bool("1") => true [anywhere]
 
-  rule #flush(N) => String2DotK(#tcpRequest("flush#" +String Int2String(N) +String "#"))
+  define #flush(N) => String2DotK(#tcpRequest("flush#" +String Int2String(N) +String "#"))
 
-  rule #tell(N) => String2DotK(#tcpRequest("position#" +String Int2String(N) +String "#"))
+  define #tell(N) => String2DotK(#tcpRequest("position#" +String Int2String(N) +String "#"))
 
-  rule #tell(N) => String2Int(#tcpRequest("tell#" +String Int2String(N) +String "#"))
+  define #tell(N) => String2Int(#tcpRequest("tell#" +String Int2String(N) +String "#"))
 
-  rule #seek(N,P:#Nat) => String2DotK(#tcpRequest("seek#" +String Int2String(N) +String "#"
+  define #seek(N,P:#Nat) => String2DotK(#tcpRequest("seek#" +String Int2String(N) +String "#"
                               +String Int2String(P) +String "#"))
 
-  rule #reopen(N,S) => String2DotK(#tcpRequest("reopen#" +String Int2String(N) +String "#"
+  define #reopen(N,S) => String2DotK(#tcpRequest("reopen#" +String Int2String(N) +String "#"
                               +String S +String "#"))
 
   syntax #Nat ::= `#stdin 
@@ -51,39 +52,42 @@ module URIS
              | `#peekByte ( )
              | `#putByte ( #Nat )
              | `#eof ( )
-  rule #readByte() => #fReadByte(#stdin)
-  rule #fReadByte(N) => #string2Int(#tcpRequest("readbyte#" +String Int2String(N) +String "#"))
+  define #readByte() => #fReadByte(#stdin)
 
-  syntax K ::= `#string2Int ( K )
-  rule #string2Int(S) => String2Int(S) when lengthString(S) >=Int 0
+  define #fReadByte(N) => #string2Int(#tcpRequest("readbyte#" +String Int2String(N) +String "#"))
 
-  rule #putByte(B) => #fPutByte(#stdout,B)
-  rule #fPutByte(N,B:#Nat)
+  declare #string2Int : K -> K
+  define #string2Int(S) => String2Int(S) when lengthString(S) >=Int 0
+
+  define #putByte(B) => #fPutByte(#stdout,B)
+
+  define #fPutByte(N,B:#Nat)
     => String2DotK(#tcpRequest("writebyte#" +String Int2String(N) +String "#"
                               +String Int2String(B) +String "#"))
 
-  rule #peekByte() => #fPeekByte(#stdin)
-  rule #fPeekByte(N)
+  define #peekByte() => #fPeekByte(#stdin)
+  define #fPeekByte(N)
     => String2Int(#tcpRequest("peek#" +String Int2String(N) +String "#"))
 
-  rule #eof() => #fEof(#stdin)
-  rule #fEof(N)
+  define #eof() => #fEof(#stdin)
+  define #fEof(N)
     => String2Bool(#tcpRequest("eof#" +String Int2String(N) +String "#"))
 
-  syntax K ::= `#readChar ( ) 
-             | `#fReadChar ( #Nat )
-  rule #readChar() => #fReadChar(#stdin)
-  rule #fReadChar(N) => #charString(#fReadByte(N))
+  declare  #readChar() : -> K 
+  define #readChar() => #fReadChar(#stdin)
 
-  syntax K ::= `#charString ( K ) 
-  rule #charString(N:#Nat) => charString(N)
+  declare #fReadChar : #Nat -> K
+  define #fReadChar(N) => #charString(#fReadByte(N))
 
-  syntax K ::= `#printChar ( K ) 
-             | `#fPrintChar ( #Nat , K ) 
-  rule #printChar(C) => #fPrintChar(#stdout,C)
-  rule #fPrintChar(N,C:#Char) => #fPutByte(N,asciiString(C))
+  declare #charString : K -> K 
+  rule #charString(N:#Nat) => charString(N) [anywhere]
 
-  
+  declare #printChar : K -> K 
+  rule #printChar(C) => #fPrintChar(#stdout,C) [anywhere]
+
+  declare #fPrintChar : #Nat K -> K 
+  rule #fPrintChar(N,C:#Char) => #fPutByte(N,asciiString(C)) [anywhere]
+
   rule #buffer(.K => Int2String(I)) (ListItem(I:#Int) => .List)
   rule #buffer(.K => Float2String(F)) (ListItem(F:#Float) => .List)
   rule #buffer(.K => S) (ListItem(S:#String) => .List)
@@ -138,7 +142,7 @@ module URIS
   rule #convertToken("#Float",S:#String) => ListItem(String2Float(S))
   rule #convertToken("#String",S:#String) => ListItem(S)
 
-  rule String2Int("00") => 0
+  rule String2Int("00") => 0  [anywhere]
 
   
  /*   C++ -like parsing for ints.
