@@ -7,7 +7,7 @@ load k-model-checker.maude
 --- Level 0
 
 mod K-TECHNIQUE is 
-  including #NAT .
+  including #INT .
 
   var K : K . var Ks : List{K} .
   var LItem : ListItem .  var List : List .
@@ -86,7 +86,7 @@ mod K-LISTK-EXTRAS is
 
   op lengthList{K}_ : List{K} -> #Nat [metadata "latex=(renameTo length\\subscript{{\\scriptstyle\\it{}List\{K\}}}\mybracket{_})"] . 
   eq lengthList{K}(.List`{K`}) = 0 .
-  eq lengthList{K}(K:K,,Ks) = sNat lengthList{K}(Ks) . 
+  eq lengthList{K}(K:K,,Ks) = lengthList{K}(Ks) +Nat 1 . 
 
   op headList{K}_ : NeList{K} -> K [metadata "latex=(renameTo head\\subscript{{\\scriptstyle\\it{}List\{K\}}}\mybracket{_})"] .
   op tailList{K}_ : NeList{K} -> List{K} [metadata "latex=(renameTo tail\\subscript{{\\scriptstyle\\it{}List\{K\}}}\mybracket{_})"] .
@@ -229,7 +229,7 @@ mod K-LIST-EXTRAS is
 
   op lengthList_ : List -> #Nat .
   eq lengthList(.).List = 0 .
-  eq lengthList(LItem List) = sNat lengthList(List) .
+  eq lengthList(LItem List) = lengthList(List) +Nat 1 .
 
   --- op getFromList`{K`}(_,_) : List{K} #NzNat -> K .
   --- eq getFromList{K}((K,,Ks),1) = K .
@@ -462,7 +462,7 @@ mod K-BUILTINS is
   including K-RESULT .
   including PL-BUILTINS .
   including #TCP-INTERFACE .
-  subsort #Bool < K .
+  subsort #Bool #Int #String #Float #Id < K .
   op andBool : -> KLabel .
 
   var NeKList : NeList{K} .
