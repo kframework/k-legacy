@@ -90,7 +90,7 @@ consider the cases where function declarations have the form
                | "if" Exp
                  "then" Exp
                  "else" Exp            [:strict(1):]
-  syntax Exps ::= List{Exp,","}
+  syntax Exps ::= List{Exp,","}        [:strict:]
   syntax Ids  ::= List{#Id,","}
   macro fun Es1:Exps Es2:Exps -> E:Exp = fun Es1 -> fun Es2 -> E
   macro (E1:Exp Es:Exps = E) = (E1 = fun Es -> E)
@@ -199,11 +199,17 @@ identical to that in EXP or IMP\@. */
 
 //@ \subsection{Configuration}
 
-  configuration <T>  <k color="green"> $PGM:Exp </k>
+  configuration <T multiplicity="?">  <k color="green"> $PGM:Exp </k>
                      <env color="violet"> .Map </env>
                      <store color="white"> .Map </store>
                      <nextLoc color="gray"> 0 </nextLoc>
                 </T>
+				<result multiplicity="?"> .K </result>
+
+  // termination rule; useful for making sure program finished.  
+  // Can be removed when we have better krun tools for displaying final config
+  rule <T>... <k> V:Val </k> ...</T> => <result> V </result>
+
 
 //@ \subsection{Lookup}
 
@@ -320,6 +326,7 @@ The semantics of lists below is self-explanatory. */
   rule null? [] => true
   rule null? [_:Val,_:Vals] => false
   rule cons V [Vs] => [V,Vs]
+  define 'isVal([Vs:Vals]) => true
 
 /*@ \subsection{References}
 The semantics of references is also self-explanatory, noting that
