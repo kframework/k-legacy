@@ -6,9 +6,15 @@ module LAMBDAPP-SYNTAX
   syntax Exp ::= "mu" #Id "." Exp       [:binder prec 100 latex "\mu{#1}.{#2}":] 
                | "let" #Id "=" Exp "in" Exp  
                | "letrec" #Id "=" Exp "in" Exp  
+               | "if" Exp "then" Exp "else" Exp
   syntax Val ::= #Int | #Bool
 
   syntax #Id ::= "+" | "*" | "/" | "<=" | "ite" | "callcc"
+
+//@ Desugaring conditional into ite with thunks. Assuming that ``\$thunk'' cannot be used in programs
+  syntax #Id ::= "$thunk"
+  macro if E:Exp then E1:Exp else E2:Exp 
+    = (ite E (lambda $thunk . E1) (lambda $thunk . E2)) $thunk
 
 //@ Desugaring let constructs into more basic ones
   macro (letrec X = E in E') = (let X = (mu X.E) in E')
@@ -17,14 +23,13 @@ module LAMBDAPP-SYNTAX
 //@ I/O additions
   syntax Exp ::= "read"
   syntax #Id ::= "print"
-
 end module
 
 module LAMBDAPP
   imports LAMBDAPP-SYNTAX + LAMBDA
 
 //@Recursion
-  rule <k> (mu X:#Id.E:Exp) => E[(mu X.E) / X] ...</k>
+  rule (mu X:#Id.E:Exp) => E[(mu X.E) / X]
 
 //@Arithmetic
   rule + I1:#Int I2:#Int => I1 +Int I2
@@ -33,8 +38,10 @@ module LAMBDAPP
   rule <= I1:#Int I2:#Int => I1 <=Int I2
 
 //@Conditional
-  rule ite true E _ => E
-  rule ite false _ E => E
+  syntax #Id ::= "t" | "e" 
+  // this does not prevent the user from using t and e as #Id in programs
+  rule ite true => lambda t . lambda e . t 
+  rule ite false => lambda t. lambda e . e
 
 //@Call/CC
   syntax Val ::= "cc" "(" K ")"
@@ -53,6 +60,7 @@ module LAMBDAPP
 
 
   syntax #Id ::= "dummy"
+  // Again, this does not prevent the user from using dummy as #Id in programs
   rule [print] : <k> print I => (lambda dummy.dummy) ...</k>
        <out>... (. => ListItem(I)) </out>
 
@@ -64,7 +72,6 @@ module LAMBDAPP
  its branches might lead to non-termination in the presence of $\mu$.
  We also exclude print as it is side-effecting.
 */
-  rule 'k-result(X:#Id V:Val) => true 
+  define 'isVal(X:#Id V:Val) => true 
    when X =/=Bool print andBool X =/=Bool ite
-
 end module
