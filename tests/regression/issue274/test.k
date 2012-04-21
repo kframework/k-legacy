@@ -1,4 +1,3 @@
-module TEST is
-  including K
-    syntax Ids ::= List{ #Id, "," }
+module TEST
+    syntax Ids ::= List{ Id, "," }
 end module

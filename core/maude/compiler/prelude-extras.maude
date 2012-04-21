@@ -418,6 +418,7 @@ fmod META-K-ERROR is
   op moduleError : QidList -> [Module] .
   op termError : QidList -> [Term] .
   
+  op errorCond : [Term] String String -> [Condition] .
   op errorAS :  String String -> [Attr] .
   op errorMb : [Term] String String AttrSet -> [MembAx] .
   op errorOp : String AttrSet -> [OpDecl] .
@@ -426,6 +427,8 @@ fmod META-K-ERROR is
   op errorM : AttrSet String [Term] String Module -> [Module] .
   eq Q[Trms:[TermList],errorT(Trm, Cxt, Str),Trms':[TermList]] = errorT(Trm, Cxt + " -> " + string(Q), Str) [print "errorT propagated past " Q] .
 
+ eq (errorT(Trm, Cxt, Str) = Trm') = errorCond(Trm, Cxt + " -> _=_", Str) .
+ eq errorCond(Trm, Cxt, Str) /\ T1:[Term] = T2:[Term] = errorCond(Trm, Cxt, Str) . 
 
  ceq errorM(AS, "no suitable least sorts found", Q[Trms, ETrm, Trms'], Cxt, M)
    = errorM(AS,  "no suitable least sorts found", ETrm, Cxt, M)
@@ -437,6 +440,7 @@ fmod META-K-ERROR is
   eq (cmb errorT(Trm,Cxt,Str) : Type if Cond [AS] .) = errorMb(Trm,Cxt,Str,AS)  [print "errorT propagated past cmb"] .
   eq (cmb Trm : Type if Cond [AS errorAS(Str, Str')] .) = errorMb('`[`]:K,"",Str' + " '" + Str + "'",AS) .
   eq (mb Trm : Type [AS errorAS(Str, Str')] .) = errorMb('`[`]:K,"",Str' + " '" + Str + "'",AS) .
+  eq (ceq Trm1:[Term] = Trm' if errorCond(Trm, Cxt, Str) [AS] .) = errorEq(Trm,Cxt + " -> ceq_if_.",Str,AS) .
   eq (ceq errorT(Trm,Cxt,Str) = Trm' if Cond [AS] .) = errorEq(Trm,Cxt,Str,AS) .
   eq (ceq Trm' = errorT(Trm,Cxt,Str) if Cond [AS] .) = errorEq(Trm,Cxt,Str,AS) .
   eq (eq errorT(Trm,Cxt,Str) = Trm' [AS] .) = errorEq(Trm,Cxt,Str,AS) .
@@ -1265,10 +1269,10 @@ fmod META-LEVEL-EXTRAS is
   if S == String or-else S == Char or-else S == FiniteFloat .
   eq findOp(M, OPDS, '_=>_, T T', T'')
    =  (op '_=>_ : T'' T'' -> T'' [none] .) .
-  eq findOp(M, OPDS, '_==Bool_, T T', T'')
-   =  (op '_==Bool_ : dup(lubSorts(M,T,T'),2) -> Bool [none] .) .
-  eq findOp(M, OPDS, '_=/=Bool_, T T', T'')
-   =  (op '_=/=Bool_ : dup(lubSorts(M,T,T'),2) -> Bool [none] .) [print "_=/=Bool_: " T "\/" T' ] .
+---  eq findOp(M, OPDS, '_==Bool_, T T', T'')
+---   =  (op '_==Bool_ : dup(lubSorts(M,T,T'),2) -> Bool [none] .) .
+---  eq findOp(M, OPDS, '_=/=Bool_, T T', T'')
+---   =  (op '_=/=Bool_ : dup(lubSorts(M,T,T'),2) -> Bool [none] .) [print "_=/=Bool_: " T "\/" T' ] .
  ceq findOp(M, OPDS (op 'sNat_ : Tl' -> T' [AS] .), Q, Tl, T)
    =  (op 'sNat_ : Tl' -> T' [AS] .)
   if substr(string(Q), 0, length("sNat_^")) = "sNat_^" .
@@ -1295,6 +1299,12 @@ fmod META-LEVEL-EXTRAS is
    = (op Q : mergeTypes(Tl, Tl', 1, getPoly(AS)) -> mergeTypes(T, T', 0, getPoly(AS)) [AS] .)
   if sortsLeq(M, T' Tl, T Tl', 0, getPoly(AS)) [owise print "Op found: " Q Tl Tl' T T'] . 
 
+  op maximalArityOp : Module OpDeclSet Nat -> OpDecl .
+ ceq maximalArityOp(M, (op Q : Tl -> T [AS] .) OPDS, N)
+   = maximalArityOp(M, OPDS, N)
+  if arity(Tl) =/= N .
+  eq maximalArityOp(M, OPDS, N) = maximalArityOp(M, OPDS) [owise] .
+
 
   op maximalArityOp : Module OpDeclSet -> OpDecl .
   eq maximalArityOp(M, Op) = Op .
@@ -1302,7 +1312,9 @@ fmod META-LEVEL-EXTRAS is
     = maximalArityOp(M, (op Q : Tl -> T [AS] .) OPDS) 
    if sortsLeq(M, Tl' T', Tl T) .
   eq maximalArityOp(M, (op Q : Tl -> T [AS] .) Op OPDS)
-   = errorOp("Cannot find maximal operation for '" + string(Q) + "'",AS) .
+   = errorOp("Multiple maximal ops for '" + string(Q) + "'",AS) .
+  eq maximalArityOp(M, none)
+   = errorOp("No ops found for",none) .
   
 
 

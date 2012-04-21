@@ -1,13 +1,13 @@
 
 
-kmod ISSUE062 is 
+module ISSUE062 is 
 
 	
-	syntax Exp ::= #Int
-               | ! Exp
-               | ? Exp
+	syntax Exp ::= Int
+               | "!" Exp
+               | "?" Exp
 
 	rule ! 1 => ? 2
 	rule ? 2 => 3
 
-endkm
+end module
