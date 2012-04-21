@@ -1,6 +1,6 @@
-module SIMPLE-UNTYPED-PROGRAMS imports SIMPLE-UNTYPED-SYNTAX
+kmod SIMPLE-UNTYPED-PROGRAMS is including SIMPLE-UNTYPED-SYNTAX
 
-  syntax Id ::=  x
+  syntax #Id ::=  x
 
   syntax Stmts ::= pTestND
 
@@ -11,4 +11,4 @@ module SIMPLE-UNTYPED-PROGRAMS imports SIMPLE-UNTYPED-SYNTAX
         write(++(x[x[1]]));
       }
 
-end module
+endkm

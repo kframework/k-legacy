@@ -1,9 +1,9 @@
 
 # this is the name of the main maude module 
-LANGUAGE_NAME = EXAMPLE
+LANGUAGE_NAME = ISSUE134
 
 # this is the name of the interesting modules (used by make latex/pdf) 
-LANGUAGE_MODULES = EXAMPLE
+LANGUAGE_MODULES = ISSUE134
 
 #this is the basename of the main file
 MAIN_FILE = example

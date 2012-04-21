@@ -12,7 +12,7 @@ LATEX_TOPMATTER = README.tex
 MAIN_FILE = fun-untyped
 
 # this is a space-separated list of basename maude files to run
-TESTS = 
+TESTS = fun-untyped-test.m
 
 
 # this is a space separated list of directories containing io_tests

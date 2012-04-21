@@ -1,5 +1,6 @@
 
-module ISSUE150 
+kmod ISSUE150 is
+	including K
 
-    syntax Exp# ::= "Foo#"
-end module
+    syntax Exp# ::= `Foo#
+endkm

@@ -5,7 +5,8 @@
 
 
 
-module ISSUE082 // another comment
+kmod ISSUE082 is // another comment
+	including K  + #STRING //
     configuration <T> <k> .K </k> /* multiline on single line */ </T>
     //"and another comment"
     // something like ---"something" would fail (maude bug)
@@ -13,7 +14,7 @@ module ISSUE082 // another comment
 /*
 first line of multiline comment
 second line of multiline comment
-1 2*/  op test : /*3 4*/ -> String //5 6
+1 2*/  op test : /*3 4*/ -> #String //5 6
     eq test = "<test>"
 
 /*()))
@@ -28,4 +29,4 @@ second line of multiline comment
 /*---((
 */
 
-end module
+endkm

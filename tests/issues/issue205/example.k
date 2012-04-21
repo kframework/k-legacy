@@ -1,5 +1,5 @@
 
-module ISSUE is
+kmod ISSUE is
 	including K
 
 
@@ -138,4 +138,4 @@ module ISSUE is
 		[metadata "computationalv nd=(true)"]
 	
 
-end module
+endkm

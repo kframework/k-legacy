@@ -1,6 +1,6 @@
 --- 30 semantic rules
 --- 16 syntax translation macros
-module KERNELC-SEMANTICS is 
+kmod KERNELC-SEMANTICS is 
   including KERNELC-DESUGARED-SYNTAX + K + #CONVERSION + #RANDOM
 
   configuration 
@@ -111,12 +111,12 @@ module KERNELC-SEMANTICS is
 
   syntax List{Val} ::= Val | List{Val} , List{Val} [ditto] 
   syntax List{Exp} ::= List{Val} 
-end module
+endkm
 
-module KERNELC-CONSISTENT-MEMORY imports KERNELC-SEMANTICS 
+kmod KERNELC-CONSISTENT-MEMORY is including KERNELC-SEMANTICS 
   rule [deref]: <k> *N:Nat => V:Val <_/k> <mem_> N |-> V <_/mem>
   rule [increment]: <k> (*N)++ => I:Int <_/k> 
                     <mem_> N |-> (I => I +Int 1) <_/mem>
   rule [update]: <k> *N=V => V <_/k> 
                  <mem_> N |-> (_ => V) <_/mem>
-end module
+endkm

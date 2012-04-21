@@ -1,21 +1,23 @@
 
-module COMMON 
-end module
+kmod COMMON is
+	including K 
+	including K-CONTEXTS 
+endkm
 
-module ISSUE134A 
-	imports COMMON
+kmod ISSUE134A is
+	including COMMON
 	op test1 : -> KLabel
 	eq test1 = 'SomeLabel
-end module
+endkm
 
 
-module ISSUE134B 
-	imports COMMON
+kmod ISSUE134B is
+	including COMMON
 	op test2 : -> KLabel
 	eq test2 = 'SomeLabel
-end module
+endkm
 
-module ISSUE134 
-	imports ISSUE134A
-	imports ISSUE134B
-end module
+kmod ISSUE134 is
+	including ISSUE134A
+	including ISSUE134B
+endkm

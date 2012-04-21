@@ -1,6 +1,8 @@
 
-module ISSUE
-	syntax K ::= "test1" | "test2" | "test3" | "test4" | "test5" | "test6"
+kmod ISSUE is
+	including K 
+	including K-CONTEXTS 
+	syntax K ::= test1 | test2 | test3 | test4 | test5 | test6
 	define [labeled-rule]:
 		test1 => 'SomeLabel(.List{K}) 
 	define [labeled-large]:
@@ -15,4 +17,4 @@ module ISSUE
 		test6 => 'SomeLabel(.List{K})
 	[structural]
 
-end module
+endkm

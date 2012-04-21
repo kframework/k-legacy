@@ -1,7 +1,7 @@
 
-module ISSUE154
+kmod ISSUE154 is
     configuration <T> <k> .K </k> </T>
 
-    op test : -> String
+    op test : -> #String
     eq test = "<test>"
-end module
+endkm

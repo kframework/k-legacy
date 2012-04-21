@@ -1,10 +1,10 @@
-module TEST
+kmod TEST is including K
 
-  syntax K ::= "workshop"
+  syntax K ::= workshop
 
   configuration
     <T color="yellow">
       <k color="green"> workshop </k>
     </T>
 
-end module
+endkm

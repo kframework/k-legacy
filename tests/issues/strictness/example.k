@@ -1,5 +1,5 @@
 
-module ISSUE is
+kmod ISSUE is
     tags nerd local
 	syntax K ::= K + K [strict(1) nerd]
                   |  K * K [strict nerd]
@@ -12,12 +12,12 @@ module ISSUE is
 
         rule <k> wrap(0) => 0 ...</k> [local]
         
-        syntax KResult ::= Int
+        syntax KResult ::= #Int
 
         configuration <k> .K </k> <out> .List </out>
 
 
-  rule <k> print sNat(N:Nat) => print(N) ~> skip ...</k> <out>... . => ListItem(sNat(N)) </out> [local]
+  rule <k> print sNat(N:#Nat) => print(N) ~> skip ...</k> <out>... . => ListItem(sNat(N)) </out> [local]
   rule <k> print 0 => 0 ...</k> <out>... . => ListItem(0) </out> [local]
   rule 0 + 0 => 0
   rule <k> 0 ~> skip => 0 ...</k>
@@ -31,4 +31,4 @@ module ISSUE is
      syntax Bag ::= start | end 
    rule start => <k> test </k> <out> . </out>
    rule <k> K:K </k> <out> ListItem(2) ListItem(1) ListItem(3) </out> => end
-end module
+endkm

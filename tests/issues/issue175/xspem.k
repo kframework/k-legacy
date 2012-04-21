@@ -1,21 +1,21 @@
 
 
 
-module OCL-SOLVER is 
-  syntax Formula ::=  `True | `False | forAll ( Id : Id `| Bool )
+kmod OCL-SOLVER is 
+  syntax Formula ::=  `True | `False | forAll ( #Id : #Id `| #Bool )
   syntax Builtins ::= Formula 
-end module
+endkm
 
-module META-MODEL imports OCL-SOLVER
+kmod META-MODEL is including OCL-SOLVER
 
-  syntax Id ::= object
+  syntax #Id ::= object
 
-  syntax Id ::= initState | state | automaton | transition
+  syntax #Id ::= initState | state | automaton | transition
               | label | trace | dest | orig | in | out | name | active
 
-  syntax K ::= Id | undefined  
+  syntax K ::= #Id | undefined  
 
-  syntax ListItem ::= Id : KLabel [prec 20]
+  syntax ListItem ::= #Id : KLabel [prec 20]
 
 
 
@@ -23,8 +23,8 @@ module META-MODEL imports OCL-SOLVER
                   <metamodel>
                     <classes>
                       <class multiplicity="*">
-                         <className> Id:Id </className>
-                         <extends> Id:Id </extends>
+                         <className> Id:#Id </className>
+                         <extends> Id:#Id </extends>
                          <declAttributes> .List  </declAttributes>
                       </class>
                     </classes>
@@ -41,9 +41,9 @@ module META-MODEL imports OCL-SOLVER
                   </models>
                 </T>
     
-end module
+endkm
 
-module META-AUTOMATON imports META-MODEL
+kmod META-AUTOMATON is including META-MODEL
 
 
   syntax Bag ::= metaAutomaton 
@@ -116,12 +116,12 @@ module META-AUTOMATON imports META-MODEL
           <_/attributes>
        </instance> 
 
-end module
+endkm
 
 
-module AN-AUTOMATON imports META-AUTOMATON
+kmod AN-AUTOMATON is including META-AUTOMATON
 
-  syntax Id ::= a | b | eps | s0 | s1 | t1 | t2 | t3 
+  syntax #Id ::= a | b | eps | s0 | s1 | t1 | t2 | t3 
 
   syntax Bag ::= anAutomaton
 
@@ -180,9 +180,9 @@ module AN-AUTOMATON imports META-AUTOMATON
     </instance>
   </model>
 
-end module
+endkm
 
-module XSPEM imports AN-AUTOMATON 
+kmod XSPEM is including AN-AUTOMATON 
   
   syntax Bag ::= initConfig
 
@@ -192,6 +192,6 @@ module XSPEM imports AN-AUTOMATON
            anAutomaton
         <_/T>
 
-end module
+endkm
 
 

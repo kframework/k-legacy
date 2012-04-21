@@ -1,11 +1,11 @@
 
-module COMMON is
+kmod COMMON is
 	including K 
 	including K-CONTEXTS 
 	including K-PROPER
-end module
+endkm
 
-module ISSUE is
+kmod ISSUE is
 	including COMMON
 	
 	syntax K ::= a | b | c | d | f
@@ -23,4 +23,4 @@ module ISSUE is
 	rule Var:K => f
 		where Var:K = d
 		
-end module
+endkm

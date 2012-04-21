@@ -1,13 +1,13 @@
-module OTHERMODULE is
+kmod OTHERMODULE is
 	including K
 	syntax K ::= foo-foo
 	syntax K ::= bar
-end module
-module ISSUE is
+endkm
+kmod ISSUE is
 	including OTHERMODULE
 	
 	syntax K ::= test
 	
 	rule test => 'foo-foo(.List{K}) [structural]
 	rule ('foo-foo => 'bar)(.List{K}) [structural]
-end module
+endkm

@@ -1,3 +1,3 @@
-module ERROR is
+kmod ERROR is
     including NONEXISTENT
-end module
+endkm

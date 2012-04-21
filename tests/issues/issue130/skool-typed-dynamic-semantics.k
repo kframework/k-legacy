@@ -2,7 +2,7 @@
 --- SKOOL-TYPED-DYNAMIC-SEMANTICS module ---
 --------------------------------------------
 
-module SKOOL-TYPED-DYNAMIC-SEMANTICS imports SKOOL-TYPED-DYNAMIC-DESUGARED-SYNTAX + K 
+kmod SKOOL-TYPED-DYNAMIC-SEMANTICS is including SKOOL-TYPED-DYNAMIC-DESUGARED-SYNTAX + K 
 
 -------------------------------------------------------------
 --- Values that various fragments of programs evaluate to ---
@@ -517,4 +517,4 @@ module SKOOL-TYPED-DYNAMIC-SEMANTICS imports SKOOL-TYPED-DYNAMIC-DESUGARED-SYNTA
   syntax List{Val} ::= Val | List{Bottom} |  List{Val} , List{Val} [ditto]
   syntax List{Exp} ::= List{Val}
 
-end module
+endkm

@@ -19,16 +19,14 @@ public class MaudeTask extends Thread {
 	private String _command;
 	private String _outputFile;
 	private String _errorFile;
-	private String _xmlFile;
 	private Process _maudeProcess;
 	public int returnValue;
 
-	public MaudeTask(String command, String outputFile, String errorFile, String xmlFile, Logger parentLogger) {
+	public MaudeTask(String command, String outputFile, String errorFile, Logger parentLogger) {
 		_command = command;
 		_outputFile = outputFile;
 		_logger = parentLogger;
 		_errorFile = errorFile;
-		_xmlFile = xmlFile;
 	}
 
 	@Override
@@ -55,7 +53,6 @@ public class MaudeTask extends Thread {
 		commands.add("maude");
 		commands.add("-no-wrap");
 		commands.add("-no-banner");
-		commands.add("-xml-log=" + _xmlFile);
 		maude.command(commands);
 		
 		Process maudeProcess = maude.start();

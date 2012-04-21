@@ -1,5 +1,5 @@
 
-module ISSUE is
+kmod ISSUE is
 	including K 
 	including K-CONTEXTS 
 	including K-PROPER
@@ -59,4 +59,4 @@ module ISSUE is
 			</staticSemantics>
 		</T>
 		
-end module
+endkm

@@ -1,14 +1,14 @@
 
-module CONTEXT-TRANSFORMERS-TEST
+kmod CONTEXT-TRANSFORMERS-TEST is
   configuration
     <T>  
       <threads> <thread multiplicity="*"> <k> .K </k> </thread> </threads> 
       <out> .List </out>
     </T>
 
-  syntax K ::= Int | print Int
+  syntax K ::= #Int | print #Int
 
-  rule <k> print I:Int => . <_/k> <out_> . => ListItem(I) </out>
+  rule <k> print I:#Int => . <_/k> <out_> . => ListItem(I) </out>
 
 
   syntax Bag ::= start | end
@@ -21,5 +21,5 @@ module CONTEXT-TRANSFORMERS-TEST
                 </T>
 
   rule <T_> <out> ListItem(5) </out> <_/T> => end
-end module
+endkm
 

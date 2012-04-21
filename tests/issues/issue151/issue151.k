@@ -1,5 +1,5 @@
 
-module ISSUE151 is
+kmod ISSUE151 is
 	including K 
     
     
@@ -7,4 +7,4 @@ module ISSUE151 is
     syntax K ::= F
     syntax ListItem ::= F
     
-end module
+endkm

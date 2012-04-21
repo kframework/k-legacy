@@ -12,7 +12,7 @@ LATEX_TOPMATTER = README.tex
 MAIN_FILE = simple-typed-dynamic
 
 # this is a space-separated list of basename maude files to run
-TESTS = 
+TESTS = simple-typed-dynamic-test.m
 
 # this is a space separated list of directories containing io_tests
 IO_TESTS = regression/diverse/tests regression/exceptions/tests regression/sorting/tests regression/threads/tests

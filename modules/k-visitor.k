@@ -9,10 +9,7 @@ module K-VISITOR imports K-WRAPPERS
   syntax KResult ::= visitedK List{K}  [latex "\framebox{${#1}$}"]
 
   rule visit Kl applying A if Pred:KLabel
-    => #if Pred(Kl) ==K true 
-       #then A(Kl) 
-       #else visiting Kl applying A if Pred 
-       #fi
+    => if Pred(Kl) ==Bool true then A(Kl) else visiting Kl applying A if Pred fi
    [structural]
 
   rule visiting Label(Kl) applying A if Pred
@@ -25,7 +22,7 @@ module K-VISITOR imports K-WRAPPERS
     => visit K1 applying A if Pred
     visitedL(~>) 
        visit K2 applying A if Pred
-   when K1 =/=K . andBool  K2 =/=K . 
+   when K1 =/=Bool . andBool  K2 =/=Bool . 
     [structural]
   rule visiting .List{K} applying A if Pred 
     => visitedK(.List{K}) 
