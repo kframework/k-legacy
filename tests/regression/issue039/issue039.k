@@ -1,10 +1,10 @@
 
 
-kmod LANG-SYNTAX is including #INT + #ID
+module LANG-SYNTAX 
 --- The main syntactic categories: Program, Class, Decl, Method, Exp and Stmt
 
 --- Basic constructs for expressions
-  syntax Exp ::= #Bool | #Int | #Id
+  syntax Exp ::= Bool | Int | Id
 
 
 -----------------------------------------------------------------------------
@@ -13,18 +13,18 @@ kmod LANG-SYNTAX is including #INT + #ID
 --- List{Id}
 
 
-  syntax Ids ::= List{#Id,","} 
+  syntax Ids ::= List{Id,","} 
 
   syntax Exps ::= List{Exp,","}
 
-  syntax Exp ::= #Id ( Exps )
+  syntax Exp ::= Id ( Exps )
 
 
 -----------------------------------------------------------------------------
-endkm
+end module
 
 
-kmod LANG-SEMANTICS is including LANG-SYNTAX + K + #CONVERSION
+module LANG-SEMANTICS imports LANG-SYNTAX 
 
  configuration
     <T>
@@ -32,12 +32,12 @@ kmod LANG-SEMANTICS is including LANG-SYNTAX + K + #CONVERSION
     </T>
 
 
-endkm
+end module
 
 
-kmod ISSUE039 is including LANG-SEMANTICS
- syntax #Id ::= a | b | c
+module ISSUE039 imports LANG-SEMANTICS
+ syntax Id ::= a | b | c
  syntax Exp ::= test
  macro test = a(b,c)
 
-endkm
+end module

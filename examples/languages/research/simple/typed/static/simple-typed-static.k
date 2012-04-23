@@ -5,8 +5,6 @@ module SIMPLE-TYPED-STATIC-SYNTAX
 The syntax of typed SIMPLE extends that of untyped SIMPLE with support
 for declaring types to variables and functions. */
 
-  syntax #Id ::= "main"
-
 /*@ \subsection{Types}
 Primitive, array and function types, as well as lists (or tuples) of types.
 The lists of types are useful for function arguments. */
@@ -16,9 +14,9 @@ The lists of types are useful for function arguments. */
                 | "string"
                 | "void"
                 | "arrayOf" Type
-                    [:prec(1) latex "{#1}\texttt{\char91\char93}":]
+                    [prec(1) latex "{#1}\texttt{\char91\char93}"]
                 | "function" "from" Types "to" Type
-                    [:prec(1) latex "({#1}\ \texttt{->}\ {#2})":]
+                    [prec(1) latex "({#1}\ \texttt{->}\ {#2})"]
   syntax Types ::= List{Type,","} [strict]
 
 /*@ \subsection{Declarations}
@@ -37,7 +35,7 @@ languages like this one, in practice you are expected to use external
 parsers for complex languages. */
 
   syntax Decl ::= "var" Exps ";"
-                | "function" #Id "(" Exps ")" ":" Type Stmt
+                | "function" Id "(" Exps ")" ":" Type Stmt
 
 /*@ \subsection{Expressions}
 The syntax of expressions is identical to that in untyped SIMPLE,
@@ -45,29 +43,29 @@ except for the last construct in the sequence below.  That is allowed
 exclusively only for parsing declarations, as described above.  It
 will be given no semantics. */
 
-  syntax Exp ::= #Int | #Bool | #String | #Id
-               | "++" Exp              [:prec(0):]
-               | Exp "+" Exp           [:strict prec(33) gather(E e):]
-               | Exp "-" Exp           [:strict prec(33) gather(E e):]
-               | Exp "*" Exp           [:strict prec(31) gather(E e):]
-               | Exp "/" Exp           [:strict prec(31) gather(E e):]
-               | Exp "%" Exp           [:strict prec(31) gather(E e):]
-               | "-" Exp               [:strict:]
-               | Exp "<" Exp           [:strict prec(37):]
-               | Exp "<=" Exp          [:strict prec(37):]
-               | Exp ">" Exp           [:strict prec(37):]
-               | Exp ">=" Exp          [:strict prec(37):]
-               | Exp "==" Exp          [:strict prec(37):]
-               | Exp "!=" Exp          [:strict prec(37):]
-               | Exp "and" Exp         [:strict prec(55) gather(E e):]
-               | Exp "or" Exp          [:strict prec(59) gather(E e):]
-               | "not" Exp             [:strict prec(53):]
-               | Exp "[" Exps "]"      [:strict prec(1):]
-               | "sizeOf" "(" Exp ")"  [:strict:]
-               | Exp "(" Exps ")"      [:strict prec(2):]
+  syntax Exp ::= Int | Bool | String | Id
+               | "++" Exp              [prec(0)]
+               | Exp "+" Exp           [strict prec(33) gather(E e)]
+               | Exp "-" Exp           [strict prec(33) gather(E e)]
+               | Exp "*" Exp           [strict prec(31) gather(E e)]
+               | Exp "/" Exp           [strict prec(31) gather(E e)]
+               | Exp "%" Exp           [strict prec(31) gather(E e)]
+               | "-" Exp               [strict]
+               | Exp "<" Exp           [strict prec(37)]
+               | Exp "<=" Exp          [strict prec(37)]
+               | Exp ">" Exp           [strict prec(37)]
+               | Exp ">=" Exp          [strict prec(37)]
+               | Exp "==" Exp          [strict prec(37)]
+               | Exp "!=" Exp          [strict prec(37)]
+               | Exp "and" Exp         [strict prec(55) gather(E e)]
+               | Exp "or" Exp          [strict prec(59) gather(E e)]
+               | "not" Exp             [strict prec(53)]
+               | Exp "[" Exps "]"      [strict prec(1)]
+               | "sizeOf" "(" Exp ")"  [strict]
+               | Exp "(" Exps ")"      [strict prec(2)]
                | "read" "(" ")"
-               | Exp "=" Exp           [:strict(2) prec(40) gather (e E):]
-               | Exp ":" Type          [:prec(10):]
+               | Exp "=" Exp           [strict(2) prec(40) gather (e E)]
+               | Exp ":" Type          [prec(10)]
                                        // allowed only for declarations
   syntax Exps ::= List{Exp,","}
 
@@ -83,23 +81,23 @@ type the actual construct. */
 
   syntax Stmt ::= "{" "}"
                 | "{" Stmts "}"
-                | Exp ";"                               [:strict prec(45):]
-                | "if" Exp "then" Stmt "else" Stmt      [:strict prec(90):]
-                | "if" Exp "then" Stmt                  [:prec(89):]
-                | "while" Exp "do" Stmt                 [:strict prec(90):]
-                | "for" #Id "=" Exp "to" Exp "do" Stmt  [:prec(90):]
-                | "return" Exp ";"                      [:strict:]
+                | Exp ";"                               [strict prec(45)]
+                | "if" Exp "then" Stmt "else" Stmt      [strict prec(90)]
+                | "if" Exp "then" Stmt                  [prec(89)]
+                | "while" Exp "do" Stmt                 [strict prec(90)]
+                | "for" Id "=" Exp "to" Exp "do" Stmt  [prec(90)]
+                | "return" Exp ";"                      [strict]
                 | "return" ";"
-                | "print" "(" Exps ")" ";"              [:strict:]
-                | "try" Stmt "catch" "(" #Id ")" Stmt   [:strict(1) prec(90):]
-                | "throw" Exp ";"                       [:strict:]
-                | "spawn" Stmt                          [:strict prec(90):]
-                | "acquire" Exp ";"                     [:strict:]
-                | "release" Exp ";"                     [:strict:]
-                | "rendezvous" Exp ";"                  [:strict:]
+                | "print" "(" Exps ")" ";"              [strict]
+                | "try" Stmt "catch" "(" Id ")" Stmt   [strict(1) prec(90)]
+                | "throw" Exp ";"                       [strict]
+                | "spawn" Stmt                          [strict prec(90)]
+                | "acquire" Exp ";"                     [strict]
+                | "release" Exp ";"                     [strict]
+                | "rendezvous" Exp ";"                  [strict]
 
   syntax Stmts ::= Decl | Stmt
-                 | Stmts Stmts            [:seqstrict prec(100) gather(e E):]
+                 | Stmts Stmts            [seqstrict prec(100) gather(e E)]
 
 /*@ We use the same desugaring macros like in untyped SIMPLE, but, of
 course, including the types of the involved variables. */
@@ -107,7 +105,7 @@ course, including the types of the involved variables. */
   macro if E:Exp then S:Stmt = if E then S else {}
   macro (for X = E1 to E2 do S) = {var X:int=E1; while X <= E2 do {S X=X+1;}}
   macro var E1:Exp, E2:Exp, Es:Exps; = var E1; var E2, Es;
-  macro var X:#Id : T:Type = E; = var X : T; X = E;
+  macro var X:Id : T:Type = E; = var X : T; X = E;
 end module
 
 
@@ -217,7 +215,7 @@ references). */
 
   syntax Type ::= "stmt"
 
-  rule var .Types; => stmt   [:structural:]
+  rule var .Types; => stmt   [structural]
 
   rule <task> <k> var X : T; => stmt ...</k> </task>
        <gtenv> Rho:Map (. => X|->T) </gtenv>
@@ -228,16 +226,16 @@ references). */
        <gtenv>...X|->_...</gtenv>
        <out>... .=> ListItem("Global identifier \"" +String Id2String(X)
                              +String "\" declared twice!\n") </out>
-    [:structural:]
+    [structural]
 
-  rule <k> var X:#Id : T:Type; => stmt ...</k>
+  rule <k> var X:Id : T:Type; => stmt ...</k>
        <tenv> Rho:Map => Rho[T / X] </tenv>
 
   context var _[HOLE] : _,.Exps;
-  rule var X[Ts:Types] : T; => checkDepth(Ts,T) ~> var X : T;  [:structural:]
+  rule var X[Ts:Types] : T; => checkDepth(Ts,T) ~> var X : T;  [structural]
   syntax K ::= "checkDepth" "(" Types "," Type ")"
-  rule checkDepth((int,Ts => Ts), (arrayOf T => T))   [:structural:]
-  rule checkDepth(.Types,_) => .K                     [:structural:]
+  rule checkDepth((int,Ts => Ts), (arrayOf T => T))   [structural]
+  rule checkDepth(.Types,_) => .K                     [structural]
 
 
 /*@ \subsection{Function declarations}
@@ -251,14 +249,15 @@ together with the expected return type of the function.  The
 \texttt{types} operation ensures that all the ``expressions'' in $\it
 XTs$ are actually nothing but typed identifiers. */
 
-  rule <task> <k> function F:#Id(XTs:Exps) : T S:Stmt
+  rule <task> <k> function F:Id(XTs:Exps) : T S:Stmt
                => var F : function from types(XTs) to T; ...</k> </task>
        (. => <task>
                <k> var XTs; S </k>
                <tenv> . </tenv>
                <return> T </return>
-             </task>)                                  [:structural:]
-  declare types : Exps -> Types 
+             </task>)                                  [structural]
+
+  syntax Types ::= "types" "(" Exps ")"      [function klabel(types)] 
   define types(.Exps) => void,.Types
   define types(X : T,.Exps) => T,.Types
   define types(X : T, E:Exp, Es:Exps) => T, types(E,Es)
@@ -271,10 +270,10 @@ generate a function task executing \texttt{main()} to ensure that it
 types (remove this task creation if you do not want your type system
 to reject programs without a \texttt{main} function). */
 
-  rule <task> <k> stmt => main(); </k>
+  rule <task> <k> stmt => String2Id("main")(); </k>
               (. => <tenv> . </tenv> <return> void </return>)
        </task>
-    [:structural:]
+    [structural]
 
 /*@ Similarly, once a non-main task (i.e., one which also contains
 \textsf{tenv} and \textsf{return} subcells) is completed using the
@@ -291,7 +290,7 @@ success message. */
 
   rule (<tasks> .Bag </tasks> => .)
        <out>... . => ListItem("Type checked!\n") </out>
-    [:structural:]
+    [structural]
 
 /*@ \subsection{Expressions}
 In theory, the first three rewrite rules below can apply anywhere
@@ -301,9 +300,9 @@ by rewriting, that would get into conflict with the internals of our
 implementation, so we restrict their application to the top of the
 \textsf{k} cell. */
 
-  rule <k> I:#Int => int ...</k>
-  rule <k> B:#Bool => bool ...</k>
-  rule <k> Str:#String => string ...</k>
+  rule <k> I:Int => int ...</k>
+  rule <k> B:Bool => bool ...</k>
+  rule <k> Str:String => string ...</k>
 
 /*@ The are two cases to distinguish for variable lookup: if the
 variable is bound in the local type environment, then look its type up
@@ -328,8 +327,8 @@ integer in order to be allowed to be incremented, as seen in the rule
 ``\texttt{++ int => int}'' below. */
 
   syntax Exp ::= "ltype" "(" Exp ")"
-  rule ltype(X) => X                   [:structural:]
-  rule ltype(E:Exp[Es:Exps]) => E[Es]  [:structural:]
+  rule ltype(X) => X                   [structural]
+  rule ltype(E:Exp[Es:Exps]) => E[Es]  [structural]
 
   context ++(HOLE => ltype(HOLE))
   rule ++ int => int
@@ -353,7 +352,7 @@ integer in order to be allowed to be incremented, as seen in the rule
   rule T[.Types] => T
   rule sizeOf(arrayOf T) => int
   rule _`(_`)(function from Ts to T, Ts) => T
-    when Ts =/=Bool .Types
+    when Ts =/=K .Types
   rule _`(_`)(function from void to T, .Types) => T
   rule read() => int
 
@@ -389,9 +388,9 @@ exceptions can only have integer type. */
   rule while bool do stmt  => stmt
   rule <k> return T; => stmt ...</k> <return> T </return>
   rule return; => stmt
-  rule print(T,Ts => Ts);  when T ==Bool int orBool T ==Bool string
+  rule print(T,Ts => Ts);  when T ==K int orBool T ==K string
   rule print(.Types); => stmt
-  rule try stmt catch(X) S => {var X:int; S}  [:structural:]
+  rule try stmt catch(X) S => {var X:int; S}  [structural]
   rule throw int; => stmt
   rule spawn stmt => stmt
   rule acquire T; => stmt
@@ -405,6 +404,6 @@ the generated PDF, used to stuck computations with whatever
 computation we want as argument.  This should be generic, part of the
 \K framework. */
 
-  syntax K ::= "stuck" "(" K ")"  [:latex "\framebox{${#1}$}":]
+  syntax K ::= "stuck" "(" K ")"  [latex "\framebox{${#1}$}"]
 
 end module

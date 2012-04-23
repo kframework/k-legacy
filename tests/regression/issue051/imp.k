@@ -9,25 +9,25 @@
 
 
 
-kmod IMP-SYNTAX is 
-  syntax AExp ::= #Id | #Int
+module IMP-SYNTAX
+  syntax AExp ::= Id | Int
                 | AExp + AExp [prec 33 gather (E e) format(d b o d) strict]
                 | AExp / AExp [prec 31 gather (E e) format(d b o d) strict]
-  syntax BExp ::= #Bool
+  syntax BExp ::= Bool
                 | AExp <= AExp [prec 37 format(d b o d) seqstrict latex "{#1}\leq{#2}"]
                 | not BExp [prec 53 format(b o d) strict]
                 | BExp and BExp [prec 55 format(d b o d) strict(1)]
   syntax Stmt ::= skip ; [format (b d o)]
-                | #Id = AExp ; [prec 40 format(d b o b o) strict(2)]
+                | Id = AExp ; [prec 40 format(d b o b o) strict(2)]
                 | Stmt Stmt [prec 60 gather (e E) format (d noi d)]
                 | if BExp then Stmt else Stmt [prec 59 format (b o bni n++i bn--i n++i --) strict(1)]
                 | while BExp do Stmt [prec 59 format (b o b n++i --)]
   syntax Pgm ::=  var IdList ; Stmt [prec 70 format (nb o d ni d)]
-  syntax IdList ::= List{#Id,","} 
-endkm
+  syntax IdList ::= List{Id,","} 
+end module
 
-kmod IMP-PROGRAMS is including IMP-SYNTAX 
-  syntax #Id   ::= a | b | c | d | e | f | g | h | i | j | k | l | m
+module IMP-PROGRAMS imports IMP-SYNTAX 
+  syntax Id   ::= a | b | c | d | e | f | g | h | i | j | k | l | m
                 | n | o | p | q | r | s | t | u | v | w | x | y | z
   syntax Pgm  ::= sumPgm | collatzPgm | countPrimesPgm
   syntax Stmt ::= collatzStmt | multiplicationStmt | primalityStmt
@@ -101,19 +101,19 @@ macro countPrimesPgm = (
      n=n+1;
    )
 )
-endkm
+end module
 
-kmod IMP-SEMANTICS is including IMP-SYNTAX + K
+module IMP-SEMANTICS imports IMP-SYNTAX 
   syntax K ::= AExp | BExp | Stmt | Pgm | IdList
-  syntax KResult ::= #Int | #Bool
+  syntax KResult ::= Int | Bool
 
   configuration <T> <k>.K</k> <state>.Map</state> </T>
 
-  rule <k>X:#Id => I:#Int<_/k> <state_>X|->I<_/state> 
-  rule '_+_(I1:#Int,,I2:#Int) => I1 +Int I2
-  rule I1 / I2 => I1 /Int I2  when I2 =/=Bool 0 
+  rule <k>X:Id => I:Int<_/k> <state_>X|->I<_/state> 
+  rule '_+_(I1:Int,,I2:Int) => I1 +Int I2
+  rule I1 / I2 => I1 /Int I2  when I2 =/=Int 0 
   rule I1 <= I2 => I1 <=Int I2
-  rule not(T:#Bool) => notBool T  
+  rule not(T:Bool) => notBool T  
   rule true and B:BExp => B  
   rule false and _  => false  
   rule skip; => .
@@ -132,11 +132,11 @@ kmod IMP-SEMANTICS is including IMP-SYNTAX + K
   where	X = var Xl:IdList; S and T = getList{K}(Xl)|->0  [structural] 
 
 
-endkm
+end module
 
-kmod IMP is including IMP-PROGRAMS + IMP-SEMANTICS 
+module IMP imports IMP-PROGRAMS + IMP-SEMANTICS 
   syntax Bag ::= [[ KLabel ]] [latex "\llbracket\,{#1}\,\rrbracket"] | pgm
   macro [[KL:KLabel]] = <T_> <k> KL(.List{K}) </k> <_/T>
   macro pgm = [['sumPgm]]
-endkm
+end module
 

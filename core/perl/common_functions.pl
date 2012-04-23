@@ -748,8 +748,9 @@ sub recurseIntoFiles
 		    if ( m!^kmod\s+(\S+)! ) {
 			$declaredKLabels .= " " . getDeclaredKLabelList($_);
 		}
-		elsif ( m!^(?:in|load|require)\s+(\S+)! ) 
+		elsif ( m!^(?:in|load|require)\s+\b([^\s\>]+)\b!m ) 
 		{
+#		    print "Matched: $1\n";
 				my $in = maudify($1, $file);
 				my $v_node = Tree::Nary->find($inclusionFileTree, $Tree::Nary::PRE_ORDER, 
 				$Tree::Nary::TRAVERSE_ALL, get_full_name($in));
@@ -1352,24 +1353,45 @@ sub register_subsorts
 
 }
 
-my $deep = 0;
-
+# my %seenModules = ();
+# these subroutines actually get all sorts for a given module
 sub getAllModules
 {
-	$deep ++;
-    my $mod = shift;
-    my $lsorts = "";
-    $lsorts = $sortMod{$mod} if (defined($sortMod{$mod}));
-    
-    my @incl = split(/\s+/, $moduleMap{$mod}) if defined($moduleMap{$mod});
-    
-    foreach (@incl)
-    {
-        $lsorts .= " " . getAllModules($_) if $deep < 300;	
-    }
+  my $mod = shift;
+  # %seenModules = ();
+  my $hashref = {};
+  recursiveGetAllModules($mod, $hashref, 0);
+  my @sortsArray = keys %$hashref;
+  my $sorts = "@sortsArray";
+  # print "$mod: $sorts\n";
+  return $sorts;
+}
+
+sub recursiveGetAllModules {
+	my $mod = shift;
+	my $hashref = shift;
+	my $depth = shift;
+	my $lsorts = "";
+	$lsorts = $sortMod{$mod} if (defined($sortMod{$mod}));
+	my @sorts = split(/\s+/, $lsorts);
+	for my $sort (@sorts) {
+		$hashref->{$sort} = 1;
+	}
+	# printf("\n%${depth}s%s: %s", "", $mod, $lsorts);
+	# if ($seenModules{$mod}) {return "";}  # no need to recurse if we've already seen it
+	# $seenModules{$mod} = 1;
+	my @incl = split(/\s+/, $moduleMap{$mod}) if defined($moduleMap{$mod});
+	
+	foreach my $submod (@incl) {
+		if ($depth < 300) {	 
+			recursiveGetAllModules($submod, $hashref, $depth+1);
+		} else {
+			die("Module inclusion tree too deep. Check for cycles, please.");
+		} 
+	}
     
 #	print "DEEP: $deep\n";
-    $lsorts;
+	# return $lsorts;
 }
 
 # return true if module includes K
@@ -1615,7 +1637,7 @@ sub uniq
 #       line numbers metadata                 #
 ###############################################
 
-my @k_attributes = qw(binder strict klabel metadata prec format assoc comm id hybrid gather hook extends ditto parser seqstrict structural anywhere defined transition supercool superheat large latex);
+my @k_attributes = qw(binder strict klabel metadata prec format assoc comm id hybrid gather hook extends ditto parser seqstrict structural anywhere defined function transition supercool superheat large latex);
 my $k_attributes_pattern = join("|",  @k_attributes);
 
 
@@ -2362,7 +2384,7 @@ sub get_checksum
 #########################
 
 # predefined tags
-my @tags = split(",", "klabel,metadata,location,ditto,prec,parser,latex,hybrid,arity,hook,extends,seqstrict,strict,binder,wrapping,structural,anywhere,defined,transition,supercool,superheat,computational,large,tag,strat,frozen");
+my @tags = split(",", "klabel,metadata,location,ditto,prec,parser,latex,hybrid,arity,hook,extends,seqstrict,strict,binder,wrapping,structural,anywhere,defined,function,transition,supercool,superheat,computational,large,tag,strat,frozen");
 
 
 sub get_tags
@@ -2881,7 +2903,7 @@ sub pre_process
     # collect all modules
     while(/kmod\s+([A-Z0-9\-]+)\s+.*?endkm/sg)
     {
-	push(@modules, $1) if ($1 ne "URIS" && $1 ne "K-VISITOR" && $1 ne "SUBSTITUTION");
+	push(@modules, $1) if ($1 ne "URIS" && $1 ne "K-VISITOR" && $1 ne "SUBSTITUTION" && $1 !~ /-HOOKS$/);
     }
     
     # Step: resolve latex comments
