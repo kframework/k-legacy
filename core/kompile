@@ -487,7 +487,7 @@ my $latex_special = '[\\#\\{\\}\\&\\_\\%]';
 my $kvar  = "[A-Za-z][A-Za-z0-9]*[']*";
 
 # Pattern matched by K sorts
-our $ksort = '#?[A-Z][A-Za-z0-9\`\+\?\!#]*(?:\{#?[A-Z][A-Za-z0-9\`\+\?\!]*(\,".*?")?\})?';
+our $ksort = '#?[A-Z][A-Za-z0-9\`\+\?\!#]*(?:\{#?[A-Z][A-Za-z0-9\`\+\?\!]*(\,"\S*?")?\})?';
 # TODO: test exhaustively :-)
 
 # Pattern matched by K variables
@@ -2537,7 +2537,6 @@ sub add_sorts {
 
 # Extracting all the defined sorts
     my @sorts = /\ssorts?((?:\s+$ksort)+)\s+(?=\.|$kmaude_keywords_pattern)/gs;
-
 
     @sorts = split(/\s+/, "@sorts");
 	
