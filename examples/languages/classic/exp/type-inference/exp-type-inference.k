@@ -1,3 +1,4 @@
+require /modules/unification
 
 module EXP-TYPE-INFERENCE-SYNTAX
 
@@ -139,6 +140,7 @@ module TYPES
   rule (T1 -> T2)[T / Tv] => T1[T / Tv] -> T2[T / Tv] [anywhere]
 
 // Map application.  Should be generic and builtin.
+/*
   syntax Types ::= Map "[" Types "]*"  [:prec(1):]
   syntax Type  ::= Map "[" Type  "]"   [:prec(1):]
 
@@ -147,6 +149,8 @@ module TYPES
 
   rule Theta[.Types]* => .Types [anywhere]
   rule Theta[T,Ts:Types]* => Theta[T],Theta[Ts]* [anywhere]
+*/
+
 
 // Next should probably be generic in some way, for all maps ...
 // although note that it does something specific for type schemas.
@@ -160,6 +164,7 @@ end module
 
 module EXP-TYPE-INFERENCE
   imports TYPES
+  imports UNIFICATION
 
 /*@ Note that the module \texttt{TYPES} was included above.  This
 module provides a series of primitive operations on types, such as
@@ -196,12 +201,7 @@ holds the current most-general unifier. */
   configuration <T color="yellow" multiplicity="?">
                   <k color="green"> $PGM:Exp </k>
                   <tenv color="LightSkyBlue"> .Map </tenv>
-                  <unification color="black">
-                    <eqns color="orange">
-                      <eqn multiplicity="*" color="red"> .K </eqn>
-                    </eqns>
-                    <mgu color="blue"> .Map </mgu>
-                  </unification>
+                  <mgu color="blue"> subst(.List{K}) </mgu>
                   <nextType> tv(0) </nextType>
                 </T>
 				<resultType multiplicity="?"> .K </resultType>
@@ -309,10 +309,10 @@ application operations, are defined in the imported \texttt{TYPES}
 module. */
 
   rule <k> let X = T in E => E ~> tenv(TEnv) ...</k>
-       <eqns> .Bag </eqns> <mgu> Theta:Map </mgu>
+       <mgu> subst(Theta:List{K}) </mgu>
        <tenv> TEnv
-        => TEnv[((forall diff(ftv(Theta[T]),ftv(Theta[types(TEnv)]*)))
-                 Theta[T]) / X]
+        => TEnv[((forall diff(ftv(applySubst(subst(Theta), T)),ftv(applySubst(subst(Theta),types(TEnv)))))
+                 applySubst(subst(Theta),T)) / X]
        </tenv>
 
   rule <k> X => T[|Tvs| from Tv / Tvs]* ...</k>
@@ -328,7 +328,7 @@ the unnecessary \textsf{eqns} cell, but prefer to keep the
 final configuration. */
 
 // You can remove the <mgu\> cell, too, from the final configuration
-  rule <k> T => Theta[T] </k> (<eqns> .Bag </eqns> => .) <mgu> Theta </mgu>
+  rule <k> T => applySubst(subst(Theta),T) </k>  <mgu> subst(Theta) </mgu>
 
 
 /*@ \section{Unification}
@@ -342,48 +342,9 @@ most general unifier from the equations. */
 
   syntax K ::= Types "=" Types  [:strict prec(100):]
 
-/*@ Type constraints are added to the set of equations as soon as they
-are matched on the top of the computation.  Since the mgu is held
-separately, we also apply it to the type equations.  This way, we are
-guaranteed that the variables in the domain of the mgu will never
-appear in the equations. */
+/*@ Type constraints are used to update the MGU as soon as they
+are matched on the top of the computation.   */
   rule <k> Ts:Types = Ts':Types => . ...</k>
-       (. => <eqn> Theta[Ts]* = Theta[Ts']* </eqn>)
-       <mgu> Theta:Map </mgu>
-
-//@ Cleanup, decomposition and orientation of equations.
-  rule <eqn> Ts = Ts </eqn> => .
-
-  rule <eqn> (T1,T2,Ts) = (T1':Type,T2':Type,Ts') </eqn>
-    => <eqn> T1 = T1' </eqn> <eqn> (T2,Ts) = (T2',Ts') </eqn>
-
-  rule <eqn> (T1 -> T2) = (T1' -> T2') </eqn>
-    => <eqn> T1 = T1' </eqn> <eqn> T2 = T2' </eqn>
-
-  rule <eqn> (T = Tv) => (Tv = T) </eqn>
-    when typeVar(Tv) andBool notBool(typeVar(T))
-
-/*@ When an equation contains a variable, it can be added as a binding
-to the mgu.  While we know that the variables in the domain of the mgu
-do not appear anywhere in the equations, it can be and usually is the
-case that variables appearing in the equations also appear in the
-codomain of the mgu.  Thus, we have to refine the mgu by applying the
-new binding to all its terms.  Moreover, to maintain the equations
-canonical in terms of the current mgu, we also have to refine the
-remaining equations by applying the new mgu binding to them. */
-
-  rule <eqns> Eqns:Bag <eqn> Tv = T </eqn> => refine(Eqns,Tv,T) </eqns>
-       <mgu> Theta => Tv |-> T refine(Theta,Tv,T) </mgu>
-    when notBool(Tv inType T)
-
-  syntax Map ::= "refine" "(" Map "," Type "," Type ")"
-  define refine(.Map,_,_) => .Map
-  define refine(Tv':Type|->T':Type Theta, Tv, T)
-    => Tv'|->T'[T/Tv] refine(Theta,Tv,T)
-
-  syntax Bag ::= "refine" "(" Bag "," Type "," Type ")"
-  define refine(.Bag,Tv,T) => .Bag
-  define refine(<eqn> T1 = T2 </eqn> Eqns, Tv, T)
-    => <eqn> T1[T/Tv] = T2[T/Tv] </eqn> refine(Eqns,Tv,T)
+       <mgu> subst(Theta) => updateMgu(subst(Theta),Ts,Ts') </mgu>
 
 end module
