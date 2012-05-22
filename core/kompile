@@ -20,7 +20,7 @@ BEGIN {
 # check installed software
 check_perl_packages("XML::DOM");
 check_perl_packages("Regexp::Common");
-check_perl_packages("XML::LibXML::Reader");
+#check_perl_packages("XML::LibXML::Reader");
 check_perl_packages("Tree::Nary");
 check_perl_packages("Text::Diff");
 
@@ -1186,7 +1186,7 @@ sub xmlify {
 	open FILE,">",$output_file_name or die "Cannot create $output_file_name\n";
 
 	print FILE "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\" ?>\n\n";
-	print FILE "<def mainFile=\"$lang_name\" mainModule=\"$language_module_name\" >\n";
+	print FILE "<def>\n<tags><mainfile>$lang_name</mainfile><mainmodule>$language_module_name</mainmodule></tags>\n";
 	print FILE $xml_output;
 	print FILE "</def>\n";
 	close FILE;

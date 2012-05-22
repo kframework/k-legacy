@@ -1,0 +1,18 @@
+load js-compile
+debug rewrite (
+< T > 
+ < k > 'GetIdentifierReference`(_`,_`)('$env`(_`,_`)('.Env(.List{K}),,'$obj`(_`)(#Int 0(.List{K}))),,#String "x"(.List{K})) ~> freezer("'PutValue`(_`,_`)(`[HOLE`]:K,,K2:K)")(freezeVar("K2:K")('$undefined(.List{K}))) ~> 'varPreDeclarations`(_`)(kList("wklist_")('$id`(_`)(#String "y"(.List{K})),,'$id`(_`)(#String "z"(.List{K})))) ~> 'funcPreDeclarations`(_`)(kList("wklist_")(.List{K})) ~> '$stmts`(_`)(kList("wklist_")('$undefined(.List{K}),,'$exp`(_`)('PutValue`(_`,_`)('$id`(_`)(#String "x"(.List{K})),,'$n`(_`)(#Int 1(.List{K}))) ~> '$n`(_`)(#Int 1(.List{K}))))) </ k > 
+ < globalEnv > '$obj`(_`)(#Int 0(.List{K})) </ globalEnv > 
+ < lexEnv > '$env`(_`,_`)('.Env(.List{K}),,'$obj`(_`)(#Int 0(.List{K}))) </ lexEnv > 
+ < nextLoc > #Int 1(.List{K}) </ nextLoc > 
+ < out > #String "void"(.List{K}) </ out > 
+ < fstack > (.).List </ fstack > 
+ < in > (.).List </ in > 
+ < heap > #Int 0(.List{K}) |-> '$rec`(_`)(wmap .(.List{K})) </ heap > </ T >
+) .
+
+
+load js-compile
+debug rewrite (
+	<k> $assignment($id("v"),$n(234)) ..</k>
+) .
