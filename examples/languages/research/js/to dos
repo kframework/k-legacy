@@ -1,0 +1,243 @@
+arithmetic
+object property hierarchy
+functions
+exceptions
+
+
+11.2.1
+p 39-42 property access
+
+
+
+when vs if
+
+syntax
+
+remove #s
+
+su
+
+at the k
+ [anywhere]
+
+only things that are marked as transition 
+
+
+branch -->>>
+
+svn switch 
+svn info --->>
+
+branchs/K2
+
+==Bool
+==k
+==Int
+=/=k
+
+
+
+
+
+
+
+
+
+
+
+| $program ( List{K} , List{K} , List{K} 
+| $initNewId ( #String , K )				--- var x = 3
+| $varDeclarations ( List{K} ) [strict]		--- var x, y, z
+
+| $typeof ( K ) [strict]				--- typeof Exp
+| $not ( K ) [strict]					--- ! Exp
+| $neg ( K ) [strict] 					--- - Exp
+| $plus ( K ) [strict] 					--- + Exp
+
+| $and ( K , K ) [strict(1)] 			--- Exp && Exp
+| $or ( K , K ) [strict(1)] 			--- Exp || Exp
+| $ternary ( K , K , K ) [strict(1)]	--- Exp ? Exp : Exp
+| $ifElse ( K , K , K ) [strict(1)]		--- if (Exp) Block Block
+| $assignment ( K , K ) [strict]		--- TargetExp Exp
+
+| $mul ( K , K ) [strict] 				--- Exp * Exp
+| $div ( K , K ) [strict] 				--- Exp / Exp
+| $mod ( K , K ) [strict] 				--- Exp % Exp
+| $add ( K , K ) [strict]				--- Exp + Exp
+| $sub ( K , K ) [strict] 				--- Exp - Exp
+| $lt ( K , K ) [strict] 				--- Exp < Exp
+| $lte ( K , K ) [strict] 				--- Exp <= Exp
+| $gt ( K , K ) [strict] 				--- Exp > Exp
+| $gte ( K , K ) [strict] 				--- Exp >= Exp
+
+| $inc ( K , #Bool ) [strict]			--- ++exp OR exp++
+| $dec ( K , #Bool ) [strict]			--- --exp OR exp--
+
+| $staticAccess ( K , K ) [strict] 		--- Exp . Name
+| $dynamicAccess ( K , K ) [strict] 	--- Exp [ Exp ]
+
+
+| $delete ( K ) [strict]				--- delete TargetExp  11.4
+
+| $objectLit ( List{K} ) [strict]		--- { CommaList{Property} }
+| $propertyLit ( K , K ) [strict]		--- PropertyName : Exp
+| $arrayLit ( List{K} ) [strict]		--- [ CommaList{Exp} ]
+
+| $exp ( K ) [strict]					--- exp
+| $stmts ( List{K} ) 					--- List{Stmt}
+| $block ( List{K} )					--- { stmts }
+| $comma ( List{K} )					--- Exp1, Exp2, Exp3
+
+
+
+| $compoundAssignment ( K , #Nat , K ) [strict]	--- TargetExp AssignmentOp Exp
+
+
+
+
+| $for ( K , K , K , K ) [strict(1)]		
+	--- for ( Inits ; Cond ; Incrs ) Block
+| $forIn ( K , K , K ) [strict(2)]
+	--- for ( Name in Exp ) Block
+| $while ( K , K )
+	--- while ( Exp ) Block
+| $do ( K , K )
+	--- do Block while ( Exp )
+| $switch ( K , List{K} , #Int ) [strict(1)]	
+	--- switch (Exp) { List{Case} ; DefaultCase }
+| $case ( K , K ) [strict(1)]	 		--- case Exp : Stmt
+| $default ( K ) 						--- default : Stmt
+
+
+| $function ( #Nat , #String , List{K} , List{K} )
+	--- function ( Parameters ) { Statements }
+	--- function Name ( Parameters ) { Statements }
+| $invocation ( K , K ) [strict] 		--- Exp ( CommaList )
+| $return ( K ) [strict]				--- return Exp | .
+
+| $new ( List{K} ) [strict]				--- new InvocationExp 11.2.2
+
+
+
+| $break ( K ) [strict] 				--- break Label | .
+| $continue ( K ) [strict] 				--- continue Label | .
+| $throw ( K ) [strict]					--- throw Exp
+| $label ( #String , K ) 
+
+| $try ( K , List{K} , K ) [strict]		--- 
+| $catch ( K , K )
+
+	
+| $labelledStmt ( K , K )	
+	--- Label : Stmt
+
+
+| $sameAs ( K , K ) [strict] 			--- Exp == Exp
+| $notSameAs ( K , K ) [strict] 		--- Exp != Exp
+| $identical ( K , K ) [strict] 		--- Exp === Exp
+| $notIdentical ( K , K ) [strict] 		--- Exp !== Exp
+
+
+
+
+
+| $in ( K , K ) [strict]				--- Exp in Exp
+| $instanceof ( K , K ) [strict] 		--- Exp instanceof Exp
+
+
+
+
+- enable $f to hold MaudeNumber instead of just Float
+- perhaps change $n/$f/$z back to $n/$z  enable
+
+
+
+=======
+
+
+toObject
+checkObjectCoercible
+asObject
+$TypeError
+
+$staticAccess
+$dynamicAccess
+accessPropertyAt
+
+| while Exp do Stmt            [prec 90]
+ | for #Id = Exp to Exp do Stmt  [prec 90]
+
+
+macro if E:Exp then S:Stmt = if E then S else {}
+macro (for X:#Id = E1:Exp to E2:Exp do S)
+    = {var X; X=E1; while X <= E2 do {S X=X+1;}}
+
+  rule <k> while B:Exp do S
+    => if B then {S while B do S} else {} ...</k> [structural]
+
+  rule (env(_) => .) ~> env(_) [structural]
+
+
+  syntax ListItem ::= ( #Id , Stmt , K , Map , Bag )
+  syntax K ::= popx
+  rule <k> (try S1 catch(X) S2 => S1 ~> popx) ~> K </k>
+       <control> <xstack> . => (X,S2,K,Env,C) ...</xstack> C:Bag </control>
+       <env> Env </env>
+  rule <k> popx => . ...</k> <xstack> _:ListItem => . ...</xstack>
+  rule <k> throw V; ~> _ => {var X=V; S2} ~> K </k>
+       <control> <xstack> (X,S2,K,Env,C) => . ...</xstack> (_ => C) </control>
+       <env> _ => Env </env>
+
+
+
+	--- ECMA-262 8.7.1
+	rule [getValue-value]: 
+		getValue(Value:V) => Value	if type(Value) =/=Bool "binding"				[structural]
+
+	rule [getValue-unresolved]: 
+		getValue($binding(.None, Name:#String)) 
+		=> $throw($ReferenceError("Unresolvable property reference: " +String Name +String "!"))  
+		[structural]
+
+	rule [getValue-identifier]:
+		getValue($binding(Obj:V, Name:#String)) => getPropertyValue(Obj, Name)		[structural]
+
+		rule [getTarget]:
+			getTarget($binding(Target:V, _)) => Target
+			[structural]
+
+		rule [getPropertyName]:
+			getPropertyName($binding(_, Name:#String)) => Name
+			[structural]
+
+
+			rew go(
+				$program(.Empty,.Empty,$exp($b(false)),,$exp($b(true)),,$exp($n(123)),,$exp($n(123.4)))
+			) .
+
+
+
+
+			macro	rule
+			10				prim obj accessor ops
+			2		2 		helper ops
+			39				type ops
+			28				type conversion ops
+					2		logic ops 
+			2		2		conditional ops 
+			17				env/obj rec ops
+			4		1		identifier resolution ops
+			5				general get/put ops
+			6				control structure ops
+			1		1		unary logic ops
+			5		2		unary arith ops
+			46		4		arithmetic ops
+			11		4		comparison ops
+			3		1		identity ops
+			2		1		property access ops
+			3				restructuring from parser ops
+			6				program
+			13				assignment
+
+
+			220

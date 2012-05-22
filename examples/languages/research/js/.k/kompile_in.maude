@@ -1,6 +1,0 @@
-
-load "/Users/m3rabb/Dev/Maude/k2/core/maude/compiler/../lib/k-prelude"
- load "js"
- show module JS .
- quit
-

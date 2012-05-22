@@ -104,8 +104,8 @@ kmod JS-SYNTAX is including JS-PRIMITIVES + K
 		| $in ( K , K ) [seqstrict]				--- Exp in Exp
 		| $instanceof ( K , K ) [seqstrict] 		--- Exp instanceof Exp
 		
-		| $sameAs ( K , K ) [seqstrict] 			--- Exp == Exp
-		| $notSameAs ( K , K ) [seqstrict] 		--- Exp != Exp
+		| $equal ( K , K ) [seqstrict] 			--- Exp == Exp
+		| $notEqual ( K , K ) [seqstrict] 		--- Exp != Exp
 		| $identical ( K , K ) [seqstrict] 		--- Exp === Exp
 		| $notIdentical ( K , K ) [seqstrict] 		--- Exp !== Exp
 		
