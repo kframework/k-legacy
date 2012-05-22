@@ -67,7 +67,7 @@ kmod JS-SYNTAX is including JS-PRIMITIVES + K
 	
 	syntax List{K} ::= .Empty
 	
-	macro .Empty = .List{K}
+	macro .Empty = .List{K}  --- Maybe make this a rule !!!
 	
 	
 	syntax K ::= 

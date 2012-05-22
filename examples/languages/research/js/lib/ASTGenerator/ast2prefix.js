@@ -10,8 +10,7 @@
 JSAST = (function () {
 	"use strict";
 	
-	var WORKING_DIR = "/Users/m3rabb/Dev/Maude/k-framework/examples/inProgress/js/",
-		INDENTATION = "\t",
+	var WORKING_DIR = "/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/",
 		_Parser = Narcissus.parser,
 		_Node = _Parser.Node,
 		_definitions = Narcissus.definitions,
@@ -44,7 +43,7 @@ JSAST = (function () {
 		}
 
 		function _hasArrayedParameter(spec) {
-			return spec[spec.length - 1] === "!";
+			return spec[spec.length - 1] === "*";
 		}
 
 		function _createConverter(_prefixName, _parameterBuilder) {
@@ -97,9 +96,9 @@ JSAST = (function () {
 			'NULL'			: '$null',
 			'THIS'			: '$this',
 			'IDENTIFIER'	: identifierConverter,
-			'DOT'			: '$staticAccess          children!',
-			'INDEX'			: '$dynamicAccess         children!',
-			'CALL'			: '$invoke                children!',
+			'DOT'			: '$staticAccess          children*',
+			'INDEX'			: '$dynamicAccess         children*',
+			'CALL'			: '$invoke                children*',
 			// 'NEW'	: '$new                   children',
 			'NEW_WITH_ARGS'	: '$new                   children',
 			'INCREMENT'		: '$inc                   children postfix',
@@ -109,28 +108,28 @@ JSAST = (function () {
 			'NOT'			: '$not                   children',
 			'UNARY_MINUS'	: '$neg                   children',
 			'UNARY_PLUS'	: '$plus                  children',
-			'MUL'			: '$mul                   children!',
-			'DIV'			: '$div                   children!',
-			'MOD'			: '$mod                   children!',	
-			'PLUS'			: '$add                   children!',
-			'MINUS'			: '$sub                   children!',
-			'LT'			: '$lt                    children!',
-			'LE'			: '$lte                   children!',
-			'GT'			: '$gt                    children!',
-			'GE'			: '$gte                   children!',
-			'IN'			: '$in                    children!',
-			'INSTANCEOF'	: '$instanceof            children!',
-			'EQ'			: '$sameAs                children!',
-			'NE'			: '$notSameAs             children!',
-			'STRICT_EQ'		: '$identical             children!',
-			'STRICT_NE'		: '$notIdentical          children!',
-			'AND'			: '$and                   children!',
-			'OR'			: '$or                    children!',
-			'HOOK'			: '$ternary               children!',
+			'MUL'			: '$mul                   children*',
+			'DIV'			: '$div                   children*',
+			'MOD'			: '$mod                   children*',	
+			'PLUS'			: '$add                   children*',
+			'MINUS'			: '$sub                   children*',
+			'LT'			: '$lt                    children*',
+			'LE'			: '$lte                   children*',
+			'GT'			: '$gt                    children*',
+			'GE'			: '$gte                   children*',
+			'IN'			: '$in                    children*',
+			'INSTANCEOF'	: '$instanceof            children*',
+			'EQ'			: '$equal                 children*',
+			'NE'			: '$notEqual              children*',
+			'STRICT_EQ'		: '$identical             children*',
+			'STRICT_NE'		: '$notIdentical          children*',
+			'AND'			: '$and                   children*',
+			'OR'			: '$or                    children*',
+			'HOOK'			: '$ternary               children*',
 			'ASSIGN'		: assignConverter,
 			'ARRAY_INIT'	: '$arrayLit              children',
 			'OBJECT_INIT'	: '$objectLit             children',
-			'PROPERTY_INIT'	: '$propertyLit           children!',
+			'PROPERTY_INIT'	: '$propertyLit           children*',
 			'RETURN'		: '$return                value',
 			'BREAK'			: '$break                 label',
 			'CONTINUE'		: '$continue              label',
@@ -151,7 +150,7 @@ JSAST = (function () {
 			'DO'			: '$do                    condition body',
 			'LABEL'			: '$label                 label statement',
 			'VAR'			: '$varDeclarations       children',
-			'FUNCTION'		: '$function              functionForm name params body', //params!
+			'FUNCTION'		: '$function              functionForm name params body', //params*
 			'SCRIPT'		: '$program               varDecls funDecls children'
 		};
 		

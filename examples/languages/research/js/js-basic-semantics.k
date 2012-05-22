@@ -22,17 +22,17 @@ endkm
 kmod JS-TYPE is including JS-UTILITY
 	syntax String ::= jsType( V )
 	
-	rule jsType($u)		 			=> "undefined"	[structural]
-	rule jsType($null) 				=> "null"		[structural]
-	rule jsType($b(_)) 				=> "boolean"	[structural]
-	rule jsType($z(_)) 				=> "finite"		[structural]
-	rule jsType($f(_)) 				=> "finite"		[structural]
-	rule jsType($inf(_)) 			=> "infinite"	[structural]
-	rule jsType($nan) 				=> "nan"		[structural]
-	rule jsType($s(_)) 				=> "string"		[structural]
-	rule jsType($obj(_)) 			=> "object"		[structural]
-	rule jsType($binding(_,_))		=> "binding"	[structural]
-	--- rule jsType($function(_,_,_,_))	=> "function"	[structural]
+	rule jsType($u)		 			=> "undefined"	[structural anywhere]
+	rule jsType($null) 				=> "null"		[structural anywhere]
+	rule jsType($b(_)) 				=> "boolean"	[structural anywhere]
+	rule jsType($z(_)) 				=> "finite"		[structural anywhere]
+	rule jsType($f(_)) 				=> "finite"		[structural anywhere]
+	rule jsType($inf(_)) 			=> "infinite"	[structural anywhere]
+	rule jsType($nan) 				=> "nan"		[structural anywhere]
+	rule jsType($s(_)) 				=> "string"		[structural anywhere]
+	rule jsType($obj(_)) 			=> "object"		[structural anywhere]
+	rule jsType($binding(_,_))		=> "binding"	[structural anywhere]
+	--- rule jsType($function(_,_,_,_))	=> "function"	[structural anywhere]
 endkm
 
 kmod JS-TYPEOF is including JS-TYPE
@@ -80,28 +80,28 @@ kmod JS-TESTING is including JS-TYPEOF
 	syntax Bool ::= notBinding( V ) 
 	
 	
-	rule isTruthy($u) 					=> false		 [structural]
-	rule isTruthy($null) 				=> false		 [structural]
-	rule isTruthy($b(B:Bool)) 			=> B			 [structural]
-	rule isTruthy($z(_)) 				=> false		 [structural]
-	rule isTruthy($f(_)) 				=> true			 [structural]
-	rule isTruthy($inf(_)) 				=> true			 [structural]
-	rule isTruthy($nan) 				=> false		 [structural]
-	rule isTruthy($s(S:String)) 		=> S =/=K ""  [structural]
-	rule isTruthy($obj(_)) 				=> true			 [structural]
+	rule isTruthy($u) 					=> false		 [structural anywhere]
+	rule isTruthy($null) 				=> false		 [structural anywhere]
+	rule isTruthy($b(B:Bool)) 			=> B			 [structural anywhere]
+	rule isTruthy($z(_)) 				=> false		 [structural anywhere]
+	rule isTruthy($f(_)) 				=> true			 [structural anywhere]
+	rule isTruthy($inf(_)) 				=> true			 [structural anywhere]
+	rule isTruthy($nan) 				=> false		 [structural anywhere]
+	rule isTruthy($s(S:String)) 		=> S =/=K ""	 [structural anywhere]
+	rule isTruthy($obj(_)) 				=> true			 [structural anywhere]
 	--- rule jsType($function(_,_,_,_))
 	
-	rule [isFinite]: isFinite(Value:V) 		=> jsType(Value) ==K "finite"		[structural]
-	rule [notNan]: notNan(Value:V) 			=> jsType(Value) =/=K "nan"			[structural]
+	rule [isFinite]: isFinite(Value:V) 		=> jsType(Value) ==K "finite"	[structural anywhere]
+	rule [notNan]: notNan(Value:V) 			=> jsType(Value) =/=K "nan"		[structural anywhere]
 	
-	rule [isNumber]: isNumber(Value:V) 		=> typeof(Value) ==K "number"		[structural]
-	rule [notNumber]: notNumber(Value:V) 	=> typeof(Value) =/=K "number"		[structural]
+	rule [isNumber]: isNumber(Value:V) 		=> typeof(Value) ==K "number"	[structural anywhere]
+	rule [notNumber]: notNumber(Value:V) 	=> typeof(Value) =/=K "number"	[structural anywhere]
 	
-	rule [isString]: notString(Value:V) 	=>	jsType(Value) ==K "string"		[structural]
-	rule [notString]: notString(Value:V) 	=>	jsType(Value) =/=K "string"		[structural]
+	rule [isString]: notString(Value:V) 	=>	jsType(Value) ==K "string"	[structural anywhere]
+	rule [notString]: notString(Value:V) 	=>	jsType(Value) =/=K "string"	[structural anywhere]
 	
-	rule [isBinding]: isBinding(Value:V)	=>	jsType(Value) ==K "binding"		[structural]
-	rule [notBinding]: notBinding(Value:V)	=>	jsType(Value) =/=K "binding"		[structural]
+	rule [isBinding]: isBinding(Value:V)	=>	jsType(Value) ==K "binding"	[structural anywhere]
+	rule [notBinding]: notBinding(Value:V)	=>	jsType(Value) =/=K "binding" [structural anywhere]
 endkm
 
 kmod JS-CONVERSIONS is including JS-TESTING
@@ -172,8 +172,8 @@ kmod JS-LOGIC is including JS-CONVERSIONS
 	--- TODO: write this in terms of using 'if' below.
 	
 	--- ECMA-262 11.11
-	rule $and(Value:V, Exp:K)	=> #if isTruthy(Value) #then Exp #else Value #fi
-	rule $or(Value:V, Exp:K) 	=> #if isTruthy(Value) #then Value #else Exp #fi
+	rule [and]: $and(Value:V, Exp:K)	=> #if isTruthy(Value) #then Exp #else Value #fi
+	rule [or]:  $or(Value:V, Exp:K) 	=> #if isTruthy(Value) #then Value #else Exp #fi
 	
 endkm
 
@@ -237,44 +237,44 @@ kmod JS-ENV-REC is including JS-CONDITIONAL
 	rule [hasRecProperty]:
 		hasRecProperty($rec(Properties:Map), Name:String) 
 		=> isKeyPresent(Properties, Name)  
-		[structural]
+		[structural anywhere]
 
 	rule [hasNoRecProperty]:
 		hasNoRecProperty($rec(Properties:Map), Name:String) 
 		=> isKeyAbsent(Properties, Name)  
-		[structural]
+		[structural anywhere]
 
 	rule [getRecValueIfAbsent-absent]:
 		getRecValueIfAbsent($rec(Properties:Map), Name:String, AbsentAction:K) 
 		=> AbsentAction
 		when isKeyAbsent(Properties, Name)  
-		[structural]
+		[structural anywhere]
 
 	rule [getRecValueIfAbsent-present]:
 		getRecValueIfAbsent($rec(Name |-> Value:V Extra:Map), Name:String, _) 
 		=> Value  
-		[structural]
+		[structural anywhere]
 
 
 	rule [getEnsuredRecValue]:
 		getEnsuredRecValue($rec(Properties:Map), Name:String) 
 		=> Properties(Name)  
-		[structural]
+		[structural anywhere]
 
 	rule [copyRecWithValue]:
 		copyRecWithValue($rec(Properties:Map), Name:String, Value:V) 
 		=> $rec(Properties[Value / Name])  
-		[structural]
+		[structural anywhere]
 	
 	rule [copyRecWithoutProperty-absent]:
 		copyRecWithoutProperty(Rec:V, Name:String) => Rec
 		when hasNoRecProperty(Rec, Name)  
-		[structural]
+		[structural anywhere]
 
 	rule [copyRecWithoutProperty-present]:
 		copyRecWithoutProperty($rec(Name |-> _ Extra:Map), Name:String) 
 		=> $rec(Extra)
-		[structural]
+		[structural anywhere]
 endkm
 
 kmod JS-OBJ is including JS-ENV-REC + JS-CONFIGURATION

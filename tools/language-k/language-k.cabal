@@ -27,7 +27,7 @@ Library
   Build-depends:
     base >= 4 && < 5,
     mtl,
-    parsec > 3,
+    parsec >= 3.1.2,
     ansi-wl-pprint >= 0.6,
     text,
     attoparsec >= 0.10.0.0

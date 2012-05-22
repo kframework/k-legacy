@@ -209,7 +209,7 @@ kmod JS-COMPARISON is including JS-PREFIX-POSTFIX
 	rule comparison(B:Bool, false)		=> notBool(B)	[structural]
 	
 	--- TODOS: replace primLessThan with arith
-	rule lessThan($s(S1:String), $s(S2:String)) 	=> _<String_(S1, S2)				[structural]
+	rule lessThan($s(S1:String), $s(S2:String)) 	=> S1 <String S2				[structural]
 	rule lessThan(Left:V, Right:V) 	=> arith("<", toNumber(Left), toNumber(Right))
 										when (notString(Left) orBool notString(Right))	[structural]
 	
