@@ -1,0 +1,3 @@
+mod K-SHARED is including K . 
+	ops '_==KLabel_ '#andBool '_==CellLabel_ 'dummy '_=/=CellLabel_ '_=/=KLabel_ 'isKResult : -> KLabel [metadata "generated-label=()"] . 
+endm

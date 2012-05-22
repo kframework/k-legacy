@@ -20,7 +20,7 @@ BEGIN {
 # check installed software
 check_perl_packages("XML::DOM");
 check_perl_packages("Regexp::Common");
-check_perl_packages("XML::LibXML::Reader");
+#check_perl_packages("XML::LibXML::Reader");
 check_perl_packages("Tree::Nary");
 check_perl_packages("Text::Diff");
 

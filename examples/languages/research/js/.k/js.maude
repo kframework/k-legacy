@@ -1,0 +1,1804 @@
+in shared.maude
+mod BOOL-SYNTAX-HOOKS is
+ including PL-BUILTINS .     sort Bool .    subsort #Bool < Bool .  
+endm
+
+mod BOOL-HOOKS is including K-SHARED .
+ including K .   including BOOL-SYNTAX-HOOKS .
+ 
+        op _==Bool_ : Bool  Bool -> Bool 
+          [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:8:1)  latex=(renameTo \\ksyntaxA) function=() hook=(#BOOL:_==Bool_)"] . 
+
+        op _=/=Bool_ : Bool  Bool -> Bool
+          [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:11:1)  latex=(renameTo \\ksyntaxB) function=()"] . 
+  mb rule B1:Bool =/=Bool  B2:Bool =>  notBool(B1 ==Bool  B2)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:13)" ] .
+
+        op _andBool_ : Bool  Bool -> Bool
+          [ prec 55 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:15:1)  latex=(renameTo \\ksyntaxC) function=()"] . 
+        op _orBool_ : Bool  Bool -> Bool  
+          [ prec 59 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:17:1)  latex=(renameTo \\ksyntaxD) function=()"] . 
+        op _xorBool_ : Bool  Bool -> Bool
+          [ prec 57 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:19:1)  latex=(renameTo \\ksyntaxE) function=()"] . 
+         op notBool_ :  Bool -> Bool 
+          [ prec 53 metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:21:1)  latex=(renameTo \\ksyntaxF) function=()"] . 
+        op _impliesBool_ : Bool  Bool -> Bool
+          [ prec 61 gather(e E) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:23:1)  latex=(renameTo \\ksyntaxAB) function=()"] . 
+
+  mb rule true  orBool B:Bool =>  true   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:26)" ] .
+  mb rule false  orBool B:Bool =>  B  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:27)" ] . 
+
+  mb rule true  andBool A:Bool =>  A:Bool  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:29)" ] .
+  mb rule false  andBool A:Bool =>  false   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:30)" ] .
+
+  mb rule true  xorBool A:Bool =>  notBool A:Bool  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:32)" ] .
+  mb rule false  xorBool A:Bool =>  A:Bool  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:33)" ] .
+
+  mb rule notBool true  =>  false   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:35)" ] .
+  mb rule notBool false  =>  true   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:36)" ] .
+
+  mb rule true  impliesBool B:Bool =>  B  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:38)" ] .
+  mb rule false  impliesBool ?:Bool =>  true   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:39)" ] .
+
+        op _orElseBool_ : K  K -> Bool   [ prec 59 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:41:1) function=()"] . 
+  mb rule true  orElseBool  ?  =>  true   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:42)" ] .
+  mb rule false  orElseBool K:K =>  K  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:43)" ] .
+
+        op _andThenBool_ : K  K -> Bool   [ prec 59 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:45:1) function=()"] . 
+  mb rule false  andThenBool  ?  =>  false   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:46)" ] .
+  mb rule true  andThenBool K:K =>  K  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:47)" ] .
+
+         op '#andBool :  -> KLabel   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:49:1)"] .  
+
+  mb rule '#andBool((true  =>  .List{K} ),,  ? )  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:51)" ] .
+  mb rule '#andBool(true ) =>  true   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:52)" ] . 
+  mb rule '#andBool(false ,,  ? ) =>  false   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/bool.k:53)" ] .
+var A : Bool . var B1 : Bool . var K : K . var B2 : Bool . var B : Bool .   subsorts Bool Bool < K . endm
+
+
+
+mod INT-SYNTAX-HOOKS is
+ including PL-BUILTINS .     sort Int .    subsort #Int < Int .  
+endm
+
+mod INT-HOOKS is
+ including K .   including INT-SYNTAX-HOOKS . 
+  including BOOL-HOOKS .
+
+        op _+Int_ : Int  Int -> Int 
+        [ prec 33 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:10:1)  latex=(renameTo \\ksyntaxBB) function=() hook=(#INT:_+Int_)"] . 
+
+        op _-Int_ : Int  Int -> Int 
+        [ prec 33 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:14:1)  latex=(renameTo \\ksyntaxCB) function=() hook=(#INT:_-Int_)"] . 
+
+        op _*Int_ : Int  Int -> Int 
+        [ prec 31 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:18:1)  latex=(renameTo \\ksyntaxDB) function=() hook=(#INT:_*Int_)"] . 
+
+        op _/Int_ : Int  Int -> Int 
+        [ prec 31 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:22:1)  latex=(renameTo \\ksyntaxEB) function=() hook=(#INT:_/Int_)"] . 
+
+        op _%Int_ : Int  Int -> Int 
+        [ prec 31 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:26:1)  latex=(renameTo \\ksyntaxFB) function=() hook=(#INT:_%Int_)"] . 
+
+        op _<=Int_ : Int  Int -> Bool 
+        [ prec 37 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:30:1)  latex=(renameTo \\ksyntaxAC) function=() hook=(#INT:_<=Int_)"] . 
+
+        op _<Int_ : Int  Int -> Bool
+        [ prec 37 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:34:1)  latex=(renameTo \\ksyntaxBC) function=() hook=(#INT:_<Int_)"] . 
+
+        op _>=Int_ : Int  Int -> Bool
+        [ prec 37 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:38:1)  latex=(renameTo \\ksyntaxCC) function=() hook=(#INT:_>=Int_)"] . 
+
+        op _>Int_ : Int  Int -> Bool
+        [ prec 37 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:42:1)  latex=(renameTo \\ksyntaxDC) function=() hook=(#INT:_>Int_)"] . 
+
+  
+        op _==Int_ : Int  Int -> Bool           [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:47:1) function=() hook=(#INT:_==Int_)"] . 
+
+        op _=/=Int_ : Int  Int -> Bool          [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:49:1) function=()"] . 
+  mb rule I1:Int =/=Int  I2:Int =>  notBool(I1 ==Int  I2)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:50)" ] .
+
+    sort Nat .    op dummyNat :  -> Nat  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:52:1)"] .  
+         op isNat(_) :  Int -> Bool        [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:53:1) function=() klabel=(isNat)"] . 
+  mb rule isNat(I:Int) =>  true  
+    when I >=Int  0  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:54-55)" ] .
+	
+  
+        op _dividesInt_ : Int  Int -> Bool      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:58:1) function=()"] . 
+  mb rule I1:Int dividesInt I2:Int =>  I2 %Int  I1 ==Int  0  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:59)" ] .
+  
+         op absInt_ :  Int -> Int   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:61:1) function=()"] . 
+  mb rule absInt(I:Int) =>  I:Int
+    when I:Int >=Int  0  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:62-63)" ] .
+  mb rule absInt(I:Int) =>  0 -Int  I:Int
+    when I:Int <Int  0  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:64-65)" ] .
+	
+         op maxInt(_,_) :  Int  Int -> Int    [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:67:1) function=()"] . 
+  mb rule maxInt(I1:Int, I2:Int) =>  I1:Int
+    when I1:Int >=Int  I2:Int  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:68-69)" ] .
+  mb rule maxInt(I1:Int, I2:Int) =>  I2:Int
+    when I1:Int <Int  I2:Int  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:70-71)" ] .
+         op minInt(_,_) :  Int  Int -> Int    [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:72:1) function=()"] . 
+  mb rule minInt(I1:Int, I2:Int) =>  I2:Int
+    when I1:Int >=Int  I2:Int  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:73-74)" ] .
+  mb rule minInt(I1:Int, I2:Int) =>  I1:Int
+    when I1:Int <Int  I2:Int  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:75-76)" ] .
+	
+  
+        op _<<Int_ : Int  Int -> Int   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:79:1) function=() hook=(#INT:_<<Int_)"] . 
+        op _>>Int_ : Int  Int -> Int   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:80:1) function=() hook=(#INT:_>>Int_)"] . 
+        op _&Int_ : Int  Int -> Int   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:81:1) function=() hook=(#INT:_&Int_)"] . 
+        op _|Int_ : Int  Int -> Int   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:82:1) function=() hook=(#INT:_|Int_)"] . 
+        op _^Int_ : Int  Int -> Int   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:83:1) function=() hook=(#INT:_^Int_)"] . 
+        op _xorInt_ : Int  Int -> Int   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:84:1) function=() hook=(#INT:_xorInt_)"] . 
+         op ~Int_ :  Int -> Int   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:85:1) function=() hook=(#INT:~Int_)"] . 
+
+         op Bool2Int(_) :  Bool -> Int   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:87:1)"] . 
+  mb rule Bool2Int(true ) =>  1 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:88)" ] .
+  mb rule Bool2Int(false ) =>  0  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/int.k:89) function=()" ] .
+var I2 : Int . var I : Int . var I1 : Int .   subsorts Bool Int Nat Bool < K . endm 
+
+
+
+
+
+mod FLOAT-SYNTAX-HOOKS is
+ including PL-BUILTINS .     sort Float .    subsort #Float < Float .  
+endm
+
+mod FLOAT-HOOKS is
+ including K .   including FLOAT-SYNTAX-HOOKS .
+  including BOOL-HOOKS .
+  including INT-HOOKS .
+  including K .
+
+        op _+Float_ : Float  Float -> Float
+        [ prec 33 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:13:1)  latex=(renameTo \\ksyntaxEC) function=() hook=(#FLOAT:_+Float_)"] . 
+
+        op _-Float_ : Float  Float -> Float
+        [ prec 33 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:17:1)  latex=(renameTo \\ksyntaxFC) function=() hook=(#FLOAT:_-Float_)"] . 
+
+        op _*Float_ : Float  Float -> Float
+        [ prec 31 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:21:1)  latex=(renameTo \\ksyntaxAD) function=() hook=(#FLOAT:_*Float_)"] . 
+
+        op _/Float_ : Float  Float -> Float
+        [ prec 31 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:25:1)  latex=(renameTo \\ksyntaxBD) function=() hook=(#FLOAT:_/Float_)"] . 
+
+        op _%Float_ : Float  Float -> Float
+        [ prec 31 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:29:1)  latex=(renameTo \\ksyntaxCD) function=() hook=(#FLOAT:_%Float_)"] . 
+
+        op _<=Float_ : Float  Float -> Bool
+        [ prec 51 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:33:1)  latex=(renameTo \\ksyntaxDD) function=() hook=(#FLOAT:_<=Float_)"] . 
+
+        op _<Float_ : Float  Float -> Bool
+        [ prec 51 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:37:1)  latex=(renameTo \\ksyntaxED) function=() hook=(#FLOAT:_<Float_)"] . 
+
+        op _>=Float_ : Float  Float -> Bool
+        [ prec 51 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:41:1)  latex=(renameTo \\ksyntaxFD) function=() hook=(#FLOAT:_>=Float_)"] . 
+
+        op _>Float_ : Float  Float -> Bool
+        [ prec 51 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:45:1)  latex=(renameTo \\ksyntaxAE) function=() hook=(#FLOAT:_>Float_)"] . 
+
+        op _==Float_ : Float  Float -> Bool
+        [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:49:1)  latex=(renameTo \\ksyntaxBE) function=() hook=(#FLOAT:_==Float_)"] . 
+
+        op _=/=Float_ : Float  Float -> Bool
+        [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:53:1)  latex=(renameTo \\ksyntaxCE) function=()"] . 
+  mb rule F1:Float =/=Float  F2:Float =>  notBool(F1 ==Float  F2)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:55)" ] .
+
+         op Int2Float(_) :  Int -> Float 
+        [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:57:1)  latex=(renameTo \\ksyntaxDE) function=() klabel=(Int2Float) hook=(#CONVERSION:int2Float)"] . 
+
+         op Float2Int(_) :  Float -> Int 
+        [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:60:1)  latex=(renameTo \\ksyntaxEE) function=() klabel=(Float2Int) hook=(#CONVERSION:float2Int)"] . 
+
+         op sqrtFloat(_) :  Float -> Float    [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:63:1) function=() hook=(#FLOAT:sqrtFloat)"] . 
+         op logFloat(_) :  Float -> Float    [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:64:1) function=() hook=(#FLOAT:logFloat)"] . 
+         op expFloat(_) :  Float -> Float    [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:65:1) function=() hook=(#FLOAT:expFloat)"] . 
+         op atanFloat(_) :  Float -> Float    [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:66:1) function=() hook=(#FLOAT:atanFloat)"] . 
+         op acosFloat(_) :  Float -> Float    [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:67:1) function=() hook=(#FLOAT:acosFloat)"] . 
+         op asinFloat(_) :  Float -> Float    [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:68:1) function=() hook=(#FLOAT:asinFloat)"] . 
+         op tanFloat(_) :  Float -> Float    [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:69:1) function=() hook=(#FLOAT:tanFloat)"] . 
+         op cosFloat(_) :  Float -> Float    [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:70:1) function=() hook=(#FLOAT:cosFloat)"] . 
+         op sinFloat(_) :  Float -> Float    [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:71:1) function=() hook=(#FLOAT:sinFloat)"] . 
+         op atan2Float(_,_) :  Float  Float -> Float    [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:72:1) function=() hook=(#FLOAT:atanFloat)"] . 
+         op floorFloat(_) :  Float -> Float    [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/float.k:73:1) function=() hook=(#FLOAT:floorFloat)"] . 
+
+var F2 : Float . var F1 : Float .   subsorts Bool Int Nat Float #Float Float Float Bool Float < K . endm
+
+mod ID-SYNTAX-HOOKS is
+ including PL-BUILTINS .     sort Id .    subsort #Id < Id .   
+endm
+
+mod ID-HOOKS is
+ including PL-BUILTINS .   including ID-SYNTAX-HOOKS .
+  including K .
+ subsorts Id #Id Id < K . endm
+
+
+
+
+
+mod STRING-SYNTAX-HOOKS is
+ including PL-BUILTINS .     sort String .    subsort #String < String .  
+endm
+
+mod STRING-HOOKS is
+ including K .   including STRING-SYNTAX-HOOKS .
+  including INT-HOOKS .
+  including FLOAT-HOOKS .
+  including ID-HOOKS .
+
+
+        op _+String_ : String  String -> String
+          [ prec 33 gather(E e) metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:16:1)  latex=(renameTo \\ksyntaxFE) function=() hook=(#STRING:_+String_)"] . 
+
+        op _==String_ : String  String -> Bool
+          [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:20:1) function=() hook=(#STRING:_==String_)"] . 
+
+         op lengthString(_) :  String -> Int  
+          [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:23:1) function=() klabel=(lengthString) hook=(#STRING:lengthString)"] . 
+         op charString(_) :  Int -> String 
+          [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:25:1) function=() klabel=(charString) hook=(#STRING:charString)"] . 
+         op asciiString(_) :  String -> Int 
+          [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:27:1) function=() klabel=(asciiString) hook=(#STRING:asciiString)"] . 
+
+         op substrString(_,_,_) :  String  Int  Int -> String  
+          [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:30:1) function=() klabel=(substrString) hook=(#STRING:substrString)"] . 
+
+         op Float2String(_) :  Float -> String 
+          [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:33:1) function=() klabel=(Float2String) hook=(#CONVERSION:float2String)"] . 
+         op String2Float(_) :  String -> Float  
+          [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:35:1) function=() klabel=(String2Float) hook=(#CONVERSION:string2Float)"] . 
+         op String2Int(_) :  String -> Int 
+          [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:37:1) function=() klabel=(String2Int) hook=(#CONVERSION:string2Int)"] . 
+         op Int2String(_) :  Int -> String 
+          [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:39:1) function=() klabel=(Int2String) hook=(#CONVERSION:int2String)"] . 
+         op Id2String(_) :  Id -> String 
+          [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:41:1) function=() klabel=(Id2String) hook=(#CONVERSION:id2String)"] . 
+         op String2Id(_) :  String -> Id 
+          [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:43:1) function=() klabel=(String2Id) hook=(#CONVERSION:string2Id)"] . 
+		
+         op String2Rat(_,_) :  String  Int -> Int 
+          [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:46:1) function=() klabel=(String2Int) hook=(#CONVERSION:string2Base)"] . 
+         op Rat2String(_,_) :  Int  Int -> Int 
+          [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:48:1) function=() klabel=(String2Int) hook=(#CONVERSION:base2String)"] . 
+
+        op _=/=String_ : String  String -> Bool        [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:51:1) function=()"] . 
+  mb rule S1:String =/=String  S2:String =>  notBool(S1 ==String  S2)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:52)" ] .
+
+    sort Char .    op dummyChar :  -> Char  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:54:1)"] . 
+
+         op isChar(_) :  String -> Bool           [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:56:1) function=() klabel=(isChar)"] . 
+  mb rule isChar(S:String) =>  lengthString(S) ==Int  1  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:57)" ] . 
+
+         op #isWhiteSpace(_) :  Char -> Bool      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:59:1) function=() klabel=(#isWhiteSpace)"] . 
+  mb rule #isWhiteSpace (C:Char) 
+      =>  (asciiString(C) >=Int  9 andBool asciiString(C) <=Int  13)  
+           orBool (C ==String  " ")  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:60-62)" ] .
+
+         op #isDigit(_) :  Char -> Bool           [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:64:1) function=() klabel=(#isDigit)"] . 
+  mb rule #isDigit (C) 
+      =>  (asciiString(C) >=Int  asciiString("0")) 
+           andBool (asciiString(C) <=Int  asciiString("9"))  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/string.k:65-67)" ] . 
+var S : String . var S1 : String . var S2 : String . var C : Char .   subsorts Bool Int Nat Float #Float Id #Id String Char String Float Float Bool String Id Float < K . endm
+
+
+
+
+
+
+
+
+mod K-EQUAL-HOOKS is including K-SHARED .
+ including K .   including BOOL-HOOKS . 
+
+         op #if_#then_#else_#fi :  Bool  K  K -> K      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:5:1) function=()"] . 
+  mb rule #if  true  #then  K:K #else   ?  #fi  =>  K  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:6)" ] .
+  mb rule #if  false  #then   ?  #else  K:K #fi  =>  K  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:7)" ] .
+
+        op _==K_ : K  K -> Bool             [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:9:1) function=() hook=(#K-EQUAL:_==K_)"] . 
+        op _=/=K_ : K  K -> Bool             [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:10:1) function=()"] . 
+  mb rule K1:K =/=K  K2:K =>  notBool(K1 ==K  K2)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:11)" ] .
+
+        op _<=List_ : List  List -> Bool             [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:13:1) function=()"] . 
+  mb rule ListItem(K:K) List1:List <=List  ListItem(K) List2:List =>  List1 <=List  List2  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:14)" ] .
+  mb rule (.).List  <=List  List:List =>  true   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:15)" ] .
+  mb rule ListItem(K:K) List1:List <=List  List2:List =>  false 
+    when notBool (K in List2)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:16-17)" ] .
+        op _==List_ : List  List -> Bool             [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:18:1) function=()"] . 
+  mb rule List1:List ==List  List2:List =>  (List1 <=List  List2) andBool (List2 <=List  List1)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:19)" ] .
+        op _=/=List_ : List  List -> Bool             [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:20:1) function=()"] . 
+  mb rule List1:List =/=List  List2:List =>  notBool(List1 ==List  List2)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:21)" ] .
+  
+        op _<=Set_ : Set  Set -> Bool      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:23:1) function=()"] . 
+  mb rule SetItem(K:K) Set1:Set <=Set  SetItem(K) Set2:Set =>  Set1 <=Set  Set2  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:24)" ] .
+  mb rule (.).Set  <=Set  Set:Set =>  true   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:25)" ] .
+  mb rule SetItem(K:K) Set1:Set <=Set  Set2:Set =>  false 
+    when notBool (K in Set2)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:26-27)" ] .
+        op _==Set_ : Set  Set -> Bool      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:28:1) function=()"] . 
+  mb rule Set1:Set ==Set  Set2:Set =>  (Set1 <=Set  Set2) andBool (Set2 <=Set  Set1)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:29)" ] .
+        op _=/=Set_ : Set  Set -> Bool     [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:30:1) function=()"] . 
+  mb rule Set1:Set =/=Set  Set2:Set =>  notBool(Set1 ==Set  Set2)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:31)" ] .
+  
+        op _<=Bag_ : Bag  Bag -> Bool      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:33:1) function=()"] . 
+  mb rule BagItem(K:K) Bag1:Bag <=Bag  BagItem(K) Bag2:Bag =>  Bag1 <=Bag  Bag2  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:34)" ] .
+  mb rule (.).Bag  <=Bag  Bag:Bag =>  true   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:35)" ] .
+  mb rule BagItem(K:K) Bag1:Bag <=Bag  Bag2:Bag =>  false 
+    when notBool (K in Bag2)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:36-37)" ] .
+        op _==Bag_ : Bag  Bag -> Bool      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:38:1) function=()"] . 
+  mb rule Bag1:Bag ==Bag  Bag2:Bag =>  (Bag1 <=Bag  Bag2) andBool (Bag2 <=Bag  Bag1)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:39)" ] .
+        op _=/=Bag_ : Bag  Bag -> Bool     [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:40:1) function=()"] . 
+  mb rule Bag1:Bag =/=Bag  Bag2:Bag =>  notBool(Bag1 ==Bag  Bag2)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:41)" ] .
+
+        op _==List{K}_ : List`{K`}  List`{K`} -> Bool      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:43:1) function=()"] . 
+  mb rule LK1:List{K} ==List {K} LK2:List{K} =>  'dummy(LK1) ==K  'dummy(LK2)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:44)" ] .
+        op _=/=List{K}_ : List`{K`}  List`{K`} -> Bool     [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:45:1) function=()"] . 
+  mb rule LK1:List{K} =/=List {K} LK2:List{K} =>  notBool(LK1 ==List {K} LK2)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:46)" ] .
+
+        op _==KLabel_ : KLabel  KLabel -> Bool     [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:48:1) function=()"] . 
+  mb rule '_==KLabel_(K1:K,,K2:K) =>  K1 ==K  K2  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:49)" ] .
+        op _=/=KLabel_ : KLabel  KLabel -> Bool     [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:50:1) function=()"] . 
+  mb rule '_=/=KLabel_(K1:K,,K2:K) =>  K1 =/=K  K2  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:51)" ] .
+  
+        op _==CellLabel_ : CellLabel  CellLabel -> Bool     [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:53:1) function=()"] . 
+  mb rule '_==CellLabel_(K1:K,,K2:K) =>  K1 ==K  K2  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:54)" ] .
+        op _=/=CellLabel_ : CellLabel  CellLabel -> Bool     [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:55:1) function=()"] . 
+  mb rule '_=/=CellLabel_(K1:K,,K2:K) =>  K1 =/=K  K2  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/k-equal.k:56)" ] .
+
+var Set2 : Set . var List : List . var K2 : K . var K : K . var LK1 : List{K} . var Set : Set . var List2 : List . var Bag1 : Bag . var LK2 : List{K} . var Bag2 : Bag . var K1 : K . var Set1 : Set . var Bag : Bag . var List1 : List .   subsorts Bool Bool < K . endm
+
+mod TCP-HOOKS is including K-SHARED .
+ including K .   including STRING-HOOKS .
+  including K-EQUAL-HOOKS .
+    sort TCPAnswer .     op #EOF :  -> TCPAnswer   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/tcp.k:6:1)"] .    subsort String < TCPAnswer .    op #tcpError(_) :  String -> TCPAnswer   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/tcp.k:6:3)"] . 
+  mb rule 'isKResult(#EOF ) =>  true   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/tcp.k:7)" ] . 
+
+         op #tcpRequest(_) :  String -> TCPAnswer      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/tcp.k:9:1) function=() klabel=(#tcpRequest)"] . 
+  mb rule #tcpRequest (S:String) =>  #checkTCPAnswer (##tcpRequest (S))  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/tcp.k:10)" ] .
+
+         op #checkTCPAnswer(_) :  String -> TCPAnswer      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/tcp.k:12:1) function=() klabel=(#checkTCPAnswer)"] . 
+  mb rule #checkTCPAnswer (S:String) 
+      =>  #if  #isTCPError (S) #then  #tcpError (#retrieveTCPError (S)) #else  S #fi   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/tcp.k:13-14)" ] .
+
+  mb rule #tcpError ("EOF") =>  #EOF   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/tcp.k:16)" ] .
+
+         op ##tcpRequest(_) :  String -> String           [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/tcp.k:18:1) function=() klabel=(##tcpRequest) hook=(#TCP:#tcpRequest)"] .
+                      op #retrieveTCPError(_) :  String -> String      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/tcp.k:19:2) function=() klabel=(#retrieveTCPError) hook=(#TCP:#retrieveTCPError)"] . 
+         op #isTCPError(_) :  String -> Bool              [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/tcp.k:20:1) function=() klabel=(#isTCPError) hook=(#TCP:#isTCPError)"] . 
+
+var S : String .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float Float Bool String Id Float < K . endm
+
+
+
+
+
+mod RANDOM-HOOKS is
+ including PL-BUILTINS .   including INT-HOOKS .
+  
+         op randomRandom(_) :  Int -> Int    [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/builtins/random.k:6:1) function=() hook=(#RANDOM:randomRandom)"] . 
+ subsorts Bool Int Nat Bool < K . endm
+
+mod BUILTIN-SYNTAX-HOOKS is
+ including PL-BUILTINS .   including BOOL-SYNTAX-HOOKS . 
+  including INT-SYNTAX-HOOKS . 
+  including FLOAT-SYNTAX-HOOKS . 
+  including STRING-SYNTAX-HOOKS .
+  including ID-SYNTAX-HOOKS .
+endm
+
+mod BUILTIN-HOOKS is
+ including PL-BUILTINS .   including BOOL-HOOKS . 
+  including INT-HOOKS . 
+  including FLOAT-HOOKS . 
+  including STRING-HOOKS .
+  including TCP-HOOKS .
+  including K-EQUAL-HOOKS .
+  including RANDOM-HOOKS .
+ subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float Float Bool String Id Float < K . endm
+
+mod URIS is  including K . 
+  including BUILTIN-HOOKS .
+
+        subsort String < K .   subsort Int < K .   subsort Float < K .
+               op #open(_) :  String -> K 
+              [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:7:4)"] .    op #reopen(_,_) :  Int  String -> K 
+              [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:8:5)"] .    op #close(_) :  Int -> K 
+              [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:9:6)"] .    op #fEof(_) :  Int -> K
+              [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:10:7)"] .    op #tell(_) :  Int -> K 
+              [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:11:8)"] .    op #seek(_,_) :  Int  Int -> K
+              [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:12:9)"] .    op #fPeekByte(_) :  Int -> K
+              [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:13:10)"] .    op String2Bool(_) :  String -> K
+              [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:14:11)"] .    op #ioError(_) :  String -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:15:12)"] . 
+
+         op #fPutByte(_,_) :  Int  Int -> K      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:17:1) function=() klabel=(#fPutByte)"] .
+                 op #flush(_) :  Int -> K                 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:18:2) function=() klabel=(#flush)"] .
+                 op #fReadByte(_) :  Int -> K             [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:19:3) function=() klabel=(#fReadByte)"] . 
+
+            
+  mb rule #open (S:String) =>  String2Int(#tcpRequest ("open#" +String  S +String  "#"))  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:22)" ] . 
+
+  mb rule #close (N:Int) 
+      =>  String2DotK(#tcpRequest ("close#" +String  Int2String(N) +String  "#"))  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:24-25)" ] .
+
+         op String2DotK(_) :  String -> K     [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:27:1) function=() klabel=(String2DotK)"] . 
+  mb rule String2DotK(S) =>  #ioError (#retrieveTCPError (S)) when #isTCPError (S)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:28)" ] .
+  mb rule String2DotK(S) =>  (.).K  when notBool(#isTCPError (S))  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:29)" ] .
+  
+
+  mb rule String2Bool("0") =>  false   : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:32) anywhere=()" ] .
+  mb rule String2Bool("1") =>  true   : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:33) anywhere=()" ] .
+
+  mb rule #flush (N) =>  String2DotK(#tcpRequest ("flush#" +String  Int2String(N) +String  "#"))  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:35)" ] .
+
+  mb rule #tell (N) =>  String2DotK(#tcpRequest ("position#" +String  Int2String(N) +String  "#"))  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:37)" ] .
+
+  mb rule #tell (N) =>  String2Int(#tcpRequest ("tell#" +String  Int2String(N) +String  "#"))  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:39)" ] .
+
+  mb rule #seek (N,P:Int) 
+      =>  String2DotK(#tcpRequest ("seek#" +String  Int2String(N) +String  "#"
+                              +String  Int2String(P) +String  "#"))  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:41-43)" ] .
+
+  mb rule #reopen (N,S) 
+      =>  String2DotK(#tcpRequest ("reopen#" +String  Int2String(N) +String  "#"
+                              +String  S +String  "#"))  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:45-47)" ] .
+
+        op #stdin :  -> Int 
+                 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:49:1)"] .    op #stdout :  -> Int 
+                 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:50:2)"] .    op #stderr :  -> Int  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:51:3)"] . 
+  mb rule #stdin  =>  0 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:52)" ] .
+  mb rule #stdout  =>  1 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:53)" ] .
+  mb rule #stderr  =>  2 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:54)" ] .
+
+        op #readByte() :  -> K 
+              [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:56:1)"] .    op #peekByte() :  -> K
+              [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:57:2)"] .    op #putByte(_) :  Int -> K
+              [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:58:3)"] .    op #eof() :  -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:59:4)"] . 
+  mb rule #readByte()  =>  #fReadByte (#stdin )  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:60)" ] .
+
+  mb rule #fReadByte (N) 
+      =>  #string2Int (#tcpRequest ("readbyte#" +String  Int2String(N) +String  "#"))  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:62-63)" ] .
+
+         op #string2Int(_) :  K -> K      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:65:1) function=() klabel=(#string2Int)"] . 
+
+  mb rule #string2Int (S) =>  String2Int(S) when lengthString(S) >=Int  0  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:67)" ] .
+  mb rule #string2Int (#EOF ) =>  #EOF   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:68)" ] .
+
+  mb rule #putByte (B) =>  #fPutByte (#stdout ,B)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:70)" ] .
+
+  mb rule #fPutByte (N,B:Int)
+    =>  String2DotK(#tcpRequest ("writebyte#" +String  Int2String(N) +String  "#"
+                              +String  Int2String(B) +String  "#"))  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:72-74)" ] .
+
+  mb rule #peekByte()  =>  #fPeekByte (#stdin )  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:76)" ] .
+  mb rule #fPeekByte (N)
+    =>  String2Int(#tcpRequest ("peek#" +String  Int2String(N) +String  "#"))  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:77-78)" ] .
+
+  mb rule #eof()  =>  #fEof (#stdin )  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:80)" ] .
+  mb rule #fEof (N)
+    =>  String2Bool(#tcpRequest ("eof#" +String  Int2String(N) +String  "#"))  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:81-82)" ] .
+
+         op #readChar() :  -> K      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:84:1) function=() klabel=(#readChar)"] . 
+
+  mb rule #readChar()  =>  #fReadChar (#stdin )  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:86)" ] .
+
+         op #fReadChar(_) :  Int -> K      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:88:1) function=() klabel=(#fReadChar)"] . 
+  mb rule #fReadChar (N) =>  #charString (#fReadByte (N))  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:89)" ] .
+
+         op #charString(_) :  K -> K      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:91:1) function=() klabel=(#charString)"] . 
+  mb rule #charString (N:Int) =>  charString(N)  : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:92)" ] . 
+  mb rule #charString (#EOF ) =>  #EOF   : KSentence [metadata "function=() location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:93)" ] .
+
+         op #printChar(_) :  K -> K      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:95:1) function=() klabel=(#printChar)"] . 
+  mb rule #printChar (C) =>  #fPrintChar (#stdout ,C)
+  when isChar(C)  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:96-97) anywhere=()" ] .
+
+         op #fPrintChar(_,_) :  Int  K -> K      [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:99:1) function=() klabel=(#fPrintChar)"] . 
+  mb rule #fPrintChar (N,C:String) =>  #fPutByte (N,asciiString(C)) 
+  when isChar(C)  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:100-101) anywhere=()" ] .
+
+  mb rule #buffer ((.).K  =>  Int2String(I)) (ListItem(I:Int) =>  (.).List ) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:103)" ] .
+  mb rule #buffer ((.).K  =>  Float2String(F)) (ListItem(F:Float) =>  (.).List ) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:104)" ] .
+  mb rule #buffer ((.).K  =>  S) (ListItem(S:String) =>  (.).List ) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:105)" ] .
+
+  mb rule #buffer (Buffer:String =>  Buffer +String  Int2String(I)) (ListItem(I:Int) =>  (.).List ) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:107)" ] .
+  mb rule #buffer (Buffer:String =>  Buffer +String  Float2String(F)) (ListItem(F:Float) =>  (.).List ) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:108)" ] .
+  mb rule #buffer (Buffer:String =>  Buffer +String  S) (ListItem(S:String) =>  (.).List ) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:109)" ] .
+
+  
+  mb rule #ostream (N:Int) ((.).List  =>   ListItem(#fPrintChar (N,substrString(S,0,1)))
+       #removeCharUponAck ) #buffer (S:String)
+    when S =/=String  "" : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:112-114)" ] .
+  
+  mb rule #ostream (N:Int) ((.).List  =>  ListItem(#flush (N))) #buffer ("" =>  (.).K ) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:116)" ] .
+
+  mb rule #ostream (?:Int) (ListItem((.).K ) =>  (.).List ) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:118)" ] . 
+  
+  mb rule #ostream (?:Int) (#removeCharUponAck  =>  (.).List ) #buffer (S:String =>  substrString(S,1, lengthString(S))) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:120)" ] .
+ 
+        op #removeCharUponAck :  -> List  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:122:1)"] . 
+  
+        op #parse(_,_) :  String  K -> List  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:124:1)"] . 
+
+
+
+
+
+
+
+
+  
+  
+  mb rule (#parse ("#Char", ? ) =>  (.).List ) ListItem(C:String)
+  when isChar(C) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:135-136)" ] .
+
+  
+  mb rule #parse (S:String,(.).K ) (ListItem(C:String) =>  (.).List ) 
+    when S =/=String  "#Char" andBool #isWhiteSpace (C) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:139-140)" ] .
+
+
+  
+  mb rule #parse (S:String,(.).K  =>  "") ListItem(C:String) 
+    when S =/=String  "#Char" andBool notBool(#isWhiteSpace (C)) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:144-145)" ] .
+  mb rule #parse (?:String, S:String =>  S:String +String  C) (ListItem(C:String) =>  (.).List ) 
+    when notBool(#isWhiteSpace (C)) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:146-147)" ] .
+
+  
+  mb rule #parse (SType:String,S:String) ListItem(C:String) =>  #convertToken (SType, S)
+    when #isWhiteSpace (C) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:150-151)" ] .
+
+  mb rule (#parse (SType:String,S:String) =>  #convertToken (SType, S)) ListItem(#EOF ) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:153)" ] .
+  
+        op #convertToken(_,_) :  String  String -> List  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:155:1)"] . 
+  mb rule #convertToken ("Int",S:String) =>  ListItem(String2Int(S +String  "0") /Int  10) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:156)" ] .
+  mb rule #convertToken ("Float",S:String) =>  ListItem(String2Float(S)) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:157)" ] .
+  mb rule #convertToken ("String",S:String) =>  ListItem(S) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:158)" ] .
+
+  mb rule String2Int("00") =>  0   : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:160) anywhere=()" ] .
+
+  
+ 
+
+
+
+
+        op #buffer(_) :  K -> List  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:168:1)"] . 
+
+  
+  mb rule #parse (?:String, ? ) ((.).List  =>  ListItem(substrString(S,0,1))) 
+       #buffer (S:String =>  substrString(S,1,lengthString(S)))
+    when S =/=String  "" : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:171-173)" ] .
+  mb rule #buffer ("" =>  (.).K ) #istream (?:Int) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:174)" ] .
+
+  
+  mb rule #parse (?:String, ? ) ((.).List  =>  ListItem(#fReadChar (N))) #buffer ((.).K ) #istream (N) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:177)" ] .
+
+        op #istream(_) :  Int -> List  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:179:1)"] .    op #ostream(_) :  Int -> List  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:179:2)"] .  
+        op #noIO :  -> List  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:180:1)"] . 
+  mb rule #noIO  #istream (?:Int) =>  (.).List  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:181)" ] .
+  mb rule #ostream (?:Int) #noIO  =>  (.).List  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/modules/uris.k:182)" ] .
+var F : Float . var S : String . var Buffer : String . var N : Int . var P : Int . var B : Int . var C : String . var I : Int . var SType : String .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float Float Bool String Id Float < K . endm
+
+mod JS-BASIS is  including K . 
+ including URIS . 
+	
+	  sort V .    subsort Int < V .   subsort Float < V .   subsort Bool < V .   subsort String < V .   subsort Id < V .  
+	      subsort V < KResult .  
+ subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V Float < K . endm
+
+mod JS-NUMERICS is  including K . 
+ including URIS . including JS-BASIS .
+	
+	  sort MaudeNumber .    subsort Int < MaudeNumber .   subsort Float < MaudeNumber .  
+	      op $n(_) :  MaudeNumber -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:10:1)"] . 
+	      op $f(_) :  Float -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:11:1)"] . 
+	      op $z(_) :  Int -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:12:1)"] . 
+	      op $inf(_) :  Int -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:13:1)"] . 
+	      op $nan :  -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:14:1)"] . 
+	
+	      op sign(_) :  V -> Int  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:16:1)"] . 
+	      op finiteValue(_) :  V -> Float  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:17:1)"] . 
+	
+	mb rule 		sign($z (Sign:Int)) 	=>  Sign 				 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:19) structural=() sign-zero=()" label sign-zero] .
+	mb rule 	sign($inf (Sign:Int))	=>  Sign 				 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:20) structural=() sign-infinity=()" label sign-infinity] .
+	mb rule 	sign($f (F:Float)) =>  #if  F >=Float  0.0 #then  1 #else  -1 #fi   : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:21) structural=() sign-finite=()" label sign-finite] .
+	
+	
+	
+	mb rule 	finiteValue($f (F:Float)) 	=>  F 			 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:25) structural=() finiteValue-finite=()" label finiteValue-finite] .
+	mb rule 	finiteValue($z ( ? )) 			=>  0.0 			 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:26) structural=() finiteValue-zero=()" label finiteValue-zero] .
+ 
+	mb rule 			$n (I:Int) =>  $n (Int2Float(I)) 				 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:28) structural=() n-int-to-n-float=()" label n-int-to-n-float] .
+	mb rule		$n (0.0) =>  $z (1)							 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:29) structural=() n-float-zero-to-zero=()" label n-float-zero-to-zero] .
+
+	mb rule 	$n (F:Float) =>  $f (F) when F =/=K  0.0	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:31) structural=() n-float-nonzero-to-finite=()" label n-float-nonzero-to-finite] .
+	
+	
+	
+	
+	
+var F : Float . var I : Int . var Sign : Int .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+mod JS-PRIMITIVES is  including K . 
+ including URIS . including JS-NUMERICS .
+	      op $u :  -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:40:1)"] . 
+	      op $null :  -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:41:1)"] . 
+	
+	      op $b(_) :  Bool -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:43:1)"] . 
+	      op $s(_) :  String -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:44:1)"] . 
+
+	      op boolValue(_) :  V -> Bool  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:46:1)"] . 
+	      op stringValue(_) :  V -> String  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:47:1)"] . 
+	
+	mb rule	boolValue($b (B:Bool)) 		=>  B	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:49) structural=() boolValue=()" label boolValue] .
+	mb rule	stringValue($s (S:String))	=>  S	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:50) structural=() stringValue=()" label stringValue] .
+var S : String . var B : Bool .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+mod JS-SYNTAX is including JS-PRIMITIVES + K .
+	
+	      op .None :  -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:55:1)"] . 
+	      op $binding(_,_) :  V  String -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:56:1)"] . 
+	
+	      op $regex(_) :  String -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:58:1)"] .  
+	      op $ReferenceError(_) :  String -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:59:1)"] . 
+	      op $TypeError(_) :  String -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:60:1)"] . 
+	
+	      op .Rec :  -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:62:1)"] .    op $rec(_) :  Map -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:62:2)"] . 
+	      op $obj(_) :  Int -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:63:1)"] . 
+	
+	      op $env(_,_) :  K  K -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:65:1)"] . 
+	      op $id(_) :  String -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:66:1)"] . 
+	
+	      op .Empty :  -> List{K}  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:68:1)"] . 
+	
+	eq .Empty  =  .List{K}  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:70)"] .
+	
+	
+	     
+		   op $this :  -> K
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:73:1)"] .    op $nop :  -> K
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:75:2)"] .    op $initNewId(_,_) :  String  K -> K				
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:76:3)"] .    op $staticAccess(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:77:4) seqstrict=()"] . 		
+		   op $dynamicAccess(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:78:5) seqstrict=()"] . 	
+		   op $invoke(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:79:6) seqstrict=()"] . 		
+		
+		   op $new(_) :  List{K} -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:81:7) seqstrict=()"] .				
+		
+		   op $inc(_,_) :  K  Bool -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:83:8) strict=()"] .			
+		   op $dec(_,_) :  K  Bool -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:84:9) strict=()"] .			
+		
+		   op $delete(_) :  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:86:10) strict=()"] .				
+		
+		   op $typeof(_) :  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:88:11) strict=()"] .				
+		   op $not(_) :  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:89:12) strict=()"] .					
+		   op $neg(_) :  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:90:13) strict=()"] . 					
+		   op $plus(_) :  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:91:14) strict=()"] . 					
+		
+		   op $mul(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:93:15) seqstrict=()"] . 				
+		   op $div(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:94:16) seqstrict=()"] . 				
+		   op $mod(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:95:17) seqstrict=()"] . 				
+		
+		   op $add(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:97:18) seqstrict=()"] .				
+		   op $sub(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:98:19) seqstrict=()"] . 				
+		
+		   op $lt(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:100:20) seqstrict=()"] . 				
+		   op $lte(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:101:21) seqstrict=()"] . 				
+		   op $gt(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:102:22) seqstrict=()"] . 				
+		   op $gte(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:103:23) seqstrict=()"] . 				
+		   op $in(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:104:24) seqstrict=()"] .				
+		   op $instanceof(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:105:25) seqstrict=()"] . 		
+		
+		   op $sameAs(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:107:26) seqstrict=()"] . 			
+		   op $notSameAs(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:108:27) seqstrict=()"] . 		
+		   op $identical(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:109:28) seqstrict=()"] . 		
+		   op $notIdentical(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:110:29) seqstrict=()"] . 		
+		
+		   op $and(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:112:30) strict=(1)"] . 			
+		
+		   op $or(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:114:31) strict=(1)"] . 			
+		
+		   op $ternary(_,_,_) :  K  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:116:32) strict=(1)"] .	
+		
+		
+		   op $assignment(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:119:33) seqstrict=()"] .		
+		   op $compoundAssignment(_,_,_) :  K  Nat  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:120:34) seqstrict=()"] .	
+		   op $arrayLit(_) :  List{K} -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:121:35) seqstrict=()"] .		
+		   op $objectLit(_) :  List{K} -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:122:36) seqstrict=()"] .		
+		   op $propertyLit(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:123:37) seqstrict=()"] .		
+		
+		   op $return(_) :  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:125:38) strict=()"] .				
+		   op $break(_) :  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:126:39) strict=()"] . 				
+		   op $continue(_) :  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:127:40) strict=()"] . 				
+		   op $throw(_) :  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:128:41) strict=()"] .					
+		   op $label(_,_) :  String  K -> K 
+		
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:129:42)"] .    op $exp(_) :  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:131:43) strict=()"] .					
+		
+		   op $stmts(_) :  List{K} -> K 					
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:133:44)"] .    op $block(_) :  List{K} -> K
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:134:45)"] .    op $comma(_) :  List{K} -> K
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:135:46)"] .    op $ifElse(_,_,_) :  K  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:136:47) strict=(1)"] .		
+		   op $try(_,_,_) :  K  List{K}  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:137:48) seqstrict=()"] .		
+		   op $catch(_,_) :  K  K -> K
+		
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:138:49)"] .    op $case(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:140:50) strict=(1)"] .	 		
+		   op $default(_) :  K -> K 						
+		
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:141:51)"] .    op $switch(_,_,_) :  K  List{K}  Int -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:143:52) strict=(1)"] .	
+			
+		   op $for(_,_,_,_) :  K  K  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:145:53) strict=(1)"] .		
+			
+		   op $forIn(_,_,_) :  K  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:147:54) strict=(2)"] .
+			
+		   op $while(_,_) :  K  K -> K
+			
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:149:55)"] .    op $do(_,_) :  K  K -> K
+			
+			
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:151:56)"] .    op $labelledStmt(_,_) :  K  K -> K	
+			
+		
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:154:57)"] .    op $varDeclarations(_) :  List{K} -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:157:58) seqstrict=()"] .
+		
+		   op $function(_,_,_,_) :  Nat  String  List{K}  List{K} -> K
+			
+			
+
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:159:59)"] .    op $program(_,_,_) :  List{K}  List{K}  List{K} -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-syntax.k:163:60)"] . 
+			
+ subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+mod JS-CONFIGURATION is  including K . 
+ including URIS . including JS-SYNTAX .
+	
+	mb configuration < T >  
+		< k >        (.).K 		</ k >  
+		< lexEnv >   .None 		</ lexEnv > 
+		< globalEnv >  .None 	</ globalEnv > 
+		< heap >     (.).Map 		</ heap >  
+		< nextLoc >   0		</ nextLoc >  
+		< fstack >   (.).List 		</ fstack > 
+		< in >       (.).List 		</ in >  
+		< out >      "void"	</ out >  
+	</ T >   : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-configuration.k:3)"] . 
+	
+   op T : -> CellLabel . op k : -> CellLabel . op lexEnv : -> CellLabel . op globalEnv : -> CellLabel . op heap : -> CellLabel . op nextLoc : -> CellLabel . op fstack : -> CellLabel . op in : -> CellLabel . op out : -> CellLabel .  subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+mod JS-UTILITY	is  including K . 
+ including URIS . including JS-SYNTAX .
+	      op isKeyPresent(_,_) :  Map  K -> Bool  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:2:1)"] .    op isKeyAbsent(_,_) :  Map  K -> Bool  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:2:2)"] . 
+	      op discard :  -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:3:1)"] . 
+	      op replaceResult(_) :  K -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:4:1)"] . 
+	
+	mb rule
+		isKeyPresent(M:Map, K:K) =>  $hasMapping (M, K) 
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:6-8) structural=() isKeyPresent=()" label isKeyPresent] .
+
+	mb rule
+		isKeyAbsent(M:Map, K:K) =>  notBool($hasMapping (M, K)) 
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:10-12) structural=() isKeyAbsent=()" label isKeyAbsent] .
+		
+	mb rule
+	 	< k >  Previous:V ~>  discard =>  .   ...</ k >  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:14-15) discard=()" label discard] .
+	
+	mb rule
+		< k >  Previous:V ~>  replaceResult(Value:V) =>  Value  ...</ k >  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:17-18) replaceResult=()" label replaceResult] .
+		
+var Value : V . var Previous : V . var K : K . var M : Map .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+mod JS-TYPE is  including K . 
+ including URIS . including JS-UTILITY .
+	      op jsType(_) :  V -> String  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:23:1)"] . 
+	
+	mb rule jsType($u )		 			=>  "undefined"	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:25) structural=()" ] .
+	mb rule jsType($null ) 				=>  "null"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:26) structural=()" ] .
+	mb rule jsType($b ( ? )) 				=>  "boolean"	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:27) structural=()" ] .
+	mb rule jsType($z ( ? )) 				=>  "finite"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:28) structural=()" ] .
+	mb rule jsType($f ( ? )) 				=>  "finite"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:29) structural=()" ] .
+	mb rule jsType($inf ( ? )) 			=>  "infinite"	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:30) structural=()" ] .
+	mb rule jsType($nan ) 				=>  "nan"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:31) structural=()" ] .
+	mb rule jsType($s ( ? )) 				=>  "string"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:32) structural=()" ] .
+	mb rule jsType($obj ( ? )) 			=>  "object"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:33) structural=()" ] .
+	mb rule jsType($binding ( ? , ? ))		=>  "binding"	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:34) structural=()" ] .
+	
+ subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+mod JS-TYPEOF is  including K . 
+ including URIS . including JS-TYPE .
+	      op typeof(_) :  V -> String  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:39:1)"] . 
+	
+	mb rule typeof($u ) 				=>  "undefined"	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:41) structural=()" ] .
+	mb rule typeof($null ) 				=>  "object"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:42) structural=()" ] .
+	mb rule typeof($b ( ? )) 				=>  "boolean"	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:43) structural=()" ] .
+	mb rule typeof($z ( ? )) 				=>  "number"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:44) structural=()" ] .
+	mb rule typeof($f ( ? )) 				=>  "number"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:45) structural=()" ] .
+	mb rule typeof($inf ( ? )) 			=>  "number"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:46) structural=()" ] .
+	mb rule typeof($nan ) 				=>  "number"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:47) structural=()" ] .
+	mb rule typeof($s ( ? )) 				=>  "string"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:48) structural=()" ] .
+	mb rule typeof($obj ( ? )) 			=>  "object"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:49) structural=()" ] .
+	
+	
+	mb rule $typeof (Value:V) =>  $s (typeof(Value)) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:52) typeof=()" label typeof] .
+	
+	
+
+	
+	
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+var Value : V .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+
+mod JS-TESTING is  including K . 
+ including URIS . including JS-TYPEOF .
+	      op isTruthy(_) :  V -> Bool  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:72:1)"] .  
+	      op isFinite(_) :  V -> Bool  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:73:1)"] .  
+	      op notNan(_) :  V -> Bool  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:74:1)"] .  
+	      op isNumber(_) :  V -> Bool  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:75:1)"] .  
+	      op notNumber(_) :  V -> Bool  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:76:1)"] .  
+	      op isString(_) :  V -> Bool  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:77:1)"] .  
+	      op notString(_) :  V -> Bool  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:78:1)"] .  
+	      op isBinding(_) :  V -> Bool  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:79:1)"] .  
+	      op notBinding(_) :  V -> Bool  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:80:1)"] .  
+	
+	
+	mb rule isTruthy($u ) 					=>  false 		  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:83) structural=()" ] .
+	mb rule isTruthy($null ) 				=>  false 		  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:84) structural=()" ] .
+	mb rule isTruthy($b (B:Bool)) 			=>  B			  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:85) structural=()" ] .
+	mb rule isTruthy($z ( ? )) 				=>  false 		  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:86) structural=()" ] .
+	mb rule isTruthy($f ( ? )) 				=>  true 			  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:87) structural=()" ] .
+	mb rule isTruthy($inf ( ? )) 				=>  true 			  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:88) structural=()" ] .
+	mb rule isTruthy($nan ) 				=>  false 		  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:89) structural=()" ] .
+	mb rule isTruthy($s (S:String)) 		=>  S =/=K  ""   : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:90) structural=()" ] .
+	mb rule isTruthy($obj ( ? )) 				=>  true 			  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:91) structural=()" ] .
+	
+	
+	mb rule isFinite(Value:V) 		=>  jsType(Value) ==K  "finite"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:94) structural=() isFinite=()" label isFinite] .
+	mb rule notNan(Value:V) 			=>  jsType(Value) =/=K  "nan"			 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:95) structural=() notNan=()" label notNan] .
+	
+	mb rule isNumber(Value:V) 		=>  typeof(Value) ==K  "number"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:97) structural=() isNumber=()" label isNumber] .
+	mb rule notNumber(Value:V) 	=>  typeof(Value) =/=K  "number"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:98) structural=() notNumber=()" label notNumber] .
+	
+	mb rule notString(Value:V) 	=> 	jsType(Value) ==K  "string"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:100) structural=() isString=()" label isString] .
+	mb rule notString(Value:V) 	=> 	jsType(Value) =/=K  "string"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:101) structural=() notString=()" label notString] .
+	
+	mb rule isBinding(Value:V)	=> 	jsType(Value) ==K  "binding"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:103) structural=() isBinding=()" label isBinding] .
+	mb rule notBinding(Value:V)	=> 	jsType(Value) =/=K  "binding"		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:104) structural=() notBinding=()" label notBinding] .
+var S : String . var Value : V . var B : Bool .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+mod JS-CONVERSIONS is  including K . 
+ including URIS . including JS-TESTING .
+	      op toPrimitive(_,_) :  K  String -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:108:1)"] .  
+	      op toBoolean(_) :  K -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:109:1)"] . 
+	      op toNumber(_) :  K -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:110:1)"] . 
+	      op toString(_) :  K -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:111:1)"] . 
+	      op toObject(_) :  K -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:112:1)"] . 
+	      op asObject(_) :  K -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:113:1)"] . 
+	      op checkObjectCoercible(_) :  V -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:114:1)"] . 
+	
+	
+
+	
+	
+	mb rule toPrimitive(Prim:V, Hint:String)	=>  Prim 						 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:120) structural=()" ] .
+
+	
+	
+	mb rule toBoolean(Value:V) 		=>  $b (isTruthy(Value)) 					 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:124) structural=()" ] .
+	
+	
+	mb rule toNumber(Value:V)			=>  Value 		when isNumber(Value) 	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:127) structural=()" ] .
+	mb rule toNumber($u ) 				=>  $nan 									 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:128) structural=()" ] .
+	mb rule toNumber($null ) 			=>  $n (0)								 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:129) structural=()" ] .
+	mb rule toNumber($b (true )) 		=>  $n (1)								 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:130) structural=()" ] .
+	mb rule toNumber($b (false )) 		=>  $n (0)								 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:131) structural=()" ] .
+	mb rule toNumber($b (false )) 		=>  $n (0)								 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:132) structural=()" ] .
+	mb rule toNumber($s (S:String)) 	=>   #if  S ==K  "" #then  $n (0) #else  
+										#if  S ==K  "Infinity" #then  $inf (1) #else 
+										#if  S ==K  "-Infinity" #then  $inf (-1) #else 
+										$n (String2Float(S)) #fi  #fi  #fi 		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:133-136) structural=()" ] .
+	
+	
+	
+	
+	
+	mb rule toString($u )		 				=>  $s ("undefined")			 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:142) structural=()" ] .
+	mb rule toString($null ) 					=>  $s ("null")				 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:143) structural=()" ] .
+	mb rule toString($b (true )) 				=>  $s ("true")				 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:144) structural=()" ] .
+	mb rule toString($b (false )) 				=>  $s ("false")				 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:145) structural=()" ] .
+	mb rule toString($nan ) 					=>  $s ("NaN")				 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:146) structural=()" ] .
+	mb rule toString($f (F:Float)) 				=>  $s (Float2String(F))		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:147) structural=()" ] .
+	mb rule toString($inf (1)) 					=>  $s ("Infinity")			 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:148) structural=()" ] .
+	mb rule toString($inf (-1)) 				=>  $s ("-Infinity")			 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:149) structural=()" ] .
+	mb rule toString($z ( ? ))					=>  $s ("0")					 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:150) structural=()" ] .
+	mb rule toString($s (S:String)) 			=>  $s (S)					 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:151) structural=()" ] .
+
+	
+	
+	mb rule toObject(Value:V)	=>  asObject(checkObjectCoercible(Value)) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:155)" ] .
+	
+	
+	
+	
+	mb rule asObject($obj (Loc:Int)) 	=>  $obj (Loc) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:160)" ] .
+
+	mb rule checkObjectCoercible($u )				=>  $throw ($TypeError("Cannot be undefined!")) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:162)" ] .
+	mb rule checkObjectCoercible($null )			=>  $throw ($TypeError("Cannot be null!")) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:163)" ] .
+	mb rule checkObjectCoercible($b (B:Bool))		=>  $b (B) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:164)" ] .
+	mb rule checkObjectCoercible(Num:V)			=>  Num		when isNumber(Num) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:165)" ] .
+	mb rule checkObjectCoercible($s (S:String))		=>  $s (S) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:166)" ] .
+	mb rule checkObjectCoercible($obj (Loc:Int)) 	=>  $obj (Loc) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:167)" ] .
+	
+var F : Float . var S : String . var Value : V . var B : Bool . var Loc : Int . var Num : V . var Hint : String . var Prim : V .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm 
+
+mod JS-LOGIC is  including K . 
+ including URIS . including JS-CONVERSIONS .
+	
+	
+	
+	mb rule $and (Value:V, Exp:K)	=>  #if  isTruthy(Value) #then  Exp #else  Value #fi  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:175)" ] .
+	mb rule $or (Value:V, Exp:K) 	=>  #if  isTruthy(Value) #then  Value #else  Exp #fi  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:176)" ] .
+	
+var Value : V . var Exp : K .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+mod JS-CONDITIONAL is  including K . 
+ including URIS . including JS-LOGIC .
+	
+	
+	      op if(_,_,_) :  K  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:183:1) strict=(1)"] . 
+
+	mb rule  < k >  if(true , TrueAction:K,  ? ) 		=>  TrueAction  ...</ k > 	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:185) structural=() if-true=()" label if-true] .
+	mb rule < k >  if(false ,  ? , FalseAction:K) 	=>  FalseAction  ...</ k > 	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:186) structural=() if-false=()" label if-false] .
+	
+	
+	mb rule
+		< k >  $ternary (Condition:V, TrueAction:K , FalseAction:K)
+			=>  if(isTruthy(Condition), TrueAction, FalseAction)  ...</ k >  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:189-191) ternary=()" label ternary] .
+		
+
+	mb rule
+		< k >  $ifElse (Condition:V, TrueAction:K , FalseAction:K) 
+			=>  $ternary (Condition, TrueAction, 
+						#if  FalseAction ==K  .None  #then  $u  #else  FalseAction #fi )  ...</ k >  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:194-197) ifElse=()" label ifElse] .
+
+
+var FalseAction : K . var Condition : V . var TrueAction : K .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mod JS-ENV-REC is  including K . 
+ including URIS . including JS-CONDITIONAL .
+	
+		
+	     
+			 op hasRecProperty(_,_) :  K  String -> K 
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:227:1)"] . 	  op hasNoRecProperty(_,_) :  K  String -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:229:2)"] .  
+
+	     
+			 op getRecValueIfAbsent(_,_,_) :  K  String  K -> K 
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:231:1)"] . 	  op getEnsuredRecValue(_,_) :  K  String -> K 
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:233:2)"] . 	  op copyRecWithValue(_,_,_) :  K  String  K -> K 
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:234:3)"] . 	  op copyRecWithoutProperty(_,_) :  K  String -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:235:4)"] .  
+	
+	mb rule
+		hasRecProperty($rec (Properties:Map), Name:String) 
+		=>  isKeyPresent(Properties, Name)  
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:237-240) structural=() hasRecProperty=()" label hasRecProperty] .
+
+	mb rule
+		hasNoRecProperty($rec (Properties:Map), Name:String) 
+		=>  isKeyAbsent(Properties, Name)  
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:242-245) structural=() hasNoRecProperty=()" label hasNoRecProperty] .
+
+	mb rule
+		getRecValueIfAbsent($rec (Properties:Map), Name:String, AbsentAction:K) 
+		=>  AbsentAction
+		when isKeyAbsent(Properties, Name)  
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:247-251) structural=() getRecValueIfAbsent-absent=()" label getRecValueIfAbsent-absent] .
+
+	mb rule
+		getRecValueIfAbsent($rec (Name |->  Value:V Extra:Map), Name:String,  ? ) 
+		=>  Value  
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:253-256) structural=() getRecValueIfAbsent-present=()" label getRecValueIfAbsent-present] .
+
+
+	mb rule
+		getEnsuredRecValue($rec (Properties:Map), Name:String) 
+		=>  Properties(Name)  
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:259-262) structural=() getEnsuredRecValue=()" label getEnsuredRecValue] .
+
+	mb rule
+		copyRecWithValue($rec (Properties:Map), Name:String, Value:V) 
+		=>  $rec (Properties[Value /  Name])  
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:264-267) structural=() copyRecWithValue=()" label copyRecWithValue] .
+	
+	mb rule
+		copyRecWithoutProperty(Rec:V, Name:String) =>  Rec
+		when hasNoRecProperty(Rec, Name)  
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:269-272) structural=() copyRecWithoutProperty-absent=()" label copyRecWithoutProperty-absent] .
+
+	mb rule
+		copyRecWithoutProperty($rec (Name |->   ?  Extra:Map), Name:String) 
+		=>  $rec (Extra)
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:274-277) structural=() copyRecWithoutProperty-present=()" label copyRecWithoutProperty-present] .
+var Extra : Map . var Value : V . var Rec : V . var AbsentAction : K . var Properties : Map . var Name : String .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+mod JS-OBJ is  including K . 
+ including URIS . including JS-ENV-REC + JS-CONFIGURATION .
+	     
+			 op hasProperty(_,_) :  K  String -> K		
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:281:1)"] . 	  op hasNoProperty(_,_) :  K  String -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:283:2)"] . 	
+	     
+			 op newObj :  -> K
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:284:1)"] . 	  op allocNewRec :  -> K
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:286:2)"] . 	  op getEnsuredPropertyValue(_,_) :  K  String -> K
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:287:3)"] . 	  op getPropertyValueIfAbsent(_,_,_) :  K  String  K -> K
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:288:4)"] . 	  op getPropertyValue(_,_) :  K  String -> K
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:289:5)"] . 	  op setPropertyValue(_,_,_) :  K  String  K -> K
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:290:6)"] . 	  op deleteProperty(_,_) :  K  String -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:291:7)"] . 
+	
+	mb rule newObj =>  allocNewRec   : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:293) structural=() newObj=()" label newObj] .
+		
+	mb rule
+		< k >  allocNewRec =>  $obj (Loc)  ...</ k > 
+		< nextLoc >  Loc:Int =>  Loc +Int  1 </ nextLoc >   
+		< heap >  Heap:Map =>  Heap[$rec ((.).Map )/ Loc]  </ heap > 
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:295-299) structural=() allocNewRec=()" label allocNewRec] .
+	
+	
+	
+	
+	
+	mb rule
+		< k >  hasProperty($obj (Loc:Int), Name:String) =>  hasRecProperty(Heap(Loc), Name)  ...</ k > 
+		< heap >  Heap:Map </ heap >   
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:305-308) structural=() hasProperty=()" label hasProperty] .
+
+	mb rule
+		< k >  hasNoProperty($obj (Loc:Int), Name:String) =>  hasNoRecProperty(Heap(Loc), Name)  ...</ k > 
+		< heap >  Heap:Map </ heap >   
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:310-313) structural=() hasNoProperty=()" label hasNoProperty] .
+
+	mb rule
+		< k >  getEnsuredPropertyValue($obj (Loc:Int), Name:String) 
+			=>  getEnsuredRecValue(Heap(Loc), Name)  ...</ k > 
+		< heap >  Heap:Map </ heap >   
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:315-319) structural=() getEnsuredPropertyValue=()" label getEnsuredPropertyValue] .
+	
+	mb rule
+		< k >  getPropertyValueIfAbsent($obj (Loc:Int), Name:String, AbsentAction:K) 
+			=>  getRecValueIfAbsent(Heap(Loc), Name, AbsentAction)  ...</ k > 
+		< heap >  Heap:Map </ heap >   
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:321-325) structural=() getPropertyValueIfAbsent=()" label getPropertyValueIfAbsent] .
+	
+	
+	
+	
+	
+	
+	mb rule
+		getPropertyValue(Ref:V, Name:String) 
+		=>  getPropertyValueIfAbsent(Ref, Name, $u )
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:332-335) structural=() getPropertyValue=()" label getPropertyValue] .
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	mb rule
+		< k >  setPropertyValue($obj (Loc:Int), Name:String, Value:V) =>  Value  ...</ k > 
+		< heap >...   Loc |->  (Rec:V =>  copyRecWithValue(Rec, Name, Value))  ...</ heap >   
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:348-351) structural=() setPropertyValue=()" label setPropertyValue] .
+	
+	
+	
+	
+	
+	
+	mb rule
+		< k >  deleteProperty($obj (Loc:Int), Name:String) =>  .   ...</ k >  
+		< heap >...   Loc |->  (Rec:V =>  copyRecWithoutProperty(Rec, Name))  ...</ heap >   
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:358-361) structural=() deleteProperty=()" label deleteProperty] .
+
+	
+	
+	
+
+	
+	
+	
+	
+	
+	
+	
+
+var Value : V . var Rec : V . var Ref : V . var Loc : Int . var AbsentAction : K . var Name : String . var Heap : Map .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+mod JS-IDENTIFIER-RESOLUTION is  including K . 
+ including URIS . including JS-OBJ .
+	      op resolveIdentifier(_,_) :  K  String -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:378:1)"] . 
+	      op getTarget(_) :  V -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:379:1)"] . 
+	      op getPropertyName(_) :  V -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:380:1)"] . 
+	
+		
+	
+	
+	mb rule
+		< k >  resolveIdentifier(.None , Name:String) =>  $binding (.None , Name)  ...</ k > 
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:385-387) structural=() resolveIdentifier-unresolved=()" label resolveIdentifier-unresolved] .
+		
+	mb rule
+		< k >  resolveIdentifier($env (Outer:K, Obj:V), Name:String) 
+			=>  if(hasProperty(Obj, Name), $binding (Obj, Name), 
+					resolveIdentifier(Outer, Name))  ...</ k > 
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:389-393) structural=() resolveIdentifier=()" label resolveIdentifier] .
+	
+	
+	mb rule
+		getTarget($binding (Target:V,  ? )) =>  Target
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:396-398) structural=() getTarget=()" label getTarget] .
+	
+	mb rule
+		getPropertyName($binding ( ? , Name:String)) =>  Name
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:400-402) structural=() getPropertyName=()" label getPropertyName] .
+
+	
+	mb rule
+		< k >  $id (Name:String) =>  resolveIdentifier(Env, Name)  ...</ k > 
+		< lexEnv >  Env:K </ lexEnv >  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:405-407) identifier-resolution=()" label identifier-resolution] .
+	
+var Target : V . var Outer : K . var Env : K . var Obj : V . var Name : String .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+mod JS-VALUE-ACCESS is  including K . 
+ including URIS . including JS-IDENTIFIER-RESOLUTION .	
+	     
+			 op getValue(_) :  K -> V		  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:412:1) strict=()"] .
+			  op putValue(_,_) :  K  K -> V	  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:414:2) strict=()"] . 
+	
+	
+	
+	
+	
+	mb rule 
+		getValue(Value:V) =>  Value	when notBinding(Value)							 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:420-421) structural=() getValue-value=()" label getValue-value] .
+		
+	mb rule 
+		getValue($binding (.None , Name:String)) 
+		=>  $throw ($ReferenceError("Unresolvable property reference: " +String  Name +String  "!"))  
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:423-426) structural=() getValue-unresolved=()" label getValue-unresolved] .
+		
+	mb rule
+		getValue($binding (Obj:V, Name:String)) =>  getPropertyValue(Obj, Name)		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:428-429) structural=() getValue-identifier=()" label getValue-identifier] .
+
+
+
+	
+	mb rule
+		< k >  putValue(Value:V, Name:String) 
+			=>  $throw ($ReferenceError(
+				"Cannot assign property named -> " +String  Name +String  " to value!"))  ...</ k > 
+		when notBinding(Value)
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:434-439) structural=() putValue-error=()" label putValue-error] .
+
+	mb rule
+		< k >  putValue($binding (Obj:V, Name:String), Value:V) 
+			=>  setPropertyValue(
+				#if  Obj ==K  .None  #then  GlobalObj #else  Obj #fi , 
+				Name, Value)  ...</ k > 
+		< globalEnv >  GlobalObj:V </ globalEnv >  
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-basic-semantics.k:441-447) structural=() putValue=()" label putValue] .
+
+	
+	
+	
+	
+	
+var Value : V . var GlobalObj : V . var Obj : V . var Name : String .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+
+mod JS-BASIC-SEMANTICS is  including K-LATEX . including BUILTIN-SYNTAX-HOOKS . including K-RESULT . 
+    including JS-VALUE-ACCESS .
+	
+	
+ subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+
+
+
+
+
+mod JS-CONTROL-STRUCTURES is  including K . 
+ including URIS . including JS-BASIC-SEMANTICS .
+	
+	
+	
+	
+	
+	
+	
+	
+	mb rule 
+		< k >  $stmts (Stmt:K) =>  Stmt  ...</ k > 
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:15-17) structural=() statement-final-stmt=()" label statement-final-stmt] .
+
+	mb rule 
+		< k >  $stmts (Stmt:K ,, NextStmt:K ,, Stmts:List{K}) =>  Stmt ~>  $stmts (NextStmt ,, Stmts)  ...</ k >   
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:19-21) structural=() statement-queue-next=()" label statement-queue-next] .
+
+	mb rule 
+		< k >  (Value:V =>  .  ) ~>  $stmts (NextStmt:K ,, Stmts:List{K})  ...</ k >  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:23-24) statement-consume-value=()" label statement-consume-value] .  
+
+	mb rule
+		< k >  $exp (Exp:K) =>  Exp  ...</ k >  
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:26-28) structural=() expression=()" label expression] .
+
+	mb rule
+		$block (Stmts:List{K}) =>  $stmts (Stmts)
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:30-32) structural=() block=()" label block] .
+
+	mb rule
+		$comma (Exps:List{K}) =>  $stmts (Exps)
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:34-36) structural=() comma=()" label comma] .
+
+
+
+var Value : V . var Stmt : K . var NextStmt : K . var Exp : K . var Exps : List{K} . var Stmts : List{K} .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+mod JS-UNARY is  including K . 
+ including URIS . including JS-CONTROL-STRUCTURES .
+	      op not(_) :  K -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:43:1)"] . 
+	      op neg(_) :  K -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:44:1)"] . 
+
+	mb rule not($b (B:Bool)) =>  $b (notBool(B))									 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:46) structural=()" ] .
+	
+	mb rule neg(Value:V) 		=>  neg(toNumber(Value))	 when notNumber(Value)	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:48) structural=()" ] .
+	mb rule neg($f (F:Float)) 	=>  $f (0 -Float  F)								 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:49) structural=()" ] .
+	mb rule neg($z (Sign:Int))	=>  $z (0 -Int  Sign)								 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:50) structural=()" ] .
+	mb rule neg($inf (Sign)) 	=>  $inf (0 -Int  Sign)							 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:51) structural=()" ] .
+	mb rule neg($nan ) 			=>  $nan 											 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:52) structural=()" ] .
+	
+	
+	mb rule $plus (Value:V) =>  toNumber(Value) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:55)" ] .
+
+	
+	mb rule $neg (Value) =>  neg(Value) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:58)" ] .
+	
+	
+	mb rule $not (Value) =>  not(toBoolean(Value)) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:61)" ] .
+	
+var F : Float . var Value : V . var B : Bool . var Sign : Int .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+mod JS-ARITHMETIC is  including K . 
+ including URIS . including JS-UNARY . 
+
+	      op arith(_,_,_) :  String  K  K -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:67:1)"] .  
+	      op newSign(_,_) :  Int  Int -> Int  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:68:1)"] .  
+	      op newInfinity(_,_) :  Int  Int -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:69:1)"] .  
+	      op newZero(_,_) :  Int  Int -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:70:1)"] . 
+	      op strAdd(_,_) :  K  K -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:71:1)"] . 
+	      op add(_,_) :  K  K -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:72:1)"] . 
+	
+	mb rule 
+		newSign(Sign1:Int, Sign2:Int) 	=>  Sign1 *Int  Sign2				 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:74-75) structural=() newSign=()" label newSign] .
+	mb rule 
+		newInfinity(Sign1:Int, Sign2:Int) =>  $inf (newSign(Sign1, Sign2))	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:76-77) structural=() newInfinity=()" label newInfinity] .
+	mb rule 
+		newZero(Sign1:Int, Sign2:Int) 	=>  $z (newSign(Sign1, Sign2))	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:78-79) structural=() newZero=()" label newZero] .
+	
+	
+	
+	mb rule $div (Left:V, Right:V) 	=>  arith("div", getValue(Left), getValue(Right)) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:83) div=()" label div] .
+	mb rule $mul (Left:V, Right:V) 	=>  arith("mul", getValue(Left), getValue(Right)) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:84) mul=()" label mul] .
+	mb rule $sub (Left:V, Right:V) 	=>  arith("sub", getValue(Left), getValue(Right)) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:85) sub=()" label sub] .
+	mb rule $add (Left:V, Right:V) 	
+			=>  strAdd(toPrimitive(getValue(Left), "N"), toPrimitive(getValue(Right), "N")) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:86-87) add=()" label add] .
+
+
+	
+	mb rule arith(OpName:String, $nan ,  ? )	=>  $nan 					 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:91) structural=() nan-num-arith=()" label nan-num-arith] .
+	mb rule arith(OpName:String,  ? , $nan )	=>  $nan 					 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:92) structural=() num-nan-arith=()" label num-nan-arith] .
+
+
+	
+	mb rule 
+		arith(OpName:String, Left:V, Right:V) 	=>  arith(OpName, toNumber(Left), Right) 
+												when notNumber(Left)	 				 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:96-98) structural=() arith-coerce-left-to-num=()" label arith-coerce-left-to-num] .
+	mb rule 
+		arith(OpName:String, Left:V, Right:V) 	=>  arith(OpName, Left, toNumber(Right)) 
+												when notNumber(Right) 				 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:99-101) structural=() arith-coerce-right-to-num=()" label arith-coerce-right-to-num] .
+	
+	
+	
+	mb rule arith("div", $f (F1:Float), $f (F2:Float)) =>  $n (F1 /Float  F2)	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:105) structural=() f-div=()" label f-div] .
+	mb rule arith("mod", $f (F1:Float), $f (F2:Float)) =>  $n (F1 %Float  F2)	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:106) structural=() f-mod=()" label f-mod] .
+	mb rule arith("mul", $f (F1:Float), $f (F2:Float)) =>  $n (F1 *Float  F2)	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:107) structural=() f-mul=()" label f-mul] .
+	
+	mb rule arith("add", $f (F1:Float), $f (F2:Float)) =>  $n (F1 +Float  F2)	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:109) structural=() f-add=()" label f-add] .
+	
+
+	
+	mb rule arith("mul", $inf (Sign1:Int), $inf (Sign2:Int)) =>  newInfinity(Sign1, Sign2)	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:113) structural=()" ] .
+	mb rule arith("mul", $inf (Sign:Int), $f (F:Float))	=>  newInfinity(Sign, sign(F))	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:114) structural=()" ] .
+	mb rule arith("mul", $f (F:Float), $inf (Sign:Int))	=>  newInfinity(sign(F), Sign)	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:115) structural=()" ] .
+	mb rule arith("mul", $z ( ? ), $inf ( ? )) 					=>  $nan  					 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:116) structural=()" ] .
+	mb rule arith("mul", $inf ( ? ), $z ( ? )) 					=>  $nan  					 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:117) structural=()" ] .
+	mb rule arith("mul", $z (Sign:Int), $f (F:Float))		=>  newZero(Sign, sign(F))	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:118) structural=()" ] .
+	mb rule arith("mul", $f (F:Float), $z (Sign:Int))		=>  newZero(sign(F), Sign)	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:119) structural=()" ] .
+	mb rule arith("mul", $z (Sign1:Int), $z (Sign2:Int)) 	=>  newZero(Sign1, Sign2)	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:120) structural=()" ] .
+	
+	
+	
+	mb rule arith("div", $inf ( ? ), $inf ( ? )) 				=>  $nan  						 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:124) structural=()" ] .
+	mb rule arith("div", $inf (Sign:Int), $f (F:Float)) 	=>  newInfinity(Sign, sign(F))	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:125) structural=()" ] .
+	mb rule arith("div", $inf (Sign1:Int), $z (Sign2:Int))	=>  newInfinity(Sign1, Sign2) 	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:126) structural=()" ] .
+	mb rule arith("div", Num:V, $inf (Sign:Int)) 			=>  newZero(sign(Num), Sign) 
+														when isFinite(Num)				 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:127-128) structural=()" ] .
+	mb rule arith("div", $z (Sign:Int), $f (F:Float)) 		=>  newZero(Sign, sign(F))		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:129) structural=()" ] .
+	mb rule arith("div", $z ( ? ), $z ( ? )) 					=>  $nan 							 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:130) structural=()" ] .
+	mb rule arith("div", $f (F:Float), $z (Sign:Int)) 		=>  newInfinity(sign(F), Sign)	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:131) structural=()" ] .
+
+
+	
+	mb rule arith("mod", $inf ( ? ), Num:V) 		=>  $nan 		when notNan(Num)		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:135) structural=()" ] .
+	mb rule arith("mod", Num:V, $z ( ? )) 		=>  $nan 		when notNan(Num)		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:136) structural=()" ] .
+	mb rule arith("mod", Num:V, $inf ( ? )) 		=>  Num 		when isFinite(Num) 	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:137) structural=()" ] .
+	mb rule arith("mod", $z (Sign:Int), Num:V) =>  $z (Sign)	when isFinite(Num) 	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:138) structural=()" ] .
+
+
+	
+	mb rule strAdd($s (S1:String), $s (S2:String)) =>  $s (_+String_(S1, S2)) 			 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:142) structural=()" ] .
+	mb rule strAdd($s (S1), Value:V) 	=>  strAdd($s (S1), toString(Value))				 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:143) structural=()" ] .
+	mb rule strAdd(Value:V, $s (S2)) 	=>  strAdd(toString(Value), $s (S2))				 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:144) structural=()" ] .
+	mb rule strAdd(Left:V, Right:V) 	=>  arith("add", Left, Right) 
+									when (notString(Left) andBool notString(Right))	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:145-146) structural=()" ] .
+	
+	
+	mb rule arith("sub", Left, Right) =>  arith("add", Left, neg(Right))				 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:149) structural=()" ] .
+	
+	
+	mb rule arith("add", $inf (Sign:Int), $inf (Sign2:Int)) 
+		=>  #if  Sign ==K  Sign2 #then  $inf (Sign) #else  $nan  #fi 						 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:152-153) structural=()" ] .
+	mb rule arith("add", $inf (Sign:Int), Num:V) 	=>  $inf (Sign)	when isFinite(Num)	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:154) structural=()" ] .
+	mb rule arith("add", Num:V, $inf (Sign:Int)) 	=>  $inf (Sign)	when isFinite(Num)	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:155) structural=()" ] .
+	mb rule arith("add", $z (Sign), $z (Sign2)) 			
+		=>  #if  Sign ==K  Sign2 #then  $z (Sign) #else  $z (1) #fi 							 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:156-157) structural=()" ] .
+	mb rule arith("add", $z ( ? ), $f (F:Float)) 		=>  $f (F)							 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:158) structural=()" ] .
+	mb rule arith("add", $f (F:Float), $z ( ? )) 		=>  $f (F)							 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:159) structural=()" ] .
+	
+	
+	mb rule add(Left:V, Right:V) =>  arith("add", Left, Right)							 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:162) structural=()" ] .
+	
+var S1 : String . var F : Float . var Value : V . var Right : V . var Sign2 : Int . var Sign1 : Int . var S2 : String . var OpName : String . var F2 : Float . var Num : V . var F1 : Float . var Left : V . var Sign : Int .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+mod JS-PREFIX-POSTFIX is  including K . 
+ including URIS . including JS-ARITHMETIC .
+	      op postOp(_,_,_) :  V  K  Int -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:167:1)"] . 
+	      op preOp(_,_,_) :  V  K  Int -> V  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:168:1)"] . 
+	
+	
+	mb rule $inc (Target:V, true ) =>  postOp(Target, toNumber(getValue(Target)), 1) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:171)" ] .
+	
+ 	
+	mb rule $dec (Target:V, true ) =>  postOp(Target, toNumber(getValue(Target)), -1) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:174)" ] .
+	
+	mb rule postOp(Target:V, PrevNum:V, I:Int) 
+	=>  putValue(Target, add(PrevNum, $n (I))) ~>  discard ~>  PrevNum					 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:176-177) structural=()" ] .
+	
+	
+	mb rule $inc (Target:V, false ) =>  preOp(Target, toNumber(getValue(Target)), 1) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:180)" ] .
+	
+	
+	mb rule $dec (Target:V, false ) =>  preOp(Target, toNumber(getValue(Target)), -1) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:183)" ] .
+	
+	mb rule preOp(Target:V, Num:V, I:Int) =>  putValue(Target, add(Num, $n (I)))		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:185) structural=()" ] .
+var Target : V . var PrevNum : V . var Num : V . var I : Int .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+
+mod JS-COMPARISON is  including K . 
+ including URIS . including JS-PREFIX-POSTFIX .
+
+	
+	mb rule $lt (Left:V, Right:V) 	
+		=>  $b (comparison(lessThan(toPrimitive(Left, "N"), toPrimitive(Right, "N")), true )) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:192-193)" ] .
+	mb rule $gt (Left:V, Right:V) 	
+		=>  $b (comparison(lessThan(toPrimitive(Right, "N"), toPrimitive(Left, "N")), true )) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:194-195)" ] .
+	mb rule $lte (Left:V, Right:V) 	
+		=>  $b (comparison(lessThan(toPrimitive(Right, "N"), toPrimitive(Left, "N")), false )) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:196-197)" ] .
+	mb rule $gte (Left:V, Right:V) 
+		=>  $b (comparison(lessThan(toPrimitive(Left, "N"), toPrimitive(Right, "N")), false )) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:198-199)" ] .
+
+
+	
+	      op comparison(_,_) :  K  Bool -> Bool  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:203:1)"] . 
+	      op lessThan(_,_) :  V  V -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:204:1)"] . 
+	
+	
+	mb rule comparison($nan ,  ? )			=>  false 		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:207) structural=()" ] .
+	mb rule comparison(B:Bool, true )		=>  B			 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:208) structural=()" ] .
+	mb rule comparison(B:Bool, false )		=>  notBool(B)	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:209) structural=()" ] .
+	
+	
+	mb rule lessThan($s (S1:String), $s (S2:String)) 	=>  _<String_(S1, S2)			 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:212) structural=()" ] .
+	mb rule lessThan(Left:V, Right:V) 	=>  arith("<", toNumber(Left), toNumber(Right))
+										when (notString(Left) orBool notString(Right))	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:213-214) structural=()" ] .
+	
+	mb rule arith("<", $inf (Sign1:Int), $inf (Sign2:Int)) =>  _<Int_(Sign1, Sign2)			 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:216) structural=()" ] .
+	mb rule arith("<", $inf (Sign:Int), Num:V)	=>  _<Int_(Sign, 0) when isFinite(Num)			 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:217) structural=()" ] .
+	mb rule arith("<", Num:V, $inf (Sign:Int)) 	=>  _<Int_(0, Sign) when isFinite(Num)		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:218) structural=()" ] .
+	mb rule arith("<", Num1:V, Num2:V) 			=>  _<Float_(finiteValue(Num1), finiteValue(Num2))
+	 										when isFinite(Num1) andBool isFinite(Num2)	 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:219-220) structural=()" ] .
+var S1 : String . var Num2 : V . var Right : V . var Sign2 : Int . var Sign1 : Int . var Num1 : V . var B : Bool . var S2 : String . var Num : V . var Left : V . var Sign : Int .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+mod JS-IDENTITY is  including K . 
+ including URIS . including JS-COMPARISON .
+	      op identical(_,_) :  V  V -> Bool  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:224:1)"] . 
+	
+	
+	
+	mb rule $notIdentical (Left:V, Right:V) =>  not($identical (Left, Right))			 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:228) structural=()" ] .
+	
+	mb rule $identical ($nan ,  ? ) 			=>  $b (false ) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:230)" ] .
+	mb rule $identical ( ? , $nan ) 			=>  $b (false ) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:231)" ] .
+	mb rule $identical (Left:V, Right:V)	=>  Left ==K  Right
+										when andBool(notNan(Left), notNan(Right)) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:232-233)" ] .
+
+	
+	
+	
+	
+	
+	
+	
+	
+var Right : V . var Left : V .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+mod JS-EQUALITY is  including K . 
+ including URIS . including JS-IDENTITY .
+	      op castEqual(_,_) :  V  V -> Bool  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:246:1)"] . 
+	
+	
+	mb rule $not Equal(Left:V, Right:V) 	=>  not($equal(Left, Right))			 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:249) structural=()" ] .
+	
+	mb rule $equal(Left:V, Right:V) 		
+	=>  #if  typeof(Left) ==K  typeof(Right) #then  $identical (Left, Right) 
+	   #else  castEqual(Left, Right) #fi  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:251-253)" ] .
+	
+	mb rule castEqual($u , $null ) 				=>  $b (true ) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:255)" ] .
+	mb rule castEqual($null , $u ) 				=>  $b (true ) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:256)" ] .
+	mb rule castEqual($obj (I:Int), Value:V)	=>  $equal(toPrim($obj (I)), Value) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:257)" ] .
+	mb rule castEqual(Value:V, $obj (I:Int))	=>  $equal(Value, toPrim($obj (I))) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:258)" ] .
+	mb rule castEqual($b (B:Bool), Value:V)	=>  $equal(toNumber($b (B)), Value) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:259)" ] .
+	mb rule castEqual(Value:V, $b (B:Bool))	=>  $equal(Value, toNumber($b (B))) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:260)" ] .
+	
+	mb rule castEqual($s (S:String), Value:V)	=>  $equal(toNumber($s (S)), Value) 	when isNumber(Value) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:262)" ] .
+	mb rule castEqual(Value:V, $s (S:String))	=>  $equal(Value, toNumber($s (S))) 	when isNumber(Value) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:263)" ] .	
+var S : String . var Value : V . var Right : V . var B : Bool . var I : Int . var Left : V .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+mod JS-PROPERTY-ACCESS is  including K . 
+ including URIS . including JS-EQUALITY .
+	      op accessPropertyAt(_,_) :  K  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:267:1) seqstrict=()"] . 
+	
+	mb rule
+		$staticAccess (Target:V, $id (Name:String)) =>  accessPropertyAt(getValue(Target), $s (Name)) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:269-270) staticAccess=()" label staticAccess] .
+	
+	mb rule
+		$dynamicAccess (Target:V, PropNameValue:V) 
+		=>  accessPropertyAt(getValue(Target), toString(getValue(PropNameValue))) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:272-274) dynamicAccess=()" label dynamicAccess] .
+	
+	mb rule
+		accessPropertyAt(Obj:V, $s (Name:String)) =>  $binding (checkObjectCoercible(Obj), Name)
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:276-278) structural=() accessPropertyAt=()" label accessPropertyAt] .
+var Target : V . var Obj : V . var PropNameValue : V . var Name : String .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mod JS-SEMANTICS is  including K . 
+ including URIS . including JS-IDENTITY .
+
+	     
+			 op varPreDeclarations(_) : 	List{K} -> K
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:357:1)"] . 	  op varPreDeclaration(_) :  K -> K
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:359:2)"] . 	  op funcPreDeclarations(_) :  List{K} -> K
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:360:3)"] . 	  op assignmentExp(_,_,_) :  Nat  K  K -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:361:4)"] . 
+		
+	mb rule 
+		< k >  $program (VarDecls:List{K}, FuncDecls:List{K}, Stmts:List{K}) 
+			=>  varPreDeclarations(VarDecls) ~>  funcPreDeclarations(FuncDecls) ~>  $stmts (Stmts) </ k > 
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:363-366) structural=() begin-program=()" label begin-program] .
+
+
+		
+	
+	
+	mb rule 
+		< k >  varPreDeclarations(.List{K} ) =>  .   ...</ k >   
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:372-374) structural=() varPreDeclarations-empty=()" label varPreDeclarations-empty] .
+		
+	mb rule 
+		< k >  varPreDeclarations(Decl:K ,, Remaining:List{K})
+			=>  varPreDeclaration(Decl) ~>  varPreDeclarations(Remaining)  ...</ k >   
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:376-379) structural=() varPreDeclarations-each=()" label varPreDeclarations-each] .
+
+	mb rule 
+		< k >  varPreDeclaration($id (Name:String)) 
+			=>  putValue($binding (EnvObj, Name), $u ) ~>  discard  ...</ k > 
+		< lexEnv >  $env ( ? , EnvObj:V) </ lexEnv > 
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:381-385) structural=() varPreDeclaration-identifier=()" label varPreDeclaration-identifier] .
+				
+	mb rule 
+		varPreDeclaration($initNewId (Name:String ,  ? )) =>  varPreDeclaration($id (Name))
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:387-389) structural=() varPreDeclaration-ignore-initialization=()" label varPreDeclaration-ignore-initialization] .
+
+	mb rule 
+		< k >  funcPreDeclarations(.List{K} ) =>  .   ...</ k >   
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:391-393) structural=() funcPreDeclarations-empty=()" label funcPreDeclarations-empty] .
+
+
+	
+	
+	mb rule
+		$varDeclarations (.List{K} ) =>  $u   
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:398-400) structural=() strip-inline-varDeclarations-empty=()" label strip-inline-varDeclarations-empty] .
+
+	mb rule 
+		$varDeclarations ($id ( ? ) ,, Remaining:List{K}) =>  $varDeclarations (Remaining:List{K})
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:402-404) structural=() strip-inline-varDeclarations-id=()" label strip-inline-varDeclarations-id] .
+
+	mb rule 
+		$varDeclarations ($initNewId (Name:String, Exp:K) ,, Remaining:List{K})
+		=>  $assignment ($id (Name), Exp) ~>  $varDeclarations (Remaining)  
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:406-409) structural=() strip-inline-varDeclarations-init=()" label strip-inline-varDeclarations-init] .
+
+	mb rule
+		$assignment (Target:V, Value:V) =>  putValue(Target, getValue(Value)) : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:411-412) assignment-simple=()" label assignment-simple] .
+
+	
+	mb rule
+		$compoundAssignment (Target:V, Opcode:Nat, Value:V) 
+		=>  $assignment (Target, assignmentExp(Opcode, Target, Value))  
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:415-418) structural=() compoundAssignment-desugar=()" label compoundAssignment-desugar] .
+
+	
+	
+	
+	
+	
+	
+	
+		mb rule
+			assignmentExp(24, Target:V, Value:V) =>  $add (Target, Value)   : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-semantics.k:427-428) structural=() assignment-+==()" label assignment-+=] .
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+var Value : V . var Target : V . var Decl : K . var Remaining : List{K} . var VarDecls : List{K} . var FuncDecls : List{K} . var EnvObj : V . var Exp : K . var Opcode : Nat . var Name : String . var Stmts : List{K} .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+
+mod JS-PROGRAMS is  including K . 
+ including URIS . including JS-SEMANTICS .   
+	      op program1 :  -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-programs.k:2:1)"] .    op program2 :  -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-programs.k:2:2)"] .    op program3 :  -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-programs.k:2:3)"] .    op program4 :  -> K 
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-programs.k:2:4)"] .    op programEx1 :  -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-programs.k:3:5)"] .    op programEx3 :  -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-programs.k:3:6)"] .    op programEx4 :  -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-programs.k:3:7)"] .    op programEx5 :  -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-programs.k:3:8)"] .  
+
+
+	
+
+	eq program1 =  
+		$program (
+			.List{K} ,
+			.List{K} ,
+			$assignment ($id ("x"),$n (1))) [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-programs.k:8)"] .
+	
+	
+	
+	eq program2 =  
+		$program (
+			$id ("x"),,$id ("y"),,$id ("z"),
+			.List{K} ,
+			$varDeclarations ($id ("x"),,$id ("y"),,$id ("z")),,
+			$exp ($assignment ($id ("x"),$n (1)))) [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-programs.k:16)"] .
+
+	
+	
+	
+	
+	eq program3 = 
+		$program (
+			.List{K} ,
+			.List{K} ,
+			$assignment ($id ("v"),$n (234)),,
+			$assignment ($id ("first"),$ifElse ($b (false ),$block (.List{K} ),.None )),,
+			$assignment ($id ("second"),$ifElse (
+				$n (111),
+				$block ($exp ($assignment ($id ("x"),$id ("undefined")))),
+				$block ($exp ($comma ($null ,,$id ("undefined")))))),,
+			$assignment ($id ("third"),$ifElse (
+				$n (0),
+				$block ($exp ($assignment ($id ("x"),$id ("second")))),
+				$block ($exp ($comma ($id ("first"),,$id ("v"))))))) [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-programs.k:27)"] .	
+	
+	
+	
+	
+	
+	
+	
+	eq programEx1 = 
+		$program (
+			$initNewId ("count",$staticAccess ($id ("elements"),$id ("length"))),,
+				$id ("index"),,$id ("element"),,$id ("separator"),,
+				$initNewId ("accumulator",$or ($id ("accumulator ?  ? "),$arrayLit (.List{K} ))),
+			.List{K} ,
+			$varDeclarations ($initNewId ("count",$staticAccess ($id ("elements"),$id ("length")))),,
+			$varDeclarations ($id ("index"),,$id ("element"),,$id ("separator")),,
+			$varDeclarations (
+				$initNewId ("accumulator",$or ($id ("accumulator ?  ? "),$arrayLit (.List{K} )))),,
+			$exp ($assignment ($id ("separator ? "),$or ($id ("separator ? "),$s (","))))) [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js-programs.k:48)"] . 
+
+
+
+	
+ subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+
+mod JS-INIT-JS is  including K . 
+ including URIS . including JS-SEMANTICS .
+	     
+			 op initJS :  -> K
+		 [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js.k:21:1)"] . 	  op initGlobalLexEnv(_) :  K -> K   [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js.k:23:2) strict=()"] .  
+			  op initUndefined :  -> K  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js.k:24:3)"] . 
+
+	mb rule 
+		< k >  initJS =>  initGlobalLexEnv(newObj) ~>  initUndefined  ...</ k > 
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js.k:26-28) structural=() initJS=()" label initJS] .
+
+	mb rule
+		< k >  initGlobalLexEnv(Obj:V) =>  .   ...</ k >  
+		< lexEnv >  .None  =>  $env (.None , Obj) </ lexEnv >  
+		< globalEnv >  .None  =>  Obj </ globalEnv > 
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js.k:30-34) structural=() initGlobalLexEnv=()" label initGlobalLexEnv] .
+	
+	mb rule
+		< k >  initUndefined =>  setPropertyValue(Obj, "undefined", $u ) ~>  discard  ...</ k > 
+		< globalEnv >  Obj:V </ globalEnv > 
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js.k:36-39) structural=() initUndefined=()" label initUndefined] .
+
+var Obj : V .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
+
+
+mod JS is  including K . 
+ including URIS . including JS-INIT-JS + JS-PROGRAMS .
+	      op run(_) :  KLabel -> Bag  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js.k:45:1)"] . 
+	      op go(_) :  K -> Bag  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js.k:46:1)"] . 
+	
+	eq go(Program:K) =  < T >...   < k >  initJS ~>  Program </ k >  ...</ T >  [ metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js.k:48)"] . 
+	
+	mb rule
+		run (L:KLabel) =>  < T >...   < k >  initJS ~>  L(.List{K} ) </ k >  ...</ T >   
+		 : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js.k:50-52) structural=() run-program=()" label run-program] .
+	
+	mb rule 
+		< k >  Result:V =>  (.).K  </ k >  
+		< out >   ?  =>  stringValue(toString(Result)) </ out >  : KSentence [metadata "location=(/Users/m3rabb/Dev/Maude/k2/examples/languages/research/js/js.k:54-56) final-output=()" label final-output] .
+	
+	  
+	  
+	
+	
+  	
+var Program : K . var Result : V . var L : KLabel .   subsorts Bool Int Nat Float #Float Id #Id String Char TCPAnswer String Float V Float Bool String Id V MaudeNumber Float < K . endm
