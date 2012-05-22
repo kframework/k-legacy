@@ -1,0 +1,1 @@
+var count = elements.length;
