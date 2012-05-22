@@ -20,6 +20,12 @@ module STRING-HOOKS
   syntax Bool ::= String "==String" String
         [function hook(#STRING:_==String_)]
 
+  syntax Bool ::= String "<=String" String
+        [function hook(#STRING:_<=String_)]
+
+  syntax Bool ::= String "<String" String
+        [function hook(#STRING:_<String_)]
+
   syntax Int ::= "lengthString" "(" String ")" 
         [function klabel(lengthString) hook(#STRING:lengthString)]
   syntax String ::= "charString" "(" Int ")"
