@@ -1208,14 +1208,14 @@ mod LATEX-PRINT-META is
   var P : Printable . var Prints : Printables .
   eq eMetaLatexPrint(M, loc(N,I,P) Prints) = eMetaLatexPrint(M, P Prints) [print Prints] .
   eq eMetaLatexPrint(M, syntax(QIL, QIL', #Types(N) AS) Prints)
-   = ('\n '\begin '`{ 'syntaxBlock '`} '\syntax '`{ QIL '`} '`{ QIL' '`} '`{ eMetaLatexPrint(M, N, AS)  '`} eMetaLatexPrintQ(M, QIL, Prints)) [owise] .
+   = ('\n '\begin '`{ 'syntaxBlock '`} '`{ QIL '`} '\syntax '`{ QIL' '`} '`{ eMetaLatexPrint(M, N, AS)  '`} eMetaLatexPrintQ(M, QIL, Prints)) [owise] .
 ---  eq \subsort{QIL}{QIL'} = \syntax{QIL'}{QIL}{none} .
 
 
   op eMetaLatexPrintQ : Module QidList Printables -> QidList .
   eq eMetaLatexPrintQ(M, QIL, loc(N,I,P) Prints) = eMetaLatexPrintQ(M, QIL,  P Prints) .
   eq eMetaLatexPrintQ(M, QIL, syntax(QIL, QIL', #Types(N) AS) Prints)
-   = ('\n '\syntaxCont '`{ QIL '`} '`{ 
+   = ('\n '\syntaxCont '`{ 
       QIL' '`} '`{ eMetaLatexPrint(M, N, AS) '`} eMetaLatexPrintQ(M, QIL, Prints)) .
   eq eMetaLatexPrintQ(M, QIL, Prints) = ( '\end '`{ 'syntaxBlock '`} eMetaLatexPrint(M, Prints)) [owise] . 
 
@@ -1268,11 +1268,11 @@ mod LATEX-PRINT-META is
        eMetaLatexPrint(M, Prints)) [owise] .
 
   eq eMetaLatexPrint(M, (rule(Str, R{T, empty, AS})) Prints)
-    = ('\n '\krule '`{ printStr(latexString(Str)) '`} '`{ '\ensuremath printTerm0(M, T, AS) 
+    = ('\n '\krule '`[ printStr(latexString(Str)) '`] '`{ '\ensuremath printTerm0(M, T, AS) 
                    '`} '`{ '`} '`{ eMetaLatexPrint(M, AS) '`}
        eMetaLatexPrint(M, Prints)) [owise] .
   eq eMetaLatexPrint(M, (rule(Str, R{T, Cnd, AS})) Prints)
-    = ('\n '\krule '`{ printStr(latexString(Str)) '`} '`{ '\ensuremath printTerm0(M, T, AS) 
+    = ('\n '\krule '`[ printStr(latexString(Str)) '`] '`{ '\ensuremath printTerm0(M, T, AS) 
                    '`} '`{ '\ensuremath printTerm(M, Cnd) '`}  '`{  eMetaLatexPrint(M, AS) '`}
        eMetaLatexPrint(M, Prints)) [owise] .
   eq eMetaLatexPrint(M, (context(Str, C{T, empty, AS})) Prints)
