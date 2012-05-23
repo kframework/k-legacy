@@ -5,14 +5,18 @@ import Control.Applicative ((<$>))
 import Control.Arrow ((&&&), first, second)
 import Control.Exception
 import Control.Monad (forM, join)
+import Data.Attoparsec.Number
 import Data.Char (toLower, toUpper)
 import Data.List (intercalate, partition, stripPrefix)
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Maybe (mapMaybe)
-import qualified Data.Object as Y
-import qualified Data.Object.Yaml as Y
+import qualified Data.HashMap.Strict as HashMap
+import Data.Maybe (maybe, mapMaybe)
+import qualified Data.Text as T
+import Data.Text (Text)
+import qualified Data.Yaml as Y
 import Data.Typeable
+import qualified Data.Vector as Vector
 import Prelude hiding (catch)
 import System.Console.GetOpt
 import System.Environment
@@ -44,27 +48,13 @@ data Setting = Setting
     } deriving (Show)
 
 data ConfigException
-    = InvalidKeyValue String String ValueType
+    = InvalidKeyValue String Y.Value ValueType
     | GroupNotFound (Map String Config) String
     | GroupsWithoutDesk [String]
     | KeyNotFound String Config
     deriving (Show, Typeable)
 
 instance Exception ConfigException
-
-readValue :: ValueType -> String -> Maybe Value
-readValue BoolType "true" = Just $ Bool True
-readValue BoolType "false" = Just $ Bool False
-readValue StringType s = Just $ String s
-readValue NumberType s = Just $ Number (read s)
-readValue FileType s = Just $ File s
-readValue _ _ = Nothing
-
-tryReadValue :: String -> String -> IO (String, Value)
-tryReadValue k vs = case readValue t vs of
-    Just v -> return (k, v)
-    Nothing -> throwIO $ InvalidKeyValue k vs t
-    where t = getType k
 
 getVal :: Config -> String -> IO Value
 getVal config key = case Map.lookup key config of
@@ -172,28 +162,61 @@ mkConfig mDeskFile groups argsConfig = do
     return $ config `Map.union` rconfig
 
 {- Desk file handling -}
+-- TODO we're not using the yaml library very effectively in what follows
 
 parseConfigFile :: FilePath -> IO (Config, Map String Config)
 parseConfigFile file = do
-    yaml <- join $ Y.decodeFile file
-    ymap <- Y.fromMapping yaml
+    maybeYaml <- Y.decodeFile file
+    let yaml = case maybeYaml of
+            Nothing -> error "bad yaml!"
+            Just r  -> r
+    let ymap = Map.toList yaml
     conf <- getConfig ymap
     grps <- getGroups ymap
     return (conf, grps)
 
+getConfig :: [(String, Y.Value)] -> IO (Map String Value)
 getConfig ymap = do
-    conf <- sequence [tryReadValue k v | (k, Y.Scalar v) <- ymap]
+    -- TODO hackish
+    conf <- sequence [ convertValue k v | (k, v) <- ymap, isScalar v]
     return (Map.fromList conf)
 
+isScalar :: Y.Value -> Bool
+isScalar (Y.Bool _) = True
+isScalar (Y.Number _) = True
+isScalar (Y.String _) = True
+isScalar _ = False
+
+convertValue :: String -> Y.Value -> IO (String, Value)
+convertValue k v = case tryConvertValue v t of
+    Just v -> return (k, v)
+    Nothing -> throwIO $ InvalidKeyValue k v t
+    where t = getType k
+
+tryConvertValue :: Y.Value -> ValueType -> Maybe Value
+tryConvertValue (Y.Bool b) BoolType = return $ Bool b
+tryConvertValue (Y.Number (I i)) NumberType = return $ Number i
+tryConvertValue (Y.String txt) FileType = return $ File (T.unpack txt)
+tryConvertValue (Y.String txt) StringType = return $ String (T.unpack txt)
+tryConvertValue _ _ = Nothing
+
+getGroups :: [(String, Y.Value)] -> IO (Map String (Map String Value))
 getGroups ymap = do
-    case Y.lookupSequence "groups" ymap of
+    case lookup "groups" ymap of
         Nothing -> return Map.empty
-        Just yseq -> Map.fromList <$> (forM yseq $ \omap -> do
-            ymap <- Y.fromMapping omap
-            name <- Y.lookupScalar "name" ymap
+        Just (Y.Array v) -> let groups = Vector.toList v in
+          Map.fromList <$> (forM groups $ \val -> do
+            let ymap = case val of
+                    (Y.Object hm) -> map (\(k,v) -> (T.unpack k, v)) $ HashMap.toList hm
+                    _ -> groupError
+            let name = case lookup "name" ymap of
+                    (Just (Y.String s)) -> T.unpack s
+                    _ -> groupError
             let ymap' = filter ((/= "name") . fst) ymap
             conf <- getConfig ymap'
             return (name, conf))
+        _ -> groupError
+    where groupError = error "Failed to parse groups in configuration file."
 
 {- Command-line option handling -}
 
