@@ -93,7 +93,7 @@ sub get_ast_from_node
 
     
     # simple integers
-    if ($sort eq '#Int' || $sort eq '#Zero')
+    if ($sort eq '#Int' || $sort eq '#Zero' || $sort eq '#FiniteFloat')
     {
 	return "# $op(.List{K})";
     }
@@ -136,6 +136,9 @@ sub get_ast_from_node
 # print "RUN5: Op: $op; Sort: $sort; Content: $content\n";
     
     # empty appliances default
+
+    return "kList(\"List`{K`}2K_\")($content)" if ($op eq "_`,`,_");
+    return "kList(\"List`{K`}2K_\")($op)" if ($op eq ".List`{K`}");
     return "'$op(.List{K})" if ($content =~ /^\s*$/);
 
     if ($sort =~ /^\[/ && $kind eq "") 

@@ -267,6 +267,7 @@ s!($comment)!
 # also use freeze/unfreeze for strings
 my @ordered_ids = reverse length_sort(@identifiers);
 s/(?<!\\)".*?(?<!\\)"/Freeze($&, "STRINGS")/sge;
+s/(?<![0-9])[0-9]+\.[0-9]+?/Freeze($&, "STRINGS")/sge;
 for my $id (@ordered_ids)
 {
     s/(?<![a-zA-Z_0-9])($id)(?![a-zA-Z_0-9])/#id\_("$1")/sg;
