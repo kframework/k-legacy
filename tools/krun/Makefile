@@ -10,8 +10,7 @@ try-install:
 #	@cd ${K_BASE}/tools/maude-hs; cabal install
 	cabal update
 	@cd ${K_BASE}/tools/language-k; cabal install
-	@cd ${K_BASE}/tools/krun; cabal install
-	@cp ${K_BASE}/tools/krun/dist/build/krun/krun ${K_BASE}/core
+	@cd ${K_BASE}/tools/krun; cabal install --bindir=${K_BASE}/core
 
 debug-vars:
 	@echo "K_BASE is set to:"
