@@ -78,7 +78,13 @@ fmod MAKE-K-RULES is
 
   op $$addReplace : Module Term Term Condition Substitution AttrSet AttrSet ~> Module .
   eq $$addReplace(M, T1, T2, Cnd, Subst, AS, AS')
-   = $addReplace(M, T1, handleTagSuperCooling(T2, Subst, AS, AS'), heatedK(T1), heatedTailK(T2)[Subst], Cnd, AS, AS') .
+   = $$$addReplace(M, T1, handleTagSuperCooling(T2, Subst, AS, AS'), heatedK(T1), T2, Cnd, Subst, AS, AS') .
+
+  op $$$addReplace : Module Term Term Term Term Condition Substitution AttrSet AttrSet ~> Module .
+  eq $$$addReplace(M, T1, T2, T1, T4, Cnd, Subst, AS, AS')
+   = $addReplace(M, T1, T2, T1, T4, Cnd, AS, AS') .
+  eq $$$addReplace(M, T1, T2, T3, T4, Cnd, Subst, AS, AS')
+   = $addReplace(M, T1, T2, T3, heatedTailK(T4)[Subst], Cnd, AS, AS') [owise] .
 
   op $addReplace : Module Term Term Term Term Condition AttrSet AttrSet ~> Module .
 
