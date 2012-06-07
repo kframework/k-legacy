@@ -78,7 +78,7 @@ fmod MAKE-K-RULES is
 
   op $$addReplace : Module Term Term Condition Substitution AttrSet AttrSet ~> Module .
   eq $$addReplace(M, T1, T2, Cnd, Subst, AS, AS')
-   = $addReplace(M, T1, handleTagSuperCooling(T2, Subst, AS, AS'), heatedK(T1), T2[Subst], Cnd, AS, AS') .
+   = $addReplace(M, T1, handleTagSuperCooling(T2, Subst, AS, AS'), heatedK(T1), heatedTailK(T2)[Subst], Cnd, AS, AS') .
 
   op $addReplace : Module Term Term Term Term Condition AttrSet AttrSet ~> Module .
 
@@ -160,6 +160,24 @@ AS "\n\t" AS'] .
 
   op heatedTerm : Term -> Term .
   eq heatedTerm(T) = kra(kApply(heatLabel,(kApply(heatedLabel,(mkVariable('KsHeated,KList), T, mkVariable('KsHeated',KList))))),mkVariable('KHeated,K)) .
+
+
+ op heatedTailK_ : TermList -> TermList .
+ ceq heatedTailK(T, Tl) =  heatedTailK(SC), heatedTailK(Tl)
+  if SC := splitKCell(T) /\ getName(SC) == klabel .
+  eq heatedTailK(Q[Tl], Tl') = Q[heatedTailK(Tl)], heatedTailK(Tl') [owise] .
+  eq heatedTailK(V, Tl) = V, heatedTailK(Tl) .
+  eq heatedTailK(Ct, Tl) = Ct, heatedTailK(Tl) .
+  eq heatedTailK(empty) = empty .
+
+  op heatedTailK : SplitCell -> Term .
+  eq heatedTailK(SC) = plugCell(setContents(SC, heatedTailTerm(getContents(SC)))) .
+
+
+  op heatedTailTerm : Term -> Term .
+  eq heatedTailTerm(T) = kra(T,mkVariable('KHeated,K)) .
+
+
 
   var CSplit : KContextSplit .
   var SC : SplitCell .
