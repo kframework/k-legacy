@@ -107,11 +107,11 @@ fmod MAKE-K-RULES is
   
   op addStructural : Module Term Term Term Term Condition AttrSet AttrSet ~> Module .  
   eq addStructural(M, T1, T2, T3, T4, Cnd, AS, AS')
-   = superCoolName(addEqs(plugEq(T1,T2,metadata(AS),Cnd) plugEq(T3, T4, metadata(AS pair("superheated","")), Cnd), M), AS, AS') .
+   = superCoolName(addEqs(plugEq(T1,T2,metadata(AS),Cnd) if T3 =/= T1 then plugEq(T3, T4, metadata(AS pair("superheated","")), Cnd) else none fi, M), AS, AS') .
 
   op addTransition : Module Term Term Term Term Condition AttrSet AttrSet ~> Module .  
   eq addTransition(M, T1, T2, T3, T4, Cnd, AS, AS')
-   = superCoolName(addRls(plugRl(T1,T2,metadata(AS),Cnd) plugRl(T3, T4, metadata(AS pair("superheated","")), Cnd), M), AS, AS') .
+   = superCoolName(addRls(plugRl(T1,T2,metadata(AS),Cnd) if T3 =/= T1 then plugRl(T3, T4, metadata(AS pair("superheated","")), Cnd) else none fi, M), AS, AS') .
 
   op handleTagSuperCooling : Term Substitution AttrSet AttrSet -> Term .
   eq handleTagSuperCooling(T, Subst, A AS, AS' supercools(A AS'')) = T[Subst] .
