@@ -222,7 +222,7 @@ mod STRICTCXT2EQS is
   eq strictCxt2eqs(Syntax, StrictEqs, {MAS,Eqs, Rls}, Ss, AS, Ss') 
    = addOps(declareResultLabels(Eqs) declareVarPlaceHolders(Ss' \ KSentence )--- coolOps
 ,setMbs(addRls(Rls, addEqs(defaultCoolEqs(Ss, AS) defaultHeatEqs(Ss, AS), 
-        addEqs(generateResultEquations(Eqs), addImports((including Syntax . including 'K-STRICTNESS .), setName(emptySModule, StrictEqs))))), MAS)) [print "Syntax: " Syntax "StrictEqs: " StrictEqs] .
+        addEqs(generateResultEquations(Eqs), addImports((including Syntax .), setName(emptySModule, StrictEqs))))), MAS)) [print "Syntax: " Syntax "StrictEqs: " StrictEqs] .
 
 
   op placeHolder : Qid -> Equation .
