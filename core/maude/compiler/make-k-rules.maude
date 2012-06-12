@@ -7,21 +7,20 @@ fmod MAKE-K-RULES is
   including META-K-CONDITION-SEARCH .
   including PARSE-METADATA .
   including COMPILATION-ATTRS .
-  var M Flat : Module .  var T T1 T2 Trm T3 T4 : Term .  var Cond : TermList .
+  var M Flat : Module .  var T T1 T2 Trm : Term .  var Cond : TermList .
   var Cnd : Condition .
   var Cxt : String .
   var AS AS' AS'' : AttrSet .  var A : Attr .
   var C : Term . var S : Sort .  var Ss : SortSet . var Subst : Substitution .
   var Ct : Constant . var V : Variable .
-  var O O' Q : Qid . var N : Nat . var Tl Tl'  : TermList .
+  var O O' Q : Qid . var N : Nat . var Tl : TermList .
   var KRuleType : KRuleKind .  var Split : KRuleSplit .
   var Mas : MembAxSet . var Max : MembAx .
   var Str : String .
   var OPDS : OpDeclSet . var Op : OpDecl .  var Ty : Type .
-  var Rl : Rule . var Rls : RuleSet . var Eq : Equation . var Eqs : EquationSet .
   
   op resolveKRules : Qid Module Module SortSet AttrSet -> Module .
-  eq resolveKRules(O, M, Flat, Ss, AS) = setCoolName(resolveReplace(setOps(setEqs(setRls(Flat,none),none),clearReductionAttrs(getOps(Flat)) coolCellOps(Ss)), addOps(coolCellOps(Ss),setMbs(addImports( including 'K-STRICTNESS ., removeImports(M, (including 'K-RULES .) (including 'K-CONDITION-SEARCH .))),none)), getMbs(M), coolSubst(Ss), AS), O) .
+  eq resolveKRules(O, M, Flat, Ss, AS) = setCoolName(resolveReplace(setOps(setEqs(setRls(Flat,none),none),clearReductionAttrs(getOps(Flat)) coolCellOps(Ss)), addOps(coolCellOps(Ss),setMbs(removeImports(M, (including 'K-RULES .) (including 'K-CONDITION-SEARCH .)),none)), getMbs(M), coolSubst(Ss), AS), O) .
   
   op coolCellOps : SortSet -> OpDeclSet .
   eq coolCellOps(none) = none .
@@ -75,44 +74,33 @@ fmod MAKE-K-RULES is
 
   op addReplace : Module Module KRuleSplit Substitution AttrSet ~> Module .
   eq addReplace(Flat, M, R{T,Cond,AS}, Subst, AS')
-   = $$addReplace(M, addK(Flat, AS, AS', normalize(Flat,splitReplace(Flat, T,1))), addK(Flat, AS, AS', normalize(Flat,splitReplace(Flat, T,2))), makeCondition(Cond), Subst, AS, AS') .
+   = $addReplace(M, addK(Flat, AS, AS', normalize(Flat,splitReplace(Flat, T,1))), handleTagSuperCooling(addK(Flat, AS, AS', normalize(Flat,splitReplace(Flat, T,2))), Subst, AS, AS'), makeCondition(Cond), AS, AS') .
 
-  op $$addReplace : Module Term Term Condition Substitution AttrSet AttrSet ~> Module .
-  eq $$addReplace(M, T1, T2, Cnd, Subst, AS, AS')
-   = $$$addReplace(M, T1, handleTagSuperCooling(T2, Subst, AS, AS'), heatedK(T1), T2, Cnd, Subst, AS, AS') .
-
-  op $$$addReplace : Module Term Term Term Term Condition Substitution AttrSet AttrSet ~> Module .
-  eq $$$addReplace(M, T1, T2, T1, T4, Cnd, Subst, AS, AS')
-   = $addReplace(M, T1, T2, T1, T4, Cnd, AS, AS') .
-  eq $$$addReplace(M, T1, T2, T3, T4, Cnd, Subst, AS, AS')
-   = $addReplace(M, T1, T2, T3, heatedTailK(T4)[Subst], Cnd, AS, AS') [owise] .
-
-  op $addReplace : Module Term Term Term Term Condition AttrSet AttrSet ~> Module .
-
-  eq $addReplace(M, T1, T2, T3, T4, Cnd, AS pair("predicate",Str), AS')
-   = addStructural(M, T1, T2, T3, T4, Cnd, AS pair("predicate",Str), AS')  .
-  eq $addReplace(M, T1, T2, T3, T4, Cnd, AS pair("function",Str), AS')
-   = addStructural(M, T1, T2, T3, T4, Cnd, AS pair("function",Str), AS') .
-  eq $addReplace(M, T1, T2, T3, T4, Cnd, AS A, transitions(A AS'') AS')
-   = addTransition(M, T1, T2, T3, T4, Cnd, AS A, AS') .
-  eq $addReplace(M, T1, T2, T3, T4, Cnd, AS pair(Str,Str':String), transitions(pair(Str, Str'':String) AS'') AS')
-   = addTransition(M, T1, T2, T3, T4, Cnd, AS pair(Str, Str':String), AS') .
-  eq $addReplace(M, T1, T2, T3, T4, Cnd, AS, transitions(pair("default","") AS'') AS')
-   = addTransition(M, T1, T2, T3, T4, Cnd, AS pair("default",""), AS') .
-  eq $addReplace(M, T1, T2, T3, T4, Cnd, AS, AS')
-   = addStructural(M, T1, T2, T3, T4, Cnd, AS pair("default",""), AS') [owise] .
-  eq $addReplace(M, errorT(Err:[Term],Cxt:String,Msg:String), T2:[Term], T3:[Term], T4:[Term], Cnd:[Condition], AS, AS')
+  op $addReplace : Module Term Term Condition AttrSet AttrSet ~> Module .
+  eq $addReplace(M, T1, T2, Cnd, AS pair("predicate",Str), AS')
+   = addStructural(M, T1, T2, Cnd, AS pair("predicate",Str), AS') .
+  eq $addReplace(M, T1, T2, Cnd, AS pair("function",Str), AS')
+   = addStructural(M, T1, T2, Cnd, AS pair("function",Str), AS') .
+  eq $addReplace(M, T1, T2, Cnd, AS A, transitions(A AS'') AS')
+   = addTransition(M, T1, T2, Cnd, AS A, AS') .
+  eq $addReplace(M, T1, T2, Cnd, AS pair(Str,Str':String), transitions(pair(Str, Str'':String) AS'') AS')
+   = addTransition(M, T1, T2, Cnd, AS pair(Str, Str':String), AS') .
+  eq $addReplace(M, T1, T2, Cnd, AS, transitions(pair("default","") AS'') AS')
+   = addTransition(M, T1, T2, Cnd, AS pair("default",""), AS') .
+  eq $addReplace(M, T1, T2, Cnd, AS, AS')
+   = addStructural(M, T1, T2, Cnd, AS pair("default",""), AS') [owise] .
+  eq $addReplace(M, errorT(Err:[Term],Cxt:String,Msg:String), T2:[Term], Cnd:[Condition], AS, AS')
    = errorM(AS,Msg:String,Err:[Term],Cxt:String,M) .
-  eq $addReplace(M, T2:[Term], errorT(Err:[Term],Cxt:String,Msg:String), T3:[Term], T4:[Term], Cnd:[Condition], AS, AS')
+  eq $addReplace(M, T2:[Term], errorT(Err:[Term],Cxt:String,Msg:String), Cnd:[Condition], AS, AS')
    = errorM(AS,Msg:String,Err:[Term],Cxt:String,M) .
   
-  op addStructural : Module Term Term Term Term Condition AttrSet AttrSet ~> Module .  
-  eq addStructural(M, T1, T2, T3, T4, Cnd, AS, AS')
-   = superCoolName(addEqs(plugEq(T1,T2,metadata(AS),Cnd) if T3 =/= T1 then plugEq(T3, T4, metadata(AS pair("superheated","")), Cnd) else none fi, M), AS, AS') .
+  op addStructural : Module Term Term Condition AttrSet AttrSet ~> Module .  
+  eq addStructural(M, T1, T2, Cnd, AS, AS')
+   = superCoolName(addEqs(plugEq(T1,T2,metadata(AS),Cnd), M), AS, AS') .
 
-  op addTransition : Module Term Term Term Term Condition AttrSet AttrSet ~> Module .  
-  eq addTransition(M, T1, T2, T3, T4, Cnd, AS, AS')
-   = superCoolName(addRls(plugRl(T1,T2,metadata(AS),Cnd) if T3 =/= T1 then plugRl(T3, T4, metadata(AS pair("superheated","")), Cnd) else none fi, M), AS, AS') .
+  op addTransition : Module Term Term Condition AttrSet AttrSet ~> Module .  
+  eq addTransition(M, T1, T2, Cnd, AS, AS')
+   = superCoolName(addRls(plugRl(T1,T2,metadata(AS),Cnd), M), AS, AS') .
 
   op handleTagSuperCooling : Term Substitution AttrSet AttrSet -> Term .
   eq handleTagSuperCooling(T, Subst, A AS, AS' supercools(A AS'')) = T[Subst] .
@@ -142,7 +130,7 @@ fmod MAKE-K-RULES is
   
   op setCoolName : Module Qid Qid -> Module .
   eq setCoolName(M, Q, '#SUPERCOOL) = setName(M, qid("#SUPERCOOL-" + string(Q))) .
-  eq setCoolName(M, Q, O) = setName(pruneHeated(M), Q) [owise] .
+  eq setCoolName(M, Q, O) = setName(M, Q) [owise] .
 
 
   op addK : Module AttrSet AttrSet Term -> Term .
@@ -152,57 +140,6 @@ fmod MAKE-K-RULES is
 AS "\n\t" AS'] .
   eq addK(Flat, AS, AS', errorT(Err:[Term],Cxt:String,Msg:String)) = errorT(Err:[Term],Cxt:String,Msg:String) .
 
-
-  op heatedK_ : TermList -> TermList .
- ceq heatedK(T, Tl) =  heatedK(SC), heatedK(Tl)
-  if SC := splitKCell(T) /\ getName(SC) == klabel .
-  eq heatedK(Q[Tl], Tl') = Q[heatedK(Tl)], heatedK(Tl') [owise] .
-  eq heatedK(V, Tl) = V, heatedK(Tl) .
-  eq heatedK(Ct, Tl) = Ct, heatedK(Tl) .
-  eq heatedK(empty) = empty .
-
-  op heatedK : SplitCell -> Term .
-  eq heatedK(SC) = plugCell(setContents(SC, heatedTerm(getContents(SC)))) .
-
-
-  op heatedTerm : Term -> Term .
-  eq heatedTerm(T) = kra(kApply(heatLabel,(kApply(heatedLabel,(mkVariable('KsHeated,KList), T, mkVariable('KsHeated',KList))))),mkVariable('KHeated,K)) .
-
-
- op heatedTailK_ : TermList -> TermList .
- ceq heatedTailK(T, Tl) =  heatedTailK(SC), heatedTailK(Tl)
-  if SC := splitKCell(T) /\ getName(SC) == klabel .
-  eq heatedTailK(Q[Tl], Tl') = Q[heatedTailK(Tl)], heatedTailK(Tl') [owise] .
-  eq heatedTailK(V, Tl) = V, heatedTailK(Tl) .
-  eq heatedTailK(Ct, Tl) = Ct, heatedTailK(Tl) .
-  eq heatedTailK(empty) = empty .
-
-  op heatedTailK : SplitCell -> Term .
-  eq heatedTailK(SC) = plugCell(setContents(SC, heatedTailTerm(getContents(SC)))) .
-
-
-  op heatedTailTerm : Term -> Term .
-  eq heatedTailTerm(T) = kra(T,mkVariable('KHeated,K)) .
-
-
-  op pruneHeated : Module ~> Module .
-  eq pruneHeated(M) = setEqs(setRls(M, pruneHeatedRls(getRls(M))), pruneHeatedEqs(getEqs(M))) .
-  
-  op pruneHeatedRls : RuleSet ~> RuleSet .
-  eq pruneHeatedRls(Rl Rls) = if heated(metadataParse(getAttrs(Rl))) then pruneHeatedRls(Rls) else Rl pruneHeatedRls(Rls)  fi .
-  eq pruneHeatedRls(none) = none .
-
-  op pruneHeatedEqs : EquationSet ~> EquationSet .
-  eq pruneHeatedEqs(Eq Eqs) = if heated(metadataParse(getAttrs(Eq))) then pruneHeatedEqs(Eqs) else Eq pruneHeatedEqs(Eqs)  fi .
-  eq pruneHeatedEqs(none) = none .
-
-
-  op heated : AttrSet -> Bool .
-  eq heated(pair("superheated",Str:String) AS) = true .
-  eq heated(AS) = false [owise] .
-
-
   var CSplit : KContextSplit .
-  var SC : SplitCell .
 endfm
 
