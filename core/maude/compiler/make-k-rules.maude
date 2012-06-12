@@ -18,6 +18,7 @@ fmod MAKE-K-RULES is
   var Mas : MembAxSet . var Max : MembAx .
   var Str : String .
   var OPDS : OpDeclSet . var Op : OpDecl .  var Ty : Type .
+  var Rl : Rule . var Rls : RuleSet . var Eq : Equation . var Eqs : EquationSet .
   
   op resolveKRules : Qid Module Module SortSet AttrSet -> Module .
   eq resolveKRules(O, M, Flat, Ss, AS) = setCoolName(resolveReplace(setOps(setEqs(setRls(Flat,none),none),clearReductionAttrs(getOps(Flat)) coolCellOps(Ss)), addOps(coolCellOps(Ss),setMbs(addImports( including 'K-STRICTNESS ., removeImports(M, (including 'K-RULES .) (including 'K-CONDITION-SEARCH .))),none)), getMbs(M), coolSubst(Ss), AS), O) .
@@ -141,7 +142,7 @@ fmod MAKE-K-RULES is
   
   op setCoolName : Module Qid Qid -> Module .
   eq setCoolName(M, Q, '#SUPERCOOL) = setName(M, qid("#SUPERCOOL-" + string(Q))) .
-  eq setCoolName(M, Q, O) = setName(M, Q) [owise] .
+  eq setCoolName(M, Q, O) = setName(pruneHeated(M), Q) [owise] .
 
 
   op addK : Module AttrSet AttrSet Term -> Term .
@@ -183,6 +184,22 @@ AS "\n\t" AS'] .
   op heatedTailTerm : Term -> Term .
   eq heatedTailTerm(T) = kra(T,mkVariable('KHeated,K)) .
 
+
+  op pruneHeated : Module ~> Module .
+  eq pruneHeated(M) = setEqs(setRls(M, pruneHeatedRls(getRls(M))), pruneHeatedEqs(getEqs(M))) .
+  
+  op pruneHeatedRls : RuleSet ~> RuleSet .
+  eq pruneHeatedRls(Rl Rls) = if heated(metadataParse(getAttrs(Rl))) then pruneHeatedRls(Rls) else Rl pruneHeatedRls(Rls)  fi .
+  eq pruneHeatedRls(none) = none .
+
+  op pruneHeatedEqs : EquationSet ~> EquationSet .
+  eq pruneHeatedEqs(Eq Eqs) = if heated(metadataParse(getAttrs(Eq))) then pruneHeatedEqs(Eqs) else Eq pruneHeatedEqs(Eqs)  fi .
+  eq pruneHeatedEqs(none) = none .
+
+
+  op heated : AttrSet -> Bool .
+  eq heated(pair("superheated",Str:String) AS) = true .
+  eq heated(AS) = false [owise] .
 
 
   var CSplit : KContextSplit .
