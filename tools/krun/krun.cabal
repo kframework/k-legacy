@@ -22,14 +22,14 @@ Executable krun
     filepath,
     directory,
     text,
-    yaml,
+    failure,
+    data-object,
+    data-object-yaml <= 0.3.3.6,
 --    hxt,
 --    hxt-xpath,
 --    maude >= 0.2.2,
     language-k,
     containers <= 0.4.2.1,
-    unordered-containers,
-    vector,
     attoparsec >= 0.10.0.0,
     parsec >= 3.1.2
 
