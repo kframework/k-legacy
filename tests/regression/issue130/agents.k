@@ -33,5 +33,5 @@ module AGENTS imports SEQ
   rule [agent-creation] : <agent>...  <k>newAgent S:K => N2:Nat ...</k> <me>N1:Nat</me> 
         ...</agent> <br/> <world>... . => SetItem(N2) ...</world> <br/>
        (. => <agent>... <me>N2</me><br/><parent>N1</parent><br/><k>S</k> ...</agent>) 
-       <br/><nextAgent>N2 => N2 +Int 1</nextAgent> 
+       <br/><nextAgent>N2 => N2 +Int 1</nextAgent>  [large]
 end module
