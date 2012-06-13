@@ -333,15 +333,18 @@ var Eq : Equation .  var Eqs : EquationSet .
  ceq printTerm1(U, Q[Ct]) = tokenize(getString(Ct)) if Q == latexS .
  ceq printTerm1(U, addParens(Q[Ct])) = tokenize(getString(Ct)) if Q == latexS .
  ceq printTerm1(U, addParens('__[Tl1:TermList, Q[Ct], Tl2:TermList]))
-   = printTerm(U,merge(genQids(s countTerms(Tl1:TermList), '\somespace), Tl1:TermList))
+   = printTerm1(U,'__[Tl1:TermList]) ---(merge(genQids(s countTerms(Tl1:TermList), '\somespace), Tl1:TermList))
      tokenize(getString(Ct))
-     printTerm(U,merge(genQids(s countTerms(Tl2:TermList), '\somespace), Tl2:TermList)) 
+     printTerm1(U,'__[Tl2:TermList]) ---(merge(genQids(s countTerms(Tl2:TermList), '\somespace), Tl2:TermList)) 
   if Q == latexS .
  ceq printTerm1(U, '__[Tl1:TermList, Q[Ct], Tl2:TermList])
-   = printTerm(U,merge(genQids(s countTerms(Tl1:TermList), '\somespace), Tl1:TermList))
+   = printTerm1(U,'__[Tl1:TermList]) ---(merge(genQids(s countTerms(Tl1:TermList), '\somespace), Tl1:TermList))
      tokenize(getString(Ct))
-     printTerm(U,merge(genQids(s countTerms(Tl2:TermList), '\somespace), Tl2:TermList))
+     printTerm1(U,'__[Tl2:TermList]) ---(merge(genQids(s countTerms(Tl2:TermList), '\somespace), Tl2:TermList)) 
   if Q == latexS .
+  eq printTerm1(U, '__[T:Term]) = printTerm(U,T:Term) .
+  eq printTerm1(U, '__[empty]) = nil .
+
  ceq printTerm1(U,addParens(Q[NeTl,T]))
    = printTerm(U,addParens(Q[Q[NeTl],T]))
   if mixfix(Q) /\ size(splitMixFix(string(Q))) = 3 /\ 1 < countTerms(NeTl) [owise print "normalizing"] .
