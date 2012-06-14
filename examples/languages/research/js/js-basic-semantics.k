@@ -5,11 +5,11 @@ kmod JS-UTILITY	is including JS-SYNTAX
 	
 	rule [isKeyPresent]:
 		isKeyPresent(M:Map, K:K) => $hasMapping(M, K) 
-		[structural]
+		[structural anywhere]
 
 	rule [isKeyAbsent]:
 		isKeyAbsent(M:Map, K:K) => notBool($hasMapping(M, K)) 
-		[structural]
+		[structural anywhere]
 		
 	rule [discard]:
 	 	<k> Previous:V ~> discard => . ...</k>
@@ -22,7 +22,7 @@ endkm
 kmod JS-TYPE is including JS-UTILITY
 	syntax String ::= jsType( V )
 	
-	rule jsType($u)		 			=> "undefined"	[structural anywhere]
+	rule jsType($undefined)			=> "undefined"	[structural anywhere]
 	rule jsType($null) 				=> "null"		[structural anywhere]
 	rule jsType($b(_)) 				=> "boolean"	[structural anywhere]
 	rule jsType($z(_)) 				=> "finite"		[structural anywhere]
@@ -38,7 +38,7 @@ endkm
 kmod JS-TYPEOF is including JS-TYPE
 	syntax String ::= typeof( V )
 	
-	rule typeof($u) 				=> "undefined"	[structural]
+	rule typeof($undefined) 		=> "undefined"	[structural]
 	rule typeof($null) 				=> "object"		[structural]
 	rule typeof($b(_)) 				=> "boolean"	[structural]
 	rule typeof($z(_)) 				=> "number"		[structural]
@@ -80,7 +80,7 @@ kmod JS-TESTING is including JS-TYPEOF
 	syntax Bool ::= notBinding( V ) 
 	
 	
-	rule isTruthy($u) 					=> false		 [structural anywhere]
+	rule isTruthy($undefined) 			=> false		 [structural anywhere]
 	rule isTruthy($null) 				=> false		 [structural anywhere]
 	rule isTruthy($b(B:Bool)) 			=> B			 [structural anywhere]
 	rule isTruthy($z(_)) 				=> false		 [structural anywhere]
@@ -97,7 +97,7 @@ kmod JS-TESTING is including JS-TYPEOF
 	rule [isNumber]: isNumber(Value:V) 		=> typeof(Value) ==K "number"	[structural anywhere]
 	rule [notNumber]: notNumber(Value:V) 	=> typeof(Value) =/=K "number"	[structural anywhere]
 	
-	rule [isString]: notString(Value:V) 	=>	jsType(Value) ==K "string"	[structural anywhere]
+	rule [isString]: isString(Value:V) 	=>	jsType(Value) ==K "string"		[structural anywhere]
 	rule [notString]: notString(Value:V) 	=>	jsType(Value) =/=K "string"	[structural anywhere]
 	
 	rule [isBinding]: isBinding(Value:V)	=>	jsType(Value) ==K "binding"	[structural anywhere]
@@ -125,7 +125,7 @@ kmod JS-CONVERSIONS is including JS-TESTING
 	
 	--- ECMA-262 9.3
 	rule toNumber(Value:V)			=> Value 		when isNumber(Value) 	[structural]
-	rule toNumber($u) 				=> $nan									[structural]
+	rule toNumber($undefined) 		=> $nan									[structural]
 	rule toNumber($null) 			=> $n(0)								[structural]
 	rule toNumber($b(true)) 		=> $n(1)								[structural]
 	rule toNumber($b(false)) 		=> $n(0)								[structural]
@@ -139,7 +139,7 @@ kmod JS-CONVERSIONS is including JS-TESTING
 	--- NOTE: some objects (such as arrays & numbers) map to $n(0) or $n(n)  !!!
 	
 	--- ECMA-262 9.8
-	rule toString($u)		 				=> $s("undefined")			[structural]
+	rule toString($undefined)				=> $s("undefined")			[structural]
 	rule toString($null) 					=> $s("null")				[structural]
 	rule toString($b(true)) 				=> $s("true")				[structural]
 	rule toString($b(false)) 				=> $s("false")				[structural]
@@ -159,7 +159,7 @@ kmod JS-CONVERSIONS is including JS-TESTING
 	--- rule asObject($s(S:String))	=>	
 	rule asObject($obj(Loc:Int)) 	=> $obj(Loc)
 
-	rule checkObjectCoercible($u)				=> $throw($TypeError("Cannot be undefined!"))
+	rule checkObjectCoercible($undefined)		=> $throw($TypeError("Cannot be undefined!"))
 	rule checkObjectCoercible($null)			=> $throw($TypeError("Cannot be null!"))
 	rule checkObjectCoercible($b(B:Bool))		=> $b(B)
 	rule checkObjectCoercible(Num:V)			=> Num		when isNumber(Num)
@@ -179,22 +179,22 @@ endkm
 
 kmod JS-CONDITIONAL is including JS-LOGIC
 	--- TODO: add getValue calls in the right places
-	
+	--- DONE: removed <k>  ...</k>
 	syntax K ::= if( K , K , K ) [strict(1)]
 
-	rule [if-true]:  <k> if(true, TrueAction:K, _) 		=> TrueAction ...</k>	[structural]
-	rule [if-false]: <k> if(false, _, FalseAction:K) 	=> FalseAction ...</k>	[structural]
+	rule [if-true]:  if(true, TrueAction:K, _) 		=> TrueAction 	[structural]
+	rule [if-false]: if(false, _, FalseAction:K) 	=> FalseAction 	[structural]
 	
 	--- ECMA-262 11.11
 	rule [ternary]:
-		<k> $ternary(Condition:V, TrueAction:K , FalseAction:K)
-			=> if(isTruthy(Condition), TrueAction, FalseAction) ...</k>
+		$ternary(Condition:V, TrueAction:K , FalseAction:K)
+		=> if(isTruthy(Condition), TrueAction, FalseAction)
 		---	  => if isTruthy(Condition) then TrueExp else FalseExp fi
 
 	rule [ifElse]:
-		<k> $ifElse(Condition:V, TrueAction:K , FalseAction:K) 
-			=> $ternary(Condition, TrueAction, 
-						#if FalseAction ==K .None #then $u #else FalseAction #fi) ...</k>
+		$ifElse(Condition:V, TrueAction:K , FalseAction:K) 
+		=> $ternary(Condition, 
+			TrueAction, #if FalseAction ==K .None #then $undefined #else FalseAction #fi)
 
 
 endkm
@@ -290,7 +290,7 @@ kmod JS-OBJ is including JS-ENV-REC + JS-CONFIGURATION
 		|	setPropertyValue( K , String , K )
 		|	deleteProperty( K , String )
 	
-	rule [newObj]: newObj => allocNewRec  [structural]
+	rule [newObj]: newObj => allocNewRec  [structural anywhere]
 		
 	rule [allocNewRec]:
 		<k> allocNewRec => $obj(Loc) ...</k>
@@ -331,7 +331,7 @@ kmod JS-OBJ is including JS-ENV-REC + JS-CONFIGURATION
 	--- ReferenceError exception.
 	rule [getPropertyValue]:
 		getPropertyValue(Ref:V, Name:String) 
-		=> getPropertyValueIfAbsent(Ref, Name, $u)
+		=> getPropertyValueIfAbsent(Ref, Name, $undefined)
 		[structural]
 	
 	--- ECMA-262 10.2.1.x.2 CreateMutableBinding(N, D)
@@ -382,7 +382,7 @@ kmod JS-IDENTIFIER-RESOLUTION is including JS-OBJ
 		
 	--- ECMA-262 10.2.2.1	GetIdentifierReference (lex, name, strict)
 	--- GetPropertyReference
-	rule [resolveIdentifier-unresolved]:
+	rule [resolveIdentifier-unresolved-base-case]:
 		<k> resolveIdentifier(.None, Name:String) => $binding(.None, Name) ...</k>
 		[structural]
 		
@@ -418,15 +418,17 @@ kmod JS-VALUE-ACCESS is including JS-IDENTIFIER-RESOLUTION
 	
 	--- ECMA-262 8.7.1
 	rule [getValue-value]: 
-		getValue(Value:V) => Value	when notBinding(Value)							[structural]
+		getValue(Value:V) => Value	when notBinding(Value) 
+		[structural anywhere]
 		
 	rule [getValue-unresolved]: 
 		getValue($binding(.None, Name:String)) 
 		=> $throw($ReferenceError("Unresolvable property reference: " +String Name +String "!"))  
-		[structural]
+		[structural anywhere]
 		
 	rule [getValue-identifier]:
-		getValue($binding(Obj:V, Name:String)) => getPropertyValue(Obj, Name)		[structural]
+		getValue($binding(Obj:V, Name:String)) => getPropertyValue(Obj, Name)		
+		[structural anywhere]
 
 
 
@@ -436,7 +438,7 @@ kmod JS-VALUE-ACCESS is including JS-IDENTIFIER-RESOLUTION
 			=> $throw($ReferenceError(
 				"Cannot assign property named -> " +String Name +String " to value!")) ...</k>
 		when notBinding(Value)
-		[structural]
+		[structural anywhere]
 
 	rule [putValue]:
 		<k> putValue($binding(Obj:V, Name:String), Value:V) 
@@ -444,13 +446,13 @@ kmod JS-VALUE-ACCESS is including JS-IDENTIFIER-RESOLUTION
 				#if Obj ==K .None #then GlobalObj #else Obj #fi, 
 				Name, Value) ...</k>
 		<globalEnv> GlobalObj:V </globalEnv> 
-		[structural]
+		[structural anywhere]
 
 	--- rule [putValue-primitive-base]:
 	--- 	<k> putValue($binding(Target:JSPrimitiveTarget, Name:String), Value:JSValue) 
 	--- 		=> setPropertyValue(Obj, Name, Value) ...</k>
 	--- 	<lexEnv> $env(_, Obj:JSRef) </lexEnv> 
-	--- 	[structural]
+	--- 	[structural anywhere]
 endkm
 
 

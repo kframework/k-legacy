@@ -34,7 +34,7 @@ kmod JS-INIT-JS is including JS-SEMANTICS
 		[structural]
 	
 	rule [initUndefined]:
-		<k> initUndefined => setPropertyValue(Obj, "undefined", $u) ~> discard ...</k>
+		<k> initUndefined => setPropertyValue(Obj, "undefined", $undefined) ~> discard ...</k>
 		<globalEnv> Obj:V </globalEnv>
 		[structural]
 
