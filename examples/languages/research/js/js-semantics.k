@@ -43,13 +43,13 @@ kmod JS-UNARY is including JS-CONTROL-STRUCTURES
 	syntax V ::= not ( K )
 	syntax V ::= neg ( K )
 
-	rule not($b(B:Bool)) => $b(notBool(B))									[structural]
+	rule not($b(B:Bool)) => $b(notBool(B))									[structural anywhere]
 	
-	rule neg(Value:V) 		=> neg(toNumber(Value))	 when notNumber(Value)	[structural]
-	rule neg($f(F:Float)) 	=> $f(0 -Float F)								[structural]
-	rule neg($z(Sign:Int))	=> $z(0 -Int Sign)								[structural]
-	rule neg($inf(Sign)) 	=> $inf(0 -Int Sign)							[structural]
-	rule neg($nan) 			=> $nan											[structural]
+	rule neg(Value:V) 		=> neg(toNumber(Value))	 when notNumber(Value)	[structural anywhere]
+	rule neg($f(F:Float)) 	=> $f(0 -Float F)								[structural anywhere]
+	rule neg($z(Sign:Int))	=> $z(0 -Int Sign)								[structural anywhere]
+	rule neg($inf(Sign)) 	=> $inf(0 -Int Sign)							[structural anywhere]
+	rule neg($nan) 			=> $nan											[structural anywhere]
 	
 	--- ECMA-262 11.4.6
 	rule $plus(Value:V) => toNumber(Value)
@@ -72,11 +72,11 @@ kmod JS-ARITHMETIC is including JS-UNARY
 	syntax K ::= add( K , K )
 	
 	rule [newSign]: 
-		newSign(Sign1:Int, Sign2:Int) 	=> Sign1 *Int Sign2				[structural]
+		newSign(Sign1:Int, Sign2:Int) 		=> Sign1 *Int Sign2				[structural]
 	rule [newInfinity]: 
-		newInfinity(Sign1:Int, Sign2:Int) => $inf(newSign(Sign1, Sign2))	[structural]
+		newInfinity(Sign1:Int, Sign2:Int) 	=> $inf(newSign(Sign1, Sign2))	[structural]
 	rule [newZero]: 
-		newZero(Sign1:Int, Sign2:Int) 	=> $z(newSign(Sign1, Sign2))	[structural]
+		newZero(Sign1:Int, Sign2:Int) 		=> $z(newSign(Sign1, Sign2))	[structural]
 	
 	--- arithmetic expressions
 	--- TO DOS: Add mod
@@ -95,10 +95,10 @@ kmod JS-ARITHMETIC is including JS-UNARY
 	--- arithmetic conversions
 	rule [arith-coerce-left-to-num]: 
 		arith(OpName:String, Left:V, Right:V) 	=> arith(OpName, toNumber(Left), Right) 
-												when notNumber(Left)	 				[structural]
+												when notNumber(Left)	 		[structural]
 	rule [arith-coerce-right-to-num]: 
 		arith(OpName:String, Left:V, Right:V) 	=> arith(OpName, Left, toNumber(Right)) 
-												when notNumber(Right) 				[structural]
+												when notNumber(Right) 			[structural]
 	
 	
 	--- arithmetic base cases
@@ -110,7 +110,7 @@ kmod JS-ARITHMETIC is including JS-UNARY
 	
 
 	--- ECMA-262 11.5.1
-	rule arith("mul", $inf(Sign1:Int), $inf(Sign2:Int)) => newInfinity(Sign1, Sign2)	[structural]
+	rule arith("mul", $inf(Sign1:Int), $inf(Sign2:Int)) => newInfinity(Sign1, Sign2) [structural]
 	rule arith("mul", $inf(Sign:Int), $f(F:Float))	=> newInfinity(Sign, sign(F))	[structural]
 	rule arith("mul", $f(F:Float), $inf(Sign:Int))	=> newInfinity(sign(F), Sign)	[structural]
 	rule arith("mul", $z(_), $inf(_)) 					=> $nan 					[structural]
@@ -122,7 +122,7 @@ kmod JS-ARITHMETIC is including JS-UNARY
 	
 	--- ECMA-262 11.5.2
 	rule arith("div", $inf(_), $inf(_)) 				=> $nan 						[structural]
-	rule arith("div", $inf(Sign:Int), $f(F:Float)) 	=> newInfinity(Sign, sign(F))	[structural]
+	rule arith("div", $inf(Sign:Int), $f(F:Float)) 		=> newInfinity(Sign, sign(F))	[structural]
 	rule arith("div", $inf(Sign1:Int), $z(Sign2:Int))	=> newInfinity(Sign1, Sign2) 	[structural]
 	rule arith("div", Num:V, $inf(Sign:Int)) 			=> newZero(sign(Num), Sign) 
 														when isFinite(Num)				[structural]
@@ -134,12 +134,12 @@ kmod JS-ARITHMETIC is including JS-UNARY
 	--- ECMA-262 11.5.3
 	rule arith("mod", $inf(_), Num:V) 		=> $nan		when notNan(Num)		[structural]
 	rule arith("mod", Num:V, $z(_)) 		=> $nan		when notNan(Num)		[structural]
-	rule arith("mod", Num:V, $inf(_)) 		=> Num 		when isFinite(Num) 	[structural]
-	rule arith("mod", $z(Sign:Int), Num:V) => $z(Sign)	when isFinite(Num) 	[structural]
+	rule arith("mod", Num:V, $inf(_)) 		=> Num 		when isFinite(Num) 		[structural]
+	rule arith("mod", $z(Sign:Int), Num:V)  => $z(Sign)	when isFinite(Num) 		[structural]
 
 
 	--- ECMA-262 11.6.1
-	rule strAdd($s(S1:String), $s(S2:String)) => $s(_+String_(S1, S2)) 			[structural]
+	rule strAdd($s(S1:String), $s(S2:String)) => $s(S1 +String S2)	 				[structural]
 	rule strAdd($s(S1), Value:V) 	=> strAdd($s(S1), toString(Value))				[structural]
 	rule strAdd(Value:V, $s(S2)) 	=> strAdd(toString(Value), $s(S2))				[structural]
 	rule strAdd(Left:V, Right:V) 	=> arith("add", Left, Right) 
@@ -154,12 +154,13 @@ kmod JS-ARITHMETIC is including JS-UNARY
 	rule arith("add", $inf(Sign:Int), Num:V) 	=> $inf(Sign)	when isFinite(Num)	[structural]
 	rule arith("add", Num:V, $inf(Sign:Int)) 	=> $inf(Sign)	when isFinite(Num)	[structural]
 	rule arith("add", $z(Sign), $z(Sign2)) 			
-		=> #if Sign ==K Sign2 #then $z(Sign) #else $z(1) #fi							[structural]
+		=> #if Sign ==K Sign2 #then $z(Sign) #else $z(1) #fi						[structural]
 	rule arith("add", $z(_), $f(F:Float)) 		=> $f(F)							[structural]
 	rule arith("add", $f(F:Float), $z(_)) 		=> $f(F)							[structural]
 	
+	
 	--- add shortcut
-	rule add(Left:V, Right:V) => arith("add", Left, Right)							[structural]
+	rule add(Left:V, Right:V) => arith("add", Left, Right)					[structural anywhere]
 	
 endkm
 
@@ -255,8 +256,8 @@ endkm
 --- 	=> #if typeof(Left) ==K typeof(Right) #then $identical(Left, Right) 
 --- 	   #else castEqual(Left, Right) #fi
 --- 	
---- 	rule castEqual($u, $null) 				=> $b(true)
---- 	rule castEqual($null, $u) 				=> $b(true)
+--- 	rule castEqual($undefined, $null) 		=> $b(true)
+--- 	rule castEqual($null, $undefined) 		=> $b(true)
 --- 	rule castEqual($obj(I:Int), Value:V)	=> $equal(toPrim($obj(I)), Value)
 --- 	rule castEqual(Value:V, $obj(I:Int))	=> $equal(Value, toPrimitive($obj(I)))
 --- 	rule castEqual($b(B:Bool), Value:V)	=> $equal(toNumber($b(B)), Value)
@@ -387,7 +388,7 @@ kmod JS-SEMANTICS is including JS-IDENTITY
 
 	rule [varPreDeclaration-identifier]: 
 		<k> varPreDeclaration($id(Name:String)) 
-			=> putValue($binding(EnvObj, Name), $u) ~> discard ...</k>
+			=> putValue($binding(EnvObj, Name), $undefined) ~> discard ...</k>
 		<lexEnv> $env(_, EnvObj:V) </lexEnv>
 		[structural]
 				
@@ -403,7 +404,7 @@ kmod JS-SEMANTICS is including JS-IDENTITY
 	--- Since the var declarations have already been made, the var declarations need to be stripped
 	--- from the execution.  However, the var initialize expressions need to be set to run.
 	rule [strip-inline-varDeclarations-empty]:
-		$varDeclarations(.List{K}) => $u  
+		$varDeclarations(.List{K}) => $undefined  
 		[structural]
 
 	rule [strip-inline-varDeclarations-id]: 

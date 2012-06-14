@@ -16,19 +16,21 @@ kmod JS-NUMERICS is including JS-BASIS
 	syntax Int ::= sign( V )
 	syntax Float ::= finiteValue( V )
 	
-	rule [sign-zero]: 		sign($z(Sign:Int)) 	=> Sign 				[structural]
-	rule [sign-infinity]: 	sign($inf(Sign:Int))	=> Sign 				[structural]
-	rule [sign-finite]: 	sign($f(F:Float)) => #if F >=Float 0.0 #then 1 #else -1 #fi [structural]
+	rule [sign-zero]: 		sign($z(Sign:Int)) 		=> Sign 		[structural anywhere]
+	rule [sign-infinity]: 	sign($inf(Sign:Int))	=> Sign 		[structural anywhere]
+	rule [sign-finite]: 	sign($f(F:Float)) => 
+							#if F >=Float 0.0 #then 1 #else -1 #fi	[structural anywhere]
 	
-	--- rule [finiteValue-int]:		I:Int						=> Int2Float(I) [structural]
-	--- rule [finiteValue-float]:	F:Float				 	=> F 			[structural]
-	rule [finiteValue-finite]: 	finiteValue($f(F:Float)) 	=> F 			[structural]
-	rule [finiteValue-zero]: 	finiteValue($z(_)) 			=> 0.0 			[structural]
+	--- rule [finiteValue-int]:		I:Int				 => Int2Float(I) [structural anywhere]
+	--- rule [finiteValue-float]:	F:Float				 => F 			[structural anywhere]
+	rule [finiteValue-finite]: 	finiteValue($f(F:Float)) => F 			[structural anywhere]
+	rule [finiteValue-zero]: 	finiteValue($z(_)) 		 => 0.0 		[structural anywhere]
  
-	rule [n-int-to-n-float]: 			$n(I:Int) => $n(Int2Float(I)) 				[structural]
-	rule [n-float-zero-to-zero]:		$n(0.0) => $z(1)							[structural]
----	rule [neg-z-to-zero]:				$n(-0.0) => $z(-1)							[structural]
-	rule [n-float-nonzero-to-finite]: 	$n(F:Float) => $f(F) when F =/=K 0.0	[structural]
+	rule [n-int-to-n-float]: 			$n(I:Int) => $n(Int2Float(I)) 	[structural anywhere]
+	rule [n-float-zero-to-zero]:		$n(0.0) => $z(1)				[structural anywhere]
+---	rule [neg-z-to-zero]:				$n(-0.0) => $z(-1)				[structural anywhere]
+	rule [n-float-nonzero-to-finite]: 	$n(F:Float) => 
+										$f(F) when F =/=K 0.0			[structural anywhere]
 	
 	--- TO DO !!!
 	---	macro $n(-0.0) 		= $zero(-1)
@@ -37,7 +39,7 @@ kmod JS-NUMERICS is including JS-BASIS
 endkm
 
 kmod JS-PRIMITIVES is including JS-NUMERICS
-	syntax V ::= $u
+	syntax V ::= $undefined
 	syntax V ::= $null
 	
 	syntax V ::= $b( Bool )
@@ -46,8 +48,8 @@ kmod JS-PRIMITIVES is including JS-NUMERICS
 	syntax Bool ::= boolValue( V )
 	syntax String ::= stringValue( V )
 	
-	rule [boolValue]:	boolValue($b(B:Bool)) 		=> B	[structural]
-	rule [stringValue]:	stringValue($s(S:String))	=> S	[structural]
+	rule [boolValue]:	boolValue($b(B:Bool)) 		=> B	[structural anywhere]
+	rule [stringValue]:	stringValue($s(S:String))	=> S	[structural anywhere]
 endkm
 
 kmod JS-SYNTAX is including JS-PRIMITIVES + K
