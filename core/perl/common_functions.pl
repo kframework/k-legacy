@@ -2907,7 +2907,7 @@ sub pre_process
     # collect all modules
     while(/kmod\s+([A-Z0-9\-]+)\s+.*?endkm/sg)
     {
-	push(@modules, $1) if ($1 ne "URIS" && $1 ne "K-VISITOR" && $1 ne "SUBSTITUTION" && $1 !~ /-HOOKS$/);
+	push(@modules, $1) if ($1 ne "URIS" && $1 ne "K-VISITOR" && $1 ne "SUBSTITUTION" && $1 ne "BINDER" && $1 !~ /-HOOKS$/);
     }
     
     # Step: resolve latex comments
