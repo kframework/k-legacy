@@ -184,7 +184,7 @@ typed SIMPLE, so we do not discuss them much here. */
   syntax Type ::= "stmt"
 
   rule var .Types; => stmt   [ structural]
-  context var _[HOLE] : _;
+  context var _[HOLE] : _,.Exps;
   rule var X[Ts:Types] : T; => checkDepth(Ts,T) ~> var X : T;  [structural]
 
   syntax K ::= "checkDepth" "(" Types "," Type ")"
