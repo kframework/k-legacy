@@ -1,0 +1,70 @@
+'$program`(_`,_`,_`)(
+	kList("List`{K`}2K_")('$initNewId`(_`,_`)(
+		# "x"(.List{K}),,
+		'$n`(_`)(# 0(.List{K}))
+	)),,
+	kList("List`{K`}2K_")(.List`{K`}),,
+	kList("List`{K`}2K_")(
+		'$varDeclarations`(_`)(kList("List`{K`}2K_")('$initNewId`(_`,_`)(
+			# "x"(.List{K}),,
+			'$n`(_`)(# 0(.List{K}))
+		))),,
+		'$switch`(_`,_`,_`)(
+			'$typeof`(_`)('$id`(_`)(# "element"(.List{K}))),,
+			kList("List`{K`}2K_")(
+				'$case`(_`,_`)(
+					'$s`(_`)(# "object"(.List{K})),,
+					'$block`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+				),,
+				'$case`(_`,_`)(
+					'$s`(_`)(# "number"(.List{K})),,
+					'$block`(_`)(kList("List`{K`}2K_")('$exp`(_`)('$assignment`(_`,_`)(
+						'$id`(_`)(# "x"(.List{K})),,
+						'$n`(_`)(# 2(.List{K}))
+					))))
+				),,
+				'$case`(_`,_`)(
+					'$s`(_`)(# "undefined"(.List{K})),,
+					'$block`(_`)(kList("List`{K`}2K_")(
+						'$exp`(_`)('$comma`(_`)(kList("List`{K`}2K_")(
+							'$assignment`(_`,_`)(
+								'$id`(_`)(# "x"(.List{K})),,
+								'$n`(_`)(# 11(.List{K}))
+							),,
+							'$n`(_`)(# 22(.List{K})),,
+							'$n`(_`)(# 33(.List{K}))
+						))),,
+						'$break`(_`)(# undefined(.List{K}))
+					))
+				),,
+				'$default`(_`)('$block`(_`)(kList("List`{K`}2K_")(
+					'$exp`(_`)('$assignment`(_`,_`)(
+						'$id`(_`)(# "x"(.List{K})),,
+						'$n`(_`)(# 1(.List{K}))
+					)),,
+					'$break`(_`)(# undefined(.List{K}))
+				))),,
+				'$case`(_`,_`)(
+					'$s`(_`)(# "string"(.List{K})),,
+					'$block`(_`)(kList("List`{K`}2K_")(
+						'$exp`(_`)('$assignment`(_`,_`)(
+							'$id`(_`)(# "x"(.List{K})),,
+							'$invoke`(_`,_`)(
+								'$staticAccess`(_`,_`)(
+									'$s`(_`)(# "\""(.List{K})),,
+									'$id`(_`)(# "replace"(.List{K}))
+								),,
+								'$list`(_`)(kList("List`{K`}2K_")(
+									'$regex`(_`)(# "/\\\"/g"(.List{K})),,
+									'$s`(_`)(# "\\\""(.List{K}))
+								))
+							)
+						)),,
+						'$break`(_`)(# undefined(.List{K}))
+					))
+				)
+			),,
+			# 3(.List{K})
+		)
+	)
+)

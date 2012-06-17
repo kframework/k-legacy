@@ -1,0 +1,41 @@
+'$program`(_`,_`,_`)(
+	kList("List`{K`}2K_")(
+		'$id`(_`)(# "x"(.List{K})),,
+		'$id`(_`)(# "y"(.List{K})),,
+		'$id`(_`)(# "z"(.List{K}))
+	),,
+	kList("List`{K`}2K_")(.List`{K`}),,
+	kList("List`{K`}2K_")(
+		'$varDeclarations`(_`)(kList("List`{K`}2K_")(
+			'$id`(_`)(# "x"(.List{K})),,
+			'$id`(_`)(# "y"(.List{K})),,
+			'$id`(_`)(# "z"(.List{K}))
+		)),,
+		'$exp`(_`)('$assignment`(_`,_`)(
+			'$id`(_`)(# "x"(.List{K})),,
+			'$n`(_`)(# 1(.List{K}))
+		)),,
+		'$exp`(_`)('$assignment`(_`,_`)(
+			'$id`(_`)(# "y"(.List{K})),,
+			'$n`(_`)(# 2(.List{K}))
+		)),,
+		'$exp`(_`)('$assignment`(_`,_`)(
+			'$id`(_`)(# "z"(.List{K})),,
+			'$add`(_`,_`)(
+				'$inc`(_`,_`)(
+					'$id`(_`)(# "x"(.List{K})),,
+					# true(.List{K})
+				),,
+				'$inc`(_`,_`)(
+					'$id`(_`)(# "y"(.List{K})),,
+					# false(.List{K})
+				)
+			)
+		)),,
+		'$exp`(_`)('$compoundAssignment`(_`,_`,_`)(
+			'$id`(_`)(# "z"(.List{K})),,
+			# "+"(.List{K}),,
+			'$n`(_`)(# 3(.List{K}))
+		))
+	)
+)

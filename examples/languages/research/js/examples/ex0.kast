@@ -1,0 +1,17 @@
+'$program`(_`,_`,_`)(
+	kList("List`{K`}2K_")('$initNewId`(_`,_`)(
+		# "count"(.List{K}),,
+		'$staticAccess`(_`,_`)(
+			'$id`(_`)(# "elements"(.List{K})),,
+			'$id`(_`)(# "length"(.List{K}))
+		)
+	)),,
+	kList("List`{K`}2K_")(.List`{K`}),,
+	kList("List`{K`}2K_")('$varDeclarations`(_`)(kList("List`{K`}2K_")('$initNewId`(_`,_`)(
+		# "count"(.List{K}),,
+		'$staticAccess`(_`,_`)(
+			'$id`(_`)(# "elements"(.List{K})),,
+			'$id`(_`)(# "length"(.List{K}))
+		)
+	))))
+)
