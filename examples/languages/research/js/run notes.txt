@@ -1,0 +1,48 @@
+abacaxi:js m3rabb$ ls .k/krun_tmp/
+maude_err	maude_in.maude	maude_out
+abacaxi:js m3rabb$ maude js-compiled.maude .k/krun_tmp/maude_in.maude
+
+add to maude_in.maude
+
+set trace on .
+set trace whole on .
+
+
+maude js-compiled.maude .k/krun_tmp/maude_in.maude > trace.txt
+
+krun program2.js
+
+set show command off .
+set trace on .
+set trace whole on .
+erewrite #eval(__((_|->_((# "$PGM"(.List{K})) , ('$program`(_`,_`,_`)(kList("List`{K`}2K_")('$id`(_`)(# "x"(.List{K})),,'$id`(_`)(# "y"(.List{K})),,'$id`(_`)(# "z"(.List{K}))),,kList("List`{K`}2K_")(.List`{K`}),,kList("List`{K`}2K_")('$varDeclarations`(_`)(kList("List`{K`}2K_")('$id`(_`)(# "x"(.List{K})),,'$id`(_`)(# "y"(.List{K})),,'$id`(_`)(# "z"(.List{K})))),,'$exp`(_`)('$assignment`(_`,_`)('$id`(_`)(# "x"(.List{K})),,'$n`(_`)(# 1(.List{K}))))))))),(.).Map))  .
+quit
+
+
+
+
+debug erewrite #eval(__((_|->_((# "$PGM"(.List{K})) , ('$program`(_`,_`,_`)(kList("List`{K`}2K_")('$id`(_`)(# "x"(.List{K})),,'$id`(_`)(# "y"(.List{K})),,'$id`(_`)(# "z"(.List{K}))),,kList("List`{K`}2K_")(.List`{K`}),,kList("List`{K`}2K_")('$varDeclarations`(_`)(kList("List`{K`}2K_")('$id`(_`)(# "x"(.List{K})),,'$id`(_`)(# "y"(.List{K})),,'$id`(_`)(# "z"(.List{K})))),,'$exp`(_`)('$assignment`(_`,_`)('$id`(_`)(# "x"(.List{K})),,'$n`(_`)(# 1(.List{K}))))))))),(.).Map))  .
+
+
+step .
+
+
+varPreDeclaration
+
+
+
+# Want to show hidden files and folders in your TextMate project drawer? Simple, just modify the file and folder patterns in TextMate's preferences.
+
+# Instructions:
+# Go to TextMate > Preferences...
+# Click Advanced
+# Select Folder References
+
+# Replace the following:
+
+# File Pattern
+!(/\.(?!\W*)[^/]*|\.(gitkeep|DS_Store|tmproj|o|pyc)|/Icon\r|/svn-commit(\.[2-9])?\.tmp)$
+
+# Folder Pattern
+!.*/(.git|CVS|_darcs|_MTN|\{arch\}|blib|.*~\.nib|.*\.(framework|app|pbproj|pbxproj|xcode(proj)?|bundle))$
+
