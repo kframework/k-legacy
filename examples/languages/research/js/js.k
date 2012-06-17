@@ -42,14 +42,21 @@ endkm
 
 
 kmod JS is including JS-INIT-JS + JS-PROGRAMS
-	syntax Bag ::= run( KLabel )
-	syntax Bag ::= go( K )
+	--- syntax Bag ::= go( K )
+	--- syntax Bag ::= run( KLabel )
+	--- 
+	--- rule go(Program:K) => <T>... <k> initJS ~> Program </k> ...</T> 
+	--- 
+	--- rule [run-program]:
+	--- 	run (L:KLabel) => <T>... <k> initJS ~> L(.List{K}) </k> ...</T>  
+	--- 	[structural]
 	
-	rule go(Program:K) => <T>... <k> initJS ~> Program </k> ...</T> 
 	
-	rule [run-program]:
-		run (L:KLabel) => <T>... <k> initJS ~> L(.List{K}) </k> ...</T>  
-		[structural]
+	--- rule [start-js]:
+	--- 	<code> Code:K => . </code>
+	--- 	<k> . => initJS ~> Code </k>
+	
+	rule [start-js]: startJS(Program:K) => initJS ~> Program
 	
 	rule [final-output]: 
 		<k> Result:V => . </k> 

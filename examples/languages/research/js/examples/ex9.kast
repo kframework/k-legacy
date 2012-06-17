@@ -1,0 +1,20 @@
+'$program`(_`,_`,_`)(
+	kList("List`{K`}2K_")(.List`{K`}),,
+	kList("List`{K`}2K_")(.List`{K`}),,
+	kList("List`{K`}2K_")('$exp`(_`)('$invoke`(_`,_`)(
+		'$staticAccess`(_`,_`)(
+			'$id`(_`)(# "lines"(.List{K})),,
+			'$id`(_`)(# "forEach"(.List{K}))
+		),,
+		'$list`(_`)(kList("List`{K`}2K_")('$function`(_`,_`,_`,_`)(
+			# 1(.List{K}),,
+			# undefined(.List{K}),,
+			kList("List`{K`}2K_")(# "line"(.List{K})),,
+			'$program`(_`,_`,_`)(
+				kList("List`{K`}2K_")(.List`{K`}),,
+				kList("List`{K`}2K_")(.List`{K`}),,
+				kList("List`{K`}2K_")(.List`{K`})
+			)
+		)))
+	)))
+)

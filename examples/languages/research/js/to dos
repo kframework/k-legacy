@@ -36,6 +36,8 @@ branchs/K2
 =/=k
 
 
+krun --parser="cat" examples/ex1.kast
+
 
 
 

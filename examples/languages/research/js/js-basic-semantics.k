@@ -419,16 +419,16 @@ kmod JS-VALUE-ACCESS is including JS-IDENTIFIER-RESOLUTION
 	--- ECMA-262 8.7.1
 	rule [getValue-value]: 
 		getValue(Value:V) => Value	when notBinding(Value) 
-		[structural anywhere]
+		[structural]
 		
 	rule [getValue-unresolved]: 
 		getValue($binding(.None, Name:String)) 
 		=> $throw($ReferenceError("Unresolvable property reference: " +String Name +String "!"))  
-		[structural anywhere]
+		[structural]
 		
 	rule [getValue-identifier]:
 		getValue($binding(Obj:V, Name:String)) => getPropertyValue(Obj, Name)		
-		[structural anywhere]
+		[structural]
 
 
 
@@ -438,7 +438,7 @@ kmod JS-VALUE-ACCESS is including JS-IDENTIFIER-RESOLUTION
 			=> $throw($ReferenceError(
 				"Cannot assign property named -> " +String Name +String " to value!")) ...</k>
 		when notBinding(Value)
-		[structural anywhere]
+		[structural]
 
 	rule [putValue]:
 		<k> putValue($binding(Obj:V, Name:String), Value:V) 
@@ -446,7 +446,7 @@ kmod JS-VALUE-ACCESS is including JS-IDENTIFIER-RESOLUTION
 				#if Obj ==K .None #then GlobalObj #else Obj #fi, 
 				Name, Value) ...</k>
 		<globalEnv> GlobalObj:V </globalEnv> 
-		[structural anywhere]
+		[structural]
 
 	--- rule [putValue-primitive-base]:
 	--- 	<k> putValue($binding(Target:JSPrimitiveTarget, Name:String), Value:JSValue) 

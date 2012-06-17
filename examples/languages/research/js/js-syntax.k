@@ -135,6 +135,7 @@ kmod JS-SYNTAX is including JS-PRIMITIVES + K
 		| $stmts ( List{K} ) 					--- List{Stmt}
 		| $block ( List{K} )
 		| $comma ( List{K} )
+		| $list ( List{K} )						--- for invocation parameters
 		| $ifElse ( K , K , K ) [strict(1)]		--- if (Exp) Block Block
 		| $try ( K , List{K} , K ) [seqstrict]		--- 
 		| $catch ( K , K )

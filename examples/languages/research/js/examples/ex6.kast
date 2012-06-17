@@ -1,0 +1,51 @@
+'$program`(_`,_`,_`)(
+	kList("List`{K`}2K_")(.List`{K`}),,
+	kList("List`{K`}2K_")(.List`{K`}),,
+	kList("List`{K`}2K_")(
+		'$exp`(_`)('$assignment`(_`,_`)(
+			'$id`(_`)(# "f"(.List{K})),,
+			'$function`(_`,_`,_`,_`)(
+				# 1(.List{K}),,
+				# "mush"(.List{K}),,
+				kList("List`{K`}2K_")(
+					# "dog"(.List{K}),,
+					# "sled"(.List{K})
+				),,
+				'$program`(_`,_`,_`)(
+					kList("List`{K`}2K_")('$initNewId`(_`,_`)(
+						# "x"(.List{K}),,
+						'$n`(_`)(# 1(.List{K}))
+					)),,
+					kList("List`{K`}2K_")(.List`{K`}),,
+					kList("List`{K`}2K_")(
+						'$varDeclarations`(_`)(kList("List`{K`}2K_")('$initNewId`(_`,_`)(
+							# "x"(.List{K}),,
+							'$n`(_`)(# 1(.List{K}))
+						))),,
+						'$ifElse`(_`,_`,_`)(
+							'$identical`(_`,_`)(
+								'$id`(_`)(# "dog"(.List{K})),,
+								'$id`(_`)(# "sled"(.List{K}))
+							),,
+							'$block`(_`)(kList("List`{K`}2K_")('$return`(_`)('$arrayLit`(_`)(kList("List`{K`}2K_")(
+								'$id`(_`)(# "undefined"(.List{K})),,
+								'$id`(_`)(# "mush"(.List{K}))
+							))))),,
+							'$return`(_`)(# undefined(.List{K}))
+						)
+					)
+				)
+			)
+		)),,
+		'$exp`(_`)('$assignment`(_`,_`)(
+			'$id`(_`)(# "g"(.List{K})),,
+			'$invoke`(_`,_`)(
+				'$id`(_`)(# "f"(.List{K})),,
+				'$list`(_`)(kList("List`{K`}2K_")(
+					'$id`(_`)(# "snoopy"(.List{K})),,
+					'$id`(_`)(# "undefined"(.List{K}))
+				))
+			)
+		))
+	)
+)

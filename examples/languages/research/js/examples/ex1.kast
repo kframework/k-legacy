@@ -1,0 +1,66 @@
+'$program`(_`,_`,_`)(
+	kList("List`{K`}2K_")(
+		'$initNewId`(_`,_`)(
+			# "count"(.List{K}),,
+			'$staticAccess`(_`,_`)(
+				'$id`(_`)(# "elements"(.List{K})),,
+				'$id`(_`)(# "length"(.List{K}))
+			)
+		),,
+		'$id`(_`)(# "index"(.List{K})),,
+		'$id`(_`)(# "element"(.List{K})),,
+		'$id`(_`)(# "separator"(.List{K})),,
+		'$initNewId`(_`,_`)(
+			# "accumulator"(.List{K}),,
+			'$or`(_`,_`)(
+				'$id`(_`)(# "accumulator__"(.List{K})),,
+				'$arrayLit`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+			)
+		),,
+		'$initNewId`(_`,_`)(
+			# "flag"(.List{K}),,
+			'$b`(_`)(# true(.List{K}))
+		),,
+		'$initNewId`(_`,_`)(
+			# "multi"(.List{K}),,
+			'$n`(_`)(# 1.234(.List{K}))
+		)
+	),,
+	kList("List`{K`}2K_")(.List`{K`}),,
+	kList("List`{K`}2K_")(
+		'$varDeclarations`(_`)(kList("List`{K`}2K_")('$initNewId`(_`,_`)(
+			# "count"(.List{K}),,
+			'$staticAccess`(_`,_`)(
+				'$id`(_`)(# "elements"(.List{K})),,
+				'$id`(_`)(# "length"(.List{K}))
+			)
+		))),,
+		'$varDeclarations`(_`)(kList("List`{K`}2K_")(
+			'$id`(_`)(# "index"(.List{K})),,
+			'$id`(_`)(# "element"(.List{K})),,
+			'$id`(_`)(# "separator"(.List{K}))
+		)),,
+		'$varDeclarations`(_`)(kList("List`{K`}2K_")('$initNewId`(_`,_`)(
+			# "accumulator"(.List{K}),,
+			'$or`(_`,_`)(
+				'$id`(_`)(# "accumulator__"(.List{K})),,
+				'$arrayLit`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+			)
+		))),,
+		'$varDeclarations`(_`)(kList("List`{K`}2K_")('$initNewId`(_`,_`)(
+			# "flag"(.List{K}),,
+			'$b`(_`)(# true(.List{K}))
+		))),,
+		'$varDeclarations`(_`)(kList("List`{K`}2K_")('$initNewId`(_`,_`)(
+			# "multi"(.List{K}),,
+			'$n`(_`)(# 1.234(.List{K}))
+		))),,
+		'$exp`(_`)('$assignment`(_`,_`)(
+			'$id`(_`)(# "separator_"(.List{K})),,
+			'$or`(_`,_`)(
+				'$id`(_`)(# "separator_"(.List{K})),,
+				'$s`(_`)(# ","(.List{K}))
+			)
+		))
+	)
+)

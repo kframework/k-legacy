@@ -1,0 +1,33 @@
+'$program`(_`,_`,_`)(
+	kList("List`{K`}2K_")(.List`{K`}),,
+	kList("List`{K`}2K_")(.List`{K`}),,
+	kList("List`{K`}2K_")(
+		'$exp`(_`)('$dec`(_`,_`)(
+			'$id`(_`)(# "x"(.List{K})),,
+			# true(.List{K})
+		)),,
+		'$exp`(_`)('$dec`(_`,_`)(
+			'$id`(_`)(# "y"(.List{K})),,
+			# false(.List{K})
+		)),,
+		'$for`(_`,_`,_`,_`)(
+			'$assignment`(_`,_`)(
+				'$id`(_`)(# "z"(.List{K})),,
+				'$n`(_`)(# 1(.List{K}))
+			),,
+			'$lt`(_`,_`)(
+				'$id`(_`)(# "z"(.List{K})),,
+				'$n`(_`)(# 10(.List{K}))
+			),,
+			'$inc`(_`,_`)(
+				'$id`(_`)(# "z"(.List{K})),,
+				# true(.List{K})
+			),,
+			'$block`(_`)(kList("List`{K`}2K_")('$exp`(_`)('$compoundAssignment`(_`,_`,_`)(
+				'$id`(_`)(# "x"(.List{K})),,
+				# "+"(.List{K}),,
+				'$id`(_`)(# "y"(.List{K}))
+			))))
+		)
+	)
+)

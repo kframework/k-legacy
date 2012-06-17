@@ -1,0 +1,1157 @@
+'$program`(_`,_`,_`)(
+	kList("List`{K`}2K_")(.List`{K`}),,
+	kList("List`{K`}2K_")(.List`{K`}),,
+	kList("List`{K`}2K_")('$exp`(_`)('$assignment`(_`,_`)(
+		'$id`(_`)(# "JSAST"(.List{K})),,
+		'$invoke`(_`,_`)(
+			'$function`(_`,_`,_`,_`)(
+				# 1(.List{K}),,
+				# undefined(.List{K}),,
+				kList("List`{K`}2K_")(.List`{K`}),,
+				'$program`(_`,_`,_`)(
+					kList("List`{K`}2K_")(
+						'$id`(_`)(# "_outputTerminal"(.List{K})),,
+						'$id`(_`)(# "_outputPrefixes"(.List{K})),,
+						'$id`(_`)(# "_outputElement"(.List{K})),,
+						'$id`(_`)(# "_asASTString"(.List{K})),,
+						'$id`(_`)(# "_normalizedOutput"(.List{K})),,
+						'$id`(_`)(# "_asSExpression"(.List{K}))
+					),,
+					kList("List`{K`}2K_")(.List`{K`}),,
+					kList("List`{K`}2K_")(
+						'$exp`(_`)('$s`(_`)(# "use strict"(.List{K}))),,
+						'$varDeclarations`(_`)(kList("List`{K`}2K_")(
+							'$id`(_`)(# "_outputTerminal"(.List{K})),,
+							'$id`(_`)(# "_outputPrefixes"(.List{K})),,
+							'$id`(_`)(# "_outputElement"(.List{K})),,
+							'$id`(_`)(# "_asASTString"(.List{K})),,
+							'$id`(_`)(# "_normalizedOutput"(.List{K})),,
+							'$id`(_`)(# "_asSExpression"(.List{K}))
+						)),,
+						'$exp`(_`)('$assignment`(_`,_`)(
+							'$id`(_`)(# "_outputTerminal"(.List{K})),,
+							'$function`(_`,_`,_`,_`)(
+								# 1(.List{K}),,
+								# "_outputTerminal"(.List{K}),,
+								kList("List`{K`}2K_")(
+									# "substrings"(.List{K}),,
+									# "element"(.List{K})
+								),,
+								'$program`(_`,_`,_`)(
+									kList("List`{K`}2K_")(.List`{K`}),,
+									kList("List`{K`}2K_")(.List`{K`}),,
+									kList("List`{K`}2K_")('$switch`(_`,_`,_`)(
+										'$typeof`(_`)('$id`(_`)(# "element"(.List{K}))),,
+										kList("List`{K`}2K_")(
+											'$case`(_`,_`)(
+												'$s`(_`)(# "object"(.List{K})),,
+												'$block`(_`)(kList("List`{K`}2K_")(
+													'$ifElse`(_`,_`,_`)(
+														'$identical`(_`,_`)(
+															'$id`(_`)(# "element"(.List{K})),,
+															'$null(.List{K})
+														),,
+														'$block`(_`)(kList("List`{K`}2K_")('$exp`(_`)('$invoke`(_`,_`)(
+															'$staticAccess`(_`,_`)(
+																'$id`(_`)(# "substrings"(.List{K})),,
+																'$id`(_`)(# "push"(.List{K}))
+															),,
+															'$list`(_`)(kList("List`{K`}2K_")('$s`(_`)(# "null"(.List{K}))))
+														)))),,
+														'$block`(_`)(kList("List`{K`}2K_")('$exp`(_`)('$invoke`(_`,_`)(
+															'$staticAccess`(_`,_`)(
+																'$id`(_`)(# "substrings"(.List{K})),,
+																'$id`(_`)(# "push"(.List{K}))
+															),,
+															'$list`(_`)(kList("List`{K`}2K_")(
+																'$s`(_`)(# "$"(.List{K})),,
+																'$id`(_`)(# "element"(.List{K}))
+															))
+														))))
+													),,
+													'$break`(_`)(# undefined(.List{K}))
+												))
+											),,
+											'$case`(_`,_`)(
+												'$s`(_`)(# "undefined"(.List{K})),,
+												'$block`(_`)(kList("List`{K`}2K_")(
+													'$exp`(_`)('$invoke`(_`,_`)(
+														'$staticAccess`(_`,_`)(
+															'$id`(_`)(# "substrings"(.List{K})),,
+															'$id`(_`)(# "push"(.List{K}))
+														),,
+														'$list`(_`)(kList("List`{K`}2K_")('$s`(_`)(# "undefined"(.List{K}))))
+													)),,
+													'$break`(_`)(# undefined(.List{K}))
+												))
+											),,
+											'$case`(_`,_`)(
+												'$s`(_`)(# "string"(.List{K})),,
+												'$block`(_`)(kList("List`{K`}2K_")(
+													'$exp`(_`)('$invoke`(_`,_`)(
+														'$staticAccess`(_`,_`)(
+															'$id`(_`)(# "substrings"(.List{K})),,
+															'$id`(_`)(# "push"(.List{K}))
+														),,
+														'$list`(_`)(kList("List`{K`}2K_")(
+															'$s`(_`)(# "\""(.List{K})),,
+															'$invoke`(_`,_`)(
+																'$staticAccess`(_`,_`)(
+																	'$id`(_`)(# "element"(.List{K})),,
+																	'$id`(_`)(# "replace"(.List{K}))
+																),,
+																'$list`(_`)(kList("List`{K`}2K_")(
+																	'$regex`(_`)(# "/\\\"/g"(.List{K})),,
+																	'$s`(_`)(# "\\\""(.List{K}))
+																))
+															),,
+															'$s`(_`)(# "\""(.List{K}))
+														))
+													)),,
+													'$break`(_`)(# undefined(.List{K}))
+												))
+											),,
+											'$default`(_`)('$block`(_`)(kList("List`{K`}2K_")('$exp`(_`)('$invoke`(_`,_`)(
+												'$staticAccess`(_`,_`)(
+													'$id`(_`)(# "substrings"(.List{K})),,
+													'$id`(_`)(# "push"(.List{K}))
+												),,
+												'$list`(_`)(kList("List`{K`}2K_")('$id`(_`)(# "element"(.List{K}))))
+											)))))
+										),,
+										# 3(.List{K})
+									))
+								)
+							)
+						)),,
+						'$exp`(_`)('$assignment`(_`,_`)(
+							'$id`(_`)(# "_outputPrefixes"(.List{K})),,
+							'$function`(_`,_`,_`,_`)(
+								# 1(.List{K}),,
+								# "_outputPrefixes"(.List{K}),,
+								kList("List`{K`}2K_")(# "levels"(.List{K})),,
+								'$program`(_`,_`,_`)(
+									kList("List`{K`}2K_")(
+										'$initNewId`(_`,_`)(
+											# "count"(.List{K}),,
+											'$staticAccess`(_`,_`)(
+												'$id`(_`)(# "levels"(.List{K})),,
+												'$id`(_`)(# "length"(.List{K}))
+											)
+										),,
+										'$initNewId`(_`,_`)(
+											# "output"(.List{K}),,
+											'$arrayLit`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+										),,
+										'$id`(_`)(# "index"(.List{K})),,
+										'$id`(_`)(# "isLastElement"(.List{K}))
+									),,
+									kList("List`{K`}2K_")(.List`{K`}),,
+									kList("List`{K`}2K_")(
+										'$varDeclarations`(_`)(kList("List`{K`}2K_")(
+											'$initNewId`(_`,_`)(
+												# "count"(.List{K}),,
+												'$staticAccess`(_`,_`)(
+													'$id`(_`)(# "levels"(.List{K})),,
+													'$id`(_`)(# "length"(.List{K}))
+												)
+											),,
+											'$initNewId`(_`,_`)(
+												# "output"(.List{K}),,
+												'$arrayLit`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+											),,
+											'$id`(_`)(# "index"(.List{K})),,
+											'$id`(_`)(# "isLastElement"(.List{K}))
+										)),,
+										'$for`(_`,_`,_`,_`)(
+											'$assignment`(_`,_`)(
+												'$id`(_`)(# "index"(.List{K})),,
+												'$n`(_`)(# 0(.List{K}))
+											),,
+											'$lt`(_`,_`)(
+												'$id`(_`)(# "index"(.List{K})),,
+												'$id`(_`)(# "count"(.List{K}))
+											),,
+											'$compoundAssignment`(_`,_`,_`)(
+												'$id`(_`)(# "index"(.List{K})),,
+												# "+"(.List{K}),,
+												'$n`(_`)(# 1(.List{K}))
+											),,
+											'$block`(_`)(kList("List`{K`}2K_")(
+												'$exp`(_`)('$assignment`(_`,_`)(
+													'$id`(_`)(# "isLastElement"(.List{K})),,
+													'$dynamicAccess`(_`,_`)(
+														'$id`(_`)(# "levels"(.List{K})),,
+														'$id`(_`)(# "index"(.List{K}))
+													)
+												)),,
+												'$exp`(_`)('$invoke`(_`,_`)(
+													'$staticAccess`(_`,_`)(
+														'$id`(_`)(# "output"(.List{K})),,
+														'$id`(_`)(# "push"(.List{K}))
+													),,
+													'$list`(_`)(kList("List`{K`}2K_")('$ternary`(_`,_`,_`)(
+														'$id`(_`)(# "isLastElement"(.List{K})),,
+														'$s`(_`)(# "    "(.List{K})),,
+														'$s`(_`)(# "|   "(.List{K}))
+													)))
+												))
+											))
+										),,
+										'$return`(_`)('$id`(_`)(# "output"(.List{K})))
+									)
+								)
+							)
+						)),,
+						'$exp`(_`)('$assignment`(_`,_`)(
+							'$id`(_`)(# "_outputElement"(.List{K})),,
+							'$function`(_`,_`,_`,_`)(
+								# 1(.List{K}),,
+								# "_outputElement"(.List{K}),,
+								kList("List`{K`}2K_")(
+									# "lines"(.List{K}),,
+									# "element"(.List{K}),,
+									# "levels"(.List{K})
+								),,
+								'$program`(_`,_`,_`)(
+									kList("List`{K`}2K_")('$id`(_`)(# "currentLine"(.List{K}))),,
+									kList("List`{K`}2K_")(.List`{K`}),,
+									kList("List`{K`}2K_")(
+										'$varDeclarations`(_`)(kList("List`{K`}2K_")('$id`(_`)(# "currentLine"(.List{K})))),,
+										'$ifElse`(_`,_`,_`)(
+											'$invoke`(_`,_`)(
+												'$staticAccess`(_`,_`)(
+													'$id`(_`)(# "Array"(.List{K})),,
+													'$id`(_`)(# "isArray"(.List{K}))
+												),,
+												'$list`(_`)(kList("List`{K`}2K_")('$id`(_`)(# "element"(.List{K}))))
+											),,
+											'$block`(_`)(kList("List`{K`}2K_")('$exp`(_`)('$invoke`(_`,_`)(
+												'$id`(_`)(# "_asASTString"(.List{K})),,
+												'$list`(_`)(kList("List`{K`}2K_")(
+													'$id`(_`)(# "element"(.List{K})),,
+													'$id`(_`)(# "lines"(.List{K})),,
+													'$id`(_`)(# "levels"(.List{K}))
+												))
+											)))),,
+											'$block`(_`)(kList("List`{K`}2K_")(
+												'$exp`(_`)('$assignment`(_`,_`)(
+													'$id`(_`)(# "currentLine"(.List{K})),,
+													'$invoke`(_`,_`)(
+														'$staticAccess`(_`,_`)(
+															'$id`(_`)(# "lines"(.List{K})),,
+															'$id`(_`)(# "pop"(.List{K}))
+														),,
+														'$list`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+													)
+												)),,
+												'$exp`(_`)('$invoke`(_`,_`)(
+													'$staticAccess`(_`,_`)(
+														'$id`(_`)(# "currentLine"(.List{K})),,
+														'$id`(_`)(# "push"(.List{K}))
+													),,
+													'$list`(_`)(kList("List`{K`}2K_")('$s`(_`)(# "--> "(.List{K}))))
+												)),,
+												'$exp`(_`)('$invoke`(_`,_`)(
+													'$id`(_`)(# "_outputTerminal"(.List{K})),,
+													'$list`(_`)(kList("List`{K`}2K_")(
+														'$id`(_`)(# "currentLine"(.List{K})),,
+														'$id`(_`)(# "element"(.List{K}))
+													))
+												)),,
+												'$exp`(_`)('$invoke`(_`,_`)(
+													'$staticAccess`(_`,_`)(
+														'$id`(_`)(# "lines"(.List{K})),,
+														'$id`(_`)(# "push"(.List{K}))
+													),,
+													'$list`(_`)(kList("List`{K`}2K_")('$invoke`(_`,_`)(
+														'$staticAccess`(_`,_`)(
+															'$id`(_`)(# "currentLine"(.List{K})),,
+															'$id`(_`)(# "join"(.List{K}))
+														),,
+														'$list`(_`)(kList("List`{K`}2K_")('$s`(_`)(# ""(.List{K}))))
+													)))
+												))
+											))
+										)
+									)
+								)
+							)
+						)),,
+						'$exp`(_`)('$assignment`(_`,_`)(
+							'$id`(_`)(# "_asASTString"(.List{K})),,
+							'$function`(_`,_`,_`,_`)(
+								# 1(.List{K}),,
+								# "_asASTString"(.List{K}),,
+								kList("List`{K`}2K_")(
+									# "elements"(.List{K}),,
+									# "lines"(.List{K}),,
+									# "levels"(.List{K})
+								),,
+								'$program`(_`,_`,_`)(
+									kList("List`{K`}2K_")(
+										'$initNewId`(_`,_`)(
+											# "index"(.List{K}),,
+											'$n`(_`)(# 0(.List{K}))
+										),,
+										'$initNewId`(_`,_`)(
+											# "count"(.List{K}),,
+											'$staticAccess`(_`,_`)(
+												'$id`(_`)(# "elements"(.List{K})),,
+												'$id`(_`)(# "length"(.List{K}))
+											)
+										),,
+										'$initNewId`(_`,_`)(
+											# "match"(.List{K}),,
+											'$sub`(_`,_`)(
+												'$id`(_`)(# "count"(.List{K})),,
+												'$n`(_`)(# 1(.List{K}))
+											)
+										),,
+										'$initNewId`(_`,_`)(
+											# "isLastElement"(.List{K}),,
+											'$lte`(_`,_`)(
+												'$id`(_`)(# "count"(.List{K})),,
+												'$n`(_`)(# 1(.List{K}))
+											)
+										),,
+										'$initNewId`(_`,_`)(
+											# "currentLine"(.List{K}),,
+											'$invoke`(_`,_`)(
+												'$staticAccess`(_`,_`)(
+													'$id`(_`)(# "lines"(.List{K})),,
+													'$id`(_`)(# "pop"(.List{K}))
+												),,
+												'$list`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+											)
+										),,
+										'$id`(_`)(# "element"(.List{K}))
+									),,
+									kList("List`{K`}2K_")(.List`{K`}),,
+									kList("List`{K`}2K_")(
+										'$varDeclarations`(_`)(kList("List`{K`}2K_")(
+											'$initNewId`(_`,_`)(
+												# "index"(.List{K}),,
+												'$n`(_`)(# 0(.List{K}))
+											),,
+											'$initNewId`(_`,_`)(
+												# "count"(.List{K}),,
+												'$staticAccess`(_`,_`)(
+													'$id`(_`)(# "elements"(.List{K})),,
+													'$id`(_`)(# "length"(.List{K}))
+												)
+											),,
+											'$initNewId`(_`,_`)(
+												# "match"(.List{K}),,
+												'$sub`(_`,_`)(
+													'$id`(_`)(# "count"(.List{K})),,
+													'$n`(_`)(# 1(.List{K}))
+												)
+											),,
+											'$initNewId`(_`,_`)(
+												# "isLastElement"(.List{K}),,
+												'$lte`(_`,_`)(
+													'$id`(_`)(# "count"(.List{K})),,
+													'$n`(_`)(# 1(.List{K}))
+												)
+											),,
+											'$initNewId`(_`,_`)(
+												# "currentLine"(.List{K}),,
+												'$invoke`(_`,_`)(
+													'$staticAccess`(_`,_`)(
+														'$id`(_`)(# "lines"(.List{K})),,
+														'$id`(_`)(# "pop"(.List{K}))
+													),,
+													'$list`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+												)
+											),,
+											'$id`(_`)(# "element"(.List{K}))
+										)),,
+										'$exp`(_`)('$invoke`(_`,_`)(
+											'$staticAccess`(_`,_`)(
+												'$id`(_`)(# "currentLine"(.List{K})),,
+												'$id`(_`)(# "push"(.List{K}))
+											),,
+											'$list`(_`)(kList("List`{K`}2K_")('$s`(_`)(# "--("(.List{K}))))
+										)),,
+										'$ifElse`(_`,_`,_`)(
+											'$identical`(_`,_`)(
+												'$id`(_`)(# "count"(.List{K})),,
+												'$n`(_`)(# 0(.List{K}))
+											),,
+											'$block`(_`)(kList("List`{K`}2K_")(
+												'$exp`(_`)('$invoke`(_`,_`)(
+													'$staticAccess`(_`,_`)(
+														'$id`(_`)(# "currentLine"(.List{K})),,
+														'$id`(_`)(# "push"(.List{K}))
+													),,
+													'$list`(_`)(kList("List`{K`}2K_")('$s`(_`)(# ")"(.List{K}))))
+												)),,
+												'$exp`(_`)('$invoke`(_`,_`)(
+													'$staticAccess`(_`,_`)(
+														'$id`(_`)(# "lines"(.List{K})),,
+														'$id`(_`)(# "push"(.List{K}))
+													),,
+													'$list`(_`)(kList("List`{K`}2K_")('$invoke`(_`,_`)(
+														'$staticAccess`(_`,_`)(
+															'$id`(_`)(# "currentLine"(.List{K})),,
+															'$id`(_`)(# "join"(.List{K}))
+														),,
+														'$list`(_`)(kList("List`{K`}2K_")('$s`(_`)(# ""(.List{K}))))
+													)))
+												)),,
+												'$return`(_`)(# undefined(.List{K}))
+											)),,
+											# null(.List{K})
+										),,
+										'$exp`(_`)('$invoke`(_`,_`)(
+											'$staticAccess`(_`,_`)(
+												'$id`(_`)(# "currentLine"(.List{K})),,
+												'$id`(_`)(# "push"(.List{K}))
+											),,
+											'$list`(_`)(kList("List`{K`}2K_")('$ternary`(_`,_`,_`)(
+												'$id`(_`)(# "isLastElement"(.List{K})),,
+												'$s`(_`)(# ")"(.List{K})),,
+												'$s`(_`)(# "-"(.List{K}))
+											)))
+										)),,
+										'$do`(_`,_`)(
+											'$b`(_`)(# true(.List{K})),,
+											'$block`(_`)(kList("List`{K`}2K_")(
+												'$exp`(_`)('$invoke`(_`,_`)(
+													'$staticAccess`(_`,_`)(
+														'$id`(_`)(# "lines"(.List{K})),,
+														'$id`(_`)(# "push"(.List{K}))
+													),,
+													'$list`(_`)(kList("List`{K`}2K_")('$id`(_`)(# "currentLine"(.List{K}))))
+												)),,
+												'$exp`(_`)('$invoke`(_`,_`)(
+													'$staticAccess`(_`,_`)(
+														'$id`(_`)(# "levels"(.List{K})),,
+														'$id`(_`)(# "push"(.List{K}))
+													),,
+													'$list`(_`)(kList("List`{K`}2K_")('$id`(_`)(# "isLastElement"(.List{K}))))
+												)),,
+												'$exp`(_`)('$assignment`(_`,_`)(
+													'$id`(_`)(# "element"(.List{K})),,
+													'$dynamicAccess`(_`,_`)(
+														'$id`(_`)(# "elements"(.List{K})),,
+														'$id`(_`)(# "index"(.List{K}))
+													)
+												)),,
+												'$exp`(_`)('$invoke`(_`,_`)(
+													'$id`(_`)(# "_outputElement"(.List{K})),,
+													'$list`(_`)(kList("List`{K`}2K_")(
+														'$id`(_`)(# "lines"(.List{K})),,
+														'$id`(_`)(# "element"(.List{K})),,
+														'$id`(_`)(# "levels"(.List{K}))
+													))
+												)),,
+												'$exp`(_`)('$invoke`(_`,_`)(
+													'$staticAccess`(_`,_`)(
+														'$id`(_`)(# "levels"(.List{K})),,
+														'$id`(_`)(# "pop"(.List{K}))
+													),,
+													'$list`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+												)),,
+												'$ifElse`(_`,_`,_`)(
+													'$id`(_`)(# "isLastElement"(.List{K})),,
+													'$block`(_`)(kList("List`{K`}2K_")('$return`(_`)(# undefined(.List{K})))),,
+													# null(.List{K})
+												),,
+												'$exp`(_`)('$assignment`(_`,_`)(
+													'$id`(_`)(# "isLastElement"(.List{K})),,
+													'$identical`(_`,_`)(
+														'$inc`(_`,_`)(
+															'$id`(_`)(# "index"(.List{K})),,
+															# false(.List{K})
+														),,
+														'$id`(_`)(# "match"(.List{K}))
+													)
+												)),,
+												'$exp`(_`)('$assignment`(_`,_`)(
+													'$id`(_`)(# "currentLine"(.List{K})),,
+													'$invoke`(_`,_`)(
+														'$id`(_`)(# "_outputPrefixes"(.List{K})),,
+														'$list`(_`)(kList("List`{K`}2K_")('$id`(_`)(# "levels"(.List{K}))))
+													)
+												)),,
+												'$exp`(_`)('$invoke`(_`,_`)(
+													'$staticAccess`(_`,_`)(
+														'$id`(_`)(# "currentLine"(.List{K})),,
+														'$id`(_`)(# "push"(.List{K}))
+													),,
+													'$list`(_`)(kList("List`{K`}2K_")('$ternary`(_`,_`,_`)(
+														'$id`(_`)(# "isLastElement"(.List{K})),,
+														'$s`(_`)(# ")-"(.List{K})),,
+														'$s`(_`)(# "|-"(.List{K}))
+													)))
+												))
+											))
+										)
+									)
+								)
+							)
+						)),,
+						'$exp`(_`)('$assignment`(_`,_`)(
+							'$id`(_`)(# "_normalizedOutput"(.List{K})),,
+							'$function`(_`,_`,_`,_`)(
+								# 1(.List{K}),,
+								# "_normalizedOutput"(.List{K}),,
+								kList("List`{K`}2K_")(# "lines"(.List{K})),,
+								'$program`(_`,_`,_`)(
+									kList("List`{K`}2K_")(
+										'$initNewId`(_`,_`)(
+											# "output"(.List{K}),,
+											'$arrayLit`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+										),,
+										'$initNewId`(_`,_`)(
+											# "maxLength"(.List{K}),,
+											'$n`(_`)(# 0(.List{K}))
+										),,
+										'$id`(_`)(# "length"(.List{K})),,
+										'$id`(_`)(# "count"(.List{K}))
+									),,
+									kList("List`{K`}2K_")(.List`{K`}),,
+									kList("List`{K`}2K_")(
+										'$varDeclarations`(_`)(kList("List`{K`}2K_")(
+											'$initNewId`(_`,_`)(
+												# "output"(.List{K}),,
+												'$arrayLit`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+											),,
+											'$initNewId`(_`,_`)(
+												# "maxLength"(.List{K}),,
+												'$n`(_`)(# 0(.List{K}))
+											),,
+											'$id`(_`)(# "length"(.List{K})),,
+											'$id`(_`)(# "count"(.List{K}))
+										)),,
+										'$exp`(_`)('$invoke`(_`,_`)(
+											'$staticAccess`(_`,_`)(
+												'$id`(_`)(# "lines"(.List{K})),,
+												'$id`(_`)(# "forEach"(.List{K}))
+											),,
+											'$list`(_`)(kList("List`{K`}2K_")('$function`(_`,_`,_`,_`)(
+												# 1(.List{K}),,
+												# undefined(.List{K}),,
+												kList("List`{K`}2K_")(# "line"(.List{K})),,
+												'$program`(_`,_`,_`)(
+													kList("List`{K`}2K_")(.List`{K`}),,
+													kList("List`{K`}2K_")(.List`{K`}),,
+													kList("List`{K`}2K_")(
+														'$exp`(_`)('$assignment`(_`,_`)(
+															'$id`(_`)(# "length"(.List{K})),,
+															'$staticAccess`(_`,_`)(
+																'$id`(_`)(# "line"(.List{K})),,
+																'$id`(_`)(# "length"(.List{K}))
+															)
+														)),,
+														'$ifElse`(_`,_`,_`)(
+															'$gt`(_`,_`)(
+																'$id`(_`)(# "length"(.List{K})),,
+																'$id`(_`)(# "maxLength"(.List{K}))
+															),,
+															'$block`(_`)(kList("List`{K`}2K_")('$exp`(_`)('$assignment`(_`,_`)(
+																'$id`(_`)(# "maxLength"(.List{K})),,
+																'$id`(_`)(# "length"(.List{K}))
+															)))),,
+															# null(.List{K})
+														)
+													)
+												)
+											)))
+										)),,
+										'$exp`(_`)('$invoke`(_`,_`)(
+											'$staticAccess`(_`,_`)(
+												'$id`(_`)(# "lines"(.List{K})),,
+												'$id`(_`)(# "forEach"(.List{K}))
+											),,
+											'$list`(_`)(kList("List`{K`}2K_")('$function`(_`,_`,_`,_`)(
+												# 1(.List{K}),,
+												# undefined(.List{K}),,
+												kList("List`{K`}2K_")(# "line"(.List{K})),,
+												'$program`(_`,_`,_`)(
+													kList("List`{K`}2K_")(.List`{K`}),,
+													kList("List`{K`}2K_")(.List`{K`}),,
+													kList("List`{K`}2K_")(
+														'$exp`(_`)('$invoke`(_`,_`)(
+															'$staticAccess`(_`,_`)(
+																'$id`(_`)(# "output"(.List{K})),,
+																'$id`(_`)(# "push"(.List{K}))
+															),,
+															'$list`(_`)(kList("List`{K`}2K_")('$id`(_`)(# "line"(.List{K}))))
+														)),,
+														'$exp`(_`)('$assignment`(_`,_`)(
+															'$id`(_`)(# "count"(.List{K})),,
+															'$sub`(_`,_`)(
+																'$id`(_`)(# "maxLength"(.List{K})),,
+																'$staticAccess`(_`,_`)(
+																	'$id`(_`)(# "line"(.List{K})),,
+																	'$id`(_`)(# "length"(.List{K}))
+																)
+															)
+														)),,
+														'$while`(_`,_`)(
+															'$gt`(_`,_`)(
+																'$dec`(_`,_`)(
+																	'$id`(_`)(# "count"(.List{K})),,
+																	# true(.List{K})
+																),,
+																'$n`(_`)(# 0(.List{K}))
+															),,
+															'$block`(_`)(kList("List`{K`}2K_")('$exp`(_`)('$invoke`(_`,_`)(
+																'$staticAccess`(_`,_`)(
+																	'$id`(_`)(# "output"(.List{K})),,
+																	'$id`(_`)(# "push"(.List{K}))
+																),,
+																'$list`(_`)(kList("List`{K`}2K_")('$s`(_`)(# " "(.List{K}))))
+															))))
+														),,
+														'$exp`(_`)('$invoke`(_`,_`)(
+															'$staticAccess`(_`,_`)(
+																'$id`(_`)(# "output"(.List{K})),,
+																'$id`(_`)(# "push"(.List{K}))
+															),,
+															'$list`(_`)(kList("List`{K`}2K_")(
+																'$s`(_`)(# "    \\"(.List{K})),,
+																'$s`(_`)(# "\n"(.List{K}))
+															))
+														))
+													)
+												)
+											)))
+										)),,
+										'$exp`(_`)('$invoke`(_`,_`)(
+											'$staticAccess`(_`,_`)(
+												'$id`(_`)(# "output"(.List{K})),,
+												'$id`(_`)(# "pop"(.List{K}))
+											),,
+											'$list`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+										)),,
+										'$exp`(_`)('$invoke`(_`,_`)(
+											'$staticAccess`(_`,_`)(
+												'$id`(_`)(# "output"(.List{K})),,
+												'$id`(_`)(# "push"(.List{K}))
+											),,
+											'$list`(_`)(kList("List`{K`}2K_")('$s`(_`)(# "\""(.List{K}))))
+										)),,
+										'$exp`(_`)('$assignment`(_`,_`)(
+											'$id`(_`)(# "output"(.List{K})),,
+											'$invoke`(_`,_`)(
+												'$staticAccess`(_`,_`)(
+													'$id`(_`)(# "output"(.List{K})),,
+													'$id`(_`)(# "join"(.List{K}))
+												),,
+												'$list`(_`)(kList("List`{K`}2K_")('$s`(_`)(# ""(.List{K}))))
+											)
+										)),,
+										'$return`(_`)('$id`(_`)(# "output"(.List{K})))
+									)
+								)
+							)
+						)),,
+						'$exp`(_`)('$assignment`(_`,_`)(
+							'$id`(_`)(# "_asSExpression"(.List{K})),,
+							'$function`(_`,_`,_`,_`)(
+								# 1(.List{K}),,
+								# "_asSExpression"(.List{K}),,
+								kList("List`{K`}2K_")(
+									# "elements"(.List{K}),,
+									# "separator"(.List{K}),,
+									# "substrings"(.List{K})
+								),,
+								'$program`(_`,_`,_`)(
+									kList("List`{K`}2K_")(
+										'$id`(_`)(# "element"(.List{K})),,
+										'$initNewId`(_`,_`)(
+											# "index"(.List{K}),,
+											'$n`(_`)(# 0(.List{K}))
+										),,
+										'$initNewId`(_`,_`)(
+											# "count"(.List{K}),,
+											'$staticAccess`(_`,_`)(
+												'$id`(_`)(# "elements"(.List{K})),,
+												'$id`(_`)(# "length"(.List{K}))
+											)
+										)
+									),,
+									kList("List`{K`}2K_")(.List`{K`}),,
+									kList("List`{K`}2K_")(
+										'$varDeclarations`(_`)(kList("List`{K`}2K_")(
+											'$id`(_`)(# "element"(.List{K})),,
+											'$initNewId`(_`,_`)(
+												# "index"(.List{K}),,
+												'$n`(_`)(# 0(.List{K}))
+											),,
+											'$initNewId`(_`,_`)(
+												# "count"(.List{K}),,
+												'$staticAccess`(_`,_`)(
+													'$id`(_`)(# "elements"(.List{K})),,
+													'$id`(_`)(# "length"(.List{K}))
+												)
+											)
+										)),,
+										'$exp`(_`)('$invoke`(_`,_`)(
+											'$staticAccess`(_`,_`)(
+												'$id`(_`)(# "substrings"(.List{K})),,
+												'$id`(_`)(# "push"(.List{K}))
+											),,
+											'$list`(_`)(kList("List`{K`}2K_")('$s`(_`)(# "("(.List{K}))))
+										)),,
+										'$ifElse`(_`,_`,_`)(
+											'$gt`(_`,_`)(
+												'$id`(_`)(# "count"(.List{K})),,
+												'$n`(_`)(# 0(.List{K}))
+											),,
+											'$block`(_`)(kList("List`{K`}2K_")('$do`(_`,_`)(
+												'$b`(_`)(# true(.List{K})),,
+												'$block`(_`)(kList("List`{K`}2K_")(
+													'$exp`(_`)('$assignment`(_`,_`)(
+														'$id`(_`)(# "element"(.List{K})),,
+														'$dynamicAccess`(_`,_`)(
+															'$id`(_`)(# "elements"(.List{K})),,
+															'$id`(_`)(# "index"(.List{K}))
+														)
+													)),,
+													'$ifElse`(_`,_`,_`)(
+														'$invoke`(_`,_`)(
+															'$staticAccess`(_`,_`)(
+																'$id`(_`)(# "Array"(.List{K})),,
+																'$id`(_`)(# "isArray"(.List{K}))
+															),,
+															'$list`(_`)(kList("List`{K`}2K_")('$id`(_`)(# "element"(.List{K}))))
+														),,
+														'$block`(_`)(kList("List`{K`}2K_")('$exp`(_`)('$invoke`(_`,_`)(
+															'$id`(_`)(# "_asSExpression"(.List{K})),,
+															'$list`(_`)(kList("List`{K`}2K_")(
+																'$id`(_`)(# "element"(.List{K})),,
+																'$id`(_`)(# "separator"(.List{K})),,
+																'$id`(_`)(# "substrings"(.List{K}))
+															))
+														)))),,
+														'$block`(_`)(kList("List`{K`}2K_")('$exp`(_`)('$invoke`(_`,_`)(
+															'$id`(_`)(# "_outputTerminal"(.List{K})),,
+															'$list`(_`)(kList("List`{K`}2K_")(
+																'$id`(_`)(# "substrings"(.List{K})),,
+																'$id`(_`)(# "element"(.List{K}))
+															))
+														))))
+													),,
+													'$ifElse`(_`,_`,_`)(
+														'$gte`(_`,_`)(
+															'$inc`(_`,_`)(
+																'$id`(_`)(# "index"(.List{K})),,
+																# false(.List{K})
+															),,
+															'$id`(_`)(# "count"(.List{K}))
+														),,
+														'$block`(_`)(kList("List`{K`}2K_")('$break`(_`)(# undefined(.List{K})))),,
+														# null(.List{K})
+													),,
+													'$exp`(_`)('$invoke`(_`,_`)(
+														'$staticAccess`(_`,_`)(
+															'$id`(_`)(# "substrings"(.List{K})),,
+															'$id`(_`)(# "push"(.List{K}))
+														),,
+														'$list`(_`)(kList("List`{K`}2K_")('$id`(_`)(# "separator"(.List{K}))))
+													))
+												))
+											))),,
+											# null(.List{K})
+										),,
+										'$exp`(_`)('$invoke`(_`,_`)(
+											'$staticAccess`(_`,_`)(
+												'$id`(_`)(# "substrings"(.List{K})),,
+												'$id`(_`)(# "push"(.List{K}))
+											),,
+											'$list`(_`)(kList("List`{K`}2K_")('$s`(_`)(# ")"(.List{K}))))
+										))
+									)
+								)
+							)
+						)),,
+						'$exp`(_`)('$assignment`(_`,_`)(
+							'$staticAccess`(_`,_`)(
+								'$staticAccess`(_`,_`)(
+									'$id`(_`)(# "Array"(.List{K})),,
+									'$id`(_`)(# "prototype"(.List{K}))
+								),,
+								'$id`(_`)(# "asDiagram"(.List{K}))
+							),,
+							'$function`(_`,_`,_`,_`)(
+								# 1(.List{K}),,
+								# "asDiagram"(.List{K}),,
+								kList("List`{K`}2K_")(.List`{K`}),,
+								'$program`(_`,_`,_`)(
+									kList("List`{K`}2K_")('$initNewId`(_`,_`)(
+										# "lines"(.List{K}),,
+										'$arrayLit`(_`)(kList("List`{K`}2K_")(
+											'$s`(_`)(# "\""(.List{K})),,
+											'$arrayLit`(_`)(kList("List`{K`}2K_")('$s`(_`)(# " -"(.List{K}))))
+										))
+									)),,
+									kList("List`{K`}2K_")(.List`{K`}),,
+									kList("List`{K`}2K_")(
+										'$varDeclarations`(_`)(kList("List`{K`}2K_")('$initNewId`(_`,_`)(
+											# "lines"(.List{K}),,
+											'$arrayLit`(_`)(kList("List`{K`}2K_")(
+												'$s`(_`)(# "\""(.List{K})),,
+												'$arrayLit`(_`)(kList("List`{K`}2K_")('$s`(_`)(# " -"(.List{K}))))
+											))
+										))),,
+										'$exp`(_`)('$invoke`(_`,_`)(
+											'$id`(_`)(# "_asASTString"(.List{K})),,
+											'$list`(_`)(kList("List`{K`}2K_")(
+												'$this(.List{K}),,
+												'$id`(_`)(# "lines"(.List{K})),,
+												'$arrayLit`(_`)(kList("List`{K`}2K_")('$b`(_`)(# true(.List{K}))))
+											))
+										)),,
+										'$exp`(_`)('$invoke`(_`,_`)(
+											'$staticAccess`(_`,_`)(
+												'$id`(_`)(# "lines"(.List{K})),,
+												'$id`(_`)(# "push"(.List{K}))
+											),,
+											'$list`(_`)(kList("List`{K`}2K_")('$s`(_`)(# ""(.List{K}))))
+										)),,
+										'$return`(_`)('$invoke`(_`,_`)(
+											'$id`(_`)(# "_normalizedOutput"(.List{K})),,
+											'$list`(_`)(kList("List`{K`}2K_")('$id`(_`)(# "lines"(.List{K}))))
+										))
+									)
+								)
+							)
+						)),,
+						'$exp`(_`)('$assignment`(_`,_`)(
+							'$staticAccess`(_`,_`)(
+								'$staticAccess`(_`,_`)(
+									'$id`(_`)(# "Array"(.List{K})),,
+									'$id`(_`)(# "prototype"(.List{K}))
+								),,
+								'$id`(_`)(# "asSExpression"(.List{K}))
+							),,
+							'$function`(_`,_`,_`,_`)(
+								# 1(.List{K}),,
+								# "asSExpression"(.List{K}),,
+								kList("List`{K`}2K_")(# "options_"(.List{K})),,
+								'$program`(_`,_`,_`)(
+									kList("List`{K`}2K_")(
+										'$initNewId`(_`,_`)(
+											# "separator"(.List{K}),,
+											'$or`(_`,_`)(
+												'$and`(_`,_`)(
+													'$id`(_`)(# "options_"(.List{K})),,
+													'$staticAccess`(_`,_`)(
+														'$id`(_`)(# "options_"(.List{K})),,
+														'$id`(_`)(# "separator"(.List{K}))
+													)
+												),,
+												'$s`(_`)(# ", "(.List{K}))
+											)
+										),,
+										'$initNewId`(_`,_`)(
+											# "substrings"(.List{K}),,
+											'$arrayLit`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+										)
+									),,
+									kList("List`{K`}2K_")(.List`{K`}),,
+									kList("List`{K`}2K_")(
+										'$varDeclarations`(_`)(kList("List`{K`}2K_")(
+											'$initNewId`(_`,_`)(
+												# "separator"(.List{K}),,
+												'$or`(_`,_`)(
+													'$and`(_`,_`)(
+														'$id`(_`)(# "options_"(.List{K})),,
+														'$staticAccess`(_`,_`)(
+															'$id`(_`)(# "options_"(.List{K})),,
+															'$id`(_`)(# "separator"(.List{K}))
+														)
+													),,
+													'$s`(_`)(# ", "(.List{K}))
+												)
+											),,
+											'$initNewId`(_`,_`)(
+												# "substrings"(.List{K}),,
+												'$arrayLit`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+											)
+										)),,
+										'$exp`(_`)('$invoke`(_`,_`)(
+											'$id`(_`)(# "_asSExpression"(.List{K})),,
+											'$list`(_`)(kList("List`{K`}2K_")(
+												'$this(.List{K}),,
+												'$id`(_`)(# "separator"(.List{K})),,
+												'$id`(_`)(# "substrings"(.List{K}))
+											))
+										)),,
+										'$return`(_`)('$invoke`(_`,_`)(
+											'$staticAccess`(_`,_`)(
+												'$id`(_`)(# "substrings"(.List{K})),,
+												'$id`(_`)(# "join"(.List{K}))
+											),,
+											'$list`(_`)(kList("List`{K`}2K_")('$s`(_`)(# ""(.List{K}))))
+										))
+									)
+								)
+							)
+						)),,
+						'$return`(_`)('$objectLit`(_`)(kList("List`{K`}2K_")('$propertyLit`(_`,_`)(
+							'$id`(_`)(# "generate"(.List{K})),,
+							'$function`(_`,_`,_`,_`)(
+								# 1(.List{K}),,
+								# "generate"(.List{K}),,
+								kList("List`{K`}2K_")(
+									# "fileNameWithExt"(.List{K}),,
+									# "isStrictMode_"(.List{K})
+								),,
+								'$program`(_`,_`,_`)(
+									kList("List`{K`}2K_")(
+										'$initNewId`(_`,_`)(
+											# "dirName"(.List{K}),,
+											'$s`(_`)(# "/Users/m3rabb/Dev/Maude/k-framework/examples/inProgress/kJS/examples/"(.List{K}))
+										),,
+										'$initNewId`(_`,_`)(
+											# "fileName"(.List{K}),,
+											'$invoke`(_`,_`)(
+												'$staticAccess`(_`,_`)(
+													'$id`(_`)(# "fileNameWithExt"(.List{K})),,
+													'$id`(_`)(# "replace"(.List{K}))
+												),,
+												'$list`(_`)(kList("List`{K`}2K_")(
+													'$regex`(_`)(# "/\\.js$/"(.List{K})),,
+													'$s`(_`)(# ""(.List{K}))
+												))
+											)
+										),,
+										'$initNewId`(_`,_`)(
+											# "path"(.List{K}),,
+											'$add`(_`,_`)(
+												'$id`(_`)(# "dirName"(.List{K})),,
+												'$id`(_`)(# "fileName"(.List{K}))
+											)
+										),,
+										'$initNewId`(_`,_`)(
+											# "isStrictMode"(.List{K}),,
+											'$or`(_`,_`)(
+												'$id`(_`)(# "isStrictMode_"(.List{K})),,
+												'$b`(_`)(# false(.List{K}))
+											)
+										),,
+										'$id`(_`)(# "sourceFile"(.List{K})),,
+										'$id`(_`)(# "source"(.List{K})),,
+										'$id`(_`)(# "ast"(.List{K})),,
+										'$id`(_`)(# "sexp"(.List{K})),,
+										'$id`(_`)(# "diagram"(.List{K})),,
+										'$id`(_`)(# "sexpFile"(.List{K})),,
+										'$id`(_`)(# "diagramFile"(.List{K})),,
+										'$id`(_`)(# "sexpFlag"(.List{K})),,
+										'$id`(_`)(# "resultFlag"(.List{K}))
+									),,
+									kList("List`{K`}2K_")(.List`{K`}),,
+									kList("List`{K`}2K_")(
+										'$varDeclarations`(_`)(kList("List`{K`}2K_")(
+											'$initNewId`(_`,_`)(
+												# "dirName"(.List{K}),,
+												'$s`(_`)(# "/Users/m3rabb/Dev/Maude/k-framework/examples/inProgress/kJS/examples/"(.List{K}))
+											),,
+											'$initNewId`(_`,_`)(
+												# "fileName"(.List{K}),,
+												'$invoke`(_`,_`)(
+													'$staticAccess`(_`,_`)(
+														'$id`(_`)(# "fileNameWithExt"(.List{K})),,
+														'$id`(_`)(# "replace"(.List{K}))
+													),,
+													'$list`(_`)(kList("List`{K`}2K_")(
+														'$regex`(_`)(# "/\\.js$/"(.List{K})),,
+														'$s`(_`)(# ""(.List{K}))
+													))
+												)
+											),,
+											'$initNewId`(_`,_`)(
+												# "path"(.List{K}),,
+												'$add`(_`,_`)(
+													'$id`(_`)(# "dirName"(.List{K})),,
+													'$id`(_`)(# "fileName"(.List{K}))
+												)
+											),,
+											'$initNewId`(_`,_`)(
+												# "isStrictMode"(.List{K}),,
+												'$or`(_`,_`)(
+													'$id`(_`)(# "isStrictMode_"(.List{K})),,
+													'$b`(_`)(# false(.List{K}))
+												)
+											),,
+											'$id`(_`)(# "sourceFile"(.List{K})),,
+											'$id`(_`)(# "source"(.List{K})),,
+											'$id`(_`)(# "ast"(.List{K})),,
+											'$id`(_`)(# "sexp"(.List{K})),,
+											'$id`(_`)(# "diagram"(.List{K})),,
+											'$id`(_`)(# "sexpFile"(.List{K})),,
+											'$id`(_`)(# "diagramFile"(.List{K})),,
+											'$id`(_`)(# "sexpFlag"(.List{K})),,
+											'$id`(_`)(# "resultFlag"(.List{K}))
+										)),,
+										'$exp`(_`)('$invoke`(_`,_`)(
+											'$staticAccess`(_`,_`)(
+												'$staticAccess`(_`,_`)(
+													'$staticAccess`(_`,_`)(
+														'$id`(_`)(# "netscape"(.List{K})),,
+														'$id`(_`)(# "security"(.List{K}))
+													),,
+													'$id`(_`)(# "PrivilegeManager"(.List{K}))
+												),,
+												'$id`(_`)(# "enablePrivilege"(.List{K}))
+											),,
+											'$list`(_`)(kList("List`{K`}2K_")('$s`(_`)(# "UniversalXPConnect"(.List{K}))))
+										)),,
+										'$ifElse`(_`,_`,_`)(
+											'$identical`(_`,_`)(
+												'$invoke`(_`,_`)(
+													'$staticAccess`(_`,_`)(
+														'$id`(_`)(# "fileNameWithExt"(.List{K})),,
+														'$id`(_`)(# "search"(.List{K}))
+													),,
+													'$list`(_`)(kList("List`{K`}2K_")('$regex`(_`)(# "/\\.js$/"(.List{K}))))
+												),,
+												'$neg`(_`)('$n`(_`)(# 1(.List{K})))
+											),,
+											'$block`(_`)(kList("List`{K`}2K_")('$return`(_`)('$s`(_`)(# "ERROR: Must be a .js file!"(.List{K}))))),,
+											# null(.List{K})
+										),,
+										'$exp`(_`)('$assignment`(_`,_`)(
+											'$id`(_`)(# "sourceFile"(.List{K})),,
+											'$invoke`(_`,_`)(
+												'$staticAccess`(_`,_`)(
+													'$id`(_`)(# "FileIO"(.List{K})),,
+													'$id`(_`)(# "open"(.List{K}))
+												),,
+												'$list`(_`)(kList("List`{K`}2K_")('$add`(_`,_`)(
+													'$id`(_`)(# "path"(.List{K})),,
+													'$s`(_`)(# ".js"(.List{K}))
+												)))
+											)
+										)),,
+										'$ifElse`(_`,_`,_`)(
+											'$not`(_`)('$invoke`(_`,_`)(
+												'$staticAccess`(_`,_`)(
+													'$id`(_`)(# "sourceFile"(.List{K})),,
+													'$id`(_`)(# "exists"(.List{K}))
+												),,
+												'$list`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+											)),,
+											'$block`(_`)(kList("List`{K`}2K_")('$return`(_`)('$add`(_`,_`)(
+												'$add`(_`,_`)(
+													'$s`(_`)(# "ERROR "(.List{K})),,
+													'$id`(_`)(# "fileNameWithExt"(.List{K}))
+												),,
+												'$s`(_`)(# " doesn't exist!"(.List{K}))
+											)))),,
+											# null(.List{K})
+										),,
+										'$exp`(_`)('$assignment`(_`,_`)(
+											'$id`(_`)(# "source"(.List{K})),,
+											'$invoke`(_`,_`)(
+												'$staticAccess`(_`,_`)(
+													'$id`(_`)(# "FileIO"(.List{K})),,
+													'$id`(_`)(# "read"(.List{K}))
+												),,
+												'$list`(_`)(kList("List`{K`}2K_")('$id`(_`)(# "sourceFile"(.List{K}))))
+											)
+										)),,
+										'$exp`(_`)('$assignment`(_`,_`)(
+											'$id`(_`)(# "ast"(.List{K})),,
+											'$invoke`(_`,_`)(
+												'$id`(_`)(# "parse"(.List{K})),,
+												'$list`(_`)(kList("List`{K`}2K_")(
+													'$id`(_`)(# "source"(.List{K})),,
+													'$id`(_`)(# "isStrictMode"(.List{K})),,
+													'$b`(_`)(# true(.List{K}))
+												))
+											)
+										)),,
+										'$exp`(_`)('$assignment`(_`,_`)(
+											'$id`(_`)(# "sexp"(.List{K})),,
+											'$invoke`(_`,_`)(
+												'$staticAccess`(_`,_`)(
+													'$id`(_`)(# "ast"(.List{K})),,
+													'$id`(_`)(# "asSExpression"(.List{K}))
+												),,
+												'$list`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+											)
+										)),,
+										'$exp`(_`)('$assignment`(_`,_`)(
+											'$id`(_`)(# "diagram"(.List{K})),,
+											'$invoke`(_`,_`)(
+												'$staticAccess`(_`,_`)(
+													'$id`(_`)(# "ast"(.List{K})),,
+													'$id`(_`)(# "asDiagram"(.List{K}))
+												),,
+												'$list`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+											)
+										)),,
+										'$exp`(_`)('$assignment`(_`,_`)(
+											'$id`(_`)(# "sexpFile"(.List{K})),,
+											'$invoke`(_`,_`)(
+												'$staticAccess`(_`,_`)(
+													'$id`(_`)(# "FileIO"(.List{K})),,
+													'$id`(_`)(# "open"(.List{K}))
+												),,
+												'$list`(_`)(kList("List`{K`}2K_")('$add`(_`,_`)(
+													'$id`(_`)(# "path"(.List{K})),,
+													'$s`(_`)(# ".sexp"(.List{K}))
+												)))
+											)
+										)),,
+										'$exp`(_`)('$assignment`(_`,_`)(
+											'$id`(_`)(# "diagramFile"(.List{K})),,
+											'$invoke`(_`,_`)(
+												'$staticAccess`(_`,_`)(
+													'$id`(_`)(# "FileIO"(.List{K})),,
+													'$id`(_`)(# "open"(.List{K}))
+												),,
+												'$list`(_`)(kList("List`{K`}2K_")('$add`(_`,_`)(
+													'$id`(_`)(# "path"(.List{K})),,
+													'$s`(_`)(# ".diagram"(.List{K}))
+												)))
+											)
+										)),,
+										'$exp`(_`)('$assignment`(_`,_`)(
+											'$id`(_`)(# "resultFlag"(.List{K})),,
+											'$invoke`(_`,_`)(
+												'$staticAccess`(_`,_`)(
+													'$id`(_`)(# "FileIO"(.List{K})),,
+													'$id`(_`)(# "write"(.List{K}))
+												),,
+												'$list`(_`)(kList("List`{K`}2K_")(
+													'$id`(_`)(# "sexpFile"(.List{K})),,
+													'$id`(_`)(# "sexp"(.List{K}))
+												))
+											)
+										)),,
+										'$exp`(_`)('$assignment`(_`,_`)(
+											'$id`(_`)(# "resultFlag"(.List{K})),,
+											'$and`(_`,_`)(
+												'$id`(_`)(# "resultFlag"(.List{K})),,
+												'$invoke`(_`,_`)(
+													'$staticAccess`(_`,_`)(
+														'$id`(_`)(# "FileIO"(.List{K})),,
+														'$id`(_`)(# "write"(.List{K}))
+													),,
+													'$list`(_`)(kList("List`{K`}2K_")(
+														'$id`(_`)(# "diagramFile"(.List{K})),,
+														'$id`(_`)(# "diagram"(.List{K}))
+													))
+												)
+											)
+										)),,
+										'$return`(_`)('$id`(_`)(# "resultFlag"(.List{K})))
+									)
+								)
+							)
+						))))
+					)
+				)
+			),,
+			'$list`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+		)
+	)))
+)

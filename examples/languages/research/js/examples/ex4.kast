@@ -1,0 +1,19 @@
+'$program`(_`,_`,_`)(
+	kList("List`{K`}2K_")(
+		'$id`(_`)(# "x"(.List{K})),,
+		'$id`(_`)(# "y"(.List{K})),,
+		'$id`(_`)(# "z"(.List{K}))
+	),,
+	kList("List`{K`}2K_")(.List`{K`}),,
+	kList("List`{K`}2K_")(
+		'$varDeclarations`(_`)(kList("List`{K`}2K_")(
+			'$id`(_`)(# "x"(.List{K})),,
+			'$id`(_`)(# "y"(.List{K})),,
+			'$id`(_`)(# "z"(.List{K}))
+		)),,
+		'$exp`(_`)('$assignment`(_`,_`)(
+			'$id`(_`)(# "x"(.List{K})),,
+			'$n`(_`)(# 1(.List{K}))
+		))
+	)
+)

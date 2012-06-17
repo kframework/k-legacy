@@ -1,0 +1,83 @@
+'$program`(_`,_`,_`)(
+	kList("List`{K`}2K_")(.List`{K`}),,
+	kList("List`{K`}2K_")(.List`{K`}),,
+	kList("List`{K`}2K_")(
+		'$while`(_`,_`)(
+			'$b`(_`)(# true(.List{K})),,
+			'$block`(_`)(kList("List`{K`}2K_")(.List`{K`}))
+		),,
+		'$exp`(_`)(# null(.List{K})),,
+		'$do`(_`,_`)(
+			'$lt`(_`,_`)(
+				'$id`(_`)(# "y"(.List{K})),,
+				'$n`(_`)(# 100(.List{K}))
+			),,
+			'$block`(_`)(kList("List`{K`}2K_")('$exp`(_`)('$inc`(_`,_`)(
+				'$id`(_`)(# "y"(.List{K})),,
+				# true(.List{K})
+			))))
+		),,
+		'$label`(_`,_`)(
+			# "here"(.List{K}),,
+			'$for`(_`,_`,_`,_`)(
+				'$comma`(_`)(kList("List`{K`}2K_")(
+					'$assignment`(_`,_`)(
+						'$id`(_`)(# "z"(.List{K})),,
+						'$n`(_`)(# 1(.List{K}))
+					),,
+					'$assignment`(_`,_`)(
+						'$id`(_`)(# "q"(.List{K})),,
+						'$n`(_`)(# 22(.List{K}))
+					)
+				)),,
+				# null(.List{K}),,
+				'$comma`(_`)(kList("List`{K`}2K_")(
+					'$inc`(_`,_`)(
+						'$id`(_`)(# "z"(.List{K})),,
+						# true(.List{K})
+					),,
+					'$dec`(_`,_`)(
+						'$id`(_`)(# "q"(.List{K})),,
+						# false(.List{K})
+					)
+				)),,
+				'$block`(_`)(kList("List`{K`}2K_")(
+					'$ifElse`(_`,_`,_`)(
+						'$identical`(_`,_`)(
+							'$mul`(_`,_`)(
+								'$id`(_`)(# "z"(.List{K})),,
+								'$n`(_`)(# 2(.List{K}))
+							),,
+							'$n`(_`)(# 4(.List{K}))
+						),,
+						'$continue`(_`)(# "here"(.List{K})),,
+						# null(.List{K})
+					),,
+					'$ifElse`(_`,_`,_`)(
+						'$equal`(_`,_`)(
+							'$id`(_`)(# "q"(.List{K})),,
+							'$n`(_`)(# 3(.List{K}))
+						),,
+						'$break`(_`)(# "here"(.List{K})),,
+						# null(.List{K})
+					)
+				))
+			)
+		),,
+		'$label`(_`,_`)(
+			# "there"(.List{K}),,
+			'$exp`(_`)('$assignment`(_`,_`)(
+				'$id`(_`)(# "x"(.List{K})),,
+				'$n`(_`)(# 200(.List{K}))
+			))
+		),,
+		'$forIn`(_`,_`,_`)(
+			'$id`(_`)(# "p"(.List{K})),,
+			'$id`(_`)(# "obj"(.List{K})),,
+			'$exp`(_`)('$inc`(_`,_`)(
+				'$id`(_`)(# "x"(.List{K})),,
+				# false(.List{K})
+			))
+		)
+	)
+)
