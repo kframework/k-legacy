@@ -1,17 +1,17 @@
 '$program`(_`,_`,_`)(
-	kList("List`{K`}2K_")('$initNewId`(_`,_`)(
-		# "count"(.List{K}),,
-		'$staticAccess`(_`,_`)(
-			'$id`(_`)(# "elements"(.List{K})),,
-			'$id`(_`)(# "length"(.List{K}))
-		)
-	)),,
 	kList("List`{K`}2K_")(.List`{K`}),,
-	kList("List`{K`}2K_")('$varDeclarations`(_`)(kList("List`{K`}2K_")('$initNewId`(_`,_`)(
-		# "count"(.List{K}),,
-		'$staticAccess`(_`,_`)(
-			'$id`(_`)(# "elements"(.List{K})),,
-			'$id`(_`)(# "length"(.List{K}))
-		)
-	))))
+	kList("List`{K`}2K_")(.List`{K`}),,
+	kList("List`{K`}2K_")('$exp`(_`)('$assignment`(_`,_`)(
+		'$id`(_`)(# "v"(.List{K})),,
+		'$objectLit`(_`)(kList("List`{K`}2K_")(
+			'$propertyLit`(_`,_`)(
+				'$id`(_`)(# "name"(.List{K})),,
+				'$s`(_`)(# "Ella"(.List{K}))
+			),,
+			'$propertyLit`(_`,_`)(
+				'$id`(_`)(# "age"(.List{K})),,
+				'$n`(_`)(# 4(.List{K}))
+			)
+		))
+	)))
 )
