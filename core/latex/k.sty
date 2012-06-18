@@ -468,14 +468,15 @@ $\mid\;{#2}$ \ifthenelse{\equal{#3}{}}{}{[#3]\;}%
 \newcommand{\kditto}{ditto}
 \newcommand{\karity}[1]{{\color{blue}arity(#1)}}
 \newcommand{\kstrict}[2]{{%
-  \color{blue}strict%
+  \color{blue}%
+  \ifx&#2&%
+  \else%
+    #2-%
+  \fi%
+  strict%
   \ifx&#1&%
   \else%
     (#1)%
-  \fi%
-  \ifx&#2&%
-  \else%
-    in (#2)%
   \fi%
 }}
 \newcommand{\kseqstrict}[2]{{%
