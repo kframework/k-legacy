@@ -232,59 +232,63 @@ kmod JS-IDENTITY is including JS-COMPARISON
 	rule $identical(_, $nan) 			=> $b(false)
 	rule $identical(Left:V, Right:V)	=> Left ==K Right
 										when notNan(Left) andBool notNan(Right)
-
-	--- rule $identical(Left, Right) => $b(false) when isEitherNaN(Left, Right)
-	--- rule $identical(Left, Right) => identical(Left, Right)
-	
-	--- rule identical(Num1:V, Num2:V) 
-	--- 		=> $b(finiteValue(Num1) ==K finiteValue(Num2))			[structural]
-	--- rule identical(Other1:JSNonNumber, Other2:JSNonNumber) 
-	--- 		=> $b(Other1 ==K Other2) [structural]
-	
 endkm
 
 
 
+kmod JS-EQUALITY is including JS-IDENTITY
+	syntax Bool ::= castEqual( V , V )
+	
+	--- ECMA-262 11.9.4-6	
+	rule $notEqual(Left:V, Right:V) 	=> not($equal(Left, Right))			[structural]
+	
+	rule $equal(Left:V, Right:V) 		
+	=> #if typeof(Left) ==K typeof(Right) #then $identical(Left, Right) 
+	   #else castEqual(Left, Right) #fi
+	
+	rule castEqual($undefined, $null) 		=> $b(true)
+	rule castEqual($null, $undefined) 		=> $b(true)
+	--- rule castEqual($obj(I:Int), Value:V)	=> $equal(toPrimitive($obj(I)), Value)
+	--- rule castEqual(Value:V, $obj(I:Int))	=> $equal(Value, toPrimitive($obj(I)))
+	rule castEqual($b(B:Bool), Value:V)		=> $equal(toNumber($b(B)), Value)
+	rule castEqual(Value:V, $b(B:Bool))		=> $equal(Value, toNumber($b(B)))
+	
+	rule castEqual($s(S:String), Value:V)	=> $equal(toNumber($s(S)), Value) 	when isNumber(Value)
+	rule castEqual(Value:V, $s(S:String))	=> $equal(Value, toNumber($s(S))) 	when isNumber(Value)	
+endkm
 
---- kmod JS-EQUALITY is including JS-IDENTITY
---- 	syntax Bool ::= castEqual( V , V )
---- 	
---- 	--- ECMA-262 11.9.4-6	
---- 	rule $notEqual(Left:V, Right:V) 	=> not($equal(Left, Right))			[structural]
---- 	
---- 	rule $equal(Left:V, Right:V) 		
---- 	=> #if typeof(Left) ==K typeof(Right) #then $identical(Left, Right) 
---- 	   #else castEqual(Left, Right) #fi
---- 	
---- 	rule castEqual($undefined, $null) 		=> $b(true)
---- 	rule castEqual($null, $undefined) 		=> $b(true)
---- 	rule castEqual($obj(I:Int), Value:V)	=> $equal(toPrim($obj(I)), Value)
---- 	rule castEqual(Value:V, $obj(I:Int))	=> $equal(Value, toPrimitive($obj(I)))
---- 	rule castEqual($b(B:Bool), Value:V)	=> $equal(toNumber($b(B)), Value)
---- 	rule castEqual(Value:V, $b(B:Bool))	=> $equal(Value, toNumber($b(B)))
---- 	
---- 	rule castEqual($s(S:String), Value:V)	=> $equal(toNumber($s(S)), Value) 	when isNumber(Value)
---- 	rule castEqual(Value:V, $s(S:String))	=> $equal(Value, toNumber($s(S))) 	when isNumber(Value)	
---- endkm
---- 
---- kmod JS-PROPERTY-ACCESS is including JS-EQUALITY
---- 	syntax K ::= accessPropertyAt( K , K ) [seqstrict]
---- 	
---- 	rule [staticAccess]:
---- 		$staticAccess(Target:V, $id(Name:String)) => accessPropertyAt(getValue(Target), $s(Name))
---- 	
---- 	rule [dynamicAccess]:
---- 		$dynamicAccess(Target:V, PropNameValue:V) 
---- 		=> accessPropertyAt(getValue(Target), toString(getValue(PropNameValue)))
---- 	
---- 	rule [accessPropertyAt]:
---- 		accessPropertyAt(Obj:V, $s(Name:String)) => $binding(checkObjectCoercible(Obj), Name)
---- 		[structural]
---- endkm
+kmod JS-PROPERTY-ACCESS is including JS-EQUALITY
+	syntax K ::= accessPropertyAt( K , K ) [seqstrict]
+	
+	rule [staticAccess]:
+		$staticAccess(Target:V, $id(Name:String)) => accessPropertyAt(getValue(Target), $s(Name))
+	
+	rule [dynamicAccess]:
+		$dynamicAccess(Target:V, PropNameValue:V) 
+		=> accessPropertyAt(getValue(Target), toString(getValue(PropNameValue)))
+	
+	rule [accessPropertyAt]:
+		accessPropertyAt(Obj:V, $s(Name:String)) => $binding(checkObjectCoercible(Obj), Name)
+		[structural]
+endkm
 
+kmod JS-OBJECT-LITERAL is including JS-PROPERTY-ACCESS
+	--- ECMA-262 11.1.5 Object Initialiser
+	syntax K ::= composeObjLit( List{K} , V ) [strict(2)]
 
+	rule [objectLit]:
+		<k> $objectLit(PropertyLits:List{K}) => composeObjLit(PropertyLits, $rec(.Map)) ...</k>
 
-
+	rule [composeObjLit-empty]:
+		<k> composeObjLit(.List{K}, Rec:V) => allocNewObjFor(Rec) ...</k>
+		[structural]
+		
+	rule [composeObjLit-each]:
+		<k> composeObjLit($propertyLit(Key:K, Exp:K) ,, Remaining:List{K}, Rec:V)
+			=> composeObjLit(Remaining, copyRecWithValue(Rec, asPropertyName(Key), getValue(Exp)))
+		...</k>
+		[structural]
+endkm
 
 --- kmod
 --- 	--- ECMA-262 11.4.1 The delete Operator 
@@ -360,7 +364,7 @@ endkm
 
 
 
-kmod JS-SEMANTICS is including JS-IDENTITY
+kmod JS-SEMANTICS is including JS-OBJECT-LITERAL
 --- JS-CONTROL-STRUCTURES + JS-ARITHMETIC
 	syntax K ::= 
 			varPreDeclarations(	List{K} )
@@ -396,6 +400,7 @@ kmod JS-SEMANTICS is including JS-IDENTITY
 		varPreDeclaration($initNewId(Name:String , _)) => varPreDeclaration($id(Name))
 		[structural]
 
+
 	rule [funcPreDeclarations-empty]: 
 		<k> funcPreDeclarations(.List{K}) => . ...</k>  
 		[structural]
@@ -413,7 +418,7 @@ kmod JS-SEMANTICS is including JS-IDENTITY
 
 	rule [strip-inline-varDeclarations-init]: 
 		$varDeclarations($initNewId(Name:String, Exp:K) ,, Remaining:List{K})
-		=> $assignment($id(Name), Exp) ~> $varDeclarations(Remaining)  
+		=> $assignment($id(Name), Exp) ~> discard ~> $varDeclarations(Remaining)  
 		[structural]
 
 	rule [assignment-simple]:

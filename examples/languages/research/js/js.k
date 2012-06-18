@@ -24,7 +24,7 @@ kmod JS-INIT-JS is including JS-SEMANTICS
 		|	initUndefined
 
 	rule [initJS]: 
-		<k> initJS => initGlobalLexEnv(newObj) ~> initUndefined ...</k>
+		<k> initJS => initGlobalLexEnv(allocNewObj) ~> initUndefined ...</k>
 		[structural]
 
 	rule [initGlobalLexEnv]:
