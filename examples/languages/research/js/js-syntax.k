@@ -120,9 +120,9 @@ kmod JS-SYNTAX is including JS-PRIMITIVES + K
 		
 		| $assignment ( K , K ) [seqstrict]		--- TargetExp Exp
 		| $compoundAssignment ( K , Nat , K ) [seqstrict]	--- TargetExp AssignmentOp Exp
-		| $arrayLit ( List{K} ) [seqstrict]		--- [ CommaList{Exp} ]
-		| $objectLit ( List{K} ) [seqstrict]		--- { CommaList{Property} }
-		| $propertyLit ( K , K ) [seqstrict]		--- PropertyName : Exp
+		| $arrayLit ( List{K} )						--- [ CommaList{Exp} ]
+		| $objectLit ( List{K} )					--- { CommaList{Property} }
+		| $propertyLit ( K , K )					--- PropertyName : Exp
 		
 		| $return ( K ) [strict]				--- return Exp | .
 		| $break ( K ) [strict] 				--- break Label | .
@@ -157,7 +157,7 @@ kmod JS-SYNTAX is including JS-PRIMITIVES + K
 		| $labelledStmt ( K , K )	
 			--- Label : Stmt
 		
-		| $varDeclarations ( List{K} ) [seqstrict]
+		| $varDeclarations ( List{K} )
 		
 		| $function ( Nat , String , List{K} , List{K} )
 			--- function ( Parameters ) { Statements }

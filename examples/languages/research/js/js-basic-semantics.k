@@ -110,8 +110,9 @@ kmod JS-CONVERSIONS is including JS-TESTING
 	syntax V ::= toNumber( K )
 	syntax V ::= toString( K )
 	syntax V ::= toObject( K )
-	syntax V ::= asObject ( K )
+	syntax V ::= asObject( K )
 	syntax V ::= checkObjectCoercible( V )
+	syntax V ::= asPropertyName( K ) 		[strict]
 	
 	--- ECMA-262 8.12.8
 ---	rule defaultValue(Obj:JSObject, Hint:String) --- Not yet implemented!!!
@@ -162,10 +163,13 @@ kmod JS-CONVERSIONS is including JS-TESTING
 	rule checkObjectCoercible($undefined)		=> $throw($TypeError("Cannot be undefined!"))
 	rule checkObjectCoercible($null)			=> $throw($TypeError("Cannot be null!"))
 	rule checkObjectCoercible($b(B:Bool))		=> $b(B)
-	rule checkObjectCoercible(Num:V)			=> Num		when isNumber(Num)
+	rule checkObjectCoercible(Num:V)			=> Num				when isNumber(Num)
 	rule checkObjectCoercible($s(S:String))		=> $s(S)
 	rule checkObjectCoercible($obj(Loc:Int)) 	=> $obj(Loc)
 	
+	rule asPropertyName($s(Name:String))		=> Name
+	rule asPropertyName($id(Name:String))		=> Name
+	rule asPropertyName(Num:V)					=> toString(Num)	when isNumber(Num)
 endkm 
 
 kmod JS-LOGIC is including JS-CONVERSIONS
@@ -225,14 +229,14 @@ kmod JS-ENV-REC is including JS-CONDITIONAL
 	--- TO DOS: Add get set property methods.
 		
 	syntax K ::= 
-			hasRecProperty( K , String ) 
-		|	hasNoRecProperty( K , String ) 
+			hasRecProperty( K , String ) 			[strict]
+		|	hasNoRecProperty( K , String ) 			[strict]
 ---	syntax JSValue ::= 
 	syntax K ::= 
-			getRecValueIfAbsent( K , String , K ) 
-		|	getEnsuredRecValue( K , String ) 
-		|	copyRecWithValue( K , String , K ) 
-		|	copyRecWithoutProperty( K , String ) 
+			getRecValueIfAbsent( K , String , K ) 	[strict]
+		|	getEnsuredRecValue( K , String ) 		[strict]
+		|	copyRecWithValue( K , String , K ) 		[strict]
+		|	copyRecWithoutProperty( K , String ) 	[strict]
 	
 	rule [hasRecProperty]:
 		hasRecProperty($rec(Properties:Map), Name:String) 
@@ -282,20 +286,22 @@ kmod JS-OBJ is including JS-ENV-REC + JS-CONFIGURATION
 			hasProperty( K , String )		--- [strict]
 		|	hasNoProperty( K , String )	--- [strict]
 	syntax K ::= 
-			newObj
-		|	allocNewRec
+			allocNewObj
+		|	allocNewObjFor( V )
 		|	getEnsuredPropertyValue( K , String )
 		|	getPropertyValueIfAbsent( K , String , K )
 		|	getPropertyValue( K , String )
 		|	setPropertyValue( K , String , K )
 		|	deleteProperty( K , String )
 	
-	rule [newObj]: newObj => allocNewRec  [structural anywhere]
-		
-	rule [allocNewRec]:
-		<k> allocNewRec => $obj(Loc) ...</k>
+	rule [allocNewObj]:
+		<k> allocNewObj => allocNewObjFor($rec(.Map)) ...</k>
+		[structural]
+
+	rule [allocNewObjFor]:
+		<k> allocNewObjFor(Rec:V) => $obj(Loc) ...</k>
 		<nextLoc> Loc:Int => Loc +Int 1 </nextLoc>  
-		<heap> Heap:Map => Heap[$rec(.Map)/Loc]  </heap>
+		<heap> Heap:Map => Heap[Rec/Loc]  </heap>
 		[structural]
 	
 	--- ECMA-262 10.2.1.x.1 HasBinding(N)
@@ -409,7 +415,7 @@ kmod JS-IDENTIFIER-RESOLUTION is including JS-OBJ
 endkm
 
 kmod JS-VALUE-ACCESS is including JS-IDENTIFIER-RESOLUTION	
-	syntax V ::= 
+	syntax K ::= 
 			getValue( K )		[strict]
 		|	putValue( K , K )	[strict]
 	
@@ -433,6 +439,7 @@ kmod JS-VALUE-ACCESS is including JS-IDENTIFIER-RESOLUTION
 
 
 	--- ECMA-262 8.7.2
+	--- TO DOS: These params look wrong! Check them!
 	rule [putValue-error]:
 		<k> putValue(Value:V, Name:String) 
 			=> $throw($ReferenceError(
