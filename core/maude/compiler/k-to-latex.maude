@@ -506,6 +506,8 @@ var Eq : Equation .  var Eqs : EquationSet .
   eq eMetaLatexPrint1(M,AtS)
    =  '`[ eMetaLatexPrint(M,AtS) '`] [owise] .
 
+ ceq label(Q) pair(Str,"") = label(Q) if Str = string(Q) .
+
   ops rule : String KRuleSplit -> Printable .
   ops mequation : String Term Term -> Printable .
   ops mrule : String Term Term -> Printable .
@@ -743,7 +745,7 @@ var Eq : Equation .  var Eqs : EquationSet .
   eq eMetaLatexPrint(M, (label(QI) ))
     = nil . --- '\klabel '`{ QI '`}  .
   eq eMetaLatexPrint(M, (metadata(St) ))
-    = ('\kmetadata '`{ qid(St) '`} 
+    = ('\kmetadata '`{ qid(St) '`}
       ) .
   eq eMetaLatexPrint(M, (nonexec ))
     = ('\knonexec '`{ '`}) .
