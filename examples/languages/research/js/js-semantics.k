@@ -64,11 +64,11 @@ endkm
 
 kmod JS-ARITHMETIC is including JS-UNARY 
 
-	syntax K ::= arith( String , K , K ) 
+	syntax K ::= arith( String , K , K )	[strict]
 	syntax Int ::= newSign( Int , Int ) 
 	syntax V ::= newInfinity( Int , Int ) 
 	syntax V ::= newZero( Int , Int )
-	syntax K ::= strAdd( K , K )
+	syntax K ::= strAdd( K , K )			[strict]
 	syntax K ::= add( K , K )
 	
 	rule [newSign]: 
@@ -165,8 +165,8 @@ kmod JS-ARITHMETIC is including JS-UNARY
 endkm
 
 kmod JS-PREFIX-POSTFIX is including JS-ARITHMETIC
-	syntax V ::= postOp( V , K , Int )
-	syntax V ::= preOp( V , K , Int )
+	syntax V ::= postOp( V , K , Int )	[strict]
+	syntax V ::= preOp( V , K , Int )	[strict]
 	
 	--- ECMA-262 11.3.1 Postfix Increment Operator
 	rule $inc(Target:V, true) => postOp(Target, toNumber(getValue(Target)), 1)
@@ -261,14 +261,15 @@ kmod JS-PROPERTY-ACCESS is including JS-EQUALITY
 	syntax K ::= accessPropertyAt( K , K ) [seqstrict]
 	
 	rule [staticAccess]:
-		$staticAccess(Target:V, $id(Name:String)) => accessPropertyAt(getValue(Target), $s(Name))
+		$staticAccess(Target:V, $id(Name:String)) => accessPropertyAt(Target, $s(Name))
 	
 	rule [dynamicAccess]:
 		$dynamicAccess(Target:V, PropNameValue:V) 
-		=> accessPropertyAt(getValue(Target), toString(getValue(PropNameValue)))
+		=> accessPropertyAt(Target, toString(getValue(PropNameValue)))
 	
 	rule [accessPropertyAt]:
-		accessPropertyAt(Obj:V, $s(Name:String)) => $binding(checkObjectCoercible(Obj), Name)
+		accessPropertyAt(Target:V, $s(Name:String)) 
+		=> $binding(checkObjectCoercible(getValue(Target)), Name)
 		[structural]
 endkm
 

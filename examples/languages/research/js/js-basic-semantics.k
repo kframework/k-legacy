@@ -105,14 +105,16 @@ kmod JS-TESTING is including JS-TYPEOF
 endkm
 
 kmod JS-CONVERSIONS is including JS-TESTING
-	syntax V ::= toPrimitive( K , String ) 
-	syntax V ::= toBoolean( K )
-	syntax V ::= toNumber( K )
-	syntax V ::= toString( K )
-	syntax V ::= toObject( K )
-	syntax V ::= asObject( K )
-	syntax V ::= checkObjectCoercible( V )
-	syntax V ::= asPropertyName( K ) 		[strict]
+	syntax K ::= toPrimitive( K , String )	[strict]
+	syntax K ::= toBoolean( K )				[strict]
+	syntax K ::= toNumber( K )				[strict]
+	syntax K ::= toString( K )				[strict anywhere]
+	syntax K ::= toObject( K )				[strict]
+	syntax K ::= asObject( K )				[strict]
+	
+	syntax K ::= checkObjectCoercible( K )	[strict]
+	syntax K ::= asPropertyName( K ) --- Not strict to avoid $id from begin resolved to a binding
+	
 	
 	--- ECMA-262 8.12.8
 ---	rule defaultValue(Obj:JSObject, Hint:String) --- Not yet implemented!!!
@@ -336,8 +338,8 @@ kmod JS-OBJ is including JS-ENV-REC + JS-CONFIGURATION
 	--- references. If S is true and the binding does not exist or is uninitialized throw a 
 	--- ReferenceError exception.
 	rule [getPropertyValue]:
-		getPropertyValue(Ref:V, Name:String) 
-		=> getPropertyValueIfAbsent(Ref, Name, $undefined)
+		getPropertyValue(Obj:V, Name:String) 
+			=> getPropertyValueIfAbsent(Obj, Name, $undefined)
 		[structural]
 	
 	--- ECMA-262 10.2.1.x.2 CreateMutableBinding(N, D)
@@ -394,8 +396,8 @@ kmod JS-IDENTIFIER-RESOLUTION is including JS-OBJ
 		
 	rule [resolveIdentifier]:
 		<k> resolveIdentifier($env(Outer:K, Obj:V), Name:String) 
-			=> if(hasProperty(Obj, Name), $binding(Obj, Name), 
-					resolveIdentifier(Outer, Name)) ...</k>
+			=> if(hasProperty(Obj, Name), $binding(Obj, Name), resolveIdentifier(Outer, Name))
+		...</k>
 		[structural]
 	
 	--- ECMA-262 8.7
