@@ -1,17 +1,50 @@
 '$program`(_`,_`,_`)(
+	kList("List`{K`}2K_")(
+		'$id`(_`)(# "person"(.List{K})),,
+		'$initNewId`(_`,_`)(
+			# "count"(.List{K}),,
+			'$n`(_`)(# 123(.List{K}))
+		),,
+		'$id`(_`)(# "name"(.List{K})),,
+		'$id`(_`)(# "age"(.List{K}))
+	),,
 	kList("List`{K`}2K_")(.List`{K`}),,
-	kList("List`{K`}2K_")(.List`{K`}),,
-	kList("List`{K`}2K_")('$exp`(_`)('$assignment`(_`,_`)(
-		'$id`(_`)(# "v"(.List{K})),,
-		'$objectLit`(_`)(kList("List`{K`}2K_")(
-			'$propertyLit`(_`,_`)(
-				'$id`(_`)(# "name"(.List{K})),,
-				'$s`(_`)(# "Ella"(.List{K}))
+	kList("List`{K`}2K_")(
+		'$varDeclarations`(_`)(kList("List`{K`}2K_")(
+			'$id`(_`)(# "person"(.List{K})),,
+			'$initNewId`(_`,_`)(
+				# "count"(.List{K}),,
+				'$n`(_`)(# 123(.List{K}))
 			),,
-			'$propertyLit`(_`,_`)(
-				'$id`(_`)(# "age"(.List{K})),,
-				'$n`(_`)(# 4(.List{K}))
+			'$id`(_`)(# "name"(.List{K})),,
+			'$id`(_`)(# "age"(.List{K}))
+		)),,
+		'$exp`(_`)('$assignment`(_`,_`)(
+			'$id`(_`)(# "person"(.List{K})),,
+			'$objectLit`(_`)(kList("List`{K`}2K_")(
+				'$propertyLit`(_`,_`)(
+					'$id`(_`)(# "name"(.List{K})),,
+					'$s`(_`)(# "Ella"(.List{K}))
+				),,
+				'$propertyLit`(_`,_`)(
+					'$id`(_`)(# "age"(.List{K})),,
+					'$n`(_`)(# 4(.List{K}))
+				)
+			))
+		)),,
+		'$exp`(_`)('$assignment`(_`,_`)(
+			'$id`(_`)(# "name"(.List{K})),,
+			'$staticAccess`(_`,_`)(
+				'$id`(_`)(# "person"(.List{K})),,
+				'$id`(_`)(# "name"(.List{K}))
+			)
+		)),,
+		'$exp`(_`)('$assignment`(_`,_`)(
+			'$id`(_`)(# "age"(.List{K})),,
+			'$dynamicAccess`(_`,_`)(
+				'$id`(_`)(# "person"(.List{K})),,
+				'$s`(_`)(# "age"(.List{K}))
 			)
 		))
-	)))
+	)
 )

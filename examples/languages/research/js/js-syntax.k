@@ -55,7 +55,7 @@ endkm
 kmod JS-SYNTAX is including JS-PRIMITIVES + K
 	--- ECMA-262 8.7
 	syntax V ::= .None
-	syntax V ::= $binding( V , String )
+	syntax V ::= $binding( K , String ) [strict(1)]
 	
 	syntax V ::= $regex( String ) --- $o( Map ) --- | $function!!!
 	syntax V ::= $ReferenceError( String )
@@ -76,7 +76,7 @@ kmod JS-SYNTAX is including JS-PRIMITIVES + K
 		  $this
 		| $nop
 		| $initNewId ( String , K )				--- String = InitExp 
-		| $staticAccess ( K , K ) [seqstrict] 		--- Exp . Name
+		| $staticAccess ( K , K ) [strict(1)] 		--- Exp . Name
 		| $dynamicAccess ( K , K ) [seqstrict] 	--- Exp [ Exp ]
 		| $invoke ( K , K ) [seqstrict] 		--- Exp ( CommaList )
 		
