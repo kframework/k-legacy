@@ -330,20 +330,20 @@
 
 \newcommand{\builtinIfThenElseFi}[3]{\terminal{\#if} {#1} \terminal{\#then} {#2} \terminal{\#else} {#3} \terminal{\#fi}}
 
-\newcommand{\builtinEqBool}[2]{{#1}==_{\scriptstyle\it Bool}{#2}}
-\newcommand{\builtinNeqBool}[2]{{#1}!=_{\scriptstyle\it Bool}{#2}}
+\newcommand{\builtinEqBool}[2]{{#1}\mathrel{==_{\scriptstyle\it Bool}}{#2}}
+\newcommand{\builtinNeqBool}[2]{{#1}\mathrel{!=_{\scriptstyle\it Bool}}{#2}}
 
-\newcommand{\builtinAnd}[2]{{#1}\wedge_{\scriptstyle\it Bool}{#2}}
-\newcommand{\builtinOr}[2]{{#1}\vee_{\scriptstyle\it Bool}{#2}}
-\newcommand{\builtinXor}[2]{{#1}\oplus_{\scriptstyle\it Bool}{#2}}
-\newcommand{\builtinNot}[1]{\neg_{\scriptstyle\it Bool}{#1}}
-\newcommand{\builtinImplies}[2]{{#1}\Rightarrow_{\scriptstyle\it Bool}{#2}}
+\newcommand{\builtinAnd}[2]{{#1}\mathrel{\wedge_{\scriptstyle\it Bool}}{#2}}
+\newcommand{\builtinOr}[2]{{#1}\mathrel{\vee_{\scriptstyle\it Bool}}{#2}}
+\newcommand{\builtinXor}[2]{{#1}\mathrel{\oplus_{\scriptstyle\it Bool}}{#2}}
+\newcommand{\builtinNot}[1]{\mathop{\neg_{\scriptstyle\it Bool}}{#1}}
+\newcommand{\builtinImplies}[2]{{#1}\mathrel{\Rightarrow_{\scriptstyle\it Bool}}{#2}}
 
-\newcommand{\builtinIntPlus}[2]{{#1}\mathrel{+_{\scriptstyle\it Int}}{#2}}
-\newcommand{\builtinIntMinus}[2]{{#1}\mathrel{-_{\scriptstyle\it Int}}{#2}}
-\newcommand{\builtinIntTimes}[2]{{#1}\mathrel{\ast_{\scriptstyle\it Int}}{#2}}
-\newcommand{\builtinIntDiv}[2]{{#1}\mathrel{\div_{\scriptstyle\it Int}}{#2}}
-\newcommand{\builtinIntMod}[2]{{#1}\mathrel{\%_{\scriptstyle\it Int}}{#2}}
+\newcommand{\builtinIntPlus}[2]{{#1}\mathbin{+_{\scriptstyle\it Int}}{#2}}
+\newcommand{\builtinIntMinus}[2]{{#1}\mathbin{-_{\scriptstyle\it Int}}{#2}}
+\newcommand{\builtinIntTimes}[2]{{#1}\mathbin{\ast_{\scriptstyle\it Int}}{#2}}
+\newcommand{\builtinIntDiv}[2]{{#1}\mathbin{\div_{\scriptstyle\it Int}}{#2}}
+\newcommand{\builtinIntMod}[2]{{#1}\mathbin{\%_{\scriptstyle\it Int}}{#2}}
 
 
 % K Blocks %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -930,7 +930,7 @@ rectangle,rectangle
 \ifk@poster
 \newcommand{\myskip}{\bigskip}
 \else
-\renewcommand{\when}[1]{\par{}\hspace{2em} when \ensuremath{#1}}
+\renewcommand{\when}[1]{\par{}\hspace{2em}when \ensuremath{#1}}
 \renewcommand{\ruleAttributes}[1]{\par{}\hspace{2em} [#1]}
 \renewcommand{\rulebox}[1]{\parbox[b]{\columnwidth}{#1}}
 \renewcommand{\wrapRules}[1]{\par{\parbox[b]{\columnwidth}{#1}}\par\ \par}
