@@ -2,7 +2,7 @@ require bool
 module K-EQUAL-HOOKS
   imports BOOL-HOOKS 
 
-  syntax K ::= "#if" Bool "#then" K "#else" K "#fi"   [function]
+  syntax K ::= "#if" Bool "#then" K "#else" K "#fi"   [function latex "\builtinIfThenElseFi{{#1}}{{#2}}{{#3}}"]
   define #if true #then K:K #else _ #fi => K
   define #if false #then _ #else K:K #fi => K
 
