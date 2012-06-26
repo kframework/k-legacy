@@ -1,4 +1,4 @@
-require substitution
+require /modules/substitution
 
 module LAMBDA imports SUBSTITUTION
   syntax KResult ::= Id 
