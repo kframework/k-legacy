@@ -1,6 +1,5 @@
-require /modules/seq
 
-module AGENTS imports SEQ
+module AGENTS 
   configuration
       <agent multiplicity="*"> 
           <me>0</me>
