@@ -1,18 +1,18 @@
 
 
-require /modules/exp
-require /modules/if
-require /modules/lambda
-require /modules/mu
-require /modules/callcc
-require /modules/halt
-require /modules/seq
-require /modules/io
-require /modules/ref
-require /modules/while
-require /modules/threads
-require /modules/agents
-require /modules/quote-unquote
+require exp
+require if
+require lambda
+require mu
+require callcc
+require halt
+require seq
+require io
+require ref
+require while
+require threads
+require agents
+require quote-unquote
 
 module AGENT
   imports EXP 

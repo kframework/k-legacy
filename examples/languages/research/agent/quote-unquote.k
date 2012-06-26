@@ -1,4 +1,4 @@
-require k-visitor
+require /modules/k-visitor
 
 module QUOTE-UNQUOTE imports K-VISITOR
   syntax K ::= "quote" K
