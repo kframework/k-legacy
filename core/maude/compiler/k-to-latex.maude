@@ -394,8 +394,12 @@ var Eq : Equation .  var Eqs : EquationSet .
     else nil fi .
  
   op addParens?? : QidList Qid -> QidList .
-  eq addParens??('\enspace QIL, Q) = Q .
-  eq addParens??(QIL '\enspace , Q) = Q .
+  eq addParens??('\enspace QIL, '`() = '\left '`( .
+  eq addParens??('\enspace QIL, '`)) = '\right '`) .
+  eq addParens??('\enspace QIL, Q) = Q [owise].
+  eq addParens??(QIL '\enspace , '`)) = '\right '`) .
+  eq addParens??(QIL '\enspace , '`() = '\left '`( .
+  eq addParens??(QIL '\enspace , Q) = Q [owise].
   eq addParens??(QIL, Q) = nil [owise] .
 
 
