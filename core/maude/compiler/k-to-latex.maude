@@ -1048,7 +1048,7 @@ mod LATEX-PRINT-META is
 
   op printEndTerminal : Qid -> QidList .
   eq printEndTerminal(Q) 
-   = if Q == '\enspace  then nil else printTerminal(Q) fi .
+   = if Q == '\enspace or-else Q == ' then nil else printTerminal(Q) fi [print "endTerminal:" Q].
 
   eq mergeTypes(Q, nil) = printTerminal(Q) .
   eq mergeTypes(Q, NTyl) = printTerminal(Q,false) mergeTypes('`( genCommas(arity(NTyl)) '`), NTyl) .
