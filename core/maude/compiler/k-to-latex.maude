@@ -331,7 +331,10 @@ var Eq : Equation .  var Eqs : EquationSet .
   op printTerm1 : Module Term -> QidList .
 
  ceq printTerm1(U, Q[Ct]) = tokenize(getString(Ct)) if Q == latexS .
- ceq printTerm1(U, addParens(Q[Ct])) = tokenize(getString(Ct)) if Q == latexS .
+ eq printTerm1(U, addParens('_`,`,_[Tl:TermList]))
+   = printTerm1(U,'_`,`,_[Tl:TermList]) .
+ eq printTerm1(U, addParens('_~>_[Tl:TermList]))
+   = printTerm1(U,'_~>_[Tl:TermList]) .
  ceq printTerm1(U, addParens('__[Tl1:TermList, Q[Ct], Tl2:TermList]))
    = printTerm1(U,'__[Tl1:TermList]) ---(merge(genQids(s countTerms(Tl1:TermList), '\somespace), Tl1:TermList))
      tokenize(getString(Ct))
@@ -394,8 +397,12 @@ var Eq : Equation .  var Eqs : EquationSet .
     else nil fi .
  
   op addParens?? : QidList Qid -> QidList .
-  eq addParens??('\enspace QIL, Q) = Q .
-  eq addParens??(QIL '\enspace , Q) = Q .
+  eq addParens??('\enspace QIL, '`() = '\left '`( .
+  eq addParens??('\enspace QIL, '`)) = '\right '`) .
+  eq addParens??('\enspace QIL, Q) = Q [owise].
+  eq addParens??(QIL '\enspace , '`)) = '\right '`) .
+  eq addParens??(QIL '\enspace , '`() = '\left '`( .
+  eq addParens??(QIL '\enspace , Q) = Q [owise].
   eq addParens??(QIL, Q) = nil [owise] .
 
 
@@ -1044,7 +1051,7 @@ mod LATEX-PRINT-META is
 
   op printEndTerminal : Qid -> QidList .
   eq printEndTerminal(Q) 
-   = if Q == '\enspace  then nil else printTerminal(Q) fi .
+   = if Q == '\enspace or-else Q == ' then nil else printTerminal(Q) fi [print "endTerminal:" Q].
 
   eq mergeTypes(Q, nil) = printTerminal(Q) .
   eq mergeTypes(Q, NTyl) = printTerminal(Q,false) mergeTypes('`( genCommas(arity(NTyl)) '`), NTyl) .

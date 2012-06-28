@@ -2283,7 +2283,7 @@ sub make_ops {
                         "$1$2";
                       }
                     }/gse;
-                  } else {
+                  } elsif ($token ne "") {
                     $token = "\\terminal\{$token\}";
                   }
 #                 $token = "\\terminal\{$token\}";

@@ -16,6 +16,7 @@
 \DeclareStringOption[bubble]{style}  % the default style for cells & stuff
 \DeclareBoolOption{tight}  % whether (bubble) cells should be tight or not
 \DeclareBoolOption{poster}  % to generate a poster from the definition
+\DeclareBoolOption{magicTight}  % whether (bubble) cells should be tight or not based on Chucky's method
 \ProcessKeyvalOptions*
 
 % Usage Examples %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -327,6 +328,8 @@
 \newcommand{\kBR}{\\}
 
 % Builtins %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\builtinKra}[2]{{#1}\ensuremath{\kra}{#2}}
 
 \newcommand{\builtinIfThenElseFi}[3]{\terminal{\#if} {#1} \terminal{\#then} {#2} \terminal{\#else} {#3} \terminal{\#fi}}
 
@@ -692,6 +695,8 @@ $\mid\;{#2}$ \ifthenelse{\equal{#3}{}}{}{[#3]\;}%
 \pgfdeclarelayer{background}
 \pgfsetlayers{background,main}
 
+\newlength{\k@anticipatedContentWidth}
+\newlength{\k@chosenContentWidth}
 \newlength{\k@cellContentWidth}
 \newlength{\k@cellContentHeight}
 \newlength{\k@labelXShift}
@@ -737,10 +742,23 @@ $\mid\;{#2}$ \ifthenelse{\equal{#3}{}}{}{[#3]\;}%
                                 text height=\k@cellContentHeight] {};
       }{%
         % Let TikZ find the best rounded rectangle around the content.
+		\setlength{\k@anticipatedContentWidth}{\k@cellContentWidth}
+		\ifthenelse{\equal{#5}{convex}}{
+			\ifthenelse{\equal{#4}{convex}}{
+				\addtolength{\k@anticipatedContentWidth}{-0.6\k@cellContentHeight}
+			}{}
+		}{}
+		\setlength{\k@chosenContentWidth}{%
+			\ifk@magicTight%
+			\k@anticipatedContentWidth%
+			\else%
+			\k@cellContentWidth%
+			\fi%
+		}
         \path (cell content.center)
               node (cell body) [body,
                                 anchor=center,
-                                text width=\k@cellContentWidth,
+								text width=\k@chosenContentWidth,%
                                 text height=\k@cellContentHeight,
 rectangle,rectangle
 %                                rounded rectangle west arc=#4,
@@ -897,9 +915,13 @@ rectangle,rectangle
   \rulebox{%
   \k@ruleLabel{#1}{define}\hspace{1em}$\sentenceBody{#2}$%
   }%
-  \ifthenelse{\equal{#3}{}}{}{%
+  \ifx#3%
+  \else%
     \when{#3}%
-  }%
+  \fi%
+  % \ifthenelse{\equal{#3}{}}{}{%
+    % \when{#3}%
+  % }%
   \k@markPosition%
   \ifthenelse{\equal{#4}{}}{}{%  
    \ruleAttributes{#4}%
@@ -912,9 +934,13 @@ rectangle,rectangle
   \rulebox{%
   \k@ruleLabel{#1}{rule}\hspace{1em}$\sentenceBody{#2}$%
   }%
-  \ifthenelse{\equal{#3}{}}{}{%
+  \ifx#3%
+  \else%
     \when{#3}%
-  }%
+  \fi%
+  % \ifthenelse{\equal{#3}{}}{}{%
+    % \when{#3}%
+  % }%
   \k@markPosition%
   \ifthenelse{\equal{#4}{}}{}{%  
    \ruleAttributes{#4}% 
