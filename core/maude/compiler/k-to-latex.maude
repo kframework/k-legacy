@@ -331,7 +331,10 @@ var Eq : Equation .  var Eqs : EquationSet .
   op printTerm1 : Module Term -> QidList .
 
  ceq printTerm1(U, Q[Ct]) = tokenize(getString(Ct)) if Q == latexS .
- ceq printTerm1(U, addParens(Q[Ct])) = tokenize(getString(Ct)) if Q == latexS .
+ eq printTerm1(U, addParens('_`,`,_[Tl:TermList]))
+   = printTerm1(U,'_`,`,_[Tl:TermList]) .
+ eq printTerm1(U, addParens('_~>_[Tl:TermList]))
+   = printTerm1(U,'_~>_[Tl:TermList]) .
  ceq printTerm1(U, addParens('__[Tl1:TermList, Q[Ct], Tl2:TermList]))
    = printTerm1(U,'__[Tl1:TermList]) ---(merge(genQids(s countTerms(Tl1:TermList), '\somespace), Tl1:TermList))
      tokenize(getString(Ct))
