@@ -206,7 +206,7 @@ Similarly, if you want to model check a non-deterministic or concurrent program,
 then you can use Maude's builtin LTL model-checker.  In order to do that, you
 need to define state predicates (more appropriately called configuration 
 predicates).  This is a bit technical but it follows Maude's approach ad 
-literam, so we do not explain it here.  The reader is refered to Maude's manual 
+literam, so we do not explain it here.  The reader is referred to Maude's manual
 for more information on how to use its LTL model-checker, and again to
 simple/untyped for an example (showing how to model-check Dekker's algorithm).
 
