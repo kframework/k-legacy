@@ -324,7 +324,7 @@
 \newcommand{\subscript}[1]{\ensuremath{\nothing_{#1}}}
 
 \newcommand{\kLarge}[1]{\left({\begin{array}{@{}c@{}}#1\end{array}}\right)}
-\newcommand{\sentenceBody}[1]{\begin{array}[t]{@{}c@{}}#1\end{array}}
+\newcommand{\sentenceBody}[1]{\ensuremath{\begin{array}[t]{@{}c@{}}#1\end{array}}}
 \newcommand{\kBR}{\\}
 
 % Builtins %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -402,14 +402,17 @@
 
 % Modules %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\newcounter{k@seenModule}
+\setcounter{k@seenModule}{0}
+
 \newenvironment{module}[1]{%
-  \par\noindent%
+  \ifthenelse{\equal{\value{k@seenModule}}{0}}{}{\par\ \par}\noindent%
+  \setcounter{k@seenModule}{1}%
   \text{\scshape module #1}%
   \setlength{\parindent}{1em}%
   \par\ \par%
 }{%
   \par\noindent\text{\scshape end module}%
-  \par\ \par%
 }
 
 \newenvironment{commentModule}{%
@@ -581,7 +584,7 @@ $\mid\;{#2}$ \ifthenelse{\equal{#3}{}}{}{[#3]\;}%
                       minimum width=2em]
     \path node (top) {$#1$\strut}
           (top.south)
-          node (bottom) [anchor=north, inner ysep=.5ex] {$#2$\strut};
+          node (bottom) [anchor=north, inner ysep=.5ex] {$\begin{array}{@{}c@{}}#2\end{array}$\strut};
     %%% Draw the horizontal line:
     % Line with chevron.
     %\path[draw,thin,solid] let \p1 = (current bounding box.west),
@@ -913,7 +916,7 @@ rectangle,rectangle
 \newcommand{\kdefine}[4]{%
 \wrapRules{%
   \rulebox{%
-  \k@ruleLabel{#1}{define}\hspace{1em}$\sentenceBody{#2}$%
+  \k@ruleLabel{#1}{define}\hspace{1em}\sentenceBody{#2}%
   }%
   \ifx#3%
   \else%
@@ -932,7 +935,7 @@ rectangle,rectangle
 \newcommand{\krule}[4][]{%
 \wrapRules{%
   \rulebox{%
-  \k@ruleLabel{#1}{rule}\hspace{1em}$\sentenceBody{#2}$%
+  \k@ruleLabel{#1}{rule}\hspace{1em}\sentenceBody{#2}%
   }%
   \ifx#3%
   \else%
