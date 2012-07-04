@@ -6,10 +6,10 @@ module BOOL-HOOKS
   imports BOOL-SYNTAX-HOOKS
  
   syntax Bool ::= Bool "==Bool" Bool 
-        [function hook(#BOOL:_==Bool_) latex "\builtinEqBool{{#1}}{{#2}}"]
+        [function hook(#BOOL:_==Bool_) latex "\builtinEqual{Bool}{{#1}}{{#2}}"]
 
   syntax Bool ::= Bool "=/=Bool" Bool
-        [function latex "\builtinNeqBool{{#1}}{{#2}}"]
+        [function latex "\builtinNotEqual{Int}{{#1}}{{#2}}"]
   define B1:Bool =/=Bool B2:Bool => notBool(B1 ==Bool B2)
 
   syntax Bool ::= Bool "andBool" Bool

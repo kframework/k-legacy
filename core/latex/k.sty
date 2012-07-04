@@ -333,8 +333,6 @@
 
 \newcommand{\builtinIfThenElseFi}[3]{\terminal{\#if} {#1} \terminal{\#then} {#2} \terminal{\#else} {#3} \terminal{\#fi}}
 
-\newcommand{\builtinEqBool}[2]{{#1}\mathrel{==_{\scriptstyle\it Bool}}{#2}}
-\newcommand{\builtinNeqBool}[2]{{#1}\mathrel{!=_{\scriptstyle\it Bool}}{#2}}
 
 \newcommand{\builtinAnd}[2]{{#1}\mathrel{\wedge_{\scriptstyle\it Bool}}{#2}}
 \newcommand{\builtinOr}[2]{{#1}\mathrel{\vee_{\scriptstyle\it Bool}}{#2}}
@@ -347,6 +345,17 @@
 \newcommand{\builtinIntTimes}[2]{{#1}\mathbin{\ast_{\scriptstyle\it Int}}{#2}}
 \newcommand{\builtinIntDiv}[2]{{#1}\mathbin{\div_{\scriptstyle\it Int}}{#2}}
 \newcommand{\builtinIntMod}[2]{{#1}\mathbin{\%_{\scriptstyle\it Int}}{#2}}
+
+\newcommand{\builtinIntLeftShift}[2]{{#1}\mathbin{\ll_{\scriptstyle\it Int}}{#2}}
+\newcommand{\builtinIntRightShift}[2]{{#1}\mathbin{\gg_{\scriptstyle\it Int}}{#2}}
+\newcommand{\builtinIntBitwiseAnd}[2]{{#1}\mathbin{\&_{\scriptstyle\it Int}}{#2}}
+\newcommand{\builtinIntBitwiseOr}[2]{{#1}\mathbin{|_{\scriptstyle\it Int}}{#2}}
+\newcommand{\builtinIntExp[2]}{{#1}\mathbin{\^_{\scriptstyle\it Int}}{#2}}
+\newcommand{\builtinIntBitwiseXor}[2]{{#1}\mathbin{\oplus_{\scriptstyle\it Int}}{#2}}
+\newcommand{\builtinIntBitwiseNot}[1]{\mathop{\sim_{\scriptstyle\it Int}}{#1}}
+
+\newcommand{\builtinEqual}[3]{{#2}\mathrel{{==}_{\scriptstyle\it #1}}{#3}}
+\newcommand{\builtinNotEqual}[3]{{#2}\mathrel{{=\!\!/\!\!=}_{\scriptstyle\it #1}}{#3}}
 
 
 % K Blocks %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

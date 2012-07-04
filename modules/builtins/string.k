@@ -18,7 +18,7 @@ module STRING-HOOKS
          hook(#STRING:_+String_)]
 
   syntax Bool ::= String "==String" String
-        [function hook(#STRING:_==String_)]
+        [latex "\builtinEqual{String}{{#1}}{{#2}}" function hook(#STRING:_==String_)]
 
   syntax Bool ::= String "<=String" String
         [function hook(#STRING:_<=String_)]
@@ -54,7 +54,7 @@ module STRING-HOOKS
   syntax Int ::= "Rat2String" "(" Int "," Int ")"
         [function klabel(String2Int) hook(#CONVERSION:base2String)]
 
-  syntax Bool ::= String "=/=String" String      [function]
+  syntax Bool ::= String "=/=String" String      [latex "\builtinNotEqual{String}{{#1}}{{#2}}" function]
   define S1:String =/=String S2:String => notBool(S1 ==String S2)
 
   syntax Char ::= dummyChar

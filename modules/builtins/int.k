@@ -44,9 +44,9 @@ module INT-HOOKS
        hook(#INT:_>Int_)]
 
   // this is too weak; should be something like I:Int ==Int I:Int => true, in addition to below
-  syntax Bool ::= Int "==Int" Int         [function hook(#INT:_==Int_)]
+  syntax Bool ::= Int "==Int" Int         [latex "\builtinEqual{Int}{{#1}}{{#2}}" function hook(#INT:_==Int_)]
 
-  syntax Bool ::= Int "=/=Int" Int        [function]
+  syntax Bool ::= Int "=/=Int" Int        [latex "\builtinNotEqual{Int}{{#1}}{{#2}}"function]
   define I1:Int =/=Int I2:Int => notBool(I1 ==Int I2)
 
   syntax Nat ::= dummyNat // ::= {I:Int | I >=Int 0}
@@ -76,13 +76,13 @@ module INT-HOOKS
     when I1:Int <Int I2:Int
 	
   // syntax Int ::= "--Int" Int [function hook(#INT:--Int_)] // can't use this because it appears in the int interface
-  syntax Int ::= Int "<<Int" Int [function hook(#INT:_<<Int_)]
-  syntax Int ::= Int ">>Int" Int [function hook(#INT:_>>Int_)]
-  syntax Int ::= Int "&Int" Int [function hook(#INT:_&Int_)]
-  syntax Int ::= Int "|Int" Int [function hook(#INT:_|Int_)]
-  syntax Int ::= Int "^Int" Int [function hook(#INT:_^Int_)]
-  syntax Int ::= Int "xorInt" Int [function hook(#INT:_xorInt_)]
-  syntax Int ::= "~Int" Int [function hook(#INT:~Int_)]
+  syntax Int ::= Int "<<Int" Int [latex "\builtinIntLeftShift{{#1}}{{#2}}" function hook(#INT:_<<Int_)]
+  syntax Int ::= Int ">>Int" Int [latex "\builtinIntRightShift{{#1}}{{#2}}" function hook(#INT:_>>Int_)]
+  syntax Int ::= Int "&Int" Int [latex "\builtinIntBitwiseAnd{{#1}}{{#2}}" function hook(#INT:_&Int_)]
+  syntax Int ::= Int "|Int" Int [latex "\builtinIntBitwiseOr{{#1}}{{#2}}" function hook(#INT:_|Int_)]
+  syntax Int ::= Int "^Int" Int [latex "\builtinIntExp{{#1}}{{#2}}" function hook(#INT:_^Int_)]
+  syntax Int ::= Int "xorInt" Int [latex "\builtinIntBitwiseXor{{#1}}{{#2}}"function hook(#INT:_xorInt_)]
+  syntax Int ::= "~Int" Int [latex "\builtinIntBitwiseNot{{#1}}" function hook(#INT:~Int_)]
 
   syntax Int ::= "Bool2Int" "(" Bool ")"
   rule Bool2Int(true) => 1

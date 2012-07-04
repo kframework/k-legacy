@@ -47,11 +47,11 @@ module FLOAT-HOOKS
        hook(#FLOAT:_>Float_)]
 
   syntax Bool ::= Float "==Float" Float
-      [function latex "{#1}\mathrel{==_{\scriptstyle\it Float}}{#2}"
+      [function latex "\builtinEqual{Float}{{#1}}{{#2}}"
        hook(#FLOAT:_==Float_)]
 
   syntax Bool ::= Float "=/=Float" Float
-      [function latex "{#1}\mathrel{\neq_{\scriptstyle\it Float}}{#2}"]
+      [function latex "\builtinNotEqual{Float}{{#1}}{{#2}}"]
   define F1:Float =/=Float F2:Float => notBool(F1 ==Float F2)
 
   syntax Float ::= "Int2Float" "(" Int ")"
