@@ -768,9 +768,14 @@ fmod META-MODULE-EXTRAS is
   eq addEqs(EqS1:[EquationSet] 
        errorEq(T:[Term], Cxt:String, Str:String, AS), U)
    = errorM(AS:AttrSet, Str:String, T:[Term], Cxt:String, U) .
+  eq addEqs(EqS:[EquationSet], errorM(AS, Str, Trm, Cxt, U))
+   =  errorM(AS, Str, Trm, Cxt, U) .
+
   eq addRls(RlS, U) = setRls(U, (RlS getRls(U))) .
   eq addRls(errorRl(T:[Term], Cxt:String, Str:String, AS:AttrSet), U) 
    = errorM(AS:AttrSet, Str:String, T:[Term], Cxt:String, U) .
+  eq addRls(RlS:[RuleSet], errorM(AS, Str, Trm, Cxt, U))
+   =  errorM(AS, Str, Trm, Cxt, U) .
   eq addImports(IL, U) = setImports(U, (getImports(U) IL)) .
 
   eq emptyFModule 
