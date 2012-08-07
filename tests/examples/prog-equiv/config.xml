@@ -1,0 +1,7 @@
+<config>
+    <test def="/dist/examples/prog-equiv/peq.k" program-extension="peq" compiled-file-name="peq-compiled.maude"/>
+    <krun-options>
+        <program name="sqsum.peq" ignore="yes"/>
+        <program name="for-while.peq" ignore="yes"/>                              
+    </krun-options>
+</config>

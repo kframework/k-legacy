@@ -1,0 +1,81 @@
+require "bool.k"
+
+module LTL-SYNTAX-HOOKS
+  syntax LTLFormula ::= #LTLFormula
+endmodule
+
+module LTL-HOOKS
+  imports LTL-SYNTAX-HOOKS
+  imports #LTL-INTERFACE
+
+//  syntax LTLFormula ::= "LTLTrue" [hook(#LTL:LTLTrue)]
+
+//  syntax LTLFormula ::= "LTLFalse" [hook(#LTL:LTLFalse)]
+
+//  syntax LTL ::= "justforK2"
+
+  syntax LTLFormula ::= "(" LTLFormula ")" [bracket]
+
+  syntax LTLFormula ::= "LTL~" LTLFormula  [function, hook(#LTL:LTL~_)]
+
+
+  syntax LTLFormula ::= LTLFormula "LTL/\\" LTLFormula 
+      [function,  hook(#LTL:_LTL&&_)]
+
+  syntax LTLFormula ::= LTLFormula "LTL\\/" LTLFormula 
+      [function, hook(#LTL:_LTL||_)]
+
+  syntax LTLFormula ::= "LTLO" LTLFormula 
+      [function, hook(#LTL:LTLO_)]
+
+  syntax LTLFormula ::= LTLFormula "LTLU" LTLFormula 
+      [function, hook(#LTL:_LTLU_)]
+
+  syntax LTLFormula ::= LTLFormula "LTLR" LTLFormula 
+      [function, hook(#LTL:_LTLR_)]
+
+  syntax LTLFormula ::= LTLFormula "LTL->" LTLFormula 
+      [function, gather(e E), hook(#LTL:_LTL->_)]
+
+  syntax LTLFormula ::= LTLFormula "LTL<->" LTLFormula 
+      [function, hook(#LTL:_LTL<->_)]
+
+  syntax LTLFormula ::= "LTL<>" LTLFormula 
+      [function, hook(#LTL:LTL<>_)]
+
+  syntax LTLFormula ::= "LTL[]" LTLFormula 
+      [function, hook(#LTL:LTL@_)]
+ 
+  syntax LTLFormula ::= LTLFormula "LTLW" LTLFormula 
+      [function, hook(#LTL:_LTLW_)]
+
+  syntax LTLFormula ::= LTLFormula "LTL|->" LTLFormula   // leads-to
+      [function, hook(#LTL:_LTL|->_)]
+
+  syntax LTLFormula ::= LTLFormula "LTL=>" LTLFormula 
+      [function, hook(#LTL:_LTL=>_)]
+
+  syntax LTLFormula ::= LTLFormula "LTL<=>" LTLFormula 
+      [function, hook(#LTL:_LTL<=>_)]
+
+endmodule
+
+module MODEL-CHECKER-SYNTAX-HOOKS
+  imports LTL-SYNTAX-HOOKS
+  syntax ModelCheckerState ::= #ModelCheckerState 
+  syntax Prop ::= #Prop
+  syntax ModelCheckResult ::= #ModelCheckResult
+  syntax LTLFormula ::= Prop
+endmodule
+
+
+module MODEL-CHECKER-HOOKS
+  imports #MODEL-CHECKER-INTERFACE
+  imports MODEL-CHECKER-SYNTAX-HOOKS
+  imports BOOL-HOOKS
+
+  syntax ModelCheckResult ::= "modelCheck" "(" ModelCheckerState "," LTLFormula ")" 
+         [function, hook(#MODEL-CHECKER:modelCheck)]
+
+
+endmodule

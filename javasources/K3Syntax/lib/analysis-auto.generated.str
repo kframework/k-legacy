@@ -1,0 +1,19 @@
+module lib/analysis-auto.generated
+
+signature
+  constructors
+    
+
+
+imports
+  lib/editor-common.generated
+  include/K3Syntax
+
+
+rules
+
+  nam-get-def(|n) =
+    fail
+
+  nam-annotate-use(|n) =
+    fail

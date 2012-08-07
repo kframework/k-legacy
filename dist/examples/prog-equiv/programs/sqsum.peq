@@ -1,0 +1,32 @@
+<k>
+  L : while (i <= n) do (
+        s := s + i * i;
+        i := i + 1
+      )
+</k>
+<env>
+  i -> symInt(i01) 
+</env>
+
+~
+<k>
+  L : while (i <= n) do (
+        s := s + k;
+        k := k + i + i + 1;
+        i := i + 1
+      )
+</k>
+<env>
+  i -> symInt(i02),
+  k -> symInt(k0)
+</env>
+
+if
+
+  symInt(k0) == symInt(i02) * symInt(i02)
+  and
+  symInt(i01) == symInt(i02)
+
+using observers: n, s;
+
+
