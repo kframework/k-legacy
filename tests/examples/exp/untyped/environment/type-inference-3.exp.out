@@ -1,0 +1,4 @@
+
+<result>
+ closure-lambda( (Map2KLabel .) , x , ((lambda f . ((lambda d . x)  ((f  x) + 1)))  (lambda x . x)) )
+</result>

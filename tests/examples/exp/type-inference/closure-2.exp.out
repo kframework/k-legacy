@@ -1,0 +1,4 @@
+
+<resultType>
+  (freshVar( 11 )) -> ((freshVar( 10 )) -> ((freshVar( 9 )) -> (freshVar( 9 )))) 
+</resultType>

@@ -1,0 +1,4 @@
+
+<resultType>
+  ((int) -> (freshVar( 3 ))) -> ((int) -> (freshVar( 3 ))) 
+</resultType>

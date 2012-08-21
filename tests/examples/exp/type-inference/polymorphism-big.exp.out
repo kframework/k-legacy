@@ -1,0 +1,4 @@
+
+<resultType>
+  (freshVar( 52 )) -> ((freshVar( 68 )) -> ((freshVar( 67 )) -> ((freshVar( 66 )) -> ((freshVar( 65 )) -> ((freshVar( 64 )) -> ((freshVar( 63 )) -> ((freshVar( 62 )) -> ((freshVar( 61 )) -> ((freshVar( 60 )) -> ((freshVar( 59 )) -> ((freshVar( 58 )) -> ((freshVar( 57 )) -> ((freshVar( 56 )) -> ((freshVar( 55 )) -> ((freshVar( 54 )) -> ((freshVar( 53 )) -> (freshVar( 52 )))))))))))))))))) 
+</resultType>

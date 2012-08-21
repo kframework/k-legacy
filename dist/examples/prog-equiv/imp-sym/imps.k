@@ -1,234 +1,11 @@
+require "../symbolic/symbolic-calculus.k"
+
 /*!
 \setlength{\parindent}{1em}
 \title{IMP  with Symbolic Values}
 \author{Dorel Lucanu (\texttt{grosu@illinois.edu}) and Vlad Rusu (Vlad.Rusu@inria.fr)}
 \organization{"Alexandru Ioan Cuza" University of Iasi, INRIA Lille}
 */
-
-//@ \section{Symbolic Calculus}
-
-module SYMBOLIC-CALCULUS-SYNTAX
-
-/*@ 
-  The symbolic values needed to define the initial configuration.
-  They are corresponding to the vriables in equivalence formula.
-*/
-
-  syntax IntSymVar ::= "symInt" "(" Id ")" 
-
-/*@ 
-  The following function is used to generate fresh names for symbolic values.
-*/
-  syntax Id ::= "fresh" "(" Int ")" [function] 
-  rule fresh(I:Int) => String2Id("symVar" +String Int2String(I)) [anywhere]
-
-/*@
-  Any symbolic variable is of sort Int:
-*/
-
-  syntax Int ::= IntSymVar
-
-endmodule
-
-module SYMBOLIC-CALCULUS
-  imports SYMBOLIC-CALCULUS-SYNTAX
-
-/*@
-  This module is designed with a minimal support. 
-*/
-
-/*@
-  The predicate defining the symbolic boolean expressions.
-*/
-
-  syntax Bool ::=  "isBoolSymExp" "(" K ")"
-
-
-  rule isBoolSymExp(I1:Int <=Int I2:Int) => true
-       when isIntSymExp(I1) ==K true
-       [anywhere]
-
-  rule isBoolSymExp(I1:Int <=Int I2:Int) => true
-       when isIntSymExp(I2) ==K true
-       [anywhere]
-
-  rule isBoolSymExp(I1:Int ==Int I2:Int) => true
-       when isIntSymExp(I1) ==K true
-       [anywhere]
-
-  rule isBoolSymExp(I1:Int ==Int I2:Int) => true
-       when isIntSymExp(I2) ==K true
-       [anywhere]
-
-  rule isBoolSymExp(B1:Bool andBool I2:Bool) => true
-       when isBoolSymExp(B1) ==K true
-       [anywhere]
-
-  rule isBoolSymExp(B1:Bool orBool I2:Bool) => true
-       when isBoolSymExp(B1) ==K true
-       [anywhere]
-/*@ 
-  \textbf{Remark.~~}
-  The symbolic boolean expressions are not sobsorted to Bool.
-  This is a trick that help us to handle easier this expressions.
-*/
-
-/*
-  rule 'isBool(K:K) => true
-       when isBoolSymExp(K) ==K true
-       [anywhere]
-*/
-
-/*@
-  The predicate defining the symbolic integer expressions.
-*/
-  syntax Bool ::= "isIntSymExp" "(" K ")" 
- 
-  rule isIntSymExp(I1:Int +Int I2:Int) => true
-       when isIntSymExp(I1) ==K true
-       [anywhere]
-
-  rule isIntSymExp(I1:Int +Int I2:Int) => true
-       when isIntSymExp(I2) ==K true
-       [anywhere]
-
- 
-  rule isIntSymExp(I1:Int -Int I2:Int) => true
-       when isIntSymExp(I1) ==K true
-       [anywhere]
-
-  rule isIntSymExp(I1:Int -Int I2:Int) => true
-       when isIntSymExp(I2) ==K true
-       [anywhere]
-
-  rule isIntSymExp(I1:Int *Int I2:Int) => true
-       when isIntSymExp(I1) ==K true
-       [anywhere]
-
-  rule isIntSymExp(I1:Int *Int I2:Int) => true
-       when isIntSymExp(I2) ==K true
-       [anywhere]
-
-  rule isIntSymExp(I1:Int /Int I2:Int) => true
-       when isIntSymExp(I1) ==K true
-       [anywhere]
-
-  rule isIntSymExp(I1:Int /Int I2:Int) => true
-       when isIntSymExp(I2) ==K true
-       [anywhere]
-
-
-  rule isIntSymExp(K:K) => true
-       when 'isIntSymVar(K) ==K true
-       [anywhere]
-
-/*@
-  Extending Int with symbolic expressions:
-*/
-  rule 'isInt(K:K) => true
-       when isIntSymExp(K) ==K true
-       [anywhere]
-
-  rule 'isInt(_:Int +Int _:Int) => true [anywhere]
-  rule 'isInt(_:Int *Int _:Int) => true [anywhere] 
-  rule 'isInt(_:Int /Int _:Int) => true [anywhere]
-
-/*@
-  The following defines the substitution of the symbolic values with
-  symbolic expressions.
-*/
-
-  syntax K ::= K "[" K "/" K "]"
-
-  rule (F1:K andBool F2:K) [ V:K / X:K ]
-        =>
-        F1 [ V:K / X:K ] andBool F2[ V:K / X:K ]
-        [anywhere]
-
-  rule (I1:Int <=Int I2:Int) [ E1:K / E2:K ]
-       =>
-       (I1 [ E1 /E2 ]) <=Int (I2 [ E1 / E2 ])
-       [anywhere]
-
-  rule (I1:Int ==Int I2:Int) [ E1:K / E2:K ]
-       =>
-       (I1 [ E1 /E2 ]) ==Int (I2 [ E1 / E2 ])
-       [anywhere]
-
-  rule (I1:Int +Int I2:Int) [ E1:K / E2:K ]
-       =>
-       (I1 [ E1 /E2 ]) +Int (I2 [ E1 / E2 ])
-       [anywhere]
-
-  rule (I1:Int *Int I2:Int) [ E1:K / E2:K ]
-       =>
-       (I1 [ E1 /E2 ]) *Int (I2 [ E1 / E2 ])
-       [anywhere]
-
-  rule I:Int [ E1:K / E2:K ] => E1 
-       when I ==K E2
-       [anywhere]
- 
-  rule I:Int [ E1:K / E2:K ] => I
-       when I =/=K E2
-       [anywhere]
-
-//@ Some simplification rules.
-
-  rule (I:Int ==Int I:Int) => true [anywhere]
-
-  rule (I:Int *Int I +Int I +Int I +Int 1)
-       => 
-       (I +Int 1) *Int (I +Int 1)
-       [anywhere]
-
-  rule I:Int <=Int I:Int => true [anywhere] 
-
-/*
-  rule I1:Int <=Int (I2:Int +Int I:Int) => true
-       when I >=Int 0
-       [anywhere]
-
-  rule I1:Int <=Int (I2:Int +Int I:Int) => false
-       when I <Int 0
-       [anywhere]
-*/
-  rule (I1:Int ==Int I2:Int) andBool F:K impliesBool B:K
-       =>
-       F impliesBool B [ I2 / I1 ]
-       [anywhere]
-
-  rule (I1:Int ==Int I2:Int) impliesBool B:K
-       =>
-       B [ I2 / I1 ]
-       [anywhere]
-
-
-//@ The following is specific to the example wit sum of squares
-
-  rule ((I1:Int ==Int I2:Int *Int I2) andBool (I3:Int ==Int I2))
-       impliesBool
-       ((I:Int +Int I1) ==Int (I +Int I3 *Int I3))
-       =>
-       true
-       [anywhere]
-
-  rule B:K impliesBool true => true  [anywhere]
-
-  rule (B:K andBool B':K) impliesBool B => true  [anywhere]
-
-  rule B:K andBool true => B  [anywhere]
-
-  rule true andBool B:K => B  [anywhere]
-
-  rule B:K orBool true => true  [anywhere]
-
-  rule true orBool B:K => true  [anywhere]
-
-  rule V1:K ==K V2:K impliesBool V1 ==K V2 => true [anywhere]
-
-endmodule
-
 
 //@ \section{Syntax}
 
@@ -320,7 +97,7 @@ module IMPS
                     <k color="green"> $PGM:SPgm  </k>
                     <env color="red"> .Map </env>
                   </config>
-                  <formula> true </formula>
+                  <condition> true </condition>
                   <nextSymvar> 0 </nextSymVar>
                 </T>
 
@@ -331,7 +108,7 @@ module IMPS
   remain \texttt{true} and \texttt{false}.
 */
 
-  syntax KResult ::= Int | Bool
+  syntax KResult ::= Int | #Bool
 
 
 /*@
@@ -421,7 +198,7 @@ module IMPS
            => 
            lookup(X, Rho)
        ...</k>
-       <formula> F:K </formula>
+       <condition> F:K </condition>
        when F impliesBool (X isNotModifiedBy SS)
 
 /*@
@@ -452,16 +229,77 @@ module IMPS
   additional rules that conservatively extend the definition
 */
 
+  rule <config>
+         <k> B:K => storeSyns(F, B, true) ~> true ...</k>
+         <env> Rho:Map (. => B |-> true) </env>
+       </config>
+       <condition> F:K => F andBool B  </condition>
+       when isBoolSymExp(B)
+            andBool notBool(B in keys(Rho))
+            andBool notBool ((F impliesBool B) ==K true)
+            andBool notBool ((F impliesBool notBool B) ==K true)
+       [transition]
+
+  rule <config>
+         <k> B:K => storeSyns(F, B, false) ~> false ...</k>
+         <env> Rho:Map (. => B |-> false) </env>
+       </config>
+       <condition> F:K => F andBool notBool B  </condition>
+       when isBoolSymExp(B)
+            andBool notBool(B in keys(Rho))
+            andBool notBool ((F impliesBool B) ==K true)
+            andBool notBool ((F impliesBool notBool B) ==K true)
+       [transition]
   
   rule <k> B:K => true ...</k>
-       <formula> F:K </formula>
+       <condition> F:K </condition>
        when isBoolSymExp(B)
             andBool  F impliesBool B
+//       [transition]
 
   rule <k> B:K => false ...</k>
-       <formula> F:K </formula>
+       <condition> F:K </condition>
        when isBoolSymExp(B)
             andBool F impliesBool notBool(B)
+//       [transition]
+
+/*@
+  When an existing elementary symbolic boolean expression has to be evaluated, its
+  value is read the cell \texttt{env}.
+*/
+
+  rule <k> B:K => V ...</k>
+       <env>... B |-> V:Bool ...</env>
+       when isBoolSymExp(B)
+
+  /*@
+    Store the elementary symbolic boolean expressions obtained as
+    "synonims" of the already stored ones due to the path formula 
+  */
+
+  syntax K ::= "storeSyns" "(" K "," K "," Bool ")"
+
+  rule storeSyns(F1:K andBool F2:K, B:K, V:Bool) 
+       =>
+       storeSyns(F1, B, V) ~> storeSyns(F2, B, V)
+
+  rule <k> storeSyns(I1:Int ==Int I2:Int, B:K, V:Bool) => . ...</k>
+       <env>... . => (B[I1/I2] |-> V) ...</env>
+       when B[I1/I2] =/=K B
+
+  rule <k> storeSyns(I1:Int ==Int I2:Int, B:K, V:Bool) => . ...</k>
+       <env>... . => (B[I2/I1] |-> V) ...</env>
+       when B[I2/I1] =/=K B
+
+  rule <k> storeSyns(I1:Int ==Int I2:Int, B:K, V:Bool) => . ...</k>
+       when (B[I1/I2] ==K B) andBool (B[I2/I1] ==K B)
+
+  rule storeSyns(X:Id isNotModifiedBy S:Stmt, B:K, V:Bool) => .
+
+  rule <k> storeSyns(I1:Int <=Int I2:Int, B:K, V:Bool) => . ...</k>
+
+  rule <k> storeSyns(true, B:K, V:Bool) => . ...</k>
+
 
 /*@
   The following rule creates the initial configuration from the equivalence
@@ -476,7 +314,7 @@ module IMPS
            P
          </k>
        ...</config>
-       <formula> _ => injectForm(F) </formula>
+       <condition> _ => injectForm(F) </condition>
 
 /*@ 
   The next function translates the initial formula into internal
@@ -520,3 +358,4 @@ module IMPS
        [anywhere]
 
 endmodule
+

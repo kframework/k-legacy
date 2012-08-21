@@ -1,0 +1,4 @@
+
+<resultType>
+  (int) -> ((freshVar( 2 )) -> (int)) 
+</resultType>

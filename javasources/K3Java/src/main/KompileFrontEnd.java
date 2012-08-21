@@ -18,6 +18,11 @@ import k3.loader.AddConsesVisitor;
 import k3.loader.BasicParser;
 import k3.loader.ProgramSDF;
 
+import klint.KlintRule;
+import klint.InfiniteRewrite;
+import klint.UnusedName;
+import klint.UnusedSyntax;
+
 import org.apache.commons.cli.CommandLine;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -37,6 +42,7 @@ import ro.uaic.info.fmse.errorsystem.KException.KExceptionGroup;
 import ro.uaic.info.fmse.errorsystem.KMessages;
 import ro.uaic.info.fmse.general.GlobalSettings;
 import ro.uaic.info.fmse.html.HTMLFilter;
+import ro.uaic.info.fmse.unparser.UnparserFilter;
 import ro.uaic.info.fmse.latex.LatexFilter;
 import ro.uaic.info.fmse.lists.EmptyListsVisitor;
 import ro.uaic.info.fmse.loader.CollectConsesVisitor;
@@ -58,9 +64,20 @@ public class KompileFrontEnd {
 			k.utils.Error.helpExit(op.getHelp(), op.getOptions());
 		}
 
+		if (cmd.hasOption("version")) {
+			String msg = FileUtil.getFileContent(KPaths.getKBase(false) + "/bin/version.txt");
+			System.out.println(msg);
+			System.exit(0);
+		}
+
 		// set verbose
 		if (cmd.hasOption("verbose")) {
 			GlobalSettings.verbose = true;
+		}
+
+		// set literate
+		if (cmd.hasOption("literate")) {
+			GlobalSettings.literate = true;
 		}
 
 		if (cmd.hasOption("nofilename")) {
@@ -74,6 +91,13 @@ public class KompileFrontEnd {
 		if (cmd.hasOption("warnings"))
 			GlobalSettings.warningslevel = Integer.parseInt(cmd.getOptionValue("warnings"));
 
+		if (cmd.hasOption("transition"))
+			GlobalSettings.transition = cmd.getOptionValue("transition");
+		if (cmd.hasOption("supercool"))
+			GlobalSettings.supercool = cmd.getOptionValue("supercool");
+		if (cmd.hasOption("superheat"))
+			GlobalSettings.superheat = cmd.getOptionValue("superheat");
+
 		// set lib if any
 		if (cmd.hasOption("lib")) {
 			GlobalSettings.lib = cmd.getOptionValue("lib");
@@ -86,7 +110,7 @@ public class KompileFrontEnd {
 			if (cmd.hasOption("lang"))
 				fromxml(xmlFile, cmd.getOptionValue("lang"));
 			else
-				fromxml(xmlFile, xmlFile.getName().replaceFirst("\\.[a-zA-Z]+$", "").toUpperCase());
+				fromxml(xmlFile, FileUtil.getMainModule(xmlFile.getName()));
 			System.exit(0);
 		}
 
@@ -115,7 +139,11 @@ public class KompileFrontEnd {
 		if (cmd.hasOption("lang"))
 			lang = cmd.getOptionValue("lang");
 		else
-			lang = mainFile.getName().replaceFirst("\\.[a-zA-Z]+$", "").toUpperCase();
+			lang = FileUtil.getMainModule(mainFile.getName());
+
+		if (cmd.hasOption("lint")) {
+			lint(mainFile, lang);
+		}
 
 		if (cmd.hasOption("maudify")) {
 			maudify(mainFile, lang);
@@ -129,6 +157,8 @@ public class KompileFrontEnd {
 			xml(mainFile, lang);
 		} else if (cmd.hasOption("html")) {
 			html(mainFile, lang);
+		} else if (cmd.hasOption("unparse")) {
+			unparse(mainFile, lang);
 		} else {
 			// default option: if (cmd.hasOption("compile"))
 			compile(mainFile, lang, maudify(mainFile, lang));
@@ -136,6 +166,28 @@ public class KompileFrontEnd {
 		if (GlobalSettings.verbose)
 			sw.printTotal("Total           = ");
 		GlobalSettings.kem.print();
+	}
+
+	private static void lint(File mainFile, String mainModule) {
+		try {
+			File canonicalFile = mainFile.getCanonicalFile();
+			File dotk = new File(canonicalFile.getParent() + "/.k");
+			dotk.mkdirs();
+			ro.uaic.info.fmse.k.Definition javaDef = k.utils.DefinitionLoader.parseDefinition(mainModule, canonicalFile, dotk, GlobalSettings.verbose);
+
+			KlintRule lintRule = new UnusedName(javaDef);
+			lintRule.run();
+
+			lintRule = new UnusedSyntax(javaDef);
+			lintRule.run();
+
+			lintRule = new InfiniteRewrite(javaDef);
+			lintRule.run();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
 	}
 
 	private static void pdf(File mainFile, String lang) {
@@ -170,20 +222,10 @@ public class KompileFrontEnd {
 				}
 				process.waitFor();
 				pdfClean(new String[] { ".tex", ".aux", ".log", ".mrk", ".out", ".sty" });
-			        new File("k.sty").delete();
+				new File("k.sty").delete();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-
-			// // Apparently I have to do this for now. I'll search for a better solution soon.
-			// InputStream is = process.getInputStream();
-			// InputStreamReader isr = new InputStreamReader(is);
-			// BufferedReader br = new BufferedReader(isr);
-			// // String line;
-			// while (br.readLine() != null) {
-			// }
-			// ;
-			// / while((line = br.readLine()) != null){System.out.println(line);}
 
 		} catch (IOException e) {
 			KException exception = new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL, KMessages.ERR1001, "", "", 0);
@@ -206,7 +248,7 @@ public class KompileFrontEnd {
 			File dotk = new File(canonicalFile.getParent() + fileSep + ".k");
 			dotk.mkdirs();
 
-			GlobalSettings.latex = true;
+			GlobalSettings.literate = true;
 			// compile a definition here
 
 			ro.uaic.info.fmse.k.Definition javaDef = k.utils.DefinitionLoader.loadDefinition(mainFile, mainModule, GlobalSettings.verbose);
@@ -243,6 +285,11 @@ public class KompileFrontEnd {
 	private static String html(File mainFile, String lang) {
 		ro.uaic.info.fmse.k.Definition javaDef;
 		try {
+			GlobalSettings.literate = true;
+
+			String fileSep = System.getProperty("file.separator");
+			String htmlIncludePath = KPaths.getKBase(false) + fileSep + "include" + fileSep + "html" + fileSep;
+
 			javaDef = k.utils.DefinitionLoader.loadDefinition(mainFile, lang, GlobalSettings.verbose);
 			// for now just use this file as main argument
 			File canonicalFile = mainFile.getCanonicalFile();
@@ -251,7 +298,7 @@ public class KompileFrontEnd {
 			dotk.mkdirs();
 
 			Stopwatch sw = new Stopwatch();
-			HTMLFilter htmlFilter = new HTMLFilter();
+			HTMLFilter htmlFilter = new HTMLFilter(htmlIncludePath);
 			javaDef.accept(htmlFilter);
 
 			String html = htmlFilter.getHTML();
@@ -265,6 +312,41 @@ public class KompileFrontEnd {
 			}
 
 			return html;
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private static String unparse(File mainFile, String lang) {
+		ro.uaic.info.fmse.k.Definition javaDef;
+		try {
+			GlobalSettings.literate = true;
+
+			javaDef = k.utils.DefinitionLoader.loadDefinition(mainFile, lang, GlobalSettings.verbose);
+			// for now just use this file as main argument
+			File canonicalFile = mainFile.getCanonicalFile();
+
+			File dotk = new File(canonicalFile.getParent() + "/.k");
+			dotk.mkdirs();
+
+			Stopwatch sw = new Stopwatch();
+			UnparserFilter unparserFilter = new UnparserFilter();
+			javaDef.accept(unparserFilter);
+
+			String unparsedText = unparserFilter.getResult();
+
+			FileUtil.saveInFile(dotk.getAbsolutePath() + "/def.k", unparsedText);
+
+			FileUtil.saveInFile(FileUtil.stripExtension(canonicalFile.getAbsolutePath()) + ".unparsed.k", unparsedText);
+
+			if (GlobalSettings.verbose) {
+				sw.printIntermediate("Unparsing       = ");
+			}
+
+			return unparsedText;
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		} catch (Exception e) {
@@ -298,7 +380,7 @@ public class KompileFrontEnd {
 			FileUtil.saveInFile(canonicalFile.getAbsolutePath().replaceFirst("\\.k$", "") + ".xml", xml);
 
 			if (GlobalSettings.verbose) {
-				sw.printIntermediate("Latexif         = ");
+				sw.printIntermediate("Xmlify         = ");
 			}
 
 			return xml;
@@ -649,8 +731,19 @@ public class KompileFrontEnd {
 			String maudeLib = GlobalSettings.lib.equals("") ? "" : "load " + KPaths.windowfyPath(new File(GlobalSettings.lib).getAbsolutePath()) + "\n";
 			load += maudeLib;
 
-			String compile = load + maudified + " load \"" + KPaths.getKBase(true) + "/bin/maude/compiler/all-tools\"\n loop compile .\n(compile " + mainModule
-					+ " transitions \"transition=()\" superheats \"superheat=()\" supercools \"supercool=()\" anywheres \"anywhere=() function=() predicate=()\" defineds \"function=() predicate=() defined=()\" .)\n quit\n";
+			String transition = "\"transition=()\"";
+			String superheat = "\"superheat=()\"";
+			String supercool = "\"supercool=()\"";
+
+			if (!GlobalSettings.transition.equals(""))
+				transition = "\"" + metadataParse(GlobalSettings.transition) + "\"";
+			if (!GlobalSettings.superheat.equals(""))
+				superheat = "\"" + metadataParse(GlobalSettings.superheat) + "\"";
+			if (!GlobalSettings.supercool.equals(""))
+				supercool = "\"" + metadataParse(GlobalSettings.supercool) + "\"";
+
+			String compile = load + maudified + " load \"" + KPaths.getKBase(true) + "/bin/maude/compiler/all-tools\"\n loop compile .\n(compile " + mainModule + " transitions " + transition + " superheats " + superheat + " supercools " + supercool
+					+ " anywheres \"anywhere=() function=() predicate=()\" defineds \"function=() predicate=() defined=()\" .)\n quit\n";
 
 			FileUtil.saveInFile(dotk.getAbsolutePath() + "/compile.maude", compile);
 
@@ -670,5 +763,22 @@ public class KompileFrontEnd {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private static String metadataParse(String tags) {
+		String[] alltags = tags.split("\\s+");
+		String result = "";
+		String tag;
+		for (int i = 0; i < alltags.length; i++) {
+			tag = alltags[i];
+			if (tag.matches("\\("))
+				tag.replaceFirst("\\(", "=(");
+			else
+				tag += "=()";
+
+			result += tag + " ";
+		}
+
+		return result;
 	}
 }

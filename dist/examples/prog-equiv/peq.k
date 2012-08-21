@@ -1,4 +1,4 @@
-
+require "symbolic/symbolic-calculus.k"
 
 /*!
 \setlength{\parindent}{1em}
@@ -6,210 +6,6 @@
 \author{Dorel Lucanu (\texttt{grosu@illinois.edu}) and Vlad Rusu (Vlad.Rusu@inria.fr)}
 \organization{"Alexandru Ioan Cuza" University of Iasi, INRIA Lille}
 */
-
-//@ \section{Symbolic Calculus}
-
-module SYMBOLIC-CALCULUS-SYNTAX
-
-/*@ 
-  The symbolic values needed to define the initial configuration.
-  They are corresponding to the vriables in equivalence formula.
-*/
-
-  syntax IntSymVar ::= "symInt" "(" Id ")" 
-
-/*@ 
-  The following function is used to generate fresh names for symbolic values.
-*/
-  syntax Id ::= "fresh" "(" Int ")" [function] 
-  rule fresh(I:Int) => String2Id("symVar" +String Int2String(I)) [anywhere]
-
-/*@
-  Any symbolic variable is of sort Int:
-*/
-
-  syntax Int ::= IntSymVar
-
-endmodule
-
-module SYMBOLIC-CALCULUS
-  imports SYMBOLIC-CALCULUS-SYNTAX
-
-/*@
-  This module is designed with a minimal support. 
-*/
-
-
-/*@
-  The predicate defining the symbolic boolean expressions.
-*/
-
-  syntax Bool ::=  "isBoolSymExp" "(" K ")"
-
-
-  rule isBoolSymExp(I1:Int <=Int I2:Int) => true
-       when isIntSymExp(I1) ==K true
-       [anywhere]
-
-  rule isBoolSymExp(I1:Int <=Int I2:Int) => true
-       when isIntSymExp(I2) ==K true
-       [anywhere]
-
-  rule isBoolSymExp(I1:Int ==Int I2:Int) => true
-       when isIntSymExp(I1) ==K true
-       [anywhere]
-
-  rule isBoolSymExp(I1:Int ==Int I2:Int) => true
-       when isIntSymExp(I2) ==K true
-       [anywhere]
-
-  rule isBoolSymExp(B1:Bool andBool I2:Bool) => true
-       when isBoolSymExp(B1) ==K true
-       [anywhere]
-
-  rule isBoolSymExp(B1:Bool orBool I2:Bool) => true
-       when isBoolSymExp(B1) ==K true
-       [anywhere]
-/*@ 
-  \textbf{Remark.~~}
-  The symbolic boolean expressions are not sobsorted to Bool.
-  This is a trick that help us to handle easier this expressions.
-*/
-
-/*
-  rule 'isBool(K:K) => true
-       when isBoolSymExp(K) ==K true
-       [anywhere]
-*/
-
-/*@
-  The predicate defining the symbolic integer expressions.
-*/
-  syntax Bool ::= "isIntSymExp" "(" K ")" 
- 
-  rule isIntSymExp(I1:Int +Int I2:Int) => true
-       when isIntSymExp(I1) ==K true
-       [anywhere]
-
-  rule isIntSymExp(I1:Int +Int I2:Int) => true
-       when isIntSymExp(I2) ==K true
-       [anywhere]
-
- 
-  rule isIntSymExp(I1:Int -Int I2:Int) => true
-       when isIntSymExp(I1) ==K true
-       [anywhere]
-
-  rule isIntSymExp(I1:Int -Int I2:Int) => true
-       when isIntSymExp(I2) ==K true
-       [anywhere]
-
-  rule isIntSymExp(I1:Int *Int I2:Int) => true
-       when isIntSymExp(I1) ==K true
-       [anywhere]
-
-  rule isIntSymExp(I1:Int *Int I2:Int) => true
-       when isIntSymExp(I2) ==K true
-       [anywhere]
-
-  rule isIntSymExp(I1:Int /Int I2:Int) => true
-       when isIntSymExp(I1) ==K true
-       [anywhere]
-
-  rule isIntSymExp(I1:Int /Int I2:Int) => true
-       when isIntSymExp(I2) ==K true
-       [anywhere]
-
-
-  rule isIntSymExp(K:K) => true
-       when 'isIntSymVar(K) ==K true
-       [anywhere]
-
-/*@
-  Extending Int with symbolic expressions:
-*/
-  rule 'isInt(K:K) => true
-       when isIntSymExp(K) ==K true
-       [anywhere]
-
-  rule 'isInt(_:Int +Int _:Int) => true [anywhere]
-  rule 'isInt(_:Int *Int _:Int) => true [anywhere] 
-  rule 'isInt(_:Int /Int _:Int) => true [anywhere]
-
-/*@
-  The following defines the substitution of the symbolic values with
-  symbolic expressions.
-*/
-
-  syntax K ::= K "[" K "/" K "]"
-
-  rule (F1:K andBool F2:K) [ V:K / X:K ]
-        =>
-        F1 [ V:K / X:K ] andBool F2[ V:K / X:K ]
-        [anywhere]
-
-  rule (I1:Int <=Int I2:Int) [ E1:K / E2:K ]
-       =>
-       (I1 [ E1 /E2 ]) <=Int (I2 [ E1 / E2 ])
-       [anywhere]
-
-  rule (I1:Int ==Int I2:Int) [ E1:K / E2:K ]
-       =>
-       (I1 [ E1 /E2 ]) ==Int (I2 [ E1 / E2 ])
-       [anywhere]
-
-  rule (I1:Int +Int I2:Int) [ E1:K / E2:K ]
-       =>
-       (I1 [ E1 /E2 ]) +Int (I2 [ E1 / E2 ])
-       [anywhere]
-
-  rule (I1:Int *Int I2:Int) [ E1:K / E2:K ]
-       =>
-       (I1 [ E1 /E2 ]) *Int (I2 [ E1 / E2 ])
-       [anywhere]
-
-  rule I:Int [ E1:K / E2:K ] => E1 
-       when I ==K E2
-       [anywhere]
- 
-  rule I:Int [ E1:K / E2:K ] => I
-       when I =/=K E2
-       [anywhere]
-
-//@ Some simplification rules.
-
-  rule (I:Int ==Int I:Int) => true [anywhere]
-
-  rule (I:Int *Int I +Int I +Int I +Int 1)
-       => 
-       (I +Int 1) *Int (I +Int 1)
-       [anywhere]
-
-//@ The following is specific to the example wit sum of squares
-
-  rule ((I1:Int ==Int I2:Int *Int I2) andBool (I3:Int ==Int I2))
-       impliesBool
-       ((I:Int +Int I1) ==Int (I +Int I3 *Int I3))
-       =>
-       true
-       [anywhere]
-
-  rule B:K impliesBool true => true  [anywhere]
-
-  rule (B:K andBool B':K) impliesBool B => true  [anywhere]
-
-  rule B:K andBool true => B  [anywhere]
-
-  rule true andBool B:K => B  [anywhere]
-
-  rule B:K orBool true => true  [anywhere]
-
-  rule true orBool B:K => true  [anywhere]
-
-  rule V1:K ==K V2:K impliesBool V1 ==K V2 => true [anywhere]
-
-endmodule
-
 
 //@ \section{Syntax}
 
@@ -303,11 +99,11 @@ module PEQ
   imports IMP-SYNTAX
 
 /*@
-  A configuration is a multiset of tasks. Each task consists of an
+  A configuration is a multiset of goals. Each goal consists of an
   equivalence formula. The patterns are stored into a \texttt{config}
-  cell and the condition in the \texttt{formula} cell.
+  cell and the condition in the \texttt{condition} cell.
   The cell \texttt{hypos} is for storing the hypotheses met during
-  the proving process. It has a structure similar to that of tasks, but
+  the proving process. It has a structure similar to that of goals, but
   where the names of cells are changed in order to forbid the rules firing
   for hypotheses, in this way the hypotheses are kept unchanged. 
   The cell \texttt{observers} stores the list of the observer variables.
@@ -315,15 +111,15 @@ module PEQ
 */
 
   configuration <T color="yellow"> 
-                  <tasks> 
-                    <task multiplicity="*">
+                  <goals> 
+                    <goal multiplicity="*">
                       <config multiplicity="*">
                         <k color="green"> $PGM:EqvPgm  </k>
                         <env color="red"> .Map </env>
                       </config>
-                      <formula> true </formula>
-                    </task>
-                  </tasks>
+                      <condition> true </condition>
+                    </goal>
+                  </goals>
                   <hypos>
                     <hypo multiplicity="*">
                       <patt1>
@@ -334,7 +130,7 @@ module PEQ
                         <k2 color="green"> .K  </k2>
                         <env2 color="red"> .Map </env2>
                       </patt2>
-                      <formula> true </formula>
+                      <condition> true </condition>
                     </hypo>
                   </hypos>
                   <observers> .List </observers> 
@@ -348,7 +144,7 @@ module PEQ
   remain \texttt{true} and \texttt{false}.
 */
 
-  syntax KResult ::= Int | Bool
+  syntax KResult ::= Int | #Bool
 
 /*@
   We use a new syntactic construct that help us to store hypotheses. The basic
@@ -445,9 +241,10 @@ module PEQ
 */
 
   rule <k>
-          L:Id : S:Stmt ~> K:K
-          =>
-          storeHypo(L, S ~> K) ~> S
+          ( L:Id : S:Stmt
+            =>
+            storeHypo(L, S ~> K) ~> S
+          ) ~> K:K 
        </k>
        when isRecursive (S) =/=K true
 
@@ -508,7 +305,7 @@ module PEQ
            => 
            lookup(X, Rho)
        ...</k>
-       <formula> F:K </formula>
+       <condition> F:K </condition>
        when F impliesBool (X isNotModifiedBy SS)
 
 /*@
@@ -536,13 +333,30 @@ module PEQ
        [transition]
 
 /*@
+  additional rules that conservatively extend the definition
+*/
+
+
+  rule <k> B:K => true ...</k>
+       <condition> F:K </condition>
+       when isBoolSymExp(B)
+            andBool  F impliesBool B
+//       [transition]
+
+  rule <k> B:K => false ...</k>
+       <condition> F:K </condition>
+       when isBoolSymExp(B)
+            andBool F impliesBool notBool(B)
+//       [transition]
+
+/*@
   \subsection{Additional Rules}
   The first two additional rules implement our approach for handling the symbolic
   boolean expressions. An elementary symbolic boolean expression (remember that 
   the boolean operators are strict in at leat one argument) is seen as a 
   variable and consequently its value is stored in the \texttt{env} cell.
-  Each time a new elementary symbolic boolean expression is met, the current task 
-  is split in two tasks: one for the \texttt{true} value, and the other one for
+  Each time a new elementary symbolic boolean expression is met, the current goal 
+  is split in two goals: one for the \texttt{true} value, and the other one for
   the \texttt{false} value.\\
   In fact, we guess that this is the only rule that uses unification for computing
   the derivatives. 
@@ -556,12 +370,26 @@ module PEQ
   The semantic rule evaluating \texttt{I1 <= I2}  is equivalent with the 
   following two rules:
   \begin{verbatim}
-    rule <k> I1 <= I2 => true ...</k>
-         <formula> F:K </formula>
-         when F impliesBool I1 <=Int I2
-    rule <k> I1 <= I2 => false ...</k>
-         <formula> F:K </formula>
-         when F impliesBool notBool(I1 <=Int I2)
+  rule <config>
+         <k> B:K => true ...</k>
+         <env> Rho:Map (. => B |-> true) </env>
+       </config>
+       <condition> F:K => F andBool B  </condition>
+       when isBoolSymExp(B)
+            andBool notBool(B in keys(Rho))
+            andBool notBool (F impliesBool B)
+            andBool notBool ((F impliesBool notBool B) ==K true)
+       [transition]
+
+  rule <config>
+         <k> B:K => false ...</k>
+         <env> Rho:Map (. => B |-> false) </env>
+       </config>
+       <condition> F:K => F andBool notBool B  </condition>
+       when isBoolSymExp(B)
+            andBool notBool(B in keys(Rho))
+            andBool notBool (F impliesBool B)
+            andBool notBool (F impliesBool notBool B)
   \end{verbatim} 
   Then the derivatives of the above goal are:
   \begin{verbatim}
@@ -569,6 +397,7 @@ module PEQ
         <k> true ~> K1 </k>       ~         <k> K2 </k>          if F andBool B
         <env> Rho1  </env>                  <env> Rho2 </env>
       </config>                           </config>
+
       <config>                            <config>
         <k> false ~> K1 </k>      ~         <k> K2 </k>          if F andBool 
         <env> Rho1  </env>                  <env> Rho2 </env>       notBool B
@@ -583,46 +412,36 @@ module PEQ
   $I'_1\le I_2$ is a synonim of $B$ and both of them have the same value.
 */
 
-  rule <task>
+  rule [derive-with-case-analysis]:
+       <goal>
          <config>
            <k> B:K ~> K1:K </k>
            <env> Rho1:Map  </env>
          </config>
-         <config>
-           <k> K2:K </k>
-           <env> Rho2:Map </env>
-         </config>
-         <formula> F:K </formula>
+         <condition> F:K </condition>
          C:Bag
-       </task>
+       </goal>
        =>
-       <task>
+       <goal>
          <config>
            <k> storeSyns(F, B, true) ~> true ~> K1 </k>
            <env> Rho1:Map (B |-> true) </env>
          </config>
-         <config>
-           <k> K2 </k>
-           <env> Rho2:Map (B |-> true) </env>
-         </config>
-         <formula> F andBool B  </formula>
+         <condition> F andBool B  </condition>
          C
-       </task>
-       <task>
+       </goal>
+       <goal>
          <config>
            <k> storeSyns(F, B, false) ~> false ~> K1 </k>
            <env> Rho1:Map (B |-> false) </env>
          </config>
-         <config>
-           <k> K2 </k>
-           <env> Rho2:Map (B |-> false) </env>
-         </config>
-         <formula> F andBool notBool (B) </formula>
+         <condition> F andBool notBool (B) </condition>
          C
-       </task>
+       </goal>
        when isBoolSymExp(B)
             andBool notBool(B in keys(Rho1))
-            andBool notBool(B in keys(Rho2))
+            andBool notBool ((F impliesBool B) ==K true)
+            andBool notBool ((F impliesBool notBool B) ==K true)
 
 /*@
   When an existing elementary symbolic boolean expression has to be evaluated, its
@@ -640,17 +459,17 @@ module PEQ
   are parts of the condition.
 */
 
-  rule <task>...
+  rule <goal>...
          <env>... B |-> true B |-> false ...</env>
-       ...</task>
+       ...</goal>
        =>
        .
        when isBoolSymExp(B)
 
-  rule <task>...
+  rule <goal>...
          <env>... B |-> true ...</env>
          <env>... B |-> false ...</env>
-       ...</task>
+       ...</goal>
        =>
        .
        when isBoolSymExp(B)
@@ -662,7 +481,7 @@ module PEQ
   Note also that only sysnonims are usually stored only in one environment.
 */
 
-  rule <task>...
+  rule <goal>...
          <config>...
            <k> B:K => V ...</k>
            <env> Rho:Map </env>
@@ -670,7 +489,7 @@ module PEQ
          <config>...
            <env>... B |-> V:Bool ...</env>
          </config>
-       ...</task>
+       ...</goal>
        when isBoolSymExp(B)
             andBool notBool (B in keys(Rho))
 
@@ -678,6 +497,7 @@ module PEQ
     Store the elementary symbolic boolean expressions obtained as
     "synonims" of the already stored ones due to the path formula 
   */
+
   syntax K ::= "storeSyns" "(" K "," K "," Bool ")"
 
   rule storeSyns(F1:K andBool F2:K, B:K, V:Bool) 
@@ -700,7 +520,7 @@ module PEQ
   rule <k> storeSyns(I1:Int <=Int I2:Int, B:K, V:Bool) => . ...</k>
 
 /*@
-  The special bag \texttt{success} is used for removing tasks (goals).
+  The special bag \texttt{success} is used for removing goals.
 */
 
   syntax Bag ::= "success"
@@ -715,7 +535,7 @@ module PEQ
 */
 
   rule [equality] :
-       (<task>
+       (<goal>
          <config>
            <k> K:K </k>
            <env> Env:Map </env>
@@ -724,8 +544,8 @@ module PEQ
            <k> K </k>
            <env> Env':Map </env>
          </config>
-         <formula> F:K </formula>
-       </task>
+         <condition> F:K </condition>
+       </goal>
        =>
        success)
        <observers> Obs:List </observers>
@@ -770,12 +590,12 @@ module PEQ
   consists of storing the hypothesis given by the arguments. Its semantics
   is similar to that of threads synchronization.\\
   TBD: replace the values of the program variables with fresh symbolic
-  values and add to formula the corresponding contraints.
+  values and add to path condition the corresponding contraints.
 /n-*/
 
 
   rule [store-hypo] :
-       <task>
+       <goal>
          <config> 
            <k> storeHypo(L:Id, K1:K) => . ...</k>
            <env> Env1:Map </env>
@@ -784,8 +604,8 @@ module PEQ
            <k> storeHypo(L, K2:K) => . ...</k>
            <env> Env2:Map </env>
          </config>
-         <formula> F:K </formula>
-       </task>
+         <condition> F:K </condition>
+       </goal>
        <hypos>
          Hypos:Bag
          =>
@@ -799,7 +619,7 @@ module PEQ
              <k2> K2 </k2>
              <env2> Env2 </env2>
            </patt2>
-           <formula> F </formula>
+           <condition> F </condition>
          </hypo>
        </hypos>
        <observers> Obs:List </observers>
@@ -809,7 +629,7 @@ module PEQ
             andBool
             ((KItem(Hypos)
             |-subst
-            KItem(<task>
+            KItem(<goal>
                <config> 
                  <k> K1 </k>
                  <env> Env1 </env>
@@ -818,14 +638,14 @@ module PEQ
                  <k> K2 </k>
                  <env> Env2 </env>
                </config>
-               <formula> F </formula>
-             </task>))
+               <condition> F </condition>
+             </goal>))
              =/=K true)
        [transition]
 
 
   rule [store-hypo]:
-       <task>
+       <goal>
          <config> 
            <k> storeHypo(L:Id, K1:K) => . ...</k>
            <env> Env1:Map </env>
@@ -834,8 +654,8 @@ module PEQ
            <k> storeHypo(L, K2:K) => . ...</k>
            <env> Env2:Map </env>
          </config>
-         <formula> F:K </formula>
-       </task>
+         <condition> F:K </condition>
+       </goal>
        <hypos>
          Hypos:Bag
        </hypos>
@@ -855,7 +675,7 @@ module PEQ
   syntax K ::= "KItem" "(" Bag ")"
   syntax Bool ::= K "|-subst" K [function]
 
-//rule KItem(<hypo> B1:Bag </hypo>) |-subst KItem(<task> B2:Bag </task>) => true [anywhere]
+//rule KItem(<hypo> B1:Bag </hypo>) |-subst KItem(<goal> B2:Bag </goal>) => true [anywhere]
 
 
   rule KItem (H1:Bag H2:Bag) |-subst KItem(G:Bag)
@@ -870,9 +690,9 @@ module PEQ
   rule KItem(.Bag) |-subst KItem(G:Bag) => false [anywhere]
 
 rule KItem(<hypo>      
-       <formula>
+       <condition>
          F:K
-       </formula> 
+       </condition> 
        <patt1>        
          <k1>
           for I:Id from (A1:Int) to (A2:Int) do (S:Stmt) 
@@ -894,10 +714,10 @@ rule KItem(<hypo>
 
     |-subst
 
-     KItem(<task>      
-       <formula>
+     KItem(<goal>      
+       <condition>
          F':K
-       </formula> 
+       </condition> 
        <config>        
          <k>
           for I from A1':Int to A2 do S 
@@ -915,13 +735,13 @@ rule KItem(<hypo>
           Rho2':Map
          </env>
        </config>
-     </task>)
+     </goal>)
      => 
      true
      [anywhere]
 
 rule KItem(<hypo>      
-       <formula> F:K </formula> 
+       <condition> F:K </condition> 
        <patt1>        
          <k1>
           while (I:Id <= N:Id) do ((S:Id := (S + (I * I))) ; (I := (I + 1))) 
@@ -944,8 +764,8 @@ rule KItem(<hypo>
 
      |-subst
 
-     KItem(<task>      
-       <formula> F':K </formula> 
+     KItem(<goal>      
+       <condition> F':K </condition> 
        <config>        
          <k>
           while (I <= N) do ((S := (S + (I * I))) ; (I := (I + 1))) 
@@ -964,7 +784,7 @@ rule KItem(<hypo>
            Rho2':Map
          </env> 
        </config> 
-     </task>)
+     </goal>)
      =>
      true
      [anywhere]
@@ -976,7 +796,7 @@ rule KItem(<hypo>
 */
 
   rule [circularity] :
-       (<task>
+       (<goal>
          <config> 
            <k> storeHypo(L:Id, K1:K) ...</k>
            <env> Env1:Map </env>
@@ -985,15 +805,15 @@ rule KItem(<hypo>
            <k> storeHypo(L, K2:K) ...</k>
            <env> Env2:Map </env>
          </config>
-         <formula> F:K </formula>
-       </task>
+         <condition> F:K </condition>
+       </goal>
        =>
        success)
        <hypos> Hypos:Bag </hypos>
        when
        KItem(Hypos)
        |-subst 
-       KItem(<task>
+       KItem(<goal>
          <config> 
            <k> K1 </k>
            <env> Env1 </env>
@@ -1002,8 +822,8 @@ rule KItem(<hypo>
            <k> K2 </k>
            <env> Env2 </env>
          </config>
-         <formula> F </formula>
-       </task>)
+         <condition> F </condition>
+       </goal>)
       [transition]
 
 /*@
@@ -1025,7 +845,7 @@ rule KItem(<hypo>
            setInitValObs(Obs) ~> setInitVal(Inits1) ~> P1
          </k>
        ...</config>
-       <formula> _ => injectForm(F) </formula>
+       <condition> _ => injectForm(F) </condition>
       (. =>
        <config>
          <k> 
@@ -1070,7 +890,7 @@ rule KItem(<hypo>
        [structural]
 
 /*@ 
-  The next function translates the initial formula into internal
+  The next function translates the initial condition into internal
   form.\\
   TBD: refactor it!!!!
 */

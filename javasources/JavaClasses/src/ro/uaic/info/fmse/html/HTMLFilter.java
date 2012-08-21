@@ -1,145 +1,65 @@
 package ro.uaic.info.fmse.html;
 
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.List;
-import java.util.Random;
+import java.util.Properties;
 import java.util.Vector;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ro.uaic.info.fmse.html.HTMLPatternsVisitor.HTMLPatternType;
 import ro.uaic.info.fmse.k.*;
 import ro.uaic.info.fmse.k.LiterateComment.LiterateCommentType;
 import ro.uaic.info.fmse.k.ProductionItem.ProductionType;
-import ro.uaic.info.fmse.latex.LatexFilter;
-import ro.uaic.info.fmse.latex.LatexPatternsVisitor;
 import ro.uaic.info.fmse.loader.Constants;
 import ro.uaic.info.fmse.loader.DefinitionHelper;
-import ro.uaic.info.fmse.utils.strings.StringUtil;
 import ro.uaic.info.fmse.visitors.BasicVisitor;
 import java.awt.Color;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 public class HTMLFilter extends BasicVisitor {
 	String endl = System.getProperty("line.separator");
 	private String result = "";
 	private String css = "";
+	private String preamble = "";
 	private String title = "";
-	private boolean firstProduction = false;
+	private String author = "";
+	private String organization = "";
+	
+	// this set indicates which color classes have already been added to the css string
 	private HashSet<String> usedColors = new HashSet<String>();
+	
+	// keys : name of a cell -> values : color of that cell
 	private Map<String, String> cellColors = new HashMap<String,String>();
+	
+	// keys : name of a standard HTML5 color -> values : java.awt.Color representation of that color
+	// this is created in the constructor of the HTMLFilter class
 	private Map<String,Color> HTMLColors = new HashMap<String,Color>();
+	
 	private HTMLPatternsVisitor patternsVisitor = new HTMLPatternsVisitor();
+	
 	private boolean firstAttribute;
 	private boolean parentParens = false;
-
-	/*public void setResult(String result) {
-		this.result = result;
-	}*/
-
-	/*public void setPreamble(String preamble) {
-		this.preamble = preamble;
-	}
-
-	public String getPreamble() {
-		return preamble;
-	}*/
+	private boolean firstProduction = false;
 	
-	private boolean isParentParens() {
-		return parentParens;
-	}
-
-	private void setParentParens(boolean parentParens) {
-		this.parentParens = parentParens;
-	}
+	private Properties Latex2HTMLzero = new Properties();
+	private Properties Latex2HTMLone = new Properties();
+	private String includePath = new String();
 	
-	public HTMLFilter() {
+	public HTMLFilter(String includePath) {
+		this.includePath = includePath;
 		initializeCss();
 		createHTMLColors();
+		loadProperties();
 	}
 	
-	/*public void createColors(){
-		colors.clear();
-		colors.put("yellow" , ".yellow" + endl
-				+ "{" + endl
-				+ "border-color: #96915c;"+endl
-				+ "background-color: #f7f7c5;"+endl
-				+ "}" + endl);
-		colors.put("orange" , ".orange" + endl
-				+ "{" + endl
-				+ "border-color: #804000;"+endl
-				+ "background-color: #f6dec5;"+endl
-				+ "}" + endl);
-		colors.put("red" , ".red" + endl
-				+ "{" + endl
-				+ "border-color: #892d29;"+endl
-				+ "background-color: #f5c4c4;"+endl
-				+ "}" + endl);
-		colors.put("green" , ".green" + endl
-				+ "{" + endl
-				+ "border-color: #008000;"+endl
-				+ "background-color: #BEEEBE;"+endl
-				+ "}" + endl);
-		colors.put("LightSkyBlue" , ".LightSkyBlue" + endl
-				+ "{" + endl
-				+ "border-color: #44677d;"+endl
-				+ "background-color: #d8e6ee;"+endl
-				+ "}" + endl);
-		colors.put("magenta" , ".magenta" + endl
-				+ "{" + endl
-				+ "border-color: #ad7a9b;"+endl
-				+ "background-color: #edbeed;"+endl
-				+ "}" + endl);
-		colors.put("Orchid" , ".Orchid" + endl
-				+ "{" + endl
-				+ "border-color: #957294;"+endl
-				+ "background-color: #e8d4e8;"+endl
-				+ "}" + endl);
-		colors.put("white" , ".white" + endl
-				+ "{" + endl
-				+ "border-color: #808080;"+endl
-				+ "background-color: #f0f0f0;"+endl
-				+ "}" + endl);
-		colors.put("gray" , ".gray" + endl
-				+ "{" + endl
-				+ "border-color: #7c7c7c;"+endl
-				+ "background-color: #d7d7d7;"+endl
-				+ "}" + endl);
-		colors.put("grey" , ".grey" + endl
-				+ "{" + endl
-				+ "border-color: #7c7c7c;"+endl
-				+ "background-color: #d7d7d7;"+endl
-				+ "}" + endl);
-		colors.put("defaultColor" , ".defaultColor" + endl
-				+ "{" + endl
-				+ "border-color: #000000;"+endl
-				+ "background-color: #FFFFFF;"+endl
-				+ "}" + endl);
-		
-	}*/
-	
-	/*private String getRandomColor(){
-		Random generator = new Random();
-		Object[] keys = colors.keySet().toArray();
-		return (String) keys[generator.nextInt(keys.length)];
-	}*/
-	
-	private void addToCss(String color)
-	{
-		css += "." + color + endl
-				+ "{" + endl
-				+ "border-color: " + HTMLColorToString( HTMLColors.get(color).darker().darker() ) + ";" + endl
-				+ "background-color: " + HTMLColorToString( alter(HTMLColors.get(color)) ) + ";" + endl
-				+ "}" + endl;
-	}
-	
-	private String getCellColor(String cellName){
-		if(cellColors.get(cellName) != null)
-			return cellColors.get(cellName);
-		else
-			return "defaultColor";		
-	}
-
 	public String getHTML() {
+		// adds the headers and the css to the result to create the complete HTML code for the page
+		parsePreamble();
 		String html = 
 			"<!DOCTYPE html>" + endl + 
 			"<html lang=\"en\">" + endl + 
@@ -148,10 +68,13 @@ public class HTMLFilter extends BasicVisitor {
 			"	<style>" + endl + 
 			css + 
 			"	</style>" + endl + 
+			// this file is maybe not encoded in utf-8...
 			"	<meta charset=\"utf-8\" />" + endl + 
+			// MathJax->
 			"<script type=\"text/javascript\" " + endl +
 			"src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\">" + endl +
 			"</script>" + endl +
+			// <-MathJax
 			"</head>" + endl + 
 			"<body>" + endl;
 		html += 
@@ -160,17 +83,35 @@ public class HTMLFilter extends BasicVisitor {
 			"</html>" + endl;
 		return html;
 	}
+
+	public void setResult(String result) {
+		this.result = result;
+	}
 	
 	public String getResult() {
 		return result;
 	}
 
+	public void setPreamble(String preamble) {
+		this.preamble = preamble;
+	}
+
+	public String getPreamble() {
+		return preamble;
+	}
+	
+	private boolean isParentParens() {
+		return parentParens;
+	}
+
+	private void setParentParens(boolean parentParens) {
+		this.parentParens = parentParens;
+	}
+
 	@Override
 	public void visit(Definition def) {
 		def.accept(patternsVisitor);
-		title  = def.getMainModule();
-		result += "<span class=\"xlarge\">" + title + " </span> " + endl;
-		result += "<div> <br /> </div>" + endl;
+		title = def.getMainModule();
 		super.visit(def);
 
 	}
@@ -186,6 +127,7 @@ public class HTMLFilter extends BasicVisitor {
 
 	@Override
 	public void visit(Syntax syn) {
+		// These are rendered using a table to position each symbol nicely.
 		result += "<table> <tr> <td> SYNTAX ";
 		firstProduction = true;
 		super.visit(syn);
@@ -208,45 +150,41 @@ public class HTMLFilter extends BasicVisitor {
 		
 		if (p.getItems().get(0).getType() != ProductionType.USERLIST && p.getAttributes().containsKey(Constants.CONS_cons_ATTR) 
 				&& patternsVisitor.getPatterns().containsKey(p.getAttributes().get(Constants.CONS_cons_ATTR))
-				&& patternsVisitor.isLatex(p.getAttributes().get(Constants.CONS_cons_ATTR))) {
+				&& patternsVisitor.getPatternType(p.getAttributes().get(Constants.CONS_cons_ATTR)) != HTMLPatternType.DEFAULT) {
+		/* This condition pretty much is : "Does this production have a Latex or HTML attribute?"
+		 * If yes, use the attribute to print it. 
+		 * The information about the attribute is in HTMLPatternVisitor.
+		 * If no, just process it normally, that is super.visit(p) and process each element normally.*/
 			
 			String pattern = patternsVisitor.getPatterns().get(p.getAttributes().get(Constants.CONS_cons_ATTR));
+			boolean isLatex = patternsVisitor.getPatternType(p.getAttributes().get(Constants.CONS_cons_ATTR)) == HTMLPatternType.LATEX;
 			int n = 1;
-			HTMLFilter termFilter = new HTMLFilter();
+			HTMLFilter termFilter = new HTMLFilter(includePath);
 			for (ProductionItem pi : p.getItems()) {
 				if (pi.getType() != ProductionType.TERMINAL) {
 					termFilter.result = "";
 					pi.accept(termFilter);
-					pattern = pattern.replace("{#" + n++ + "}", "\\)" + termFilter.getResult() + "\\(");
+					pattern = pattern.replace("{#" + n++ + "}", isLatex ? "\\)" + termFilter.getResult() + "\\(" : termFilter.getResult());
 				}
 			}
-			result += "\\(" + pattern + "\\)";
+			/* The \( and \) symbols are used to indicate which portions of the code should be 
+			 * treated by MathJax. */
+			result += isLatex ? "\\(" + pattern + "\\)" : pattern;
 		} else {
-		super.visit(p);
+			super.visit(p);
 		}
-//		}
 		p.getAttributes().accept(this);
-		//result += "Production - END " + "</div>" + endl;
 		result += "</td> </tr>" + endl;
 	}
 
 	@Override
 	public void visit(Terminal pi) {
 		result += makeGreek(htmlify(pi.getTerminal())) +" ";
-		/*String terminal = pi.getTerminal();
-		if (terminal.isEmpty())
-			return;
-		if (DefinitionHelper.isSpecialTerminal(terminal)) {
-			result += StringUtil.latexify(terminal);
-		} else {
-			result += "\\terminal{" + StringUtil.latexify(terminal) + "}";
-		}*/
 	}
 
 	@Override
 	public void visit(UserList ul) {
 		result += "<span class =\"italic\">" + "List</span>{#<span class =\"italic\">" + ul.getSort() + "</span>,\"" + ul.getSeparator() + "\"} </span>"  + endl;
-		//result += "List\\{" + StringUtil.latexify(ul.getSort()) + ", \\mbox{``}" + StringUtil.latexify(ul.getSeparator()) + "\\mbox{''}\\}";
 	}
 
 	@Override
@@ -260,6 +198,8 @@ public class HTMLFilter extends BasicVisitor {
 	public void visit(Cell c) {
 		String blockClasses = "block";
 		String tabClasses = "tab";
+		
+		//this condition checks how the edges of the cell should be.
 		if (c.getElipses().equals("left")) {
 			blockClasses += " left";
 			tabClasses += " straightEdge";
@@ -272,13 +212,17 @@ public class HTMLFilter extends BasicVisitor {
 		} else {
 			tabClasses += " curvedEdge";
 		}
+		
+		// This condition checks the color of the cell.
 		if (c.getAttributes().containsKey("color") && HTMLColors.containsKey(c.getAttributes().get("color").toLowerCase())) {
 			cellColors.put(c.getLabel(), c.getAttributes().get("color").toLowerCase());
 		}
-
-		String color = getCellColor(makeGreek(htmlify(c.getLabel())));
+		/* If the cell does not have a color attribute or a recognizable name for that color,
+		 * getCellColor() returns "default" -> (black and white). */
 		String cellName = makeGreek(htmlify(c.getLabel()));
+		String color = getCellColor(cellName);
 		
+		// If the color has not been used yet, the css string has to be updated.
 		if(usedColors.add(color))
 			addToCss(color);
 		
@@ -286,6 +230,9 @@ public class HTMLFilter extends BasicVisitor {
 		result += "<span class = \"bold\">" + cellName + "</span> </div>";
 		result += "<br />";
 		result += "<div class=\"" + blockClasses + " " + color + "\" ";
+		
+		/* This condition makes sure the cell and the tag of the cell 
+		are not too small for their content */
 		if(cellName.length() > 5) {
 			double mw = Math.floor(cellName.length() * 0.7 *10 +0.5 )/10.0;
 			result += "style=\"min-width:"+mw+"em\"";
@@ -325,24 +272,7 @@ public class HTMLFilter extends BasicVisitor {
 			result += "title =\"" + var.getSort() + "\"";
 		}
 		result+=">" + makeGreek(var.getName());
-		
-		/*if (var.getName().equals("_")) {
-			result += "_";
-		} else {
-			result += "var " + makeGreek(var.getName())+ " ";
-		}*/
 		result+=" </span> ";
-	}
-
-	/*private String makeIndices(String str) {
-		return str;
-	}*/
-
-	private String makeGreek(String name) {
-		return name.replace("Alpha", "&alpha;").replace("Beta", "&beta;").replace("Gamma", "&gamma;").replace("Delta", "&delta;").replace("VarEpsilon", "&vepsilon;").replace("Epsilon", "&epsilon;").replace("Zeta", "&zeta;").replace("Eta", "&eta;")
-				.replace("Theta", "&theta;").replace("Kappa", "&kappa;").replace("Lambda", "&lambda;").replace("Mu", "&mu;").replace("Nu", "&nu;").replace("Xi", "&xi;").replace("Pi", "&pi;").replace("VarRho", "&varrho;").replace("Rho", "&rho;")
-				.replace("VarSigma", "&vsigma;").replace("Sigma", "&sigma;").replace("GAMMA", "&Gamma;").replace("DELTA", "&Delta;").replace("THETA", "&Theta;").replace("LAMBDA", "&Lambda;").replace("XI", "&Xi;").replace("PI", "&Pi;")
-				.replace("SIGMA", "&Sigma;").replace("UPSILON", "&Upsilon;").replace("PHI", "&Phi;");
 	}
 
 	@Override
@@ -397,41 +327,18 @@ public class HTMLFilter extends BasicVisitor {
 
 	@Override
 	public void visit(TermCons trm) {
-		
-		/*String pattern = patternsVisitor.getPatterns().get("\"" + trm.getCons() + "\"");
-		if (pattern == null) {
-			Production pr = DefinitionHelper.conses.get("\"" + trm.getCons() + "\"");
-			pr.accept(patternsVisitor);
-			pattern = patternsVisitor.getPatterns().get("\"" + trm.getCons() + "\"");
-		}
-		String regex = "\\{#\\d+\\}$";
-		Pattern p = Pattern.compile(regex);
-		if (parentParens && (pattern.indexOf("{#") == 0 
-				|| p.matcher(pattern).matches())) {
-			pattern = "(" + pattern + ")";
-		}		
-		int n = 1;
-		LatexFilter termFilter = new LatexFilter();
-		for (Term t : trm.getContents()) {
-			termFilter.setResult("");
-			regex = "\\{#\\d+\\}\\{#" + n + "\\}";
-			p = Pattern.compile(regex);
-			if (pattern.contains("{#" + n + "}{#") || p.matcher(pattern).matches()) {
-				termFilter.setParentParens(true);				
-			}
-			t.accept(termFilter);
-			pattern = pattern.replace("{#" + n++ + "}", "{" + termFilter.getResult() + "}");
-		}
-		result += pattern;*/
-		Boolean hasLatexAttribute = patternsVisitor.isLatex("\"" + trm.getCons() + "\"");
-		if(hasLatexAttribute == null)
+		HTMLPatternType type = patternsVisitor.getPatternType("\"" + trm.getCons() + "\"");
+		if(type == null)
 		{
 			Production pr = DefinitionHelper.conses.get("\"" + trm.getCons() + "\"");
 			pr.accept(patternsVisitor);
-			hasLatexAttribute = patternsVisitor.isLatex("\"" + trm.getCons() + "\"");
+			type = patternsVisitor.getPatternType("\"" + trm.getCons() + "\"");
 		}
-		
-		if(hasLatexAttribute.booleanValue()){
+		/* This condition pretty much is : "Does this term have a Latex or HTML attribute?" */
+		if(type != HTMLPatternType.DEFAULT) {
+			
+		/* If yes, use the attribute to print it. 
+		 * The information about the attribute is in HTMLPatternVisitor. */
 			String pattern = patternsVisitor.getPatterns().get("\"" + trm.getCons() + "\"");
 			String regex = "\\{#\\d+\\}$";
 			Pattern p = Pattern.compile(regex);
@@ -440,7 +347,7 @@ public class HTMLFilter extends BasicVisitor {
 				pattern = "(" + pattern + ")";
 			}		
 			int n = 1;
-			HTMLFilter termFilter = new HTMLFilter();
+			HTMLFilter termFilter = new HTMLFilter(includePath);
 			for (Term t : trm.getContents()) {
 				termFilter.result = "";
 				regex = "\\{#\\d+\\}\\{#" + n + "\\}";
@@ -449,10 +356,22 @@ public class HTMLFilter extends BasicVisitor {
 					termFilter.setParentParens(true);				
 				}
 				t.accept(termFilter);
-				pattern = pattern.replace("{#" + n++ + "}", "\\) " + termFilter.getResult() + "\\(");
+				if(type == HTMLPatternType.LATEX)
+					pattern = pattern.replace("{#" + n++ + "}", "\\) " + termFilter.getResult() + "\\(");
+				else
+					pattern = pattern.replace("{#" + n++ + "}", termFilter.getResult());
 			}
-			result += "\\(" + pattern + "\\)";
-		}else {
+			/* The \( and \) symbols are used to indicate which portions of the code should be 
+			 * treated by MathJax.*/
+			if(type == HTMLPatternType.LATEX)
+				result += "\\("+pattern+"\\)";
+			else
+				result += pattern;
+			
+		} else {
+			/* If the termCons does not have a Latex or HTML attribute, 
+			 * the term is printed by using the informations in the termCons's
+			 * production and in its list of terms (contents). */
 			boolean empty = true;
 			Production pr = trm.getProduction();
 	
@@ -485,7 +404,6 @@ public class HTMLFilter extends BasicVisitor {
 	@Override
 	public void visit(Constant c) {
 		result += "<span title =\"" + c.getSort() + "\"> " + makeGreek(c.getValue()) + " </span> ";
-		//result += "\\constant[" + StringUtil.latexify(c.getSort()) + "]{" + StringUtil.latexify(c.getValue()) + "}";
 	}
 
 	@Override
@@ -498,7 +416,6 @@ public class HTMLFilter extends BasicVisitor {
 	@Override
 	public void visit(KSequence k) {
 		printList(k.getContents(), "&#x219d; ");
-
 	}
 
 	@Override
@@ -516,24 +433,38 @@ public class HTMLFilter extends BasicVisitor {
 
 	@Override
 	public void visit(LiterateDefinitionComment comment) {
-		/*if (comment.getType() == LiterateCommentType.LATEX) {
-			result += "\\begin{kblock}[text]" + endl;
-			result += comment.getValue();
-			result += "\\end{kblock}" + endl;
+		/*MathJax does not render these comments correctly. 
+		 * It's told explicitly to ignore them with the tex2jax_ignore class. */
+		if (comment.getType() == LiterateCommentType.LATEX) {
+			result += "<div class=\"commentBlock definitionComment tex2jax_ignore\">" + endl;
+			result += parseComment(comment.getValue());
+			result += "</div><div><br /></div>" + endl;
 		} else if (comment.getType() == LiterateCommentType.PREAMBLE) {
 			preamble += comment.getValue();
-		}*/
+		}
 	}
 
 	@Override
 	public void visit(LiterateModuleComment comment) {
-		/*if (comment.getType() == LiterateCommentType.LATEX) {
-			result += "\\begin{kblock}[text]" + endl;
-			result += comment.getValue();
-			result += "\\end{kblock}" + endl;
+		/*MathJax does not render these comments correctly. 
+		 * It's told explicitly to ignore them with the tex2jax_ignore class. */
+		if (comment.getType() == LiterateCommentType.LATEX) {
+			result += "<div class=\"commentBlock moduleComment tex2jax_ignore\">" + endl;
+			result += parseComment(comment.getValue());
+			result += "</div><div><br /></div>" + endl;
 		} else if (comment.getType() == LiterateCommentType.PREAMBLE) {
 			preamble += comment.getValue();
-		}*/
+		}
+	}
+	
+	@Override
+	public void visit(Attributes attributes) {
+		firstAttribute = true;
+		for (Attribute entry : attributes.getContents()) {
+			entry.accept(this);
+		}
+		if(!firstAttribute)
+			result += "</span> ]";
 	}
 
 	@Override
@@ -542,8 +473,14 @@ public class HTMLFilter extends BasicVisitor {
 			return;
 		if (DefinitionHelper.isParsingTag(entry.getKey()))
 			return;
+		
+		// The latex and/or html attributes are processed in the HTMLPatternVisitor, not here.
 		if (entry.getKey().equals("latex"))
 			return;
+		if (entry.getKey().equals("html")) {
+			return;
+		}
+			
 		
 		if (firstAttribute) {
 			result += " [ <span class =\"attribute\"> ";
@@ -554,26 +491,220 @@ public class HTMLFilter extends BasicVisitor {
 		result += makeGreek(entry.getKey());
 		String value = makeGreek(entry.getValue());
 		
-		if (!value.isEmpty()) {
+		if (!value.isEmpty())
 			result += "(" + value + ")";
-		}
-		
-
-		
-	}
-
-	@Override
-	public void visit(Attributes attributes) {
-		firstAttribute = true;
-		for (Attribute entry : attributes.getContents()) {
-			entry.accept(this);
-		}
-		if(!firstAttribute)
-			result += "</span> ]";
-	
 	}
 	
-	private void initializeCss(){
+	private String makeGreek(String name) {
+		/* Replaces Greek characters by their HTML representation */
+		return name.replace("Alpha", "&alpha;").replace("Beta", "&beta;").replace("Gamma", "&gamma;").replace("Delta", "&delta;").replace("VarEpsilon", "&vepsilon;").replace("Epsilon", "&epsilon;").replace("Zeta", "&zeta;").replace("Eta", "&eta;")
+				.replace("Theta", "&theta;").replace("Kappa", "&kappa;").replace("Lambda", "&lambda;").replace("Mu", "&mu;").replace("Nu", "&nu;").replace("Xi", "&xi;").replace("Pi", "&pi;").replace("VarRho", "&varrho;").replace("Rho", "&rho;")
+				.replace("VarSigma", "&vsigma;").replace("Sigma", "&sigma;").replace("GAMMA", "&Gamma;").replace("DELTA", "&Delta;").replace("THETA", "&Theta;").replace("LAMBDA", "&Lambda;").replace("XI", "&Xi;").replace("PI", "&Pi;")
+				.replace("SIGMA", "&Sigma;").replace("UPSILON", "&Upsilon;").replace("PHI", "&Phi;");
+	}
+	
+	private String htmlify(String name) {
+		return name.replace("<", "&lt;");
+	}
+	
+	private String HTMLColorToString(Color a) {
+		// This function is used to output a Color in the html #RRGGBB format.
+		return "#" + toHex(a.getRed()) + toHex(a.getGreen()) + toHex(a.getBlue());
+	}
+	
+	private String toHex(int c) {
+		/* This function expects an integer between 0-255.
+		 * It returns it's hexadecimal representation.
+		 */
+		if(0 <= c && c <= 15)
+			return "0" + Integer.toHexString(c);
+		else if(16 <= c && c <= 255)
+			return Integer.toHexString(c);
+		else
+			return "ERROR in String toHex(int c), c = "+c;
+	}
+	
+	private String parseComment(String comment) {
+		/* This function parses the comments and transforms their Latex instructions to html
+		 * using the config files loaded in the Latex2HTMLone and Latex2HTMLzero Properties.
+		 * 
+		 * These config files are in /dist/include/html for now.
+		 * */
+		
+		/* This loop takes care of the latex instructions that contain arguments.
+		 * These arguments are found by multipleLatexExtracts(). They can then be used to replace 
+		 * the latex instruction by the corresponding html representation.  */
+		for (Enumeration e = Latex2HTMLone.keys() ; e.hasMoreElements() ;) {
+			String key = (String) e.nextElement();
+			if(key != null) {
+				
+				Vector<Integer> startIndexs = findStartIndexs(key);
+				int numberOfIndexs = startIndexs.size();
+				Vector<Vector<String>> contents = multipleLatexExtracts(comment,regexify(key),startIndexs);
+				for(Vector<String> c : contents) {
+					String copyKey = key;
+					String property = Latex2HTMLone.getProperty(key);
+					for(int i = 1; i < numberOfIndexs+1; i++) {
+						copyKey = copyKey.replace("#"+i, c.get(i-1));
+						property = property.replace("#"+i,c.get(i-1));
+					}
+					comment = comment.replace(copyKey,property);
+				}
+			}
+				
+	     }
+		
+		/* This loop takes care of the latex instructions take can be transformed to HTML by a direct replacement.  */
+		for (Enumeration e = Latex2HTMLzero.keys() ; e.hasMoreElements() ;) {
+			String key = (String) e.nextElement();
+			
+			if(key != null)
+				comment = comment.replace(key,Latex2HTMLzero.getProperty(key));	
+	     }
+		return comment;
+	}
+	
+	private Vector<Vector<String>> multipleLatexExtracts(String from, String regex, Vector<Integer> startIndexs) {
+		/* This function uses regex to match the begin of each latex instruction
+		 * in the text contained in the String from. It then extracts the argument(s) of 
+		 * each instruction found by matching opening and closing curly braces by a linear
+		 * search in the string. The startIndexs are the places where it should start it's search
+		 * for each argument.
+		 *  */
+		/* The return argument means : 
+		 * outside Vector -> each extract 
+		 * inside Vector  -> the different strings of an extract
+		 * */
+		Vector<Vector<String>> results = new Vector<Vector<String>>();
+		Pattern p = Pattern.compile(regex,Pattern.DOTALL);
+		Matcher m = p.matcher(from);
+		while(m.find()) {
+			/* The offset is used in extracts where there is more than one
+			 * argument. It takes into account the length of the previous arguments. */ 
+			int offset = 0;
+			if(!m.group().isEmpty()) {
+				Vector<String> contents = new Vector<String>();
+				for(int start : startIndexs) {
+					
+					int a = m.start()+start+offset;
+					int i = a;
+					for(int braceCount = 1; braceCount > 0 && i < from.length(); i++) {
+						if(from.charAt(i) == '{')
+								braceCount++;
+						else if (from.charAt(i) == '}')
+							braceCount--;
+					}
+					contents.add(from.substring(a,i-1));
+					offset += from.substring(a,i-1).length() - 2;
+				}
+				results.add(contents);
+			}
+		}
+		return results;
+	}
+	
+	private Vector<Integer> findStartIndexs(String from) {
+		// The startIndexs are the positions of the different #1, #2, ... in the string.
+		Vector<Integer> result = new Vector<Integer>();
+		for(int i = 1; from.contains("#"+i); i++) {
+				result.add(from.indexOf("#"+i));
+		}
+		return result;
+	}
+	
+	
+	private String regexify(String regex) {
+		String a = regex;
+		for(int i = 1; a.contains("#" + i); i++)
+			a = a.replace("#"+i, ".*?");
+		
+		return a.replace("\\", "\\\\").replace("{","\\{").replace("}", "\\}");
+	}
+	
+	private Color alter(Color a ) {
+		// This makes the color lighter to make it a suitable background for a cell.
+		float hsb[] = Color.RGBtoHSB(a.getRed(), a.getGreen(), a.getBlue(), null);
+		hsb[1] /= 4;
+		hsb[2] = (float) (240.0/255.0);
+		return new Color( Color.HSBtoRGB( hsb[0], hsb[1], hsb[2] ) );
+	}
+	
+	private void loadProperties() {
+		try {
+		    Latex2HTMLzero.load(new FileInputStream(includePath + "Latex2HTMLzero.properties"));
+		} catch (IOException e) {
+			System.out.println("error loading " + includePath + "Latex2HTMLzero.properties");
+		}
+		
+		try {
+		    Latex2HTMLone.load(new FileInputStream(includePath + "Latex2HTMLone.properties"));
+		} catch (IOException e) {
+			System.out.println("error loading Latex2HTMLone.properties");
+		}
+	}
+	
+	private void addToCss(String color) {
+		css += "." + color + endl
+				+ "{" + endl
+				+ "border-color: " + HTMLColorToString( HTMLColors.get(color).darker().darker() ) + ";" + endl
+				+ "background-color: " + HTMLColorToString( alter(HTMLColors.get(color)) ) + ";" + endl
+				+ "}" + endl;
+	}
+	
+	private String getCellColor(String cellName) {
+		if(cellColors.get(cellName) != null)
+			return cellColors.get(cellName);
+		else
+			return "defaultColor";		
+	}
+
+	private void parsePreamble() {
+		/* This function parses the preamble and detects the title, organization and author7
+		 *  specified in the preamble. It adds these information to the beginning of result. */
+		
+		if(preamble.contains("\\title{"))
+			title = parseComment(latexExtract(preamble,"\\title{"));
+		organization = latexExtract(preamble,"\\organization{");
+		author = latexExtract(preamble,"\\author{");
+		
+		if(organization != null) {
+			result = "<div> <br /> </div>" + endl + result;
+			result = "<span>" + parseComment(organization) + " </span> " + endl + result;
+		}
+		if(author != null) {
+			result = "<div> <br /> </div>" + endl + result;
+			result = "<span>" + parseComment(author) + "</span> " + endl + result;
+		}
+		
+		result = "<div> <br /> </div>" + endl + result;
+		result = "<h1>" + title + " </h1> " + endl + result;
+		
+	}
+	
+	// a simple version of multipleLatexExtracts that does not use regex
+	private String latexExtract(String from, String instruction)
+	{
+		int a = from.indexOf(instruction);
+		if(a != -1) {
+			a += instruction.length();
+			int i = a;
+			for(int b = 1; b > 0 && i < from.length(); i++) {
+				if(from.charAt(i) == '{')
+					b++;
+				else if (from.charAt(i) == '}')
+					b--;
+			}
+			return from.substring(a,i-1);
+		}
+		return null;
+	}
+	
+	private void initializeCss() {
+	/*  This function initializes the css string. 
+		It's added directly in the header of the html page.
+		The content of this string should be put in an external file
+		an loaded during execution. 
+	*/
 		css += ".bold" + endl
 				+ "{" + endl
 				+ "font-weight: bold;"+endl
@@ -597,6 +728,11 @@ public class HTMLFilter extends BasicVisitor {
 		css += ".xlarge" + endl
 				+ "{" + endl
 				+ "font-size: x-large;"+endl
+				+ "}" + endl;
+		
+		css += ".courier" + endl
+				+ "{" + endl
+				+ "font-family: courier;"+endl
 				+ "}" + endl;
 		
 		css += ".attribute" + endl
@@ -681,6 +817,19 @@ public class HTMLFilter extends BasicVisitor {
 				+ "text-align: left;"+endl
 				+ "}" + endl;
 		
+		css += ".commentBlock" + endl
+				+ "{" + endl
+				+ "color : black;"+endl
+				+ "border-width: 1px;"+endl
+				+ "display: inline-block; "+endl
+				+ "padding: 10px;"+endl
+				+ "padding-left: 20px;"+endl
+				+ "padding-right: 20px;"+endl
+				+ "border-radius: 30px;"+endl
+				+ "border-style: solid;"+endl
+				+ "text-align: left;"+endl
+				+ "}" + endl;
+		
 		css += ".block.right" + endl
 				+ "{" + endl
 				+ "border-top-right-radius: 0px;"+endl
@@ -700,33 +849,21 @@ public class HTMLFilter extends BasicVisitor {
 				+ "border-color: #000000;"+endl
 				+ "background-color: #FFFFFF;"+endl
 				+ "}" + endl;
+		
+		css += ".definitionComment" + endl
+				+ "{" + endl
+				+ "border-color: #000000;"+endl
+				+ "background-color: #f2f2f2;"+endl
+				+ "}" + endl;
+		
+		css += ".moduleComment" + endl
+				+ "{" + endl
+				+ "border-color: #000000;"+endl
+				+ "background-color: #e5e5e5;"+endl
+				+ "}" + endl;
 	}
 	
-	private String htmlify(String name) {
-		return name.replace("<", "&lt;");
-	}
-	
-	private String HTMLColorToString(Color a){
-		return "#" + toHex(a.getRed()) + toHex(a.getGreen()) + toHex(a.getBlue());
-	}
-	
-	private String toHex(int c){
-		if(0 <= c && c <= 15)
-			return "0" + Integer.toHexString(c);
-		else if(16 <= c && c <= 255)
-			return Integer.toHexString(c);
-		else
-			return "ERROR in String toHex(int c)";
-	}
-	
-	private Color alter(Color a ) {
-		float hsb[] = Color.RGBtoHSB(a.getRed(), a.getGreen(), a.getBlue(), null);
-		hsb[1] /= 4;
-		hsb[2] = (float) (240.0/255.0);
-		return new Color( Color.HSBtoRGB( hsb[0], hsb[1], hsb[2] ) );
-	}
-	
-	private void createHTMLColors(){
+	private void createHTMLColors() {
 		usedColors.add("defaultColor");
 		
 		HTMLColors.put("aliceblue" , new Color(240, 248, 255));
@@ -876,7 +1013,5 @@ public class HTMLFilter extends BasicVisitor {
 		HTMLColors.put("whitesmoke" , new Color(245, 245, 245));
 		HTMLColors.put("yellow" , new Color(255, 255, 0));
 		HTMLColors.put("yellowgreen" , new Color(154, 205, 50));
-
-
 	}
 }

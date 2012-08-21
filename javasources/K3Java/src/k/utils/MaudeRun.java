@@ -31,7 +31,7 @@ public class MaudeRun {
 //		System.out.println("OS: |" + osname + "|" + arch + "|");
 //		System.out.println(KPaths.getKBase(true));
 		
-		String maudeDir = KPaths.getKBase(true) +  fileSeparator + "bin" + fileSeparator + "maude" + fileSeparator + "binaries";
+		String maudeDir = KPaths.getKBase(false) +  fileSeparator + "bin" + fileSeparator + "maude" + fileSeparator + "binaries";
 		String maudeExe = "maude";
 		
 		if (osname.toLowerCase().contains("win"))
@@ -55,13 +55,12 @@ public class MaudeRun {
 			else maudeExe = maudeDir + fileSeparator + maude_linux_32;			
 		}
 		
-	   
+   
 	    if (!new File(maudeExe).exists())
 	    {
 		   // if the maude binaries are not found then consider default `maude`
 		   return "maude";
 		}
-	   
 	   
 		return maudeExe;
 	}

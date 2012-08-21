@@ -102,7 +102,7 @@ public class Definition implements Cloneable {
 
 				String parsedLatex = null;
 				Document docLatex = null;
-				if (GlobalSettings.latex) {
+				if (GlobalSettings.literate) {
 					// parse the string again to extract the comments
 					parsedLatex = K3LatexParser.ParseKString(content);
 					docLatex = XmlLoader.getXMLDoc(parsedLatex);
@@ -133,11 +133,11 @@ public class Definition implements Cloneable {
 
 				NodeList xmlModules = doc.getDocumentElement().getElementsByTagName(Tag.module);
 				NodeList xmlComments = null;
-				if (GlobalSettings.latex)
+				if (GlobalSettings.literate)
 					xmlComments = docLatex.getDocumentElement().getElementsByTagName(Tag.comment);
 				// TODO: insert latex comments in the def.xml
 
-				java.util.List<Module> modulesTemp = new ArrayList<Module>();
+				java.util.List<ModuleItem> modulesTemp = new ArrayList<ModuleItem>();
 
 				for (int i = 0; i < xmlModules.getLength(); i++) {
 					Module km = new Module(xmlModules.item(i), cannonicalPath);
@@ -145,14 +145,16 @@ public class Definition implements Cloneable {
 					// used later for latex and when including SHARED module
 					if (file.getAbsolutePath().startsWith(new File(KPaths.getKBase(false) + "/include/").getAbsolutePath()))
 						km.setPredefined(true);
-					if (GlobalSettings.latex)
+					if (GlobalSettings.literate)
 						km.addComments(xmlComments);
 
+					for (int j = 0; j < xmlIncludes.getLength(); j++)
+						modulesTemp.add(new Require(xmlIncludes.item(j)));
 					modulesTemp.add(km);
 					modulesMap.put(km.getModuleName(), km);
 				}
 
-				if (GlobalSettings.latex)
+				if (GlobalSettings.literate)
 					modules.addAll(Definition.mergeModuleAndComments(modulesTemp, xmlComments));
 				else
 					modules.addAll(modulesTemp);
@@ -164,7 +166,7 @@ public class Definition implements Cloneable {
 		}
 	}
 
-	private static List<ModuleItem> mergeModuleAndComments(List<Module> lm, NodeList lnl) {
+	private static List<ModuleItem> mergeModuleAndComments(List<ModuleItem> lm, NodeList lnl) {
 		List<ModuleItem> lmi = new ArrayList<ModuleItem>();
 		List<CommentDef> lcd = new ArrayList<CommentDef>();
 
@@ -173,7 +175,7 @@ public class Definition implements Cloneable {
 			Element elm = (Element) lnl.item(i);
 			boolean intraModule = false;
 			CommentDef cd = new CommentDef(elm);
-			for (Module m : lm) {
+			for (ModuleItem m : lm) {
 				if (cd.getStartLine() >= m.getStartLine() && cd.getEndLine() <= m.getEndLine()) {
 					intraModule = true;
 					break;
@@ -187,7 +189,7 @@ public class Definition implements Cloneable {
 		int j = 0;
 
 		while (i < lm.size() && j < lcd.size()) {
-			Module s = lm.get(i);
+			ModuleItem s = lm.get(i);
 			CommentDef com = lcd.get(j);
 			if (s.getStartLine() < com.getStartLine()) {
 				lmi.add(s);
@@ -256,7 +258,9 @@ public class Definition implements Cloneable {
 
 							// filter the productions according to their form
 							for (Production prd : prt.getProductions()) {
-								if (prd.isSubsort()) {
+								if (prd.getAttributes().containsKey("onlyLabel")) {
+									// if a production has this attribute, don't add it to the list
+								} else if (prd.isSubsort()) {
 									outsides.add(prd);
 									subsorts.add(prd);
 									if (prd.getProdSort().equals(new Sort("Start")))
@@ -477,6 +481,12 @@ public class Definition implements Cloneable {
 			sdf += "	\"" + p.getItems().get(0) + "\" -> Dz" + StringUtil.escapeSortName(p.getProdSort().getSortName()) + "\n";
 		}
 
+		sdf += "\n\n%% sort predicates\n";
+		// print is<Sort> predicates (actually KLabel)
+		for (Sort s : userSorts) {
+				sdf += "	\"is" + s.getSortName() + "\"      -> DzKLabel\n";
+		}
+
 		sdf += "\n\n";
 
 		sdf += "\n%% terminals reject\n";
@@ -493,6 +503,7 @@ public class Definition implements Cloneable {
 		sdf += "%% some restrictions to ensure greedy matching for user defined constants\n";
 		sdf += "	DzDzId  -/- [a-zA-Z0-9]\n";
 		sdf += "	DzDzInt -/- [0-9]\n";
+		sdf += "	\"is\" -/- [\\#A-Z]\n";
 
 		return sdf + "\n";
 	}
@@ -1158,7 +1169,7 @@ public class Definition implements Cloneable {
 	public void setMainModule(String mainModule) {
 		this.mainModule = mainModule;
 		if (!this.modulesMap.containsKey(this.mainModule))
-			GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.COMPILER, KMessages.ERR1002 + mainModule + ". Use --lang <arg> to specify another.", this.mainFile.getName(), "definition", 0));
+			GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL, KMessages.ERR1002 + mainModule + ". Use --lang <arg> to specify another.", this.mainFile.getName(), "definition", 0));
 	}
 
 	public String getMainModule() {
