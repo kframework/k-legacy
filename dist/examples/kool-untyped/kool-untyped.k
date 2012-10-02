@@ -204,7 +204,7 @@ of Java.  In fact, the latter can be implemented in terms of
 
   syntax KResult ::= Val //| Vals
 
-  syntax K ::= "undefined"  [latex("\bot")]
+  syntax K ::= "undefined"  [latex(\bot)]
 
   rule <k> var X:Id; => . ...</k>
        <env> Env:Map => Env[L:Int/X] </env>
@@ -214,7 +214,7 @@ of Java.  In fact, the latter can be implemented in terms of
   rule <k> var X:Id[N:Int]; => . ...</k>
        <env> Env:Map => Env[L:Int/X] </env>
        <store>... . => L |-> arrayRef(L +Int 1, N)
-                       L +Int 1 .. L +Int N |-> undefined
+                       Map(L +Int 1 .. L +Int N |-> undefined)
        ...</store>
        <nextLoc> L => L +Int 1 +Int N </nextLoc>
 
@@ -809,7 +809,7 @@ with the most concrete class and going up in the hierarchy. */
 // Otherwise, recurse through the object environment stack
   rule lookupMember(<envStack> ListItem(_:Id :: <env> Env:Map </env>)
                                 => .
-                    ...</envStack>, X)
+                    ...</envStack>, X:Id)
        when notBool(X in keys(Env))
        [anywhere]
 

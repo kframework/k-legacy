@@ -5,9 +5,7 @@ imports
   libstratego-sglr
   include/K3Disamb
   xmlify
-  config
   disamb
-  disambSup
   programs
 
 rules
@@ -54,14 +52,13 @@ rules
 	importCells  = ?[a, b] ; <ReadFromFile> b ; ?trm ; rules(MemoMyCells  : _ -> trm)
 	importTblPgm = ?[a, b] ; <ReadFromFile> b ; ?trm ; rules(MemoMyTblPgm : _ -> trm)
 
-	javaParseStringConfig = ?[a, b] ; <parse-string(my-parse-error|<MemoMyTbl>)> b ; (handleErrors <+ justFineConfig)
-	javaParseStringRules  = ?[a, b, c] ; <parse-string(my-parse-error|<MemoMyTbl>)> b ; (handleErrors <+ justFineRule(|c))
-	javaParseStringPgm    = ?[a, b] ; <parse-string(my-parse-error|<MemoMyTblPgm>)> b ; (handleErrors <+ justFinePgms)
+	javaParseStringConfig = ?[a, b] ; <parse-string(my-parse-error|<MemoMyTbl>, "StartDz")> b       ; (handleErrors <+ justFine)
+	javaParseStringRules  = ?[a, b] ; <parse-string(my-parse-error|<MemoMyTbl>, "StartDz")> b       ; (handleErrors <+ justFine)
+	javaParseStringCmd    = ?[a, b] ; <parse-string(my-parse-error|<MemoMyTbl>, "RuleContentDz")> b ; (handleErrors <+ justFine)
+	javaParseStringPgm    = ?[a, b] ; <parse-string(my-parse-error|<MemoMyTblPgm>, "Start")> b    ; (handleErrors <+ justFinePgms)
 
-	justFineRule(|c) =
-		mydisambiguate(|c) ; justFine2
-	justFineConfig =
-		mydisambiguateConfig ; justFine2
+	justFine =
+		mydisambiguate ; justFine2
 	justFinePgms = bottomup(try(removeDuplicateAmb)) ; makeConsLists ; justFinePgms2
 
 	removeDuplicateAmb:
@@ -116,9 +113,11 @@ rules
 	// xmlify - starts from here
 	xmlStringEscape         = string-replace(|"&", "&amp;") ; string-replace(|">", "&gt;") ; string-replace(|"<", "&lt;") ; string-replace(|"\"", "&quot;")
 	xmlStringEscapeFromString = string-replace(|"&", "&amp;") ; string-replace(|">", "&gt;") ; string-replace(|"<", "&lt;") ; string-replace(|"\\\"", "&quot;")
-	getLocAsString        = (prim("SSL_EXT_origin_location", <id>) ; write-to-string) <+ !"(0,0,0,0)"
+	getLocAsString:
+		_{loc} -> <write-to-string> loc
+	getLocAsString2       = (prim("SSL_EXT_origin_location", <id>) ; write-to-string) <+ !"(0,0,0,0)"
 	get-original-sentence = prim("SSL_EXT_origin_text", <id>) ; xmlStringEscape ; escape
-
+	external xml-string-escape-from-string(|)
 
 	// ------------------------- doing some tests -------------------------------
 	//         java -jar strategoxt.jar -i starter.str -o K3Str -la stratego-sglr --lib -I .. -p k3parser.lib --clean
@@ -146,5 +145,5 @@ rules
 		(ast, path, project-path) -> <testMe5> ast
 
 	testDisambig =
-		(?Config(_) ; mydisambiguateConfig) <+ mydisambiguate(|"full")
+		(?Config(_) ; mydisambiguate) <+ mydisambiguate
 

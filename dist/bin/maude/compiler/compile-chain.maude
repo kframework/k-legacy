@@ -1,18 +1,21 @@
 mod COMPILE-ONESHOT is
- including MANY-MODULES-META 
-+ ADD-EVAL-META 
-+ RESOLVE-BINDER-META
-+ RESOLVE-DITTO-META + COMPLETE-K-SORTS-META + ANONYMOUS-CONSTANTS-META 
+ including 
+---  MANY-MODULES-META 
+---+ ADD-EVAL-META 
+---+ RESOLVE-BINDER-META
+---+ RESOLVE-DITTO-META 
+---+ COMPLETE-K-SORTS-META 
+---+ ANONYMOUS-CONSTANTS-META 
+---+ ANONYMOUS-VARIABLES-META 
 --- + SANITY-CHECKS-META 
-+ REMOVE-PARSER-META 
-+ SYNTAX-PREDICATES-META 
+---+ REMOVE-PARSER-META 
 --- + MISSING-SUBSORTS-META 
-+ BLOCKING-INPUT-META 
+---+ BLOCKING-INPUT-META 
+ SYNTAX-PREDICATES-META 
 + DEFAULT-TERMS-META 
 + CONTEXT-TRANSFORMERS-META 
 + OPEN-CELLS-META 
 + APPLY-MAPEQS-META
-+ ANONYMOUS-VARIABLES-META 
 + MAKE-K-RULES-META 
 --- + REMOVE-SUBLISTS-META
 --- + LISTS-TO-WRAPPERS-META 
@@ -34,23 +37,24 @@ mod COMPILE-ONESHOT is
   eq compile(M, Q QIL, AS) = compile(compile1(M,Q, AS), QIL, AS) .
 
   op compile1 : Module Qid AttrSet ~> Module .
-  eq compile1(M, 'MANY-MODULES, AS) = compileMANY-MODULES(M, AS) .
-  eq compile1(M, 'REMOVE-PARSER, AS) = compileREMOVE-PARSER(M, AS) .
-  eq compile1(M, 'ADD-EVAL, AS) = compileADD-EVAL(M, AS) .
-  eq compile1(M, 'RESOLVE-DITTO, AS) = compileRESOLVE-DITTO(M, AS) .
-  eq compile1(M, 'RESOLVE-BINDER, AS) = compileRESOLVE-BINDER(M, AS) .
-  eq compile1(M, 'COMPLETE-K-SORTS, AS) = compileCOMPLETE-K-SORTS(M, AS) .
-  eq compile1(M, 'ANONYMOUS-CONSTANTS, AS) = compileANONYMOUS-CONSTANTS(M, AS) . 
+---  eq compile1(M, 'MANY-MODULES, AS) = compileMANY-MODULES(M, AS) .
+---  eq compile1(M, 'REMOVE-PARSER, AS) = compileREMOVE-PARSER(M, AS) .
+  eq compile1(M, 'DUMMY, AS) = M .
+---  eq compile1(M, 'ADD-EVAL, AS) = compileADD-EVAL(M, AS) .
+---  eq compile1(M, 'RESOLVE-DITTO, AS) = compileRESOLVE-DITTO(M, AS) .
+---  eq compile1(M, 'RESOLVE-BINDER, AS) = compileRESOLVE-BINDER(M, AS) .
+---  eq compile1(M, 'COMPLETE-K-SORTS, AS) = compileCOMPLETE-K-SORTS(M, AS) .
+---  eq compile1(M, 'ANONYMOUS-CONSTANTS, AS) = compileANONYMOUS-CONSTANTS(M, AS) . 
 ---  eq compile1(M, 'SANITY-CHECKS, AS) = compileSANITY-CHECKS(M, AS) . 
  
 ---  eq compile1(M, 'MISSING-SUBSORTS, AS) = compileMISSING-SUBSORTS(M, AS) . 
   eq compile1(M, 'SYNTAX-PREDICATES, AS) = compileSYNTAX-PREDICATES(M, AS) . 
-  eq compile1(M, 'BLOCKING-INPUT, AS) = compileBLOCKING-INPUT(M, AS) . 
+---  eq compile1(M, 'BLOCKING-INPUT, AS) = compileBLOCKING-INPUT(M, AS) . 
   eq compile1(M, 'DEFAULT-TERMS, AS) = compileDEFAULT-TERMS(M, AS) . 
   eq compile1(M, 'CONTEXT-TRANSFORMERS, AS) = compileCONTEXT-TRANSFORMERS(M, AS) . 
   eq compile1(M, 'OPEN-CELLS, AS) = compileOPEN-CELLS(M, AS) . 
   eq compile1(M, 'APPLY-MAPEQS, AS) = compileAPPLY-MAPEQS(M, AS) . 
-  eq compile1(M, 'ANONYMOUS-VARIABLES, AS) = compileANONYMOUS-VARIABLES(M, AS) . 
+---  eq compile1(M, 'ANONYMOUS-VARIABLES, AS) = compileANONYMOUS-VARIABLES(M, AS) . 
   eq compile1(M, 'MAKE-K-RULES, AS) = compileMAKE-K-RULES(M, AS) . 
 ---  eq compile1(M, 'REMOVE-SUBLISTS, AS) = compileREMOVE-SUBLISTS(M, AS) . 
 ---  eq compile1(M, 'LISTS-TO-WRAPPERS, AS) = compileLISTS-TO-WRAPPERS(M, AS) . 
@@ -68,29 +72,32 @@ mod COMPILE-ONESHOT is
 
   op allSteps : -> QidList .
   eq allSteps = 
+---(
 'MANY-MODULES 
-'ADD-EVAL 
+'ADD-EVAL
 'RESOLVE-DITTO 
 'RESOLVE-BINDER    
 'COMPLETE-K-SORTS 
 'ANONYMOUS-CONSTANTS
 'ANONYMOUS-VARIABLES 
+This step should be done by creating 2 modules  ---    'REMOVE-PARSER 
+'BLOCKING-INPUT
+---) 
+'DUMMY
 --- 'SANITY-CHECKS 
-'REMOVE-PARSER 
 'SYNTAX-PREDICATES
-'SUBSORTS-TO-WRAPPERS   
-'HOMOGENOUS-ARGUMENTS  
+'SUBSORTS-TO-WRAPPERS     
+'HOMOGENOUS-ARGUMENTS     
 
-'MAKE-ALL-LABELS 
+'MAKE-ALL-LABELS         
 'STRICTOPS2CXT 
 --- 'ID-TO-STRING 
 ---'RESULT-PREDICATES
-'BLOCKING-INPUT
 
 'DEFAULT-TERMS 
 'CONTEXT-TRANSFORMERS 
 'OPEN-CELLS 
-'APPLY-MAPEQS
+'APPLY-MAPEQS    
 'MAKE-K-RULES 
 'STRICTCXT2EQS 
 'RESOLVE-HOOKS 
@@ -135,7 +142,9 @@ fmod COMPILE-META is
   eq pcompile(Q, Q', AS) = partialCompile(upModule(Q, false), Q', AS) .
 
   op getPhaseName : Qid ~> QidList .
-  eq getPhaseName('MANY-MODULES) 
+  eq getPhaseName('DUMMY) 
+   = 'doing 'nothing .
+   eq getPhaseName('MANY-MODULES) 
    = 'flattening 'entire 'definition 'in 'a 'single 'module .
   eq getPhaseName('REMOVE-PARSER) 
    = tokenize("removing extra parser stuff") .
@@ -198,7 +207,8 @@ fmod COMPILE-META is
 
   op allSteps : -> QidList .
   eq allSteps = 
-'MANY-MODULES 
+---(
+ 'MANY-MODULES 
 'ADD-EVAL 
 'RESOLVE-DITTO 
 'RESOLVE-BINDER 
@@ -206,8 +216,10 @@ fmod COMPILE-META is
 'ANONYMOUS-CONSTANTS 
 'ANONYMOUS-VARIABLES 
 'REMOVE-PARSER 
---- 'SANITY-CHECKS 
 'BLOCKING-INPUT
+---)
+'DUMMY
+--- 'SANITY-CHECKS 
 'SYNTAX-PREDICATES
 --- 'SYNTAX-TO-K 
 'SUBSORTS-TO-WRAPPERS
@@ -236,11 +248,12 @@ fmod COMPILE-META is
   
   op compile : Module QidList AttrSet ~> Module .
   eq compile(M,nil, AS) = M [print "Final module: " M] .
+  eq compile(M, 'DUMMY QIL, AS) = compile(M, QIL, AS) [print "dummy phasE"] .
   eq compile(M, Q QIL, AS) =  $compile(M, Q, 
     downTerm(getTerm(
              metaRewrite(wrapper(qid(string(Q) + "-META")),
                         qid("compile" + string(Q))[upTerm(M),upTerm(AS)], unbounded)), error)
-     , QIL, AS) [print "applying transformation " Q " on module " M] .
+     , QIL, AS) [owise print "applying transformation " Q " on module " M ] .
   
   op $compile : Module Qid Module QidList AttrSet ~> Module .
   eq $compile(M, Q, moduleError(QIL), QIL', AS) = moduleError(QIL) .
@@ -281,8 +294,8 @@ mod COMPILE-LOOP is
   eq print(moduleError(QIL)) = QIL .
 ---  eq purePrint(moduleError(QIL)) = QIL .
 ---  eq xmlPrint(moduleError(QIL)) = QIL .
-  rl ['compile Q 'transitions QStr 'superheats QComp 'supercools QSuper 'anywheres QFun 'defineds QDef QIL, idle, QIL'] 
-   => [QIL, idle, print(compile(Q, transitions(metadataQParse(QStr)) superheats(metadataQParse(QComp)) supercools(metadataQParse(QSuper)) anywheres(metadataQParse(QFun)) defineds(metadataQParse(QDef))))] [print QStr QComp QSuper QFun QDef] .
+  rl ['compile Q Q' 'transitions QStr 'superheats QComp 'supercools QSuper 'anywheres QFun 'defineds QDef QIL, idle, QIL'] 
+   => [QIL, idle, print(pcompile(Q, Q', transitions(metadataQParse(QStr)) superheats(metadataQParse(QComp)) supercools(metadataQParse(QSuper)) anywheres(metadataQParse(QFun)) defineds(metadataQParse(QDef))))] [print QStr QComp QSuper QFun QDef] .
   rl ['pcompile Q Q' QIL, idle, QIL'] 
    => [QIL, idle, print(pcompile(Q,Q', transitions(none) superheats(none) supercools(none) anywheres(none) defineds(none)))] .
 

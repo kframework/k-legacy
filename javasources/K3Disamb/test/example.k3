@@ -1,5 +1,1 @@
-  configuration <T color="yellow"> 
-  					<k color="green"> $PGM : K </k>
-  					<br />
-  					<env color="red"> .Map </env>
-  				</T>
+rule K inList{K} L:List{K} => K #inList{K} L ==K true 

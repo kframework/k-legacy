@@ -1,27 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project basedir="." default="all" name="K3 Build file">
+<project basedir="." default="build" name="KTool Build file">
 
-	<property location="javasources" name="javasources"/>
+	<property location="javasources" name="javasources" />
+	<property name="version" value="latest" />
 
 	<target name="java">
-		<ant antfile="${javasources}/K3Java/buildjava.xml" dir="${javasources}/K3Java"/>
-		<ant antfile="${javasources}/JKRun/build.xml" dir="${javasources}/JKRun"/>
+		<ant antfile="${javasources}/KTool/buildjava.xml" dir="${javasources}/KTool" />
 	</target>
 
 	<target name="jar">
-		<ant antfile="${javasources}/K3Java/buildjar.xml" dir="${javasources}/K3Java"/>
-		<ant antfile="${javasources}/JKRun/buildjar.xml" dir="${javasources}/JKRun"/>
+		<ant antfile="${javasources}/KTool/buildjar.xml" dir="${javasources}/KTool" />
 	</target>
-	
-	<target name="all">
-		<ant antfile="${javasources}/K3Java/build.xml" dir="${javasources}/K3Java"/>
-		<ant antfile="${javasources}/JKRun/build.xml" dir="${javasources}/JKRun"/>
-		<ant antfile="${javasources}/JKRun/buildjar.xml" dir="${javasources}/JKRun"/>
+
+	<target name="build">
+		<ant antfile="${javasources}/KTool/build.xml" dir="${javasources}/KTool" />
+		<antcall target="makeversion" />
 	</target>
 
 	<target name="clean">
 		<delete>
-			<fileset dir="${javasources}/K3Java/src/k2parser/lib">
+			<fileset dir="${javasources}/KTool/src/org/kframework/parser/basic/lib">
 				<include name="*.java" />
 				<include name="K3Syntax.tbl" />
 				<exclude name="xml_string_escape_from_string_0_0.java" />
@@ -33,7 +31,7 @@
 		<delete dir="${javasources}/K3Syntax/include" />
 
 		<delete>
-			<fileset dir="${javasources}/K3Java/src/k3parser/lib">
+			<fileset dir="${javasources}/KTool/src/org/kframework/parser/concrete/lib">
 				<include name="*.java" />
 				<exclude name="string_trim_last_one_0_0.java" />
 				<exclude name="string_unescape_sort_0_0.java" />
@@ -41,45 +39,108 @@
 				<exclude name="annolocationremove_0_0.java" />
 				<exclude name="clear_console_0_0.java" />
 				<exclude name="mergeamb_0_0.java" />
+				<exclude name="xml_string_escape_from_string_0_0.java" />
 			</fileset>
 		</delete>
-		<delete file="../K3Disamb/trans/K3Str.rtree" />
-		<delete file="../K3Disamb/trans/K3Str.dep" />
-		<delete dir="../K3Disamb/trans/K3Str" />
+		<delete file="${javasources}/K3Disamb/trans/K3Str.rtree" />
+		<delete file="${javasources}/K3Disamb/trans/K3Str.dep" />
+		<delete dir="${javasources}/K3Disamb/trans/K3Str" />
 		<delete dir="${javasources}/K3Disamb/include" />
 
-		<delete dir="${javasources}/K3Java/bin" />
-		<delete dir="${javasources}/KUtils/bin" />
-		<delete dir="${javasources}/KPreprocessor/bin" />
-		<delete dir="${javasources}/Kil2Maude/bin" />
+		<delete file="${javasources}/LatexComments/trans/K3Str.rtree" />
+		<delete file="${javasources}/LatexComments/trans/K3Str.dep" />
+		<delete dir="${javasources}/LatexComments/trans/K3Str" />
+		<delete dir="${javasources}/LatexComments/include" />
 
-		<delete file="${javasources}/../dist/bin/java/k3.jar"/>
-		<delete file="${javasources}/../dist/bin/java/JKrun.jar"/>
-		<delete file="k3.zip"/>
+		<delete dir="${javasources}/KTool/bin" />
+
+		<delete file="${javasources}/../dist/bin/java/k3.jar" />
+		<delete dir="./k/" />
+	</target>
+
+	<target name="makeversion">
+		<property name="version.file" value="./dist/bin/version.txt" />
+
+		<exec executable="svn" output="${version.file}">
+			<arg value="info" />
+			<arg value="--xml" />
+		</exec>
+
+		<xmlproperty file="${version.file}" />
+
+		<tstamp>
+			<format property="date" pattern="EEE MMM d HH:mm:ss z yyyy" />
+		</tstamp>
+
+		<condition property="k-version" value="nigthly build">
+			<equals arg1="${version}" arg2="latest" />
+		</condition>
+		<condition property="k-version" value="version ${version}">
+			<not>
+				<equals arg1="${version}" arg2="latest" />
+			</not>
+		</condition>
+		<echo message="K-framework ${k-version}.${line.separator}" file="${version.file}" />
+		<echo message="SVN Revision: ${info.entry(revision)}${line.separator}" file="${version.file}" append="true" />
+		<echo message="Build date: ${date}${line.separator}" file="${version.file}" append="true" />
 	</target>
 
 	<target name="release">
-		<available file="./dist/bin/java/k3.jar" property="k3zip-exists" />
-		
-		<antcall target="r2"/>
-		<antcall target="r2false"/>
-	</target>
-	<target name="r2" if="k3zip-exists">
-		<delete file="k3.zip" />
-		<zip destfile="k3.zip" basedir="dist" />
-	</target>
-	<target name="r2false" unless="k3zip-exists">
-		<echo message="You must build the project before you can release it." />
-	</target>
+		<antcall target="build" />
+		<delete dir="./release" />
 
+		<mkdir dir="release" />
+		<echo message="Exporting with svn." />
+		<exec executable="svn" failonerror="true">
+			<arg value="export" />
+			<arg value="-q" />
+			<arg value="dist" />
+			<arg value="release/k" />
+		</exec>
+		<copy file="./dist/bin/java/k3.jar" todir="./release/k/bin/java/" />
+		<copy file="./dist/bin/version.txt" todir="./release/k/bin/" />
+
+		<delete file="k-${version}.zip" />
+		<delete file="k-${version}.tgz" />
+		<zip destfile="k-${version}.zip" basedir="release" />
+		<tar destfile="k-${version}.tgz" compression="gzip">
+			<tarfileset filemode="755" dir="./release">
+				<include name="k/bin/kast" />
+				<include name="k/bin/kompile" />
+				<include name="k/bin/krun" />
+				<include name="k/bin/ksettest" />
+				<include name="k/bin/hkcd" />
+				<include name="k/bin/maude/binaries/maude.intelDarwin" />
+				<include name="k/bin/maude/binaries/maude.linux" />
+				<include name="k/bin/maude/binaries/maude.linux64" />
+				<include name="k/bin/native/linux/sdf2table" />
+				<include name="k/bin/native/linux/implodePT" />
+				<include name="k/bin/native/macosx/sdf2table" />
+				<include name="k/bin/native/macosx/implodePT" />
+			</tarfileset>
+			<tarfileset dir="./release">
+				<include name="**" />
+				<exclude name="k/bin/kast" />
+				<exclude name="k/bin/kompile" />
+				<exclude name="k/bin/krun" />
+				<exclude name="k/bin/ksettest" />
+				<exclude name="k/bin/hkcd" />
+				<exclude name="k/bin/maude/binaries/maude.intelDarwin" />
+				<exclude name="k/bin/maude/binaries/maude.linux" />
+				<exclude name="k/bin/maude/binaries/maude.linux64" />
+				<exclude name="k/bin/native/linux/sdf2table" />
+				<exclude name="k/bin/native/linux/implodePT" />
+				<exclude name="k/bin/native/macosx/sdf2table" />
+				<exclude name="k/bin/native/macosx/implodePT" />
+			</tarfileset>
+		</tar>
+	</target>
 
 	<target name="test">
-		<javac srcdir="./tests/tools/Jenkins/src" includeantruntime="false"/>
-		<javac srcdir="./tests/tools/Jenkins/tests"  classpath="tests/tools/Jenkins/lib/junit-4.10.jar:tests/tools/Jenkins/src" includeantruntime="false"/>
+		<javac srcdir="./tests/tools/Jenkins/src" includeantruntime="false" />
+		<javac srcdir="./tests/tools/Jenkins/tests" classpath="tests/tools/Jenkins/lib/junit-4.10.jar:tests/tools/Jenkins/src" includeantruntime="false" />
 		<java classname="org.junit.runner.JUnitCore" classpath="tests/tools/Jenkins/lib/junit-4.10.jar:tests/tools/Jenkins/src:tests/tools/Jenkins/tests">
-			<arg value="LocalTests"/>
+			<arg value="LocalTests" />
 		</java>
 	</target>
-
-
 </project>

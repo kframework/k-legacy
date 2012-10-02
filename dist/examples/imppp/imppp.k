@@ -10,7 +10,7 @@ module IMPPP-SYNTAX
                 | "(" AExp ")"			 [bracket]
                 
   syntax BExp ::= Bool
-                | AExp "<=" AExp  		 [seqstrict, latex("{#1}\leq{#2}")]
+                | AExp "<=" AExp  		 [seqstrict, latex({#1}\leq{#2})]
                 > "not" BExp      		 [strict]
                 > BExp "and" BExp 		 [strict(1)]
                 | "(" BExp ")"			 [bracket]
@@ -56,7 +56,6 @@ module IMPPP
      </threads>
 //     <br/>
      <store color="white"> .Map </store>
-     <nextLoc color="gray"> 0 </nextLoc>
      <in color="magenta" stream="stdin">  .List </in>
      <out color="Orchid" stream="stdout"> .List </out>
     </T>
@@ -86,7 +85,7 @@ module IMPPP
   rule if  true then S1:K else _  => S1
   rule if false then _  else S2:K => S2
 
-  rule <k> while B do S:K => if B then S ; while B do S else {} ...</k>
+  rule while B do S:K => if B then S ; while B do S else {}
   syntax KResult ::= String
   rule Str1:String + Str2:String => Str1 +String Str2
 
@@ -115,7 +114,7 @@ module IMPPP
   rule <k> var (X,Xl => Xl:Ids) ...</k>
        <env> Rho => Rho[N/X] </env>
        <store>... . => N |-> 0 ...</store>
-       <nextLoc> N => N +Int 1 </nextLoc>
+    when fresh(N:Int)
   rule var .Ids => .  [structural]
 
   syntax K ::= "env" "(" Map ")"

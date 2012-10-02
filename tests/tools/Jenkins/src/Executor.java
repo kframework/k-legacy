@@ -3,19 +3,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class Executor extends Thread {
 
 	private String[] commands;
 	private String dir;
-	private String output = "", error = "";
+	private String output = "", error = ""; public String sent = "";
 	private int exitValue;
 	private String input;
 	private boolean timedout = false;
@@ -30,55 +23,44 @@ public class Executor extends Thread {
 	@Override
 	public void run() {
 		try {
-			output = ""; error = "";
+			error = "";
 			ProcessBuilder pb = new ProcessBuilder(commands);
 			pb.directory(new File(dir));
-			MyCallable<Integer> callable = new MyCallable<Integer>(pb.start(), input) {
-		        public Integer call() throws Exception
-		        {
-		    		if (input != null && !input.equals(""))
-		    		{
-		    			OutputStream stream = p.getOutputStream();
-		    			stream.write(input.getBytes());
-		    			stream.flush();
-		    			stream.close();
-		    		}
+			Process p = pb.start();
+
+			if (input != null && !input.equals(""))
+    		{
+    			OutputStream stream = p.getOutputStream();
+    			stream.write(input.getBytes());
+    			stream.flush();
+    			stream.close();
+    			sent = input + "\nSize:" + input.getBytes().length + "";
+    		}
 		    		
-		    		exitValue = p.waitFor();
-		    		BufferedReader br = new BufferedReader(new InputStreamReader(
+	        exitValue = p.waitFor();
+
+	        BufferedReader br = new BufferedReader(new InputStreamReader(
 		    				p.getInputStream()));
-		    		String line;
-		    		output = "";
-		    		while ((line = br.readLine()) != null) {
-		    			output += line + "\n";
-		    			line = "";
-		    		}
+    		String line = "";
+    		output = "";
+    		while ((line = br.readLine()) != null) {
+    			output += line + "\n";
+    		}
 
-		    		br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-		    		line = ""; error = "";
-		    		while ((line = br.readLine()) != null) {
-		    			error += line + "\n";
-		    			line = "";
-		    		}
+    		br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+    		line = ""; error = "";
+    		while ((line = br.readLine()) != null) {
+    			error += line + "\n";
+    		}
 
-		    		return p.waitFor();
-		        }};
-	        exitValue = timedCall(callable, StaticK.ulimit, TimeUnit.SECONDS);
-		    output = callable.output;
-		    error = callable.error;
+		    		
+		} catch (InterruptedException e) {
+		    error = e.getMessage();
+		    e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-		    timedout = true;
-		    error = "IOException";
-		} catch (InterruptedException e) {
-			timedout = true;
-			error = "InteruptedException";
-		} catch (ExecutionException e) {
-			timedout = true;
-			error = "ExecutionException";
-		} catch (TimeoutException e) {
-			timedout = true;
-			error = "TimeoutException";
+			error = e.getMessage();
+			e.printStackTrace();
 		}
 	}
 
@@ -112,33 +94,4 @@ public class Executor extends Thread {
 		return "`" + commands.trim() + "` in directory: " + dir;
 	}
 	
-	private static final ExecutorService THREAD_POOL 
-    = Executors.newCachedThreadPool();
-
-	private static <T> T timedCall(Callable<T> c, long timeout, TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException
-	    {
-			FutureTask<T> task = new FutureTask<T>(c);
-		    THREAD_POOL.execute(task);
-		    return task.get(timeout, timeUnit);
-	    }
-}
-
-class MyCallable<T> implements Callable<T>
-{
-	Process p;
-	String output = "";
-	String error = "";
-	String input = "";
-	
-	public MyCallable(Process p1, String input)
-	{
-		this.p = p1;
-		this.input = input;
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public T call() throws Exception {
-        return (T) (Integer)p.waitFor();	
-	}
 }

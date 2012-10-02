@@ -1,7 +1,5 @@
 package K3Disamb.strategies;
 
-import static org.strategoxt.lang.Term.NO_STRATEGIES;
-
 import java.util.ArrayList;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -39,7 +37,7 @@ public class mergeamb_0_0 extends Strategy {
 	@Override
 	public IStrategoTerm invoke(Context context, IStrategoTerm currentList) {
 		context.push("mergeamb_0_0");
-		
+
 		java.util.List<IStrategoTerm> children = new ArrayList<IStrategoTerm>();
 		//IStrategoTerm currentList = amb.getSubterm(0);
 		for (int i = 0; i < currentList.getSubtermCount(); i++)
@@ -84,6 +82,7 @@ public class mergeamb_0_0 extends Strategy {
 				IStrategoConstructor newtermConstr = ((IStrategoAppl)head).getConstructor();
 				IStrategoList newtermList = context.getFactory().makeList(termList);
 				IStrategoAppl newtermAppl = context.getFactory().makeAppl(newtermConstr, newtermList.getAllSubterms(), null);
+				newtermAppl = (IStrategoAppl)context.getFactory().annotateTerm(newtermAppl, head.getAnnotations());
 				newchildren.add(newtermAppl);
 			}
 			else {

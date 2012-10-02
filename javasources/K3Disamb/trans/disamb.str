@@ -8,11 +8,6 @@ imports
 
 	include/K3Disamb
 	xmlify
-	disambCells
-	disambEmph
-	disambSup
-	disambVar
-	disambFit
 	starter
 
 strategies
@@ -21,18 +16,17 @@ strategies
 	external annolocation(|)
 	external annolocationremove(|)
 
-	mydisambiguate(|c) =
-		if where(!c => "full") then
+	mydisambiguate =
 			topdown(try(annolocation)) ;
 			flatten-amb-top ;
 			topdown(try(merge-amb ; flatten-amb-top )) ;
 			//where(ts1 := <term-size> ; !(ts1, <div> (<mul>(ts1, 100.0) ,ts)) ; debug(!"FlattenedSize(,%): ")) ;
-			topdown(try(annolocationremove)) ;
+			//topdown(try(annolocationremove)) ;
 			topdown(try(removeDouaPuncte)) ;
-			disambigCellTypes ;
+			/*disambigCellTypes ;
 			topdown(try(correctRewrite)) ;
 			topdown(try(correctKseq)) ;
-			emphasizeVars ; 
+			/*emphasizeVars ;
 			type-inferenceTypeSystem ;
 			chooseBestFitRec ;
 			type-inferenceSupremum ;
@@ -41,38 +35,14 @@ strategies
 			 /**///;
 			 id
 			//where(ts2 := <term-size> ; !(ts2, <div> (<mul>(ts2, 100.0) ,ts1), <div> (<mul>(ts2, 100.0) ,ts)) ; debug(!"FinalSize(,%,%): "))
-		else
-			topdown(try(annolocation)) ;
-			flatten-amb-top ;
-			topdown(try(merge-amb ; flatten-amb-top )) ;
-			//where(ts1 := <term-size> ; !(ts1, <div> (<mul>(ts1, 100.0) ,ts)) ; debug(!"FlattenedSize(,%): ")) ;
-			topdown(try(annolocationremove)) ;
-			topdown(try(removeDouaPuncte)) ;
-			disambigCellTypes ;
-			topdown(try(correctRewrite)) ;
-			topdown(try(correctKseq)) ;
-			emphasizeVars ; 
-			type-inferenceTypeSystem ;
-			chooseBestFitRec ;
-			type-inferenceSupremum ;
-			var-type-inference2 ; // new type inference where I correct the first type inference
-			flattenKLists ;
-			 /**///;
-			 id
-       end		
 
 
 	mydisambiguateConfig =
 		topdown(try(annolocation)) ;
 		flatten-amb-top ;
 		topdown(try(merge-amb ; flatten-amb-top )) ;
-		topdown(try(annolocationremove)) ;
-		topdown(try(removeDouaPuncte)) ;
-		type-inferenceTypeSystem ;
-		type-inferenceSupremum ;
-		chooseBestFitRec ;
-		flattenKLists
-
+		topdown(try(removeDouaPuncte))
+			
 
 
 	merge-amb:
@@ -80,13 +50,10 @@ strategies
 		where rez := <mergeamb> a*
 		where x := <if <lt>(<length> rez, 2) then !<last> rez else !amb(rez){anno} end>
 
+	mydisambiguate2 = all(mydisambiguate)
 
-
-	mydisambiguate2 = all(mydisambiguate(|"full"))
-	
-	
 	removeDouaPuncte:
-		a#(b) -> a#(b')
+		a#(b){loc} -> a#(b'){loc}
 		where <string-ends-with(|"Syn")> a
 		where <one(?"DouaPuncte"#(_))> b
 		where b' := <filter(not(?"DouaPuncte"#(_)))> b
@@ -113,33 +80,17 @@ strategies
 	correctKseq:
 		amb(x) -> K1Seq(a, b)
 		where <one(?K1Seq(a, b))> x
+
+	correctRewrite:
+		amb(x) -> rez2
+		where <one(isRewrite)> x
+		where rez := <filter(isRewrite)> x
+		where rez2 := <if <lt>(<length> rez, 2) then !<last> rez else !amb(rez) end>
 		
-	
-	correctRewrite:	// K1Rewrite must bind as low as possible, this why choose it to be as high as possible in the AST
-		amb(x) -> K1Rewrite(a, b)
-		where <one(?K1Rewrite(a, b))> x
-		where not(<one(?ListDlKDr1Rewrite(_, _))> x)
-
-	correctRewrite:	// K1Rewrite must bind as low as possible, this why choose it to be as high as possible in the AST
-		amb(x) -> ListDlKDr1Rewrite(a, b)
-		where <one(?ListDlKDr1Rewrite(a, b))> x
-
-	correctRewrite:
-		amb(x) -> Map1Rewrite(a, b)
-		where <one(?Map1Rewrite(a, b))> x
-
-	correctRewrite:
-		amb(x) -> List1Rewrite(a, b)
-		where <one(?List1Rewrite(a, b))> x
-
-	correctRewrite:
-		amb(x) -> Set1Rewrite(a, b)
-		where <one(?Set1Rewrite(a, b))> x
-
-	correctRewrite:
-		amb(x) -> Bag1Rewrite(a, b)
-		where <one(?Bag1Rewrite(a, b))> x
-
+	isRewrite:
+		a#(_) -> <id>
+		where <string-ends-with(|"Rewrite")> a
+			
 
 strategies  // restructure the ambs - thanks Lennart Kats
 	flatten-amb-top =
@@ -154,44 +105,5 @@ strategies  // restructure the ambs - thanks Lennart Kats
 
 	extract-ambs:
 		amb(a*) -> a*
-
-	flatten-amb-2 =
-		topdown(try(down-with-ambs))
-
-	down-with-ambs:
-        amb(a*) -> x
-		where rez := <down-with-ambs-list> a*
-		where x := <if <lt>(<length> rez, 2) then !<last> rez else !amb(rez) end>
-
-	down-with-ambs-list =
-		down-with-ambs-list-1 <+ down-with-ambs-list-2
-
-	down-with-ambs-list-1:
-		[parent#(child) | tail] -> <flatten-amb-top> [grouped | <down-with-ambs-list> tail']
-		where matching-children := <filter(fetch-child(|parent))> tail
-		where not(!matching-children => [])
-		where grouped := parent#( <merge(|matching-children)> child )
-		where tail'   := <filter(not(fetch-child(|parent)))> tail
-
-	down-with-ambs-list-2:
-		[a | tail] -> [a | <down-with-ambs-list> tail]
-
-	down-with-ambs-list-2:
-		[] -> []
-
-	fetch-child(|parent):
-		parent#(child) -> child
-
-	merge(|group):
-		[a| tail] -> [amb([a | first]) | <merge(|group')> tail]
-		where first := <filter(\[x | _] -> x\)> group
-		where group' := <filter(\[_ | x] -> x\)> group
-		where not(!group' => [[]|_])
-
-	merge(|group):
-		[a| tail] -> [amb([a | first])]
-		where first := <filter(\[x | _] -> x\)> group
-		where group' := <filter(\[_ | x] -> x\)> group
-		where !group' => [[]|_]
 
 // end - thanks Lennart Kats

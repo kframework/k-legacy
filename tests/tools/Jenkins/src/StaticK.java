@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -22,14 +21,24 @@ public class StaticK {
 	public static File file;
 	public static String toolsDir;
 	public static String fileSep = System.getProperty("file.separator");
-	public static String k3Jar, JKrun;
-	public static ThreadPoolExecutor pool;
-	public static int THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors() > 2 ? Runtime.getRuntime().availableProcessors() / 2 : Runtime.getRuntime().availableProcessors();
-	public static int ulimit = 120;
+	public static String k3Jar;
+	public static int ulimit = 1000;
+	public static int biggerlimit = 3000;
 	public static String kbasedir;
 	public static String configuration;
 	public static String reportsDir;
 	public static Map<String, Report> reports = new HashMap<String, Report>();
+
+	public static int initPoolSize()
+	{
+		int poolSize = 1;
+		int cores = Runtime.getRuntime().availableProcessors();
+		int pS = cores - cores / 4;
+		if (pS > poolSize)
+			return pS;
+		
+		return poolSize;
+	}
 	
 	public static List<Example> getExamples(String configuration, String k3jar, String tagName, String kbasedir) {
 		Document document = getDocument(configuration);
@@ -57,6 +66,7 @@ public class StaticK {
 
 				NodeList options = test.getElementsByTagName("option");
 				List<String> krunOptions = new LinkedList<String>();
+				krunOptions.add("--no-deleteTempDir");
 				for(int k = 0; k < options.getLength(); k++)
 				{
 					Element option = (Element)options.item(k);
@@ -106,13 +116,15 @@ public class StaticK {
 		try {
 			f = new BufferedInputStream(new FileInputStream(filePath));
 			f.read(buffer);
-		} catch (Exception e) {
-			System.out.println(e.getLocalizedMessage());
+		} catch (IOException e) {
+			System.out.println("INTERNAL ERROR: " + e.getMessage());
+			e.printStackTrace();
 		} finally {
 			if (f != null)
 				try {
 					f.close();
 				} catch (IOException ignored) {
+					ignored.printStackTrace();
 				}
 		}
 		return new String(buffer);

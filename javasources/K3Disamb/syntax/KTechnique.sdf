@@ -73,8 +73,8 @@ context-free priorities
 	"."				-> Map {cons("Map1Empty")}
 	MapItem			-> Map %%{cons("Map3MapItem")}  %% Does SDF supports subsorting closure? I believe it generates ambiguities
 	"MapItem" "(" K "," K ")"	-> MapItem {cons("MapItem1KKItem")}
-	ListDlKDr "|->" ListDlKDr	-> MapItem {cons("MapItem1LKLKItem")}
-	%%K "|->" K					-> MapItem {cons("MapItem1MapsTo")}
+	%%ListDlKDr "|->" ListDlKDr	-> MapItem {cons("MapItem1LKLKItem")}
+	K "|->" K					-> MapItem {cons("MapItem1LKLKItem")}
 	Map   Map				-> Map {left, cons("Map1List")}
 	%%Map "[" K "/" K "]"		-> Map {cons("Map1MapReplaceK")}
 } > {
@@ -89,20 +89,20 @@ context-free syntax
 	%% VarId ":" Type		-> Variable {cons("TypedVar")}
 	VARID ":" "List"		-> List {cons("List12Var")}
 	VARID					-> List {cons("List1Var")}
-	VARID ":" "ListItem"	-> List {cons("ListItem12Var")}
-	VARID					-> List {cons("ListItem1Var")}
+	VARID ":" "ListItem"	-> ListItem {cons("ListItem12Var")}
+	VARID					-> ListItem {cons("ListItem1Var")}
 	VARID ":" "Set"			-> Set {cons("Set12Var")}
 	VARID					-> Set {cons("Set1Var")}
-	VARID ":" "SetItem"		-> Set {cons("SetItem12Var")}
-	VARID					-> Set {cons("SetItem1Var")}
+	VARID ":" "SetItem"		-> SetItem {cons("SetItem12Var")}
+	VARID					-> SetItem {cons("SetItem1Var")}
 	VARID ":" "Bag"			-> Bag {cons("Bag12Var")}
 	VARID					-> Bag {cons("Bag1Var")}
-	VARID ":" "BagItem"		-> Bag {cons("BagItem12Var")}
-	VARID					-> Bag {cons("BagItem1Var")}
+	VARID ":" "BagItem"		-> BagItem {cons("BagItem12Var")}
+	VARID					-> BagItem {cons("BagItem1Var")}
 	VARID ":" "Map"			-> Map {cons("Map12Var")}
 	VARID					-> Map {cons("Map1Var")}
-	VARID ":" "MapItem"		-> Map {cons("MapItem12Var")}
-	VARID					-> Map {cons("MapItem1Var")}
+	VARID ":" "MapItem"		-> MapItem {cons("MapItem12Var")}
+	VARID					-> MapItem {cons("MapItem1Var")}
 	VARID ":" "K"			-> K {cons("K12Var")}
 	VARID					-> K {cons("K1Var")}
 	VARID ":" "List{K}"		-> ListDlKDr {cons("ListDlKDr12Var")}
@@ -146,5 +146,5 @@ lexical restrictions
 	"BagItem"	-/- [a-zA-Z0-9]
 	"K"			-/- [a-zA-Z0-9]
 	"List{K}"	-/- [a-zA-Z0-9]
-	"."			-/- [a-zA-Z0-9\.]
+	"."			-/- [a-zA-Z\.]
 

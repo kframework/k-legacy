@@ -1,13 +1,11 @@
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class Program extends Thread {
 	public String filename, inputFile, outputFile, krun, kdefinition, dir;
 	public List<String> krunOptions;
 
-	private String output = "", error = "";
+	private String output = "", error = "", sent = "";
 	private int exit;
 	private Executor compile;
 	private long time = 0;
@@ -35,8 +33,8 @@ public class Program extends Thread {
 		long millis = System.currentTimeMillis();
 		
 		/* Compute the krun arguments */
-		String[] basic = new String[] { "java", "-jar", krun, filename,
-				"--k-definition", kdefinition };
+		String[] basic = new String[] { "java", "-ss8m", "-Xms64m", "-Xmx1G", "-jar", krun, "-krun", filename,
+				"--k-definition", kdefinition, " --no-deleteTempDir" };
 		int length = basic.length + krunOptions.size();
 		String[] run = new String[length];
 		for (int i = 0; i < length; i++)
@@ -50,18 +48,12 @@ public class Program extends Thread {
 		/* END */
 
 		compile = new Executor(run, dir, StaticK.readFileAsString(inputFile));
-		ThreadPoolExecutor tpe = (ThreadPoolExecutor) Executors
-				.newCachedThreadPool();
-		tpe.execute(compile);
 		compile.start();
 
-		while (tpe.getCompletedTaskCount() != 1 ) {
-			try {
-				Thread.sleep(1);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		try {
+			compile.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 
 		output = compile.getOutput();
@@ -69,6 +61,7 @@ public class Program extends Thread {
 		exit = compile.getExitValue();
 		timedout = compile.getTimedOut();
 		time = System.currentTimeMillis() - millis;
+		sent = compile.sent;
 	}
 
 	public boolean isCorrect() {
@@ -96,14 +89,21 @@ public class Program extends Thread {
 
 	@Override
 	public String toString() {
-//		System.out.println(filename.substring(StaticK.kbasedir.length()) + " time out: " + timedout);
+		String expected = StaticK.readFileAsString(outputFile);
+		String input = StaticK.readFileAsString(inputFile);
+
 		if (isCorrect())
 			return filename.substring(StaticK.kbasedir.length()) + "... success.";
 		else
 			return filename.substring(StaticK.kbasedir.length())
 					+ "... failed:\n\n------------ STATS ------------\nRun:\n"
 					+ compile + "\nKrun exit code: " + exit + "\nError: "
-					+ error + "\nOutput: " + output
+					+ error + "\nOutput: |" + output
+					+ "|\nExpecting: |" + expected
+					+ "|\nInput: |" + input
+					+ "|\nInput file: " + inputFile 
+					+ "\nOutput file: " + outputFile
+					+ "\nSent: " + sent
 					+ "\n-------------------------------\n";
 	}
 

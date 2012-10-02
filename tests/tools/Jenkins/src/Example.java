@@ -1,7 +1,5 @@
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class Example extends Thread {
 	String dir;
@@ -15,7 +13,6 @@ public class Example extends Thread {
 	public List<Program> programs;
 	String output = "", error = "";
 	int exitCode;
-	private int THREAD_POOL_SIZE = 24;
 	public boolean runPrograms;
 	private long time = 0;
 	public String tagName;
@@ -45,41 +42,33 @@ public class Example extends Thread {
 			Executor compile = new Executor(new String[] { "java", "-ss8m",
 					"-Xms64m", "-Xmx1G", "-jar", k3jar, "-kompile", mainFile,
 					"-l", mainModule }, dir, null);
-			ThreadPoolExecutor tpe = (ThreadPoolExecutor) Executors
-					.newFixedThreadPool(THREAD_POOL_SIZE);
-			tpe.execute(compile);
-			
-			while (tpe.getCompletedTaskCount() != 1) {
-				try {
-					Thread.sleep(1);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
 
+			compile.start();
+			try {
+				compile.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
 			output = compile.getOutput();
 			error = compile.getError();
 			exitCode = compile.getExitValue();
 			timedout = compile.getTimedOut();
 			time = System.currentTimeMillis() - millis;
-			System.out.println(this);
+			System.out.println(this + " (" + time + " ms).");
 		} else {
 
-			String krun = new File(k3jar).getParent() + StaticK.fileSep
-					+ "JKrun.jar";
-			ThreadPoolExecutor tpe = (ThreadPoolExecutor) Executors
-					.newFixedThreadPool(StaticK.THREAD_POOL_SIZE);
-			for (Program program : programs) {
+			String krun = new File(k3jar).getAbsolutePath();
+			
+			// execute sequentially the programs
+			for (Program program: programs){
 				program.krun = krun;
-				tpe.execute(program);
-			}
-			// wait until examples are running
-			while (tpe.getCompletedTaskCount() != programs.size()) {
+				program.start();
+				
+				// wait
 				try {
-					Thread.sleep(1);
+					program.join();
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}

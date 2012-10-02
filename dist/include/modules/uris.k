@@ -47,9 +47,9 @@ module URIS
       => String2DotK((#tcpRequest("reopen#" +String Int2String(N) +String "#"
                               +String S +String "#"))) [function, anywhere]
 
-  syntax Int ::= "#stdin" 
-                | "#stdout" 
-                | "#stderr"
+  syntax Int ::= "#stdin"   [function] 
+                | "#stdout" [function]
+                | "#stderr" [function] 
   rule #stdin => 0
   rule #stdout => 1
   rule #stderr => 2
@@ -122,7 +122,7 @@ module URIS
  
   syntax List ::= "#removeCharUponAck"
   
-  syntax List ::= "#parse" "(" String "," K ")"
+  syntax List ::= "#parse" "(" String "," K ")"   [cons(List1ParseSyn)]
 
 /*
   // base values for each type
@@ -155,11 +155,7 @@ module URIS
   rule (#parse(SType:String,S:String) => #convertToken(SType, S)) ListItem(#EOF)
   
   syntax List ::= "#convertToken" "(" String "," String ")"
-  rule #convertToken("Int",S:String) => ListItem(String2Int(S +String "0") /Int 10)
-  rule #convertToken("Float",S:String) => ListItem(String2Float(S))
-  rule #convertToken("String",S:String) => ListItem(S)
-
-  rule String2Int("00") => 0  [anywhere]
+  rule #convertToken(Type:String,S:String) => ListItem(#parseToken(Type, S))
 
   
  /*   C++ -like parsing for ints. 
@@ -167,7 +163,7 @@ module URIS
     when #isDigit(C:String)
   */
 
-  syntax List ::= "#buffer" "(" K ")"
+  syntax List ::= "#buffer" "(" K ")"           [cons(List1IOBufferSyn)]
 
   // Initial input string is assumed wrapped in an #buffer wrapper an one character is retreved from it at a time
   rule #parse(_:String,_) (.List => ListItem(substrString(S:String,0,1))) 
@@ -179,7 +175,8 @@ module URIS
   // I fthe buffer becomes empty, read from the input stream
   rule #parse(_:String,_) (.List => ListItem(#fReadChar(N:Int))) #buffer(.K) #istream(N)
 
-  syntax List ::= "#istream" "(" Int ")" | "#ostream" "(" Int ")" 
+  syntax List ::= "#istream" "(" Int ")"        [cons(List1InputStreamSyn)]
+                | "#ostream" "(" Int ")"        [cons(List1OutputStreamSyn)]
   syntax List ::= "#noIO"
   rule #noIO #istream(_:Int) => .List
   rule #ostream(_:Int) #noIO => .List
