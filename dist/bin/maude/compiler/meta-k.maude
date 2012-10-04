@@ -791,8 +791,9 @@ fmod META-K-WRAPPERS is
      if T == 'Set or-else T == 'SetItem then 'Set2KLabel_ else
      if T == 'Bag or-else T == 'BagItem then 'Bag2KLabel_ else
      if T == 'List or-else T == 'ListItem then 'List2KLabel_ else
-     if T == 'Map or-else T == 'MapItem then 'Map2KLabel_ else '#_
-     fi fi fi fi fi fi .
+     if T == 'Map or-else T == 'MapItem then 'Map2KLabel_ else 
+     if T == 'List`{K`}  then 'List`{K`}2KLabel_ else '#_
+     fi fi fi fi fi fi fi .
 
      
   op isWrapped : OpDeclSet Type -> Bool .
@@ -836,7 +837,7 @@ fmod META-K-LABELS is
   var Q : Qid . var T T' : Type .  var Str : String . 
 
   op klistLabelS : -> Qid .
-  eq klistLabelS = 'kList .
+  eq klistLabelS = 'List`{K`}2KLabel_ .
 
   op mkKLabel : Qid -> Qid .
   eq mkKLabel(Q) = qid("'" + string(Q)) .
@@ -844,8 +845,8 @@ fmod META-K-LABELS is
   op downKLabel : Qid -> Qid .
   eq downKLabel(Q) = Q .
 
-  op mkListLabel : Qid -> Term .
-  eq mkListLabel(Q) = klistLabelS[stringCt(string(Q))] .
+  op mkListLabel : Term -> Term .
+  eq mkListLabel(Trm) = klistLabelS[Trm] .
 
   op mkKLabelSort : Type AttrSet -> Type .
   eq mkKLabelSort(T,AS metadata(Str))
