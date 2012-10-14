@@ -5,7 +5,7 @@
       )
 </k>
 <env>
-  i -> symInt(i01) 
+  i -> symInt(i01), SymMap(M1) 
 </env>
 
 ~
@@ -18,7 +18,7 @@
 </k>
 <env>
   i -> symInt(i02),
-  k -> symInt(k0)
+  k -> symInt(k0), SymMap(M2)
 </env>
 
 if
