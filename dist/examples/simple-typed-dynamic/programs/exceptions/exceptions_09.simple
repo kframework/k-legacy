@@ -1,20 +1,20 @@
-var x:int, y:int, z:int;
+int x, y, z;
 
-function g():void {
+void g() {
   throw 15;
 }
 
-function f():void {
+void f() {
   g();
 }
 
-function main():void {
+void main() {
   x = 5;
   y = 10;
 
   try {
     f();
-  } catch(y) {
+  } catch(int y) {
     print(y," ");
   }
   print(x," ");

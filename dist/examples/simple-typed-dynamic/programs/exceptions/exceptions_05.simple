@@ -1,20 +1,21 @@
-var x:int;
+int x;
 
-function f(y:int):int {
-  var t:int = 1;
+int f(int y) {
+  int t = 1;
   try{
     print(t," ");
     throw 5;
     print(8);      // not reachable
-  } catch(p) {
+  } catch(int p) {
     print(p+10," ");
   }
-  for i = 1 to y do
+  for (int i = 1; i <= y; ++i) {
     t = t*i;
+  }
   return t;
 }
 
-function main():void {
+void main() {
   x = 5;
   print(f(x),"\n");
 }

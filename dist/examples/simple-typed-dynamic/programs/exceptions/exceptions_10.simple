@@ -1,11 +1,11 @@
-var x:int;
+int x;
 
-function main():void {
+void main() {
   x = 5;
   try {
     throw 3;
     print(x);       // should not print this
-  } catch(y) {
+  } catch(int y) {
     print(y,"\n");  // should print this
   }
 }

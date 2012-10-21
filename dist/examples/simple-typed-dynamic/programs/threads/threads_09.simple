@@ -1,11 +1,11 @@
 // Poorly synchronized program which has two behaviors.
 
-function main():void {
-  var x:int = 1;
+void main() {
+  int x = 1;
   spawn {
     x=x+1;
     rendezvous 1;
-  }
+  };
   x=x+1;
   rendezvous 1;
   print(x,"\n");

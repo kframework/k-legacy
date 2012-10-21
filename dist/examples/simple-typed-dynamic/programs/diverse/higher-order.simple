@@ -1,86 +1,89 @@
-var x : int, a[10] : arrayOf int;
+int x, a[10];
 
-function incx() : void {
+void incx() {
   ++x;
 }
 
-function zero() : int {
+int zero() {
   return 0;
 }
 
-function id(x : int) : int {
+int id(int x) {
   return x;
 }
 
-function double(x : int) : int {
+void->void id0(void->void f) {
+  return f;
+}
+
+void->int id1(void->int f) {
+  return f;
+}
+
+int->int id2(int->int f) {
+  return f;
+}
+
+int double(int x) {
   return 2*x;
 }
 
-function hoincx() : function from void to void {
+void->void hoincx() {
   return incx;
 }
 
-function hozero() : function from void to int {
+void->int hozero() {
   return zero;
 }
 
-function hoid() : function from int to int {
+int->int hoid() {
   return id;
 }
 
-function hodouble() : function from int to int {
+int->int hodouble() {
   return double;
 }
 
-function hoid0(f : function from void to void) : function from void to void {
-  return f;
-}
-
-function hoid1(f : function from void to int) : function from void to int {
-  return f;
-}
-
-function hoid2(f : function from int to int) : function from int to int {
-  return f;
-}
-
-function app0(f : function from void to void) : void {
+void app0(void->void f) {
   f();
 }
 
-function app1(f : function from void to int) : int {
+int app1(void->int f) {
   return f();
 }
 
-function app2(f : function from int to int, x : int) : int {
+int app2(int->int f, intx) {
   return f(x);
 }
 
-function map(f : function from int to int, x : arrayOf int) : void {
-  for i=0 to sizeOf(x) - 1 do
+void map(int->int f, int[] x) {
+  for (int i = 0; i <= sizeOf(x) - 1; ++i) {
     x[i] = app2(f,x[i]);
+  }
 }
 
-function printall() : void {
+void printall() {
   print("x = ",x, ";  a[] = ");
-  for i=0 to sizeOf(a) - 1
-    do print(a[i], " ");
+  for (int i = 0; i <= sizeOf(a) - 1; ++i) {
+    print(a[i], " ");
+  }
   print("\n");
 }
 
-function main():void {
+void main() {
   x = 0;
-  for i=0 to sizeOf(a) - 1 do
+  for (int i=0; i <= sizeOf(a) - 1; ++i) {
     a[i]=i;
+  }
   printall();
   hoincx()();
   print(x," ", hozero()()," ", hoid()(7)," ", hodouble()(7),"\n");
-  hoid0(hoincx())();
-  print(x," ", hoid1(hozero())()," ", 
-        hoid2(hoid())(7)," ", hoid2(hodouble())(7),"\n");
-  app0(hoid0(hoincx()));
-  print(x," ", app1(hoid1(hozero()))," ", 
-        app2(hoid2(hoid()),7)," ", app2(hoid2(hodouble()),7),"\n");
+  id0(hoincx())();
+  print(x," ", id1(hozero())()," ", 
+        id2(hoid())(7)," ", id2(hodouble())(7),"\n");
+  app0(id0(hoincx()));
+  print(x," ", app1(id1(hozero()))," ", 
+        app2(id2(hoid()),7)," ", app2(id2(hodouble()),7),"\n");
   map(double,a);
   printall();
 }

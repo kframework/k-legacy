@@ -1,76 +1,84 @@
-function init(n:int):arrayOf int {
-  var x[n]:arrayOf int;
+int[] init(int n) {
+  int x[n];
   print("Type ",n," numbers: ");
-  for i = 0 to n - 1 do
+  for (int i = 0; i <= n - 1; ++i) {
     x[i] = read();
+  }
   print("Finished reading the ",n," numbers\n");
   return x;
 }
 
-function printArray(x:arrayOf int):void {
+void printArray(int[] x) {
   print("\n");
-  for i = 0 to sizeOf(x) - 1 do
+  for (int i = 0; i <= sizeOf(x) - 1; ++i) {
     print(x[i]," ");
+  }
   print("\n");
 }
 
-function reverse(x:arrayOf int):void {
-  var n:int = sizeOf(x);
-  for i = 0 to n/2 - 1 do {
-    var t:int = x[i];
+void reverse(int[] x) {
+  int n = sizeOf(x);
+  for (int i = 0; i <= n/2 - 1; ++i) {
+    int t = x[i];
     x[i] = x[n - i - 1];
     x[n - i - 1] = t;
   }
 }
 
-function map(m : arrayOf string,
-             f : arrayOf function from arrayOf int to void,
-             x : arrayOf int) : void {
-  for i = 0 to sizeOf(f) - 1 do {
+void map(string[] m, (int[] -> void)[] f, int[] x) {
+  for (int i = 0; i <= sizeOf(f) - 1; ++i) {
     print(m[i]);
     f[i](x);
   }
 }
 
-function insertionSort(x:arrayOf int):void {
-  for i = 1 to sizeOf(x) - 1 do {
-    var v:int = x[i], j:int = i - 1;
-    while (j > 0 and x[j] > v) do {  // doing the loop only up to 1
+void insertionSort(int[] x) {
+  for (int i = 1; i <= sizeOf(x) - 1; ++i) {
+    int v = x[i], j = i - 1;
+    while (j > 0 && x[j] > v) {  // doing the loop only up to 1
       x[j + 1] = x[j];
       j = j - 1;
     }
-    if (x[0] > v) then { 
+    if (x[0] > v) { 
       x[1] = x[0];
       x[0] = v;
-    } else x[j+1] = v;
+    }
+    else {
+      x[j+1] = v;
+    }
   }
 }
 
-function bubbleSort(v:arrayOf int):void {
-  var n:int = sizeOf(v);
-  for i = 0 to n - 1 do
-    for j = 0 to n - 2 do
-      if v[j] > v[j+1] then {
-        var t:int = v[j+1];
+void bubbleSort(int[] v) {
+  int n = sizeOf(v);
+  for (int i = 0; i <= n - 1; ++i) {
+    for (int j = 0; j <= n - 2; ++j) {
+      if (v[j] > v[j+1]) {
+        int t = v[j+1];
         v[j+1] = v[j];
         v[j] = t;
       }
+    }
+  }
 }
 
-function siftDown(x:arrayOf int, root:int, bottom:int):void {
-  var done:bool = false, maxChild:int;
-  while (root*2 <= bottom and not done) do {
-    if (root*2 == bottom) then {
-      maxChild = root*2;
-    }
-    else if (x[root*2] > x[root*2 + 1]) then {
+void siftDown(int[] x, int root, int bottom) {
+  bool done = false;
+  int maxChild;
+  while (root*2 <= bottom && !done) {
+    if (root*2 == bottom) {
       maxChild = root*2;
     }
     else {
-      maxChild = root*2 + 1;
+      if (x[root*2] > x[root*2 + 1]) {
+        maxChild = root*2;
+      }
+      else {
+        maxChild = root*2 + 1;
+      }
     }
-    if (x[root] < x[maxChild]) then {
-      var t:int = x[root];
+    if (x[root] < x[maxChild]) {
+      int t = x[root];
       x[root] = x[maxChild];
       x[maxChild] = t;
       root = maxChild;
@@ -81,15 +89,15 @@ function siftDown(x:arrayOf int, root:int, bottom:int):void {
   }
 }
 
-function heapSort(x:arrayOf int):void {
-  var n:int = sizeOf(x), i:int = n/2 - 1;
-  while (i >= 0) do {
+void heapSort(int[] x) {
+  int n = sizeOf(x), i = n/2 - 1;
+  while (i >= 0) {
     siftDown(x, i, n - 1);
     i = i - 1;
   }
   i = n - 1;
-  while (i >= 1 ) do {
-    var t:int = x[0];
+  while (i >= 1 ) {
+    int t = x[0];
     x[0] = x[i] ;
     x[i] = t;
     siftDown(x, 0, i - 1);
@@ -97,11 +105,11 @@ function heapSort(x:arrayOf int):void {
   }
 }
 
-function main():void {
+void main() {
   print("Size of the array to sort = ");
-  var x:arrayOf int = init(read()),
-      m[11]:arrayOf string,
-      f[11]:arrayOf function from arrayOf int to void;
+  int[] x = init(read());
+  string m[11];
+  int[] -> void f[11];
   m[ 0] = "The original unsorted array is:";
   f[ 0] = printArray;
   m[ 1] = "Reversing the array ... ";

@@ -1,14 +1,14 @@
-var i:int, j:int;
+int i;
 
-function main():void {
+void main() {
   i = 0;
-  while (++i <= 3) do {
+  while (++i <= 3) {
     print(i," ");
   }
   try {
     i = 10;
     print(i," ");
-  } catch(j) {
+  } catch(int j) {
     i = 20;
     print(i);  // should not print this
   }

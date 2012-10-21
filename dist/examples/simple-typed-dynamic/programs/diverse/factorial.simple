@@ -1,12 +1,15 @@
-function factorial(y : int) : int {
-  var t : int = 1;
-  print("Factorial of ",y," is: ");
-  for i = 1 to y do
+// The following program calculates the factorial of a user-provided number.
+
+int factorial(int y) {
+  print("Factorial of ", y, " is: ");
+  int t=1;
+  for(int i=1; i<=y; ++i) {
     t = t*i;
+  }
   return t;
 }
 
-function main() : void {
-  print("Input a natural numer: ");
+void main() {
+  print("Input a natural number: ");
   print(factorial(read()),"\n");
 }

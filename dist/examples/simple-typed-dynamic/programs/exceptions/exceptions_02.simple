@@ -1,15 +1,17 @@
-function main():void {
-  try
+void main() {
+  try {
     foo();
-  catch(e)
+  }
+  catch(int e) {
     print(e,"\n");  // should print 7
+  }
 }
 
-function foo():void {
+void foo() {
   try {
     throw 5;
     print(17);      // should not be printed
-  } catch(e) {
+  } catch(int e) {
     throw e + 2;    // throws 7
   }
   throw 1;          // should not be reached

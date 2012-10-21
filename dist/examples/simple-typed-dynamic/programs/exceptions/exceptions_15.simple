@@ -1,13 +1,13 @@
-function main():void {
+void main() {
   try {
     1;
     try {
       2;
-    } catch(a) {
+    } catch(int a) {
       print(2);     // should not print this
     }
     throw 1;
-  } catch(b) {
+  } catch(int b) {
     print(1,"\n");  // should print this
   }
 }

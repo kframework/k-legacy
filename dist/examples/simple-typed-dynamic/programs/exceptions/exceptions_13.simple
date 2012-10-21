@@ -1,7 +1,7 @@
-function main():void {
+void main() {
   try {
     throw 4;
-  } catch (e) {
+  } catch (int e) {
     print(e," ");
   }
   print(42,"\n");

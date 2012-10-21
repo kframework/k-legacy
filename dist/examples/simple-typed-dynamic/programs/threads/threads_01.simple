@@ -1,8 +1,8 @@
 // Simple multithreaded program with two behaviors.
 
-function main():void {
-  var x:int = 5;
-  spawn x = 7;
+void main() {
+  int x = 5;
+  spawn { x = 7; };
   print(x,"\n");
 }
 
