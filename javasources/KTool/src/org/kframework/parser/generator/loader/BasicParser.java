@@ -3,20 +3,27 @@ package org.kframework.parser.generator.loader;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.kframework.kil.ASTNode;
 import org.kframework.kil.DefinitionItem;
+import org.kframework.kil.LiterateDefinitionComment;
+import org.kframework.kil.LiterateModuleComment;
 import org.kframework.kil.Module;
+import org.kframework.kil.ModuleItem;
 import org.kframework.kil.Require;
+import org.kframework.kil.loader.DefinitionHelper;
 import org.kframework.kil.loader.JavaClassesFactory;
 import org.kframework.parser.basic.KParser;
 import org.kframework.utils.XmlLoader;
 import org.kframework.utils.errorsystem.KException;
-import org.kframework.utils.errorsystem.KMessages;
 import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;
+import org.kframework.utils.errorsystem.KMessages;
 import org.kframework.utils.general.GlobalSettings;
 import org.kframework.utils.utils.file.FileUtil;
 import org.kframework.utils.utils.file.KPaths;
@@ -46,22 +53,35 @@ public class BasicParser {
 		filePaths = new ArrayList<String>();
 
 		try {
-			File file = buildCanonicalPath("autoinclude.k", new File("."));
-			if (file == null)
-				GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL, KMessages.ERR1004 + fileName + " autoimporeted for every definition ", fileName, ""));
-			slurp2(file, new File("."));
-			setMainFile(file);
-			file = new File(fileName);
+			// parse first the file given at console
+			File file = new File(fileName);
 			if (!file.exists())
 				GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL, KMessages.ERR1004 + fileName + " given at console.", "", ""));
-			slurp2(file, new File("."));
+			if (GlobalSettings.verbose)
+				System.out.println("Including file: " + file.getCanonicalPath());
+
+			slurp2(file);
+
+			// parse the autoinclude file
+			file = buildCanonicalPath("autoinclude.k", new File(fileName));
+			if (file == null)
+				GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL, KMessages.ERR1004 + fileName + " autoimporeted for every definition ", fileName, ""));
+
+			DefinitionHelper.addFileRequirement(buildCanonicalPath("autoinclude.k", file).getCanonicalPath(), file.getCanonicalPath());
+
+			if (GlobalSettings.verbose)
+				System.out.println("Including file: " + file.getCanonicalPath());
+
+			slurp2(file);
+
+			setMainFile(file);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
 	private File buildCanonicalPath(String fileName, File parentFile) throws IOException {
-		File file = new File(parentFile.getCanonicalFile().getParentFile().getCanonicalPath() + "/" + fileName);
+		File file = new File(parentFile.getCanonicalFile().getParent() + "/" + fileName);
 		if (file.exists())
 			return file;
 		file = new File(KPaths.getKBase(false) + "/include/" + fileName);
@@ -71,7 +91,7 @@ public class BasicParser {
 		return null;
 	}
 
-	private void slurp2(File file, File parentFile) throws IOException {
+	private void slurp2(File file) throws IOException {
 		String cannonicalPath = file.getCanonicalPath();
 		if (!filePaths.contains(cannonicalPath)) {
 			filePaths.add(cannonicalPath);
@@ -79,31 +99,34 @@ public class BasicParser {
 			List<DefinitionItem> defItemList = parseFile(file);
 
 			// go through every required file
-			for (DefinitionItem di : defItemList) {
+			for (ASTNode di : defItemList) {
 				if (di instanceof Require) {
 					Require req = (Require) di;
 
-					if (GlobalSettings.verbose)
-						System.out.println("Including file: " + req.getValue());
-
 					File newFile = buildCanonicalPath(req.getValue(), file);
+
+					if (GlobalSettings.verbose)
+						System.out.println("Including file: " + newFile.getCanonicalPath());
+
 					if (newFile == null)
 						GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL, KMessages.ERR1004 + req.getValue(), req.getFilename(), req.getLocation()));
-					slurp2(newFile, file);
+					slurp2(newFile);
+					DefinitionHelper.addFileRequirement(newFile.getCanonicalPath(), file.getCanonicalPath());
 				}
 			}
 
 			// add the modules to the modules list and to the map for easy access
 			for (DefinitionItem di : defItemList) {
+				this.moduleItems.add(di);
 				if (di instanceof Module) {
 					Module m = (Module) di;
-					this.moduleItems.add(m);
 					this.modulesMap.put(m.getName(), m);
 				}
 			}
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public static List<DefinitionItem> parseFile(File file) {
 		String content = FileUtil.getFileContent(file.getAbsolutePath());
 
@@ -121,7 +144,7 @@ public class BasicParser {
 				defItemList.add((DefinitionItem) JavaClassesFactory.getTerm(elm));
 			}
 		}
-
+		defItemList = (List<DefinitionItem>) BasicParser.relocateComments(defItemList);
 		return defItemList;
 	}
 
@@ -155,5 +178,73 @@ public class BasicParser {
 
 	public void setModulesMap(Map<String, Module> modulesMap) {
 		this.modulesMap = modulesMap;
+	}
+
+	private static List<? extends ASTNode> sort(List<? extends ASTNode> nodes) {
+		Collections.sort(nodes, new Comparator<ASTNode>() {
+			@Override
+			public int compare(ASTNode n1, ASTNode n2) {
+				String[] loc1 = n1.getLocation().split("\\(|,|\\)");
+				int loc11 = Integer.parseInt(loc1[1]);
+				int loc12 = Integer.parseInt(loc1[2]);
+				String[] loc2 = n2.getLocation().split("\\(|,|\\)");
+				int loc21 = Integer.parseInt(loc2[1]);
+				int loc22 = Integer.parseInt(loc2[2]);
+				if (loc11 > loc21)
+					return 1;
+				if (loc11 == loc21 && loc12 > loc22)
+					return 1;
+
+				return 0;
+			}
+		});
+
+		return nodes;
+	}
+
+	/**
+	 * All comments are returned at the end of the DefinitionItem list so they need to be sorted and relocated into modules and between modules.
+	 * 
+	 * @param nodes
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	private static List<? extends ASTNode> relocateComments(List<? extends ASTNode> nodes) {
+		nodes = BasicParser.sort(nodes);
+		List<ASTNode> defItemListTemp = new ArrayList<ASTNode>();
+
+		for (int i = 0; i < nodes.size(); i++) {
+			ASTNode current = nodes.get(i);
+			if (current instanceof Module) {
+				Module m = (Module) current;
+				for (; i + 1 < nodes.size(); i++) {
+					ASTNode next = nodes.get(i + 1);
+					if (next instanceof LiterateDefinitionComment && isInside(m, next)) {
+						m.getItems().add(new LiterateModuleComment((LiterateDefinitionComment) next));
+					} else
+						break;
+				}
+				m.setItems((List<ModuleItem>) sort(m.getItems()));
+			}
+
+			defItemListTemp.add(current);
+		}
+
+		return nodes;
+	}
+
+	private static boolean isInside(ASTNode n1, ASTNode n2) {
+		String[] loc1 = n1.getLocation().split("\\(|,|\\)");
+		int loc11 = Integer.parseInt(loc1[3]);
+		int loc12 = Integer.parseInt(loc1[4]);
+		String[] loc2 = n2.getLocation().split("\\(|,|\\)");
+		int loc21 = Integer.parseInt(loc2[1]);
+		int loc22 = Integer.parseInt(loc2[2]);
+		if (loc11 > loc21)
+			return true;
+		if (loc11 == loc21 && loc12 > loc22)
+			return true;
+
+		return false;
 	}
 }
