@@ -3,10 +3,10 @@ int main() {
   {
     int x = 11;
     cout << x << y << endl;
-    {
+    { {{{
       int y = 112;
       cout << x << y << endl;
-    }
+    } cout << x << y << endl;}cout << x << y << endl;}cout << x << y << endl;}
     cout << x << y << endl;
   }
   cout << x << y << endl;

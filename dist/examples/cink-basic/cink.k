@@ -586,7 +586,7 @@ module CINK-LANG-SEMANTICS
     environment is equal to that on the top:
   */
   rule [block] : 
-       <k>{Sts:Stmts} => Sts ~> popb  ...</k>
+       <k>{Sts:Stmts} => Sts ~> popbeq  ...</k>
        <env> Env:Map </env>
        <bstack> [Env1:Map] ...</bstack>
        when Env ==Map Env1
@@ -863,13 +863,17 @@ module CINK-LANG-SEMANTICS
     The semantics of \texttt{popb} is to pop out the stack of the
     block environments:
   */
-  syntax K ::= "popb"
- 
-  rule (popb => .) ~> popb [anywhere]
+  syntax K ::= "popb" | "popbeq"
 
   rule <k> popb => . ...</k>
        <bstack> [Env:Map] => . ...</bstack>
        <env> _ => Env </env> 
+
+  rule <k> popbeq => . ...</k>
+       <bstack> [Env:Map] ...</bstack>
+       <env> _ => Env </env> 
+
+  rule (popbeq => .) ~> popbeq [anywhere]
 
 endmodule
 
