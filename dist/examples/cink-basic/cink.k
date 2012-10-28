@@ -3,7 +3,7 @@ require "builtins/model-checker.k"
 \setlength{\parindent}{1em}
 \title{CinK -- an experiment on how to think in \K}
 \author{Dorel Lucanu (\texttt{dlucanu@info.uaic.ro}) and 
-        Traian Florin \c{S}erb\u{a}nu\c{t}\u{a} (\texttt{tserban2@illinois.edu})}
+        Traian Florin \c{S}erb\u{a}nu\c{t}\u{a} (\texttt{traian.serbanuta@info.uaic.ro})}
 \organization{Alexandru Ioan Cuza University of Ia\c{s}i, Romania}
 \newcommand{\myparagraph}[1]{\textbf{#1}}
 \newcommand{\KTool}{\K tool\xspace}
@@ -586,7 +586,7 @@ module CINK-LANG-SEMANTICS
     environment is equal to that on the top:
   */
   rule [block] : 
-       <k>{Sts:Stmts} => Sts  ...</k>
+       <k>{Sts:Stmts} => Sts ~> popb  ...</k>
        <env> Env:Map </env>
        <bstack> [Env1:Map] ...</bstack>
        when Env ==Map Env1
@@ -864,6 +864,8 @@ module CINK-LANG-SEMANTICS
     block environments:
   */
   syntax K ::= "popb"
+ 
+  rule (popb => .) ~> popb [anywhere]
 
   rule <k> popb => . ...</k>
        <bstack> [Env:Map] => . ...</bstack>
