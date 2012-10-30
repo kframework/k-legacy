@@ -29,15 +29,13 @@ public class Main {
 
 	public static void main(String[] args) {
 
-		String k = "/var/lib/jenkins/workspace/k-framework-tests/k";
-		
 		// a little bit hack-ish but it works until somebody complains
-		System.out.println("UDIR: " + System.getProperty("user.dir"));
 		if (System.getProperty("user.dir").contains("jenkins")) {
-			
+
 			// remove anything from previous build
 			try {
-				ProcessBuilder pb = new ProcessBuilder("rm", "-rf", k);
+				ProcessBuilder pb = new ProcessBuilder("rm", "-rf",
+						Configuration.k);
 				Process process = pb.start();
 				int exit = process.waitFor();
 				String out = Task.readString(process.getInputStream());
@@ -45,16 +43,15 @@ public class Main {
 				System.out.println(out);
 				System.out.println(err);
 				System.out.println(exit);
-			}
-			catch (Exception e)
-			{
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 
-			
 			// first copy the k-framework artifacts
 			try {
-				ProcessBuilder pb = new ProcessBuilder("cp", "-r", "/var/lib/jenkins/workspace/k-framework", k);
+				ProcessBuilder pb = new ProcessBuilder("cp", "-r",
+						"/var/lib/jenkins/workspace/k-framework",
+						Configuration.k);
 				Process process = pb.start();
 				int exit = process.waitFor();
 				String out = Task.readString(process.getInputStream());
@@ -62,19 +59,14 @@ public class Main {
 				System.out.println(out);
 				System.out.println(err);
 				System.out.println(exit);
-			}
-			catch (Exception e)
-			{
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			
-			// setup the new path
-			Configuration.HOME_DIR = k;
 
 			// build K
 			try {
 				ProcessBuilder pb = new ProcessBuilder("ant");
-				pb.directory(new File(Configuration.HOME_DIR));
+				pb.directory(new File(Configuration.getHome()));
 				Process process = pb.start();
 				int exit = process.waitFor();
 				String out = Task.readString(process.getInputStream());
@@ -88,17 +80,6 @@ public class Main {
 			}
 		}
 
-		// execute the right scripts
-		String os = System.getProperty("os.name").toLowerCase();
-		if (os.contains("win")) {
-			Configuration.kompile = Configuration.kompile + ".bat";
-			Configuration.krun = Configuration.kompile + ".bat";
-		}
-
-		if (Configuration.HOME_DIR == null)
-			new File(System.getProperty("user.dir")).getParentFile()
-			.getParentFile().getParentFile().getAbsolutePath();
-		
 		List<Test> alltests = new LinkedList<Test>();
 
 		// load config
@@ -106,8 +87,8 @@ public class Main {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory
 					.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			System.out.println(Configuration.config);
-			Document doc = dBuilder.parse(new File(Configuration.config));
+			System.out.println(Configuration.getConfig());
+			Document doc = dBuilder.parse(new File(Configuration.getConfig()));
 			Element root = doc.getDocumentElement();
 
 			NodeList test = root.getElementsByTagName("test");
@@ -158,7 +139,7 @@ public class Main {
 			if (!entry.getKey().compiled(entry.getValue()))
 				System.out.println("Compiling "
 						+ entry.getKey().getLanguage()
-								.substring(Configuration.HOME_DIR.length())
+								.substring(Configuration.getHome().length())
 						+ " failed.");
 		}
 		System.out.println();
@@ -169,7 +150,7 @@ public class Main {
 			if (!entry.getKey().compiledPdf(entry.getValue()))
 				System.out.println("Compiling pdf "
 						+ entry.getKey().getLanguage()
-								.substring(Configuration.HOME_DIR.length())
+								.substring(Configuration.getHome().length())
 						+ " failed.");
 		}
 
@@ -199,7 +180,7 @@ public class Main {
 				System.out.println("\n");
 				System.out.println("Failed "
 						+ test.getLanguage().substring(
-								Configuration.HOME_DIR.length())
+								Configuration.getHome().length())
 						+ " programs:");
 				for (Entry<Program, Task> entry : all.entrySet()) {
 					if (!entry.getKey().success(entry.getValue())) {
@@ -208,8 +189,7 @@ public class Main {
 										+ entry.getKey()
 												.getAbsolutePath()
 												.substring(
-														Configuration
-																.HOME_DIR
+														Configuration.getHome()
 																.length())
 										+ " failed.");
 					}
