@@ -23,9 +23,9 @@ class B {
   }
 }
 
-class main {
+class Main {
   var f;
-  method main() {
+  method Main() {
     var b = new B();
     var t = f = b.getM();
     f();

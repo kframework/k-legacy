@@ -1,7 +1,7 @@
 // Testing main
 
-class main {
-  method main() {
+class Main {
+  method Main() {
     print("Hello world!\n");
   }
 }

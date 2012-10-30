@@ -42,9 +42,9 @@ class MyThread extends Thread {
 }
 
 
-class main {
+class Main {
 
-  method main() {
+  method Main() {
     var c = new Cell(7);
     var t1 = new MyThread(c);
     var t2 = new MyThread(c);

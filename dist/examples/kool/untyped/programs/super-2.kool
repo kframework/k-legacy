@@ -1,15 +1,15 @@
 // Testing super in combination with dynamic method dispatch
 
-class a {
+class A {
   var i;
   var j;
-  method a() {
+  method A() {
     i = 1;
     j = i + 1;
     return j;
   }
   method f() {
-    return a();
+    return A();
   }
   method g() {
     return f();
@@ -19,14 +19,14 @@ class a {
   }
 }
 
-class b extends a {
+class B extends A {
   var j;
   var k;
-  method a() {
-    return this.b();
+  method A() {
+    return this.B();
   }
-  method b() {
-    super.a();
+  method B() {
+    super.A();
     j = 10;
     k = j + 1;
     return k;
@@ -39,14 +39,14 @@ class b extends a {
   }
 }
 
-class c extends b {
-  method a() {
-    return super.a();
+class C extends B {
+  method A() {
+    return super.A();
   }
-  method b() {
-    return super.b();
+  method B() {
+    return super.B();
   }
-  method c() {
+  method C() {
     i = 100;
     j = i + 1;
     k = j + 1;
@@ -57,16 +57,16 @@ class c extends b {
   }
 }
 
-class main {
+class Main {
   method p(o) {
     print(o.f(), " ");
     print(o.g(), " ");
     print(o.h(), "\n");
   }
-  method main() {
-    this.p(new a());
-    this.p(new b());
-    this.p(new c());
+  method Main() {
+    this.p(new A());
+    this.p(new B());
+    this.p(new C());
   }
 }
 

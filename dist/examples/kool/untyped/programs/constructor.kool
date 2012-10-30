@@ -1,8 +1,8 @@
 // Testing new, constructor, method invocation.
 
-class c {
+class C {
   var i,j;
-  method c(x) {
+  method C(x) {
     i = x;
     j = ++x;
   }
@@ -15,11 +15,11 @@ class c {
   }
 }
 
-class main {
+class Main {
   var a,b,o;
-  method main(){
+  method Main(){
     a = b = 5;
-    o = new c(a);
+    o = new C(a);
     o.print2();
     o.add(++b);
     o.print2();
