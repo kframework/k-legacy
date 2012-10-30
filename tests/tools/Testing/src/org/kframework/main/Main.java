@@ -34,6 +34,24 @@ public class Main {
 		// a little bit hack-ish but it works until somebody complains
 		System.out.println("UDIR: " + System.getProperty("user.dir"));
 		if (System.getProperty("user.dir").contains("jenkins")) {
+			
+			// remove anything from previous build
+			try {
+				ProcessBuilder pb = new ProcessBuilder("rm", "-rf", k);
+				Process process = pb.start();
+				int exit = process.waitFor();
+				String out = Task.readString(process.getInputStream());
+				String err = Task.readString(process.getErrorStream());
+				System.out.println(out);
+				System.out.println(err);
+				System.out.println(exit);
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+
+			
 			// first copy the k-framework artifacts
 			try {
 				ProcessBuilder pb = new ProcessBuilder("cp", "-r", "/var/lib/jenkins/workspace/k-framework", k);
@@ -49,6 +67,7 @@ public class Main {
 			{
 				e.printStackTrace();
 			}
+			
 			// setup the new path
 			Configuration.HOME_DIR = k;
 
@@ -76,6 +95,10 @@ public class Main {
 			Configuration.krun = Configuration.kompile + ".bat";
 		}
 
+		if (Configuration.HOME_DIR == null)
+			new File(System.getProperty("user.dir")).getParentFile()
+			.getParentFile().getParentFile().getAbsolutePath();
+		
 		List<Test> alltests = new LinkedList<Test>();
 
 		// load config
@@ -135,7 +158,7 @@ public class Main {
 			if (!entry.getKey().compiled(entry.getValue()))
 				System.out.println("Compiling "
 						+ entry.getKey().getLanguage()
-								.substring(Configuration.getHomeDir().length())
+								.substring(Configuration.HOME_DIR.length())
 						+ " failed.");
 		}
 		System.out.println();
@@ -146,7 +169,7 @@ public class Main {
 			if (!entry.getKey().compiledPdf(entry.getValue()))
 				System.out.println("Compiling pdf "
 						+ entry.getKey().getLanguage()
-								.substring(Configuration.getHomeDir().length())
+								.substring(Configuration.HOME_DIR.length())
 						+ " failed.");
 		}
 
@@ -176,7 +199,7 @@ public class Main {
 				System.out.println("\n");
 				System.out.println("Failed "
 						+ test.getLanguage().substring(
-								Configuration.getHomeDir().length())
+								Configuration.HOME_DIR.length())
 						+ " programs:");
 				for (Entry<Program, Task> entry : all.entrySet()) {
 					if (!entry.getKey().success(entry.getValue())) {
@@ -186,7 +209,7 @@ public class Main {
 												.getAbsolutePath()
 												.substring(
 														Configuration
-																.getHomeDir()
+																.HOME_DIR
 																.length())
 										+ " failed.");
 					}
