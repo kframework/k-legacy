@@ -87,7 +87,7 @@ public class Main {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory
 					.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			System.out.println(Configuration.getConfig());
+			System.out.println("Buildfile: " + Configuration.getConfig());
 			Document doc = dBuilder.parse(new File(Configuration.getConfig()));
 			Element root = doc.getDocumentElement();
 
@@ -107,6 +107,7 @@ public class Main {
 		}
 
 		// compile definitions first
+		System.out.print("Kompiling the language definition...");
 		Map<Test, Task> definitions = new HashMap<Test, Task>();
 		for (Test test : alltests) {
 			Task def = test.getDefinitionTask();
@@ -120,7 +121,20 @@ public class Main {
 			entry.getKey().reportCompilation(entry.getValue());
 		}
 
+		// console display
+		String kompileStatus = "\n";
+		for (Entry<Test, Task> entry : definitions.entrySet()) {
+			if (!entry.getKey().compiled(entry.getValue()))
+				kompileStatus += "FAIL: " + entry.getKey().getLanguage()
+								.substring(Configuration.getHome().length())
+						+ "\n";
+		}
+		if (kompileStatus.equals("\n"))
+			kompileStatus = "\tSUCCESS";
+		System.out.println(kompileStatus + "\n");
+
 		// compile pdf definitions
+		System.out.print("Generating PDF documentation...");
 		Map<Test, Task> pdfDefinitions = new HashMap<Test, Task>();
 		for (Test test : alltests) {
 			// also compile pdf if set
@@ -139,32 +153,31 @@ public class Main {
 		System.out.println();
 
 		
-		// console display
-		System.out.println("Compilation failed for: ");
-		for (Entry<Test, Task> entry : definitions.entrySet()) {
-			if (!entry.getKey().compiled(entry.getValue()))
-				System.out.println("Compiling "
-						+ entry.getKey().getLanguage()
-								.substring(Configuration.getHome().length())
-						+ " failed.");
-		}
-		System.out.println();
 
 		// console display
-		System.out.println("Pdf compilation failed for: ");
+		String pdfKompileStatus = "\n";
 		for (Entry<Test, Task> entry : pdfDefinitions.entrySet()) {
 			if (!entry.getKey().compiledPdf(entry.getValue()))
-				System.out.println("Compiling pdf "
+				pdfKompileStatus = "FAIL: "
 						+ entry.getKey().getLanguage()
 								.substring(Configuration.getHome().length())
-						+ " failed.");
+						+ "\n";
 		}
-
+		if(pdfKompileStatus.equals("\n"))
+			pdfKompileStatus = "\t\tSUCCESS";
+		System.out.println(pdfKompileStatus + "\n");
+		
+		
 		// execute all programs (for which corresponding definitions are
 		// compiled)
 		for (Entry<Test, Task> dentry : definitions.entrySet()) {
 			Test test = dentry.getKey();
 			if (test.compiled(dentry.getValue())) {
+
+				System.out.print("Running "
+						+ test.getLanguage().substring(
+								Configuration.getHome().length())
+						+ " programs... ");
 
 				// execute
 				List<Program> pgms = test.getPrograms();
@@ -183,23 +196,20 @@ public class Main {
 				}
 
 				// console
-				System.out.println("\n");
-				System.out.println("Failed "
-						+ test.getLanguage().substring(
-								Configuration.getHome().length())
-						+ " programs:");
+				String pgmOut = "\n";
 				for (Entry<Program, Task> entry : all.entrySet()) {
 					if (!entry.getKey().success(entry.getValue())) {
-						System.out
-								.println("Running "
-										+ entry.getKey()
+						pgmOut += "FAIL: " + entry.getKey()
 												.getAbsolutePath()
 												.substring(
 														Configuration.getHome()
 																.length())
-										+ " failed.");
+										+ "\n";
 					}
 				}
+				if (pgmOut.equals("\n"))
+					pgmOut = "\tSUCCESS";
+				System.out.println(pgmOut + "\n");
 			}
 		}
 
