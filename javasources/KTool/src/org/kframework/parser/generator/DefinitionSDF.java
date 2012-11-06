@@ -185,6 +185,10 @@ public class DefinitionSDF {
 
 		sdf.append("\n");
 
+		for (Sort s : psdfv.userSorts) {
+			sdf.append("	\"sym" + s.getName() + "\" \"(\" K \")\"      -> " + StringUtil.escapeSortName(s.getName()) + "\n");
+		}
+
 		sdf.append("context-free restrictions\n");
 		sdf.append("	VariableDz -/- ~[\\:\\;\\(\\)\\<\\>\\~\\n\\r\\t\\,\\ \\[\\]\\=\\+\\-\\*\\/\\|\\{\\}\\.]\n");
 		sdf.append("	DouaPuncteDz -/- [A-Z]\n\n");
@@ -198,6 +202,7 @@ public class DefinitionSDF {
 		// print is<Sort> predicates (actually KLabel)
 		for (Sort s : psdfv.userSorts) {
 			sdf.append("	\"is" + s.getName() + "\"      -> DzKLabel\n");
+			sdf.append("	\"isSymbolic" + s.getName() + "\"      -> DzKLabel\n");
 		}
 
 		sdf.append("\n\n");
