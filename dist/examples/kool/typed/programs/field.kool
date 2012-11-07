@@ -2,7 +2,7 @@
 
 class Main {
   int a=3;
-  method Main() {
+  void Main() {
     print("a = ", a, "\n");
   }
 }
