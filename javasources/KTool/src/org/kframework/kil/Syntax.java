@@ -1,6 +1,6 @@
 package org.kframework.kil;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.kframework.kil.loader.Constants;
@@ -45,7 +45,7 @@ public class Syntax extends ModuleItem {
 		// assumption: sorts contains only one element
 		sort = (Sort) JavaClassesFactory.getTerm(sorts.get(0));
 
-		this.priorityBlocks = new LinkedList<PriorityBlock>();
+		this.priorityBlocks = new ArrayList<PriorityBlock>();
 		List<Element> priorities = XML.getChildrenElementsByTagName(element, Constants.PRIORITY);
 		for (Element priority : priorities)
 			priorityBlocks.add((PriorityBlock) JavaClassesFactory.getTerm(priority));
@@ -72,7 +72,7 @@ public class Syntax extends ModuleItem {
 
 	@Override
 	public List<String> getAllSorts() {
-		List<String> sorts = new LinkedList<String>();
+		List<String> sorts = new ArrayList<String>();
 		sorts.add(sort.toString());
 		return sorts;
 	}
