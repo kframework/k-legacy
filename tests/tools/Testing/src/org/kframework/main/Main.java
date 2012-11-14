@@ -29,24 +29,13 @@ public class Main {
 
 	public static void main(String[] args) {
 
-		if (args.length == 1) {
-			if (!new File(args[0]).isAbsolute())
-				Configuration.CONFIG = Configuration.getHome()
-						+ Configuration.FS + args[0];
-			else
-				Configuration.CONFIG = args[0];
-		}
-		if (!new File(Configuration.getConfig()).exists()) {
-			System.out.println("Configuration file "
-					+ Configuration.getConfig() + " does not exists.");
-			System.exit(1);
-		}
-
 		int exitCode = 0;
 
 		// a little bit hack-ish but it works until somebody complains
+		System.out.println(System.getProperty("user.dir"));
 		if (System.getProperty("user.dir").contains("jenkins")) {
 
+			System.out.println("Remove maude binaries");
 			// remove anything from previous build
 			try {
 				ProcessBuilder pb = new ProcessBuilder("rm", "-rf",
@@ -61,6 +50,23 @@ public class Main {
 			} catch (Exception e) {
 				e.printStackTrace();
 				exitCode = 1;
+			}
+
+			// remove maude binaries
+			try {
+				ProcessBuilder pb = new ProcessBuilder("rm", "-rf",
+						"/var/lib/jenkins/workspace/k-framework/dist/bin/maude/binaries",
+						Configuration.k);
+				Process process = pb.start();
+				int exit = process.waitFor();
+				String out = Task.readString(process.getInputStream());
+				String err = Task.readString(process.getErrorStream());
+				System.out.println(out);
+				System.out.println(err);
+				System.out.println(exit);
+			} catch (Exception e) {
+				exitCode = 1;
+				e.printStackTrace();
 			}
 
 			// first copy the k-framework artifacts
@@ -79,7 +85,7 @@ public class Main {
 				exitCode = 1;
 				e.printStackTrace();
 			}
-
+			
 			// build K
 			try {
 				ProcessBuilder pb = new ProcessBuilder("ant");
@@ -99,11 +105,25 @@ public class Main {
 			
 			if (!new File(Configuration.getHome() + Configuration.FS + "dist" + Configuration.FS + "bin" + Configuration.FS + "java" + Configuration.FS + "k3.jar").exists())
 			{
-				System.out.println("K3 build failed. k3.jar does not exist.");
-				System.exit(2);
 			}
 		}
 
+		
+		if (args.length == 1) {
+			if (!new File(args[0]).isAbsolute())
+				Configuration.CONFIG = Configuration.getHome()
+						+ Configuration.FS + args[0];
+			else
+				Configuration.CONFIG = args[0];
+		}
+		if (!new File(Configuration.getConfig()).exists()) {
+			System.out.println("Configuration file "
+					+ Configuration.getConfig() + " does not exists.");
+			System.exit(1);
+		}
+
+
+		
 		List<Test> alltests = new LinkedList<Test>();
 
 		// load config
