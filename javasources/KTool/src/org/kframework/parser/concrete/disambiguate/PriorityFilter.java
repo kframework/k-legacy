@@ -35,7 +35,10 @@ public class PriorityFilter extends BasicTransformer {
 		}
 
 		if (tc.getProduction().isListDecl()) {
-			// TODO:
+			parent = tc;
+			tc.getContents().set(0, (Term) tc.getContents().get(0).accept(this));
+			parent = tc;
+			tc.getContents().set(1, (Term) tc.getContents().get(1).accept(this));
 		} else if (!tc.getProduction().isConstant() && !tc.getProduction().isSubsort()) {
 			for (int i = 0, j = 0; i < tc.getProduction().getItems().size(); i++) {
 				if (tc.getProduction().getItems().get(i).getType() == ProductionType.SORT) {
@@ -63,7 +66,11 @@ public class PriorityFilter extends BasicTransformer {
 		for (Term t : node.getContents()) {
 			ASTNode result = null;
 			try {
-				parent = lp;
+				if (t instanceof TermCons || t instanceof Ambiguity)
+					parent = lp;
+				else
+					parent = null;
+
 				result = t.accept(this);
 				terms.add((Term) result);
 			} catch (TransformerException e) {
