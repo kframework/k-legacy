@@ -1,6 +1,13 @@
 package org.kframework.main;
 
-import com.thoughtworks.xstream.XStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.cli.CommandLine;
 import org.kframework.backend.html.HTMLFilter;
 import org.kframework.backend.latex.LatexFilter;
@@ -14,7 +21,30 @@ import org.kframework.compile.sharing.DittoFilter;
 import org.kframework.compile.tags.AddDefaultComputational;
 import org.kframework.compile.tags.AddOptionalTags;
 import org.kframework.compile.tags.AddStrictStar;
-import org.kframework.compile.transformers.*;
+import org.kframework.compile.transformers.AddEmptyLists;
+import org.kframework.compile.transformers.AddKCell;
+import org.kframework.compile.transformers.AddKLabelConstant;
+import org.kframework.compile.transformers.AddKLabelToString;
+import org.kframework.compile.transformers.AddPredicates;
+import org.kframework.compile.transformers.AddSymbolicK;
+import org.kframework.compile.transformers.AddTopCell;
+import org.kframework.compile.transformers.DesugarStreams;
+import org.kframework.compile.transformers.FlattenSyntax;
+import org.kframework.compile.transformers.RemoveBrackets;
+import org.kframework.compile.transformers.ResolveAnonymousVariables;
+import org.kframework.compile.transformers.ResolveBinder;
+import org.kframework.compile.transformers.ResolveBlockingInput;
+import org.kframework.compile.transformers.ResolveBuiltins;
+import org.kframework.compile.transformers.ResolveContextAbstraction;
+import org.kframework.compile.transformers.ResolveDefaultTerms;
+import org.kframework.compile.transformers.ResolveFresh;
+import org.kframework.compile.transformers.ResolveFunctions;
+import org.kframework.compile.transformers.ResolveHybrid;
+import org.kframework.compile.transformers.ResolveListOfK;
+import org.kframework.compile.transformers.ResolveOpenCells;
+import org.kframework.compile.transformers.ResolveRewrite;
+import org.kframework.compile.transformers.ResolveSupercool;
+import org.kframework.compile.transformers.ResolveSyntaxPredicates;
 import org.kframework.compile.utils.CheckVisitorStep;
 import org.kframework.compile.utils.CompilerTransformerStep;
 import org.kframework.compile.utils.ConfigurationStructureMap;
@@ -36,9 +66,7 @@ import org.kframework.utils.file.KPaths;
 import org.kframework.utils.general.GlobalSettings;
 import org.kframework.utils.maude.MaudeRun;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import com.thoughtworks.xstream.XStream;
 
 public class KompileFrontEnd {
 	public static void kompile(String[] args) {
@@ -507,11 +535,10 @@ public class KompileFrontEnd {
 			javaDef.accept(maudeFilter1);
 			FileUtil.saveInFile(DefinitionHelper.dotk.getAbsolutePath() + "/lists.maude", maudeFilter1.getResult());
 
-
 			new CheckVisitorStep(new CheckVariables()).check(javaDef);
 
 			if (GlobalSettings.verbose) {
-				sw.printIntermediate("Check Variables");
+				sw.printIntermediate("Sanity checks");
 			}
 
 			AutomaticModuleImportsTransformer amit = new AutomaticModuleImportsTransformer();
@@ -624,11 +651,10 @@ public class KompileFrontEnd {
 				sw.printIntermediate("Resolve ListOfK");
 			}
 			/*
-			javaDef = new CompilerTransformerStep(new StrictnessToContexts()).compile(javaDef);
-
-			if (GlobalSettings.verbose) {
-				sw.printIntermediate("Strict Ops To Context");
-			}*/
+			 * javaDef = new CompilerTransformerStep(new StrictnessToContexts()).compile(javaDef);
+			 * 
+			 * if (GlobalSettings.verbose) { sw.printIntermediate("Strict Ops To Context"); }
+			 */
 
 			javaDef = new CompilerTransformerStep(new FlattenSyntax()).compile(javaDef);
 
@@ -636,17 +662,17 @@ public class KompileFrontEnd {
 				sw.printIntermediate("Flatten Syntax");
 			}
 
-            javaDef = new CompilerTransformerStep(new AddKLabelToString()).compile(javaDef);
+			javaDef = new CompilerTransformerStep(new AddKLabelToString()).compile(javaDef);
 
-            if (GlobalSettings.verbose) {
-                sw.printIntermediate("Add KLabel2String and String2KLabel definitions");
-            }
+			if (GlobalSettings.verbose) {
+				sw.printIntermediate("Add KLabel2String and String2KLabel definitions");
+			}
 
-            javaDef = new CompilerTransformerStep(new AddKLabelConstant()).compile(javaDef);
+			javaDef = new CompilerTransformerStep(new AddKLabelConstant()).compile(javaDef);
 
-            if (GlobalSettings.verbose) {
-                sw.printIntermediate("Add isKLabelConstant definitions");
-             }
+			if (GlobalSettings.verbose) {
+				sw.printIntermediate("Add isKLabelConstant definitions");
+			}
 
 			javaDef = new CompilerTransformerStep(new ResolveHybrid()).compile(javaDef);
 
@@ -677,19 +703,17 @@ public class KompileFrontEnd {
 				sw.printIntermediate("Resolve Open Cells");
 			}
 
-            javaDef = new CompilerTransformerStep(new ResolveRewrite()).compile(javaDef);
+			javaDef = new CompilerTransformerStep(new ResolveRewrite()).compile(javaDef);
 
 			if (GlobalSettings.verbose) {
 				sw.printIntermediate("Push local rewrites to the top");
 
-            javaDef = new CompilerTransformerStep(new ResolveSupercool()).compile(javaDef);
+				javaDef = new CompilerTransformerStep(new ResolveSupercool()).compile(javaDef);
 
-            if (GlobalSettings.verbose) {
-                sw.printIntermediate("Cool the <k> cell for supercool rules");
-            }
-		}
-
-
+				if (GlobalSettings.verbose) {
+					sw.printIntermediate("Cool the <k> cell for supercool rules");
+				}
+			}
 
 			// javaDef = new CompilerTransformerStep(new ContextsToHeating()).compile(javaDef);
 			//
@@ -750,8 +774,7 @@ public class KompileFrontEnd {
 			FileUtil.saveInFile(defFile + "-compiled.maude", load + compiled);
 
 			if (start == -1 || enddd == -1) {
-				KException exception = new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL,
-						"Incomplete output generated by the compiler. Check the '" + defFile + "-compiled.maude'.",
+				KException exception = new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL, "Incomplete output generated by the compiler. Check the '" + defFile + "-compiled.maude'.",
 						"top level", "Maude compilation");
 				GlobalSettings.kem.register(exception);
 			}
