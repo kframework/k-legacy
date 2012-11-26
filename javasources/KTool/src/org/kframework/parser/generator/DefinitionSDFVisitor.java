@@ -56,7 +56,7 @@ public class DefinitionSDFVisitor extends BasicVisitor {
 
 			// filter the productions according to their form
 			for (Production prd : prt.getProductions()) {
-				if (prd.getAttributes().containsKey("onlyLabel")) {
+				if (prd.containsAttribute("onlyLabel")) {
 					// if a production has this attribute, don't add it to the list
 				} else if (prd.isSubsort()) {
 					if (!prd.getSort().equals("KResult")) { // avoid KResult because it breaks subsortings in SDF

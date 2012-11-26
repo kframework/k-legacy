@@ -29,15 +29,15 @@ public class ResolveHybrid extends CopyOnWriteTransformer {
 	
 	@Override
 	public ASTNode transform(Production node) throws TransformerException {
-		if (!node.getAttributes().containsKey("hybrid")) return node;
+		if (!node.containsAttribute("hybrid")) return node;
 		Rule rule = new Rule();
 		rule.setBody(new Rewrite(
 						new KApp(new Constant("KLabel", "isKResult"), 
 								new KApp(new Constant("KLabel", ((Terminal) node.getItems().get(0)).getTerminal()), new Variable("Ks", "List{K}"))), 
 								
-						new KApp(new KInjectedLabel(new Constant("#Bool", "true")),new Empty("List{K}"))));
+						new KApp(new KInjectedLabel(Constant.TRUE), Empty.ListOfK)));
 		rule.setCondition(new KApp(new Constant("KLabel", "isKResult"), new Variable("Ks", "List{K}")));
-		rule.getAttributes().getContents().add(new Attribute("predicate", ""));
+		rule.addAttribute(Attribute.PREDICATE);
 		hybrids.add(rule);
 		return node;
 	}

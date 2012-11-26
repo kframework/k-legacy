@@ -1,7 +1,9 @@
 require "modules/unification.k"
+require "modules/substitution.k"
 
 module LAMBDA
   imports UNIFICATION
+  imports SUBSTITUTION
 
   syntax Exp ::= Int | Bool | Id
                | "(" Exp ")"                      [bracket]
@@ -16,15 +18,11 @@ module LAMBDA
                | "letrec" Id Id "=" Exp "in" Exp
                | "mu" Id "." Exp
 
-  syntax TypeVar ::= "dummy"
   syntax Type ::= "int" | "bool"
                 | Type "->" Type                  [strict]
                 | "(" Type ")"                    [bracket]
-                | TypeVar
-  syntax UnificationVar ::= TypeVar
 
-  syntax TypeSchema ::= "forall" Set "." Type  
-                          [binder(1), latex((\forall{#1}){#2})]
+  syntax TypeSchema ::= "forall" Set "." Type [binder, latex(\forall{#1}.{#2})]
 
   syntax Exp ::= Type
   syntax KResult ::= Type
@@ -41,24 +39,24 @@ module LAMBDA
   rule T1:Type  + T2:Type => T1 = int ~> T2 = int ~> int
   rule T1:Type <= T2:Type => T1 = int ~> T2 = int ~> bool
   rule <k> lambda X:Id . E:Exp => Tv -> E ~> tenv(TEnv) ...</k>
-       <tenv> TEnv => TEnv[Tv/X] </tenv>  when fresh(Tv:TypeVar)
-  rule T1:Type T2:Type => T1 = (T2 -> Tv) ~> Tv  when fresh(Tv:TypeVar)
+       <tenv> TEnv:Map => TEnv[Tv/X] </tenv>  when fresh(Tv:Type)
+  rule T1:Type T2:Type => T1 = (T2 -> Tv) ~> Tv  when fresh(Tv:Type)
   rule if T:Type then T1:Type else T2:Type => T = bool ~> T1 = T2 ~> T1
 
   rule <k> let X = T:Type in E => E ~> tenv(TEnv) ...</k>
        <mgu> Theta:Mgu </mgu>
-       <tenv> TEnv
-        => TEnv[(forall free-vars(applyMgu(Theta, T)) -Set
-                        free-vars(applyMgu(Theta, vals(TEnv)))
-                 . applyMgu(Theta, T)) / X]
+       <tenv> TEnv:Map
+        => TEnv[(forall freeVariables(applyMgu(Theta, T)) -Set
+                        freeVariables(applyMgu(Theta, values TEnv))
+                . applyMgu(Theta, T)) / X]
        </tenv>
-  rule <k> X:Id => fresh-vars(Tvs,T) ...</k>
+  rule <k> X:Id => freshVariables(Tvs,T) ...</k>
        <tenv>... X |-> forall Tvs . T ...</tenv>
 
   rule letrec F X = E in E' => let F = mu F . lambda X . E in E'        [macro]
   rule <k> mu X:Id . E:Exp => (Tv -> Tv) E ~> tenv(TEnv) ...</k>
-          <tenv> TEnv => TEnv[Tv/X] </tenv>
-    when fresh(Tv:TypeVar)
+          <tenv> TEnv:Map => TEnv[Tv/X] </tenv>
+    when fresh(Tv:Type)
 
   syntax K ::= Type "=" Type
   rule <k> T = T' => . ...</k>  <mgu> Theta:Mgu => updateMgu(Theta,T,T') </mgu>

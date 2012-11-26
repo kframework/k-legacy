@@ -10,6 +10,7 @@ public class Attribute extends ASTNode {
 
     public static final Attribute FUNCTION = new Attribute("function", "");
     public static final Attribute PREDICATE = new Attribute("predicate", "");
+    public static final Attribute ANYWHERE = new Attribute("anywhere", "");
 
     private String key;
 	private String value;

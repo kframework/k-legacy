@@ -53,7 +53,7 @@ public class ProgramSDF {
 			if (p.isListDecl()) {
 				UserList si = (UserList) p.getItems().get(0);
 				sdf.append("	{" + StringUtil.escapeSortName(si.getSort()) + " \"" + si.getSeparator() + "\"}* -> " + StringUtil.escapeSortName(p.getSort()));
-				sdf.append(" {cons(\"" + p.getAttributes().get("cons") + "\")}\n");
+				sdf.append(" {cons(\"" + p.getAttribute("cons") + "\")}\n");
 			} else {
 				sdf.append("	");
 				List<ProductionItem> items = p.getItems();

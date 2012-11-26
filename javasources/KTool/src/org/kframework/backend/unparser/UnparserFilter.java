@@ -206,7 +206,7 @@ public class UnparserFilter extends BasicVisitor {
 	public void visit(Cell cell) {
 		prepare(cell);
 		String attributes = "";
-		for (Entry<String, String> entry : cell.getAttributes().entrySet()) {
+		for (Entry<String, String> entry : cell.getCellAttributes().entrySet()) {
 			if (entry.getKey() != "ellipses") {
 				attributes += " " + entry.getKey() + "=\"" + entry.getValue() + "\"";
 			}

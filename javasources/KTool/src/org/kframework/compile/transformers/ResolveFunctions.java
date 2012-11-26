@@ -20,7 +20,7 @@ public class ResolveFunctions extends CopyOnWriteTransformer {
 		}
 		if (body instanceof TermCons) {
 			Production prod = DefinitionHelper.conses.get(((TermCons)body).getCons());
-			if (prod.getAttributes().containsKey("function")) {
+			if (prod.containsAttribute("function")) {
                 node = addFunction(node);
 			}
 		}
@@ -39,7 +39,7 @@ public class ResolveFunctions extends CopyOnWriteTransformer {
     private Rule addFunction(Rule node) {
         node = node.shallowCopy();
         node.setAttributes(node.getAttributes().shallowCopy());
-        node.getAttributes().set("function", "");
+        node.putAttribute("function", "");
         return node;
     }
 

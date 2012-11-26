@@ -37,13 +37,8 @@ public class StrictnessToContexts extends CopyOnWriteTransformer {
 //		System.out.println();		
 
 		for (Production prod : prods) {
-
-//			System.out.println(prod.toString());
-
-			Attributes attributes = prod.getAttributes();
-
-			if (attributes.containsKey("strict")){
-				String arg = attributes.get("strict");
+			if (prod.containsAttribute("strict")){
+				String arg = prod.getAttribute("strict");
 //				System.out.println("strict: " + arg);
 
 				//strict in only one argument
@@ -154,7 +149,7 @@ public class StrictnessToContexts extends CopyOnWriteTransformer {
 				prod.getAttributes().remove("strict");
 			}
 
-			if (attributes.containsKey("seqstrict")){
+			if (prod.containsAttribute("seqstrict")){
 //				System.out.println("seqstrict: " + attributes.get("seqstrict"));
 
 				int size = ((TermCons) MetaK.getTerm(prod)).getContents().size(); 

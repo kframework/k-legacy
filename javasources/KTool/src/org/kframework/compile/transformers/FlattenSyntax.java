@@ -58,7 +58,7 @@ public class FlattenSyntax extends CopyOnWriteTransformer {
 
 	@Override
 	public ASTNode transform(Production node) throws TransformerException {
-		if (node.getAttributes().containsKey("KLabelWrapper"))
+		if (node.containsAttribute("KLabelWrapper"))
 			return node;
 		if (!isComputation)
 			return super.transform(node);
