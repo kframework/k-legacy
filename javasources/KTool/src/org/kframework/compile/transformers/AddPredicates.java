@@ -2,21 +2,7 @@ package org.kframework.compile.transformers;
 
 
 import org.kframework.compile.utils.MetaK;
-import org.kframework.kil.ASTNode;
-import org.kframework.kil.Attribute;
-import org.kframework.kil.Configuration;
-import org.kframework.kil.Constant;
-import org.kframework.kil.Context;
-import org.kframework.kil.Empty;
-import org.kframework.kil.KApp;
-import org.kframework.kil.ListOfK;
-import org.kframework.kil.Module;
-import org.kframework.kil.ModuleItem;
-import org.kframework.kil.Production;
-import org.kframework.kil.Rule;
-import org.kframework.kil.Syntax;
-import org.kframework.kil.Term;
-import org.kframework.kil.Variable;
+import org.kframework.kil.*;
 import org.kframework.kil.loader.DefinitionHelper;
 import org.kframework.kil.visitors.BasicVisitor;
 import org.kframework.kil.visitors.CopyOnWriteTransformer;
@@ -193,9 +179,7 @@ public class AddPredicates extends CopyOnWriteTransformer {
 
                     // define isVariable predicate for symbolic sort
                     // constructor symSort
-                    lhs = new KApp(VariablePredicate, symTerm);
-                    rule = new Rule(lhs, Constant.TRUE);
-                    rule.addAttribute(Attribute.PREDICATE);
+					rule = getIsVariableRule(symTerm);
                     retNode.appendModuleItem(rule);
 
                     // define K2Sort function for symbolic sort constructor
@@ -235,7 +219,20 @@ public class AddPredicates extends CopyOnWriteTransformer {
             return node;
     }
 
-    public AddPredicates() {
+	public static Rule getIsVariableRule(Term symTerm) {
+		Term lhs;
+		Rule rule;
+		if (!MetaK.isComputationSort(symTerm.getSort())) {
+			symTerm = new KApp(new KInjectedLabel(symTerm), new Empty(MetaK.Constants.K));
+		}
+
+		lhs = new KApp(VariablePredicate, symTerm);
+		rule = new Rule(lhs, Constant.TRUE);
+		rule.addAttribute(Attribute.PREDICATE);
+		return rule;
+	}
+
+	public AddPredicates() {
         super("Add syntax and symbolic predicates");
     }
 

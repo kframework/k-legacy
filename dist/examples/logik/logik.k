@@ -34,11 +34,10 @@ module LOGIK-SEMANTICS
  //  <br/>
    <solution stream="stdout"> .List </solution>
 
-  syntax Id ::= UnificationVar
+  syntax Literal ::= Variable
 
-
-//@ Defining as unification variables all Ids starting with a small letter
-  rule isUnificationVar(K:K) => true 
+//@ Defining as unification variables all Ids starting with a capital letter
+  rule isVariable(K:K) => true 
   when asciiString(substrString(Id2String(K),0,1)) <Int 96  
   [anywhere,structural]
 
@@ -52,7 +51,7 @@ module LOGIK-SEMANTICS
       => [L1|[L2|[Lits|L']]]  [anywhere,structural]
 
   rule X:Id,Lits:Literals => X(.Literals),Lits 
-  when isUnificationVar(X) =/=K true
+  when isVariable(X) =/=K true
   [anywhere]
 
 //@ Find a clause with the same name and generate a fresh version of it
@@ -123,6 +122,7 @@ the solution.
   rule printEqn(eqn(X:Id,,Lit:Literal)) => printStr(Id2String(X)) ~> printStr(" |-> ") ~> printLit(Lit) ~> printStr(";  ")
 
 
+  rule printLit(#symVariable(N:Int)) => printStr("_" +String Int2String(N))
   rule printLit(X:Id) => printStr(Id2String(X))
   rule printLit(X:Id(.Literals)) => printStr(Id2String(X)) 
   rule printLit(X:Id(Lit:Literal,Lits:Literals)) 
@@ -146,8 +146,4 @@ the solution.
     => printLit(Lit) ~> printStr(" | ") ~> printLit(Lit')
   when Lit' =/=K [.Literals]
 
-  
-
-  rule Id2String('symUnificationVar`(_`)(N:Int)) => "_" +String Int2String(N)
-  [structural, anywhere]
 endmodule
