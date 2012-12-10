@@ -656,7 +656,12 @@ module CINK-SYNTAX
     will be given later, in the main module.  
   */
 
-  syntax Prop ::= "eqTo" "(" Id "," Val ")" // [function]
+  syntax Prop ::= "eqTo" "(" Id "," Val ")"
+               |  "lt" "(" Id "," Val ")" 
+               |  "leq" "(" Id "," Val ")" 
+               |  "gt" "(" Id "," Val ")" 
+               |  "geq" "(" Id "," Val ")" 
+               |  "neqTo" "(" Id "," Val ")" 
 
 endmodule
 
@@ -698,6 +703,15 @@ module CINK
 
   rule B:Bag |=Ltl eqTo(X:Id, I:Int) => true when val(B, X) ==K I [anywhere]
 
+  rule B:Bag |=Ltl neqTo(X:Id, I:Int) => true when val(B, X) =/=K I [anywhere]
+
+  rule B:Bag |=Ltl lt(X:Id, I:Int) => true when val(B, X) <Int I [anywhere]
+
+  rule B:Bag |=Ltl leq(X:Id, I:Int) => true when val(B, X) <=Int I [anywhere]
+
+  rule B:Bag |=Ltl gt(X:Id, I:Int) => true when val(B, X) >Int I [anywhere]
+
+  rule B:Bag |=Ltl geq(X:Id, I:Int) => true when val(B, X) >=Int I [anywhere]
 
 endmodule
 
