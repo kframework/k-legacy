@@ -36,7 +36,7 @@ module SYMBOLIC-K
   rule
     K2SMTLib(exists S:Set . B:Bool)
   =>
-    "(forall (" +String Vars2SMTLib(S) +String ") "
+    "(exists (" +String Vars2SMTLib(S) +String ") "
     +String K2SMTLib(B) +String ")"
 
   syntax String ::= "Vars2SMTLib" "(" Set ")"
