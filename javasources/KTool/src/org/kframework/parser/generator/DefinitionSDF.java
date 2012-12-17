@@ -1,15 +1,18 @@
 package org.kframework.parser.generator;
 
+import java.util.List;
+
 import org.kframework.compile.transformers.AddPredicates;
 import org.kframework.compile.transformers.AddSymbolicK;
-import org.kframework.kil.*;
+import org.kframework.kil.Definition;
+import org.kframework.kil.Production;
+import org.kframework.kil.ProductionItem;
 import org.kframework.kil.ProductionItem.ProductionType;
-import org.kframework.kil.loader.DefinitionHelper;
+import org.kframework.kil.Sort;
+import org.kframework.kil.Terminal;
+import org.kframework.kil.UserList;
 import org.kframework.kil.loader.Subsort;
 import org.kframework.utils.StringUtil;
-import org.kframework.utils.general.GlobalSettings;
-
-import java.util.List;
 
 public class DefinitionSDF {
 
@@ -69,50 +72,25 @@ public class DefinitionSDF {
 		}
 		sdf.append("}\n\n");
 
-		// TODO: add type warnings option in command line
-		if (GlobalSettings.typeWarnings) {
-			// 2
-			sdf.append("%% subsorts 2\n");
-			// print Sort -> K > K -> Sort
-			for (Sort s : psdfv.userSorts) {
-				if (!s.isBaseSort()) {
-					sdf.append("context-free priorities\n{\n");
-					sdf.append("        K -> " + StringUtil.escapeSortName(s.getName()));
-					// sdf.append(" {cons(\"" + StringUtil.escapeSortName(s.getName()) + "12K\")}");
-					sdf.append("\n");
-					sdf.append("} .> {\n");
-					for (Sort ss : psdfv.userSorts) {
-						if (!ss.isBaseSort() && DefinitionHelper.isSubsortedEq(s.getName(), ss.getName())) {
-							sdf.append("        " + StringUtil.escapeSortName(ss.getName()) + " -> K");
-							// sdf.append(" {cons(\"K12" + StringUtil.escapeSortName(ss.getName()) + "\")}");
-							sdf.append("\n");
-						}
-					}
-					sdf.append("}\n\n");
-				}
+		sdf.append("%% subsorts 2\n");
+		// print K -> Sort > Sort -> K
+		sdf.append("context-free priorities\n{\n");
+		for (Sort s : psdfv.userSorts) {
+			if (!s.isBaseSort()) {
+				sdf.append("	K -> " + StringUtil.escapeSortName(s.getName()));
+				// sdf.append(" {cons(\"" + StringUtil.escapeSortName(s.getName()) + "12K\")}");
+				sdf.append("\n");
 			}
-		} else {
-			// 2
-			sdf.append("%% subsorts 2\n");
-			// print K -> Sort > Sort -> K
-			sdf.append("context-free priorities\n{\n");
-			for (Sort s : psdfv.userSorts) {
-				if (!s.isBaseSort()) {
-					sdf.append("	K -> " + StringUtil.escapeSortName(s.getName()));
-					// sdf.append(" {cons(\"" + StringUtil.escapeSortName(s.getName()) + "12K\")}");
-					sdf.append("\n");
-				}
-			}
-			sdf.append("} .> {\n");
-			for (Sort s : psdfv.userSorts) {
-				if (!s.isBaseSort()) {
-					sdf.append("	" + StringUtil.escapeSortName(s.getName()) + " -> K");
-					// sdf.append(" {cons(\"K12" + StringUtil.escapeSortName(s.getName()) + "\")}");
-					sdf.append("\n");
-				}
-			}
-			sdf.append("}\n");
 		}
+		sdf.append("} .> {\n");
+		for (Sort s : psdfv.userSorts) {
+			if (!s.isBaseSort()) {
+				sdf.append("	" + StringUtil.escapeSortName(s.getName()) + " -> K");
+				// sdf.append(" {cons(\"K12" + StringUtil.escapeSortName(s.getName()) + "\")}");
+				sdf.append("\n");
+			}
+		}
+		sdf.append("}\n");
 
 		sdf.append("context-free syntax\n");
 
@@ -170,12 +148,6 @@ public class DefinitionSDF {
 			String s = StringUtil.escapeSortName(sort);
 			sdf.append("	Dz" + s + "		-> " + s + "	{cons(\"" + s + "1Const\")}\n");
 		}
-
-		// sdf.append("	DzDzInt		-> DzInt	{cons(\"DzInt1Const\")}\n");
-		// sdf.append("	DzDzBool	-> DzBool	{cons(\"DzBool1Const\")}\n");
-		// sdf.append("	DzDzId		-> DzId		{cons(\"DzId1Const\")}\n");
-		// sdf.append("	DzDzString	-> DzString	{cons(\"DzString1Const\")}\n");
-		// sdf.append("	DzDzFloat	-> DzFloat	{cons(\"DzFloat1Const\")}\n");
 
 		sdf.append("\n");
 		sdf.append("	DzDzINT		-> DzDzInt\n");
