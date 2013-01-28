@@ -337,7 +337,7 @@ public class Test {
 		command.add(Configuration.getKompile());
 		command.add(language);
 		command.add("-o");
-		command.add(new File(language).getParent() + "/.k");
+		command.add(getCompiled());
 		for (Entry<String, String> entry : kompileOptions.entrySet()) {
 			command.add(entry.getKey());
 			command.add(entry.getValue());
@@ -362,7 +362,7 @@ public class Test {
 		if (task.getExit() != 0)
 			return false;
 
-		if (!new File(getCompiledFilename()).exists())
+		if (!new File(getCompiled()).exists())
 			return false;
 
 		if (!task.getStderr().equals(""))
@@ -374,10 +374,12 @@ public class Test {
 		return true;
 	}
 
-	private String getCompiledFilename() {
-		return new File(language).getParent() + "/.k/main.maude";
-	}
 
+	public String getCompiled()
+	{
+		return getLanguage().replaceAll("\\..*?$", "-kompiled");
+	}
+	
 	private String getReportFilename() {
 		return new File(language).getAbsolutePath()
 				.substring(Configuration.getHome().length())
@@ -415,7 +417,7 @@ public class Test {
 	public boolean compiledPdf(Task task) {
 		if (task.getExit() != 0)
 			return false;
-
+		
 		if (!new File(getPdfCompiledFilename()).exists())
 			return false;
 
@@ -429,7 +431,7 @@ public class Test {
 	}
 
 	private String getPdfCompiledFilename() {
-		return getXmlLanguage().replaceFirst("\\.k$", ".pdf");
+		return language.replaceAll("\\..*?$", ".pdf");
 	}
 
 	public void save() {
@@ -477,7 +479,7 @@ public class Test {
 		command.add(getXmlLanguage());
 		command.add("--pdf");
 		command.add("-o");
-		command.add(language.replaceFirst("\\.k$", ".pdf"));
+		command.add(getPdfCompiledFilename());
 		String[] arguments = new String[command.size()];
 		int i = 0;
 		for (String cmd : command) {
@@ -489,7 +491,8 @@ public class Test {
 	}
 
 	private String getXmlLanguage() {
-		return new File(language).getParent() + Configuration.FS + ".k" + Configuration.FS + "defx.xml";
+		return getCompiled() + Configuration.FS + "defx.xml";
+//		return language;
 	}
 
 	public List<Program> getPrograms() {
