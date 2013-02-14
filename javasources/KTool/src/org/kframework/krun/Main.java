@@ -362,7 +362,7 @@ public class Main {
 			reader.setBellEnabled(false);
 
 			List<Completor> argCompletor = new LinkedList<Completor>();
-			argCompletor.add(new SimpleCompletor(new String[] { "help", "abort", "resume", "step", "step-all", "select", "show-search-graph", "show-node" }));
+			argCompletor.add(new SimpleCompletor(new String[] { "help", "abort", "resume", "step", "step-all", "select", "show-search-graph"/*, "show-node"*/ }));
 			argCompletor.add(new FileNameCompletor());
 			List<Completor> completors = new LinkedList<Completor>();
 			completors.add(new ArgumentCompletor(argCompletor));
@@ -512,7 +512,7 @@ public class Main {
 					if (cmd.hasOption("show-search-graph")) {
 						System.out.println(K.lineSeparator + "The search graph is:" + K.lineSeparator);
 						System.out.println(result.searchGraph());
-					}
+					}/*
 					if (cmd.hasOption("show-node")) {
 						String nodeId = cmd.getOptionValue("show-node").trim();
 						p = new PrettyPrintOutput();
@@ -523,7 +523,7 @@ public class Main {
 							System.out.println("A node with the specified id couldn't be found in the search graph");
 						}
 
-					}
+					}*/
 				}
 			}
 		} catch (Exception e) {
