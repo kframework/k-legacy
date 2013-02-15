@@ -324,6 +324,7 @@
       language="dist/examples/logik/logik.k"
       folder="dist/examples/logik/programs"
       extensions="logik"
+      results="tests/examples/logik"
       >
     <all-programs>
       <krun-option name="--search" />
