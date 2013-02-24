@@ -19,14 +19,13 @@ public class LineariseTransformer extends BasicTransformer {
 
 	public LineariseTransformer(String name) {
 		super(name);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public ASTNode transform(Rule node) throws TransformerException {
 		VariableReplaceTransformer vrt = new VariableReplaceTransformer("");
 		Rule rule = (Rule) vrt.transform(node);
-		Map<Variable, Variable> newVariables = vrt.getGeneratedFor();
+		Map<Variable, Variable> newVariables = vrt.getGeneratedVariables();
 
 		Term condition = rule.getCondition();
 
