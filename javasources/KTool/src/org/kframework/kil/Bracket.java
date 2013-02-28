@@ -63,4 +63,12 @@ public class Bracket extends Term {
 	public String toString() {
 		return "(" + content + ")";
 	}
+
+  //this current causes ambiguities
+/*	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof Bracket)) return false;
+		Bracket b = (Bracket)o;
+		return content.equals(b.content);
+	} */
 }
