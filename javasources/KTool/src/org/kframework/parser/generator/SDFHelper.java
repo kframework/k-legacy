@@ -1,12 +1,11 @@
 package org.kframework.parser.generator;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.kframework.kil.Attributes;
 import org.kframework.kil.Production;
 import org.kframework.kil.loader.DefinitionHelper;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 public class SDFHelper {
 	public static String getSDFAttributes(Attributes attrs) {
@@ -44,14 +43,10 @@ public class SDFHelper {
 	 * @return
 	 */
 	public static Set<Production> getProductionsForTag(String tag) {
-		Set<Production> prods = new HashSet<Production>();
-		for (Map.Entry<String, Production> e : DefinitionHelper.conses.entrySet()) {
-			if (e.getValue().getKLabel().equals(tag)) {
-				prods.add(e.getValue());
-			} else if (e.getValue().containsAttribute(tag))
-				prods.add(e.getValue());
-		}
-		return prods;
+		if (DefinitionHelper.productions.containsKey(tag))
+			return DefinitionHelper.productions.get(tag);
+		else
+			return new HashSet<Production>();
 	}
 
 	public static String getFollowRestrictionsForTerminals(Set<String> terminals) {
