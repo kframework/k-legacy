@@ -34,7 +34,7 @@ public class InjectionKLabel extends KLabel {
 
     @Override
     public String toString() {
-        return "# " + term;
+        return "(# " + term + ")";
     }
 
     /**
