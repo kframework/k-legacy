@@ -27,7 +27,7 @@ Executable krun
 --    hxt-xpath,
 --    maude >= 0.2.2,
     language-k,
-    containers <= 0.4.2.1,
+    containers >= 0.4.2.1,
     unordered-containers,
     vector,
     attoparsec >= 0.10.0.0,
