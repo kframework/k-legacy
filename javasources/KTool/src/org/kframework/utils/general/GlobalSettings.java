@@ -27,8 +27,10 @@ public class GlobalSettings {
 	public static boolean addTopCell = false;
 	public static String style = "poster,style=bubble";
 	public static boolean testFactory = false;
+	
 	// this is used by kast to know what parser to use fort the input string
 	public static ParserType whatParser = ParserType.PROGRAM;
+	public static boolean sortedCells = false;
 
 	public enum ParserType {
 		PROGRAM, GROUND, RULES, BINARY
@@ -40,4 +42,6 @@ public class GlobalSettings {
 	public static boolean documentation = false;
 	public static boolean xml = false;
 	public static boolean NOSMT = false;
+	
+	public static String CHECK = null;
 }

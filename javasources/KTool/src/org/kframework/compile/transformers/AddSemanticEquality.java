@@ -1,14 +1,13 @@
 package org.kframework.compile.transformers;
 
 import org.kframework.compile.utils.MetaK;
-import org.kframework.compile.utils.MetaK.Constants;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Attribute;
-import org.kframework.kil.Constant;
-import org.kframework.kil.Empty;
 import org.kframework.kil.KApp;
 import org.kframework.kil.KInjectedLabel;
+import org.kframework.kil.KLabelConstant;
 import org.kframework.kil.KList;
+import org.kframework.kil.KSorts;
 import org.kframework.kil.Module;
 import org.kframework.kil.ModuleItem;
 import org.kframework.kil.Production;
@@ -33,9 +32,8 @@ import java.util.Set;
 public class AddSemanticEquality extends CopyOnWriteTransformer {
 
     public static final String EQUALITY_SORT = "EqualitySort";
-    public static final Constant EQUALITY_PREDICATE = Constant.KLABEL(AddPredicates.predicate(EQUALITY_SORT));
-    public static final Constant K_EQUALITY = Constant.KLABEL("'_=K_");
-    public static final Constant KLIST_EQUALITY = Constant.KLABEL("'_=" + MetaK.Constants.KList + "_");
+    public static final KLabelConstant EQUALITY_PREDICATE
+            = KLabelConstant.of(AddPredicates.predicate(EQUALITY_SORT));
 
     private Map<String, String> equalities = new HashMap<String, String>();
 
@@ -88,16 +86,16 @@ public class AddSemanticEquality extends CopyOnWriteTransformer {
 
         for(Map.Entry<String, String> item : equalities.entrySet()) {
             String sort = item.getKey();
-            Constant sortEq = Constant.KLABEL(item.getValue());
+            KLabelConstant sortEq = KLabelConstant.of(item.getValue());
             if (MetaK.isComputationSort(sort)) {
                 retNode.addSubsort(EQUALITY_SORT, sort);
 
-                KList list = new KList();
-                list.add(MetaK.getFreshVar(sort));
-                list.add(MetaK.getFreshVar(sort));
+                KList kList = new KList();
+                kList.add(MetaK.getFreshVar(sort));
+                kList.add(MetaK.getFreshVar(sort));
 
-                Term lhs = new KApp(K_EQUALITY, list);
-                Term rhs = new KApp(sortEq, list);
+                Term lhs = new KApp(KLabelConstant.KEQ, kList);
+                Term rhs = new KApp(sortEq, kList);
                 Rule rule = new Rule(lhs, rhs);
                 rule.addAttribute(Attribute.FUNCTION);
                 retNode.appendModuleItem(rule);
@@ -110,20 +108,20 @@ public class AddSemanticEquality extends CopyOnWriteTransformer {
                     && !prod.containsAttribute(Attribute.BRACKET.getKey())
                     && !prod.containsAttribute(Attribute.FUNCTION.getKey())
                     && !prod.containsAttribute(Attribute.PREDICATE.getKey())
-                    && (!MetaK.isKSort(prod.getSort()) || prod.getSort().equals(Constants.K))) {
-                Variable KListVar1 = MetaK.getFreshVar(MetaK.Constants.KList);
-                Variable KListVar2 = MetaK.getFreshVar(MetaK.Constants.KList);
+                    && (!MetaK.isKSort(prod.getSort()) || prod.getSort().equals(KSorts.K))) {
+                Variable KListVar1 = MetaK.getFreshVar(KSorts.KLIST);
+                Variable KListVar2 = MetaK.getFreshVar(KSorts.KLIST);
 
                 KList lhsList = new KList();
-                lhsList.add(new KApp(Constant.KLABEL(prod.getKLabel()), KListVar1));
-                lhsList.add(new KApp(Constant.KLABEL(prod.getKLabel()), KListVar2));
+                lhsList.add(new KApp(KLabelConstant.of(prod.getKLabel()), KListVar1));
+                lhsList.add(new KApp(KLabelConstant.of(prod.getKLabel()), KListVar2));
 
                 KList rhsList = new KList();
-                rhsList.add(new KApp(new KInjectedLabel(KListVar1), Empty.ListOfK));
-                rhsList.add(new KApp(new KInjectedLabel(KListVar2), Empty.ListOfK));
+                rhsList.add(KApp.of(new KInjectedLabel(KListVar1)));
+                rhsList.add(KApp.of(new KInjectedLabel(KListVar2)));
 
-                Term lhs = new KApp(K_EQUALITY, lhsList);
-                Term rhs = new KApp(KLIST_EQUALITY, rhsList);
+                Term lhs = new KApp(KLabelConstant.KEQ, lhsList);
+                Term rhs = new KApp(KLabelConstant.KLIST_EQUALITY, rhsList);
                 Rule rule = new Rule(lhs, rhs);
                 rule.addAttribute(Attribute.FUNCTION);
                 retNode.appendModuleItem(rule);
@@ -169,8 +167,8 @@ public class AddSemanticEquality extends CopyOnWriteTransformer {
                 lhsList.add(new KApp(Constant.KLABEL(prod.getKLabel()), KListVar2));
 
                 KList rhsList = new KList();
-                rhsList.add(new KApp(new KInjectedLabel(KListVar1), Empty.ListOfK));
-                rhsList.add(new KApp(new KInjectedLabel(KListVar2), Empty.ListOfK));
+                rhsList.add(new KApp(new KInjectedLabel(KListVar1), Empty.KList));
+                rhsList.add(new KApp(new KInjectedLabel(KListVar2), Empty.KList));
 
                 Term lhs = new KApp(K_EQUALITY, lhsList);
                 Term rhs = new KApp(KLIST_EQUALITY, rhsList);

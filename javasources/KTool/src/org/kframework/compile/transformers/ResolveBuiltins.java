@@ -29,11 +29,11 @@ public class ResolveBuiltins extends CopyOnWriteTransformer {
 		List<PriorityBlock> priorities = new ArrayList<PriorityBlock>();
 		PriorityBlock block = new PriorityBlock();
 		priorities.add(block );
-		Syntax syn = new Syntax(new Sort("KLabel"), priorities);
+		Syntax syn = new Syntax(new Sort(KSorts.KLABEL), priorities);
 		items.add(syn);
 		for (String sort : builtinSorts) {
 			List<ProductionItem> pItems = new ArrayList<ProductionItem>();
-			Production p = new Production(new Sort("KLabel"), pItems );
+			Production p = new Production(new Sort(KSorts.KLABEL), pItems );
 			pItems.add(new Terminal("#"));
 			pItems.add(new Sort(sort));
 			p.putAttribute("KLabelWrapper", sort);
@@ -43,14 +43,14 @@ public class ResolveBuiltins extends CopyOnWriteTransformer {
 			DefinitionHelper.putLabel(p, "KLabel1" + sort+ "Wrapper");
 			block.getProductions().add(p);
 			pItems = new ArrayList<ProductionItem>();
-			p = new Production(new Sort("KLabel"), pItems );
+			p = new Production(new Sort(KSorts.KLABEL), pItems );
 			pItems.add(new Terminal("is" + sort));
 			block.getProductions().add(p);
 			Rule rule = new Rule();
 			rule.setBody(new Rewrite(
-					new KApp(new Constant("KLabel", "is" + sort), 
-							new Variable(sort, sort)), 
-					Constant.TRUE));
+					KApp.of(KLabelConstant.of(AddPredicates.predicate(sort)),
+							new Variable(sort, sort)),
+                    BoolBuiltin.TRUE));
 			rule.addAttribute(Attribute.PREDICATE);
 			items.add(rule);
 			

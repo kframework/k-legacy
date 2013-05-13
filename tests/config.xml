@@ -306,6 +306,22 @@
       />
 
 <!--
+  QUINE
+-->
+  <test
+      language="dist/examples/quine/explicit/quine-explicit.k"
+      folder="tests/examples/quine-explicit"
+      results="tests/examples/quine-explicit"
+      extensions="quine" >
+  </test>
+  <test
+      language="dist/examples/quine/short/quine-short.k"
+      folder="tests/examples/quine-short"
+      results="tests/examples/quine-short"
+      extensions="quine" >
+  </test>
+
+<!--
   FUN
 -->
 
@@ -343,6 +359,18 @@
       folder="dist/examples/agent/programs"
       extensions="agent"
       results="tests/examples/agent"
+      >
+  </test>
+
+<!--
+  BF
+-->
+
+  <test 
+      language="dist/examples/bf/bf.k"
+      folder="dist/examples/bf/programs"
+      extensions="bf"
+      results="tests/examples/bf"
       >
   </test>
 
@@ -497,6 +525,27 @@
       extensions="issue" >
   </test>
 
+  <test
+      language="tests/regression/negative-test/issue.k"
+      folder="tests/regression/negative-test/programs"
+      results="tests/regression/negative-test/tests"
+      extensions="issue" >
+    <program name="tests/regression/negative-test/programs/test.issue">
+      <krun-option name="-no-color"/>
+    </program>
+  </test>
+
+  <test
+      language="tests/regression/escapedKLabel/issue.k"
+      folder="tests/regression/escapedKLabel/programs"
+      results="tests/regression/escapedKLabel/tests"
+      extensions="issue" >
+      <program name="tests/regression/escapedKLabel/programs/test.issue">
+        <krun-option name="-output-mode" value="pretty" />
+      </program>
+  </test>
+
+
 <!--
     Cink ltlmc
 -->
@@ -549,5 +598,15 @@
       report-dir="symbolic.imp"
       >
     <kompile-option name="--symbolic" />
+  </test>
+
+  <test
+      language="tests/regression/unparsing/issue.k"
+      folder="tests/regression/unparsing/programs"
+      extensions="issue"
+      results="tests/regression/unparsing/out/">
+      <all-programs>
+        <krun-option name="--output-mode" value="pretty" />
+      </all-programs>
   </test>
 </tests>

@@ -1,6 +1,8 @@
 package org.kframework.backend.maude;
 
 import org.kframework.backend.BackendFilter;
+import org.kframework.compile.utils.ConfigurationStructure;
+import org.kframework.compile.utils.ConfigurationStructureMap;
 import org.kframework.compile.utils.MaudeHelper;
 import org.kframework.compile.utils.MetaK;
 import org.kframework.kil.*;
@@ -14,10 +16,18 @@ import org.kframework.utils.general.GlobalSettings;
 
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map.Entry;
 
 public class MaudeFilter extends BackendFilter {
 	private boolean firstAttribute;
+	ConfigurationStructureMap cfgStr;
+
+	public MaudeFilter(ConfigurationStructureMap cfgStr) {
+		this.cfgStr = cfgStr;
+	}
+
+	public MaudeFilter() {
+		this.cfgStr = null;
+	}
 
 	@Override
 	public void visit(Definition def) {
@@ -87,9 +97,9 @@ public class MaudeFilter extends BackendFilter {
 						msg += "            Use attribute 'onlyLabel' paired with 'klabel(...)' to limit the use to programs.";
 						GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL, msg, p.getFilename(), p.getLocation()));
 					}
-					if (!MaudeHelper.constantSorts.contains(syn.getSort()) || !syn.getSort().toString().equals("KLabel") || !syn.getSort().toString().equals("CellLabel")) {
+					if (!MaudeHelper.constantSorts.contains(syn.getSort()) || !syn.getSort().toString().equals(KSorts.KLABEL) || !syn.getSort().toString().equals("CellLabel")) {
 						result.append("op ");
-						result.append(operation);
+						result.append(StringUtil.escapeMaude(operation));
 						result.append(" : -> ");
 						result.append(syn.getSort());
 						if (!isEmptyAttributes(p.getAttributes())) {
@@ -125,7 +135,7 @@ public class MaudeFilter extends BackendFilter {
 
 					if (!p.containsAttribute("bracket")) {
 						result.append("op ");
-						result.append(maudelabel);
+						result.append(StringUtil.escapeMaude(maudelabel));
 						result.append(" : ");
 						p.accept(this);
 						result.append(" -> ");
@@ -189,7 +199,7 @@ public class MaudeFilter extends BackendFilter {
 	@Override
 	public void visit(KList listOfK) {
 		this.visit((Collection) listOfK);
-		// throw new RuntimeException("don't know how to maudify ListOfK");
+		// throw new RuntimeException("don't know how to maudify KList");
 	}
 
 	@Override
@@ -247,42 +257,100 @@ public class MaudeFilter extends BackendFilter {
 		}
 	}
 
+	/**
+	 * Pretty printing configuration-related stuff to Maude.
+	 *
+	 * This visitor is abused here for declaring the operations corresponding
+	 * to each sorted cell as concrete operations.
+	 *
+	 * @param configuration
+	 */
 	@Override
 	public void visit(Configuration configuration) {
+		if (cfgStr == null) return;
+		for (ConfigurationStructure cellStr : cfgStr.values()) {
+			String id = cellStr.id;
+			if (id == MetaK.Constants.generatedCfgAbsTopCellLabel) continue;
+			String placeHolders = "";
+			String sorts = "";
+			String fragSorts = "";
+			String format = "";
+			Cell cell = cellStr.cell;
+			if (cellStr.sons.isEmpty()) {
+				placeHolders="_";
+				format = "ni ";
+				sorts = KSort.getKSort(cell.getContents().getSort()).mainSort()
+						.toString();
+				declareCell(id,placeHolders, sorts, format);
+				continue;
+			}
+
+			java.util.List<Term> cfgCells = cell.getCellTerms();
+			for (Term cCell : cfgCells) {
+				if (cCell instanceof TermComment) continue;
+				placeHolders += "_";
+				format += "ni ";
+				// Decided to declare all sorts as Bags to allow using
+				// cells instead of tuples for tupling purposes.
+
+				switch(((Cell) cCell).getMultiplicity()) {
+					case ONE:
+						sorts += KSorts.BAG_ITEM;
+						break;
+					default:
+						sorts += KSorts.BAG;
+				}
+				fragSorts += KSorts.BAG + " ";
+				sorts += " ";
+			}
+			declareCell(id, placeHolders, sorts, format);
+			declareCell(id+"-fragment",placeHolders,fragSorts, format);
+		}
+
 		// result.append("mb configuration ");
 		// this.visit((Sentence)configuration);
 	}
 
+	private void declareCell(String id, String placeHolders, String sorts, String format) {
+		result.append(
+				"  op " +
+						"<" + id + ">" +
+						placeHolders +
+						"</" + id + ">" +
+						" : " +
+						sorts +
+						" -> " +
+						"BagItem " +
+						"[format(b o++" + format + "--nib o)]" +
+						"." +
+						"\n");
+	}
+
+	/**
+	 * Pretty printing a cell to Maude
+	 *
+	 * The code was changed for pretty printing sorted cells which are now
+	 * operations on their own.
+	 * @param cell
+	 */
 	@Override
 	public void visit(Cell cell) {
-		String cellLabel = "<_>_</_>";
-
-		result.append(cellLabel);
-		result.append("(");
-		for (Entry<String, String> entry : cell.getCellAttributes().entrySet()) {
-			if (!entry.getValue().equals("")) {
-				result.append("__(");
-			}
-		}
-		result.append(cell.getLabel());
-		for (Entry<String, String> entry : cell.getCellAttributes().entrySet()) {
-			if (!entry.getValue().equals("")) {
-				result.append(",_=_(");
-				result.append(entry.getKey());
-				result.append(",\"");
-				result.append(entry.getValue());
-				result.append("\"))");
-			}
-		}
-		result.append(", ");
-		if (cell.getContents() != null) {
-			cell.getContents().accept(this);
+		String id = cell.getId();
+		if (!GlobalSettings.sortedCells) {
+			result.append("<_>_</_>(" + id + ", ");
 		} else {
-			result.append("null");
+			result.append("( <" + id + "> ");
 		}
-		result.append(", ");
-		result.append(cell.getLabel());
-		result.append(")");
+			if (cell.getContents() != null) {
+				cell.getContents().accept(this);
+			} else {
+				result.append("null");
+			}
+		if (!GlobalSettings.sortedCells) {
+			result.append(", " + id + ")");
+		} else {
+			result.append(" </" + id + "> )");
+		}
 	}
 
 	@Override
@@ -378,13 +446,13 @@ public class MaudeFilter extends BackendFilter {
 	@Override
 	public void visit(TermCons termCons) {
 		Production pr = DefinitionHelper.conses.get(termCons.getCons());
-		String cons = pr.getLabel();
+		String cons = StringUtil.escapeMaude(pr.getLabel());
 
 		if (pr.containsAttribute("maudeop")) {
-			cons = pr.getAttribute("maudeop").replaceAll("\"", "");
+			cons = pr.getAttribute("maudeop").replaceAll("\"", "").replaceAll(" ", "`");
 		}
 
-		result.append(cons.replaceAll(" ", "`"));
+        result.append(cons);
 		if (termCons.getContents().size() > 0) {
 			result.append("(");
 		}
@@ -449,6 +517,11 @@ public class MaudeFilter extends BackendFilter {
 
 	}
 
+    @Override
+    public void visit(KLabelConstant kLabelConstant) {
+        result.append(StringUtil.escapeMaude(kLabelConstant.getLabel()));
+    }
+
 	@Override
 	public void visit(Constant constant) {
 		if (constant.getSort().equals("#Id")) {
@@ -459,6 +532,11 @@ public class MaudeFilter extends BackendFilter {
 			result.append("\"");
 		}
 	}
+
+    @Override
+    public void visit(Builtin builtin) {
+        result.append(builtin);
+    }
 
 	@Override
 	public void visit(Collection collection) {
@@ -538,7 +616,8 @@ public class MaudeFilter extends BackendFilter {
 	public void visit(KInjectedLabel kInjectedLabel) {
 		Term term = kInjectedLabel.getTerm();
 		if (MetaK.isKSort(term.getSort())) {
-			result.append(StringUtil.escapeMaude(kInjectedLabel.getInjectedSort(term.getSort())));
+			//result.append(StringUtil.escapeMaude(kInjectedLabel.getInjectedSort(term.getSort())));
+            result.append(kInjectedLabel.getInjectedSort(term.getSort()));
 			result.append("2KLabel_(");
 		} else {
 			result.append("#_(");
@@ -582,9 +661,27 @@ public class MaudeFilter extends BackendFilter {
 		// throw new RuntimeException("don't know how to maudify Map");
 	}
 
+	/**
+	 * Pretty printing a Bag to Maude.
+	 *
+	 * The code is slightly altered to also work with printing cell contents
+	 * when cells are sorted
+	 * @param bag
+	 */
 	@Override
 	public void visit(Bag bag) {
-		this.visit((Collection) bag);
+		if (bag.getContents().isEmpty()) {
+			new Empty(KSorts.BAG).accept(this);
+			return;
+		}
+		for (Term item: bag.getContents()) {
+			if (item instanceof TermComment) continue;
+			result.append("(");
+			item.accept(this);
+			result.append(")");
+			result.append(" ");
+		}
+//		this.visit((Collection) bag);
 		// throw new RuntimeException("don't know how to maudify Bag");
 	}
 

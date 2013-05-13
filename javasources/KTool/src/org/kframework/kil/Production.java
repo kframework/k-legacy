@@ -61,7 +61,7 @@ public class Production extends ASTNode {
 	}
 
 	public boolean isConstant() {
-		return items.size() == 1 && items.get(0).getType() == ProductionType.TERMINAL && (sort.startsWith("#") || sort.equals("KLabel"));
+		return items.size() == 1 && items.get(0).getType() == ProductionType.TERMINAL && (sort.startsWith("#") || sort.equals(KSorts.KLABEL));
 	}
 
 	public Production(Element element) {
@@ -108,50 +108,52 @@ public class Production extends ASTNode {
 		this.ownerModuleName = ownerModule;
 	}
 
+    public String getCons() {
+        return attributes.get("cons");
+    }
+
 	public String getLabel() {
 		String label = attributes.get("prefixlabel");
 		if (label == null) {
 			label = getPrefixLabel();
 			attributes.set("prefixlabel", label);
 		}
-		return StringUtil.escapeMaude(label).replace(" ", "");
-	}
-
-	public String getCons() {
-		return attributes.get("cons");
-	}
+	    return label.replace(" ", "");
+    }
 
 	public String getKLabel() {
-		assert MetaK.isComputationSort(sort) || sort.equals("KLabel") && isConstant();
+        /*
+		assert MetaK.isComputationSort(sort) || sort.equals(KSorts.KLABEL) && isConstant():
+                sort + " ::= " + this + " -> " + getPrefixLabel();
+        */
 
-		String klabel;
-		klabel = attributes.get("klabel");
+		String klabel = attributes.get("klabel");
 		if (klabel == null) {
-			if (sort.toString().equals("KLabel"))
+			if (sort.toString().equals(KSorts.KLABEL))
 				klabel = getPrefixLabel();
 			else
 				klabel = "'" + getPrefixLabel();
 			attributes.set("klabel", klabel);
 		}
-		return StringUtil.escapeMaude(klabel).replace(" ", "");
+        return klabel.replace(" ", "");
 	}
 
 	private String getPrefixLabel() {
-		String klabel = "";
+		String label = "";
 		for (ProductionItem pi : items) {
 			switch (pi.getType()) {
 			case SORT:
-				klabel += "_";
+				label += "_";
 				break;
 			case TERMINAL:
-				klabel += ((Terminal) pi).getTerminal();
+				label += ((Terminal) pi).getTerminal();
 				break;
 			case USERLIST:
-				klabel += "_" + ((UserList) pi).separator + "_";
+				label += "_" + ((UserList) pi).separator + "_";
 				break;
 			}
 		}
-		return klabel;
+		return label;
 	}
 
 	public java.util.List<ProductionItem> getItems() {

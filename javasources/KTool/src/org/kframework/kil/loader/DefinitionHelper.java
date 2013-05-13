@@ -1,28 +1,22 @@
 package org.kframework.kil.loader;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.kframework.compile.utils.MetaK;
-import org.kframework.kil.ASTNode;
-import org.kframework.kil.Cell;
-import org.kframework.kil.Constant;
-import org.kframework.kil.Production;
-import org.kframework.kil.Sort;
-import org.kframework.kil.UserList;
+import org.kframework.kil.*;
 import org.kframework.utils.Poset;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;
 import org.kframework.utils.general.GlobalSettings;
 
-public class DefinitionHelper {
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.List;
+import java.util.Set;
+import java.util.Collection;
+import java.util.Map;
+
+public class    DefinitionHelper {
 	public static boolean initialized = false;
 	public static Set<String> generatedTags = new HashSet<String>();
 	static {
@@ -70,10 +64,10 @@ public class DefinitionHelper {
 	public static File kompiled = null;
 
 	static {
-		subsorts.addRelation(MetaK.Constants.KList, "K");
-		subsorts.addRelation(MetaK.Constants.KList, "KResult");
+		subsorts.addRelation(KSorts.KLIST, "K");
+		subsorts.addRelation(KSorts.KLIST, "KResult");
 		subsorts.addRelation("K", "KResult");
-		subsorts.addRelation("K", "KItem");
+		subsorts.addRelation("K", KSorts.KITEM);
 		subsorts.addRelation("Map", "MapItem");
 		subsorts.addRelation("Set", "SetItem");
 		subsorts.addRelation("List", "ListItem");
@@ -87,8 +81,9 @@ public class DefinitionHelper {
 		else
 			label = p.getKLabel();
 		Set<String> s = labels.get(label);
-		if (s == null)
+		if (s == null) {
 			labels.put(label, s = new HashSet<String>());
+        }
 		s.add(cons);
 	}
 
@@ -113,7 +108,7 @@ public class DefinitionHelper {
 		cells.put(c.getLabel(), c);
 
 		String sort = subsorts.getMaxim(c.getContents().getSort());
-		if (sort.equals(MetaK.Constants.KList))
+		if (sort.equals(KSorts.KLIST))
 			sort = "K";
 		cellSorts.put(c.getLabel(), sort);
 	}
@@ -265,7 +260,7 @@ public class DefinitionHelper {
 	public static boolean isSubsortedEq(String bigSort, String smallSort) {
 		if (bigSort.equals(smallSort))
 			return true;
-		return isSubsorted(bigSort, smallSort);
+		return subsorts.isInRelation(bigSort, smallSort);
 	}
 
 	public static boolean isTagGenerated(String key) {
@@ -286,4 +281,48 @@ public class DefinitionHelper {
 		assert (cst.getValue().equals("." + cst.getSort()));
 		return true;
 	}
+
+    public static final int HASH_PRIME = 37;
+
+    /**
+     * Returns a {@link List} of productions associated with the specified KLabel
+     *
+     * @param label string representation of the KLabel
+     * @return list of productions associated with the label
+     */
+    @SuppressWarnings("unchecked")
+    public static List<Production> productionsOf(String label) {
+        Set<String> conses = DefinitionHelper.labels.get(label);
+        if (conses == null) {
+            return (List<Production>) Collections.EMPTY_LIST;
+        }
+
+        ArrayList<Production> productions = new ArrayList<Production>();
+        for (String cons : conses) {
+            assert DefinitionHelper.conses.containsKey(cons);
+
+            productions.add(DefinitionHelper.conses.get(cons));
+        }
+
+        return productions;
+    }
+
+	public static Term kWrapper(Term t) {
+		if (isSubsortedEq("K", t.getSort()))
+			return t;
+		return KApp.of(new KInjectedLabel(t));
+	}
+
+	public static String getCellSort(String sort) {
+		sort = MetaK.getCellSort2(sort);
+		String cellName = sort;
+		if (sort.endsWith(MetaK.fragment)) {
+			cellName = sort.substring(0, sort.length() - MetaK.fragment.length());
+		}
+		if (cells.containsKey(cellName)) {
+			return sort;
+		}
+		return sort.substring(0,1).toUpperCase() + sort.substring(1);
+	}
+
 }

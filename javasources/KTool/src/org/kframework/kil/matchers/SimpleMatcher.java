@@ -394,13 +394,14 @@ public class SimpleMatcher implements Matcher {
 	}
 
 	public static void main(String[] args) {
+        /*
 		KList patternGuts = new KList();
 		KList termGuts = new KList();
 		KList subtermGuts = new KList();
-		patternGuts.add(new Variable("x", "KLabel"));
-		patternGuts.add(new Variable("y", "KLabel"));
+		patternGuts.add(new Variable("x", KSorts.KLABEL));
+		patternGuts.add(new Variable("y", KSorts.KLABEL));
 		patternGuts.add(new Variable("z", "K"));
-		patternGuts.add(new Variable("x", "KLabel"));
+		patternGuts.add(new Variable("x", KSorts.KLABEL));
 		subtermGuts.add(Constant.KLABEL("d"));
 		subtermGuts.add(Constant.KLABEL("e"));
 		KApp subterm = new KApp(Constant.KLABEL("bar"), subtermGuts);
@@ -415,10 +416,11 @@ public class SimpleMatcher implements Matcher {
 		Matcher m = new SimpleMatcher();
 		m.start(pattern, term);
 		System.out.println(m.getSubstitution());
+		*/
 		/*
 		 * System.out.println("\n====map test"); MapLookupPattern test = MapLookupPattern.test; MapImpl map = new MapImpl(); map.put(Constant.KLABEL("foo"), Constant.KLABEL("bar"));
 		 * map.put(Constant.KLABEL("car"), Constant.KLABEL("cdr")); map.put(Constant.KLABEL("cdr"), Constant.KLABEL("cdr")); map.put(Constant.KLABEL("a"), Constant.KLABEL("bar"));
-		 * map.put(Constant.KLABEL("d"), Constant.KLABEL("cdr")); patternGuts.add(test); patternGuts.add(new Variable("qqq", "KLabel")); termGuts.add(map); termGuts.add(Constant.KLABEL("d")); pattern
+		 * map.put(Constant.KLABEL("d"), Constant.KLABEL("cdr")); patternGuts.add(test); patternGuts.add(new Variable("qqq", KSorts.KLABEL)); termGuts.add(map); termGuts.add(Constant.KLABEL("d")); pattern
 		 * = new KApp(Constant.KLABEL("foo"), patternGuts); term = new KApp(Constant.KLABEL("foo"), termGuts); System.out.println("pattern: " + pattern); System.out.println("term: " + term);
 		 * m.start(pattern, term); System.out.println("theta: " + m.getSubstitution());
 		 */

@@ -1,12 +1,17 @@
 package org.kframework.krun.api;
 
-import java.io.Serializable;
-
-import org.kframework.backend.unparser.UnparserFilter;
 import org.kframework.backend.unparser.AddBracketsFilter;
-import org.kframework.kil.*;
-import org.kframework.krun.*;
+import org.kframework.backend.unparser.AddBracketsFilter2;
+import org.kframework.backend.unparser.UnparserFilter;
+import org.kframework.kil.Cell;
+import org.kframework.kil.Term;
+import org.kframework.krun.ConcretizeSyntax;
+import org.kframework.krun.FlattenDisambiguationFilter;
+import org.kframework.krun.K;
+import org.kframework.krun.SubstitutionFilter;
 import org.kframework.parser.concrete.disambiguate.TypeInferenceSupremumFilter;
+
+import java.io.Serializable;
 
 public class KRunState implements Serializable{
 
@@ -27,10 +32,20 @@ public class KRunState implements Serializable{
 			result = (Term) result.accept(new FlattenDisambiguationFilter());
 			if (!K.parens) {
 				result = (Term) result.accept(new AddBracketsFilter());
+				AddBracketsFilter2 filter = new AddBracketsFilter2();
+				result = (Term) result.accept(filter);
+				while (true) {
+					Term newResult = (Term) result.accept(new SubstitutionFilter(filter.substitution));
+					if (newResult.equals(result)) {
+						break;
+					}
+					result = newResult;
+				}
 			}
 		} catch (Exception e) {
 			// if concretization fails, return the raw result directly.
-			return rawResult;
+			//return rawResult;s
+			throw new RuntimeException(e);
 		}
 		if (result.getClass() == Cell.class) {
 			Cell generatedTop = (Cell) result;

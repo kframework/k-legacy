@@ -1,8 +1,16 @@
 package org.kframework.backend.java.symbolic;
 
+import org.kframework.backend.java.kil.KLabelConstant;
+import org.kframework.backend.java.kil.KLabel;
+import org.kframework.kil.Production;
+import org.kframework.kil.loader.DefinitionHelper;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
+
 
 /**
  * Created with IntelliJ IDEA.
@@ -13,23 +21,8 @@ import java.util.ListIterator;
  */
 public class Utils {
 
-    public static final ListIterator EMPTY_LIST_ITERATOR = (new ArrayList()).listIterator();
+    public static final ListIterator EMPTY_LIST_ITERATOR = Collections.EMPTY_LIST.listIterator();
 
     public static final int HASH_PRIME = 47;
-
-    public static String sortToKind(String sort) {
-        if (sort.equals("BuiltinConstant")
-                || sort.equals("Cell")
-                || sort.equals("CellCollection")
-                || sort.equals("K")
-                || sort.equals("KLabel")
-                || sort.equals("KList")
-                || sort.equals("KSequence")
-                || sort.equals("Map")) {
-            return sort;
-        } else {
-            return "K";
-        }
-    }
 
 }

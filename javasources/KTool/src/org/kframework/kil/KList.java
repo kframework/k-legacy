@@ -1,22 +1,25 @@
 package org.kframework.kil;
 
-import org.kframework.compile.utils.MetaK;
 import org.kframework.kil.visitors.Transformer;
 import org.kframework.kil.matchers.Matcher;
 import org.kframework.kil.visitors.Visitor;
 import org.kframework.kil.visitors.exceptions.TransformerException;
 import org.w3c.dom.Element;
 
+import java.util.Collections;
 import java.util.List;
 
 /** Represents a ,, list, as used in KApp */
 public class KList extends Collection {
-	public KList() {
-		super(MetaK.Constants.KList);
+
+    public static final KList EMPTY = new KList(Collections.<Term>emptyList());
+
+    public KList() {
+		super(KSorts.KLIST);
 	}
 	
 	public KList(String location, String filename) {
-		super(location, filename, MetaK.Constants.KList);
+		super(location, filename, KSorts.KLIST);
 	}
 
 	public KList(Element element) {
@@ -28,7 +31,7 @@ public class KList extends Collection {
 	}
 
 	public KList(List<Term> col) {
-		super(MetaK.Constants.KList, col);
+		super(KSorts.KLIST, col);
 	}
 
 	@Override

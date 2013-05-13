@@ -3,6 +3,8 @@ package org.kframework.krun.ioserver.main;
 import org.kframework.krun.ioserver.commands.*;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Executors;
@@ -155,14 +157,32 @@ public class IOServer {
 		if (command.equals("eof")) {
 			return new CommandEof(args, socket, logger); //, maudeId);
 		}
-		if (command.equals("isdir")) {
-			return new CommandIsDir(args, socket, logger);
-		}
-		if (command.equals("isfile")) {
-			return new CommandIsFile(args, socket, logger);
-		}
-		if (command.equals("mtime")) {
-			return new CommandMTime(args, socket, logger);
+		if (command.equals("stat") || command.equals("opendir")) {
+			String cls;
+			if (command.equals("stat")) {
+				cls = "org.kframework.krun.ioserver.commands.CommandStat";
+			} else {
+				cls = "org.kframework.krun.ioserver.commands.CommandOpendir";
+			}
+			try {
+				Class commandStat = Class.forName(cls);
+				Class[] argTypes = {String[].class, Socket.class, Logger.class};
+				@SuppressWarnings("unchecked")
+				Constructor cons = commandStat.getDeclaredConstructor(argTypes);
+				Object[] arguments = {args, socket, logger};
+				return (Command) cons.newInstance(arguments);
+			//wow, this is ridiculous. I think I see what Pat means
+			} catch (ClassNotFoundException e) {
+				return new CommandUnknown(args, socket, logger);
+			} catch (NoSuchMethodException e) {
+				return new CommandUnknown(args, socket, logger);
+			} catch (InstantiationException e) {
+				return new CommandUnknown(args, socket, logger);
+			} catch (IllegalAccessException e) {
+				return new CommandUnknown(args, socket, logger);
+			} catch (InvocationTargetException e) {
+				return new CommandUnknown(args, socket, logger);
+			}
 		}
 		if (command.equals("end")) {
 		    CommandEnd c = new CommandEnd(args, socket, logger);

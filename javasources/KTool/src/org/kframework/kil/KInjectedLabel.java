@@ -13,7 +13,7 @@ public class KInjectedLabel extends Term {
 	protected Term term;
 
 	public KInjectedLabel(String location, String filename) {
-		super(location, filename, "KLabel");
+		super(location, filename, KSorts.KLABEL);
 	}
 
 	public KInjectedLabel(KInjectedLabel l) {
@@ -22,7 +22,7 @@ public class KInjectedLabel extends Term {
 	}
 
 	public KInjectedLabel(Term t) {
-		super("KLabel");
+		super(KSorts.KLABEL);
 		term = t;
 	}
 
@@ -38,7 +38,7 @@ public class KInjectedLabel extends Term {
 		return "# " + term;
 	}
 
-	public String getInjectedSort(String sort) {
+	public static String getInjectedSort(String sort) {
 		if (sort.equals("BagItem"))
 			return "Bag";
 		if (sort.equals("SetItem"))
@@ -77,6 +77,18 @@ public class KInjectedLabel extends Term {
 		KInjectedLabel k = (KInjectedLabel)o;
 		return term.equals(k.term);
 	}
+
+	@Override
+	public boolean contains(Object o) {
+		if (o instanceof Bracket)
+			return contains(((Bracket)o).getContent());
+		if (o instanceof Cast)
+			return contains(((Cast)o).getContent());
+		if (getClass() != o.getClass()) return false;
+		KInjectedLabel k = (KInjectedLabel)o;
+		return term.contains(k.term);
+	}
+
 
 	@Override
 	public int hashCode() {

@@ -7,39 +7,10 @@ import java.util.Map;
 
 import org.kframework.backend.BackendFilter;
 import org.kframework.compile.utils.MetaK;
-import org.kframework.kil.Attribute;
-import org.kframework.kil.Attributes;
-import org.kframework.kil.Bracket;
-import org.kframework.kil.Cell;
+import org.kframework.kil.*;
 import org.kframework.kil.Cell.Ellipses;
-import org.kframework.kil.Collection;
-import org.kframework.kil.Configuration;
-import org.kframework.kil.Constant;
-import org.kframework.kil.Context;
-import org.kframework.kil.Definition;
-import org.kframework.kil.Empty;
-import org.kframework.kil.Hole;
-import org.kframework.kil.KApp;
-import org.kframework.kil.KList;
-import org.kframework.kil.KSequence;
 import org.kframework.kil.LiterateComment.LiterateCommentType;
-import org.kframework.kil.LiterateDefinitionComment;
-import org.kframework.kil.LiterateModuleComment;
-import org.kframework.kil.MapItem;
-import org.kframework.kil.Module;
-import org.kframework.kil.Production;
-import org.kframework.kil.ProductionItem;
 import org.kframework.kil.ProductionItem.ProductionType;
-import org.kframework.kil.Rewrite;
-import org.kframework.kil.Rule;
-import org.kframework.kil.Sort;
-import org.kframework.kil.Syntax;
-import org.kframework.kil.Term;
-import org.kframework.kil.TermComment;
-import org.kframework.kil.TermCons;
-import org.kframework.kil.Terminal;
-import org.kframework.kil.UserList;
-import org.kframework.kil.Variable;
 import org.kframework.kil.loader.Constants;
 import org.kframework.kil.loader.DefinitionHelper;
 import org.kframework.utils.StringUtil;
@@ -48,6 +19,7 @@ public class LatexFilter extends BackendFilter {
 	String endl = System.getProperty("line.separator");
 	private StringBuilder preamble = new StringBuilder();
 	private boolean firstProduction = false;
+	private boolean terminalBefore = false;
 	private Map<String, String> colors = new HashMap<String, String>();
 	private LatexPatternsVisitor patternsVisitor = new LatexPatternsVisitor();
 	private boolean firstAttribute;
@@ -108,6 +80,7 @@ public class LatexFilter extends BackendFilter {
 	@Override
 	public void visit(Sort sort) {
 		result.append("{\\nonTerminal{\\sort{" + StringUtil.latexify(sort.getName()) + "}}}");
+                terminalBefore = false;
 	}
 
 	@Override
@@ -147,8 +120,10 @@ public class LatexFilter extends BackendFilter {
 		if (DefinitionHelper.isSpecialTerminal(terminal)) {
 			result.append(StringUtil.latexify(terminal));
 		} else {
+                  if (terminalBefore) result.append("{}");
 			result.append("\\terminal{" + StringUtil.latexify(terminal) + "}");
 		}
+                terminalBefore = true;
 	}
 
 	@Override
@@ -156,7 +131,14 @@ public class LatexFilter extends BackendFilter {
 		result.append("List\\{");
 		new Sort(ul.getSort()).accept(this);
 		result.append(", \\mbox{``}" + StringUtil.latexify(ul.getSeparator()) + "\\mbox{''}\\}");
+                terminalBefore = false;
 	}
+
+        @Override
+        public void visit(Lexical t) {
+                result.append("Token\\{");
+                result.append("\\mbox{``}" + StringUtil.latexify(t.getLexicalRule()) +  "\\mbox{''}\\}");
+        }
 
 	@Override
 	public void visit(Configuration conf) {
@@ -354,9 +336,19 @@ public class LatexFilter extends BackendFilter {
 		result.append(pattern);
 	}
 
+        @Override
+        public void visit(KLabelConstant c) {
+                result.append(StringUtil.latexify(c.getLabel()));
+        }
+
 	@Override
 	public void visit(Constant c) {
 		result.append("\\constant[" + StringUtil.latexify(c.getSort()) + "]{" + StringUtil.latexify(c.getValue()) + "}");
+	}
+	
+	@Override
+	public void visit(Builtin c) {
+		result.append("\\constant[" + StringUtil.latexify(c.getSort()) + "]{" + StringUtil.latexify(c.toString()) + "}");
 	}
 
 	@Override

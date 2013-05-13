@@ -1,66 +1,50 @@
 package org.kframework.compile.utils;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
-import org.kframework.kil.ASTNode;
-import org.kframework.kil.Attribute;
-import org.kframework.kil.Bag;
-import org.kframework.kil.Cell;
+import org.kframework.kil.*;
 import org.kframework.kil.Cell.Ellipses;
 import org.kframework.kil.Collection;
-import org.kframework.kil.Configuration;
-import org.kframework.kil.Constant;
-import org.kframework.kil.Context;
-import org.kframework.kil.Definition;
-import org.kframework.kil.Empty;
-import org.kframework.kil.Hole;
-import org.kframework.kil.KApp;
-import org.kframework.kil.KInjectedLabel;
-import org.kframework.kil.KList;
-import org.kframework.kil.KSequence;
-import org.kframework.kil.KSort;
-import org.kframework.kil.ListItem;
 import org.kframework.kil.Map;
-import org.kframework.kil.MapItem;
-import org.kframework.kil.Production;
-import org.kframework.kil.ProductionItem;
 import org.kframework.kil.ProductionItem.ProductionType;
-import org.kframework.kil.Rewrite;
-import org.kframework.kil.Rule;
-import org.kframework.kil.SetItem;
-import org.kframework.kil.Sort;
-import org.kframework.kil.Syntax;
-import org.kframework.kil.Term;
-import org.kframework.kil.TermCons;
-import org.kframework.kil.Terminal;
-import org.kframework.kil.UserList;
-import org.kframework.kil.Variable;
-import org.kframework.kil.loader.DefinitionHelper;
 import org.kframework.kil.visitors.BasicVisitor;
 import org.kframework.kil.visitors.CopyOnWriteTransformer;
 import org.kframework.kil.visitors.Visitable;
 import org.kframework.kil.visitors.Visitor;
 import org.kframework.kil.visitors.exceptions.TransformerException;
-import org.kframework.utils.StringUtil;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;
 import org.kframework.utils.general.GlobalSettings;
 
+import java.util.*;
+import java.util.List;
+import java.util.Set;
+
 public class MetaK {
+
+	private static final String cellSort = "CellSort";
+	private static final String cellFragment = "CellFragment";
+	public static final String fragment = "-fragment";
 
 	public static Term incrementCondition(Term condition, Term kresultCnd) {
 		if (condition == null) {
 			return kresultCnd;
 		}
-		KList items = new KList();
-		items.add(condition);
-		items.add(kresultCnd);
-		return new KApp(Constant.ANDBOOL_KLABEL,items);
+		return KApp.of(KLabelConstant.ANDBOOL_KLABEL, condition, kresultCnd);
+	}
+
+	public static boolean isCellSort(String bigSort) {
+		return (bigSort.endsWith(cellSort)
+				||bigSort.endsWith(cellFragment));
+	}
+
+	public static String getCellSort2(String sort) {
+		sort = sort.substring(0,1).toLowerCase() + sort.substring(1);
+		if (sort.endsWith(cellSort)) {
+			return sort.substring(0, sort.length() - cellSort.length());
+		} else {
+			return sort.substring(0, sort.length() - cellFragment.length())
+					+ "-fragment";
+		}
 	}
 
 	public static class Constants {
@@ -70,20 +54,10 @@ public class MetaK {
 		public static final String hole = "[]";
 		public static final String freshCons = "Bool1FreshSyn";
 		public static final String plusIntCons = "Int1PlusSyn";
-		public static final String K = "K";
-		public static final String KItem = "KItem";
-		public static final String KList = "KList";
-		public static final String Bag = "Bag";
-		public static final String Set = "Set";
-		public static final String List = "List";
-		public static final String Map = "Map";
-		public static final String BagItem = "BagItem";
-		public static final String SetItem = "SetItem";
-		public static final String ListItem = "ListItem";
-		public static final String MapItem = "MapItem";
-
-		public static final String generatedTopCellLabel = "generatedTop";
+        public static final String generatedTopCellLabel = "generatedTop";
 		public static final String pathCondition = "path-condition";
+		public static final String generatedCfgAbsTopCellLabel =
+				"___CONTEXT_ABSTRACTION_TOP_CELL___";
 	}
 
 	static int nextVarId = 0;
@@ -190,24 +164,18 @@ public class MetaK {
 	public static Term defaultTerm(Term v) {
 		String sort = v.getSort();
 		KSort ksort = KSort.getKSort(sort).mainSort();
-		if (ksort.isDefaulable())
+		if (ksort.isDefaultable())
 			return new Empty(ksort.toString());
 		GlobalSettings.kem.register(new KException(ExceptionType.WARNING, KExceptionGroup.COMPILER, "Don't know the default value for term " + v.toString() + ". Assuming .K", v.getFilename(), v
 				.getLocation()));
-		return new Empty("K");
-	}
-
-	public static Term kWrapper(Term t) {
-		if (DefinitionHelper.isSubsortedEq("K", t.getSort()))
-			return t;
-		return new KApp(new KInjectedLabel(t), new KList());
+		return KSequence.EMPTY;
 	}
 
 	public static boolean isKSort(String sort) {
 		try {
 			KSort.valueOf(sort);
 		} catch (IllegalArgumentException e) {
-			return sort.equals(MetaK.Constants.KList);
+			return sort.equals(KSorts.KLIST);
 		}
 		return true;
 	}
@@ -227,7 +195,7 @@ public class MetaK {
 	}
 
 	public static Term wrap(Term t, String label, Ellipses ellipses) {
-		Cell cell = new Cell();
+		Cell cell = new Cell(t.getLocation(),t.getFilename());
 		cell.setLabel(label);
 		cell.setEllipses(ellipses);
 		cell.setContents(t);
@@ -337,18 +305,30 @@ public class MetaK {
 		if (prod.isSubsort()) {
 			final Variable freshVar = getFreshVar(prod.getItems().get(0).toString());
 			if (prod.containsAttribute("klabel")) {
-				Constant klabel = Constant.KLABEL(prod.getKLabel());
-				return new KApp(klabel, freshVar);
+				return KApp.of(KLabelConstant.of(prod.getKLabel()), freshVar);
 			}
 			return freshVar;
 		}
-		if (prod.isConstant())
-			return new Constant(prod.getSort(), ((Terminal) prod.getItems().get(0)).getTerminal());
+		if (prod.isConstant()) {
+            String terminal = ((Terminal) prod.getItems().get(0)).getTerminal();
+            if (prod.getSort().equals(KSorts.KLABEL)) {
+                return KLabelConstant.of(terminal);
+            } else if (prod.getSort().equals("#Bool")) {
+                return BoolBuiltin.of(terminal);
+            } else if (prod.getSort().equals("#Int")) {
+                return IntBuiltin.of(terminal);
+            } else if (prod.getSort().equals("#Float")) {
+                return FloatBuiltin.of(terminal);
+            } else if (prod.getSort().equals("#String")) {
+                return StringBuiltin.of(terminal);
+            } else {
+			    return new Constant(prod.getSort(), terminal);
+            }
+        }
 		if (prod.isLexical()) {
-			KList l = new KList();
-			l.add(Constant.STRING(prod.getSort()));
-			l.add(getFreshVar("String"));
-			return new KApp(Constant.KLABEL("#token"), l);
+			return KApp.of(KLabelConstant.of("#token"),
+                           StringBuiltin.of(prod.getSort()),
+                           getFreshVar("String"));
 		}
 		TermCons t = new TermCons(prod.getSort(), prod.getCons());
 		if (prod.isListDecl()) {
@@ -378,10 +358,8 @@ public class MetaK {
 	}
 
 	public static String getListUnitLabel(String sep) {
-		//return "'.List`{\"" + sep + "\"`}";
-		String unitStr = "'.List{\"" + sep + "\"}";
-		return StringUtil.escapeMaude(unitStr).replace(" ", "");
-	}
+	    return  "'.List{\"" + sep + "\"}";
+    }
 
 	public static List<Cell> getTopCells(Term t) {
 		final List<Cell> cells = new ArrayList<Cell>();
@@ -479,20 +457,17 @@ public class MetaK {
 		} catch (ArithmeticException e) {
 			return result.get(0);
 		}
-		return new Hole("K");
+		//return new Hole("K");
+        return Hole.KITEM_HOLE;
 	}
 
 	public static boolean isPredefinedPredicate(String name) {
-		if (name.startsWith("is")) return true;
-		if (name.equals(Constant.KNEQ_KLABEL.getValue()) ||
-				name.equals(Constant.KEQ_KLABEL.getValue()))
-			return true;
-		
-		return false;
+		return name.startsWith("is") || name.equals(KLabelConstant.KNEQ_KLABEL.getLabel())
+                || name.equals(KLabelConstant.KEQ_KLABEL.getLabel());
 	}
 	
 	public static boolean isAbstractableSort(String name) {
-		if (name.equals("#Bool") || name.equals("#Int"))
+		if (name.equals(BoolBuiltin.SORT_NAME) || name.equals(IntBuiltin.SORT_NAME))
 			return true;
 		return false;
 	}

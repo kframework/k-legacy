@@ -1,0 +1,1 @@
+(lambda x . (if (x f== 10) then 0 else (x f+ ((x f- 1))))) 8
