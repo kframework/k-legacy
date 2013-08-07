@@ -29,6 +29,11 @@ public class BasicTransformer implements Transformer {
 	}
 
 	@Override
+	public ASTNode transform(ParseError node) throws TransformerException {
+		return transform((ASTNode) node);
+	}
+
+	@Override
 	public ASTNode transform(Definition node) throws TransformerException {
 		for (int i = 0; i < node.getItems().size(); i++) {
 			node.getItems().set(i, (DefinitionItem) node.getItems().get(i).accept(this));
@@ -72,11 +77,15 @@ public class BasicTransformer implements Transformer {
 	@Override
 	public ASTNode transform(Sentence node) throws TransformerException {
 		Term body = (Term) node.getBody().accept(this);
-		Term condition = node.getCondition();
-		if (condition != null)
-			condition = (Term) condition.accept(this);
+		Term requires = node.getRequires();
+		if (requires != null)
+			requires = (Term) requires.accept(this);
+		Term ensures = node.getEnsures();
+		if (ensures != null)
+			ensures = (Term) ensures.accept(this);
 		node.setBody(body);
-		node.setCondition(condition);
+		node.setRequires(requires);
+		node.setEnsures(ensures);
 		return transform((ModuleItem) node);
 	}
 
@@ -321,13 +330,57 @@ public class BasicTransformer implements Transformer {
             removeEntries.add(transformedTerm);
         }
 
-        HashSet<Term> updateEntries = new HashSet<Term>(node.updateEntries().size());
-        for (Term term : node.updateEntries()) {
+        return new SetUpdate(set, removeEntries);
+    }
+
+    @Override
+    public ASTNode transform(ListBuiltin node) throws TransformerException {
+        ArrayList<Term> terms = new ArrayList<Term>(node.baseTerms().size());
+        for (Term term : node.baseTerms()) {
             Term transformedTerm = (Term) term.accept(this);
-            updateEntries.add(transformedTerm);
+            terms.add(transformedTerm);
         }
 
-        return new SetUpdate(set, removeEntries, updateEntries);
+        ArrayList<Term> elementsLeft = new ArrayList<Term>(node.elementsLeft().size());
+        for (Term entry : node.elementsLeft()) {
+            Term transformedEntry = (Term) entry.accept(this);
+            elementsLeft.add(transformedEntry);
+        }
+
+        ArrayList<Term> elementsRight = new ArrayList<Term>(node.elementsRight().size());
+        for (Term entry : node.elementsRight()) {
+            Term transformedEntry = (Term) entry.accept(this);
+            elementsRight.add(transformedEntry);
+        }
+
+		return new ListBuiltin(node.sort(), elementsLeft, elementsRight, terms);
+	}
+
+    @Override
+    public ASTNode transform(ListLookup node) throws TransformerException {
+        Variable base = (Variable) node.base().accept(this);
+        Term key = (Term) node.key().accept(this);
+        Term value = (Term) node.value().accept(this);
+        return new ListLookup(base, key, value);
+    }
+
+    @Override
+    public ASTNode transform(ListUpdate node) throws TransformerException {
+        Variable base = (Variable) node.base().accept(this);
+
+        ArrayList<Term> removeLeft = new ArrayList<Term>(node.removeLeft().size());
+        for (Term entry : node.removeLeft()) {
+            Term transformedEntry = (Term) entry.accept(this);
+            removeLeft.add(transformedEntry);
+        }
+
+        ArrayList<Term> removeRight = new ArrayList<Term>(node.removeRight().size());
+        for (Term entry : node.removeRight()) {
+            Term transformedEntry = (Term) entry.accept(this);
+            removeRight.add(transformedEntry);
+        }
+
+        return new ListUpdate(base, removeLeft, removeRight);
     }
 
     @Override

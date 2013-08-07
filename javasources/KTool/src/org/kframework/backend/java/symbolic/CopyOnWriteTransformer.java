@@ -4,13 +4,10 @@ import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.builtins.IntToken;
 import org.kframework.backend.java.builtins.UninterpretedToken;
+import org.kframework.backend.java.kil.Collection;
 import org.kframework.kil.ASTNode;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -206,45 +203,52 @@ public class CopyOnWriteTransformer implements Transformer {
     }
 
     @Override
-    public ASTNode transform(BuiltinSet builtinSet) {
-        BuiltinSet transformedSet = null;
-        if (builtinSet.hasFrame()) {
-            Variable frame = (Variable) builtinSet.frame().accept(this);
-            if (frame != builtinSet.frame()) {
-                transformedSet = new BuiltinSet(frame);
-            }
+    public ASTNode transform(ListLookup listLookup) {
+        Term list = (Term) listLookup.list().accept(this);
+        Term key = (Term) listLookup.key().accept(this);
+        if (list != listLookup.list() || key != listLookup.key()) {
+            listLookup = new ListLookup(list, key);
         }
-
-        for(Term entry : builtinSet.elements()) {
-            Term key = (Term) entry.accept(this);
-
-            if (transformedSet == null && (key != entry)) {
-                if (builtinSet.hasFrame()) {
-                    transformedSet = new BuiltinSet(builtinSet.frame());
-                } else {
-                    transformedSet = new BuiltinSet();
-                }
-                for(Term copyEntry : builtinSet.elements()) {
-                    if (copyEntry.equals(entry)) {
-                        break;
-                    }
-                    transformedSet.add(copyEntry);
-                }
-            }
-
-            if (transformedSet != null) {
-                transformedSet.add(key);
-            }
-        }
-
-        if (transformedSet != null) {
-            return transformedSet;
-        } else {
-            return builtinSet;
-        }
+        return listLookup;
     }
 
-     @Override
+    @Override
+    public ASTNode transform(ListUpdate listUpdate) {
+        Term list = (Term) listUpdate.base().accept(this);
+
+        if (list != listUpdate.base()) {
+            listUpdate = new ListUpdate(list, listUpdate.removeLeft(), listUpdate.removeRight());
+        }
+
+        return listUpdate;
+    }
+
+    @Override
+    public ASTNode transform(BuiltinList builtinList) {
+        Variable frame = null;
+        boolean change = false;
+        if (builtinList.hasFrame()) {
+            frame = (Variable) builtinList.frame().accept(this);
+            if (frame != builtinList.frame()) change = true;
+        }
+
+        ArrayList<Term> elementsLeft = new ArrayList<Term>(builtinList.elementsLeft().size());
+        for (Term entry : builtinList.elementsLeft()) {
+            ASTNode newEntry = entry.accept(this);
+            if (newEntry != entry) change = true;
+            if (newEntry != null) elementsLeft.add((Term) newEntry);
+        }
+        ArrayList<Term> elementsRight = new ArrayList<Term>(builtinList.elementsRight().size());
+        for (Term entry : builtinList.elementsRight()) {
+            ASTNode newEntry = entry.accept(this);
+            if (newEntry != entry) change = true;
+            if (newEntry != null) elementsRight.add((Term) newEntry);
+        }
+        if (! change) return  builtinList;
+        return new BuiltinList(elementsLeft, elementsRight, frame);
+    }
+
+    @Override
     public ASTNode transform(BuiltinMap builtinMap) {
         BuiltinMap transformedMap = null;
         if (builtinMap.hasFrame()) {
@@ -285,6 +289,45 @@ public class CopyOnWriteTransformer implements Transformer {
     }
 
     @Override
+    public ASTNode transform(BuiltinSet builtinSet) {
+        BuiltinSet transformedSet = null;
+        if (builtinSet.hasFrame()) {
+            Variable frame = (Variable) builtinSet.frame().accept(this);
+            if (frame != builtinSet.frame()) {
+                transformedSet = new BuiltinSet(frame);
+            }
+        }
+
+        for(Term entry : builtinSet.elements()) {
+            Term key = (Term) entry.accept(this);
+
+            if (transformedSet == null && (key != entry)) {
+                if (builtinSet.hasFrame()) {
+                    transformedSet = new BuiltinSet(builtinSet.frame());
+                } else {
+                    transformedSet = new BuiltinSet();
+                }
+                for(Term copyEntry : builtinSet.elements()) {
+                    if (copyEntry.equals(entry)) {
+                        break;
+                    }
+                    transformedSet.add(copyEntry);
+                }
+            }
+
+            if (transformedSet != null) {
+                transformedSet.add(key);
+            }
+        }
+
+        if (transformedSet != null) {
+            return transformedSet;
+        } else {
+            return builtinSet;
+        }
+    }
+
+    @Override
     public ASTNode transform(MapLookup mapLookup) {
         Term map = (Term) mapLookup.map().accept(this);
         Term key = (Term) mapLookup.key().accept(this);
@@ -297,8 +340,8 @@ public class CopyOnWriteTransformer implements Transformer {
 
     @Override
     public ASTNode transform(MapUpdate mapUpdate) {
+//        System.out.println("Map: "+(Term)mapUpdate.map().accept(this));
         Term map = (Term) mapUpdate.map().accept(this);
-
         java.util.Set<Term> removeSet = null;
         for(Term key : mapUpdate.removeSet()) {
             Term transformedKey = (Term) key.accept(this);
@@ -378,31 +421,8 @@ public class CopyOnWriteTransformer implements Transformer {
             removeSet = setUpdate.removeSet();
         }
 
-        java.util.Set<Term> updateSet = null;
-        for(Term key : setUpdate.updateSet()) {
-            Term transformedKey = (Term) key.accept(this);
-
-            if (updateSet == null && transformedKey != key) {
-                updateSet = new HashSet<Term>(setUpdate.updateSet().size());
-                for(Term copyKey : setUpdate.updateSet()) {
-                    if (copyKey.equals(key)) {
-                        break;
-                    }
-                    updateSet.add(copyKey);
-                }
-            }
-
-            if (updateSet != null) {
-                updateSet.add(transformedKey);
-            }
-        }
-        if (updateSet == null) {
-            updateSet = setUpdate.updateSet();
-        }
-
-        if (set != setUpdate.base() || removeSet != setUpdate.removeSet()
-                || setUpdate.updateSet() != updateSet) {
-            setUpdate = new SetUpdate(set, removeSet, updateSet);
+        if (set != setUpdate.base() || removeSet != setUpdate.removeSet()) {
+            setUpdate = new SetUpdate(set, removeSet);
         }
 
         return setUpdate;

@@ -30,6 +30,11 @@ public class CopyOnWriteTransformer implements Transformer {
 	}
 
 	@Override
+	public ASTNode transform(ParseError node) throws TransformerException {
+		return transform((ASTNode) node);
+	}
+
+	@Override
 	public ASTNode transform(Definition node) throws TransformerException {
 		boolean change = false;
 		ArrayList<DefinitionItem> items = new ArrayList<DefinitionItem>();
@@ -114,23 +119,39 @@ public class CopyOnWriteTransformer implements Transformer {
 					.getLocation()));
 		}
 		body = (Term) bodyAST;
-		Term condition = node.getCondition();
-		if (condition != null) {
-			ASTNode conditionAST = condition.accept(this);
-			if (conditionAST != condition)
+		Term requires = node.getRequires();
+		if (requires != null) {
+			ASTNode requiresAST = requires.accept(this);
+			if (requiresAST != requires)
 				change = true;
-			if (null == conditionAST)
+			if (null == requiresAST)
 				return null;
-			if (!(conditionAST instanceof Term)) {
-				GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.INTERNAL, "Expecting Term, but got " + conditionAST.getClass() + " while transforming.", condition
-						.getFilename(), condition.getLocation()));
+			if (!(requiresAST instanceof Term)) {
+				String msg = "Expecting Term, but got " + requiresAST.getClass() + " while transforming.";
+				GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.INTERNAL, msg, requires
+						.getFilename(), requires.getLocation()));
 			}
-			condition = (Term) conditionAST;
+			requires = (Term) requiresAST;
+		}
+		Term ensures = node.getEnsures();
+		if (ensures != null) {
+			ASTNode ensuresAST = ensures.accept(this);
+			if (ensuresAST != ensures)
+				change = true;
+			if (null == ensuresAST)
+				return null;
+			if (!(ensuresAST instanceof Term)) {
+				String msg = "Expecting Term, but got " + ensuresAST.getClass() + " while transforming.";
+				GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.INTERNAL, msg, ensures
+						.getFilename(), ensures.getLocation()));
+			}
+			ensures = (Term) ensuresAST;
 		}
 		if (change) {
 			node = node.shallowCopy();
 			node.setBody(body);
-			node.setCondition(condition);
+			node.setRequires(requires);
+			node.setEnsures(ensures);
 		}
 		return transform((ModuleItem) node);
 	}
@@ -508,26 +529,91 @@ public class CopyOnWriteTransformer implements Transformer {
         Variable set = (Variable) node.set().accept(this);
 
         HashSet<Term> removeEntries = new HashSet<Term>(node.removeEntries().size());
-        for (Term term : node.updateEntries()) {
+        for (Term term : node.removeEntries()) {
             Term transformedTerm = (Term) term.accept(this);
             removeEntries.add(transformedTerm);
             change = change || transformedTerm != term;
         }
 
-        HashSet<Term> updateEntries = new HashSet<Term>(node.updateEntries().size());
-        for (Term term : node.updateEntries()) {
-            Term transformedTerm = (Term) term.accept(this);
-            updateEntries.add(transformedTerm);
-            change = change || transformedTerm != term;
-        }
-
         if (change) {
-            return new SetUpdate(set, removeEntries, updateEntries);
+            return new SetUpdate(set, removeEntries);
         } else {
             return node;
         }
     }
 
+
+	@Override
+	public ASTNode transform(ListBuiltin node) throws TransformerException {
+		boolean change = false;
+
+        ArrayList<Term> terms = new ArrayList<Term>(node.baseTerms().size());
+		for (Term term : node.baseTerms()) {
+			Term transformedTerm = (Term) term.accept(this);
+			terms.add(transformedTerm);
+			change = change || transformedTerm != term;
+		}
+
+        ArrayList<Term> elementsLeft = new ArrayList<Term>(node.elementsLeft().size());
+        for (Term entry : node.elementsLeft()) {
+            Term transformedEntry = (Term) entry.accept(this);
+            elementsLeft.add(transformedEntry);
+            change = change || transformedEntry != entry;
+        }
+
+        ArrayList<Term> elementsRight = new ArrayList<Term>(node.elementsRight().size());
+		for (Term entry : node.elementsRight()) {
+			Term transformedEntry = (Term) entry.accept(this);
+			elementsRight.add(transformedEntry);
+			change = change || transformedEntry != entry;
+		}
+
+		if (change) {
+			return new ListBuiltin(node.sort(), elementsLeft, elementsRight, terms);
+		} else {
+			return node;
+		}
+	}
+
+    @Override
+    public ASTNode transform(ListLookup node) throws TransformerException {
+        Variable base = (Variable) node.base().accept(this);
+        Term key = (Term) node.key().accept(this);
+        Term value = (Term) node.value().accept(this);
+
+        if (base != node.base() || key != node.key() || value != node.value()) {
+            return new ListLookup(base, key, value);
+        } else {
+            return node;
+        }
+    }
+
+    @Override
+    public ASTNode transform(ListUpdate node) throws TransformerException {
+        boolean change = false;
+
+        Variable base = (Variable) node.base().accept(this);
+
+        ArrayList<Term> removeLeft = new ArrayList<Term>(node.removeLeft().size());
+        for (Term entry : node.removeLeft()) {
+            Term transformedEntry = (Term) entry.accept(this);
+            removeLeft.add(transformedEntry);
+            change = change || transformedEntry != entry;
+        }
+
+        ArrayList<Term> removeRight = new ArrayList<Term>(node.removeRight().size());
+        for (Term entry : node.removeRight()) {
+            Term transformedEntry = (Term) entry.accept(this);
+            removeRight.add(transformedEntry);
+            change = change || transformedEntry != entry;
+        }
+
+        if (change) {
+            return new ListUpdate(base, removeLeft, removeRight);
+        } else {
+            return node;
+        }
+    }
 
 	@Override
 	public ASTNode transform(MapBuiltin node) throws TransformerException {
@@ -576,7 +662,7 @@ public class CopyOnWriteTransformer implements Transformer {
         Variable map = (Variable) node.map().accept(this);
 
         HashMap<Term, Term> removeEntries = new HashMap<Term, Term>(node.removeEntries().size());
-        for (java.util.Map.Entry<Term, Term> entry : node.updateEntries().entrySet()) {
+        for (java.util.Map.Entry<Term, Term> entry : node.removeEntries().entrySet()) {
             Term transformedKey = (Term) entry.getKey().accept(this);
             Term transformedValue = (Term) entry.getValue().accept(this);
             removeEntries.put(transformedKey, transformedValue);

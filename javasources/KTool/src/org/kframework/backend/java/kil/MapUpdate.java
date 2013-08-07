@@ -47,7 +47,7 @@ public class MapUpdate extends Term {
         }
 
         if (!removeSet.isEmpty()) {
-            return this;
+            return new MapUpdate(builtinMap, removeSet, updateMap);
         }
 
         entries.putAll(updateMap);
@@ -73,7 +73,7 @@ public class MapUpdate extends Term {
 
     @Override
     public boolean isSymbolic() {
-        throw new UnsupportedOperationException();
+        return false;
     }
 
     @Override

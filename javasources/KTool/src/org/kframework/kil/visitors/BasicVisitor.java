@@ -39,6 +39,13 @@ public class BasicVisitor implements Visitor {
 	}
 
 	@Override
+	public void visit(ParseError node) {
+		if (isVisited(node))
+			return;
+		visit((ASTNode) node);
+	}
+
+	@Override
 	public void visit(Definition node) {
 		if (isVisited(node))
 			return;
@@ -105,9 +112,12 @@ public class BasicVisitor implements Visitor {
 		if (isVisited(node))
 			return;
 		node.getBody().accept(this);
-		Term condition = node.getCondition();
-		if (condition != null)
-			condition.accept(this);
+		Term requires = node.getRequires();
+		if (requires != null)
+			requires.accept(this);
+		Term ensures = node.getEnsures();
+		if (ensures != null)
+			ensures.accept(this);
 		visit((ModuleItem) node);
 	}
 
@@ -396,11 +406,46 @@ public class BasicVisitor implements Visitor {
 		for (Term entry : node.removeEntries()) {
 			entry.accept(this);
 		}
-		for (Term entry : node.updateEntries()) {
+		visit((Term) node);
+    }
+
+    @Override
+	public void visit(ListBuiltin node) {
+		if (isVisited(node))
+			return;
+		for (Term entry : node.elementsLeft()) {
+			entry.accept(this);
+		}
+		for (Term entry : node.elementsRight()) {
+			entry.accept(this);
+		}
+
+		visit((DataStructureBuiltin) node);
+	}
+
+	@Override
+	public void visit(ListLookup node) {
+		if (isVisited(node))
+			return;
+		node.base().accept(this);
+		node.key().accept(this);
+		node.value().accept(this);
+		visit((Term) node);
+	}
+
+	@Override
+	public void visit(ListUpdate node) {
+		if (isVisited(node))
+			return;
+		node.base().accept(this);
+		for (Term entry : node.removeLeft()) {
+			entry.accept(this);
+		}
+        for (Term entry : node.removeRight()) {
 			entry.accept(this);
 		}
 		visit((Term) node);
-    }
+	}
 
     @Override
 	public void visit(MapBuiltin node) {

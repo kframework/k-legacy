@@ -1,6 +1,6 @@
 package org.kframework.backend.java.symbolic;
 
-import org.kframework.backend.maude.KompileBackend;
+import org.kframework.backend.BasicBackend;
 import org.kframework.backend.symbolic.TagUserRules;
 import org.kframework.compile.FlattenModules;
 import org.kframework.compile.ResolveConfigurationAbstraction;
@@ -16,8 +16,13 @@ import org.kframework.compile.utils.CheckVisitorStep;
 import org.kframework.compile.utils.CompileDataStructures;
 import org.kframework.compile.utils.CompilerSteps;
 import org.kframework.compile.utils.InitializeConfigurationStructure;
+import org.kframework.kil.ASTNode;
 import org.kframework.kil.Definition;
+import org.kframework.kil.loader.AddConsesVisitor;
+import org.kframework.kil.loader.CollectConsesVisitor;
 import org.kframework.kil.loader.Context;
+import org.kframework.kil.visitors.*;
+import org.kframework.kil.visitors.exceptions.TransformerException;
 import org.kframework.main.FirstStep;
 import org.kframework.main.LastStep;
 import org.kframework.utils.BinaryLoader;
@@ -30,32 +35,32 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.thoughtworks.xstream.XStream;
+
 
 /**
  * Backend for the Java Rewrite Engine.
  *
  * @author AndreiS
  */
-public class JavaSymbolicBackend extends KompileBackend {
+public class JavaSymbolicBackend extends BasicBackend {
 
-	public static final String DEFINITION_FILENAME = "java_symbolic_definition.bin";
+    public static final String DEFINITION_FILENAME = "java_symbolic_definition.bin";
 
-	public JavaSymbolicBackend(Stopwatch sw, Context context) {
-		super(sw, context);
-	}
+    public JavaSymbolicBackend(Stopwatch sw, Context context) {
+        super(sw, context);
+    }
 
-	@Override
-	public Definition lastStep(Definition javaDef) {
-		try {
-			OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(
+    @Override
+    public Definition lastStep(Definition javaDef) {
+        try {
+            OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(
                     new File(context.dotk, JavaSymbolicBackend.DEFINITION_FILENAME)));
-			BinaryLoader.toBinary(
-                    //javaDef.accept(new KILtoBackendJavaKILTransformer(context)),
+            BinaryLoader.toBinary(
+                    //new KILtoBackendJavaKILTransformer(context).transformDefinition(javaDef),
                     javaDef,
                     outputStream);
-			outputStream.close();
-		//} catch (TransformerException e) {
-        //    e.printStackTrace();
+            outputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -94,16 +99,20 @@ public class JavaSymbolicBackend extends KompileBackend {
 		}
 		*/
 
-		return javaDef;
-	}
+        return javaDef;
+    }
 
-	@Override
-	public String getDefaultStep() {
-		return "LastStep";
-	}
+    @Override
+    public void run(Definition def) throws IOException {
+    }
 
-	@Override
-	public CompilerSteps<Definition> getCompilationSteps() {
+    @Override
+    public String getDefaultStep() {
+        return "LastStep";
+    }
+
+    @Override
+    public CompilerSteps<Definition> getCompilationSteps() {
         CompilerSteps<Definition> steps = new CompilerSteps<Definition>(context);
         steps.add(new FirstStep(this, context));
 
@@ -114,6 +123,10 @@ public class JavaSymbolicBackend extends KompileBackend {
         steps.add(new CheckVisitorStep<Definition>(new CheckVariables(context), context));
         steps.add(new CheckVisitorStep<Definition>(new CheckRewrite(context), context));
         steps.add(new FlattenModules(context));
+
+        steps.add(new SubsortSyntacticLists(context));
+        steps.add(new CheckVisitorStep<Definition>(new AddConsesVisitor(context), context));
+        steps.add(new CheckVisitorStep<Definition>(new CollectConsesVisitor(context), context));
 
         steps.add(new StrictnessToContexts(context));
         steps.add(new FreezeUserFreezers(context));
@@ -150,6 +163,7 @@ public class JavaSymbolicBackend extends KompileBackend {
         steps.add(new CompileDataStructures(context));
         steps.add(new MapToLookupUpdate(context));
         steps.add(new SetToLookupUpdate(context));
+        steps.add(new ListToLookupUpdate(context));
 
         if (GlobalSettings.sortedCells) {
             steps.add(new SortCells(context));
@@ -161,10 +175,10 @@ public class JavaSymbolicBackend extends KompileBackend {
         steps.add(new DeclareCellLabels(context));
 
 		/* tag with symbolic the rules that are form k dist */
-		steps.add(new TagUserRules(context));
+        steps.add(new TagUserRules(context));
 
-		steps.add(new LastStep(this, context));
+        steps.add(new LastStep(this, context));
 
-		return steps;
-	}
+        return steps;
+    }
 }

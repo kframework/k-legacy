@@ -21,6 +21,7 @@ public class Variable extends Term {
 	/** True if the variable was written with an explicit type annotation */
 	private boolean userTyped = false;
 	private boolean fresh = false;
+	private boolean syntactic = false;
 
 	public Variable(Element element) {
 		super(element);
@@ -57,6 +58,7 @@ public class Variable extends Term {
 		name = variable.name;
 		fresh = variable.fresh;
 		userTyped = variable.userTyped;
+        syntactic = variable.syntactic;
 	}
 
 	public static Variable getFreshVar(String sort) {
@@ -127,5 +129,13 @@ public class Variable extends Term {
 
 	public boolean isFresh() {
 		return fresh;
+	}
+
+	public boolean isSyntactic() {
+		return syntactic;
+	}
+
+	public void setSyntactic(boolean syntactic) {
+		this.syntactic = syntactic;
 	}
 }

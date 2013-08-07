@@ -1,11 +1,24 @@
 package org.kframework.kil.loader;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.kframework.compile.utils.ConfigurationStructureMap;
 import org.kframework.compile.utils.MetaK;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Cell;
-import org.kframework.kil.DataStructureSort;
 import org.kframework.kil.Constant;
+import org.kframework.kil.DataStructureSort;
 import org.kframework.kil.KApp;
 import org.kframework.kil.KInjectedLabel;
 import org.kframework.kil.KSorts;
@@ -19,21 +32,7 @@ import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;
 import org.kframework.utils.general.GlobalSettings;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 
 public class Context implements Serializable {
@@ -67,7 +66,7 @@ public class Context implements Serializable {
 	public java.util.Map<String, Set<String>> listLabels = new HashMap<String, Set<String>>();
 	public java.util.Map<String, ASTNode> locations = new HashMap<String, ASTNode>();
 	public java.util.Map<String, Set<Production>> associativity = new HashMap<String, Set<Production>>();
-	private Poset subsorts = new Poset();;
+	private Poset subsorts = new Poset();
 	public java.util.Set<String> definedSorts = Sort.getBaseSorts();
 	private Poset priorities = new Poset();
 	private Poset modules = new Poset();

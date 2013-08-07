@@ -31,6 +31,7 @@ import org.kframework.kil.LiterateModuleComment;
 import org.kframework.kil.Map;
 import org.kframework.kil.MapItem;
 import org.kframework.kil.Module;
+import org.kframework.kil.ParseError;
 import org.kframework.kil.PriorityBlock;
 import org.kframework.kil.PriorityBlockExtended;
 import org.kframework.kil.PriorityExtended;
@@ -289,7 +290,7 @@ public class JavaClassesFactory {
 			// if (Constants.CONTEXT.endsWith(appl.getNodeName()))
 			// return new Context(appl);
 
-			if (appl.getName().endsWith("CondSentence"))
+			if (appl.getName().endsWith("Ensures"))
 				return storeNode(atm.getUniqueIdentifier(), new Sentence(appl));
 			if (appl.getName().endsWith("Rewrite"))
 				return storeNode(atm.getUniqueIdentifier(), new Rewrite(appl));
@@ -393,6 +394,8 @@ public class JavaClassesFactory {
 			// return new FreezerHole(appl);
 			if (Constants.AMB.equals(appl.getName()))
 				return storeNode(atm.getUniqueIdentifier(), new Ambiguity(appl));
+			if (Constants.ERROR.equals(appl.getName()))
+				return storeNode(atm.getUniqueIdentifier(), new ParseError(appl));
 		}
 		System.out.println(">>> " + atm + " <<< - unimplemented yet: org.kframework.kil.loader.JavaClassesFactory");
 		return null;
