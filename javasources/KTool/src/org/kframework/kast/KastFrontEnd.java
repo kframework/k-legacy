@@ -53,7 +53,7 @@ public class KastFrontEnd {
 		}
 		// options: help
 		if (cmd.hasOption("help")) {
-			org.kframework.utils.Error.helpExit(op.getHelp(), op.getOptions());
+            op.helpExit();
 		}
 		String pgm = null;
 		String path;

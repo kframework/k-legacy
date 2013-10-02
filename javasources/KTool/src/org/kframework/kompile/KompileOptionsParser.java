@@ -163,7 +163,7 @@ public class KompileOptionsParser {
 			// e.printStackTrace();
 		}
 
-		org.kframework.utils.Error.helpExit(help, options);
+        helpExit();
 		return null;
 	}
 
@@ -174,4 +174,8 @@ public class KompileOptionsParser {
 	public HelpFormatter getHelp() {
 		return help;
 	}
+
+    public void helpExit() {
+        org.kframework.utils.Error.helpExit(help, "kompile", "FIXME: kompile help msg", options); // FIXME
+    }
 }
