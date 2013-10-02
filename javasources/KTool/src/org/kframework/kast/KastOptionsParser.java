@@ -82,7 +82,7 @@ public class KastOptionsParser {
 			e.printStackTrace();
 		}
 
-		org.kframework.utils.Error.helpExit(help, options);
+        helpExit();
 		return null;
 	}
 
@@ -93,4 +93,8 @@ public class KastOptionsParser {
 	public HelpFormatter getHelp() {
 		return help;
 	}
+
+    public void helpExit() {
+        org.kframework.utils.Error.helpExit(help, "kast", "FIXME: kast help msg", options); // FIXME
+    }
 }

@@ -41,7 +41,7 @@ public class HKCDOptionsParser {
 			e.printStackTrace();
 		}
 
-		org.kframework.utils.Error.helpExit(help, "hkcd", options);
+        helpExit();
 		return null;
 	}
 
@@ -52,4 +52,8 @@ public class HKCDOptionsParser {
 	public HelpFormatter getHelp() {
 		return help;
 	}
+
+    public void helpExit() {
+        org.kframework.utils.Error.helpExit(help, "hkcd", "FIXME: HKCD help msg", options); // FIXME
+    }
 }

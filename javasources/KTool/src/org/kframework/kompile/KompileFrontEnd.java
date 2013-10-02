@@ -56,7 +56,7 @@ public class KompileFrontEnd {
 
 		// options: help
 		if (cmd.hasOption("help"))
-			org.kframework.utils.Error.helpExit(op.getHelp(), op.getOptions());
+            op.helpExit();
 
 		if (cmd.hasOption("version")) {
 			String msg = FileUtil.getFileContent(KPaths.getKBase(false) + KPaths.VERSION_FILE);

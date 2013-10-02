@@ -55,7 +55,7 @@ public class KCheckOptionsParser {
 				org.kframework.utils.Error.silentReport(e.getLocalizedMessage());
 			}
 
-			org.kframework.utils.Error.helpExit(help, options);
+            helpExit();
 			return null;
 		}
 
@@ -66,4 +66,8 @@ public class KCheckOptionsParser {
 		public HelpFormatter getHelp() {
 			return help;
 		}
+
+        public void helpExit() {
+            org.kframework.utils.Error.helpExit(help, "kcheck", "FIXME: kcheck help message", options); // FIXME
+        }
 }

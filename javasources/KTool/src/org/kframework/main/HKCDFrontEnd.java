@@ -38,7 +38,7 @@ public class HKCDFrontEnd {
 
 		// options: help
 		if (cmd.hasOption("help")) {
-			org.kframework.utils.Error.helpExit(op.getHelp(), "hkcd DEF PGM", op.getOptions());
+            op.helpExit();
 		}
 
 		String def = null;
