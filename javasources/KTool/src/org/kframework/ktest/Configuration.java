@@ -72,7 +72,6 @@ public class Configuration {
 
 	// ktest command line option names
 	public static final String HELP_OPTION = "help";
-	public static final String HELP_EXPERIMENTAL_OPTION = "help-experimental";
 	public static final String VERSION_OPTION = "version";
 	public static final String DIRECTORY_OPTION = "directory";
 	public static final String PROGRAMS_OPTION = PROGRAMS_DIR;

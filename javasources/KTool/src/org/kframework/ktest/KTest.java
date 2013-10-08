@@ -38,13 +38,9 @@ public class KTest {
     private static final String USAGE = "ktest <file> [options]";
     private static final String HEADER_STANDARD = "<file> is either a K definition (single job mode) or an XML configuration (batch mode).";
     private static final String FOOTER_STANDARD = "";
-    private static final String HEADER_EXPERIMENTAL = "Experimental options:";
-    private static final String FOOTER_EXPERIMENTAL = System.getProperty("line.separator") + "These options are non-standard and subject to change without notice.";
+
     public static void printUsageS(KTestOptionsParser op) {
         org.kframework.utils.Error.helpMsg(USAGE, HEADER_STANDARD, FOOTER_STANDARD, op.getOptionsStandard(), new OptionComparator(op.getOptionList()));
-    }
-    public static void printUsageE(KTestOptionsParser op) {
-        org.kframework.utils.Error.helpMsg(USAGE, HEADER_EXPERIMENTAL, FOOTER_EXPERIMENTAL, op.getOptionsExperimental(), new OptionComparator(op.getOptionList()));
     }
 
     public static void test(String[] args) {
@@ -59,10 +55,6 @@ public class KTest {
         // Help
         if (cmd.hasOption(Configuration.HELP_OPTION)) {
             printUsageS(op);
-            System.exit(0);
-        }
-        if (cmd.hasOption(Configuration.HELP_EXPERIMENTAL_OPTION)) {
-            printUsageE(op);
             System.exit(0);
         }
 
