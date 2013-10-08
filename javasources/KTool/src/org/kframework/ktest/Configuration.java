@@ -27,7 +27,7 @@ public class Configuration {
 	public static String KDEF = USER_DIR;
 	// programs
 	public static String PGM_DIR = USER_DIR;
-	public static List<String> EXTENSIONS = new LinkedList<String>();
+	public static List<String> EXTENSIONS = new LinkedList<>();
 
     // command line argument variables
     public static boolean KOMPILE = true;

@@ -181,7 +181,7 @@ public class KTest {
 
         // execution
         if (Configuration.SINGLE_DEF_MODE) {
-            List<Test> alltests = new LinkedList<Test>();
+            List<Test> alltests = new LinkedList<>();
 
             List<String> pgmsFolder = Configuration.PGM_DIR == null ? new LinkedList<String>()
                     : Arrays.asList(Configuration.PGM_DIR.split("\\s+"));
@@ -202,7 +202,7 @@ public class KTest {
     private static List<Test> parseXMLConfig(String configFile,
             String rootDefDir, String rootProgramsDir, String rootResultsDir)
             throws ParserConfigurationException, SAXException, IOException {
-        List<Test> alltests = new LinkedList<Test>();
+        List<Test> alltests = new LinkedList<>();
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
@@ -230,22 +230,19 @@ public class KTest {
             String rootProgramsDir, String rootResultsDir) {
 
         int exitCode = 0;
-        List<Test> alltests = new LinkedList<Test>();
+        List<Test> alltests = new LinkedList<>();
 
         // load config
         try {
             alltests = parseXMLConfig(configFile, rootDir, rootProgramsDir,
                     rootResultsDir);
         } catch (ParserConfigurationException e) {
-            // TODO Auto-generated catch block
             exitCode = 1;
             e.printStackTrace();
         } catch (SAXException e) {
-            // TODO Auto-generated catch block
             exitCode = 1;
             e.printStackTrace();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             exitCode = 1;
             e.printStackTrace();
         }
@@ -257,7 +254,7 @@ public class KTest {
         // compile definitions first
         int i = 0;
         System.out.print("Kompiling the language definitions...");
-        Map<Test, Task> definitions = new TreeMap<Test, Task>();
+        Map<Test, Task> definitions = new TreeMap<>();
         for (Test test : alltests) {
             Task def = test.getDefinitionTask(homeDir);
             definitions.put(test, def);
@@ -306,7 +303,7 @@ public class KTest {
         // compile pdf definitions
         i = 0;
         System.out.print("Generating PDF documentation...");
-        Map<Test, Task> pdfDefinitions = new TreeMap<Test, Task>();
+        Map<Test, Task> pdfDefinitions = new TreeMap<>();
         for (Test test : alltests) {
             // also compile pdf if set
             if (test.getPdf()) {
@@ -359,7 +356,7 @@ public class KTest {
 
                 // execute
                 List<Program> pgms = test.getPrograms();
-                Map<Program, Task> all = new TreeMap<Program, Task>();
+                Map<Program, Task> all = new TreeMap<>();
 
                 // total programs counter
                 i = 0;
