@@ -9,13 +9,12 @@ public class Configuration {
 	// file separator
 	public static final String FILE_SEPARATOR = System.getProperty("file.separator");
 	public static final String USER_DIR = System.getProperty("user.dir");
-    public static boolean REPORT = false;
 
     // timeout in miliseconds - this is mostly used by Jenkins
-	public static long KOMPILE_ALL_TIMEOUT = 120;
+	public static final long KOMPILE_ALL_TIMEOUT = 120;
 
 	// jenkins junit reports directory
-	public static String JR = "junit-reports";
+	public static final String JR = "junit-reports";
 
 	// the configuration file which is active when !SINGLE_DEF_MODE
 	public static String CONFIG = null;
@@ -23,15 +22,20 @@ public class Configuration {
 	// these options are used to create a task for testing
 	// a single K definition and its programs directly from command line
 	public static boolean SINGLE_DEF_MODE = false;
+    public static boolean REPORT = false;
 	// mandatory
 	public static String KDEF = USER_DIR;
 	// programs
 	public static String PGM_DIR = USER_DIR;
-	public static List<String> EXTENSIONS = new LinkedList<String>();
-	// optional
-	public static boolean PDF = true;
-	public static String RESULTS_FOLDER = USER_DIR;
-	public static List<String> EXCLUDE_PROGRAMS = null;
+	public static List<String> EXTENSIONS = new LinkedList<>();
+
+    // command line argument variables
+    public static boolean KOMPILE = true;
+    public static boolean PROGRAMS = true;
+    public static boolean VERBOSE = false;
+    public static boolean PDF = true;
+    public static String RESULTS_FOLDER = USER_DIR;
+    public static List<String> EXCLUDE_PROGRAMS = null;
 
 	// XML tag and attribute names used for parsing config.xml
 	// Some of these constants are used as ktest option names (see below)
@@ -65,14 +69,9 @@ public class Configuration {
 	public static final String VALUE = "value";
 	public static final String UNIX_ONLY = "unixOnly";
 	public static final String TEST = "test";
-    public static boolean KOMPILE = true;
-    public static boolean KOMPILE_PDF = true;
-    public static boolean PROGRAMS = true;
-	public static boolean VERBOSE = false;
 
 	// ktest command line option names
 	public static final String HELP_OPTION = "help";
-	public static final String HELP_EXPERIMENTAL_OPTION = "help-experimental";
 	public static final String VERSION_OPTION = "version";
 	public static final String DIRECTORY_OPTION = "directory";
 	public static final String PROGRAMS_OPTION = PROGRAMS_DIR;
@@ -83,20 +82,16 @@ public class Configuration {
     public static final String SKIP_OPTION = "skip";
 	public static final String VERBOSE_OPTION = "verbose";
 
-	// program name
-	public static final String KTEST = "ktest";
+    // step names to be used in steps to skip
 	public static final String KOMPILE_STEP = "kompile";
 	public static final String PDF_STEP = "pdf";
 	public static final String PROGRAMS_STEP = "programs";
 	public static final String PROCESSES_OPTION = "threads";
 
-	// help details
-	public static String DETAILED_HELP_MESSAGE = getReadme();
-
 	// some error messages
-	public static String PGM_ERROR = "Please check the programs folder from configuration file.";
-	public static String DEF_ERROR = "Please check the definition folder from configuration file.";
-	public static String RES_ERROR = "Please check the results folder from configuration file.";
+	public static final String PGM_ERROR = "Please check the programs folder from configuration file.";
+	public static final String DEF_ERROR = "Please check the definition folder from configuration file.";
+	public static final String RES_ERROR = "Please check the results folder from configuration file.";
 
 	// get the K instalation home directory
 	public static String getKHome() {
@@ -120,10 +115,5 @@ public class Configuration {
 			return getKHome() + FILE_SEPARATOR + "dist" + FILE_SEPARATOR + "bin" + FILE_SEPARATOR + exe + ".bat";
 		}
 		return getKHome() + FILE_SEPARATOR + "dist" + FILE_SEPARATOR + "bin" + FILE_SEPARATOR + exe;
-	}
-	
-	public static String getReadme() {
-		// return FileUtil.getFileContent(getKHome() + FS + "tests" + FS + "README");
-		return "";
 	}
 }

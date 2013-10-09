@@ -4,7 +4,6 @@ import org.apache.commons.cli.*;
 import org.kframework.utils.ActualPosixParser;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 
 public class KTestOptionsParser {
 
@@ -13,7 +12,7 @@ public class KTestOptionsParser {
 	// For printing help messages: options = optionsStandard + optionsExperimental
 	private Options optionsStandard;
 	private Options optionsExperimental;
-	private ArrayList<Option> optionList = new ArrayList<Option>();
+	private ArrayList<Option> optionList = new ArrayList<>();
 
 	// wrapper function to add an option
 	private void addOptionWrapper(Option opt, boolean isStandard) {
