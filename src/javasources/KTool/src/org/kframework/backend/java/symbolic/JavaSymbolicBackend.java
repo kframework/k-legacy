@@ -1,8 +1,13 @@
 package org.kframework.backend.java.symbolic;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.kframework.backend.BasicBackend;
 import org.kframework.backend.symbolic.TagUserRules;
+import org.kframework.compile.CoverageTransformer;
 import org.kframework.compile.FlattenModules;
+import org.kframework.compile.MetaCoverageTransformer;
 import org.kframework.compile.ResolveConfigurationAbstraction;
 import org.kframework.compile.checks.CheckConfigurationCells;
 import org.kframework.compile.checks.CheckRewrite;
@@ -21,10 +26,10 @@ import org.kframework.compile.transformers.AddTopCellRules;
 import org.kframework.compile.transformers.Cell2DataStructure;
 import org.kframework.compile.transformers.CompleteSortLatice;
 import org.kframework.compile.transformers.ContextsToHeating;
+import org.kframework.compile.transformers.DataStructureToLookupUpdate;
 import org.kframework.compile.transformers.DesugarStreams;
 import org.kframework.compile.transformers.FlattenSyntax;
 import org.kframework.compile.transformers.FreezeUserFreezers;
-import org.kframework.compile.transformers.DataStructureToLookupUpdate;
 import org.kframework.compile.transformers.RemoveBrackets;
 import org.kframework.compile.transformers.RemoveSyntacticCasts;
 import org.kframework.compile.transformers.ResolveAnonymousVariables;
@@ -38,7 +43,11 @@ import org.kframework.compile.transformers.ResolveOpenCells;
 import org.kframework.compile.transformers.ResolveRewrite;
 import org.kframework.compile.transformers.SetVariablesInferredSort;
 import org.kframework.compile.transformers.StrictnessToContexts;
-import org.kframework.compile.utils.*;
+import org.kframework.compile.utils.CheckVisitorStep;
+import org.kframework.compile.utils.CompileDataStructures;
+import org.kframework.compile.utils.CompileToBuiltins;
+import org.kframework.compile.utils.CompilerSteps;
+import org.kframework.compile.utils.InitializeConfigurationStructure;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Definition;
 import org.kframework.kil.loader.AddConsesVisitor;
@@ -51,9 +60,8 @@ import org.kframework.main.FirstStep;
 import org.kframework.main.LastStep;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
+import org.kframework.utils.general.GlobalSettings;
 
-import java.io.File;
-import java.io.IOException;
 
 
 /**
@@ -104,7 +112,7 @@ public class JavaSymbolicBackend extends BasicBackend {
     public CompilerSteps<Definition> getCompilationSteps() {
         CompilerSteps<Definition> steps = new CompilerSteps<Definition>(context);
         steps.add(new FirstStep(this, context));
-
+        
         steps.add(new CheckVisitorStep<Definition>(new CheckConfigurationCells(context), context));
         steps.add(new RemoveBrackets(context));
         steps.add(new AddEmptyLists(context));
@@ -129,6 +137,12 @@ public class JavaSymbolicBackend extends BasicBackend {
         steps.add(new DesugarStreams(context, true));
         steps.add(new ResolveFunctions(context));
         steps.add(new AddKCell(context));
+
+        if(GlobalSettings.generateTraces){
+        	steps.add(new MetaCoverageTransformer("MetaCoverageTransformer",context));
+        	steps.add(new CoverageTransformer("CoverageTransformer",context));
+        }
+        
         steps.add(new AddStreamCells(context));
         //steps.add(new AddSymbolicK(context));
         //steps.add(new AddSemanticEquality(context));

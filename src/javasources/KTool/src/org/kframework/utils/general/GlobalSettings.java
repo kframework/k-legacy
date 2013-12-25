@@ -114,4 +114,5 @@ public class GlobalSettings {
 	public static boolean symbolic = false; // true if the --symbolic argument has been provided to kompile
     public static List<String> symbolicTags = new LinkedList<>();
     public static List<String> nonSymbolicTags = new LinkedList<>();
+	public static boolean generateTraces;
 }

@@ -73,6 +73,7 @@ public class KompileFrontEnd {
             GlobalSettings.synModule =
                     cmd.getOptionValue("syntax-module", GlobalSettings.synModule);
             GlobalSettings.testgen |= cmd.hasOption("test-gen");
+            GlobalSettings.generateTraces |= cmd.hasOption("trace");
 
             if (cmd.hasOption("transition"))
                 GlobalSettings.transition = metadataParse(cmd.getOptionValue("transition"));
