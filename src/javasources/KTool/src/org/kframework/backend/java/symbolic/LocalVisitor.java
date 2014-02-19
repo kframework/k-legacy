@@ -29,7 +29,7 @@ public class LocalVisitor implements Visitor {
         this.proceed = true;
     }
 
-    boolean proceed = true;
+    protected boolean proceed = true;
 
     @Override
     public String getName() {
@@ -189,11 +189,6 @@ public class LocalVisitor implements Visitor {
         visit((JavaSymbolicObject) node);
     }
     
-    @Override
-    public void visit(TermCons termCons) {
-        visit((Term) termCons);
-    }
-
     @Override
     public void visit(Token token) {
         visit((Term) token);

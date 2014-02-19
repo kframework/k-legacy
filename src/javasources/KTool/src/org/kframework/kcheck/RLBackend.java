@@ -8,6 +8,7 @@ import java.util.Properties;
 
 import org.kframework.backend.Backend;
 import org.kframework.backend.BasicBackend;
+import org.kframework.backend.java.util.KSorts;
 import org.kframework.backend.maude.MaudeBackend;
 import org.kframework.backend.maude.MaudeBuiltinsFilter;
 import org.kframework.backend.maude.krun.MaudeKRun;
@@ -202,22 +203,25 @@ public class RLBackend extends BasicBackend implements Backend {
 		K.main_module = mainModule;
 		K.init(context);
 		// delete temporary krun directory
-		deleteDirectory(new File(K.krunDir));
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			public void run() {
-				try {
-                    moveDirectory(new File(K.krunTempDir), new File(K.krunDir));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		});
+//		deleteDirectory(new File(K.krunDir));
+//		Runtime.getRuntime().addShutdownHook(new Thread() {
+//			public void run() {
+//				try {
+//                    moveDirectory(new File(K.krunTempDir), new File(K.krunDir));
+//				} catch (IOException e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		});
 		Rule defaultPattern = null;
 		RuleCompilerSteps defaultPatternInfo = null;
 		ASTNode pattern;
 		try {
-			pattern = DefinitionLoader.parsePattern(K.pattern,
-					"Command line pattern", context);
+			pattern = DefinitionLoader.parsePattern(
+					K.pattern,
+					"Command line pattern",
+					KSorts.BAG,
+					context);
 			defaultPatternInfo = new RuleCompilerSteps(javaDef, context);
 			pattern = defaultPatternInfo.compile(new Rule((Sentence) pattern),
 					null);

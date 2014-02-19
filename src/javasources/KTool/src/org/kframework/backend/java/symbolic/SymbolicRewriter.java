@@ -27,6 +27,7 @@ import org.kframework.backend.java.indexing.IndexingPair;
 import org.kframework.backend.java.indexing.KLabelIndex;
 import org.kframework.backend.java.indexing.TokenIndex;
 import org.kframework.backend.java.indexing.TopIndex;
+import org.kframework.backend.java.indexing.pathIndex.PathIndex;
 import org.kframework.backend.java.kil.Cell;
 import org.kframework.backend.java.kil.CellCollection;
 import org.kframework.backend.java.kil.ConstrainedTerm;
@@ -61,16 +62,17 @@ public class SymbolicRewriter {
     private final Stopwatch stopwatch = new Stopwatch();
     private int step;
     private final Stopwatch ruleStopwatch = new Stopwatch();
-    private final Map<Index, List<Rule>> ruleTable;
-    private final Map<Index, List<Rule>> heatingRuleTable;
-    private final Map<Index, List<Rule>> coolingRuleTable;
-    private final Map<Index, List<Rule>> simulationRuleTable;
-    private final List<Rule> unindexedRules;
+    private Map<Index, List<Rule>> ruleTable;
+    private Map<Index, List<Rule>> heatingRuleTable;
+    private Map<Index, List<Rule>> coolingRuleTable;
+    private Map<Index, List<Rule>> simulationRuleTable;
+    private List<Rule> unindexedRules;
     private final List<ConstrainedTerm> results = new ArrayList<ConstrainedTerm>();
     private final List<Rule> appliedRules = new ArrayList<Rule>();
     private boolean transition;
     private final PluggableKastStructureChecker phase1PluggableKastChecker;
     private final PluggableKastStructureChecker phase2PluggableKastChecker;
+    private PathIndex pathIndex;
     
     /*
      * Liyi Li : add simulation rules in the constructor, and allow user to input label [alphaRule] as
@@ -91,6 +93,15 @@ public class SymbolicRewriter {
             phase1PluggableKastChecker = null;
             phase2PluggableKastChecker = null;
         }
+
+        if (K.do_indexing) {
+            pathIndex = new PathIndex(definition);
+        } else {
+            buildBasicIndex();
+        }
+    }
+
+    private void buildBasicIndex() {
 
         /* populate the table of rules rewriting the top configuration */
         List<Index> indices = new ArrayList<Index>();
@@ -244,7 +255,25 @@ public class SymbolicRewriter {
      * @return a list of rules that could be applied
      */
     private List<Rule> getRules(Term term) {
-        Set<Rule> rules = new LinkedHashSet<Rule>();
+        List<Rule> rules = new ArrayList<>();
+        if (K.do_indexing) {
+//            pathIndex.getRulesForTerm(term);
+//            rules.addAll(getNonIndexedRules(term));
+            rules.addAll(pathIndex.getRulesForTerm(term));
+        } else {
+            rules.addAll(getNonIndexedRules(term));
+        }
+
+        return rules;
+    }
+
+    private List<Rule> getNonIndexedRules(Term term) {
+        Set<Rule> rules = new LinkedHashSet<>();
+        //TODO(OwolabiL): This should be removed. It's only here for comparison with new indexing.
+        if (K.do_indexing) {
+            buildBasicIndex();
+        }
+
         for (IndexingPair pair : term.getIndexingPairs()) {
             if (ruleTable.get(pair.first) != null) {
                 rules.addAll(ruleTable.get(pair.first));
@@ -345,7 +374,7 @@ public class SymbolicRewriter {
         while (strategy.hasNext()) {
             transition = strategy.nextIsTransition();
             ArrayList<Rule> rules = new ArrayList<Rule>(strategy.next());
-//            System.err.println(rules);
+//            System.out.println("rules.size: "+rules.size());
             for (Rule rule : rules) {
                 ruleStopwatch.reset();
                 ruleStopwatch.start();
@@ -364,7 +393,16 @@ public class SymbolicRewriter {
                         constrainedTerm.termContext());
 
                 for (SymbolicConstraint constraint1 : constrainedTerm.unify(leftHandSide)) {
-                    constraint1.orientSubstitution(rule.variableSet());
+                    /*
+                     * TODO(YilongL): had to comment out the following assertion
+                     * because logik.k uses unification even in concrete
+                     * execution mode
+                     */
+//                    if (K.do_concrete_exec) {
+//                        assert constraint1.isMatching(leftHandSide) : "Pattern matching expected in concrete execution mode";
+//                    }
+                        
+                    constraint1.orientSubstitution(rule.leftHandSide().variableSet());
                     constraint1.addAll(rule.ensures());
                     
                     Term result = rule.rightHandSide();
@@ -376,16 +414,10 @@ public class SymbolicRewriter {
                         /* rename rule variables in the rule RHS */
                         result = result.substituteWithBinders(freshSubstitution, constrainedTerm.termContext());
                     }
-                    
                     /* apply the constraints substitution on the rule RHS */
-                    result = result.substituteAndEvaluate(constraint1.substitution(),
+                    result = result.substituteAndEvaluate(
+                            constraint1.substitution(),
                             constrainedTerm.termContext());
-                    /* evaluate pending functions in the rule RHS */
-                    if (rule.containsAttribute("getModel")) {
-                        // TODO(YilongL): this check is a hack-ish workaround
-                        // for the smt_model test; do it nicely
-                        result = result.evaluate(constrainedTerm.termContext());
-                    }
                     /* eliminate anonymous variables */
                     constraint1.eliminateAnonymousVariables();
 

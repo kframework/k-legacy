@@ -132,6 +132,7 @@ public class AddInjections extends CopyOnWriteTransformer{
             return transformedNode;
         }
 
+        assert transformedNode.getBody() instanceof Rewrite : "Deep rewrites are currently not allowed in function rules.";
         Term left = ((Rewrite) transformedNode.getBody()).getLeft();
         Term right = ((Rewrite) transformedNode.getBody()).getRight();
         if (!(left instanceof KItemProjection)) {
@@ -143,6 +144,7 @@ public class AddInjections extends CopyOnWriteTransformer{
         transformedNode.setBody(transformedBody);
         transformedBody.setLeft(((KItemProjection) left).getTerm(), context);
         transformedBody.setRight(KApp.of(new KLabelInjection(right)), context);
+
         return transformedNode;
     }
 

@@ -22,6 +22,7 @@ public class K {
 	//define some constants for print 
 	public static final String PRETTY = "pretty";
 	public static final String KORE = "kore";
+	public static final String COMPATIBLE = "compatible";
 
 	public static String kdir;
 	
@@ -96,6 +97,7 @@ public class K {
     public static boolean do_concrete_exec = false;
     public static boolean do_search = false;
     public static boolean do_testgen = false; // generate tests from semantics
+    public static boolean do_indexing = false; // index the rules before rewriting
 	public static boolean showSearchGraph = false;
 	//apply parenthesis by default
 	public static boolean parens = true;
