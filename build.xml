@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project basedir="." default="build" name="KTool Build file">
 
-	<property location="src/javasources" name="javasources" />
+	<property location="src/java" name="javaroot" />
+    <property location="lib" name="lib" />
+    <property location="src/sdf" name="sdfroot" />
 	<property name="version" value="nightly" />
 	<property name="config" value="./tests/config.xml" />
 
 	<target name="java">
-		<ant antfile="${javasources}/KTool/buildjava.xml" dir="${javasources}/KTool" />
+		<ant antfile="${javaroot}/buildjava.xml" dir="${javaroot}" />
 	</target>
 
 	<target name="jar">
-		<ant antfile="${javasources}/KTool/buildjar.xml" dir="${javasources}/KTool" />
+		<ant antfile="${javaroot}/buildjar.xml" dir="${javaroot}" />
 	</target>
 
 	<target name="build">
-		<ant antfile="${javasources}/KTool/build.xml" dir="${javasources}/KTool" />
+		<ant antfile="${javaroot}/build.xml" dir="${javaroot}" />
 		<antcall target="makeversion" />	
 	</target>
 
@@ -24,7 +26,7 @@
 
 	<target name="clean">
 		<delete>
-			<fileset dir="${javasources}/KTool/src/org/kframework/parser/concrete/lib">
+			<fileset dir="${javaroot}/src/org/kframework/parser/concrete/lib">
 				<include name="*.java" />
                                 <include name="*.tbl" />
 				<exclude name="string_trim_last_one_0_0.java" />
@@ -36,30 +38,30 @@
 				<exclude name="xml_string_escape_from_string_0_0.java" />
 			</fileset>
 		</delete>
-		<delete file="${javasources}/parsers/Concrete/trans/ConcreteMain.rtree" />
-		<delete file="${javasources}/parsers/Concrete/trans/ConcreteMain.dep" />
-		<delete dir="${javasources}/parsers/Concrete/trans/ConcreteMain" />
-		<delete dir="${javasources}/parsers/Concrete/include" />
+		<delete file="${sdfroot}/trans/ConcreteMain.rtree" />
+		<delete file="${sdfroot}/trans/ConcreteMain.dep" />
+		<delete dir="${sdfroot}/trans/ConcreteMain" />
+		<delete dir="${sdfroot}/include" />
 
-		<delete dir="${javasources}/KTool/lib/resources/sdf" />
+		<delete dir="${javaroot}/lib/resources/sdf" />
 
 		<antcall target="clean-java" />
 	</target>
 
 	<target name="clean-java">
-		<delete dir="${javasources}/KTool/bin" />
-		<delete file="${javasources}/../../lib/java/k3.jar" />
-		<delete file="${javasources}/../../lib/version.txt" />
+		<delete dir="${javaroot}/bin" />
+		<delete file="${lib}/java/k3.jar" />
+		<delete file="${lib}/version.txt" />
 		<delete dir="./k/" />
 		<delete>
-			<fileset dir="${javasources}/KTool/src/org/kframework/backend/pdmc/pda/buchi/parser" includes="*.java" />
-			<fileset dir="${javasources}/KTool/src/org/kframework/parser/basic" includes="*.java" />
-			<fileset dir="${javasources}/KTool/src/org/kframework/utils/kastparser" includes="*.java" />
+			<fileset dir="${javaroot}/src/org/kframework/backend/pdmc/pda/buchi/parser" includes="*.java" />
+			<fileset dir="${javaroot}/src/org/kframework/parser/basic" includes="*.java" />
+			<fileset dir="${javaroot}/src/org/kframework/utils/kastparser" includes="*.java" />
 		</delete>
 	</target>
 
 	<target name="makeversion">
-		<property name="version.file" value="./lib/version.txt" />
+		<property name="version.file" value="${lib}/version.txt" />
 
 		<exec executable="git" outputproperty="version.out">
 			<arg value="rev-parse" />
@@ -162,7 +164,7 @@
 
 
 	<target name="test" depends="build,junit">
-          <java jar="${javasources}/../../lib/java/k3.jar" fork="true" failonerror="true">
+           <java jar="${lib}/java/k3.jar" fork="true" failonerror="true">
 	     <arg value="-ktest"/>
 	     <arg value="${config}"/>
 	     <arg value="-programs"/>
