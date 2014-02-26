@@ -11,6 +11,7 @@ module FLOAT-HOOKS
   imports INT-HOOKS
   imports K
 
+  /*@ The following are the available numerical operations on Floats: */
   syntax Float ::=              
                                    "--Float" Float              [function, hook(#FLOAT:-Float_)]
 				 > Float "^Float" Float		[function, left, latex({#1}^{#2}), hook(#FLOAT:_^Float_)]
@@ -22,6 +23,7 @@ module FLOAT-HOOKS
 				   Float "+Float" Float		[function, left, latex({#1}\mathrel{+_{\scriptstyle\it Float}}{#2}), hook(#FLOAT:_+Float_)]
 				 | Float "-Float" Float		[function, left, latex({#1}\mathrel{-_{\scriptstyle\it Float}}{#2}), hook(#FLOAT:_-Float_)]
 
+  /*@ The following are comparison operators on Floats: */
   syntax Bool ::= left:
   				  Float "<=Float" Float		[function, left, latex({#1}\mathrel{\leq_{\scriptstyle\it Float}}{#2}), hook(#FLOAT:_<=Float_)]
 				| Float "<Float" Float		[function, left, latex({#1}\mathrel{<_{\scriptstyle\it Float}}{#2}), hook(#FLOAT:_<Float_)]
@@ -35,6 +37,7 @@ module FLOAT-HOOKS
 
   rule F1:Float =/=Float F2:Float => notBool(F1 ==Float F2)
 
+  /*@ cast from Int to Flaot or vice versa: */
   syntax Float ::= "Int2Float" "(" Int ")"	[function, klabel(Int2Float), latex({\\it{}Int2Float}), hook(#CONVERSION:int2Float)]
   syntax Int ::= "Float2Int" "(" Float ")"	[function, klabel(Float2Int), latex({\\it{}Float2Int}), hook(#CONVERSION:float2Int)]
 

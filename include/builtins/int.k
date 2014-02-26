@@ -9,6 +9,13 @@ module INT-HOOKS
   imports BOOL-HOOKS
   imports K-EQUAL-HOOKS
 
+  /*@ The following is a list of integer operations in K. \\
+   TODO: I don't know how best to reformat this to give explanations for unusual
+   operators (~Int, ^Int) without destroying the priorities here. I can't just
+   put everything in a separate syntax declatarion like I did for Sets. Do we
+   change the parser to allow for between-syntax-declaration comments? Is there a
+   way to assign priority besides using the > operator?*/
+
   syntax Int ::= right:
                  "~Int" Int                     [function, right, latex(\mathop{\sim_{\scriptstyle\it Int}}{#1}), hook(#INT:~Int_)]
                > left:
@@ -52,6 +59,11 @@ module INT-HOOKS
   // absInt hooked
   // rule absInt(I:Int) => I when I >=Int 0
   // rule absInt(I:Int) => 0 -Int I when I <Int 0
+
+  /*@ The following is a list of boolean operators on Integers. These follow C-style conventions
+   Except for  \left"is not equal to \right", which is \left"=\Int=\right" instead of \"!=Int\".
+   \left"=Int\right" is equivalent to \left"==Int\right"; both check for equality. 
+   \left"dividesInt\right" performs modulus and checks to see if the result is 0.*/
 
   syntax Bool ::= Int "<=Int" Int         [function, left, smtlib(<=), latex({#1}\mathrel{\leq_{\scriptstyle\it Int}}{#2}), hook(#INT:_<=Int_)]
                 | Int "<Int" Int          [function, left, smtlib(<), latex({#1}\mathrel{<_{\scriptstyle\it Int}}{#2}), hook(#INT:_<Int_)]
