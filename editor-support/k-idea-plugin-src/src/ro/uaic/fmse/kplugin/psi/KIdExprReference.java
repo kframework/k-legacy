@@ -27,6 +27,9 @@ public class KIdExprReference extends PsiReferenceBase.Poly<IKIdExprBase> {
     public ResolveResult[] multiResolve(boolean incompleteCode) {
         ResolveResult[] result = resolveRuleVar();
         result = result.length >= 1 ? result : KPsiUtil.resolveAuxFunctions(this, name);
+        if (name.startsWith("is")) {
+            result = result.length >= 1 ? result : KPsiUtil.resolveSyntax(this, name.substring(2));
+        }
         return result;
     }
 

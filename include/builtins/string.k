@@ -144,5 +144,5 @@ substrString(S2, 1, lengthString(S2)), I) ==Int -1 #then findString(S1, substrSt
   rule #parseToken("String",S:String) => (S) 
   rule #parseToken("Char",S:String) => (String2Char(S))
 
-  syntax String ::= "#tokenToString" "(" K ")"    [function, klabel(#tokenToString)]
+  syntax String ::= "#tokenToString" "(" K ")"    [function, klabel(#tokenToString), hook(#CONVERSION:token2string)]
 endmodule

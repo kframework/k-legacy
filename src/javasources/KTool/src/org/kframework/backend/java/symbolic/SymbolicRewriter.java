@@ -18,7 +18,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
+import com.google.common.collect.Sets;
 import org.kframework.backend.java.builtins.IntToken;
 import org.kframework.backend.java.indexing.BottomIndex;
 import org.kframework.backend.java.indexing.FreezerIndex;
@@ -28,6 +30,7 @@ import org.kframework.backend.java.indexing.KLabelIndex;
 import org.kframework.backend.java.indexing.TokenIndex;
 import org.kframework.backend.java.indexing.TopIndex;
 import org.kframework.backend.java.indexing.pathIndex.PathIndex;
+import org.kframework.utils.general.IndexingStatistics;
 import org.kframework.backend.java.kil.Cell;
 import org.kframework.backend.java.kil.CellCollection;
 import org.kframework.backend.java.kil.ConstrainedTerm;
@@ -94,11 +97,40 @@ public class SymbolicRewriter {
             phase2PluggableKastChecker = null;
         }
 
+        // Index may be built with or without measurement
+        if (K.get_indexing_stats){
+            buildIndexWithStats(definition);
+        } else{
+            buildIndex(definition);
+        }
+    }
+
+    /**
+     * Builds rule index with a very basic Indexing Scheme. Does not measure time.
+     *
+     * @param definition
+     */
+    private void buildIndex(Definition definition) {
         if (K.do_indexing) {
             pathIndex = new PathIndex(definition);
         } else {
             buildBasicIndex();
         }
+    }
+
+    /**
+     * Builds rule index with a very basic Indexing Scheme. Measures index creation time.
+     *
+     * @param definition
+     */
+    private void buildIndexWithStats(Definition definition) {
+        IndexingStatistics.indexConstructionStopWatch.start();
+        if (K.do_indexing) {
+            pathIndex = new PathIndex(definition);
+        } else {
+            buildBasicIndex();
+        }
+        IndexingStatistics.indexConstructionStopWatch.stop();
     }
 
     private void buildBasicIndex() {
@@ -121,7 +153,7 @@ public class SymbolicRewriter {
         //        indices.add(new FreezerIndex(frozenKLabel, i));
         //    }
         //}
-        for (String sort : Definition.TOKEN_SORTS) {
+        for (String sort : definition.builtinSorts()) {
             indices.add(new TokenIndex(sort));
         }
 
@@ -238,7 +270,7 @@ public class SymbolicRewriter {
      */
     private List<Rule> getSimulationRules(Term term) {
         List<Rule> rules = new ArrayList<Rule>();
-        for (IndexingPair pair : term.getIndexingPairs()) {
+        for (IndexingPair pair : term.getIndexingPairs(definition)) {
             if (simulationRuleTable.get(pair.first) != null) {
                 rules.addAll(simulationRuleTable.get(pair.first));
             }
@@ -256,6 +288,11 @@ public class SymbolicRewriter {
      */
     private List<Rule> getRules(Term term) {
         List<Rule> rules = new ArrayList<>();
+        if (K.get_indexing_stats){
+            IndexingStatistics.getRulesForTermStopWatch.reset();
+            IndexingStatistics.getRulesForTermStopWatch.start();
+        }
+
         if (K.do_indexing) {
 //            pathIndex.getRulesForTerm(term);
 //            rules.addAll(getNonIndexedRules(term));
@@ -264,6 +301,11 @@ public class SymbolicRewriter {
             rules.addAll(getNonIndexedRules(term));
         }
 
+        if (K.get_indexing_stats){
+            IndexingStatistics.rulesSelectedAtEachStep.add(rules.size());
+            long elapsed = IndexingStatistics.getRulesForTermStopWatch.stop().elapsed(TimeUnit.MICROSECONDS);
+            IndexingStatistics.timesForRuleSelection.add(elapsed);
+        }
         return rules;
     }
 
@@ -274,7 +316,7 @@ public class SymbolicRewriter {
             buildBasicIndex();
         }
 
-        for (IndexingPair pair : term.getIndexingPairs()) {
+        for (IndexingPair pair : term.getIndexingPairs(definition)) {
             if (ruleTable.get(pair.first) != null) {
                 rules.addAll(ruleTable.get(pair.first));
             }
@@ -307,7 +349,7 @@ public class SymbolicRewriter {
         while (strategy.hasNext()) {
             transition = strategy.nextIsTransition();
             List<Rule> rules = ((List<Rule>)strategy.next());
-            
+
             for (Rule rule : rules) {
                 ruleStopwatch.reset();
                 ruleStopwatch.start();
@@ -359,6 +401,10 @@ public class SymbolicRewriter {
     }
 
     private void computeRewriteStep(ConstrainedTerm constrainedTerm, int successorBound) {
+        if (K.get_indexing_stats){
+            IndexingStatistics.rewriteStepStopWatch.reset();
+            IndexingStatistics.rewriteStepStopWatch.start();
+        }
         results.clear();
         appliedRules.clear();
 
@@ -401,7 +447,7 @@ public class SymbolicRewriter {
 //                    if (K.do_concrete_exec) {
 //                        assert constraint1.isMatching(leftHandSide) : "Pattern matching expected in concrete execution mode";
 //                    }
-                        
+
                     constraint1.orientSubstitution(rule.leftHandSide().variableSet());
                     constraint1.addAll(rule.ensures());
                     
@@ -414,6 +460,7 @@ public class SymbolicRewriter {
                         /* rename rule variables in the rule RHS */
                         result = result.substituteWithBinders(freshSubstitution, constrainedTerm.termContext());
                     }
+                    
                     /* apply the constraints substitution on the rule RHS */
                     result = result.substituteAndEvaluate(
                             constraint1.substitution(),
@@ -439,6 +486,12 @@ public class SymbolicRewriter {
                     appliedRules.add(rule);
 
                     if (results.size() == successorBound) {
+                        if (K.get_indexing_stats) {
+                            IndexingStatistics.rewriteStepStopWatch.stop();
+                            long elapsed =
+                                    IndexingStatistics.rewriteStepStopWatch.elapsed(TimeUnit.MICROSECONDS);
+                            IndexingStatistics.timesForRewriteSteps.add(elapsed);
+                        }
                         return;
                     }
                 }
@@ -447,6 +500,13 @@ public class SymbolicRewriter {
             // we are done, as we can't match rules from two equivalence classes
             // in the same step.
             if (results.size() > 0) {
+                //TODO(OwolabiL): Remove duplication
+                if (K.get_indexing_stats){
+                    IndexingStatistics.rewriteStepStopWatch.stop();
+                    long elapsed =
+                            IndexingStatistics.rewriteStepStopWatch.elapsed(TimeUnit.MICROSECONDS);
+                    IndexingStatistics.timesForRewriteSteps.add(elapsed);
+                }
                 return;
             }
         }

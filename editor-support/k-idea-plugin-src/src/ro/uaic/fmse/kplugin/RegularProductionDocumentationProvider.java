@@ -1,15 +1,12 @@
 package ro.uaic.fmse.kplugin;
 
-import com.intellij.lang.ASTNode;
 import com.intellij.lang.documentation.DocumentationProvider;
-import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiWhiteSpace;
 import org.jetbrains.annotations.Nullable;
+import ro.uaic.fmse.kplugin.psi.IModuleItem;
+import ro.uaic.fmse.kplugin.psi.KPsiUtil;
 import ro.uaic.fmse.kplugin.psi.KRegularProduction;
-import ro.uaic.fmse.kplugin.psi.KSyntax;
-import ro.uaic.fmse.kplugin.psi.KType;
 
 import java.util.List;
 
@@ -22,82 +19,34 @@ public class RegularProductionDocumentationProvider implements DocumentationProv
     @Nullable
     @Override
     public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
-        if (!(element instanceof KRegularProduction)) {
+        if ((element instanceof KRegularProduction)) {
+            return DocumentationUtil.getFormattedSyntaxDef((KRegularProduction) element).toString();
+        }
+        return null;
+
+    }
+
+    @Nullable
+    @Override
+    public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
+        if ((element instanceof KRegularProduction)) {
+            KRegularProduction production = (KRegularProduction) element;
+            StringBuilder sb = DocumentationUtil.getFormattedSyntaxAndComment(production);
+
+            for (IModuleItem moduleItem : KPsiUtil.getImplementationRulesAndContexts(production)) {
+                sb.append("\n\n").append(DocumentationUtil.getFormattedModuleItemAndComment(moduleItem));
+            }
+            String result = sb.toString().replace("\n", "<br/>");
+            return result;
+        } else {
             return null;
         }
-
-        return getOriginalText((KRegularProduction) element);
-    }
-
-    private String getOriginalText(KRegularProduction element) {
-        KSyntax syntaxDec = (KSyntax) element.getParent().getParent();
-
-        return "syntax <b>" + syntaxDec.getType().getText() + "</b> ::= " + getProductionQuickNavigateText(element);
-    }
-
-    private String getProductionQuickNavigateText(KRegularProduction element) {
-        StringBuilder sb = new StringBuilder(element.getTextLength());
-        for (ASTNode child : element.getNode().getChildren(null)) {
-            if (child.getPsi() instanceof KType) {
-                sb.append("<b>").append(child.getText()).append("</b>");
-            } else if (child.getPsi() instanceof PsiWhiteSpace) {
-                sb.append(child.getText().replace(" ", "&nbsp;"));
-            } else {
-                sb.append(child.getText());
-            }
-        }
-        return sb.toString();
     }
 
     @Nullable
     @Override
     public List<String> getUrlFor(PsiElement element, PsiElement originalElement) {
         return null;
-    }
-
-    @Nullable
-    @Override
-    public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
-        if (!(element instanceof KRegularProduction)) {
-            return null;
-        }
-        String result = getQuickNavigateInfo(element, originalElement);
-        KSyntax syntaxDec = (KSyntax) element.getParent().getParent();
-        PsiElement prevNode = syntaxDec.getPrevSibling();
-        if (prevNode instanceof PsiWhiteSpace && countNewLines(prevNode.getText()) <= 1) {
-            prevNode = prevNode.getPrevSibling();
-        }
-        if (prevNode instanceof PsiComment) {
-            String commentText = prevNode.getText();
-            int startTrim;
-            int endTrim;
-            if (commentText.startsWith("/*@")) {
-                startTrim = 3;
-            } else {
-                startTrim = 2;
-            }
-            if (commentText.startsWith("//")) {
-                endTrim = 0;
-            } else {
-                endTrim = 2;
-            }
-            String trimmedComment = commentText.substring(startTrim, commentText.length() - endTrim).trim();
-            String extraNewLines = "\n\n";
-            result = trimmedComment + extraNewLines + result;
-        }
-
-        result = result != null ? result.replace("\n", "<br/>") : null;
-        return result;
-    }
-
-    private static int countNewLines(String text) {
-        int index = 0;
-        int count = 0;
-        while ((index = text.indexOf("\n", index)) >= 0) {
-            count++;
-            index++;
-        }
-        return count;
     }
 
     @Nullable

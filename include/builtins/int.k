@@ -5,7 +5,7 @@ module INT-SYNTAX-HOOKS
 endmodule
 
 module INT-HOOKS
-  imports INT-SYNTAX-HOOKS 
+  imports INT-SYNTAX-HOOKS
   imports BOOL-HOOKS
   imports K-EQUAL-HOOKS
 
@@ -16,8 +16,7 @@ module INT-HOOKS
    change the parser to allow for between-syntax-declaration comments? Is there a
    way to assign priority besides using the > operator?*/
 
-  syntax Int ::= right:
-                 "~Int" Int                     [function, right, latex(\mathop{\sim_{\scriptstyle\it Int}}{#1}), hook(#INT:~Int_)]
+  syntax Int ::= "~Int" Int                     [function, latex(\mathop{\sim_{\scriptstyle\it Int}}{#1}), hook(#INT:~Int_)]
                > left:
                  Int "^Int" Int                 [function, left, latex({#1}\mathrel{{\char`\^}_{\!\scriptstyle\it Int}}{#2}), hook(#INT:_^Int_)]
                > left:
@@ -41,7 +40,7 @@ module INT-HOOKS
                  Int "xorInt" Int               [function, left, latex({#1}\mathrel{\oplus_{\scriptstyle\it Int}}{#2}), hook(#INT:_xorInt_)]
                > left:
                  Int "|Int" Int                 [function, left, latex({#1}\mathrel{|_{\scriptstyle\it Int}}{#2}), hook(#INT:_|Int_)]
-               | "minInt" "(" Int "," Int ")"   [function]
+               > "minInt" "(" Int "," Int ")"   [function]
                | "maxInt" "(" Int "," Int ")"   [function]
                | "absInt" "(" Int ")"           [function, smtlib(abs), klabel(absInt), hook(#INT:absInt)]
 
@@ -84,4 +83,3 @@ module INT-HOOKS
   rule 0 +Int I:Int => I [anywhere]
   rule 0 *Int I:Int => 0 [anywhere]
 endmodule
-

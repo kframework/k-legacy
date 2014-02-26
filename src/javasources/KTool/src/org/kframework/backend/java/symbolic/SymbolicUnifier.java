@@ -103,7 +103,7 @@ public class SymbolicUnifier extends AbstractUnifier {
     @Override
     public void unify(Term term, Term otherTerm) {
         if (term instanceof Bottom || otherTerm instanceof Bottom) {
-            fail();
+            fail(term, otherTerm);
         }
         if (term.kind().isComputational()) {
             assert otherTerm.kind().isComputational();
@@ -130,10 +130,10 @@ public class SymbolicUnifier extends AbstractUnifier {
             /* special case for concrete collections  */
             if (term instanceof ConcreteCollectionVariable
                     && !((ConcreteCollectionVariable) term).matchConcreteSize(otherTerm)) {
-                fail();
+                fail(term, otherTerm);
             } else if (otherTerm instanceof ConcreteCollectionVariable
                     && !((ConcreteCollectionVariable) otherTerm).matchConcreteSize(term)) {
-                fail();
+                fail(term, otherTerm);
             }
 
             /* add symbolic constraint */
@@ -156,7 +156,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
         
         if (!(term instanceof BuiltinList)) {
-            this.fail();
+            this.fail(builtinList, term);
         }
         
         throw new UnsupportedOperationException(
@@ -168,7 +168,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
         
         if (!(term instanceof BuiltinMap)) {
-            this.fail();
+            this.fail(builtinMap, term);
         }
 //        if (builtinMap.equals(BuiltinMap.EMPTY) && term.equals(BuiltinMap.EMPTY))
 //            return;
@@ -183,7 +183,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
         
         if (!(term instanceof MapUpdate)) {
-            this.fail();
+            this.fail(mapUpdate, term);
         }
         
         throw new UnsupportedOperationException(
@@ -194,7 +194,7 @@ public class SymbolicUnifier extends AbstractUnifier {
     public void unify(BuiltinSet builtinSet, Term term) {
         assert !(term instanceof Variable);
         if (!(term instanceof BuiltinSet)) {
-            this.fail();
+            this.fail(builtinSet, term);
         }
 
         throw new UnsupportedOperationException(
@@ -207,7 +207,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
         
         if (!(term instanceof SetUpdate)) {
-            this.fail();
+            this.fail(setUpdate, term);
         }
         
         throw new UnsupportedOperationException(
@@ -218,7 +218,7 @@ public class SymbolicUnifier extends AbstractUnifier {
     public void unify(BuiltinMgu builtinMgu, Term term) {
         assert !(term instanceof Variable);
         if (!(term instanceof BuiltinMgu)) {
-            this.fail();
+            this.fail(builtinMgu, term);
         }
 
         throw new UnsupportedOperationException(
@@ -234,7 +234,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
         
         if (!(term instanceof Cell)) {
-            this.fail();
+            this.fail(cell, term);
         }
 
         Cell<?> otherCell = (Cell<?>) term;
@@ -244,7 +244,7 @@ public class SymbolicUnifier extends AbstractUnifier {
              * to KItem < K < KList subsorting:
              * !cell.contentKind().equals(otherCell.contentKind())
              */            
-            fail();
+            fail(cell, otherCell);
         }
 
         unify(cell.getContent(), otherCell.getContent());
@@ -258,7 +258,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
         
         if (!(term instanceof CellCollection)) {
-            fail();
+            fail(cellCollection, term);
         }
         CellCollection otherCellCollection = (CellCollection) term;
         
@@ -297,11 +297,13 @@ public class SymbolicUnifier extends AbstractUnifier {
             computeDisjointCellMaps(unifiableCellLabels, cellCollection,
                     cellMap, otherCellCollection, otherCellMap);
             
-            addCellCollectionConstraint(
+            if (!addCellCollectionConstraint(
                     cellMap,
                     cellCollection.hasFrame() ? cellCollection.frame() : null,
                     otherCellMap,
-                    otherCellCollection.hasFrame() ? otherCellCollection.frame() : null);
+                    otherCellCollection.hasFrame() ? otherCellCollection.frame() : null)) {
+                fail(cellCollection, otherCellCollection);
+            }
         } 
         /* Case 2: both cell collections have explicitly specified starred-cells */
         else {
@@ -324,13 +326,12 @@ public class SymbolicUnifier extends AbstractUnifier {
             computeDisjointCellMaps(unifiableCellLabels, cellCollection,
                     cellMap, otherCellCollection, otherCellMap);
             if (!otherCellMap.isEmpty()) {
-                fail();
+                fail(cellCollection, otherCellCollection);
             }
 
             for (Iterator<String> iter = unifiableCellLabels.iterator(); iter.hasNext(); ) {
                 String cellLabel = iter.next();
-                if (context.getConfigurationStructureMap().get(cellLabel).multiplicity != 
-                        org.kframework.kil.Cell.Multiplicity.ANY) {
+                if (!context.getConfigurationStructureMap().get(cellLabel).isStarOrPlus()) {
                     assert cellCollection.get(cellLabel).size() == 1
                             && otherCellCollection.get(cellLabel).size() == 1;
                     unify(cellCollection.get(cellLabel).iterator().next(),
@@ -341,7 +342,7 @@ public class SymbolicUnifier extends AbstractUnifier {
             
             // YilongL: the assertion here must hold
             if (unifiableCellLabels.isEmpty()) {
-                fail();
+                fail(cellCollection, otherCellCollection);
             } else {
                 assert unifiableCellLabels.size() == 1;
             }
@@ -349,7 +350,7 @@ public class SymbolicUnifier extends AbstractUnifier {
             if (cellCollection.size() < otherCellCollection.size()
                     || cellCollection.size() > otherCellCollection.size()
                     && !otherCellCollection.hasFrame()) {
-                fail();
+                fail(cellCollection, otherCellCollection);
             }
 
             String label = unifiableCellLabels.iterator().next();
@@ -389,7 +390,7 @@ public class SymbolicUnifier extends AbstractUnifier {
                 if (otherFrame != null) {
                     fConstraint.add(new CellCollection(cm, context), otherFrame);
                 } else {
-                    if (!cm.isEmpty()) fail();
+                    if (!cm.isEmpty()) fail(cellCollection, otherCellCollection);
                 }
                 constraints.add(fConstraint);
             } while (generator.generate());
@@ -399,7 +400,7 @@ public class SymbolicUnifier extends AbstractUnifier {
             isStarNested = false;
 
             if (constraints.isEmpty()) {
-                fail();
+                fail(cellCollection, otherCellCollection);
             }
 
             if (constraints.size() == 1) {
@@ -494,8 +495,10 @@ public class SymbolicUnifier extends AbstractUnifier {
      * two specified cell collections shall have no common cell label in their
      * explicit contents; 2) the first cell collection contains no starred-cell
      * in its explicit content.
+     *
+     * @return true if the constraint addition does not make the unification to fail
      */
-    private void addCellCollectionConstraint(
+    private boolean addCellCollectionConstraint(
             Multimap<String, Cell> cellMap,
             Variable frame,
             Multimap<String, Cell> otherCellMap,
@@ -522,7 +525,7 @@ public class SymbolicUnifier extends AbstractUnifier {
                 }
             } else {
                 if (!cellMap.isEmpty()) {
-                    fail();
+                    return false;
                 }
 
                 fConstraint.add(frame, new CellCollection(otherCellMap, context));
@@ -530,16 +533,18 @@ public class SymbolicUnifier extends AbstractUnifier {
         } else {
             if (otherFrame != null) {
                 if (!otherCellMap.isEmpty()) {
-                    fail();
+                    return false;
                 }
 
                 fConstraint.add(new CellCollection(cellMap, context), otherFrame);
             } else {
                 if (!cellMap.isEmpty() || !otherCellMap.isEmpty()) {
-                    fail();
+                    return false;
                 }
             }
         }
+
+        return true;
     }
 
     @Override
@@ -547,7 +552,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
         
         if (!kLabelConstant.equals(term)) {
-            fail();
+            fail(kLabelConstant, term);
         }
     }
 
@@ -556,7 +561,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
 
         if(!(term instanceof KLabelFreezer)) {
-            fail();
+            fail(kLabelFreezer, term);
         }
 
         KLabelFreezer otherKLabelFreezer = (KLabelFreezer) term;
@@ -568,7 +573,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
 
         if(!(term instanceof KLabelInjection)) {
-            fail();
+            fail(kLabelInjection, term);
         }
         KLabelInjection otherKLabelInjection = (KLabelInjection) term;
 
@@ -577,7 +582,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         if (injectionKind != otherInjectionKind
                 && !(injectionKind.isComputational() && otherInjectionKind.isComputational())
                 && !(injectionKind.isStructural() && otherInjectionKind.isStructural())) {
-            fail();
+            fail(kLabelInjection, otherKLabelInjection);
         }
 
         unify(kLabelInjection.term(), otherKLabelInjection.term());
@@ -588,7 +593,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
 
         if (!hole.equals(term)) {
-            fail();
+            fail(hole, term);
         }
     }
 
@@ -597,7 +602,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
 
         if (!(term instanceof KItem)) {
-            fail();
+            fail(kItem, term);
         }
 
         KItem patternKItem = (KItem) term;
@@ -635,7 +640,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
 
         if (!token.equals(term)) {
-            fail();
+            fail(token, term);
         }
     }
 
@@ -644,7 +649,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
 
         if (!uninterpretedToken.equals(term)) {
-            fail();
+            fail(uninterpretedToken, term);
         }
     }
 
@@ -653,7 +658,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
 
         if (!boolToken.equals(term)) {
-            fail();
+            fail(boolToken, term);
         }
     }
 
@@ -662,7 +667,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
 
         if (!intToken.equals(term)) {
-            fail();
+            fail(intToken, term);
         }
     }
 
@@ -671,7 +676,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
 
         if (!intToken.equals(term)) {
-            fail();
+            fail(intToken, term);
         }
     }
 
@@ -680,7 +685,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
 
         if (!stringToken.equals(term)) {
-            fail();
+            fail(stringToken, term);
         }
     }
 
@@ -689,7 +694,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
 
         if(!(term instanceof KList)){
-            fail();
+            fail(kList, term);
         }
 
         KList otherKList = (KList) term;
@@ -701,7 +706,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert !(term instanceof Variable);
 
         if (!(term instanceof KSequence)) {
-            this.fail();
+            this.fail(kSequence, term);
         }
 
         KSequence otherKSequence = (KSequence) term;
@@ -718,12 +723,12 @@ public class SymbolicUnifier extends AbstractUnifier {
 
         if (kCollection.size() < otherKCollection.size()) {
             if (!kCollection.hasFrame()) {
-                fail();
+                fail(kCollection, otherKCollection);
             }
             fConstraint.add(kCollection.frame(), otherKCollection.fragment(length));
         } else if (otherKCollection.size() < kCollection.size()) {
             if (!otherKCollection.hasFrame()) {
-                fail();
+                fail(kCollection, otherKCollection);
             }
             fConstraint.add(kCollection.fragment(length), otherKCollection.frame());
         } else {
@@ -743,7 +748,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         // assert !(term instanceof Variable);
 
         if (!metaVariable.equals(term)) {
-            fail();
+            fail(metaVariable, term);
         }
     }
 

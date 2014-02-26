@@ -60,7 +60,8 @@ public class MacroExpander extends TermTransformer {
                 processedEnsures,
                 rule.freshVariables(),
                 processedLookups,
-                rule.getAttributes());
+                rule.getAttributes(),
+                definition);
     }
 
     public Term processTerm(Term term) {
@@ -76,7 +77,6 @@ public class MacroExpander extends TermTransformer {
      * @return the expanded node
      */
     private JavaSymbolicObject expandMacro(JavaSymbolicObject node) {
-        node = (JavaSymbolicObject) node.accept(this);
         JavaSymbolicObject expandedNode = (JavaSymbolicObject) node.accept(this);
         while (node != expandedNode) {
             node = expandedNode;
