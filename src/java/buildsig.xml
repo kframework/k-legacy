@@ -24,39 +24,39 @@
 	- create the path for the AntPropertyHelper
 	- compile the AntPropertyHelper
 	-->
-	<property name="build.strategoxt.sdf" value="${basedir}/../../../lib/native/${osNativesDir}/" />
+	<property name="build.strategoxt.sdf" value="${lib}/native/${osNativesDir}/" />
 
 	<!-- call both targets -->
 	<target name="all.signature" depends="concrete.signature" />
 
 	<target name="concrete.signature">
 		<dependset>
-			<srcfileset file="../parsers/Concrete/syntax/*.sdf" />
-			<srcfileset file="../parsers/Concrete/trans/*.str" />
-			<targetfileset file="../parsers/Concrete/include/*.tbl" />
-			<targetfileset file="../parsers/Concrete/include/*.str" />
+			<srcfileset file="${sdfroot}/syntax/*.sdf" />
+			<srcfileset file="${sdfroot}/trans/*.str" />
+			<targetfileset file="${sdfroot}/include/*.tbl" />
+			<targetfileset file="${sdfroot}/include/*.str" />
 		</dependset>
-		<available file="../parsers/Concrete/include/Concrete.tbl" property="concrete.signature.available" />
+		<available file="${sdfroot}/include/Concrete.tbl" property="concrete.signature.available" />
 		<antcall target="concrete.signature.helper" />
 	</target>
 	<target name="concrete.signature.helper" unless="concrete.signature.available">
 		<!-- pack the definition into a single .def file -->
-		<mkdir dir="../parsers/Concrete/include" />
+		<mkdir dir="${sdfroot}/include" />
 		<java jar="./lib/strj.jar" fork="true" failonerror="true">
 			<arg value="org.strategoxt.tools.main-pack-sdf" />
 			<arg value="-i" />
-			<arg value="../parsers/Concrete/syntax/Concrete.sdf" />
+			<arg value="${sdfroot}/syntax/Concrete.sdf" />
 			<arg value="-o" />
-			<arg value="../parsers/Concrete/include/Concrete.def" />
+			<arg value="${sdfroot}/include/Concrete.def" />
 		</java>
 		<echo>Packed to .def</echo>
 		<!-- create the rtg file -->
 		<java jar="./lib/strj.jar" fork="true" failonerror="true">
 			<arg value="org.strategoxt.tools.main-sdf2rtg" />
 			<arg value="-i" />
-			<arg value="../parsers/Concrete/include/Concrete.def" />
+			<arg value="${sdfroot}/include/Concrete.def" />
 			<arg value="-o" />
-			<arg value="../parsers/Concrete/include/Concrete.rtg" />
+			<arg value="${sdfroot}/include/Concrete.rtg" />
 			<arg value="--ignore-missing-cons" />
 			<arg value="-Xnativepath" />
 			<arg value="${build.strategoxt.sdf}" />
@@ -68,9 +68,9 @@
 		<java jar="./lib/strj.jar" fork="true" failonerror="true">
 			<arg value="org.strategoxt.tools.main-rtg2sig" />
 			<arg value="-i" />
-			<arg value="../parsers/Concrete/include/Concrete.rtg" />
+			<arg value="${sdfroot}/include/Concrete.rtg" />
 			<arg value="-o" />
-			<arg value="../parsers/Concrete/include/Concrete.str" />
+			<arg value="${sdfroot}/include/Concrete.str" />
 			<arg value="--module" />
 			<arg value="Concrete" />
 		</java>
@@ -78,9 +78,9 @@
 		<echo message="Build TBL" />
 		<exec executable="${build.strategoxt.sdf}sdf2table">
 			<arg value="-i" />
-			<arg value="../parsers/Concrete/include/Concrete.def" />
+			<arg value="${sdfroot}/include/Concrete.def" />
 			<arg value="-o" />
-			<arg value="../parsers/Concrete/include/Concrete.tbl" />
+			<arg value="${sdfroot}/include/Concrete.tbl" />
 			<arg value="-m" />
 			<arg value="Concrete" />
 		</exec>

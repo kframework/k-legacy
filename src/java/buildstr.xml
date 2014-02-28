@@ -10,8 +10,8 @@
 
 	<target name="concrete.stratego2java">
 		<dependset>
-			<srcfileset file="../parsers/Concrete/trans/*.str" />
-			<srcfileset file="../parsers/Concrete/include/Concrete.str" />
+			<srcfileset file="${sdfroot}/trans/*.str" />
+			<srcfileset file="${sdfroot}/include/Concrete.str" />
 			<targetfileset dir="src/org/kframework/parser/concrete/lib">
 				<include name="*.java" />
 				<exclude name="string_trim_last_one_0_0.java" />
@@ -24,18 +24,18 @@
 			</targetfileset>
 		</dependset>
 		<available file="src/org/kframework/parser/concrete/lib/ConcreteMain.java" property="concrete.stratego2java.available" />
-		<copy todir="lib/resources/sdf" file="../parsers/Concrete/syntax/Common.sdf" />
-		<copy todir="lib/resources/sdf" file="../parsers/Concrete/syntax/Concrete.sdf" />
-		<copy todir="lib/resources/sdf" file="../parsers/Concrete/syntax/KBuiltinsBasic.sdf" />
-		<copy todir="lib/resources/sdf" file="../parsers/Concrete/syntax/KTechnique.sdf" />
-		<copy todir="lib/resources/sdf" file="../parsers/Concrete/syntax/Variables.sdf" />
+		<copy todir="lib/resources/sdf" file="${sdfroot}/syntax/Common.sdf" />
+		<copy todir="lib/resources/sdf" file="${sdfroot}/syntax/Concrete.sdf" />
+		<copy todir="lib/resources/sdf" file="${sdfroot}/syntax/KBuiltinsBasic.sdf" />
+		<copy todir="lib/resources/sdf" file="${sdfroot}/syntax/KTechnique.sdf" />
+		<copy todir="lib/resources/sdf" file="${sdfroot}/syntax/Variables.sdf" />
 		<antcall target="concrete.stratego2java.helper" />
 	</target>
 	<target name="concrete.stratego2java.helper" unless="concrete.stratego2java.available">
-		<delete file="../parsers/Concrete/trans/ConcreteMain.rtree" />
-		<delete file="../parsers/Concrete/trans/ConcreteMain.dep" />
-		<delete dir="../parsers/Concrete/trans/ConcreteMain" />
-		<java failonerror="true" dir="../parsers/Concrete/trans/" jar="${basedir}/../../../lib/java/strategoxt.jar" fork="true">
+		<delete file="${sdfroot}/trans/ConcreteMain.rtree" />
+		<delete file="${sdfroot}/trans/ConcreteMain.dep" />
+		<delete dir="${sdfroot}/trans/ConcreteMain" />
+		<java failonerror="true" dir="${sdfroot}/trans/" jar="${lib}/java/strategoxt.jar" fork="true">
 			<arg line="-i starter.str -o ConcreteMain -la stratego-sglr --lib -I .. -p org.kframework.parser.concrete.lib --clean" />
 		</java>
 		<delete>
@@ -52,13 +52,13 @@
 			</fileset>
 		</delete>
 		<copy todir="src/org/kframework/parser/concrete/lib/">
-			<fileset dir="../parsers/Concrete/trans/ConcreteMain">
+			<fileset dir="${sdfroot}/trans/ConcreteMain">
 				<include name="*" />
 			</fileset>
 		</copy>
 
-		<delete file="../parsers/Concrete/trans/ConcreteMain.rtree" />
-		<delete file="../parsers/Concrete/trans/ConcreteMain.dep" />
-		<delete dir="../parsers/Concrete/trans/ConcreteMain" />
+		<delete file="${sdfroot}/trans/ConcreteMain.rtree" />
+		<delete file="${sdfroot}/trans/ConcreteMain.dep" />
+		<delete dir="${sdfroot}/trans/ConcreteMain" />
 	</target>
 </project>
