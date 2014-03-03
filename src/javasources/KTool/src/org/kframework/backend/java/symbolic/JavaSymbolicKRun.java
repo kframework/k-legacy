@@ -40,7 +40,7 @@ import org.kframework.utils.general.IndexingStatistics;
 public class JavaSymbolicKRun implements KRun {
 
     private final Definition definition;
-	private final Context context;
+    private final Context context;
     private final KILtoBackendJavaKILTransformer transformer;
     //Liyi Li: add a build-in SymbolicRewriter to fix the simulation rules
     private SymbolicRewriter simulationRewriter;
@@ -61,7 +61,7 @@ public class JavaSymbolicKRun implements KRun {
         this.context = definition.context();
         this.context.kompiled = context.kompiled;
         transformer = new KILtoBackendJavaKILTransformer(this.context);
-	}
+    }
     
     public Definition getDefinition(){
         return this.definition;
@@ -92,12 +92,18 @@ public class JavaSymbolicKRun implements KRun {
     }
 
     private ConstrainedTerm javaKILRun(org.kframework.kil.Term cfg, int bound) {
+        if (K.get_indexing_stats){
+            IndexingStatistics.preProcessStopWatch.start();
+        }
         SymbolicRewriter symbolicRewriter = new SymbolicRewriter(definition);
         Term term = Term.of(cfg, definition);
         TermContext termContext = TermContext.of(definition, new PortableFileSystem());
         SymbolicConstraint constraint = new SymbolicConstraint(termContext);
         term = term.evaluate(termContext);
         ConstrainedTerm constrainedTerm = new ConstrainedTerm(term, constraint, termContext);
+        if (K.get_indexing_stats){
+            IndexingStatistics.preProcessStopWatch.stop();
+        }
         ConstrainedTerm rewriteResult;
         if (K.get_indexing_stats) {
             IndexingStatistics.totalRewriteStopwatch.start();
@@ -202,8 +208,8 @@ public class JavaSymbolicKRun implements KRun {
         }
     }
 
-	@Override
-	public KRunResult<SearchResults> search(
+    @Override
+    public KRunResult<SearchResults> search(
             Integer bound,
             Integer depth,
             SearchType searchType,
@@ -282,7 +288,7 @@ public class JavaSymbolicKRun implements KRun {
                 context));
     }
 
-	@Override
+    @Override
     public KRunResult<TestGenResults> generate(
             Integer bound,
             Integer depth,
@@ -395,13 +401,13 @@ public class JavaSymbolicKRun implements KRun {
      * to get the symbolic rewriter
      */
     public SymbolicRewriter getSimulationRewriter(){
-    	
-    	return this.simulationRewriter;
+        
+        return this.simulationRewriter;
     }
     
     public void initialSimulationRewriter(){
-    	
-    	this.simulationRewriter = new SymbolicRewriter(definition);
+        
+        this.simulationRewriter = new SymbolicRewriter(definition);
     }
     
     /* author: Liyi Li
@@ -409,10 +415,10 @@ public class JavaSymbolicKRun implements KRun {
      */
     public ConstrainedTerm simulationSteps(ConstrainedTerm cfg)
             throws KRunExecutionException {
-    	
+        
         ConstrainedTerm result = this.simulationRewriter.computeSimulationStep(cfg);
   
-    	return result;
+        return result;
     }
     
     /* author: Liyi Li
@@ -425,7 +431,7 @@ public class JavaSymbolicKRun implements KRun {
         
 
 
-    	return results;
+        return results;
     }
     
  

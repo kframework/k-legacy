@@ -6,6 +6,8 @@ import java.util.Map;
 
 import org.kframework.backend.java.indexing.IndexingPair;
 import org.kframework.backend.java.symbolic.*;
+import org.kframework.krun.K;
+import org.kframework.utils.general.IndexingStatistics;
 
 
 /**
@@ -13,7 +15,7 @@ import org.kframework.backend.java.symbolic.*;
  *
  * @author AndreiS
  */
-public abstract class Term extends JavaSymbolicObject implements Transformable, Unifiable, Comparable<Term> {
+public abstract class Term extends JavaSymbolicObject implements Transformable, Matchable, Unifiable, Comparable<Term> {
 
     protected final Kind kind;
     // protected final boolean normalized;
@@ -29,9 +31,18 @@ public abstract class Term extends JavaSymbolicObject implements Transformable, 
      * Java Rewrite Engine internal representation ({@link org.kframework.backend.java.kil.Term}).
      */
     public static Term of(org.kframework.kil.Term kilTerm, Definition definition) {
+        if (K.get_indexing_stats){
+            IndexingStatistics.kilTransformationStopWatch.start();
+        }
+
         KILtoBackendJavaKILTransformer transformer
                 = new KILtoBackendJavaKILTransformer(definition.context());
-        return transformer.transformTerm(kilTerm, definition);
+        Term term = transformer.transformTerm(kilTerm, definition);
+
+        if (K.get_indexing_stats){
+            IndexingStatistics.kilTransformationStopWatch.stop();
+        }
+        return term;
     }
 
     /**

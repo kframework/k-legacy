@@ -181,9 +181,9 @@ public class SymbolicRewriter {
                         coolingListBuilder.add(rule);
                     }
                 } else if(rule.containsAttribute("alphaRule")){
-                	if(index.isUnifiable(rule.indexingPair().first)) {
-                		simulationListBuilder.add(rule);
-                	}
+                    if(index.isUnifiable(rule.indexingPair().first)) {
+                        simulationListBuilder.add(rule);
+                    }
 
                 } else {
                     if (index.isUnifiable(rule.indexingPair().first)) {
@@ -205,7 +205,7 @@ public class SymbolicRewriter {
             }
             rules = simulationListBuilder.build();
             if(!rules.isEmpty()){
-            	simulationMapBuilder.put(index,rules);
+                simulationMapBuilder.put(index,rules);
             }
         }
         heatingRuleTable = heatingMapBuilder.build();
@@ -251,9 +251,9 @@ public class SymbolicRewriter {
      */
     public ArrayList<ConstrainedTerm> rewriteAll(ConstrainedTerm constrainedTerm){
 
-    	computeRewriteStep(constrainedTerm);
+        computeRewriteStep(constrainedTerm);
 
-    	return (ArrayList<ConstrainedTerm>) results;
+        return (ArrayList<ConstrainedTerm>) results;
     }
 
     /*
@@ -261,7 +261,7 @@ public class SymbolicRewriter {
      * return the rules for simulations only
      */
     public Map<Index, List<Rule>> getSimulationMap(){
-    	return this.simulationRuleTable;
+        return this.simulationRuleTable;
     }
 
     /*
@@ -311,10 +311,6 @@ public class SymbolicRewriter {
 
     private List<Rule> getNonIndexedRules(Term term) {
         Set<Rule> rules = new LinkedHashSet<>();
-        //TODO(OwolabiL): This should be removed. It's only here for comparison with new indexing.
-        if (K.do_indexing) {
-            buildBasicIndex();
-        }
 
         for (IndexingPair pair : term.getIndexingPairs(definition)) {
             if (ruleTable.get(pair.first) != null) {
@@ -328,7 +324,7 @@ public class SymbolicRewriter {
             }
         }
         rules.addAll(unindexedRules);
-        return new ArrayList<Rule>(rules);
+        return new ArrayList<>(rules);
     }
 
     private ConstrainedTerm getTransition(int n) {
@@ -340,7 +336,7 @@ public class SymbolicRewriter {
      * computer steps by rules of simulation
      */
     @SuppressWarnings("unchecked")
-	public ConstrainedTerm computeSimulationStep(ConstrainedTerm constrainedTerm) {
+    public ConstrainedTerm computeSimulationStep(ConstrainedTerm constrainedTerm) {
         // Applying a strategy to a list of rules divides the rules up into
         // equivalence classes of rules. We iterate through these equivalence
         // classes one at a time, seeing which one contains rules we can apply.
@@ -365,7 +361,7 @@ public class SymbolicRewriter {
                 Cell<Term> newRuleTerm = new Cell<Term>("generatedTop",newTemp);
 
                 ConstrainedTerm leftHandSideTerm = new ConstrainedTerm(
-                		newRuleTerm,
+                        newRuleTerm,
                         rule.lookups().getSymbolicConstraint(constrainedTerm.termContext()),
                         leftHandSideConstraint,
                         constrainedTerm.termContext());
@@ -417,7 +413,12 @@ public class SymbolicRewriter {
         // classes one at a time, seeing which one contains rules we can apply.
         //        System.out.println(LookupCell.find(constrainedTerm.term(),"k"));
         strategy.reset(getRules(constrainedTerm.term()));
+
         while (strategy.hasNext()) {
+            if (K.get_indexing_stats){
+                IndexingStatistics.rewritingStopWatch.reset();
+                IndexingStatistics.rewritingStopWatch.start();
+            }
             transition = strategy.nextIsTransition();
             ArrayList<Rule> rules = new ArrayList<Rule>(strategy.next());
 //            System.out.println("rules.size: "+rules.size());
@@ -484,7 +485,11 @@ public class SymbolicRewriter {
 //                    }
                     results.add(newCnstrTerm);
                     appliedRules.add(rule);
-
+                    if (K.get_indexing_stats){
+                        IndexingStatistics.rewritingStopWatch.stop();
+                        IndexingStatistics.timesForRewriting.add(
+                                IndexingStatistics.rewritingStopWatch.elapsed(TimeUnit.MICROSECONDS));
+                    }
                     if (results.size() == successorBound) {
                         if (K.get_indexing_stats) {
                             IndexingStatistics.rewriteStepStopWatch.stop();
