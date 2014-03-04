@@ -74,8 +74,7 @@ public class NullabilityCheck {
 
                         if (st instanceof PrimitiveState) {
                             PrimitiveState ss = (PrimitiveState) st;
-                            Set<MatchResult> matchResults = ss.matches("", 0, null);
-                            if (matchResults.size() == 0) {
+                            if (!ss.isNullable()) {
                                 // the terminal is not an empty string
                                 // no point of exploring this path
                                 continue;
@@ -92,8 +91,10 @@ public class NullabilityCheck {
                         // either StartState, NonTerminalState, PrimitiveState
                         NextableState ns = (NextableState) st;
                         for (State ss : ns.next) {
-                            if (!visited.contains(ss))
+                            if (!visited.contains(ss)) {
                                 keep.add(ss);
+                                visited.add(ss);
+                            }
                         }
                         ee.setValue(keep);
                     }

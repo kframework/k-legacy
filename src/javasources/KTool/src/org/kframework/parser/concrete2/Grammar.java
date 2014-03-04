@@ -9,6 +9,7 @@ import org.kframework.kil.Ambiguity;
 import org.kframework.kil.KList;
 import org.kframework.kil.Term;
 import org.kframework.kil.Token;
+import org.kframework.parser.concrete2.Grammar.PrimitiveState.MatchResult;
 
 public class Grammar {
 
@@ -193,6 +194,13 @@ public class Grammar {
 
         public PrimitiveState(StateId stateId, NonTerminal nt, OrderingInfo orderingInfo) {
             super(stateId, nt, orderingInfo, true);
+        }
+
+        public boolean isNullable() {
+            Set<MatchResult> matchResults = this.matches("", 0, null);
+            if (matchResults.size() != 0)
+                return true;
+            return false;
         }
     }
 
