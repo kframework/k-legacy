@@ -13,7 +13,7 @@ module LIST
    Mylist,Mylist construct in combination with the MyListItem construct. It's 
    worth noting that \K lists aren't exactly like lists in functional languages;
    they're associative, which means that it's easy to access elements at both
-   ends of the lists and concatenate them. For example, L:Mylist,E accesses
+   ends of the lists and concatenate them. For example, ``L:Mylist,E" accesses
    element E at the end of a list. */
 
   /*@ \section{User-Defined Lists} It is very common in \K to define a shorthand
@@ -44,6 +44,9 @@ module LIST
    mention that MyListElement is commonly etended to create lists of arbitrary
    contents, especially tuples. */
   syntax MyList ::= MyListItem(K)   [function, hook(List:ListItem)]
+
+  /*@\textbf{NOTE:} To test List equality, use =List or ==List, and to test List
+   non-equality, use =/=List, as detaled in \hyperref[sec:K-EQUAL-HOOKS]{K-EQUAL-HOOKS}. */
 
   /*@ Test element membership in the given list: */
   syntax Bool ::= K "in" MyList   [function]

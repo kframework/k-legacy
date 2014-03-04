@@ -238,6 +238,11 @@ endmodule
 
 module DEFAULT-CONFIGURATION
   imports K-TECHNIQUE
+
+  /*@
+   TODO: Add list of recognized color options. Configuration FAQ? Place this elsewhere?
+ */
+
   configuration <k> $PGM:K </k>
 endmodule
 

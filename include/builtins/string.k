@@ -59,7 +59,7 @@ module STRING-HOOKS
   /*@ Count number of occurences of second String in first String: */
   syntax Int ::= "countAllOccurences" "(" String "," String ")" [function]
   
-  /*@ Trim whitespace from both ends of a String: (TODO: does this include all of \s, \t, \n, and \r? Anything else?) */
+  /*@ Trim whitespace from both ends of a String: (TODO: does this include all of \\s, \\t, \\n, and \\r? Anything else?) */
   syntax String ::=  "trim" "(" String ")" [function]
   /*@ Trim whitespace from the left side of a String: */
   syntax String ::= "ltrim" "(" String ")" [function]
@@ -95,13 +95,12 @@ substrString(S2, 1, lengthString(S2)), I) ==Int -1 #then findString(S1, substrSt
 
   rule isChar(S:String) => lengthString(S) ==Int 1 [function, anywhere]
 
-  /*@ TODO: Hide these. Implement a "nodoc" tag. */
-  syntax Bool ::= "#isWhiteSpace" "(" String ")"   [function, klabel(#isWhiteSpace)]
+  syntax Bool ::= "#isWhiteSpace" "(" String ")"   [nodoc, function, klabel(#isWhiteSpace)]
   rule #isWhiteSpace(C:String)
       => (ordChar(C) >=Int 9 andBool ordChar(C) <=Int 13)  
            orBool (C ==String " ") when isChar(C)
 
-  syntax Bool ::= "#isDigit" "(" String ")"        [function, klabel(#isDigit)]
+  syntax Bool ::= "#isDigit" "(" String ")"        [nodoc, function, klabel(#isDigit)]
   rule #isDigit(C:String) 
       => (ordChar(C) >=Int ordChar("0")) 
            andBool (ordChar(C) <=Int ordChar("9")) when isChar(C)
@@ -135,7 +134,7 @@ substrString(S2, 1, lengthString(S2)), I) ==Int -1 #then findString(S1, substrSt
   
   rule trim(S:K) => ltrim(rtrim(S))
 
-  syntax K ::= "#parseToken" "(" String "," String ")"  [function, klabel(#parseToken)]
+  syntax K ::= "#parseToken" "(" String "," String ")"  [nodoc,function, klabel(#parseToken)]
   rule #parseToken("#Int",S:String) => String2Int(S)
   rule #parseToken("#Float",S:String) => (String2Float(S)) 
   rule #parseToken("#String",S:String) => (S) 
@@ -144,5 +143,5 @@ substrString(S2, 1, lengthString(S2)), I) ==Int -1 #then findString(S1, substrSt
   rule #parseToken("String",S:String) => (S) 
   rule #parseToken("Char",S:String) => (String2Char(S))
 
-  syntax String ::= "#tokenToString" "(" K ")"    [function, klabel(#tokenToString), hook(#CONVERSION:token2string)]
+  syntax String ::= "#tokenToString" "(" K ")"    [nodoc, function, klabel(#tokenToString), hook(#CONVERSION:token2string)]
 endmodule

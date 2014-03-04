@@ -22,6 +22,9 @@ module MAP
                  //| "."            [function, hook(Map:.Map)]
   syntax priorities '_|->_ > '_Map_ '.MyMap
 
+  /@* \textbf{NOTE:} Some convenient operations between Maps (inclusion, equality, inequality, etc.)
+   are defined in \hyperref[sec:K-EQUAL-HOOKS]{K-EQUAL-HOOKS}.*/
+
   /*@ Construct a map from two lists, the first list containing keys and the
    second list containing values (TODO: Difference between Lists and KLists?
    What happens if the lists are of different sizes?): */
@@ -59,7 +62,7 @@ module MAP
 //  rule update(M1:MyMap, K1:K |-> K2:K M2:MyMap) => update(M1[K1 <- K2], M2)
 //  rule update(M:MyMap, .MyMap) => M
 
-  /*@ map domain restriction (TODO: what does this mean? Remove key from map? This will aslo remove the resulting value, right?) */
+  /*@ map domain restriction (TODO: what does this mean? Remove key from map? This will aslo remove the associated value, right?) */
   syntax MyMap ::= MyMap "[" K "<-" "undef" "]"    [function, hook(Map:remove)] 
 //  rule
 //    M:MyMap[K1:K,,K2:K,,KL:KList <- undef]
