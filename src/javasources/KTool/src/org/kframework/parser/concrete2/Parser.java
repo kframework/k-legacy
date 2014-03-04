@@ -401,8 +401,8 @@ class ParseState {
     public NonTerminalCall getNtCall(NonTerminalCall.Key key) {
         NonTerminalCall value = ntCalls.get(key);
         if (value == null) {
-                value = new NonTerminalCall(key);
-                ntCalls.put(key, value);
+            value = new NonTerminalCall(key);
+            ntCalls.put(key, value);
         }
         return value;
     }
