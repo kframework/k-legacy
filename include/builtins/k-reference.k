@@ -24,7 +24,9 @@ suggestion as to where it might best be placed.
 
 
 /*@ \section{Builtin Literals}
-K has predefined the lexer rules for the most common syntactic categories that are directly accessible through subsorting:
+K has predefined the lexer rules for the most common syntactic categories
+ that are directly accessible through subsorting:
+
 \begin{verbatim}
 syntax #Bool   ::= Token{"true"} | Token{"false"}
 syntax #Id     ::= Token{[a-zA-Z][a-zA-Z0-9]*}

@@ -42,16 +42,6 @@ public class DocumentationFilter extends LatexFilter {
 
     @Override
     public void visit(Import imp){
-        /*
-        String currName = imp.getFilename().trim();
-        String mainName = GlobalSettings.mainFile.getAbsolutePath().trim();
-        if(currName.equals(mainName)){
-            System.out.println( "Adding " + imp.getName() + " to set." );
-            importedFromMainFile.add(imp.getName());
-        } else{
-            System.out.println("Imported " + imp.getName() + " from " + currName + ", which is not main file " + mainName);            
-        }
-        */
         super.visit(imp);
     }
     
