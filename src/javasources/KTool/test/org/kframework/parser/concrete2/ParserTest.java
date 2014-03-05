@@ -342,11 +342,11 @@ public class ParserTest {
 
     @Test
     public void testNestedNonTerminals5() throws Exception {
-    	// A1 ::= "x"
-    	// A2 ::= A1
-    	// ....
-    	// An ::= An-1
-    	// start symb is An
+        // A1 ::= "x"
+        // A2 ::= A1
+        // ....
+        // An ::= An-1
+        // start symb is An
 
         Grammar.NonTerminalId baseCaseId = new Grammar.NonTerminalId("BaseCase");
         Grammar.StateId baseCaseEntry= new Grammar.StateId("BaseCaseEntry");
