@@ -13,7 +13,6 @@ import org.kframework.parser.concrete2.Grammar.NextableState;
 import org.kframework.parser.concrete2.Grammar.NonTerminal;
 import org.kframework.parser.concrete2.Grammar.NonTerminalState;
 import org.kframework.parser.concrete2.Grammar.PrimitiveState;
-import org.kframework.parser.concrete2.Grammar.PrimitiveState.MatchResult;
 import org.kframework.parser.concrete2.Grammar.State;
 
 /**
@@ -47,6 +46,17 @@ public class NullabilityCheck {
             visited.add(nt.entryState);
         }
         
+        // there are three cases to look for:
+        // 1. managed to reach an ExitState, this means the NonTerminal is nullable
+        //    this means it managed to pass over nullable terminals like "" or other NonTerminals that are nullable
+        // 2. didn't manage to pass over a PrimitiveState (non nullable terminal)
+        // 3. there is a cyclic dependency (therefore the main while loop and the 'changed' variable)
+        //    A ::= B "+" B
+        //    B ::= A "*" A
+        
+        // The 'visited' field is required in order to avoid exponential behaviors in certain cases:
+        //     [entry]<><><><><>[exit]
+
         // mapping each NonTerminal to the states that may lead to an ExitState
         // when I get to an ExitState, remove the NonTerminal from the work list and mark it as nullable.
         // if I get to a PrimitiveState that is not nullable, remove it
