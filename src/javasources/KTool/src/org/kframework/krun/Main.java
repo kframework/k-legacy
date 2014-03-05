@@ -1,4 +1,4 @@
-package org.kframework.krun;
+package org.kframework.krun
 
 import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
