@@ -7,6 +7,7 @@ import org.kframework.ktest.KTest;
 import org.kframework.ktest.KTestStep;
 import org.kframework.ktest.PgmArg;
 import org.kframework.ktest.Test.TestCase;
+import org.kframework.utils.general.GlobalSettings;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -105,7 +106,7 @@ public class ConfigFileParser {
 
             Element node = (Element) tests.item(testNodeIdx);
             switch (node.getNodeName()) {
-                case "test": testCases.add(parseTestCase(node)); break;
+                case "test": if (isValidTestCase(node)) testCases.add(parseTestCase(node)); break;
                 case "include": testCases.addAll(parseInclude(node)); break;
                 default: assert false; // this case should not happen, XML files are validated
                                        // using XSD and this should be ensured by XSD file
@@ -113,6 +114,15 @@ public class ConfigFileParser {
         }
 
         return testCases;
+    }
+
+    /**
+     * Check if `test' node is semantically valid.
+     */
+    private boolean isValidTestCase(Element testNode) {
+        // unixOnly attribute is valid only on Unix-like OS
+        return testNode.getAttributes().getNamedItem("unixOnly") == null
+                || GlobalSettings.isUnixLikeOS();
     }
 
     /**
@@ -252,6 +262,7 @@ public class ConfigFileParser {
         String[] extensions = splitNodeValue(testAttrs.getNamedItem("extension"));
         String[] excludes = splitNodeValue(testAttrs.getNamedItem("exclude"));
         Set<KTestStep> skips = parseSkips(testAttrs.getNamedItem("skip"), location);
+        String unixOnly = parseUnixOnly(testAttrs.getNamedItem("unixOnly"));
 
         // handle children of `test' node
         NodeList childNodes = testNode.getChildNodes();
@@ -261,7 +272,7 @@ public class ConfigFileParser {
         Map<String, List<PgmArg>> pgmSpecificKRunOpts = parsePgmSpecificKRunOpts(childNodes);
 
         TestCase ret = new TestCase(definition, programs, extensions, excludes, results,
-                kompileOpts, krunOpts, pgmSpecificKRunOpts, skips);
+                kompileOpts, krunOpts, pgmSpecificKRunOpts, skips, unixOnly);
         ret.validate();
         return ret;
     }
@@ -287,6 +298,13 @@ public class ConfigFileParser {
             }
         }
         return skips;
+    }
+
+    private String parseUnixOnly(Node node) {
+        if (node == null) {
+            return "";
+        }
+        return normalize(node.getNodeValue(), cmdArgs.getDirectory());
     }
 
     private Annotated<String, LocationData> annotate(String str, LocationData location) {

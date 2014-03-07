@@ -6,6 +6,7 @@ import org.kframework.krun.ColorSetting;
 import org.kframework.ktest.*;
 import org.kframework.ktest.CmdArgs.CmdArg;
 import org.kframework.utils.ColorUtil;
+import org.kframework.utils.general.GlobalSettings;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -94,11 +95,14 @@ public class TestSuite {
     public boolean run() throws InterruptedException, TransformerException,
             ParserConfigurationException, IOException {
         boolean ret = true;
-        List<TestCase> successfulTests = tests;
+
+        List<TestCase> successfulTests = runUnixOnlySteps(tests);
+        ret &= successfulTests.size() == tests.size();
 
         if (!skips.contains(KTestStep.KOMPILE)) {
-            successfulTests = runKompileSteps(filterSkips(tests, KTestStep.KOMPILE));
-            ret = successfulTests.size() == tests.size();
+            List<TestCase> testsIn = successfulTests;
+            successfulTests = runKompileSteps(filterSkips(testsIn, KTestStep.KOMPILE));
+            ret &= successfulTests.size() == testsIn.size();
         }
         if (!skips.contains(KTestStep.PDF))
             ret &= runPDFSteps(filterSkips(successfulTests, KTestStep.PDF));
@@ -156,6 +160,46 @@ public class TestSuite {
             if (!test.skip(step))
                 ret.add(test);
         return ret;
+    }
+
+    /**
+     * Run unixOnly scripts in list of test cases.
+     *
+     * @return list of test cases that run successfully
+     * @throws InterruptedException
+     */
+    private List<TestCase> runUnixOnlySteps(List<TestCase> tests) throws InterruptedException {
+        int len = tests.size();
+        List<TestCase> successfulTests = new ArrayList<>(len);
+        List<Proc<TestCase>> ps = new ArrayList<>(len);
+
+        System.out.format("Running initial scripts...%n");
+        startTpe();
+        for (TestCase tc : tests) {
+            if (tc.hasUnixOnly()) {
+                assert GlobalSettings.isUnixLikeOS();
+                Proc<TestCase> p = new Proc<>(tc, tc.getUnixOnlyCmd(), tc.toUnixOnlyLogString(),
+                        strComparator, timeout, verbose, colorSetting, updateOut, generateOut);
+                ps.add(p);
+                tpe.execute(p);
+            } else {
+                successfulTests.add(tc);
+            }
+        }
+        stopTpe();
+
+        // collect successful test cases, report failures
+        for (Proc<TestCase> p : ps) {
+            TestCase tc = p.getObj();
+            if (p.isSuccess())
+                successfulTests.add(tc);
+            makeReport(p, makeRelative(tc.getDefinition()),
+                    FilenameUtils.getName(tc.getUnixOnly()));
+        }
+
+        printResult(successfulTests.size() == len);
+
+        return successfulTests;
     }
 
     /**
