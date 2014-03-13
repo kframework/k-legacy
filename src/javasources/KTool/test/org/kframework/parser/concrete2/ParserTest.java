@@ -1,15 +1,20 @@
 package org.kframework.parser.concrete2;
 
-import junit.framework.TestCase;
-import org.kframework.kil.*;
-import org.kframework.utils.Stopwatch;
-import java.lang.management.*;
-
-import java.util.ArrayList;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
-public class ParserTest extends TestCase {
+import junit.framework.Assert;
+
+import org.junit.Test;
+import org.kframework.kil.Ambiguity;
+import org.kframework.kil.KApp;
+import org.kframework.kil.KList;
+import org.kframework.kil.Term;
+import org.kframework.kil.Token;
+
+public class ParserTest {
     /* public static void main(String[] args) {
         try {
             System.in.read();
@@ -23,6 +28,7 @@ public class ParserTest extends TestCase {
 
     }*/
 
+    @Test
     public void testEmptyGrammar() throws Exception {
         Grammar.NonTerminalId ntistart = new Grammar.NonTerminalId("StartNT");
         Grammar.StateId stistart = new Grammar.StateId("StartState");
@@ -40,10 +46,11 @@ public class ParserTest extends TestCase {
         Term result = parser.parse(nt1, 0);
         Term expected = amb(klist(amb(KList.EMPTY)));
 
-        assertEquals("Empty Grammar check: ", expected, result);
-
+        Assert.assertEquals("Empty Grammar check: ", expected, result);
+        Assert.assertEquals("Expected Nullable NTs", nt1, NullabilityCheck.getReachableNullableNT(nt1).iterator().next());
     }
 
+    @Test
     public void testSingleToken() throws Exception {
         Grammar.NonTerminalId ntistart = new Grammar.NonTerminalId("StartNT");
         Grammar.StateId stistart = new Grammar.StateId("StartState");
@@ -62,9 +69,11 @@ public class ParserTest extends TestCase {
 
         Term result = parser.parse(nt1, 0);
         Term expected = amb(klist(amb(klist(Token.kAppOf("K", "asdfAAA1")))));
-        assertEquals("Single Token check: ", expected, result);
+        Assert.assertEquals("Single Token check: ", expected, result);
+        Assert.assertEquals("Expected Nullable NTs", 0, NullabilityCheck.getReachableNullableNT(nt1).size());
     }
 
+    @Test
     public void testSequenceOfTokens() throws Exception {
         Grammar.NonTerminalId ntistart = new Grammar.NonTerminalId("StartNT");
         Grammar.StateId stistart = new Grammar.StateId("StartState");
@@ -85,9 +94,11 @@ public class ParserTest extends TestCase {
 
         Term result = parser.parse(nt1, 0);
         Term expected = amb(klist(amb(klist(Token.kAppOf("K", "asdfAAA1 "), Token.kAppOf("K", "adfsf")))));
-        assertEquals("Single Token check: ", expected, result);
+        Assert.assertEquals("Single Token check: ", expected, result);
+        Assert.assertEquals("Expected Nullable NTs", 0, NullabilityCheck.getReachableNullableNT(nt1).size());
     }
 
+    @Test
     public void testDisjunctionOfTokens() throws Exception {
         Grammar.NonTerminalId ntistart = new Grammar.NonTerminalId("StartNT");
         Grammar.StateId stistart = new Grammar.StateId("StartState");
@@ -108,22 +119,24 @@ public class ParserTest extends TestCase {
         {
             Term result = new Parser(new ParseState("abc")).parse(nt1, 0);
             Term expected = amb(klist(amb(klist(Token.kAppOf("K", "abc")))));
-            assertEquals("Single Token check: ", expected, result);
+            Assert.assertEquals("Single Token check: ", expected, result);
         }
 
         {
             Term result = new Parser(new ParseState("ABC")).parse(nt1, 0);
             Term expected = amb(klist(amb(klist(Token.kAppOf("K", "ABC"), Token.kAppOf("K", "")))));
-            assertEquals("Single Token check: ", expected, result);
+            Assert.assertEquals("Single Token check: ", expected, result);
         }
 
         {
             Term result = new Parser(new ParseState("123")).parse(nt1, 0);
             Term expected = amb(klist(amb(klist(Token.kAppOf("K", "123")), klist(Token.kAppOf("K", "12"), Token.kAppOf("K", "3")))));
-            assertEquals("Single Token check: ", expected, result);
+            Assert.assertEquals("Single Token check: ", expected, result);
         }
+        Assert.assertEquals("Expected Nullable NTs", 0, NullabilityCheck.getReachableNullableNT(nt1).size());
     }
 
+    @Test
     public void testListOfTokens() throws Exception {
         Grammar.NonTerminalId ntistart = new Grammar.NonTerminalId("StartNT");
         Grammar.StateId stistart = new Grammar.StateId("StartState");
@@ -141,35 +154,38 @@ public class ParserTest extends TestCase {
         {
             Term result = new Parser(new ParseState("abc")).parse(nt1, 0);
             Term expected = amb(klist(amb(klist(Token.kAppOf("K", "a"), Token.kAppOf("K", "b"), Token.kAppOf("K", "c")))));
-            assertEquals("Single Token check: ", expected, result);
+            Assert.assertEquals("Single Token check: ", expected, result);
         }
 
         {
             Term result = new Parser(new ParseState("")).parse(nt1, 0);
             Term expected = amb(klist(amb(klist())));
-            assertEquals("Single Token check: ", expected, result);
+            Assert.assertEquals("Single Token check: ", expected, result);
         }
 
         {
             StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 10; i++) {
                 sb.append('a');
             }
-            for (int j = 0; j < 20; j++) {
+            for (int j = 0; j < 1; j++) {
                 long start = getCpuTime();
                 for (int i = 0; i < 100; i++) {
                     Term result = new Parser(new ParseState(sb.toString())).parse(nt1, 0);
                 }
                 long end = getCpuTime();
-                System.out.println("Time: " + ((end - start) / 1000000.0));
+                // System.out.println("Time: " + ((end - start) / 1000000.0));
             }
         }
+        Assert.assertEquals("Expected Nullable NTs", nt1, NullabilityCheck.getReachableNullableNT(nt1).iterator().next());
     }
     public static long getCpuTime( ) {
         ThreadMXBean bean = ManagementFactory.getThreadMXBean( );
         return bean.isCurrentThreadCpuTimeSupported( ) ?
                 bean.getCurrentThreadCpuTime( ) : 0L;
     }
+
+    @Test
     public void testNestedNonTerminals1() throws Exception {
         // A ::= ""
         //     | x A y
@@ -193,16 +209,18 @@ public class ParserTest extends TestCase {
         {
             Term result = new Parser(new ParseState("")).parse(nt1, 0);
             Term expected = amb(klist(amb(KList.EMPTY)));
-            assertEquals("EmtpyString check: ", expected, result);
+            Assert.assertEquals("EmtpyString check: ", expected, result);
         }
 
         {
             Term result = new Parser(new ParseState("xxyy")).parse(nt1, 0);
             Term expected = amb(klist(amb(klist(Token.kAppOf("K", "x"), amb(klist(Token.kAppOf("K", "x"), amb(KList.EMPTY), Token.kAppOf("K", "y"))), Token.kAppOf("K", "y")))));
-            assertEquals("x^ny^n check: ", expected, result);
+            Assert.assertEquals("x^ny^n check: ", expected, result);
         }
+        Assert.assertEquals("Expected Nullable NTs", nt1, NullabilityCheck.getReachableNullableNT(nt1).iterator().next());
     }
 
+    @Test
     public void testNestedNonTerminals2() throws Exception {
         // A ::= ""
         //     | A y
@@ -224,16 +242,18 @@ public class ParserTest extends TestCase {
         {
             Term result = new Parser(new ParseState("")).parse(nt1, 0);
             Term expected = amb(klist(amb(KList.EMPTY)));
-            assertEquals("EmtpyString check: ", expected, result);
+            Assert.assertEquals("EmtpyString check: ", expected, result);
         }
 
         {
             Term result = new Parser(new ParseState("yy")).parse(nt1, 0);
             Term expected = amb(klist(amb(klist(amb(klist(amb(KList.EMPTY), Token.kAppOf("K", "y"))), Token.kAppOf("K", "y")))));
-            assertEquals("y^n check: ", expected, result);
+            Assert.assertEquals("y^n check: ", expected, result);
         }
+        Assert.assertEquals("Expected Nullable NTs", nt1, NullabilityCheck.getReachableNullableNT(nt1).iterator().next());
     }
 
+    @Test
     public void testNestedNonTerminals3() throws Exception {
         // A ::= ""
         //     | x A
@@ -255,16 +275,18 @@ public class ParserTest extends TestCase {
         {
             Term result = new Parser(new ParseState("")).parse(nt1, 0);
             Term expected = amb(klist(amb(KList.EMPTY)));
-            assertEquals("EmtpyString check: ", expected, result);
+            Assert.assertEquals("EmtpyString check: ", expected, result);
         }
 
         {
             Term result = new Parser(new ParseState("xx")).parse(nt1, 0);
             Term expected = amb(klist(amb(klist(Token.kAppOf("K", "x"), amb(klist(Token.kAppOf("K", "x"), amb(KList.EMPTY)))))));
-            assertEquals("x^n check: ", expected, result);
+            Assert.assertEquals("x^n check: ", expected, result);
         }
+        Assert.assertEquals("Expected Nullable NTs", nt1, NullabilityCheck.getReachableNullableNT(nt1).iterator().next());
     }
 
+    @Test
     public void testNestedNonTerminals4() throws Exception {
         // A ::= "x"
         //     | A A
@@ -290,20 +312,20 @@ public class ParserTest extends TestCase {
         {
             Term result = new Parser(new ParseState("x")).parse(nt1, 0);
             Term expected = amb(klist(amb(klist(Token.kAppOf("K", "x")))));
-            assertEquals("Single char check: ", expected, result);
+            Assert.assertEquals("Single char check: ", expected, result);
         }
 
         {
             Term result = new Parser(new ParseState("xx")).parse(nt1, 0);
             Term expected = amb(klist(amb(klist(amb(klist(Token.kAppOf("K", "x"))), amb(klist(Token.kAppOf("K", "x")))))));
-            assertEquals("AA check: ", expected, result);
+            Assert.assertEquals("AA check: ", expected, result);
         }
         Term X = Token.kAppOf("K", "x");
         {
             Term result = new Parser(new ParseState("xxx")).parse(nt1, 0);
             Term expected = amb(klist(amb(klist(amb(klist(amb(klist(X)), amb(klist(X)))), amb(klist(X))),
                                           klist(amb(klist(X)), amb(klist(amb(klist(X)), amb(klist(X))))))));
-            assertEquals("AAA check: ", expected, result);
+            Assert.assertEquals("AAA check: ", expected, result);
         }
         {
             Term result = new Parser(new ParseState("xxxx")).parse(nt1, 0);
@@ -312,11 +334,19 @@ public class ParserTest extends TestCase {
             Term t3 = amb(klist(t2, t1), klist(t1, t2));
             Term t4 = amb(klist(t3, t1), klist(t2, t2), klist(t1, t3));
             Term expected = amb(klist(t4));
-            assertEquals("AAA check: ", expected, result);
+            Assert.assertEquals("AAA check: ", expected, result);
         }
+
+        Assert.assertEquals("Expected Nullable NTs", 0, NullabilityCheck.getReachableNullableNT(nt1).size());
     }
 
+    @Test
     public void testNestedNonTerminals5() throws Exception {
+        // A1 ::= "x"
+        // A2 ::= A1
+        // ....
+        // An ::= An-1
+        // start symb is An
 
         Grammar.NonTerminalId baseCaseId = new Grammar.NonTerminalId("BaseCase");
         Grammar.StateId baseCaseEntry= new Grammar.StateId("BaseCaseEntry");
@@ -333,8 +363,8 @@ public class ParserTest extends TestCase {
 
         for (int i = 2; i < 10; i++) {
             Grammar.NonTerminal nt = new Grammar.NonTerminal(new Grammar.NonTerminalId("NT"+i),
-                    new Grammar.StateId("NT"+1+"Entry"), new Grammar.State.OrderingInfo(-i),
-                    new Grammar.StateId("NT"+1+"Exit"), new Grammar.State.OrderingInfo(2*i-1));
+                    new Grammar.StateId("NT"+i+"Entry"), new Grammar.State.OrderingInfo(-i),
+                    new Grammar.StateId("NT"+i+"Exit"), new Grammar.State.OrderingInfo(2*i-1));
             Grammar.NonTerminalState state = new Grammar.NonTerminalState(
                     new Grammar.StateId("S"+i), nt, new Grammar.State.OrderingInfo(2*i-2), baseCase, false);
             nt.entryState.next.add(state);
@@ -346,10 +376,49 @@ public class ParserTest extends TestCase {
         {
             Term result = new Parser(new ParseState("x")).parse(baseCase, 0);
             expected = amb(klist(expected));
-            assertEquals("Single char check: ", expected, result);
+            Assert.assertEquals("Single char check: ", expected, result);
         }
+        Assert.assertEquals("Expected Nullable NTs", 0, NullabilityCheck.getReachableNullableNT(baseCase).size());
     }
 
+    @Test
+    public void testNestedNonTerminals6() throws Exception {
+        // A1 ::= ""
+        // A2 ::= A1
+        // ....
+        // An ::= An-1
+        // start symb is An
+
+        Grammar.NonTerminalId baseCaseId = new Grammar.NonTerminalId("BaseCase");
+        Grammar.StateId baseCaseEntry= new Grammar.StateId("BaseCaseEntry");
+        Grammar.StateId baseCaseExit = new Grammar.StateId("BaseCaseExit");
+
+        Grammar.NonTerminal baseCase = new Grammar.NonTerminal(baseCaseId, baseCaseEntry, new Grammar.State.OrderingInfo(-1),
+                                                                      baseCaseExit,  new Grammar.State.OrderingInfo(1));
+        Grammar.RegExState resx = new Grammar.RegExState(new Grammar.StateId("X"), baseCase, new Grammar.State.OrderingInfo(0), Pattern.compile(""));
+
+        baseCase.entryState.next.add(resx);
+        resx.next.add(baseCase.exitState);
+
+        Term expected = amb(klist(Token.kAppOf("K", "x")));
+
+        for (int i = 2; i < 10; i++) {
+            Grammar.NonTerminal nt = new Grammar.NonTerminal(new Grammar.NonTerminalId("NT"+i),
+                    new Grammar.StateId("NT"+i+"Entry"), new Grammar.State.OrderingInfo(-i),
+                    new Grammar.StateId("NT"+i+"Exit"), new Grammar.State.OrderingInfo(2*i-1));
+            Grammar.NonTerminalState state = new Grammar.NonTerminalState(
+                    new Grammar.StateId("S"+i), nt, new Grammar.State.OrderingInfo(2*i-2), baseCase, false);
+            nt.entryState.next.add(state);
+            state.next.add(nt.exitState);
+            baseCase = nt;
+            expected = amb(klist(expected));
+        }
+
+        // all of the non terminals should be returned
+        Assert.assertEquals("Expected Nullable NTs", 9, NullabilityCheck.getReachableNullableNT(baseCase).size());
+    }
+
+    @Test
     public void testArithmeticLanguage() throws Exception {
         Grammar.NonTerminal lit = new Grammar.NonTerminal(new Grammar.NonTerminalId("Lit"),
                 new Grammar.StateId("LitEntry"), new Grammar.State.OrderingInfo(0),
@@ -412,8 +481,9 @@ public class ParserTest extends TestCase {
                                                 amb(klist(amb(klist(amb(klist(token("2"))))),
                                                           token("*"),
                                                           amb(klist(token("3")))))))));
-            assertEquals("1+2*3: ", expected, result);
+            Assert.assertEquals("1+2*3: ", expected, result);
         }
+        Assert.assertEquals("Expected Nullable NTs", 0, NullabilityCheck.getReachableNullableNT(exp).size());
     }
 
     public static Ambiguity amb(Term ... terms) {

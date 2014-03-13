@@ -399,12 +399,12 @@ class ParseState {
     Map<StateReturn.Key,StateReturn> stateReturns = new HashMap<StateReturn.Key,StateReturn>();
 
     public NonTerminalCall getNtCall(NonTerminalCall.Key key) {
-            NonTerminalCall value = ntCalls.get(key);
-            if (value == null) {
-                    value = new NonTerminalCall(key);
-                    ntCalls.put(key, value);
-            }
-            return value;
+        NonTerminalCall value = ntCalls.get(key);
+        if (value == null) {
+            value = new NonTerminalCall(key);
+            ntCalls.put(key, value);
+        }
+        return value;
     }
     public StateCall getStateCall(StateCall.Key key) {
         StateCall value = stateCalls.get(key);
