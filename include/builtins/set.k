@@ -1,18 +1,27 @@
 require "k-equal.k"
 require "int.k"
-
+require "k-prelude.k"
 
 module SET
   imports K-EQUAL-HOOKS
   imports INT-HOOKS
+  imports DEFAULT-CONFIGURATION
 
- /*@ \section{Description} The Set construct behaves like a mathematical
-  set: it is a collection of unique items. The builtin \K Set offers support
-  for some common set operations.
-  (TODO: How does one add an element to a Set? How does one remove an element
-  from a set? What is the difference between a Set and a MySet? What does this
-  matter to the user?)
- */
+  /*@ \section{The K Set} The Set construct behaves like a mathematical
+   set: it is a collection of unique items. The builtin \K Set offers support
+   for some common set operations.
+  */
+
+  /*@ \section{Adding and removing from Sets}
+   Currently, there are no explicit rules for adding to or removing from a Set.
+   To add to a Set, match a Set on the left-hand side of a rule, and then mention
+   it as part of the set in the right hand side. for instance: \\
+   rule X S:MySet (. => MySetItem(X)) \\
+   To remove an item, a similar procedure is used. Match the set with the item
+   on the left-hand side of a rule, and eliminate the element in the right-hand
+   side. For instance: \\
+   rule S:MySet (X:MySetItem => .)
+  */
 
 
   /*@ Construct a set from the union of two different sets (A $\cup$ B): */
@@ -40,6 +49,9 @@ module SET
   /*@ Construct a Set consisting of the intersection of two sets (A $\cap$ B):*/
   syntax MySet ::= intersectSet(MySet, MySet)   [function]
 //  rule intersectSet(S1:MySet, S2:MySet) => S1 -MySet (S1 -MySet S2)
+
+  /*@ \textbf{NOTE:} Some convenient operations between Sets (inclusion, equality, inequality, etc.)
+   are defined in \hyperref[sec:K-EQUAL-HOOKS]{K-EQUAL-HOOKS}.*/
 
   /*@ Test element membership in a set ( a $\epsilon$ A ) :*/
   syntax Bool ::= K "in" MySet    [function, hook(Set:in)]

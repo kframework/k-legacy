@@ -20,7 +20,7 @@ public class LatexFilter extends BackendFilter {
 
     protected String endl = System.getProperty("line.separator");
     private StringBuilder preamble = new StringBuilder();
-    private boolean firstProduction = false;
+    protected boolean firstProduction = false;
     private boolean terminalBefore = false;
     private Map<String, String> colors = new HashMap<String, String>();
     private LatexPatternsVisitor patternsVisitor = new LatexPatternsVisitor(context);

@@ -11,71 +11,113 @@ module STRING-HOOKS
   imports INT-HOOKS
   imports FLOAT-HOOKS
 
+  /*@ \section{K Strings}
+   These are operations defined on the builtin String class in \K.  
+  */
 
+  /*@ String concatenation:*/
   syntax String ::= String "+String" String	[function, left, latex({#1}+_{\scriptstyle\it String}{#2}), hook(#STRING:_+String_)]
 
+  /*@ String equality: */
   syntax Bool ::= String "==String" String [function, left, hook(#STRING:_==String_)]
+  /*@ String inequality */
+  syntax Bool ::= String "=/=String" String      [function, left, hook(#STRING:_=/=String_)]
+  rule S1:String =/=String S2:String => notBool(S1 ==String S2)
 
+  /*@ String length: */
   syntax Int ::= "lengthString" "(" String ")" [function, klabel(lengthString), hook(#STRING:lengthString)]
+
+  /*@ Get the character corresponding to the given ASCII code: */
   syntax String ::= "chrChar" "(" Int ")"   [function, klabel(chrChar), hook(#STRING:chrChar)]
+
+  /*@  Get the ASCII code coressponding to the given character. Defined only if it's an ASCII character. */
   syntax Int ::= "ordChar" "(" String ")"  [function, klabel(ordChar), hook(#STRING:ordChar)]
 
+  /*@ Get a substring given by the start and stop indices, respectively: */
   syntax String ::= "substrString" "(" String "," Int "," Int ")" [function, klabel(substrString), hook(#STRING:substrString)]
+
+  /*@ Get the index in the first String of the start of the first occurrence of the second String after index Int. */
   syntax Int ::= "findString" "(" String "," String "," Int ")" [function, klabel(findString), hook(#STRING:findString)]
+  /*@ As findString, but searching backwards from the end on the first string. */
   syntax Int ::= "rfindString" "(" String "," String "," Int ")" [function, klabel(rfindString), hook(#STRING:rfindString)]
+  /*@ Get the index in the first String of the start of the first occurrence of the 
+   first character in the second String after index Int. 
+  */
   syntax Int ::= "findChar" "(" String "," String "," Int ")" [function, klabel(findChar), hook(#STRING:findChar)]
+  /*@ As findChar, but searching backwards from the end on the first string. */
   syntax Int ::= "rfindChar" "(" String "," String "," Int ")" [function, klabel(rfindChar), hook(#STRING:rfindChar)]
 
+  /*@ These are functions available to cast other builting types to and from String. String2Id and Id2String 
+   are defined in \hyperref[sec:ID-HOOKS]{ID-HOOKS}. */
   syntax String ::= "Float2String" "(" Float ")" [function, klabel(Float2String), hook(#CONVERSION:float2string)]
   syntax Float ::= "String2Float" "(" String ")" [function, klabel(String2Float), hook(#CONVERSION:string2float)]
   syntax Int ::= "String2Int" "(" String ")"	 [function, klabel(String2Int), hook(#CONVERSION:string2int)]
   syntax String ::= "Int2String" "(" Int ")"	 [function, klabel(Int2String), hook(#CONVERSION:int2string)]
-
-
   syntax String ::= "KLabel2String" "(" KLabel ")"  [function, klabel(KLabel2String)]
   syntax KLabel ::= "String2KLabel" "(" String ")" [function, cons(KLabel1String2KLabelSyn)]
 
+  /*@ In the first String, replace all occurences of the second string with the
+    third:
+   */
   syntax String ::= "replaceAll" "(" String "," String "," String ")" [function]
+  /*@ In the first String, replace the Int'th occurrence of the second String 
+   with the Third:
+  */
   syntax String ::= "replace" "(" String "," String "," String "," Int ")" [function]
+  /*@ In the first string, replace the first occurrence of the second String 
+   with the Third: 
+  */
   syntax String ::= "replaceFirst" "(" String "," String "," String ")" [function]
+  /*@ Count number of occurences of second String in first String: */
   syntax Int ::= "countAllOccurences" "(" String "," String ")" [function]
   
+  /*@ Trim whitespace from both ends of a String: 
+   (TODO: does this include all of \\s, \\t, \\n, and \\r? Anything else?) 
+  */
   syntax String ::=  "trim" "(" String ")" [function]
+  /*@ Trim whitespace from the left side of a String: */
   syntax String ::= "ltrim" "(" String ")" [function]
+  /*@ Trim whitespace from the right side of a String: */
   syntax String ::= "rtrim" "(" String ")" [function]
   
-  syntax Bool ::= String "=/=String" String      [function, left, hook(#STRING:_=/=String_)]
-  rule S1:String =/=String S2:String => notBool(S1 ==String S2)
 
+
+  /*@ The following boolean operators are used to compare lexicographic order on
+    Strings: 
+  */
   syntax Bool ::= String "<String" String [function, hook(#STRING:_<String_)]
                 | String "<=String" String [function, hook(#STRING:_<=String_)]
                 | String ">String" String [function, hook(#STRING:_>String_)]
                 | String ">=String" String [function, hook(#STRING:_>=String_)]
 
+  /*@ Get the unicode General Category of a character: */
   syntax String ::= categoryChar(String) [function, hook(#STRING:categoryChar)]
-                  | directionalityChar(String) [function, hook(#STRING:directionalityChar)]
+  /*@ Get the Bidirectional Character Type of a character: */
+  syntax String ::= directionalityChar(String) [function, hook(#STRING:directionalityChar)]
 
   rule S1:String <=String S2:String => notBool(S2 <String S1)
   rule S1:String >String S2:String => S2 <String S1
   rule S1:String >=String S2:String => notBool(S1 <String S2)
 
-  rule findChar(S1:String, S2:String, I:Int) => #if findString(S1, substrString(S2, 0, 1), I) ==Int -1 #then findChar(S1, substrString(S2, 1, lengthString(S2)), I) #else #if findChar(S1, substrString(S2, 1, lengthString(S2)), I) ==Int -1 #then findString(S1, substrString(S2, 0, 1), I) #else minInt(findString(S1, substrString(S2, 0, 1), I), findChar(S1, substrString(S2, 1, lengthString(S2)), I)) #fi #fi when S2 =/=String ""
+  rule findChar(S1:String, S2:String, I:Int) => #if findString(S1, substrString(S2, 0, 1), I) ==Int -1 #then findChar(S1, substrString(S2, 1, lengthString(S2)), I) #else #if findChar(S1, 
+substrString(S2, 1, lengthString(S2)), I) ==Int -1 #then findString(S1, substrString(S2, 0, 1), I) #else minInt(findString(S1, substrString(S2, 0, 1), I), findChar(S1, substrString(S2, 1, lengthString(S2)), I)) #fi #fi when S2 =/=String ""
   rule findChar(_, "", _) => -1
   rule rfindChar(S1:String, S2:String, I:Int) => maxInt(rfindString(S1, substrString(S2, 0, 1), I), rfindChar(S1, substrString(S2, 1, lengthString(S2)), I)) when S2 =/=String ""
   rule rfindChar(_, "", _) => -1
-
+ 
+  /*@ These rules define a Char class and provide casting rules: */
   syntax Char
   syntax String ::= "Char2String" "(" Char ")" [function]
   syntax Char ::= "String2Char" "(" String ")" [function]
 
   rule isChar(S:String) => lengthString(S) ==Int 1 [function, anywhere]
 
-  syntax Bool ::= "#isWhiteSpace" "(" String ")"   [function, klabel(#isWhiteSpace)]
+  syntax Bool ::= "#isWhiteSpace" "(" String ")"   [nodoc, function, klabel(#isWhiteSpace)]
   rule #isWhiteSpace(C:String)
       => (ordChar(C) >=Int 9 andBool ordChar(C) <=Int 13)  
            orBool (C ==String " ") when isChar(C)
 
-  syntax Bool ::= "#isDigit" "(" String ")"        [function, klabel(#isDigit)]
+  syntax Bool ::= "#isDigit" "(" String ")"        [nodoc, function, klabel(#isDigit)]
   rule #isDigit(C:String) 
       => (ordChar(C) >=Int ordChar("0")) 
            andBool (ordChar(C) <=Int ordChar("9")) when isChar(C)
@@ -109,7 +151,7 @@ module STRING-HOOKS
   
   rule trim(S:K) => ltrim(rtrim(S))
 
-  syntax K ::= "#parseToken" "(" String "," String ")"  [function, klabel(#parseToken)]
+  syntax K ::= "#parseToken" "(" String "," String ")"  [nodoc,function, klabel(#parseToken)]
   rule #parseToken("#Int",S:String) => String2Int(S)
   rule #parseToken("#Float",S:String) => (String2Float(S)) 
   rule #parseToken("#String",S:String) => (S) 
@@ -118,5 +160,5 @@ module STRING-HOOKS
   rule #parseToken("String",S:String) => (S) 
   rule #parseToken("Char",S:String) => (String2Char(S))
 
-  syntax String ::= "#tokenToString" "(" K ")"    [function, klabel(#tokenToString), hook(#CONVERSION:token2string)]
+  syntax String ::= "#tokenToString" "(" K ")"    [nodoc, function, klabel(#tokenToString), hook(#CONVERSION:token2string)]
 endmodule

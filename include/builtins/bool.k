@@ -9,6 +9,16 @@ endmodule
 module BOOL-HOOKS
   imports BOOL-SYNTAX-HOOKS
 
+  /*@ \section{Bool} Bools are used not only as a builtin Boolean type, but are 
+   also used for side conditions. Any \K statement that evaluates to a Bool can
+   be used as the condition for a side condition, even if it uses a user-defined
+   class or function. This can be useful for, say, defining a particular data
+   structure within \K and then defining a function returning a Bool that checks
+   for membership in that structure. Note, however, that a user-defined rule has
+   to be tagged as ``predicate" or ``function" in order for it to be used in a
+   side condition.
+  */
+
   syntax Bool ::= "notBool" Bool          [function, smtlib(not), boolOperation, latex(\neg_{\scriptstyle\it Bool}{#1}), hook(#BOOL:notBool_)]
 				> Bool "andBool" Bool     [function, left, smtlib(and), boolOperation, latex({#1}\wedge_{\scriptstyle\it Bool}{#2}), hook(#BOOL:_andBool_)]
 				| Bool "andThenBool" Bool [function, left, smtlib(and), boolOperation]
@@ -58,7 +68,7 @@ module BOOL-HOOKS
   // Andrei S: why are the rules below needed?
   // Traian S.:  They are needed in the generated code, as we allow
   // '#andBool to take multiple parameters.
-  syntax KLabel ::= "'#andBool" [predicate]
+  syntax KLabel ::= "'#andBool" [nodoc, predicate]
   rule '#andBool(_,, (true => .KList),, _) [function, anywhere, nojava]
   rule '#andBool(K:K) => K [anywhere]
   rule '#andBool(.KList) => true  [function, anywhere]
