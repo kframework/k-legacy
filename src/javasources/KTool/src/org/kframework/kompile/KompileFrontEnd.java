@@ -70,11 +70,14 @@ public class KompileFrontEnd {
             GlobalSettings.fastKast |= cmd.hasOption("fast-kast");
             GlobalSettings.noPrelude |= cmd.hasOption("no-prelude");
             GlobalSettings.warnings = cmd.getOptionValue("warnings", GlobalSettings.warnings);
+            GlobalSettings.ruleIndex = cmd.getOptionValue("rule-index", GlobalSettings.ruleIndex);
             GlobalSettings.addTopCell |= cmd.hasOption("add-top-cell");
             GlobalSettings.lib = cmd.getOptionValue("lib", GlobalSettings.lib);
             GlobalSettings.synModule =
                     cmd.getOptionValue("syntax-module", GlobalSettings.synModule);
             GlobalSettings.testgen |= cmd.hasOption("test-gen");
+
+            K.deterministic_functions |= cmd.hasOption("deterministic-functions");
 
             if (cmd.hasOption("transition"))
                 GlobalSettings.transition = metadataParse(cmd.getOptionValue("transition"));
