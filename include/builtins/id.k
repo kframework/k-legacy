@@ -1,7 +1,11 @@
 require "string.k"
 
 module ID-SYNTAX-HOOKS
-  /*@ This is the default definition used for variable names.*/
+  /*@ This is the default definition used for variable names. Because it's
+   tagged with the notInRules tag, kompile does not use this definition when
+   parsing rules in .k files; it's used only when running a file with a kompiled
+   definition.
+  */
   syntax Id ::= Token{[A-Za-z\_][A-Za-z0-9\_]*}   [notInRules]
 endmodule
 

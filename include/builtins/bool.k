@@ -14,7 +14,10 @@ module BOOL-HOOKS
    be used as the condition for a side condition, even if it uses a user-defined
    class or function. This can be useful for, say, defining a particular data
    structure within \K and then defining a function returning a Bool that checks
-   for membership in that structure.*/
+   for membership in that structure. Note, however, that a user-defined rule has
+   to be tagged as ``predicate" or ``function" in order for it to be used in a
+   side condition.
+  */
 
   syntax Bool ::= "notBool" Bool          [function, smtlib(not), boolOperation, latex(\neg_{\scriptstyle\it Bool}{#1}), hook(#BOOL:notBool_)]
 				> Bool "andBool" Bool     [function, left, smtlib(and), boolOperation, latex({#1}\wedge_{\scriptstyle\it Bool}{#2}), hook(#BOOL:_andBool_)]

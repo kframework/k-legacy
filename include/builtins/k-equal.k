@@ -7,7 +7,9 @@ module K-EQUAL-HOOKS
   imports K-MAP-EXTRAS
 
   /*@\section{Equality}
-   This module defines common helper functions used to test equality, inequality, and inclusion between some builtin \K constructs.*/
+   This module defines common helper functions used to test equality, 
+   inequality, and inclusion between some builtin \K constructs.
+  */
 
 
   /*@ These rules are a blanket that cover anything not explicitly defined in this module.*/

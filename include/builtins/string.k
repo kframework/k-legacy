@@ -27,18 +27,24 @@ module STRING-HOOKS
   /*@ String length: */
   syntax Int ::= "lengthString" "(" String ")" [function, klabel(lengthString), hook(#STRING:lengthString)]
 
-  /*@ Get the character at the given index (TODO: check this): */
+  /*@ Get the character corresponding to the given ASCII code: */
   syntax String ::= "chrChar" "(" Int ")"   [function, klabel(chrChar), hook(#STRING:chrChar)]
 
-  /*@  TODO: What's this? */
+  /*@  Get the ASCII code coressponding to the given character. Defined only if it's an ASCII character. */
   syntax Int ::= "ordChar" "(" String ")"  [function, klabel(ordChar), hook(#STRING:ordChar)]
 
   /*@ Get a substring given by the start and stop indices, respectively: */
   syntax String ::= "substrString" "(" String "," Int "," Int ")" [function, klabel(substrString), hook(#STRING:substrString)]
-  /*@ TODO: I don't know what these do, and it's not obvious. */
+
+  /*@ Get the index in the first String of the start of the first occurrence of the second String after index Int. */
   syntax Int ::= "findString" "(" String "," String "," Int ")" [function, klabel(findString), hook(#STRING:findString)]
+  /*@ As findString, but searching backwards from the end on the first string. */
   syntax Int ::= "rfindString" "(" String "," String "," Int ")" [function, klabel(rfindString), hook(#STRING:rfindString)]
+  /*@ Get the index in the first String of the start of the first occurrence of the 
+   first character in the second String after index Int. 
+  */
   syntax Int ::= "findChar" "(" String "," String "," Int ")" [function, klabel(findChar), hook(#STRING:findChar)]
+  /*@ As findChar, but searching backwards from the end on the first string. */
   syntax Int ::= "rfindChar" "(" String "," String "," Int ")" [function, klabel(rfindChar), hook(#STRING:rfindChar)]
 
   /*@ These are functions available to cast other builting types to and from String. String2Id and Id2String 
@@ -50,16 +56,24 @@ module STRING-HOOKS
   syntax String ::= "KLabel2String" "(" KLabel ")"  [function, klabel(KLabel2String)]
   syntax KLabel ::= "String2KLabel" "(" String ")" [function, cons(KLabel1String2KLabelSyn)]
 
-  /*@ In the first String, replace all occurences of the second string with the third: */
+  /*@ In the first String, replace all occurences of the second string with the
+    third:
+   */
   syntax String ::= "replaceAll" "(" String "," String "," String ")" [function]
-  /*@ In the first String, replace the Int'th occurrence of the second String with the Third:*/
+  /*@ In the first String, replace the Int'th occurrence of the second String 
+   with the Third:
+  */
   syntax String ::= "replace" "(" String "," String "," String "," Int ")" [function]
-  /*@ In the first string, replace the first occurrence of the second String with the Third: */
+  /*@ In the first string, replace the first occurrence of the second String 
+   with the Third: 
+  */
   syntax String ::= "replaceFirst" "(" String "," String "," String ")" [function]
   /*@ Count number of occurences of second String in first String: */
   syntax Int ::= "countAllOccurences" "(" String "," String ")" [function]
   
-  /*@ Trim whitespace from both ends of a String: (TODO: does this include all of \\s, \\t, \\n, and \\r? Anything else?) */
+  /*@ Trim whitespace from both ends of a String: 
+   (TODO: does this include all of \\s, \\t, \\n, and \\r? Anything else?) 
+  */
   syntax String ::=  "trim" "(" String ")" [function]
   /*@ Trim whitespace from the left side of a String: */
   syntax String ::= "ltrim" "(" String ")" [function]
@@ -68,15 +82,18 @@ module STRING-HOOKS
   
 
 
-  /*@ TODO: Figure out what these do. Some sort of inclusion, probably. */
+  /*@ The following boolean operators are used to compare lexicographic order on
+    Strings: 
+  */
   syntax Bool ::= String "<String" String [function, hook(#STRING:_<String_)]
                 | String "<=String" String [function, hook(#STRING:_<=String_)]
                 | String ">String" String [function, hook(#STRING:_>String_)]
                 | String ">=String" String [function, hook(#STRING:_>=String_)]
 
-  /*@ TODO: Figure out what these do. I have no idea. */
+  /*@ Get the unicode General Category of a character: */
   syntax String ::= categoryChar(String) [function, hook(#STRING:categoryChar)]
-                  | directionalityChar(String) [function, hook(#STRING:directionalityChar)]
+  /*@ Get the Bidirectional Character Type of a character: */
+  syntax String ::= directionalityChar(String) [function, hook(#STRING:directionalityChar)]
 
   rule S1:String <=String S2:String => notBool(S2 <String S1)
   rule S1:String >String S2:String => S2 <String S1

@@ -13,8 +13,9 @@ module LIST
    Mylist,Mylist construct in combination with the MyListItem construct. It's 
    worth noting that \K lists aren't exactly like lists in functional languages;
    they're associative, which means that it's easy to access elements at both
-   ends of the lists and concatenate them. For example, ``L:Mylist,E" accesses
-   element E at the end of a list. */
+   ends of the lists and concatenate them. For example, 
+   ``L:Mylist,MyListItem(E)" accesses element E at the end of a list. 
+  */
 
   /*@ \section{User-Defined Lists} It is very common in \K to define a shorthand
    for lists of user-defined sorts. \K 's builtin way of doing this is to use

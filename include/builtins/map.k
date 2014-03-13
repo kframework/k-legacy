@@ -62,7 +62,7 @@ module MAP
 //  rule update(M1:MyMap, K1:K |-> K2:K M2:MyMap) => update(M1[K1 <- K2], M2)
 //  rule update(M:MyMap, .MyMap) => M
 
-  /*@ map domain restriction (TODO: what does this mean? Remove key from map? This will aslo remove the associated value, right?) */
+  /*@ Remove the key-value pair with key K*/
   syntax MyMap ::= MyMap "[" K "<-" "undef" "]"    [function, hook(Map:remove)] 
 //  rule
 //    M:MyMap[K1:K,,K2:K,,KL:KList <- undef]
