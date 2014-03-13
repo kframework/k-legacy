@@ -50,7 +50,7 @@ module SET
   syntax MySet ::= intersectSet(MySet, MySet)   [function]
 //  rule intersectSet(S1:MySet, S2:MySet) => S1 -MySet (S1 -MySet S2)
 
-  /@* \textbf{NOTE:} Some convenient operations between Sets (inclusion, equality, inequality, etc.)
+  /*@ \textbf{NOTE:} Some convenient operations between Sets (inclusion, equality, inequality, etc.)
    are defined in \hyperref[sec:K-EQUAL-HOOKS]{K-EQUAL-HOOKS}.*/
 
   /*@ Test element membership in a set ( a $\epsilon$ A ) :*/
