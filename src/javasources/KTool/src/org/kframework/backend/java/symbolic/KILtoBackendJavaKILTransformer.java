@@ -13,11 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.Iterables;
-import org.kframework.backend.java.builtins.BoolToken;
-import org.kframework.backend.java.builtins.Int32Token;
-import org.kframework.backend.java.builtins.IntToken;
-import org.kframework.backend.java.builtins.StringToken;
-import org.kframework.backend.java.builtins.UninterpretedToken;
+import org.kframework.backend.java.builtins.*;
 import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.util.KSorts;
 import org.kframework.kil.ASTNode;
@@ -123,8 +119,6 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
                 return BoolToken.of(((BoolBuiltin) node.getLabel()).booleanValue());
             } else if (node.getLabel() instanceof IntBuiltin) {
                 return IntToken.of(((IntBuiltin) node.getLabel()).bigIntegerValue());
-            } else if (node.getLabel() instanceof Int32Builtin) {
-                return Int32Token.of(((Int32Builtin) node.getLabel()).intValue());
             } else if (node.getLabel() instanceof StringBuiltin) {
                 return StringToken.of(((StringBuiltin) node.getLabel()).stringValue());
             } else if (node.getLabel() instanceof GenericToken) {
