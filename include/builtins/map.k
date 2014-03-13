@@ -22,7 +22,7 @@ module MAP
                  //| "."            [function, hook(Map:.Map)]
   syntax priorities '_|->_ > '_Map_ '.MyMap
 
-  /@* \textbf{NOTE:} Some convenient operations between Maps (inclusion, equality, inequality, etc.)
+  /*@ \textbf{NOTE:} Some convenient operations between Maps (inclusion, equality, inequality, etc.)
    are defined in \hyperref[sec:K-EQUAL-HOOKS]{K-EQUAL-HOOKS}.*/
 
   /*@ Construct a map from two lists, the first list containing keys and the
