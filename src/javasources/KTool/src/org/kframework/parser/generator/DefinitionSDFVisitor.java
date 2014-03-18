@@ -5,18 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.kframework.kil.KLabelConstant;
-import org.kframework.kil.PriorityBlock;
-import org.kframework.kil.PriorityBlockExtended;
-import org.kframework.kil.PriorityExtended;
-import org.kframework.kil.PriorityExtendedAssoc;
-import org.kframework.kil.Production;
-import org.kframework.kil.ProductionItem;
-import org.kframework.kil.Restrictions;
-import org.kframework.kil.Sort;
-import org.kframework.kil.Syntax;
-import org.kframework.kil.Terminal;
-import org.kframework.kil.UserList;
+import org.kframework.kil.*;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.loader.Subsort;
 import org.kframework.kil.visitors.BasicVisitor;
@@ -29,7 +18,6 @@ import org.kframework.utils.general.GlobalSettings;
 public class DefinitionSDFVisitor extends BasicVisitor {
 
     public Set<Production> outsides = new HashSet<Production>();
-    public Set<Production> constants = new HashSet<Production>();
     public Set<String> constantSorts = new HashSet<String>();
     public Set<Sort> insertSorts = new HashSet<Sort>(); // list of inserted sorts that need to avoid the priority filter
     public Set<Subsort> subsorts = new HashSet<Subsort>();
@@ -39,8 +27,9 @@ public class DefinitionSDFVisitor extends BasicVisitor {
     public List<Production> lexical = new ArrayList<Production>();
     public List<Restrictions> restrictions = new ArrayList<Restrictions>();
     private boolean ground = false;
+    private Set<String> lexicalSorts;
 
-    public DefinitionSDFVisitor(boolean ground, Context context) {
+    public DefinitionSDFVisitor(boolean ground, Context context, Set<String> lexicalSorts) {
         super(context);
         constantSorts.add("#Id");
         constantSorts.add("#Bool");
@@ -48,6 +37,7 @@ public class DefinitionSDFVisitor extends BasicVisitor {
         constantSorts.add("#String");
         constantSorts.add("#Float");
         this.ground = ground;
+        constantSorts.addAll(lexicalSorts);
     }
 
     public void visit(Syntax syn) {
@@ -110,18 +100,16 @@ public class DefinitionSDFVisitor extends BasicVisitor {
                     // if a production has this attribute, don't add it to the list
                 } else if (prd.containsAttribute("notInGround") && ground) {
                     // if a production has this attribute, don't add it to the list
-                } else if (prd.isLexical()) {
+                } else if (prd.isLexical() ||
+                          (prd.getItems().get(0) instanceof Terminal && prd.getItems().size() == 1 && constantSorts.contains(prd.getSort()))) {
                     lexical.add(prd);
                 } else if (prd.isSubsort()) {
-                    if (!prd.getSort().equals("KResult")) { // avoid KResult because it breaks subsortings in SDF
+                    if (!prd.getSort().equals(KSorts.KRESULT)) { // avoid KResult because it breaks subsortings in SDF
                         p.getProductions().add(prd);
                         subsorts.add(new Subsort(prd.getSort(), ((Sort) prd.getItems().get(0)).getName()));
                         // add the small sort to the user sorts to add it to the variable declarations
                         userSorts.add((Sort) prd.getItems().get(0));
                     }
-                } else if (prd.getItems().get(0) instanceof Terminal && prd.getItems().size() == 1 && prd.isConstant()) {
-                    constants.add(prd);
-                    constantSorts.add(prd.getSort());
                 } else if (prd.getItems().get(0) instanceof Terminal && prd.getItems().get(prd.getItems().size() - 1) instanceof Terminal) {
                     outsides.add(prd);
                 } else if (prd.isListDecl()) {
