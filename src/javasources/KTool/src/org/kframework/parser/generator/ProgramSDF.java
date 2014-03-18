@@ -33,7 +33,7 @@ public class ProgramSDF {
 
         // collect the syntax from those modules
         ProgramSDFVisitor psdfv = new ProgramSDFVisitor(context);
-        CollectTerminalsVisitor ctv = new CollectTerminalsVisitor(context);
+        CollectInfoVisitor ctv = new CollectInfoVisitor(context);
         for (String modName : csmv.synModNames) {
             Module m = def.getModulesMap().get(modName);
             m.accept(psdfv);

@@ -30,10 +30,10 @@ public class DefinitionSDF {
         sdf.append("exports\n\n");
         sdf.append("context-free syntax\n");
 
-        DefinitionSDFVisitor psdfv = new DefinitionSDFVisitor(false, context);
-        CollectTerminalsVisitor terminals = new CollectTerminalsVisitor(context);
-        def.accept(psdfv);
+        CollectInfoVisitor terminals = new CollectInfoVisitor(context);
         def.accept(terminals);
+        DefinitionSDFVisitor psdfv = new DefinitionSDFVisitor(false, context, terminals.lexerSorts);
+        def.accept(psdfv);
 
         for (Production p1 : psdfv.listProds)
             for (Production p2 : psdfv.listProds)
@@ -194,14 +194,14 @@ public class DefinitionSDF {
         sdf.append("\n\n");
         for (String sort : psdfv.constantSorts) {
             String s = StringUtil.escapeSortName(sort);
-            sdf.append("    Dz" + s + "        -> " + s + "    {cons(\"" + s + "1Const\")}\n");
+            sdf.append("    " + s + "Dz        -> " + s + "    {cons(\"" + s + "1Const\")}\n");
         }
 
         sdf.append("\n");
-        sdf.append("    DzDzINT        -> DzDzInt\n");
+        sdf.append("    DzDzINT        -> DzIntDz\n");
         // sdf.append("    DzDzID        -> DzDzId\n");
-        sdf.append("    DzDzSTRING    -> DzDzString\n");
-        sdf.append("    DzDzFLOAT    -> DzDzFloat\n");
+        sdf.append("    DzDzSTRING    -> DzStringDz\n");
+        sdf.append("    DzDzFLOAT    -> DzFloatDz\n");
 
         sdf.append("\n");
 
@@ -214,19 +214,16 @@ public class DefinitionSDF {
         sdf.append("    VariableDz -/- [a-zA-Z0-9]\n");
 
         sdf.append("lexical syntax\n");
-        for (Production p : psdfv.constants) {
-            sdf.append("    " + p.getItems().get(0) + " -> Dz" + StringUtil.escapeSortName(p.getSort()) + "\n");
-        }
 
         sdf.append("\n\n%% sort predicates\n");
         // print is<Sort> predicates (actually KLabel)
         for (Sort sort : psdfv.userSorts) {
             if (!MetaK.isKSort(sort.getName())) {
-                sdf.append("    \"" + AddPredicates.syntaxPredicate(sort.getName()) + "\"      -> DzKLabel\n");
+                sdf.append("    \"" + AddPredicates.syntaxPredicate(sort.getName()) + "\"      -> KLabelDz\n");
             }
             if (AddSymbolicK.allowKSymbolic(sort.getName())) {
-                sdf.append("    \"" + AddPredicates.symbolicPredicate(sort.getName()) + "\"      -> DzKLabel\n");
-                sdf.append("    \"" + AddSymbolicK.symbolicConstructor(sort.getName()) + "\"      -> DzKLabel\n");
+                sdf.append("    \"" + AddPredicates.symbolicPredicate(sort.getName()) + "\"      -> KLabelDz\n");
+                sdf.append("    \"" + AddSymbolicK.symbolicConstructor(sort.getName()) + "\"      -> KLabelDz\n");
             }
         }
 
@@ -253,11 +250,18 @@ public class DefinitionSDF {
         sdf.append("lexical syntax\n");
         java.util.Set<String> lexerSorts = new HashSet<String>();
         for (Production p : psdfv.lexical) {
-            Lexical l = (Lexical) p.getItems().get(0);
-            lexerSorts.add(p.getSort());
-            sdf.append("    " + l.getLexicalRule() + " -> " + StringUtil.escapeSortName(p.getSort()) + "Dz\n");
-            if (l.getFollow() != null && !l.getFollow().equals("")) {
-                psdfv.restrictions.add(new Restrictions(new Sort(p.getSort()), null, l.getFollow()));
+            if (p.getItems().get(0) instanceof Lexical) {
+                Lexical l = (Lexical) p.getItems().get(0);
+                lexerSorts.add(p.getSort());
+                sdf.append("    " + l.getLexicalRule() + " -> " + StringUtil.escapeSortName(p.getSort()) + "Dz\n");
+                if (l.getFollow() != null && !l.getFollow().equals("")) {
+                    psdfv.restrictions.add(new Restrictions(new Sort(p.getSort()), null, l.getFollow()));
+                }
+            } else if (p.getItems().get(0) instanceof Terminal) {
+                Terminal l = (Terminal) p.getItems().get(0);
+                sdf.append("    \"" + StringUtil.escape(l.getTerminal()) + "\" -> " + StringUtil.escapeSortName(p.getSort()) + "Dz\n");
+            } else {
+                assert false : "Unknown lexical production.";
             }
         }
         for (String s : lexerSorts)
