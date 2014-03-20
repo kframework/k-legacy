@@ -1,16 +1,6 @@
 package org.kframework.backend.java.symbolic;
 
-import org.kframework.compile.transformers.AddEmptyLists;
-import org.kframework.compile.transformers.AddKCell;
-import org.kframework.compile.transformers.AddTopCellRules;
-import org.kframework.compile.transformers.FlattenSyntax;
-import org.kframework.compile.transformers.RemoveBrackets;
-import org.kframework.compile.transformers.RemoveSyntacticCasts;
-import org.kframework.compile.transformers.ResolveAnonymousVariables;
-import org.kframework.compile.transformers.ResolveContextAbstraction;
-import org.kframework.compile.transformers.ResolveListOfK;
-import org.kframework.compile.transformers.ResolveOpenCells;
-import org.kframework.compile.transformers.ResolveRewrite;
+import org.kframework.compile.transformers.*;
 import org.kframework.compile.utils.CompileDataStructures;
 import org.kframework.compile.utils.CompileToBuiltins;
 import org.kframework.compile.utils.CompilerSteps;
@@ -37,6 +27,7 @@ public class SpecificationCompilerSteps extends CompilerSteps<Module> {
         add(new AddTopCellRules(context));
         add(new ResolveAnonymousVariables(context));
         add(new ResolveListOfK(context));
+        add(new FlattenTerms(context));
         add(new FlattenSyntax(context));
         add(new ResolveContextAbstraction(context));
         add(new ResolveOpenCells(context));
