@@ -15,8 +15,23 @@ import java.util.*;
  * @author Traian
  */
 public class BasicAutomaton<State, Alphabet> implements AutomatonInterface<State, Alphabet> {
+    /**
+     * Indexing datastructure for the automaton's transition relation.
+     * Given a {@see TransitionIndex} as a pair between a state and a letter, it yields all
+     * transitions originating in that pair (note this is a NFA).
+     */
     private final Map<TransitionIndex<State, Alphabet>,
                 Set<Transition<State, Alphabet>>> deltaIndex;
+
+    /**
+     * Accessor for the {@code deltaIndex}
+     * @return deltaIndex representing the delta mapping of the automaton.
+     */
+    public Map<TransitionIndex<State, Alphabet>, Set<Transition<State, Alphabet>>> getDeltaIndex() {
+        return deltaIndex;
+    }
+
+
     private final State initialState;
     private final Set<State> finalStates;
     private final Set<Alphabet> letters;
@@ -114,6 +129,9 @@ public class BasicAutomaton<State, Alphabet> implements AutomatonInterface<State
      * @return a list of transitions describing a path from initialState to finalState or null if there is no such list.
      */
     public Deque<Transition<State, Alphabet>> getPath(State initialState, State finalState) {
+        if (initialState.equals(finalState)) {
+            return new ArrayDeque<>();
+        }
         // This algorithm is a simple BFS traversal of the transition graph.
         // toProcess keeps the queue of the states which have yet to be processed
         Deque<State> toProcess = new ArrayDeque<>();
@@ -123,28 +141,64 @@ public class BasicAutomaton<State, Alphabet> implements AutomatonInterface<State
         Map<State, Transition<State, Alphabet>> considered = new HashMap<>();
         toProcess.add(initialState);
         considered.put(initialState, null);
+        return getPathBFS(finalState, toProcess, considered);
+    }
+
+    /**
+     * Given an initial state, a final state and an initial letter, find a path of transitions
+     * between them such that first transition is labeled with the initial letter.
+     * @param initialState the state to begin from
+     * @param initialLetter the letter to start the path on
+     * @param finalState  the final state to reach
+     * @return a list of transitions describing a path from initialState to finalState or null if there is no such list.
+     */
+    public Deque<Transition<State, Alphabet>> getPath(State initialState, Alphabet initialLetter, State finalState) {
+        // We seed the algorithm with the initialState and those reachable  from it following initialLetter
+        Deque<State> toProcess = new ArrayDeque<>();
+        Map<State, Transition<State, Alphabet>> considered = new HashMap<>();
+        considered.put(initialState, null);
+
+        // Use only states reachable from initialState via initialLetter for the first step.
+        Deque<Transition<State, Alphabet>> result =
+                getPathBFSStep(getTransitions(initialState, initialLetter), finalState, considered, toProcess);
+        // If path was found in one step, return it
+        if (result != null) return result;
+        // If path was not found yet, continue with usual BFS algorithm
+        return getPathBFS(finalState, toProcess, considered);
+    }
+
+    private Deque<Transition<State, Alphabet>> getPathBFS(State finalState,
+                                                          Deque<State> toProcess,
+                                                          Map<State, Transition<State, Alphabet>> considered) {
+        Deque<Transition<State, Alphabet>> result;
         State next;
         while (!toProcess.isEmpty()) {
             next = toProcess.remove();
             for (Set<Transition<State, Alphabet>> transitions: getFrontTransitions(next)) {
-                for (Transition<State, Alphabet> transition : transitions) {
-                    State endState = transition.getEnd();
-                    if (endState.equals(finalState)) {
-                        // if the final state is reached, compute the path to it by walking back on the transitions.
-                        Deque<Transition<State, Alphabet>> result = new ArrayDeque<>();
-                        while (transition != null) {
-                            result.push(transition);
-                            transition = considered.get(transition.getStart());
-                        }
-                        return result;
-                    }
-                    if (considered.containsKey(endState)) continue;
-                    considered.put(endState, transition);
-                    toProcess.add(endState);
-                }
+                result = getPathBFSStep(transitions, finalState, considered, toProcess);
+                if (result !=null) return result;
             }
         }
         // If this point was reached, it means finalState is not reachable from initialState.
+        return null;
+    }
+
+    private Deque<Transition<State, Alphabet>> getPathBFSStep(Set<Transition<State, Alphabet>> transitions, State finalState, Map<State, Transition<State, Alphabet>> considered, Deque<State> toProcess) {
+        for (Transition<State, Alphabet> transition : transitions) {
+            State endState = transition.getEnd();
+            if (endState.equals(finalState)) {
+                // if the final state is reached, compute the path to it by walking back on the transitions.
+                Deque<Transition<State, Alphabet>> result = new ArrayDeque<>();
+                while (transition != null) {
+                    result.push(transition);
+                    transition = considered.get(transition.getStart());
+                }
+                return result;
+            }
+            if (considered.containsKey(endState)) continue;
+            considered.put(endState, transition);
+            toProcess.add(endState);
+        }
         return null;
     }
 

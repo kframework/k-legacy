@@ -4,8 +4,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
 
+import org.kframework.backend.pdmc.pda.ConfigurationHead;
 import org.kframework.backend.pdmc.pda.PushdownSystem;
-import org.kframework.backend.pdmc.pda.buchi.PromelaBuchi;
 import org.kframework.backend.pdmc.pda.buchi.parser.PromelaBuchiParser;
 import org.kframework.backend.pdmc.pda.graph.TarjanSCC;
 import org.kframework.backend.pdmc.pda.pautomaton.PAutomaton;
@@ -15,21 +15,22 @@ import java.io.ByteArrayInputStream;
 
 
 /**
- * Created by Traian on 04.02.2014.
+ * @author TraianSF
  */
 public class BuchiPushdownSystemTest {
     @Test
-    public void testProduct() throws Exception {
+    public void testSimpleTrue() throws Exception {
         String promelaString = "" +
-            "never { /* ! (px0 \\/ px1) */\n" +
-            "T0_init:\n"                  +
-            "\tif\n" +
-                "\t:: (1) -> goto T0_init"                           +
-            "\t:: (!px0 && !px1) -> goto accept_all\n" +
-            "\tfi;\n" +
-            "accept_all:\n" +
-            "\tskip\n" +
-            "}\n";
+                "never { /* F(!px0 & !px1) */\n" +
+                "T0_init:\n" +
+                "  if\n" +
+                "  :: ((!(px0)) && (!(px1))) -> goto accept_all\n" +
+                "  :: ((px0) || (px1)) -> goto T0_init\n" +
+                "  fi;\n" +
+                "accept_all:\n" +
+                "  skip\n" +
+                "}" +
+                "";
 
         PromelaBuchi automaton = PromelaBuchiParser.parse(new ByteArrayInputStream(promelaString.getBytes("UTF-8")));
 
@@ -50,13 +51,16 @@ public class BuchiPushdownSystemTest {
         BuchiPushdownSystemTools<String, String> bpsTool = new BuchiPushdownSystemTools<>(bps);
         System.err.println("\n------------------------");
 
-        PAutomaton<PAutomatonState<Pair<String, BuchiState>, String>,BuchiPushdownSystemTools.LabelledAlphabet<String,String>> post = bpsTool.getPostStar();
+        PAutomaton<PAutomatonState<Pair<String, BuchiState>, String>, String> post = bpsTool.getPostStar();
         System.err.println("\n------------------------");
         System.err.println(post.toString());
+
+        TarjanSCC counterExampleGraph = bpsTool.getCounterExampleGraph();
+        Assert.assertNull("Property must hold => no counterexample", counterExampleGraph);
     }
 
     @Test
-         public void testProduct1() throws Exception {
+         public void testSimpleFalse() throws Exception {
         String promelaString = "" +
                 "never { /* ! [](px1 -> <> px0) */\n" +
                 "T0_init:\n" +
@@ -92,7 +96,7 @@ public class BuchiPushdownSystemTest {
         BuchiPushdownSystemTools<String, String> bpsTool = new BuchiPushdownSystemTools<>(bps);
 
 
-        PAutomaton<PAutomatonState<Pair<String, BuchiState>, String>,BuchiPushdownSystemTools.LabelledAlphabet<String,String>> post = bpsTool.getPostStar();
+        PAutomaton<PAutomatonState<Pair<String, BuchiState>, String>, String> post = bpsTool.getPostStar();
         System.err.println("\n\n\n----Post Automaton----");
         System.err.println(post.toString());
 
@@ -102,6 +106,15 @@ public class BuchiPushdownSystemTest {
 
         System.err.println("\n\n\n----Strongly Connected Components----");
         System.err.println(repeatedHeads.getSCCSString());
+
+        TarjanSCC<ConfigurationHead<Pair<String, BuchiState>, String>, BuchiPushdownSystemTools.LabelledAlphabet<String, String>> counterExampleGraph = bpsTool.getCounterExampleGraph();
+        Assert.assertNotNull("Property is false => counterexample exists", counterExampleGraph);
+        System.err.println("\n\n\n----CounterExample Graph----");
+        System.err.println(counterExampleGraph.toString());
+        System.err.println("\n\n\n----Reachability paths for vertices in the CounterExample Graph----");
+        for (ConfigurationHead<Pair<String, BuchiState>, String> head : counterExampleGraph.getVertices()) {
+            System.err.println(bpsTool.getReachableConfiguration(head).toString());
+        }
     }
 
     @Test
@@ -141,8 +154,8 @@ public class BuchiPushdownSystemTest {
         String[] heads = new String[] {"p", "incx", "skip", "ret"};
         String evalString = "";
         for (int s = 0; s < states.length; s++)
-            for (int h = 0; h < heads.length; h++) {
-                evalString += "<" + states[s] + ", " + heads[h] +
+            for (String head : heads) {
+                evalString += "<" + states[s] + ", " + head +
                         "> |= p";
                 if (s != 1) evalString += states[s];
                 else evalString += "x0";
@@ -159,7 +172,7 @@ public class BuchiPushdownSystemTest {
         BuchiPushdownSystemTools<String, String> bpsTool = new BuchiPushdownSystemTools<>(bps);
 
 
-        PAutomaton<PAutomatonState<Pair<String, BuchiState>, String>,BuchiPushdownSystemTools.LabelledAlphabet<String,String>> post = bpsTool.getPostStar();
+        PAutomaton<PAutomatonState<Pair<String, BuchiState>, String>, String> post = bpsTool.getPostStar();
         System.err.println("\n\n\n----Post Automaton----");
         System.err.println(post.toString());
 
@@ -169,10 +182,14 @@ public class BuchiPushdownSystemTest {
 
         System.err.println("\n\n\n----Strongly Connected Components----");
         System.err.println(repeatedHeads.getSCCSString());
+
+        TarjanSCC counterExampleGraph = bpsTool.getCounterExampleGraph();
+        Assert.assertNull("Property must hold => no counterexample", counterExampleGraph);
     }
 
     @Test
     public void testMarcelloFalse() throws Exception {
+        //TODO:  Rewrite this to actually be false (i.e., generating a counterexample
         String promelaString = "never { /* ! [](px1 -> X px0) */\n" +
                 "T0_init:\n" +
                 " if\n" +
@@ -207,8 +224,8 @@ public class BuchiPushdownSystemTest {
         String[] heads = new String[] {"p", "incx", "skip", "ret"};
         String evalString = "";
         for (int s = 0; s < states.length; s++)
-            for (int h = 0; h < heads.length; h++) {
-                evalString += "<" + states[s] + ", " + heads[h] +
+            for (String head : heads) {
+                evalString += "<" + states[s] + ", " + head +
                         "> |= p";
                 if (s != 1) evalString += states[s];
                 else evalString += "x0";
@@ -225,7 +242,7 @@ public class BuchiPushdownSystemTest {
         BuchiPushdownSystemTools<String, String> bpsTool = new BuchiPushdownSystemTools<>(bps);
 
 
-        PAutomaton<PAutomatonState<Pair<String, BuchiState>, String>,BuchiPushdownSystemTools.LabelledAlphabet<String,String>> post = bpsTool.getPostStar();
+        PAutomaton<PAutomatonState<Pair<String, BuchiState>, String>, String> post = bpsTool.getPostStar();
         System.err.println("\n\n\n----Post Automaton----");
         System.err.println(post.toString());
 
@@ -235,5 +252,9 @@ public class BuchiPushdownSystemTest {
 
         System.err.println("\n\n\n----Strongly Connected Components----");
         System.err.println(repeatedHeads.getSCCSString());
+
+        TarjanSCC<ConfigurationHead<Pair<String, BuchiState>, String>, BuchiPushdownSystemTools.LabelledAlphabet<String, String>> counterExampleGraph = bpsTool.getCounterExampleGraph();
+        Assert.assertNull("Property must hold => no counterexample", counterExampleGraph);
+        }
     }
 }

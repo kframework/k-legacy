@@ -1,5 +1,8 @@
 package org.kframework.backend.pdmc.pda;
 
+import org.kframework.backend.java.util.Utils;
+import org.kframework.backend.pdmc.pda.buchi.Evaluator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -71,12 +74,12 @@ public class ConfigurationHead<Control, Alphabet> {
     }
 
     private static <Control, Alphabet> ConfigurationHead<Control, Alphabet> of(Control c) {
-        if (basicCache == null) basicCache = new HashMap<>();
+        if (basicCache == null) basicCache = new HashMap<Object, ConfigurationHead>();
         @SuppressWarnings("unchecked")
         ConfigurationHead<Control, Alphabet> configurationHead =
                 (ConfigurationHead<Control, Alphabet>) basicCache.get(c);
         if (configurationHead == null) {
-            configurationHead = new ConfigurationHead<>(c, null);
+            configurationHead = new ConfigurationHead<Control, Alphabet>(c, null);
             basicCache.put(c, configurationHead);
         }
         return  configurationHead;

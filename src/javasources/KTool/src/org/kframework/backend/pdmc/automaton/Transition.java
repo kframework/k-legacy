@@ -25,6 +25,13 @@ public class Transition<State, Alphabet> {
 
     private final Alphabet letter;
 
+    public void setLabel(Object label) {
+        this.label = label;
+    }
+
+    private Object label = null;
+
+
     protected Transition(State startState, Alphabet letter, State endState) {
         this.startState = startState;
         this.endState = endState;
@@ -73,7 +80,7 @@ public class Transition<State, Alphabet> {
 
     @Override
     public String toString() {
-        return startState + " " + (letter != null ? letter + " " : "") + endState;
+        return startState + " " + (letter != null ? letter + " " : "") + endState + (label != null ? "[" + label + "]" : "");
     }
 
     @Override
