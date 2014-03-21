@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 
 import org.kframework.kil.Ambiguity;
 import org.kframework.kil.KList;
+import org.kframework.kil.KSorts;
 import org.kframework.kil.Term;
 import org.kframework.parser.concrete2.Grammar.ExitState;
 import org.kframework.parser.concrete2.Grammar.NextableState;
@@ -209,7 +210,7 @@ class Function {
 
     void addFactoredAndRunRule(Function that, StateReturn stateReturn) { // if lookahead, factors all results; always subjugates
         // this factoring will be wrong once we move to context sensitive functions, but it works for now
-        //this.terms.append(new Ambiguity("K", Arrays.asList(that.terms)));
+        //this.terms.append(new Ambiguity(KSorts.K, Arrays.asList(that.terms)));
 
         this.terms.addAll(stateReturn.key.stateCall.key.state.runRule(that.terms));
 
@@ -230,7 +231,7 @@ class Function {
         }
         for (Map.Entry<KList,Collection<Term>> entry : factorings.asMap().entrySet()) {
             KList klist = entry.getKey().shallowCopy();
-            klist.getContents().add(new Ambiguity("K", new ArrayList<Term>(entry.getValue()))); // TODO: check result
+            klist.getContents().add(new Ambiguity(KSorts.K, new ArrayList<Term>(entry.getValue()))); // TODO: check result
             this.terms.add(stateReturn.key.stateCall.key.state.runRule(klist));
         }
         */
@@ -442,7 +443,7 @@ public class Parser {
 
         Grammar.NonTerminal nt1 = new Grammar.NonTerminal(ntistart, stistart, new Grammar.State.OrderingInfo(0), stiend, new Grammar.State.OrderingInfo(100));
 
-        Grammar.RegExState res1 = new Grammar.RegExState(new Grammar.StateId("RegExStid"), nt1, new Grammar.State.OrderingInfo(1), Pattern.compile("[a-zA-Z0-9]"));
+        Grammar.RegExState res1 = new Grammar.RegExState(new Grammar.StateId("RegExStid"), nt1, new Grammar.State.OrderingInfo(1), Pattern.compile("[a-zA-Z0-9]"), null);
 
         nt1.entryState.next.add(res1);
         nt1.entryState.next.add(nt1.exitState);
@@ -498,13 +499,17 @@ public class Parser {
         s = parseState;
     }
 
+    public Parser(CharSequence input) {
+        s = new ParseState(input);
+    }
+
     public Term parse(NonTerminal nt, int position) {
         // TODO ordering info should not rely only on integers
         // This code assumes that ordering info in the grammar are between MIN_VALUE+1 and MAX_VALUE-2
         NonTerminal startNt = new NonTerminal(new NonTerminalId("<start>"),
                                               new StateId("<start-entry>"), new State.OrderingInfo(Integer.MIN_VALUE),
                                               new StateId("<start-exit>"), new State.OrderingInfo(Integer.MAX_VALUE));
-        State state = new NonTerminalState(new StateId("<start>"), startNt, new State.OrderingInfo(Integer.MAX_VALUE - 1), nt, true);
+        State state = new NonTerminalState(new StateId("<start>"), startNt, new State.OrderingInfo(Integer.MAX_VALUE - 1), nt, true, null);
 
         // this lookahead must be true so that a new worklist is pushed on the stack
         activateNtCall(s.getStateCall(new StateCall.Key(s.getNtCall(new NonTerminalCall.Key(nt, position)), position, state)));
@@ -517,7 +522,7 @@ public class Parser {
             s.stateReturnWorkLists.pop();
         }
 
-        Ambiguity result = new Ambiguity("K", new ArrayList<Term>());
+        Ambiguity result = new Ambiguity(KSorts.K, new ArrayList<Term>());
         for(StateReturn stateReturn : s.getNtCall(new NonTerminalCall.Key(nt,0)).exitStateReturns) {
             if (stateReturn.key.stateEnd == s.input.length()) {
                 for (KList klist : stateReturn.postRuleFunction.applyToNull()) {

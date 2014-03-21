@@ -102,7 +102,7 @@ public class GlobalSettings {
     }
 
     public enum ParserType {
-        PROGRAM, GROUND, RULES, BINARY
+        PROGRAM, GROUND, RULES, BINARY, NEWPROGRAM
     }
 
     //the type of rule indexing rule to use during kompile
