@@ -192,12 +192,12 @@ public class ToKAppTransformer extends CopyOnWriteTransformer {
         
         if(tempBase.size()==0){
             
-            return new KLabelConstant(DataStructureSort.DEFAULT_SET_UNIT_LABEL);
+            return new KApp(new KLabelConstant(DataStructureSort.DEFAULT_SET_UNIT_LABEL),KList.EMPTY);
         }
         
         ArrayList<Term> basedTerm = new ArrayList<Term>();
         basedTerm.add(tempBase.get(tempBase.size()-1));
-        basedTerm.add(new KLabelConstant(DataStructureSort.DEFAULT_SET_UNIT_LABEL));
+        basedTerm.add(new KApp(new KLabelConstant(DataStructureSort.DEFAULT_SET_UNIT_LABEL),KList.EMPTY));
         KApp basedKapp = new KApp(new KLabelConstant(DataStructureSort.DEFAULT_SET_LABEL),new KList(basedTerm));
         
         for(int i = tempBase.size()-2; i >= 0; --i){
@@ -276,12 +276,12 @@ public class ToKAppTransformer extends CopyOnWriteTransformer {
         
         if(tempElem.size()==0){
             
-            return new KLabelConstant(DataStructureSort.DEFAULT_LIST_UNIT_LABEL);
+            return new KApp(new KLabelConstant(DataStructureSort.DEFAULT_LIST_UNIT_LABEL),KList.EMPTY);
         }
         
         ArrayList<Term> basedTerm = new ArrayList<Term>();
         basedTerm.add(tempElem.get(tempElem.size()-1));
-        basedTerm.add(new KLabelConstant(DataStructureSort.DEFAULT_LIST_UNIT_LABEL));
+        basedTerm.add(new KApp(new KLabelConstant(DataStructureSort.DEFAULT_LIST_UNIT_LABEL),KList.EMPTY));
         KApp basedKapp = new KApp(new KLabelConstant(DataStructureSort.DEFAULT_LIST_LABEL),new KList(basedTerm));
         
         for(int i = tempElem.size()-2; i >= 0; --i){
@@ -320,12 +320,12 @@ public class ToKAppTransformer extends CopyOnWriteTransformer {
         
         if(tempBase.size()==0){
             
-            return new KLabelConstant(DataStructureSort.DEFAULT_MAP_UNIT_LABEL);
+            return new KApp(new KLabelConstant(DataStructureSort.DEFAULT_MAP_UNIT_LABEL),KList.EMPTY);
         }
         
         ArrayList<Term> basedTerm = new ArrayList<Term>();
         basedTerm.add(tempBase.get(tempBase.size()-1));
-        basedTerm.add(new KLabelConstant(DataStructureSort.DEFAULT_MAP_UNIT_LABEL));
+        basedTerm.add(new KApp(new KLabelConstant(DataStructureSort.DEFAULT_MAP_UNIT_LABEL),KList.EMPTY));
         KApp basedKapp = new KApp(new KLabelConstant(DataStructureSort.DEFAULT_MAP_LABEL),new KList(basedTerm));
         
         for(int i = tempBase.size()-2; i >= 0; --i){

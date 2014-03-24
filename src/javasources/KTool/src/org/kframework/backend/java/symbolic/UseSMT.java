@@ -9,6 +9,7 @@ import com.microsoft.z3.Expr;
 import com.microsoft.z3.FuncDecl;
 import com.microsoft.z3.Model;
 
+import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.IntToken;
 import org.kframework.backend.java.builtins.StringToken;
 import org.kframework.backend.java.kil.Term;
@@ -46,7 +47,7 @@ public class UseSMT implements Serializable {
             
             if(solver.Check() == Status.SATISFIABLE){
                 
-                Map<Term,Term> entries = new HashMap<Term,Term>();
+                //Map<Term,Term> entries = new HashMap<Term,Term>();
                 
                 Model model = solver.Model();
                 FuncDecl[] consts = model.ConstDecls();
@@ -57,12 +58,14 @@ public class UseSMT implements Serializable {
                                         
                     Variable akey = new Variable(consts[i].Name().toString(), consts[i].Range().toString());
                     
-                    IntToken avalue = IntToken.of(Integer.parseInt(resultFrg.toString()));
-                    
-                    result.put((Term)akey,(Term)avalue);
+                    if(resultFrg.IsInt()){
+                    	IntToken avalue = IntToken.of(Integer.parseInt(resultFrg.toString()));
+                    	result.put((Term)akey,(Term)avalue);
+                    } else if(resultFrg.IsBool()){
+                    	BoolToken avalue = BoolToken.of(Boolean.parseBoolean(resultFrg.toString()));
+                    	result.put((Term)akey,(Term)avalue);
+                    }
                 }
-                
-                
             }
             context.Dispose();
         } catch (Z3Exception e) {

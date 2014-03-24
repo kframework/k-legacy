@@ -94,7 +94,19 @@ public class BasicParser {
 
             if (GlobalSettings.verbose)
                 System.out.println("Including file: " + file.getAbsolutePath());
-            List<DefinitionItem> defItemList = Basic.parse(file.getAbsolutePath(), FileUtil.getFileContent(file.getAbsolutePath()), context);
+            // TODO: check to see if you don't already have a .kore file
+            // if .kore exists
+            //      parse .kore
+            // else
+            //      parse .k
+            
+            List<DefinitionItem> defItemList = null;
+            if(! GlobalSettings.parseKore && new File(file.getAbsolutePath()+"ore").isFile()){
+                defItemList = Basic.parse(file.getAbsolutePath()+"ore", FileUtil.getFileContent(file.getAbsolutePath()+"ore"), context);
+
+            } else {
+            	defItemList = Basic.parse(file.getAbsolutePath(), FileUtil.getFileContent(file.getAbsolutePath()), context);
+            }
 
             // go through every required file
             for (ASTNode di : defItemList) {

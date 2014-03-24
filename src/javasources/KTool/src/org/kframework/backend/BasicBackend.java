@@ -57,13 +57,17 @@ public abstract class BasicBackend implements Backend {
 //        steps.add(new EnforceInferredSorts(context));
         steps.add(new CheckVisitorStep<Definition>(new CheckVariables(context), context));
         steps.add(new CheckVisitorStep<Definition>(new CheckRewrite(context), context));
+        steps.add(new FlattenTerms(context));
+        //TODO: Liyi please add KORE printing here
         steps.add(new FlattenModules(context));
+        // Strictness desugaring
         steps.add(new StrictnessToContexts(context));
         steps.add(new FreezeUserFreezers(context));
         steps.add(new ContextsToHeating(context));
         steps.add(new AddSupercoolDefinition(context));
         steps.add(new AddHeatingConditions(context));
         steps.add(new AddSuperheatRules(context));
+
         steps.add(new DesugarStreams(context, false));
         steps.add(new ResolveFunctions(context));
         steps.add(new AddKCell(context));

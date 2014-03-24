@@ -22,14 +22,6 @@ public class KilTransformer {
 
     }
     
-    public KilTransformer(boolean inConfiguration, ColorSetting color, org.kframework.kil.loader.Context context){
-        
-        koreTrans = new KoreFilter(inConfiguration, color, context);
-        builtinTrans = new ToBuiltinTransformer(context);
-        kappTrans = new ToKAppTransformer(context);
-
-    }
-    
     public String kilToKore(ASTNode node){
 
         try {

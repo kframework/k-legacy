@@ -117,6 +117,9 @@ public class GlobalSettings {
     //needed for test generation in Java backend
     public static boolean testgen = false;
     
+    //use for indicating parsing .kore file
+    public static boolean parseKore=false; 
+    
     public static String CHECK = null;
     public static boolean symbolic = false; // true if the --symbolic argument has been provided to kompile
     public static List<String> symbolicTags = new LinkedList<>();

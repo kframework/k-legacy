@@ -21,10 +21,12 @@ public class IndexingPair implements Serializable {
                 return new KLabelIndex(kLabel);
             } else if (kItem.kLabel() instanceof KLabelFreezer) {
                 KLabelFreezer freezer = (KLabelFreezer) kItem.kLabel();
-                KItem frozenKItem = (KItem) freezer.term();
-                return new FreezerIndex(
-                        (KLabelConstant) frozenKItem.kLabel(),
-                        ((KList) frozenKItem.kList()).getContents().indexOf(Hole.HOLE));
+                if(freezer.term() instanceof KItem){
+                	KItem frozenKItem = (KItem) freezer.term();
+                    return new FreezerIndex(
+                            (KLabelConstant) frozenKItem.kLabel(),
+                            ((KList) frozenKItem.kList()).getContents().indexOf(Hole.HOLE));
+                } 
             }
         } else if (term instanceof Sorted) {
             Sorted sorted = (Sorted) term;

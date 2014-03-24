@@ -153,6 +153,15 @@ public class Cell extends Term {
         this.cellAttributes = node.cellAttributes;
         this.contents = node.contents;
     }
+    
+    public Cell(String label, Term content,HashMap<String,String> attributes,String ellipses) {
+    	super("BagItem");
+        this.label = label;
+        this.endLabel = label;
+        this.cellAttributes = attributes;
+        this.contents = content;
+        this.setEllipses(ellipses);
+    }
 
     public Cell() {
         super("BagItem");
