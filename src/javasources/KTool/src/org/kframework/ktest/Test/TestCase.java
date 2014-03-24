@@ -58,6 +58,11 @@ public class TestCase {
      */
     private final Set<KTestStep> skips;
 
+    /**
+     * Script to be executed before testing, only valid on Unix system
+     */
+    private final String unixOnly;
+
     public TestCase(Annotated<String, LocationData> definition,
                     List<Annotated<String, LocationData>> programs,
                     String[] extensions,
@@ -66,7 +71,8 @@ public class TestCase {
                     List<PgmArg> kompileOpts,
                     List<PgmArg> krunOpts,
                     Map<String, List<PgmArg>> pgmSpecificKRunOpts,
-                    Set<KTestStep> skips) throws InvalidConfigError {
+                    Set<KTestStep> skips,
+                    String unixOnly) throws InvalidConfigError {
         // programs and results should be ordered set because of how search algorithm works
         this.definition = definition;
         this.programs = programs;
@@ -77,6 +83,7 @@ public class TestCase {
         this.krunOpts = krunOpts;
         this.pgmSpecificKRunOpts = pgmSpecificKRunOpts;
         this.skips = skips;
+        this.unixOnly = unixOnly;
     }
 
     public static TestCase makeTestCaseFromK(CmdArg cmdArgs) throws InvalidConfigError {
@@ -95,7 +102,7 @@ public class TestCase {
 
         return new TestCase(targetFile, programs, cmdArgs.getExtensions(),
                 cmdArgs.getExcludes(), results, emptyOpts, emptyOpts, emptyOptsMap,
-                new HashSet<KTestStep>());
+                new HashSet<KTestStep>(), "");
     }
 
     public boolean isDefinitionKompiled() {
@@ -157,6 +164,35 @@ public class TestCase {
             args[i+2] = new PgmArg(arg.arg, QuoteHandling.quoteArgument(arg.val)).toString();
         }
         return StringUtils.join(args, " ");
+    }
+
+    /**
+     * @return true if unixOnly attribute exists
+     */
+    public boolean hasUnixOnly() {
+        return !unixOnly.equals("");
+    }
+
+    /**
+     * @return unixOnly attribute
+     */
+    public String getUnixOnly() {
+        return unixOnly;
+    }
+
+    /**
+     * @return command array to pass process builder
+     */
+    public String[] getUnixOnlyCmd() {
+        assert new File(unixOnly).isFile();
+        return new String[] { unixOnly };
+    }
+
+    /**
+     * @return String representation of unixOnly command to be used in logging.
+     */
+    public String toUnixOnlyLogString() {
+        return StringUtils.join(getUnixOnlyCmd(), " ");
     }
 
     /**

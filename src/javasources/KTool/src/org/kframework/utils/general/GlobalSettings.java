@@ -101,6 +101,10 @@ public class GlobalSettings {
         return os() == OS.WIN;
     }
 
+    public static boolean isUnixLikeOS() {
+        return os() == OS.UNIX || os() == OS.OSX;
+    }
+
     public enum ParserType {
         PROGRAM, GROUND, RULES, BINARY
     }
