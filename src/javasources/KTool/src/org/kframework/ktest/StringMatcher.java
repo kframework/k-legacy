@@ -1,7 +1,7 @@
 // Copyright (c) 2014 K Team. All Rights Reserved.
 package org.kframework.ktest;
 
-public interface StringMatcher {
+public interface StringMatcher extends Cloneable {
     /**
      * Checks whether {@code actual} satisfies the constraint specified by {@code pattern}.
      * 
@@ -21,4 +21,12 @@ public interface StringMatcher {
      * @return
      */
     String errorMessage();
+    
+    /**
+     * Designed to return an equivalent StringMatcher with its internal state reset. Used to ensure that 
+     * each program run by ktest is run with a different StringMatcher object. This prevents a race condition
+     * where the ordering of tests run on multithreaded machines causes the error message to be incorrect.
+     * @return an equivalent StringMatcher without any errors accumulated.
+     */
+    StringMatcher copy();
 }

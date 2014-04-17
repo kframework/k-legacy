@@ -425,7 +425,7 @@ public class TestSuite {
 
         if (verbose)
             printVerboseRunningMsg(program);
-        StringMatcher matcher = strComparator;
+        StringMatcher matcher = strComparator.copy();
         if (program.regex) {
             matcher = new RegexStringMatcher();
         }
