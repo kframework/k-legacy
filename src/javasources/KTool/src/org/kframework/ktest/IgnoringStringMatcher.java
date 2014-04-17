@@ -51,5 +51,10 @@ public class IgnoringStringMatcher implements StringMatcher {
     public String errorMessage() {
         return String.format("Expected:%n%s%n%nbut found:%n%s%n", lastPattern, lastActual);
     }
+    
+    @Override
+    public StringMatcher copy() {
+        return new IgnoringStringMatcher(ignoreWS, ignoreBalancedParens);
+    }
 
 }

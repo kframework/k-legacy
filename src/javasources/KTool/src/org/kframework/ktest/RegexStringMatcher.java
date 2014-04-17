@@ -30,4 +30,9 @@ public class RegexStringMatcher implements StringMatcher {
                 "%n%s%n%nbut found:%n%s%n", failedRegex, failedActual);
     }
 
+    @Override
+    public StringMatcher copy() {
+        return new RegexStringMatcher();
+    }
+
 }
