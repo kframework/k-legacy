@@ -22,9 +22,15 @@ public class ProgramProfile {
      */
     private boolean regex;
     
-    public ProgramProfile(List<PgmArg> args, boolean regex) {
+    /**
+     * Alternative krun executable. (It should reside in KHOME/bin directory.)
+     */
+    private String krunExec;
+
+    public ProgramProfile(List<PgmArg> args, boolean regex, String krunExec) {
         this.args = args;
         this.regex = regex;
+        this.krunExec = krunExec;
     }
     
     public List<PgmArg> getArgs() {
@@ -33,5 +39,9 @@ public class ProgramProfile {
     
     public boolean isRegex() {
         return regex;
+    }
+
+    public String getKrunExec() {
+        return krunExec;
     }
 }

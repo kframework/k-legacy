@@ -20,9 +20,10 @@ public class KRunProgram {
     public final String errorFile;
     public final String newOutputFile;
     public final boolean regex;
+    public final String krunExec;
 
     public KRunProgram(String pgmPath, String defPath, List<PgmArg> args, String inputFile, String outputFile,
-                       String errorFile, String newOutputFile, boolean regex) {
+                       String errorFile, String newOutputFile, boolean regex, String krunExec) {
         this.pgmName = FilenameUtils.getBaseName(pgmPath);
         this.pgmPath = pgmPath;
         this.defPath = defPath;
@@ -32,6 +33,7 @@ public class KRunProgram {
         this.errorFile = errorFile;
         this.newOutputFile = newOutputFile;
         this.regex = regex;
+        this.krunExec = krunExec;
     }
 
     /**
@@ -39,7 +41,7 @@ public class KRunProgram {
      */
     public String[] getKrunCmd() {
         List<String> stringArgs = new ArrayList<String>();
-        stringArgs.add(ExecNames.getKrun());
+        stringArgs.add(ExecNames.getExecutable(krunExec));
         stringArgs.add(pgmPath);
         for (int i = 0; i < args.size(); i++) {
             stringArgs.addAll(args.get(i).toStringList());

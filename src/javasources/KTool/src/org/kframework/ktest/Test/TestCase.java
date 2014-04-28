@@ -95,7 +95,7 @@ public class TestCase {
         results.add(new Annotated<>(cmdArgs.getResults(), new LocationData()));
 
         List<PgmArg> emptyOpts = Collections.emptyList();
-        ProgramProfile emptyProfile = new ProgramProfile(emptyOpts, false);
+        ProgramProfile emptyProfile = new ProgramProfile(emptyOpts, false, "krun");
 
         Map<String, ProgramProfile> emptyOptsMap = Collections.emptyMap();
 
@@ -311,7 +311,7 @@ public class TestCase {
 
                     ret.add(new KRunProgram(
                             pgmFilePath, definitionFilePath, args, inputFilePath, outputFilePath, errorFilePath,
-                            getNewOutputFilePath(outputFileName), profile.isRegex()));
+                            getNewOutputFilePath(outputFileName), profile.isRegex(), profile.getKrunExec()));
                 }
             } else {
                 ret.addAll(searchPrograms(pgmFile.getAbsolutePath()));

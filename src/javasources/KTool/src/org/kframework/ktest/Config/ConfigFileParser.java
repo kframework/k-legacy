@@ -363,15 +363,17 @@ public class ConfigFileParser {
     private ProgramProfile parseAllPgmsKrunOpts(NodeList nodes) {
         List<PgmArg> ret = new LinkedList<>();
         boolean regex = false;
+        String krunExec = "krun";
         for (int childNodeIdx = 0; childNodeIdx < nodes.getLength(); childNodeIdx++) {
             Node childNode = nodes.item(childNodeIdx);
             if (childNode.getNodeType() == Node.ELEMENT_NODE
                     && childNode.getNodeName().equals("all-programs")) {
                 ret.addAll(parseKrunOpts(childNode.getChildNodes()));
                 regex = Boolean.parseBoolean(((Element)childNode).getAttribute("regex"));
+                krunExec = parseKrunExec(childNode.getChildNodes());
             }
         }
-        return new ProgramProfile(ret, regex);
+        return new ProgramProfile(ret, regex, krunExec);
     }
 
     /**
@@ -397,6 +399,25 @@ public class ConfigFileParser {
     }
 
     /**
+     * Parse <krun-exec> ... </krun-exec> element in a NodeList.
+     *
+     * @param nodes NodeList to search `krun-exec' elements
+     * @return Name of krun executable (default: "krun")
+     */
+    private String parseKrunExec(NodeList nodes) {
+        String krunExec = "krun";
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Node n = nodes.item(i);
+            if (n.getNodeType() == Node.ELEMENT_NODE
+                    && n.getNodeName().equals("krun-exec")) {
+                Element e = (Element) n;
+                krunExec = e.getAttribute("name");
+            }
+        }
+        return krunExec;
+    }
+
+    /**
      * Parse <program name=...> ... </program> elements in a NodeList.
      *
      * @param nodes NodeList to search `program' elements
@@ -409,9 +430,13 @@ public class ConfigFileParser {
             if (childNode.getNodeType() == Node.ELEMENT_NODE
                     && childNode.getNodeName().equals("program")) {
                 Element elem = (Element) childNode;
-                ret.put(elem.getAttribute("name"), new ProgramProfile(parseKrunOpts(
-                        elem.getChildNodes()),
-                        Boolean.parseBoolean(elem.getAttribute("regex"))));
+                String[] names = splitNodeValue(elem.getAttributeNode("name"));
+                for (String name : names) {
+                    ret.put(name,
+                            new ProgramProfile(parseKrunOpts(elem.getChildNodes()),
+                                    Boolean.parseBoolean(elem.getAttribute("regex")),
+                                    parseKrunExec(elem.getChildNodes())));
+                }
             }
         }
         return ret;
