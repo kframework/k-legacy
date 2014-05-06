@@ -1,9 +1,6 @@
 // Copyright (c) 2014 K Team. All Rights Reserved.
 package org.kframework.parser;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.kframework.compile.transformers.AddEmptyLists;
 import org.kframework.compile.transformers.FlattenTerms;
 import org.kframework.compile.transformers.RemoveBrackets;
@@ -39,6 +36,9 @@ import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.general.GlobalSettings;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import java.io.File;
+import java.io.IOException;
 
 public class ProgramLoader {
 
@@ -141,6 +141,10 @@ public class ProgramLoader {
                     out = out.accept(new TreeCleanerVisitor(context));
                     if (context.globalOptions.debug)
                         System.out.println("Clean: " + out + "\n");
+                    out = out.accept(new PriorityFilter(context));
+                    out = out.accept(new PreferAvoidFilter(context));
+                    if (context.globalOptions.verbose) // TODO(Radu): temporary for testing. Remove once we have something like --debug
+                        System.out.println("Filtered: " + out + "\n");
                 } catch (TransformerException te) {
                     ParseError perror = parser.getErrors();
 

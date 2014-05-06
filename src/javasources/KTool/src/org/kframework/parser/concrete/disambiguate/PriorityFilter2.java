@@ -1,9 +1,12 @@
+// Copyright (c) 2014 K Team. All Rights Reserved.
 package org.kframework.parser.concrete.disambiguate;
 
 import java.util.ArrayList;
 
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Ambiguity;
+import org.kframework.kil.KApp;
+import org.kframework.kil.KLabelConstant;
 import org.kframework.kil.Term;
 import org.kframework.kil.TermCons;
 import org.kframework.kil.loader.Context;
@@ -16,20 +19,27 @@ import org.kframework.utils.errorsystem.KException.KExceptionGroup;
 
 public class PriorityFilter2 extends BasicHookWorker {
 
-    private TermCons parent;
+    /**
+     * Specifies whether the current node is the left most or the right most child of the parent.
+     * This is useful because associativity can be checked at the same time with priorities.
+     */
+    public static enum Side {LEFT, RIGHT}
+    private String parentLabel;
+    private Side side;
 
-    public PriorityFilter2(TermCons parent, Context context) {
+    public PriorityFilter2(String parentLabel, Side side, Context context) {
         super("Type system", context);
-        this.parent = parent;
+        this.parentLabel = parentLabel;
+        this.side = side;
     }
-
+/*
     public PriorityFilter2(PriorityFilter2 pf, Context context) {
         super("Type system", context);
-        this.parent = pf.parent;
+        this.parentLabel = pf.parentLabel;
+        this.side = pf.side;
     }
-
+*/
     public ASTNode transform(TermCons tc) throws TransformerException {
-        String parentLabel = parent.getProduction().getKLabel();
         String localLabel = tc.getProduction().getKLabel();
         if (context.isPriorityWrong(parentLabel, localLabel)) {
             String msg = "Priority filter exception. Cannot use " + localLabel + " as a child of " + parentLabel;
@@ -38,6 +48,21 @@ public class PriorityFilter2 extends BasicHookWorker {
         }
 
         return tc;
+    }
+
+    public ASTNode transform(KApp kapp) throws TransformerException {
+        if (kapp.getLabel() instanceof KLabelConstant) {
+            KLabelConstant kls = (KLabelConstant) kapp.getLabel();
+            String localLabel = kls.getLabel();
+            // TODO (Radu): check for associativity too
+            if (context.isPriorityWrong(parentLabel, localLabel)) {
+                String msg = "Priority filter exception. Cannot use " + localLabel + " as a child of " + parentLabel;
+                KException kex = new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL, msg, kapp.getFilename(), kapp.getLocation());
+                throw new PriorityException(kex);
+            }
+        }
+
+        return kapp;
     }
 
     @Override
