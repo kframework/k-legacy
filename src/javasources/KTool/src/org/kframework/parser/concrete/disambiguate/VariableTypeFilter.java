@@ -1,3 +1,4 @@
+// Copyright (c) 2014 K Team. All Rights Reserved.
 package org.kframework.parser.concrete.disambiguate;
 
 import org.kframework.kil.ASTNode;
@@ -36,7 +37,7 @@ public class VariableTypeFilter extends BasicTransformer {
                 newV.setSort(correctVar.getSort());
             newV.setExpectedSort(correctVar.getExpectedSort());
             newV.setSyntactic(correctVar.isSyntactic());
-            newV.setUserTyped(correctVar.isUserTyped());
+            newV.setUserTyped(r.isUserTyped());
             return newV;
         }
         String msg = "Variable " + r.getName() + " is contextually expected to have sort " + r.getExpectedSort();
