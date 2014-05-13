@@ -1,3 +1,4 @@
+// Copyright (c) 2012-2014 K Team. All Rights Reserved.
 // make && java -jar wrapperAndServer.jar --maudefile blah
 package org.kframework.krun.runner;
 
