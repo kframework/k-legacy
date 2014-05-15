@@ -112,19 +112,17 @@ public class DefinitionLoader {
             def.setModulesMap(bparser.getModulesMap());
             def.setItems(bparser.getModuleItems());
 
-            if (!context.kompileOptions.backend.documentation()) {
-                if (!def.getModulesMap().containsKey(context.kompileOptions.syntaxModule())) {
-                    String msg = "Could not find main syntax module used to generate a parser for programs (X-SYNTAX). Using: '" + mainModule + "' instead.";
-                    GlobalSettings.kem.register(new KException(ExceptionType.HIDDENWARNING, KExceptionGroup.INNER_PARSER, msg, def.getMainFile(), "File system."));
-                    def.setMainSyntaxModule(mainModule);
-                } else {
-                    def.setMainSyntaxModule(context.kompileOptions.syntaxModule());
-                }
-                
-                if (!def.getModulesMap().containsKey(mainModule)) {
-                    String msg = "Could not find main module '" + mainModule + "'. Use --main-module option to specify another.";
-                    GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.COMPILER, msg, def.getMainFile(), "File system."));
-                }
+            if (!def.getModulesMap().containsKey(context.kompileOptions.syntaxModule())) {
+                String msg = "Could not find main syntax module used to generate a parser for programs (X-SYNTAX). Using: '" + mainModule + "' instead.";
+                GlobalSettings.kem.register(new KException(ExceptionType.HIDDENWARNING, KExceptionGroup.INNER_PARSER, msg, def.getMainFile(), "File system."));
+                def.setMainSyntaxModule(mainModule);
+            } else {
+                def.setMainSyntaxModule(context.kompileOptions.syntaxModule());
+            }
+            
+            if (!def.getModulesMap().containsKey(mainModule)) {
+                String msg = "Could not find main module '" + mainModule + "'. Use --main-module option to specify another.";
+                GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.COMPILER, msg, def.getMainFile(), "File system."));
             }
             Stopwatch.instance().printIntermediate("Basic Parsing");
 
