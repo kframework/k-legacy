@@ -26,12 +26,6 @@ public class ResolveSyntaxPredicates extends CopyOnWriteTransformer {
         return node;
     }
     
-    /**
-     * instead of checking the getSort field
-     * we check the getExtendedSort field in the statement of 
-     * MetaK.isKSort
-     * While getExtendedSort filed is null, we will check the getSort field
-     */
     @Override
     public ASTNode visit(Sentence node, Void _)  {
         boolean change = false;
