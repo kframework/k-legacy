@@ -75,6 +75,7 @@ public abstract class BasicBackend implements Backend {
         steps.add(new AddSymbolicK(context));
         steps.add(new AddSemanticEquality(context));
         // steps.add(new ResolveFresh());
+        steps.add(new ResolveListOfK(context));
         steps.add(new FlattenTerms(context));
         steps.add(new FreshCondToFreshVar(context));
         steps.add(new ResolveFreshVarMOS(context));
@@ -88,7 +89,6 @@ public abstract class BasicBackend implements Backend {
         steps.add(new AddPredicates(context));
         steps.add(new ResolveSyntaxPredicates(context));
         steps.add(new ResolveBuiltins(context));
-        steps.add(new ResolveListOfK(context));
         //steps.add(new FlattenTermsTwo(context));
         steps.add(new FlattenSyntax(context));
         steps.add(new ResolveBlockingInput(context));
