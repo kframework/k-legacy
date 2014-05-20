@@ -79,11 +79,6 @@ public class FlattenTermsTwo extends CopyOnWriteTransformer {
                 node.setChild(child);
                 node.setLabel(label);
             }
-            if(!(node.getChild() instanceof KList)){
-                KList lok = new KList(label.getLocation(), label.getFilename());
-                lok.getContents().add(node.getChild());
-                node.setChild(lok);
-            }
             return node;
         }
 
