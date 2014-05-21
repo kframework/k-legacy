@@ -61,6 +61,8 @@ public abstract class BasicBackend implements Backend {
 //        steps.add(new EnforceInferredSorts(context));
         steps.add(new CheckVisitorStep<Definition>(new CheckVariables(context), context));
         steps.add(new CheckVisitorStep<Definition>(new CheckRewrite(context), context));
+        steps.add(new ResolveListOfK(context));
+        steps.add(new FlattenTerms(context));
         steps.add(new FlattenModules(context));
         steps.add(new StrictnessToContexts(context));
         steps.add(new FreezeUserFreezers(context));
@@ -87,7 +89,7 @@ public abstract class BasicBackend implements Backend {
         steps.add(new AddPredicates(context));
         steps.add(new ResolveSyntaxPredicates(context));
         steps.add(new ResolveBuiltins(context));
-        steps.add(new ResolveListOfK(context));
+        steps.add(new FlattenTermsTwo(context));
         steps.add(new FlattenSyntax(context));
         steps.add(new ResolveBlockingInput(context));
         steps.add(new InitializeConfigurationStructure(context));

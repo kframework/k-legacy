@@ -29,7 +29,7 @@ public class Variable extends Term {
     public void setExpectedSort(String expectedSort) {
         this.expectedSort = expectedSort;
     }
-
+    
     public Variable(Element element) {
         super(element);
         this.sort = element.getAttribute(Constants.SORT_sort_ATTR);
@@ -40,7 +40,7 @@ public class Variable extends Term {
             this.name = this.name.substring(1);
         }
     }
-
+    
     public Variable(String name, String sort) {
         super(sort);
         this.name = name;
