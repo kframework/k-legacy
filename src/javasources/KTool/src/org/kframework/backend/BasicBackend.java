@@ -89,7 +89,7 @@ public abstract class BasicBackend implements Backend {
         steps.add(new AddPredicates(context));
         steps.add(new ResolveSyntaxPredicates(context));
         steps.add(new ResolveBuiltins(context));
-        //steps.add(new FlattenTermsTwo(context));
+        steps.add(new FlattenTermsTwo(context));
         steps.add(new FlattenSyntax(context));
         steps.add(new ResolveBlockingInput(context));
         steps.add(new InitializeConfigurationStructure(context));
