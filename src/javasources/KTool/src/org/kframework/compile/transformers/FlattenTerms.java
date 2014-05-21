@@ -14,6 +14,7 @@ import java.util.*;
 
 /**
  * Transformer flattening concrete syntax terms to applications of KLabels
+ * Variable will not change sort to kitem
  */
 @KilProperty.Ensures(KilProperty.NO_CONCRETE_SYNTAX)
 public class FlattenTerms extends CopyOnWriteTransformer {
@@ -75,6 +76,11 @@ public class FlattenTerms extends CopyOnWriteTransformer {
                 node = node.shallowCopy();
                 node.setChild(child);
                 node.setLabel(label);
+            }
+            if(!(node.getChild() instanceof KList)){
+                KList lok = new KList(label.getLocation(), label.getFilename());
+                lok.getContents().add(node.getChild());
+                node.setChild(lok);
             }
             return node;
         }
@@ -222,11 +228,6 @@ public class FlattenTerms extends CopyOnWriteTransformer {
             }
 
             node = node.shallowCopy();
-            if (kompileOptions.backend.java() || K.backend.equals("java")) {
-                /* the Java Rewrite Engine preserves sort information for variables */
-            } else {
-                node.setSort(KSorts.KITEM);
-            }
             return node;
         }
     }
