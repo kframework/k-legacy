@@ -189,7 +189,7 @@ public class ConstrainedTerm extends Term {
                 continue;
             }
 
-            if (!K.do_kompilation) {
+            if (K.tool() != K.Tool.KOMPILE) {
                 /*
                  * YilongL: had to disable checkUnsat in kompilation because the
                  * KILtoZ3 transformer often crash the Java backend; besides,
@@ -203,7 +203,8 @@ public class ConstrainedTerm extends Term {
             solutions.add(candidate);
         }
 
-        if (K.do_testgen && !solutions.isEmpty()) {
+        if (context.definition().context().javaExecutionOptions.generateTests
+                && !solutions.isEmpty()) {
             // TODO(AndreiS): deal with KLabel variables
             boolean changed;
             List<SymbolicConstraint> tmpSolutions = solutions;

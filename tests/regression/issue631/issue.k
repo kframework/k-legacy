@@ -8,13 +8,13 @@ module ISSUE
 	syntax Ints ::= List{Int,","}
 	syntax Exp ::= f(Ints)
 	configuration
-			<k> f( 1, .Ints ) </k>
+			<k> $PGM:K </k>
 			<out stream="stdout"> .List </out>
 	
 	// X must be of type Int to be completed with .Ints
 	rule f(X::Int) => f(2) when X ==Int 1
 	
 	rule <k> f(2) => . </k>
-		<out>... . => ListItem(2) </out>
+		<out>... .List => ListItem(2) </out>
 	
 endmodule

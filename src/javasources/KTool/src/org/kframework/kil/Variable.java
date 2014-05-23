@@ -3,7 +3,6 @@ package org.kframework.kil;
 
 import org.kframework.kil.loader.Constants;
 import org.kframework.kil.visitors.Visitor;
-import org.kframework.utils.StringUtil;
 import org.w3c.dom.Element;
 
 /**
@@ -44,6 +43,7 @@ public class Variable extends Term {
     public Variable(String name, String sort) {
         super(sort);
         this.name = name;
+        this.userTyped = true;
     }
 
     public Variable(Variable variable) {

@@ -6,8 +6,7 @@ import com.google.common.collect.ImmutableList;
 import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.util.GappaPrinter;
 import org.kframework.backend.java.util.GappaServer;
-import org.kframework.kil.loader.Context;
-import org.kframework.krun.K;
+import org.kframework.utils.options.SMTSolver;
 
 /**
  * Table of {@code public static} methods on builtin floats.
@@ -132,7 +131,7 @@ public class BuiltinFloatOperations {
     }
 
     public static BoolToken gt(Term term1, Term term2, TermContext context) {
-        if (!K.smt.equals("gappa")) return null;
+        if (context.definition().context().smtOptions.smt != SMTSolver.GAPPA) return null;
         GappaPrinter gappaPrinter = GappaPrinter.toGappaGround(term1);
         if (gappaPrinter.getException() != null) {
             return null;
@@ -152,7 +151,7 @@ public class BuiltinFloatOperations {
     }
 
     public static BoolToken ge(Term term1, Term term2, TermContext context) {
-        if (!K.smt.equals("gappa")) return null;
+        if (context.definition().context().smtOptions.smt != SMTSolver.GAPPA) return null;
         GappaPrinter gappaPrinter = GappaPrinter.toGappaGround(term1);
         if (gappaPrinter.getException() != null) {
             return null;
@@ -172,7 +171,7 @@ public class BuiltinFloatOperations {
     }
 
     public static BoolToken lt(Term term1, Term term2, TermContext context) {
-        if (!K.smt.equals("gappa")) return null;
+        if (context.definition().context().smtOptions.smt != SMTSolver.GAPPA) return null;
         GappaPrinter gappaPrinter = GappaPrinter.toGappaGround(term1);
         if (gappaPrinter.getException() != null) {
             return null;
@@ -192,7 +191,7 @@ public class BuiltinFloatOperations {
     }
 
     public static BoolToken le(Term term1, Term term2, TermContext context) {
-        if (!K.smt.equals("gappa")) return null;
+        if (context.definition().context().smtOptions.smt != SMTSolver.GAPPA) return null;
         GappaPrinter gappaPrinter = GappaPrinter.toGappaGround(term1);
         if (gappaPrinter.getException() != null) {
             return null;

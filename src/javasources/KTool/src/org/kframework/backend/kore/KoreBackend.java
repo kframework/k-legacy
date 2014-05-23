@@ -46,6 +46,7 @@ import org.kframework.main.FirstStep;
 import org.kframework.utils.ColorUtil;
 import org.kframework.utils.Stopwatch;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -114,7 +115,7 @@ public class KoreBackend extends BasicBackend {
         steps.add(new AddSupercoolDefinition(context));
         steps.add(new AddHeatingConditions(context));
         steps.add(new AddSuperheatRules(context));
-        steps.add(new DesugarStreams(context, false));
+        steps.add(new DesugarStreams(context));
         steps.add(new ResolveFunctions(context));
         steps.add(new AddKCell(context));
         steps.add(new AddStreamCells(context));
@@ -129,7 +130,7 @@ public class KoreBackend extends BasicBackend {
         }
         steps.add(new ResolveBinder(context));
         steps.add(new ResolveAnonymousVariables(context));
-        steps.add(new ResolveBlockingInput(context, false));
+        steps.add(new ResolveBlockingInput(context));
         steps.add(new AddK2SMTLib(context));
         steps.add(new AddPredicates(context));
         steps.add(new ResolveSyntaxPredicates(context));
@@ -287,7 +288,7 @@ class KoreFilter extends BasicVisitor {
         if (declaredCell != null) {
             String declaredColor = declaredCell.getCellAttributes().get("color");
             if (declaredColor != null) {
-                colorCode = ColorUtil.RgbToAnsi(ColorUtil.colors().get(declaredColor), color);
+                colorCode = ColorUtil.RgbToAnsi(declaredColor, color, Color.black);
                 indenter.write(colorCode);
             }
         }

@@ -409,12 +409,6 @@ public class MetaK {
         switch (sort) {
             case Bag:
                 return new Bag(col);
-            case List:
-                return new org.kframework.kil.List(col);
-            case Set:
-                return new org.kframework.kil.Set(col);
-            case Map:
-                return new Map(col);
             case K:
                 return new KSequence(col);
             default:

@@ -2,8 +2,8 @@
 package org.kframework.ktest;
 
 import org.apache.commons.io.IOUtils;
-import org.kframework.krun.ColorSetting;
 import org.kframework.ktest.StringMatcher.MatchFailure;
+import org.kframework.krun.ColorSetting;
 import org.kframework.utils.ColorUtil;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.general.GlobalSettings;
@@ -249,7 +249,7 @@ public class Proc<T> implements Runnable {
      * @param returnCode return code of the process
      */
     private void handlePgmResult(int returnCode) throws IOException {
-        String red = ColorUtil.RgbToAnsi(Color.RED, colorSetting);
+        String red = ColorUtil.RgbToAnsi("red", colorSetting, Color.BLACK);
         if (returnCode == 0) {
 
             boolean doGenerateOut = false;
