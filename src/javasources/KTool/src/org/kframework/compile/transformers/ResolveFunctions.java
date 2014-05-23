@@ -29,7 +29,7 @@ public class ResolveFunctions extends CopyOnWriteTransformer {
         if (body instanceof TermCons) {
             Production prod = context.conses.get(((TermCons) body).getCons());
             if (prod.containsAttribute("function") || prod.containsAttribute("predicate")) {
-                node = addFunction(node);
+            node = addFunction(node);
             }
         }
         if (body instanceof KApp) {

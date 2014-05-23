@@ -80,8 +80,9 @@ public class ContextsToHeating extends CopyOnWriteTransformer {
         return substituteSubstitutable(term, Hole.KITEM_HOLE, replacement);
     }
 
+    //change the freezer to the abstract syntax form of kapp
     public Term freeze(Term term) {
-        return new Freezer(substituteHole(term, new FreezerHole(0)));
+        return KApp.of(new FreezerLabel(substituteHole(term, new FreezerHole(0))));
     }
 
     private Term substituteVariable(Term term, Variable variable, Term replacement)  {

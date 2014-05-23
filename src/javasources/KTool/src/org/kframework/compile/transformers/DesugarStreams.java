@@ -51,38 +51,38 @@ public class DesugarStreams extends CopyOnWriteTransformer {
 //            eq evalCleanConf(T, "stdin") = mkCollection(List, (T, ioBuffer(stdinVariable), noIOVariable, stdinStream)) .
             addAtBeginning = contents;
 //            syntax List ::= "#buffer" "(" K ")"           [cons(List1IOBufferSyn)]
-            TermCons buffer = new TermCons("Stream", "Stream1IOBufferSyn", context);
-            java.util.List<Term> bufferTerms = new ArrayList<Term>();
-            bufferTerms.add(new Variable("$stdin", "String")); // eq stdinVariable = mkVariable('$stdin,K) .
-            buffer.setContents(bufferTerms);
-            items.add(newListItem(buffer));
+            //change TermCons here to KApp(KList) format by using the label of Stream1IOBufferSyn
+            KList bufferKList = new KList();
+            KApp bufferKApp = new KApp(KLabelConstant.of(context.conses.get("Stream1IOBufferSyn").getKLabel(), context),bufferKList);
+            bufferKList.getContents().add(new Variable("$stdin", "String"));// eq stdinVariable = mkVariable('$stdin,K) .
+            items.add(newListItem(bufferKApp));
             
             items.add(new Variable("$noIO", ("List")));//          eq noIOVariable = mkVariable('$noIO,List) .
             
 //            syntax List ::= "#istream" "(" Int ")"        [cons(List1InputStreamSyn)]
-            TermCons stdinStream = new TermCons("Stream", "Stream1InputStreamSyn", context);
-            java.util.List<Term> stdinStreamTerms = new ArrayList<Term>();
-            stdinStreamTerms.add(IntBuiltin.ZERO);
-            stdinStream.setContents(stdinStreamTerms);
-            items.add(newListItem(stdinStream));
+          //change TermCons here to KApp(KList) format by using the label of Stream1InputStreamSyn
+            KList stdinStreamKList = new KList();
+            KApp stdinStreamKApp = new KApp(KLabelConstant.of(context.conses.get("Stream1InputStreamSyn").getKLabel(), context),stdinStreamKList);
+            stdinStreamKList.getContents().add(IntBuiltin.ZERO);
+            items.add(newListItem(stdinStreamKApp));
         }
         if ("stdout".equals(stream)) {
 //            eq evalCleanConf(T, "stdout") = mkCollection(List, (stdoutStream, noIOVariable, ioBuffer(nilK),T)) .
 //            | "#ostream" "(" Int ")"        [cons(List1OutputStreamSyn)]
-            TermCons stdoutStream = new TermCons("Stream", "Stream1OutputStreamSyn", context);
-            java.util.List<Term> stdinStreamTerms = new ArrayList<Term>();
-            stdinStreamTerms.add(IntBuiltin.ONE);
-            stdoutStream.setContents(stdinStreamTerms);
-            items.add(newListItem(stdoutStream));
+            //change TermCons here to KApp(KList) format by using the label of Stream1OutputStreamSyn
+            KList stdoutStreamKList = new KList();
+            KApp stdoutStreamKApp =  new KApp(KLabelConstant.of(context.conses.get("Stream1OutputStreamSyn").getKLabel(), context),stdoutStreamKList);
+            stdoutStreamKList.getContents().add(IntBuiltin.ONE);
+            items.add(newListItem(stdoutStreamKApp));
             
             items.add(new Variable("$noIO", ("List")));//          eq noIOVariable = mkVariable('$noIO,List) .
 
 //            syntax List ::= "#buffer" "(" K ")"           [cons(List1IOBufferSyn)]
-            TermCons buffer = new TermCons("Stream", "Stream1IOBufferSyn", context);
-            java.util.List<Term> bufferTerms = new ArrayList<Term>();
-            bufferTerms.add(StringBuiltin.EMPTY);
-            buffer.setContents(bufferTerms);
-            items.add(newListItem(buffer));
+          //change TermCons here to KApp(KList) format by using the label of Stream1IOBufferSyn
+            KList bufferKList = new KList();
+            KApp bufferKApp = new KApp(KLabelConstant.of(context.conses.get("Stream1IOBufferSyn").getKLabel(), context),bufferKList);
+            bufferKList.getContents().add(StringBuiltin.EMPTY);// eq stdinVariable = mkVariable('$stdin,K) .
+            items.add(newListItem(bufferKApp));
 
             addAtEnd = contents;
         }
