@@ -412,17 +412,6 @@
   </test>
 
   <test
-      definition="tests/regression/basicFloat/issue.k"
-      programs="tests/regression/basicFloat"
-      results="tests/regression/basicFloat"
-      extension="issue"
-      >
-      <all-programs>
-        <krun-option name="--output" value="none" />
-        <krun-option name="--color" value="off" />
-      </all-programs>
-  </test>
-  <test
       definition="tests/regression/follow/issue.k"
       programs="tests/regression/follow"
       results="tests/regression/follow"
