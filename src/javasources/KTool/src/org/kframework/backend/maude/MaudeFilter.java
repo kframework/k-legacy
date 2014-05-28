@@ -424,8 +424,10 @@ public class MaudeFilter extends BackendFilter {
 
     @Override
     public Void visit(Variable variable, Void _) {
-         if (MetaK.isBuiltinSort(variable.getSort())
+        boolean injection = false;
+        if (MetaK.isBuiltinSort(variable.getSort())
                 || context.getDataStructureSorts().containsKey(variable.getSort())) {
+            injection = true;
             result.append("_`(_`)(");
             if (context.getDataStructureSorts().containsKey(variable.getSort())) {
                   String sort = context.dataStructureSortOf(variable.getSort()).type();
@@ -445,7 +447,11 @@ public class MaudeFilter extends BackendFilter {
         if (context.getDataStructureSorts().containsKey(variable.getSort())) {
             result.append(context.dataStructureSortOf(variable.getSort()).type());
         } else {
-            result.append(variable.getSort());
+            if (!MetaK.isKSort(variable.getSort()) && !injection) {
+                result.append(KSorts.KITEM);
+            } else {
+                result.append(variable.getSort());
+            }
         }
 
         if (MetaK.isBuiltinSort(variable.getSort())

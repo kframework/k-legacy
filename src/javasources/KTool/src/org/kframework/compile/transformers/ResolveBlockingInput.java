@@ -239,7 +239,7 @@ public class ResolveBlockingInput extends GetLhsPattern {
      */
 
     private String getSort(final Variable var) {
-        if (!var.getSort().equals(KSorts.KITEM)) return var.getSort();
+        if (originalCondition == null) return var.getSort();
         final String[] sort = {null};
         CopyOnWriteTransformer transformer = new CopyOnWriteTransformer("find missing variables", context) {
 

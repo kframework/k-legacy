@@ -26,7 +26,6 @@ public class FlattenSyntax extends CopyOnWriteTransformer {
 
     @Override
     public ASTNode visit(Definition node, Void _)  {
-        node = (Definition) new FlattenTerms(context).visitNode(node);
         //TODO:  Remove the above once we figure out how to split the two phases
         return super.visit(node, _);
     }
