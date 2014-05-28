@@ -276,12 +276,6 @@ public class ResolveContextAbstraction extends CopyOnWriteTransformer {
         }
         
         @Override
-        public Void visit(TermCons node, Void _) {
-            levels.get(0).add(node);
-            return null;
-        }
-        
-        @Override
         public Void visit(Variable node, Void _) {
             levels.get(0).add(node);
             return null;

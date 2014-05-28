@@ -7,6 +7,7 @@ import org.kframework.compile.utils.MetaK;
 import org.kframework.kil.*;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.CopyOnWriteTransformer;
+import org.kframework.krun.K;
 
 import java.util.*;
 import java.util.List;
@@ -85,5 +86,29 @@ public class FlattenSyntax extends CopyOnWriteTransformer {
         if (!MetaK.isComputationSort(node.getName()))
             return node;
         return new Sort("K");
+    }
+    
+    /**
+     * need to add this check to change all nodes to be KSort.KItem in maude backend
+     */
+    @Override
+    public ASTNode visit(Variable node, Void _)  {
+        if (node.getSort().equals(KSorts.KITEM) || node.getSort().equals(KSorts.K)
+                || MetaK.isKSort(node.getSort())
+                || node.getSort().equals(BoolBuiltin.SORT_NAME)
+                || node.getSort().equals(IntBuiltin.SORT_NAME)
+                || node.getSort().equals("#Float")
+                || node.getSort().equals(StringBuiltin.SORT_NAME)
+                || context.getDataStructureSorts().containsKey(node.getSort())) {
+            return node;
+        }
+
+        node = node.shallowCopy();
+        if (kompileOptions.backend.java() || K.backend.equals("java")) {
+            /* the Java Rewrite Engine preserves sort information for variables */
+        } else {
+            node.setSort(KSorts.KITEM);
+        }
+        return node;
     }
 }

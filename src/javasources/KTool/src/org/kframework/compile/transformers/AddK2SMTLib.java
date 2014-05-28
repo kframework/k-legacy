@@ -7,6 +7,7 @@ import org.kframework.kil.ASTNode;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.KApp;
 import org.kframework.kil.KLabelConstant;
+import org.kframework.kil.KList;
 import org.kframework.kil.Module;
 import org.kframework.kil.ModuleItem;
 import org.kframework.kil.Production;
@@ -117,6 +118,7 @@ public class AddK2SMTLib  extends CopyOnWriteTransformer {
             if (prod.isListDecl())
                 continue;
 
+            //change here by turning all TermCons into KApps
             Term term = MetaK.getTerm(prod, context);
             Term lhs = KApp.of(K_TO_SMTLIB, term);
 
@@ -124,10 +126,14 @@ public class AddK2SMTLib  extends CopyOnWriteTransformer {
             if (prod.isConstant()) {
                 rhs = StringBuiltin.kAppOf(smtLbl);
             } else {
-                TermCons termCons = ((TermCons) term);
+                Production theProd = context.conses.get(prod.getCons());
+                KList theList = new KList();
+                if(((KApp)term).getChild() instanceof KList){
+                    theList=(KList)((KApp)term).getChild();
+                }
                 rhs = StringBuiltin.kAppOf("(" + smtLbl);
-                for (int idx = 0; idx < ((TermCons) term).arity(); ++idx) {
-                    Variable var = (Variable) termCons.getSubterm(idx);
+                for (int idx = 0; idx < theProd.getArity(); ++idx) {
+                    Variable var = (Variable) (theList.getContents().get(idx));
                     rhs = appendString(rhs, StringBuiltin.SPACE, context);
                     rhs = appendString(rhs, KApp.of(K_TO_SMTLIB, var), context);
                 }

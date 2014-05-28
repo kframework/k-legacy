@@ -35,6 +35,7 @@ public class StrictnessToContexts extends CopyOnWriteTransformer {
         super("Strict Ops To Context", context);
     }
 
+    //change the termCons with KApp
     @Override
     public ASTNode visit(Module node, Void _)  {
         //collect the productions which have the attributes strict and seqstrict
@@ -225,7 +226,7 @@ public class StrictnessToContexts extends CopyOnWriteTransformer {
 
             for (int i = 0; i < newStrictAttrs.size(); i++) {
                 Attribute newStrictAttr = newStrictAttrs.get(i);
-                TermCons termCons = (TermCons) MetaK.getTerm(prod, context);
+                KApp theKApp = (KApp) MetaK.getTerm(prod, context);
                 for (int j = 0; j < prod.getArity(); ++j) {
                     if (kompileOptions.backend.java()) {
                         /*
@@ -235,22 +236,22 @@ public class StrictnessToContexts extends CopyOnWriteTransformer {
                          * generation)
                          */
                         if (kompileOptions.experimental.testGen) {
-                            termCons.getContents().get(j).setSort(KSorts.KITEM);
+                            ((KList)theKApp.getChild()).getContents().get(j).setSort(KSorts.KITEM);
                         }
                     } else {
-                        termCons.getContents().get(j).setSort(KSorts.K);
+                        ((KList)theKApp.getChild()).getContents().get(j).setSort(KSorts.K);
                     }
                 }
 
                 // insert HOLE instead of the term
-                termCons.getContents().set(-1 + Integer.parseInt(newStrictAttr.getKey()),
+                ((KList)theKApp.getChild()).getContents().set(-1 + Integer.parseInt(newStrictAttr.getKey()),
                         getHoleTerm(newStrictAttr.getAttributes(), prod));
 
                 // is seqstrict the elements before the argument should be KResult
                 KApp sideCond = null;
                 if (isSeq) {
                     for (int j = 0; j < i; ++j) {
-                        Term arg = termCons.getContents().get(-1 + Integer.parseInt(newStrictAttrs.get(j).getKey()));
+                        Term arg = ((KList)theKApp.getChild()).getContents().get(-1 + Integer.parseInt(newStrictAttrs.get(j).getKey()));
                         if (kompileOptions.experimental.testGen) {
                             KApp kResultPred = KApp.of(KLabelConstant.KRESULT_PREDICATE, arg);
                             sideCond = sideCond == null ? kResultPred : 
@@ -262,7 +263,7 @@ public class StrictnessToContexts extends CopyOnWriteTransformer {
                 }
 
                 org.kframework.kil.Context ctx = new org.kframework.kil.Context();
-                ctx.setBody(termCons);
+                ctx.setBody(theKApp);
                 ctx.setAttributes(new Attributes());
                 ctx.getAttributes().setAll(prod.getAttributes());
                 String strictContext = newStrictAttr.getAttribute(CONTEXT);
@@ -328,6 +329,7 @@ public class StrictnessToContexts extends CopyOnWriteTransformer {
 
     /* Add context KLabel(KList1 ,, HOLE ,, KList2).
      * If KLabel is seqstrict then add the condition isKResult(KList1)
+     * change TermCons to KApp
      */
     private void kLabelStrictness(Production prod, boolean isSeq) {
         List<Term> contents = new ArrayList<>(3);
@@ -339,7 +341,7 @@ public class StrictnessToContexts extends CopyOnWriteTransformer {
         //third argument is a variable of sort KList
         contents.add(Variable.getFreshVar(KSorts.KLIST));
         KApp kapp = new KApp(MetaK.getTerm(prod, context), new KList(contents));
-        //make a context from the TermCons
+        //make a context from the KApp
         org.kframework.kil.Context ctx = new org.kframework.kil.Context();
         ctx.setBody(kapp);
         ctx.setAttributes(prod.getAttributes());
