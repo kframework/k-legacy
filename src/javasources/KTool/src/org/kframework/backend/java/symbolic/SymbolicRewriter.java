@@ -32,7 +32,7 @@ import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.Rule;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.strategies.TransitionCompositeStrategy;
 import org.kframework.backend.java.util.TestCaseGenerationUtil;
@@ -332,7 +332,7 @@ public class SymbolicRewriter {
      *            the term context
      * @return the pattern term
      */
-    private ConstrainedTerm preparePattern(Rule rule, TermContext termContext) {
+    private ConstrainedTerm preparePattern(Rule rule, GlobalContext termContext) {
         SymbolicConstraint leftHandSideConstraint = new SymbolicConstraint(
                 termContext);
         leftHandSideConstraint.addAll(rule.requires());
@@ -884,7 +884,7 @@ public class SymbolicRewriter {
             /* rename rule variables */
             Map<Variable, Variable> freshSubstitution = Variable.getFreshSubstitution(rule.variableSet());
 
-            TermContext context = TermContext.of(definition, fs);
+            GlobalContext context = GlobalContext.of(definition, fs);
             SymbolicConstraint sideConstraint = new SymbolicConstraint(context);
             sideConstraint.addAll(rule.requires());
             ConstrainedTerm initialTerm = new ConstrainedTerm(

@@ -18,7 +18,7 @@ import org.kframework.backend.java.kil.KLabelConstant;
 import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.Kind;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.kil.Z3Term;
 import org.kframework.backend.java.util.GappaPrinter;
@@ -415,7 +415,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
      * It is null is this constraint is not false.
      */
     private Equality falsifyingEquality;
-    private final TermContext context;
+    private final GlobalContext context;
     private final Definition definition;
 
     /**
@@ -424,13 +424,13 @@ public class SymbolicConstraint extends JavaSymbolicObject {
      */
     private final SymbolicUnifier unifier;
 
-    public SymbolicConstraint(SymbolicConstraint constraint, TermContext context) {
+    public SymbolicConstraint(SymbolicConstraint constraint, GlobalContext context) {
         this(context);
         substitution.putAll(constraint.substitution);
         addAll(constraint);
     }
 
-    public SymbolicConstraint(TermContext context) {
+    public SymbolicConstraint(GlobalContext context) {
         this.context = context;
         this.definition = context.definition();
         unifier = new SymbolicUnifier(this, context);
@@ -438,7 +438,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
         isNormal = true;
     }
 
-    public TermContext termContext() {
+    public GlobalContext termContext() {
         return context;
     }
 
@@ -1062,7 +1062,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
      *            {@link SymbolicConstraint#isNormal} to be {@code false}
      */
     private void composeSubstitution(Map<Variable, Term> substMap,
-            TermContext context, boolean mayInvalidateNormality) {
+            GlobalContext context, boolean mayInvalidateNormality) {
         @SuppressWarnings("unchecked")
         Map.Entry<Variable, Term>[] entries = substitution.entrySet().toArray(new Map.Entry[substitution.size()]);
         for (Map.Entry<Variable, Term> subst : entries) {
@@ -1119,7 +1119,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
      * Returns a new {@code SymbolicConstraint} instance obtained from this symbolic constraint
      * by applying substitution.
      */
-    public SymbolicConstraint substituteWithBinders(Map<Variable, ? extends Term> substitution, TermContext context) {
+    public SymbolicConstraint substituteWithBinders(Map<Variable, ? extends Term> substitution, GlobalContext context) {
         if (substitution.isEmpty()) {
             return this;
         }
@@ -1131,7 +1131,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
      * Returns a new {@code SymbolicConstraint} instance obtained from this symbolic constraint by
      * substituting variable with term.
      */
-    public SymbolicConstraint substituteWithBinders(Variable variable, Term term, TermContext context) {
+    public SymbolicConstraint substituteWithBinders(Variable variable, Term term, GlobalContext context) {
         return substituteWithBinders(Collections.singletonMap(variable, term), context);
     }
 
@@ -1261,7 +1261,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
         final List<KItem> result;
         private String IF_THEN_ELSE_LABEL="'#if_#then_#else_#fi";
 
-        public IfThenElseFinder(TermContext context) {
+        public IfThenElseFinder(GlobalContext context) {
             result = new ArrayList<>();
             preVisitor.addVisitor(new LocalVisitor() {
                 @Override

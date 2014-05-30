@@ -17,11 +17,11 @@ public class LocalEvaluator extends LocalTransformer {
      */
     private final SymbolicConstraint constraint;
 
-    public LocalEvaluator(TermContext context) {
+    public LocalEvaluator(GlobalContext context) {
         this(null, context);
     }
 
-    public LocalEvaluator(SymbolicConstraint constraint, TermContext context) {
+    public LocalEvaluator(SymbolicConstraint constraint, GlobalContext context) {
         super(context);
         this.constraint = constraint;
     }
