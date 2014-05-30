@@ -13,7 +13,7 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
 /**
- * An object containing context specific to all configurations.
+ * An object containing the evolving (non-revertible) global context.
  */
 public class GlobalContext extends JavaSymbolicObject {
 
