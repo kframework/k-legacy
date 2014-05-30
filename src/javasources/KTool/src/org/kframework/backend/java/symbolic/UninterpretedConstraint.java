@@ -4,8 +4,8 @@ package org.kframework.backend.java.symbolic;
 
 import com.google.common.base.Joiner;
 import org.kframework.backend.java.kil.JavaSymbolicObject;
+import org.kframework.backend.java.kil.State;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.util.Utils;
 import org.kframework.kil.ASTNode;
 
@@ -13,7 +13,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -110,7 +109,7 @@ public class UninterpretedConstraint extends JavaSymbolicObject {
      *            the term context
      * @return the corresponding symbolic constraint
      */
-    public SymbolicConstraint getSymbolicConstraint(TermContext context) {
+    public SymbolicConstraint getSymbolicConstraint(State context) {
         SymbolicConstraint symbolicConstraint = new SymbolicConstraint(context);
         for (Equality equality : equalities) {
             symbolicConstraint.add(equality.leftHandSide, equality.rightHandSide);

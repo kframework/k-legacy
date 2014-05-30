@@ -61,7 +61,7 @@ public class PatternMatcher extends AbstractMatcher {
      */
     private boolean isStarNested;
 
-    private final TermContext termContext;
+    private final State state;
 
     /**
      * Checks if the subject term matches the pattern.
@@ -75,7 +75,7 @@ public class PatternMatcher extends AbstractMatcher {
      * @return {@code true} if the two terms can be matched; otherwise,
      *         {@code false}
      */
-    public static boolean matchable(Term subject, Term pattern, TermContext context) {
+    public static boolean matchable(Term subject, Term pattern, State context) {
         PatternMatcher matcher = new PatternMatcher(context);
         try {
             matcher.match(subject, pattern);
@@ -102,7 +102,7 @@ public class PatternMatcher extends AbstractMatcher {
      *         rule (each instantiation is represented as a substitution mapping
      *         variables in the pattern to sub-terms in the subject)
      */
-    public static List<Map<Variable, Term>> patternMatch(Term subject, Rule rule, TermContext context) {
+    public static List<Map<Variable, Term>> patternMatch(Term subject, Rule rule, State context) {
         PatternMatcher matcher = new PatternMatcher(context);
         
         boolean failed = true;
@@ -278,8 +278,8 @@ public class PatternMatcher extends AbstractMatcher {
         return result;
     }
 
-    private PatternMatcher(TermContext context) {
-        this.termContext = context;
+    private PatternMatcher(State context) {
+        this.state = context;
         multiSubstitutions = new ArrayList<Collection<Map<Variable, Term>>>();
     }
 
@@ -327,7 +327,7 @@ public class PatternMatcher extends AbstractMatcher {
         }
 
         if (subject.kind() == Kind.CELL || subject.kind() == Kind.CELL_COLLECTION) {
-            Context context = termContext.definition().context();
+            Context context = state.definition().context();
             subject = CellCollection.upKind(subject, pattern.kind(), context);
             pattern = CellCollection.upKind(pattern, subject.kind(), context);
         }
@@ -369,12 +369,12 @@ public class PatternMatcher extends AbstractMatcher {
      *            the variable to be bound
      * @param term
      *            the term to be bound to
-     * @param termContext
+     * @param state
      * @return {@code true} if the variable can be bound to the term
      *         successfully; otherwise, {@code false}
      */
-    private static boolean checkOrderedSortedCondition(Variable variable, Term term, TermContext termContext) {
-        return termContext.definition().context().isSubsortedEq(variable.sort(), term.sort());
+    private static boolean checkOrderedSortedCondition(Variable variable, Term term, State state) {
+        return state.definition().context().isSubsortedEq(variable.sort(), term.sort());
     }
 
     /**
@@ -395,7 +395,7 @@ public class PatternMatcher extends AbstractMatcher {
             term = CellCollection.downKind(term);
         }
 
-        if (!checkOrderedSortedCondition(variable, term, termContext)) {
+        if (!checkOrderedSortedCondition(variable, term, state)) {
             fail(variable, term);
         }
 
@@ -518,7 +518,7 @@ public class PatternMatcher extends AbstractMatcher {
         Set<String> unifiableCellLabels = new HashSet<String>(cellCollection.labelSet());
         unifiableCellLabels.retainAll(otherCellCollection.labelSet());
 
-        Context context = termContext.definition().context();
+        Context context = state.definition().context();
 
         /*
          * Case 1: at least one of the cell collections has no explicitly
@@ -752,7 +752,7 @@ public class PatternMatcher extends AbstractMatcher {
             assert !otherCellMap.containsKey(cellLabel);
         }
 
-        Context context = termContext.definition().context();
+        Context context = state.definition().context();
 
         if (frame != null) {
             if (!otherCellMap.isEmpty()) {
@@ -853,11 +853,11 @@ public class PatternMatcher extends AbstractMatcher {
                     Term boundVars = terms.get(boundVarPosition);
                     Set<Variable> variables = boundVars.variableSet();
                     Map<Variable,Variable> freshSubstitution = Variable.getFreshSubstitution(variables);
-                    Term freshBoundVars = boundVars.substituteWithBinders(freshSubstitution, termContext);
+                    Term freshBoundVars = boundVars.substituteWithBinders(freshSubstitution, state);
                     terms.set(boundVarPosition, freshBoundVars);
                     for (Integer bindingExpPosition : binderMap.get(boundVarPosition)) {
                         Term bindingExp = terms.get(bindingExpPosition-1);
-                        Term freshbindingExp = bindingExp.substituteWithBinders(freshSubstitution, termContext);
+                        Term freshbindingExp = bindingExp.substituteWithBinders(freshSubstitution, state);
                         terms.set(bindingExpPosition-1, freshbindingExp);
                     }
                 }

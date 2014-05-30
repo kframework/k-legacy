@@ -60,13 +60,13 @@ public final class KItem extends Term {
      */
     private final Set<String> possibleMinimalSorts;
 
-    public KItem(Term kLabel, Term kList, TermContext termContext) {
+    public KItem(Term kLabel, Term kList, State state) {
         super(Kind.KITEM);
 
         this.kLabel = kLabel;
         this.kList = kList;
 
-        Definition definition = termContext.definition();
+        Definition definition = state.definition();
         Context context = definition.context();
 
         if (kLabel instanceof KLabelConstant && kList instanceof KList
@@ -91,14 +91,14 @@ public final class KItem extends Term {
                     Collection<Rule> rules = definition.functionRules().get(sortPredLabel);
                     for (Rule rule : rules) {
                         KItem predArg = rule.getSortPredArgument();
-                        if (MetaK.matchable(kLabel, predArg.kLabel(), termContext).equals(BoolToken.TRUE)
-                                && MetaK.matchable(kList, predArg.kList(), termContext).equals(BoolToken.TRUE)) {
+                        if (MetaK.matchable(kLabel, predArg.kLabel(), state).equals(BoolToken.TRUE)
+                                && MetaK.matchable(kList, predArg.kList(), state).equals(BoolToken.TRUE)) {
                             sorts.add(rule.getPredSort());
                             if (kLabelConstant.isConstructor()) {
                                 possibleMinimalSorts.add(rule.getPredSort());
                             }
-                        } else if (MetaK.matchable(kLabel, predArg.kLabel(), termContext).equals(BoolToken.TRUE)
-                                && MetaK.unifiable(kList, predArg.kList(), termContext).equals(BoolToken.TRUE)) {
+                        } else if (MetaK.matchable(kLabel, predArg.kLabel(), state).equals(BoolToken.TRUE)
+                                && MetaK.unifiable(kList, predArg.kList(), state).equals(BoolToken.TRUE)) {
                             if (kLabelConstant.isConstructor()) {
                                 possibleMinimalSorts.add(rule.getPredSort());
                             }
@@ -213,7 +213,7 @@ public final class KItem extends Term {
         }
     }
 
-    public boolean isEvaluable(TermContext context) {
+    public boolean isEvaluable(State context) {
         if (evaluable != null) {
             return evaluable;
         }
@@ -246,7 +246,7 @@ public final class KItem extends Term {
      *            a term context
      * @return the evaluated result on success, or this {@code KItem} otherwise
      */
-    public Term evaluateFunction(SymbolicConstraint constraint, TermContext context) {
+    public Term evaluateFunction(SymbolicConstraint constraint, State context) {
         if (!isEvaluable(context)) {
             return this;
         }

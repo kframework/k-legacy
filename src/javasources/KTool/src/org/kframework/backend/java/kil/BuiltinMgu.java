@@ -17,7 +17,7 @@ public class BuiltinMgu extends Term {
   
     private final SymbolicConstraint constraint;
     
-    private BuiltinMgu(SymbolicConstraint constraint, TermContext context) {
+    private BuiltinMgu(SymbolicConstraint constraint, State context) {
         // YilongL: The kind of a BuiltinMgu should be Kind.KITEM rather than a
         // new created kind for two reasons: 1) an Mgu is a builtin which should
         // be subsorted into KItem; 2) if we assign Mgu its own kind, say MGU,
@@ -27,12 +27,12 @@ public class BuiltinMgu extends Term {
                 : new SymbolicConstraint(constraint, context);
     }
 
-    public static BuiltinMgu emptyMgu(TermContext context) {
+    public static BuiltinMgu emptyMgu(State context) {
         return new BuiltinMgu(null, context);
     }
 
     public static BuiltinMgu of(SymbolicConstraint constraint,
-            TermContext context) {
+            State context) {
         return new BuiltinMgu(constraint, context);
     }
     

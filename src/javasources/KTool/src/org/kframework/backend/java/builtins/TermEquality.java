@@ -2,19 +2,19 @@
 package org.kframework.backend.java.builtins;
 
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.State;
 
 /**
  * @author: AndreiS
  */
 public class TermEquality {
 
-    public static BoolToken eq(Term term1, Term term2, TermContext context) {
+    public static BoolToken eq(Term term1, Term term2, State context) {
         checkArguments(term1, term2);
         return term1.equals(term2) ? BoolToken.TRUE : BoolToken.FALSE;
     }
 
-    public static BoolToken ne(Term term1, Term term2, TermContext context) {
+    public static BoolToken ne(Term term1, Term term2, State context) {
         checkArguments(term1, term2);
         return term1.equals(term2) ? BoolToken.FALSE : BoolToken.TRUE;
     }
@@ -43,7 +43,7 @@ public class TermEquality {
      * @return the first term if the {@code BoolToken} represents true;
      *         otherwise, the second term
      */
-    public static Term ite(BoolToken boolToken, Term t, Term e, TermContext context) {
+    public static Term ite(BoolToken boolToken, Term t, Term e, State context) {
         if (boolToken.booleanValue()) return t;
         return e;
     }

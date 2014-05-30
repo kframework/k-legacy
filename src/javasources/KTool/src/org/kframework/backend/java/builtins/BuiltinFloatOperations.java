@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableList;
 import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.util.GappaPrinter;
 import org.kframework.backend.java.util.GappaServer;
-import org.kframework.kil.loader.Context;
 import org.kframework.krun.K;
 
 /**
@@ -16,7 +15,7 @@ import org.kframework.krun.K;
  */
 public class BuiltinFloatOperations {
 
-    public static Term add(Term term1, Term term2, TermContext context) {
+    public static Term add(Term term1, Term term2, State context) {
         if (term1.equals(UninterpretedToken.of("#Float","0.0")))
             return term2;
         if (term2.equals(UninterpretedToken.of("#Float","0.0")))
@@ -24,7 +23,7 @@ public class BuiltinFloatOperations {
         return null;
     }
 
-     public static Term sub(Term term1, Term term2, TermContext context) {
+     public static Term sub(Term term1, Term term2, State context) {
         if (term1.equals(UninterpretedToken.of("#Float","0.0"))) {
             return new KItem(
                     KLabelConstant.of("'--Float_",context),
@@ -36,7 +35,7 @@ public class BuiltinFloatOperations {
         return null;
     }
 
-     public static Term mul(Term term1, Term term2, TermContext context) {
+     public static Term mul(Term term1, Term term2, State context) {
         if (term1.equals(UninterpretedToken.of("#Float","0.0")) ||
                 term2.equals(UninterpretedToken.of("#Float","0.0")))
             return UninterpretedToken.of("#Float","0.0");
@@ -105,7 +104,7 @@ public class BuiltinFloatOperations {
     }
 */
 
-    public static Term unaryMinus(Term term, TermContext context) {
+    public static Term unaryMinus(Term term, State context) {
         if (term instanceof KItem) {
             Term kLabel = ((KItem) term).kLabel();
             Term kList = ((KItem) term).kList();
@@ -126,12 +125,12 @@ public class BuiltinFloatOperations {
         return UninterpretedToken.of(sort, value);
     }
 
-    public static BoolToken eq(Term term1, Term term2, TermContext context) {
+    public static BoolToken eq(Term term1, Term term2, State context) {
         if (term1.equals(term2)) return BoolToken.TRUE;
         return null;
     }
 
-    public static BoolToken gt(Term term1, Term term2, TermContext context) {
+    public static BoolToken gt(Term term1, Term term2, State context) {
         if (!K.smt.equals("gappa")) return null;
         GappaPrinter gappaPrinter = GappaPrinter.toGappaGround(term1);
         if (gappaPrinter.getException() != null) {
@@ -151,7 +150,7 @@ public class BuiltinFloatOperations {
         return null;
     }
 
-    public static BoolToken ge(Term term1, Term term2, TermContext context) {
+    public static BoolToken ge(Term term1, Term term2, State context) {
         if (!K.smt.equals("gappa")) return null;
         GappaPrinter gappaPrinter = GappaPrinter.toGappaGround(term1);
         if (gappaPrinter.getException() != null) {
@@ -171,7 +170,7 @@ public class BuiltinFloatOperations {
         return null;
     }
 
-    public static BoolToken lt(Term term1, Term term2, TermContext context) {
+    public static BoolToken lt(Term term1, Term term2, State context) {
         if (!K.smt.equals("gappa")) return null;
         GappaPrinter gappaPrinter = GappaPrinter.toGappaGround(term1);
         if (gappaPrinter.getException() != null) {
@@ -191,7 +190,7 @@ public class BuiltinFloatOperations {
         return null;
     }
 
-    public static BoolToken le(Term term1, Term term2, TermContext context) {
+    public static BoolToken le(Term term1, Term term2, State context) {
         if (!K.smt.equals("gappa")) return null;
         GappaPrinter gappaPrinter = GappaPrinter.toGappaGround(term1);
         if (gappaPrinter.getException() != null) {

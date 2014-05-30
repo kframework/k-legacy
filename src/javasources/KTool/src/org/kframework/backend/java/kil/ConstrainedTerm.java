@@ -45,10 +45,10 @@ public class ConstrainedTerm extends Term {
      */
     private final SymbolicConstraint lookups;
     private final SymbolicConstraint constraint;
-    private final TermContext context;
+    private final State context;
 
     public ConstrainedTerm(Term term, SymbolicConstraint lookups, SymbolicConstraint constraint,
-            TermContext context) {
+            State context) {
         super(term.kind);
         this.term = term;
         this.lookups = lookups;
@@ -56,15 +56,15 @@ public class ConstrainedTerm extends Term {
         this.context = context;
     }
 
-    public ConstrainedTerm(Term term, SymbolicConstraint constraint, TermContext context) {
+    public ConstrainedTerm(Term term, SymbolicConstraint constraint, State context) {
         this(term, new SymbolicConstraint(context), constraint, context);
     }
 
-    public ConstrainedTerm(Term term, TermContext context) {
+    public ConstrainedTerm(Term term, State context) {
         this(term, new SymbolicConstraint(context), new SymbolicConstraint(context), context);
     }
 
-    public TermContext termContext() {
+    public State termContext() {
         return context;
     }
 

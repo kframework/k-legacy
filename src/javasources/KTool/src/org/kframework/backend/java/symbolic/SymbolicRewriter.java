@@ -25,15 +25,8 @@ import org.kframework.backend.java.indexing.Index;
 import org.kframework.backend.java.indexing.IndexingPair;
 import org.kframework.backend.java.indexing.RuleIndex;
 import org.kframework.backend.java.indexing.IndexingTable;
+import org.kframework.backend.java.kil.*;
 import org.kframework.utils.general.IndexingStatistics;
-import org.kframework.backend.java.kil.Cell;
-import org.kframework.backend.java.kil.CellCollection;
-import org.kframework.backend.java.kil.ConstrainedTerm;
-import org.kframework.backend.java.kil.Definition;
-import org.kframework.backend.java.kil.Rule;
-import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
-import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.strategies.TransitionCompositeStrategy;
 import org.kframework.backend.java.util.TestCaseGenerationUtil;
 import org.kframework.krun.K;
@@ -328,13 +321,13 @@ public class SymbolicRewriter {
      * 
      * @param rule
      *            the specified rule
-     * @param termContext
+     * @param state
      *            the term context
      * @return the pattern term
      */
-    private ConstrainedTerm preparePattern(Rule rule, TermContext termContext) {
+    private ConstrainedTerm preparePattern(Rule rule, State state) {
         SymbolicConstraint leftHandSideConstraint = new SymbolicConstraint(
-                termContext);
+                state);
         leftHandSideConstraint.addAll(rule.requires());
         for (Variable variable : rule.freshVariables()) {
             leftHandSideConstraint.add(variable, IntToken.fresh());
@@ -342,9 +335,9 @@ public class SymbolicRewriter {
 
         ConstrainedTerm leftHandSide = new ConstrainedTerm(
                 rule.leftHandSide(),
-                rule.lookups().getSymbolicConstraint(termContext),
+                rule.lookups().getSymbolicConstraint(state),
                 leftHandSideConstraint,
-                termContext);
+                state);
         return leftHandSide;
     }
 
@@ -884,7 +877,7 @@ public class SymbolicRewriter {
             /* rename rule variables */
             Map<Variable, Variable> freshSubstitution = Variable.getFreshSubstitution(rule.variableSet());
 
-            TermContext context = TermContext.of(definition, fs);
+            State context = State.of(definition, fs);
             SymbolicConstraint sideConstraint = new SymbolicConstraint(context);
             sideConstraint.addAll(rule.requires());
             ConstrainedTerm initialTerm = new ConstrainedTerm(

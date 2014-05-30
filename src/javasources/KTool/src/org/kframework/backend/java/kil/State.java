@@ -15,15 +15,15 @@ import com.google.common.collect.Table;
 /**
  * An object containing context specific to a particular configuration.
  */
-public class TermContext extends JavaSymbolicObject {
+public class State extends JavaSymbolicObject {
 
-    private static Map<Definition, TermContext> cache1 = new HashMap<Definition, TermContext>();
-    private static Table<Definition, FileSystem, TermContext> cache2 = HashBasedTable.create();
+    private static Map<Definition, State> cache1 = new HashMap<Definition, State>();
+    private static Table<Definition, FileSystem, State> cache2 = HashBasedTable.create();
 
     private final Definition def;
     private final FileSystem fs;
     
-    private TermContext(Definition def, FileSystem fs) {
+    private State(Definition def, FileSystem fs) {
         this.def = def;
         this.fs = fs;
     }
@@ -32,23 +32,23 @@ public class TermContext extends JavaSymbolicObject {
      * Only used when the Term is part of a Definition instead of part of a
      * ConstrainedTerm.
      */
-    public static TermContext of(Definition def) {
-        TermContext termContext = cache1.get(def);
-        if (termContext == null) {
-            termContext = new TermContext(def, null);
-            cache1.put(def, termContext);
+    public static State of(Definition def) {
+        State state = cache1.get(def);
+        if (state == null) {
+            state = new State(def, null);
+            cache1.put(def, state);
         }
-        return termContext;
+        return state;
     }
 
-    public static TermContext of(Definition def, FileSystem fs) {
+    public static State of(Definition def, FileSystem fs) {
         assert fs != null;
-        TermContext termContext = cache2.get(def, fs);
-        if (termContext == null) {
-            termContext = new TermContext(def, fs);
-            cache2.put(def, fs, termContext);
+        State state = cache2.get(def, fs);
+        if (state == null) {
+            state = new State(def, fs);
+            cache2.put(def, fs, state);
         }
-        return termContext;
+        return state;
     }
 
     public Definition definition() {
