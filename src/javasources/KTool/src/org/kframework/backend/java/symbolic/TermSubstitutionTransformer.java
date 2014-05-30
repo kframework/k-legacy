@@ -6,6 +6,7 @@ import org.kframework.backend.java.kil.*;
 import org.kframework.kil.ASTNode;
 
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -17,7 +18,7 @@ public class TermSubstitutionTransformer extends PrePostTransformer {
 
     private final Map<? extends Term, ? extends Term> substitution;
 
-    public TermSubstitutionTransformer(Map<? extends Term, ? extends Term> substitution, State context) {
+    public TermSubstitutionTransformer(Map<? extends Term, ? extends Term> substitution, TermContext context) {
         super(context);
         this.substitution = substitution;
 //        preTransformer.addTransformer(new LocalVariableChecker());

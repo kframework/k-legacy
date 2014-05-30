@@ -4,12 +4,29 @@ package org.kframework.backend.java.symbolic;
 
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.IntToken;
-import org.kframework.backend.java.kil.*;
+import org.kframework.backend.java.kil.Bottom;
+import org.kframework.backend.java.kil.CellCollection;
+import org.kframework.backend.java.kil.ConcreteCollectionVariable;
+import org.kframework.backend.java.kil.ConstrainedTerm;
+import org.kframework.backend.java.kil.DataStructureLookupOrChoice;
+import org.kframework.backend.java.kil.Definition;
+import org.kframework.backend.java.kil.JavaSymbolicObject;
+import org.kframework.backend.java.kil.KCollection;
+import org.kframework.backend.java.kil.KItem;
+import org.kframework.backend.java.kil.KLabel;
+import org.kframework.backend.java.kil.KLabelConstant;
+import org.kframework.backend.java.kil.KList;
+import org.kframework.backend.java.kil.Kind;
+import org.kframework.backend.java.kil.Term;
+import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.Variable;
+import org.kframework.backend.java.kil.Z3Term;
 import org.kframework.backend.java.util.GappaPrinter;
 import org.kframework.backend.java.util.GappaServer;
 import org.kframework.backend.java.util.Utils;
 import org.kframework.backend.java.util.Z3Wrapper;
 import org.kframework.kil.ASTNode;
+import org.kframework.kil.visitors.exceptions.ParseFailedException;
 import org.kframework.krun.K;
 
 import java.util.ArrayList;
@@ -398,7 +415,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
      * It is null is this constraint is not false.
      */
     private Equality falsifyingEquality;
-    private final State context;
+    private final TermContext context;
     private final Definition definition;
 
     /**
@@ -407,13 +424,13 @@ public class SymbolicConstraint extends JavaSymbolicObject {
      */
     private final SymbolicUnifier unifier;
 
-    public SymbolicConstraint(SymbolicConstraint constraint, State context) {
+    public SymbolicConstraint(SymbolicConstraint constraint, TermContext context) {
         this(context);
         substitution.putAll(constraint.substitution);
         addAll(constraint);
     }
 
-    public SymbolicConstraint(State context) {
+    public SymbolicConstraint(TermContext context) {
         this.context = context;
         this.definition = context.definition();
         unifier = new SymbolicUnifier(this, context);
@@ -421,7 +438,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
         isNormal = true;
     }
 
-    public State termContext() {
+    public TermContext termContext() {
         return context;
     }
 
@@ -1045,7 +1062,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
      *            {@link SymbolicConstraint#isNormal} to be {@code false}
      */
     private void composeSubstitution(Map<Variable, Term> substMap,
-            State context, boolean mayInvalidateNormality) {
+            TermContext context, boolean mayInvalidateNormality) {
         @SuppressWarnings("unchecked")
         Map.Entry<Variable, Term>[] entries = substitution.entrySet().toArray(new Map.Entry[substitution.size()]);
         for (Map.Entry<Variable, Term> subst : entries) {
@@ -1102,7 +1119,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
      * Returns a new {@code SymbolicConstraint} instance obtained from this symbolic constraint
      * by applying substitution.
      */
-    public SymbolicConstraint substituteWithBinders(Map<Variable, ? extends Term> substitution, State context) {
+    public SymbolicConstraint substituteWithBinders(Map<Variable, ? extends Term> substitution, TermContext context) {
         if (substitution.isEmpty()) {
             return this;
         }
@@ -1114,7 +1131,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
      * Returns a new {@code SymbolicConstraint} instance obtained from this symbolic constraint by
      * substituting variable with term.
      */
-    public SymbolicConstraint substituteWithBinders(Variable variable, Term term, State context) {
+    public SymbolicConstraint substituteWithBinders(Variable variable, Term term, TermContext context) {
         return substituteWithBinders(Collections.singletonMap(variable, term), context);
     }
 
@@ -1244,7 +1261,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
         final List<KItem> result;
         private String IF_THEN_ELSE_LABEL="'#if_#then_#else_#fi";
 
-        public IfThenElseFinder(State context) {
+        public IfThenElseFinder(TermContext context) {
             result = new ArrayList<>();
             preVisitor.addVisitor(new LocalVisitor() {
                 @Override

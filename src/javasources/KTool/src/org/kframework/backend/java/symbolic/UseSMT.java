@@ -3,7 +3,7 @@ package org.kframework.backend.java.symbolic;
 
 import java.io.Serializable;
 
-import org.kframework.backend.java.kil.*;
+import org.kframework.backend.java.kil.BuiltinMap;
 
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Expr;
@@ -11,6 +11,11 @@ import com.microsoft.z3.FuncDecl;
 import com.microsoft.z3.Model;
 
 import org.kframework.backend.java.builtins.IntToken;
+import org.kframework.backend.java.builtins.StringToken;
+import org.kframework.backend.java.kil.Term;
+import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.Variable;
+import org.kframework.backend.java.kil.Z3Term;
 
 import java.util.*;
 
@@ -18,13 +23,14 @@ import com.microsoft.z3.Solver;
 import com.microsoft.z3.Status;
 import com.microsoft.z3.Z3Exception;
 
+import org.kframework.kil.Context;
 import org.kframework.krun.K;
 
 
 
 public class UseSMT implements Serializable {
 
-    public static BuiltinMap checkSat(Term term, State state) {
+    public static BuiltinMap checkSat(Term term, TermContext termContext) {
         if (!K.smt.equals("z3")) {
             return null;
         }

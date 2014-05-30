@@ -5,18 +5,18 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.State;
+import org.kframework.backend.java.kil.TermContext;
 import org.kframework.krun.api.io.FileSystem;
 import org.mockito.Mockito;
 
 public class BuiltinIOOperationsTest {
 
-    private State context;
+    private TermContext context;
     private FileSystem fs;
 
     @Before
     public void setUp() throws Exception {
-        context = Mockito.mock(State.class);
+        context = Mockito.mock(TermContext.class);
         fs = Mockito.mock(FileSystem.class);
 
         Mockito.when(context.fileSystem()).thenReturn(fs);

@@ -43,7 +43,7 @@ public class BuiltinVisitorOperations extends PrePostTransformer {
             List<Term> ifParams,
             KLabel visitLabel,
             List<Term> visitParams,
-            State context) {
+            TermContext context) {
         super(context);
         this.ifLabel = ifLabel;
         this.ifParams = ifParams;
@@ -108,7 +108,7 @@ public class BuiltinVisitorOperations extends PrePostTransformer {
             KItem visitListTerm,
             KItem ifLabelTerm,
             KItem ifListTerm,
-            State context) {
+            TermContext context) {
         KLabel visitLabel;
         KList visitList;
         KLabel ifLabel;
