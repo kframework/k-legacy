@@ -5,7 +5,7 @@ import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.Rule;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.util.TestCaseGenerationSettings;
 import org.kframework.backend.java.util.TestCaseGenerationUtil;
@@ -95,7 +95,7 @@ public class JavaSymbolicKRun implements KRun {
         }
 
         Term term = Term.of(cfg, definition);
-        TermContext termContext = TermContext.of(definition, new PortableFileSystem());
+        GlobalContext termContext = GlobalContext.of(definition, new PortableFileSystem());
         term = term.evaluate(termContext);
 
         if (K.pattern_matching) {
@@ -123,7 +123,7 @@ public class JavaSymbolicKRun implements KRun {
 
     @Override
     public KRunProofResult<Set<org.kframework.kil.Term>> prove(Module module, org.kframework.kil.Term cfg) throws KRunExecutionException {
-        TermContext termContext = TermContext.of(definition, new PortableFileSystem());
+        GlobalContext termContext = GlobalContext.of(definition, new PortableFileSystem());
         Map<org.kframework.kil.Term, org.kframework.kil.Term> substitution = null;
         if (cfg != null) {
             cfg = run(cfg).getResult().getRawResult();
@@ -226,7 +226,7 @@ public class JavaSymbolicKRun implements KRun {
         pattern = (org.kframework.kil.Rule)builtinTransformer.visit(pattern, null);
         cfg = (org.kframework.kil.Term) builtinTransformer.visitNode(cfg);
 
-        TermContext termContext = TermContext.of(definition, fs);
+        GlobalContext termContext = GlobalContext.of(definition, fs);
         List<Rule> claims = Collections.emptyList();
         if (bound == null) {
             bound = -1;
@@ -324,7 +324,7 @@ public class JavaSymbolicKRun implements KRun {
                         stateMap));
         
         SymbolicRewriter symbolicRewriter = new SymbolicRewriter(definition);
-        final TermContext termContext = TermContext.of(definition, new PortableFileSystem());
+        final GlobalContext termContext = GlobalContext.of(definition, new PortableFileSystem());
         ConstrainedTerm initCfg = new ConstrainedTerm(Term.of(cfg, definition), termContext);
 
         List<TestGenResult> generatorResults = new ArrayList<TestGenResult>();

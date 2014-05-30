@@ -38,9 +38,9 @@ public class KLabelConstant extends KLabel {
      * generates this {@code KLabelConstant}
      */
     private final boolean isFunction;
-    private final TermContext termContext;
+    private final GlobalContext termContext;
 
-    private KLabelConstant(String label, TermContext termContext) {
+    private KLabelConstant(String label, GlobalContext termContext) {
         this.label = label;
         productions = ImmutableList.copyOf(termContext.definition().context().productionsOf(label));
         
@@ -85,7 +85,7 @@ public class KLabelConstant extends KLabel {
      * @param label string representation of the KLabel; must not be '`' escaped;
      * @return AST term representation the the KLabel;
      */
-    public static KLabelConstant of(String label, TermContext termContext) {
+    public static KLabelConstant of(String label, GlobalContext termContext) {
         assert label != null;
 
         KLabelConstant kLabelConstant = cache.get(label);
@@ -177,7 +177,7 @@ public class KLabelConstant extends KLabel {
         return kLabelConstant;
     }
 
-    public TermContext termContext() {
+    public GlobalContext termContext() {
         return termContext;
     }
 

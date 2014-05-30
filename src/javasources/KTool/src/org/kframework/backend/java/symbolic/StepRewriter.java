@@ -10,7 +10,7 @@ import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.Rule;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.Variable;
 
 import com.google.common.base.Stopwatch;
@@ -115,7 +115,7 @@ public class StepRewriter {
 
         termResults = new ArrayList<Term>();
 
-        TermContext context = TermContext.of(definition);
+        GlobalContext context = GlobalContext.of(definition);
         ConstrainedTerm constrainedTerm = new ConstrainedTerm(term, context);
 
         SymbolicConstraint leftHandSideConstraint = new SymbolicConstraint(context);

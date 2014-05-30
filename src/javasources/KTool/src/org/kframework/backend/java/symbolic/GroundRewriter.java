@@ -17,7 +17,7 @@ import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.Rule;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.strategies.TransitionCompositeStrategy;
 import org.kframework.krun.api.SearchType;
@@ -27,7 +27,7 @@ import com.google.common.base.Stopwatch;
 // TODO(YilongL): extract common functionalities with SymbolicRewriter to superclass
 public class GroundRewriter {
     
-    private final TermContext termContext;
+    private final GlobalContext termContext;
     private final TransitionCompositeStrategy strategy;
     private final Stopwatch stopwatch = new Stopwatch();
     private int step;
@@ -35,7 +35,7 @@ public class GroundRewriter {
     private boolean transition;
     private RuleIndex ruleIndex;
 
-    public GroundRewriter(Definition definition, TermContext termContext) {
+    public GroundRewriter(Definition definition, GlobalContext termContext) {
         ruleIndex = definition.getIndex();
         this.termContext = termContext;
         this.strategy = new TransitionCompositeStrategy(definition.context().kompileOptions.transition);

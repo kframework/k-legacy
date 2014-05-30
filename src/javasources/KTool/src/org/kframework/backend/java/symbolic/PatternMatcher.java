@@ -61,7 +61,7 @@ public class PatternMatcher extends AbstractMatcher {
      */
     private boolean isStarNested;
 
-    private final TermContext termContext;
+    private final GlobalContext termContext;
 
     /**
      * Checks if the subject term matches the pattern.
@@ -75,7 +75,7 @@ public class PatternMatcher extends AbstractMatcher {
      * @return {@code true} if the two terms can be matched; otherwise,
      *         {@code false}
      */
-    public static boolean matchable(Term subject, Term pattern, TermContext context) {
+    public static boolean matchable(Term subject, Term pattern, GlobalContext context) {
         PatternMatcher matcher = new PatternMatcher(context);
         try {
             matcher.match(subject, pattern);
@@ -102,7 +102,7 @@ public class PatternMatcher extends AbstractMatcher {
      *         rule (each instantiation is represented as a substitution mapping
      *         variables in the pattern to sub-terms in the subject)
      */
-    public static List<Map<Variable, Term>> patternMatch(Term subject, Rule rule, TermContext context) {
+    public static List<Map<Variable, Term>> patternMatch(Term subject, Rule rule, GlobalContext context) {
         PatternMatcher matcher = new PatternMatcher(context);
         
         boolean failed = true;
@@ -278,7 +278,7 @@ public class PatternMatcher extends AbstractMatcher {
         return result;
     }
 
-    private PatternMatcher(TermContext context) {
+    private PatternMatcher(GlobalContext context) {
         this.termContext = context;
         multiSubstitutions = new ArrayList<Collection<Map<Variable, Term>>>();
     }
@@ -373,7 +373,7 @@ public class PatternMatcher extends AbstractMatcher {
      * @return {@code true} if the variable can be bound to the term
      *         successfully; otherwise, {@code false}
      */
-    private static boolean checkOrderedSortedCondition(Variable variable, Term term, TermContext termContext) {
+    private static boolean checkOrderedSortedCondition(Variable variable, Term term, GlobalContext termContext) {
         return termContext.definition().context().isSubsortedEq(variable.sort(), term.sort());
     }
 

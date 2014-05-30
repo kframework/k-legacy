@@ -60,7 +60,7 @@ public final class KItem extends Term {
      */
     private final Set<String> possibleMinimalSorts;
 
-    public KItem(Term kLabel, Term kList, TermContext termContext) {
+    public KItem(Term kLabel, Term kList, GlobalContext termContext) {
         super(Kind.KITEM);
 
         this.kLabel = kLabel;
@@ -213,7 +213,7 @@ public final class KItem extends Term {
         }
     }
 
-    public boolean isEvaluable(TermContext context) {
+    public boolean isEvaluable(GlobalContext context) {
         if (evaluable != null) {
             return evaluable;
         }
@@ -246,7 +246,7 @@ public final class KItem extends Term {
      *            a term context
      * @return the evaluated result on success, or this {@code KItem} otherwise
      */
-    public Term evaluateFunction(SymbolicConstraint constraint, TermContext context) {
+    public Term evaluateFunction(SymbolicConstraint constraint, GlobalContext context) {
         if (!isEvaluable(context)) {
             return this;
         }

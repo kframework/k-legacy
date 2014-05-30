@@ -13,17 +13,17 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
 /**
- * An object containing context specific to a particular configuration.
+ * An object containing context specific to all configurations.
  */
-public class TermContext extends JavaSymbolicObject {
+public class GlobalContext extends JavaSymbolicObject {
 
-    private static Map<Definition, TermContext> cache1 = new HashMap<Definition, TermContext>();
-    private static Table<Definition, FileSystem, TermContext> cache2 = HashBasedTable.create();
+    private static Map<Definition, GlobalContext> cache1 = new HashMap<Definition, GlobalContext>();
+    private static Table<Definition, FileSystem, GlobalContext> cache2 = HashBasedTable.create();
 
     private final Definition def;
     private final FileSystem fs;
     
-    private TermContext(Definition def, FileSystem fs) {
+    private GlobalContext(Definition def, FileSystem fs) {
         this.def = def;
         this.fs = fs;
     }
@@ -32,20 +32,20 @@ public class TermContext extends JavaSymbolicObject {
      * Only used when the Term is part of a Definition instead of part of a
      * ConstrainedTerm.
      */
-    public static TermContext of(Definition def) {
-        TermContext termContext = cache1.get(def);
+    public static GlobalContext of(Definition def) {
+        GlobalContext termContext = cache1.get(def);
         if (termContext == null) {
-            termContext = new TermContext(def, null);
+            termContext = new GlobalContext(def, null);
             cache1.put(def, termContext);
         }
         return termContext;
     }
 
-    public static TermContext of(Definition def, FileSystem fs) {
+    public static GlobalContext of(Definition def, FileSystem fs) {
         assert fs != null;
-        TermContext termContext = cache2.get(def, fs);
+        GlobalContext termContext = cache2.get(def, fs);
         if (termContext == null) {
-            termContext = new TermContext(def, fs);
+            termContext = new GlobalContext(def, fs);
             cache2.put(def, fs, termContext);
         }
         return termContext;

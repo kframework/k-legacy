@@ -30,7 +30,7 @@ import org.kframework.backend.java.kil.MapUpdate;
 import org.kframework.backend.java.kil.MetaVariable;
 import org.kframework.backend.java.kil.SetUpdate;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.Token;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.kil.loader.Context;
@@ -63,9 +63,9 @@ public class SymbolicUnifier extends AbstractUnifier {
      * A conjunction of disjunctions of {@code SymbolicConstraint}s created by this unifier.
      */
     public final java.util.Collection<java.util.Collection<SymbolicConstraint>> multiConstraints;
-    private final TermContext termContext;
+    private final GlobalContext termContext;
 
-    public SymbolicUnifier(SymbolicConstraint constraint, TermContext context) {
+    public SymbolicUnifier(SymbolicConstraint constraint, GlobalContext context) {
         this.fConstraint = constraint;
         this.termContext = context;
         multiConstraints = new ArrayList<java.util.Collection<SymbolicConstraint>>();
