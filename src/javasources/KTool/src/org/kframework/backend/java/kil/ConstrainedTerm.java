@@ -45,27 +45,27 @@ public class ConstrainedTerm extends Term {
      */
     private final SymbolicConstraint lookups;
     private final SymbolicConstraint constraint;
-    private final TermContext context;
+    private final State state;
 
     public ConstrainedTerm(Term term, SymbolicConstraint lookups, SymbolicConstraint constraint,
-            TermContext context) {
+            State state) {
         super(term.kind);
         this.term = term;
         this.lookups = lookups;
         this.constraint = constraint;
-        this.context = context;
+        this.state = state;
     }
 
-    public ConstrainedTerm(Term term, SymbolicConstraint constraint, TermContext context) {
-        this(term, new SymbolicConstraint(context), constraint, context);
+    public ConstrainedTerm(Term term, SymbolicConstraint constraint, State state) {
+        this(term, new SymbolicConstraint(state), constraint, state);
     }
 
-    public ConstrainedTerm(Term term, TermContext context) {
-        this(term, new SymbolicConstraint(context), new SymbolicConstraint(context), context);
+    public ConstrainedTerm(Term term, State state) {
+        this(term, new SymbolicConstraint(state), new SymbolicConstraint(state), state);
     }
 
-    public TermContext termContext() {
-        return context;
+    public State state() {
+        return state;
     }
 
     public SymbolicConstraint constraint() {
@@ -99,7 +99,7 @@ public class ConstrainedTerm extends Term {
     */
 
     public SymbolicConstraint matchImplies(ConstrainedTerm constrainedTerm) {
-        SymbolicConstraint unificationConstraint = new SymbolicConstraint(constrainedTerm.termContext());
+        SymbolicConstraint unificationConstraint = new SymbolicConstraint(constrainedTerm.state());
         unificationConstraint.add(term, constrainedTerm.term);
         unificationConstraint.simplify();
         Set<Variable> variables = constrainedTerm.variableSet();
@@ -109,13 +109,13 @@ public class ConstrainedTerm extends Term {
             return null;
         }
 
-        SymbolicConstraint implicationConstraint = new SymbolicConstraint(constrainedTerm.termContext());
+        SymbolicConstraint implicationConstraint = new SymbolicConstraint(constrainedTerm.state());
         implicationConstraint.addAll(unificationConstraint);
         implicationConstraint.addAll(constrainedTerm.lookups);
         implicationConstraint.addAll(constrainedTerm.constraint);
         implicationConstraint.simplify();
         implicationConstraint.orientSubstitution(variables);
-        implicationConstraint = implicationConstraint.substituteWithBinders(implicationConstraint.substitution(), context);
+        implicationConstraint = implicationConstraint.substituteWithBinders(implicationConstraint.substitution(), state);
 
         unificationConstraint.addAll(constraint);
         unificationConstraint.simplify();
@@ -171,7 +171,7 @@ public class ConstrainedTerm extends Term {
         }
 
         /* unify the subject term and the pattern term without considering those associated constraints */
-        SymbolicConstraint unificationConstraint = new SymbolicConstraint(constrainedTerm.termContext());
+        SymbolicConstraint unificationConstraint = new SymbolicConstraint(constrainedTerm.state());
         unificationConstraint.add(term, constrainedTerm.term);
         unificationConstraint.simplify();
         if (unificationConstraint.isFalse()) {
@@ -257,7 +257,7 @@ public class ConstrainedTerm extends Term {
 
                             // get the interpreted version of the constraint
                             for (UninterpretedConstraint uninterpretedCnstr : uninterpretedCnstrs) {
-                                SymbolicConstraint newCnstr = uninterpretedCnstr.getSymbolicConstraint(context);
+                                SymbolicConstraint newCnstr = uninterpretedCnstr.getSymbolicConstraint(state);
                                 if (newCnstr.simplify() != TruthValue.FALSE) {
                                     tmpSolutions.add(newCnstr);
                                     orientedVarsOfCnstr.put(newCnstr, new HashSet<Variable>(orientedVars));
@@ -292,7 +292,7 @@ public class ConstrainedTerm extends Term {
 
                             // get the interpreted version of the constraint
                             for (UninterpretedConstraint uninterpretedCnstr : uninterpretedCnstrs) {
-                                SymbolicConstraint newCnstr = uninterpretedCnstr.getSymbolicConstraint(context);
+                                SymbolicConstraint newCnstr = uninterpretedCnstr.getSymbolicConstraint(state);
                                 if (newCnstr.simplify() != TruthValue.FALSE) {
                                     tmpSolutions.add(newCnstr);
                                     orientedVarsOfCnstr.put(newCnstr, new HashSet<Variable>(orientedVars));
@@ -333,7 +333,7 @@ public class ConstrainedTerm extends Term {
                                 
                                 // get the interpreted version of the constraint
                                 for (UninterpretedConstraint uninterpretedCnstr : uninterpretedCnstrs) {
-                                    SymbolicConstraint newCnstr = uninterpretedCnstr.getSymbolicConstraint(context);
+                                    SymbolicConstraint newCnstr = uninterpretedCnstr.getSymbolicConstraint(state);
                                     if (newCnstr.simplify() != TruthValue.FALSE) {
                                         tmpSolutions.add(newCnstr);
                                         orientedVarsOfCnstr.put(newCnstr, new HashSet<Variable>(orientedVars));
@@ -367,7 +367,7 @@ public class ConstrainedTerm extends Term {
 
                             // get the interpreted version of the constraint
                             for (UninterpretedConstraint uninterpretedCnstr : uninterpretedCnstrs) {
-                                SymbolicConstraint newCnstr = uninterpretedCnstr.getSymbolicConstraint(context);
+                                SymbolicConstraint newCnstr = uninterpretedCnstr.getSymbolicConstraint(state);
                                 if (newCnstr.simplify() != TruthValue.FALSE) {
                                     tmpSolutions.add(newCnstr);
                                     orientedVarsOfCnstr.put(newCnstr, new HashSet<Variable>(orientedVars));
@@ -389,7 +389,7 @@ public class ConstrainedTerm extends Term {
     private Set<Variable> computeSortIntersection(String sort1, String sort2) {
         // TODO(YilongL): call Context#getCommonSubsorts to simplify the code
         Set<Variable> results = new HashSet<Variable>();
-        Context defContext = context.definition().context();
+        Context defContext = state.definition().context();
 
         Set<String> subsorts = new HashSet<String>();
         for (String sort : defContext.getAllSorts()) {
@@ -414,7 +414,7 @@ public class ConstrainedTerm extends Term {
 
     private Set<Term> computeSortDifference(String sort1, String sort2) {
         Set<Term> results = new HashSet<Term>();
-        Context defContext = context.definition().context();
+        Context defContext = state.definition().context();
 
         Set<String> whiteSorts = new HashSet<String>();
         for (String sort : defContext.getAllSorts()) {
@@ -460,14 +460,14 @@ public class ConstrainedTerm extends Term {
     }
     
     private List<KItem> getProductionsAsTerms(String sort) {
-        Definition def = context.definition();
+        Definition def = state.definition();
         GroupProductionsBySort gpbs = cachedGroupProductionsBySort.get(def);
         if (gpbs == null) {
             gpbs = new GroupProductionsBySort(def);
             cachedGroupProductionsBySort.put(def, gpbs);
         }
         
-        return gpbs.getProductionsAsTerms(sort, context);
+        return gpbs.getProductionsAsTerms(sort, state);
     }
 
     @Override

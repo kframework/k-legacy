@@ -43,14 +43,14 @@ public class BuiltinVisitorOperations extends PrePostTransformer {
             List<Term> ifParams,
             KLabel visitLabel,
             List<Term> visitParams,
-            TermContext context) {
-        super(context);
+            State state) {
+        super(state);
         this.ifLabel = ifLabel;
         this.ifParams = ifParams;
         this.visitLabel = visitLabel;
         this.visitParams = visitParams;
 
-        preTransformer.addTransformer(new LocalTransformer(context) {
+        preTransformer.addTransformer(new LocalTransformer(state) {
             @Override
             public ASTNode transform(Term term) {
                 if (term instanceof KLabel) {
@@ -71,8 +71,8 @@ public class BuiltinVisitorOperations extends PrePostTransformer {
         term = new KItem(
                 visitLabel,
                 new KList(ImmutableList.copyOf(visitParams)),
-                context);
-        return term.evaluate(context);
+                state);
+        return term.evaluate(state);
     }
 
     private boolean evaluateGuard(Term term) {
@@ -80,9 +80,9 @@ public class BuiltinVisitorOperations extends PrePostTransformer {
         KItem test = new KItem(
                 ifLabel,
                 new KList(ImmutableList.copyOf(ifParams)),
-                context);
+                state);
         // TODO: Think about what happens when test has symbolic values in it.
-        return test.evaluate(context) == BoolToken.TRUE;
+        return test.evaluate(state) == BoolToken.TRUE;
     }
 
     private static Term getInjectedTerm(KItem kItem) {
@@ -97,7 +97,7 @@ public class BuiltinVisitorOperations extends PrePostTransformer {
      * @param visitListTerm {@code KItem} representation of the kList of additional arguments passed the visitation KLabel
      * @param ifLabelTerm {@code KItem} representation of the kLabel of the guard controlling whether a node is visited
      * @param ifListTerm {@code KItem} representation of the kList of additional arguments passed to the guard KLabel
-     * @param context
+     * @param state
      * @return Visited term
      *
      * @see org.kframework.backend.java.kil.KLabelInjection
@@ -108,7 +108,7 @@ public class BuiltinVisitorOperations extends PrePostTransformer {
             KItem visitListTerm,
             KItem ifLabelTerm,
             KItem ifListTerm,
-            TermContext context) {
+            State state) {
         KLabel visitLabel;
         KList visitList;
         KLabel ifLabel;
@@ -128,7 +128,7 @@ public class BuiltinVisitorOperations extends PrePostTransformer {
         visitParams.add(term);
         visitParams.addAll(visitList.getContents());
         return (Term) term.accept(
-                new BuiltinVisitorOperations(ifLabel, ifParams, visitLabel, visitParams, context));
+                new BuiltinVisitorOperations(ifLabel, ifParams, visitLabel, visitParams, state));
     }
 
 }

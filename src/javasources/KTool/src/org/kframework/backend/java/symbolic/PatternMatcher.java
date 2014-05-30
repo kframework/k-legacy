@@ -61,7 +61,7 @@ public class PatternMatcher extends AbstractMatcher {
      */
     private boolean isStarNested;
 
-    private final TermContext termContext;
+    private final State state;
 
     /**
      * Checks if the subject term matches the pattern.
@@ -70,13 +70,13 @@ public class PatternMatcher extends AbstractMatcher {
      *            the subject term
      * @param pattern
      *            the pattern
-     * @param context
-     *            the term context
+     * @param state
+     *            the term state
      * @return {@code true} if the two terms can be matched; otherwise,
      *         {@code false}
      */
-    public static boolean matchable(Term subject, Term pattern, TermContext context) {
-        PatternMatcher matcher = new PatternMatcher(context);
+    public static boolean matchable(Term subject, Term pattern, State state) {
+        PatternMatcher matcher = new PatternMatcher(state);
         try {
             matcher.match(subject, pattern);
         } catch (PatternMatchingFailure e) {
@@ -96,14 +96,14 @@ public class PatternMatcher extends AbstractMatcher {
      *            the subject term
      * @param rule
      *            the rule
-     * @param context
-     *            the term context
+     * @param state
+     *            the term state
      * @return a list of possible instantiations of the left-hand side of the
      *         rule (each instantiation is represented as a substitution mapping
      *         variables in the pattern to sub-terms in the subject)
      */
-    public static List<Map<Variable, Term>> patternMatch(Term subject, Rule rule, TermContext context) {
-        PatternMatcher matcher = new PatternMatcher(context);
+    public static List<Map<Variable, Term>> patternMatch(Term subject, Rule rule, State state) {
+        PatternMatcher matcher = new PatternMatcher(state);
         
         boolean failed = true;
         if (rule.isFunction()) {
@@ -150,7 +150,7 @@ public class PatternMatcher extends AbstractMatcher {
 
                 List<Map<Variable, Term>> updatedSubsts = new ArrayList<>();
                 for (Map<Variable, Term> crntSubst : substitutions) {
-                    Term evalLookupOrChoice = lookupOrChoice.substituteAndEvaluate(crntSubst, context);
+                    Term evalLookupOrChoice = lookupOrChoice.substituteAndEvaluate(crntSubst, state);
                     if (evalLookupOrChoice instanceof Bottom) {
                         /* the data-structure lookup or choice operation is undefined */
                         continue;
@@ -168,7 +168,7 @@ public class PatternMatcher extends AbstractMatcher {
 
                     if (nonLookupOrChoice instanceof Variable) {
                         Variable variable = (Variable) nonLookupOrChoice;
-                        if (checkOrderedSortedCondition(variable, evalLookupOrChoice, context)) {
+                        if (checkOrderedSortedCondition(variable, evalLookupOrChoice, state)) {
                             Map<Variable, Term> newSubst = new HashMap<Variable, Term>(crntSubst);
                             newSubst.put(variable, evalLookupOrChoice);
                             updatedSubsts.add(newSubst);
@@ -176,7 +176,7 @@ public class PatternMatcher extends AbstractMatcher {
                     } else {
                         // the non-lookup term is not a variable and thus requires further pattern matching
                         // for example: TODO(YilongL)
-                        PatternMatcher lookupMatcher = new PatternMatcher(context);
+                        PatternMatcher lookupMatcher = new PatternMatcher(state);
                         if (lookupMatcher.patternMatch(evalLookupOrChoice, nonLookupOrChoice)) {
                             // it's possible that multiple substitutions are viable from the pattern matching above
                             for (Map<Variable, Term> subst1 : PatternMatcher.getMultiSubstitutions(lookupMatcher)) {
@@ -196,7 +196,7 @@ public class PatternMatcher extends AbstractMatcher {
             while (iter.hasNext()) {
                 Map<Variable, Term> nextSubst = iter.next();
                 for (Term require : rule.requires()) {
-                    Term evaluatedReq = require.substituteAndEvaluate(nextSubst, context);
+                    Term evaluatedReq = require.substituteAndEvaluate(nextSubst, state);
                     if (!evaluatedReq.equals(BoolToken.TRUE)) {
                         iter.remove();
                         break;
@@ -278,8 +278,8 @@ public class PatternMatcher extends AbstractMatcher {
         return result;
     }
 
-    private PatternMatcher(TermContext context) {
-        this.termContext = context;
+    private PatternMatcher(State state) {
+        this.state = state;
         multiSubstitutions = new ArrayList<Collection<Map<Variable, Term>>>();
     }
 
@@ -327,7 +327,7 @@ public class PatternMatcher extends AbstractMatcher {
         }
 
         if (subject.kind() == Kind.CELL || subject.kind() == Kind.CELL_COLLECTION) {
-            Context context = termContext.definition().context();
+            Context context = state.definition().context();
             subject = CellCollection.upKind(subject, pattern.kind(), context);
             pattern = CellCollection.upKind(pattern, subject.kind(), context);
         }
@@ -369,12 +369,12 @@ public class PatternMatcher extends AbstractMatcher {
      *            the variable to be bound
      * @param term
      *            the term to be bound to
-     * @param termContext
+     * @param state
      * @return {@code true} if the variable can be bound to the term
      *         successfully; otherwise, {@code false}
      */
-    private static boolean checkOrderedSortedCondition(Variable variable, Term term, TermContext termContext) {
-        return termContext.definition().context().isSubsortedEq(variable.sort(), term.sort());
+    private static boolean checkOrderedSortedCondition(Variable variable, Term term, State state) {
+        return state.definition().context().isSubsortedEq(variable.sort(), term.sort());
     }
 
     /**
@@ -395,7 +395,7 @@ public class PatternMatcher extends AbstractMatcher {
             term = CellCollection.downKind(term);
         }
 
-        if (!checkOrderedSortedCondition(variable, term, termContext)) {
+        if (!checkOrderedSortedCondition(variable, term, state)) {
             fail(variable, term);
         }
 
@@ -518,7 +518,7 @@ public class PatternMatcher extends AbstractMatcher {
         Set<String> unifiableCellLabels = new HashSet<String>(cellCollection.labelSet());
         unifiableCellLabels.retainAll(otherCellCollection.labelSet());
 
-        Context context = termContext.definition().context();
+        Context context = state.definition().context();
 
         /*
          * Case 1: at least one of the cell collections has no explicitly
@@ -752,7 +752,7 @@ public class PatternMatcher extends AbstractMatcher {
             assert !otherCellMap.containsKey(cellLabel);
         }
 
-        Context context = termContext.definition().context();
+        Context context = state.definition().context();
 
         if (frame != null) {
             if (!otherCellMap.isEmpty()) {
@@ -853,11 +853,11 @@ public class PatternMatcher extends AbstractMatcher {
                     Term boundVars = terms.get(boundVarPosition);
                     Set<Variable> variables = boundVars.variableSet();
                     Map<Variable,Variable> freshSubstitution = Variable.getFreshSubstitution(variables);
-                    Term freshBoundVars = boundVars.substituteWithBinders(freshSubstitution, termContext);
+                    Term freshBoundVars = boundVars.substituteWithBinders(freshSubstitution, state);
                     terms.set(boundVarPosition, freshBoundVars);
                     for (Integer bindingExpPosition : binderMap.get(boundVarPosition)) {
                         Term bindingExp = terms.get(bindingExpPosition-1);
-                        Term freshbindingExp = bindingExp.substituteWithBinders(freshSubstitution, termContext);
+                        Term freshbindingExp = bindingExp.substituteWithBinders(freshSubstitution, state);
                         terms.set(bindingExpPosition-1, freshbindingExp);
                     }
                 }

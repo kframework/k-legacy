@@ -17,12 +17,12 @@ public class LocalEvaluator extends LocalTransformer {
      */
     private final SymbolicConstraint constraint;
 
-    public LocalEvaluator(TermContext context) {
-        this(null, context);
+    public LocalEvaluator(State state) {
+        this(null, state);
     }
 
-    public LocalEvaluator(SymbolicConstraint constraint, TermContext context) {
-        super(context);
+    public LocalEvaluator(SymbolicConstraint constraint, State state) {
+        super(state);
         this.constraint = constraint;
     }
     
@@ -33,9 +33,9 @@ public class LocalEvaluator extends LocalTransformer {
     @Override
     public ASTNode transform(KItem kItem) {
         // TODO(YilongL): shall we consider cache evaluation result in certain cases?
-        Term evaluatedTerm = kItem.evaluateFunction(constraint, context);
+        Term evaluatedTerm = kItem.evaluateFunction(constraint, state);
         // TODO(YilongL): had to comment out the following assertion because the visitor/imp.k somehow fails here
-//        if (kItem.isGround() && kItem.isEvaluable(context)) {
+//        if (kItem.isGround() && kItem.isEvaluable(state)) {
 //            assert evaluatedTerm != kItem : "failed to evaluate function with ground arguments: " + kItem;
 //        }
         return evaluatedTerm;

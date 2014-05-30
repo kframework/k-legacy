@@ -16,9 +16,9 @@ import java.util.Set;
  */
 public class BinderSubstitutionTransformer extends SubstitutionTransformer {
 
-    public BinderSubstitutionTransformer(Map<Variable, ? extends Term> substitution, TermContext context) {
-        super(substitution, context);
-        preTransformer.addTransformer(new BinderSubstitution(context));
+    public BinderSubstitutionTransformer(Map<Variable, ? extends Term> substitution, State state) {
+        super(substitution, state);
+        preTransformer.addTransformer(new BinderSubstitution(state));
     }
 
     /**
@@ -26,8 +26,8 @@ public class BinderSubstitutionTransformer extends SubstitutionTransformer {
      *
      */
     private class BinderSubstitution extends LocalTransformer {
-        public BinderSubstitution(TermContext context) {
-            super(context);
+        public BinderSubstitution(State state) {
+            super(state);
         }
 
         @Override
@@ -53,10 +53,10 @@ public class BinderSubstitutionTransformer extends SubstitutionTransformer {
                         Term bindingExp = kList.get(1);
                         Set<Variable> variables = boundVars.variableSet();
                         Map<Variable,Variable> freshSubstitution = Variable.getFreshSubstitution(variables);
-                        Term freshBoundVars = boundVars.substitute(freshSubstitution, context);
-                        Term freshbindingExp = bindingExp.substitute(freshSubstitution, context);
+                        Term freshBoundVars = boundVars.substitute(freshSubstitution, state);
+                        Term freshbindingExp = bindingExp.substitute(freshSubstitution, state);
                         kList = new KList(ImmutableList.<Term>of(freshBoundVars,freshbindingExp));
-                        kItem = new KItem(kLabel, kList, context);
+                        kItem = new KItem(kLabel, kList, state);
 //                    }
                 }
             }

@@ -12,7 +12,7 @@ import org.kframework.backend.java.kil.KItem;
 import org.kframework.backend.java.kil.KLabelConstant;
 import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.State;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.Production;
@@ -58,7 +58,7 @@ public class GroupProductionsBySort {
         prodsOfSort = sort2ProdsBuilder.build();
     }
 
-    public List<KItem> getProductionsAsTerms(String sort, TermContext context) {
+    public List<KItem> getProductionsAsTerms(String sort, State state) {
         List<KItem> freshTerms = new ArrayList<KItem>();
         List<Production> prods = prodsOfSort.get(sort);
         if (prods != null) {
@@ -67,7 +67,7 @@ public class GroupProductionsBySort {
                 for (ProductionItem prodItem : prod.getItems())
                     if (prodItem instanceof Sort)
                         listBuilder.add(Variable.getFreshVariable(((Sort) prodItem).getName()));
-                KItem kitem = new KItem(klabelOfProd.get(prod), new KList(listBuilder.build()), context);
+                KItem kitem = new KItem(klabelOfProd.get(prod), new KList(listBuilder.build()), state);
                 freshTerms.add(kitem);
             }
         }

@@ -206,8 +206,8 @@ public class Rule extends JavaSymbolicObject {
     /**
      * Returns a copy of this {@code Rule} with each {@link Variable} renamed to a fresh name.
      */
-    public Rule getFreshRule(TermContext context) {
-        return this.substitute(Variable.getFreshSubstitution(variableSet()), context);
+    public Rule getFreshRule(State state) {
+        return this.substitute(Variable.getFreshSubstitution(variableSet()), state);
     }
 
     public IndexingPair indexingPair() {
@@ -231,8 +231,8 @@ public class Rule extends JavaSymbolicObject {
     }
 
     @Override
-    public Rule substitute(Map<Variable, ? extends Term> substitution, TermContext context) {
-        return (Rule) super.substitute(substitution, context);
+    public Rule substitute(Map<Variable, ? extends Term> substitution, State state) {
+        return (Rule) super.substitute(substitution, state);
     }
 
     /**
@@ -240,8 +240,8 @@ public class Rule extends JavaSymbolicObject {
      * term.
      */
     @Override
-    public Rule substituteWithBinders(Variable variable, Term term, TermContext context) {
-        return (Rule) super.substituteWithBinders(variable, term, context);
+    public Rule substituteWithBinders(Variable variable, Term term, State state) {
+        return (Rule) super.substituteWithBinders(variable, term, state);
     }
 
     @Override

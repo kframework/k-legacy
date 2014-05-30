@@ -103,10 +103,10 @@ public abstract class Term extends JavaSymbolicObject implements Transformable, 
      * pending functions and predicates. <br>
      * TODO(YilongL): gradually eliminate the use of this method and switch to
      * the one with constraint, i.e., {@link this#evaluate(SymbolicConstraint,
-     * TermContext)}.
+     * State)}.
      */
-    public Term evaluate(TermContext context) {
-        return evaluate(null, context);
+    public Term evaluate(State state) {
+        return evaluate(null, state);
     }
 
     /**
@@ -124,28 +124,28 @@ public abstract class Term extends JavaSymbolicObject implements Transformable, 
      * @param constraint
      *            the symbolic constraint of the {@link ConstrainedTerm} which
      *            contains this {@code Term}
-     * @param context
-     *            the term context
+     * @param state
+     *            the term state
      * @return the result {@code Term} instance
      */
-    public Term evaluate(SymbolicConstraint constraint, TermContext context) {
-        return Evaluator.evaluate(this, constraint, context);
+    public Term evaluate(SymbolicConstraint constraint, State state) {
+        return Evaluator.evaluate(this, constraint, state);
     }
 
     /**
      * Returns a new {@code Term} instance obtained from this term by applying a binder insensitive substitution.
      */
     @Override
-    public Term substitute(Map<Variable, ? extends Term> substitution, TermContext context) {
-        return (Term) super.substitute(substitution, context);
+    public Term substitute(Map<Variable, ? extends Term> substitution, State state) {
+        return (Term) super.substitute(substitution, state);
     }
 
     /**
      * Returns a new {@code Term} instance obtained from this term by applying a binder-aware substitution.
      */
     @Override
-    public Term substituteWithBinders(Map<Variable, ? extends Term> substitution, TermContext context) {
-        return (Term) super.substituteWithBinders(substitution, context);
+    public Term substituteWithBinders(Map<Variable, ? extends Term> substitution, State state) {
+        return (Term) super.substituteWithBinders(substitution, state);
     }
 
     /**
@@ -157,14 +157,14 @@ public abstract class Term extends JavaSymbolicObject implements Transformable, 
      * pending functions are omitted by this method. In this case, use the
      * {@code evaluate} method instead.
      */
-    public Term substituteAndEvaluate(Map<Variable, ? extends Term> substitution, TermContext context) {
+    public Term substituteAndEvaluate(Map<Variable, ? extends Term> substitution, State state) {
         // TODO(AndreiS): assert that there are not any unevaluated functions in this term
         if (substitution.isEmpty() || isGround()) {
             return this;
         }
 
-        SubstitutionTransformer transformer = new BinderSubstitutionTransformer(substitution, context);
-        transformer.getPostTransformer().addTransformer(new LocalEvaluator(context));
+        SubstitutionTransformer transformer = new BinderSubstitutionTransformer(substitution, state);
+        transformer.getPostTransformer().addTransformer(new LocalEvaluator(state));
         return (Term) accept(transformer);
     }
 
@@ -173,8 +173,8 @@ public abstract class Term extends JavaSymbolicObject implements Transformable, 
      * term.
      */
     @Override
-    public Term substituteWithBinders(Variable variable, Term term, TermContext context) {
-        return (Term) super.substituteWithBinders(variable, term, context);
+    public Term substituteWithBinders(Variable variable, Term term, State state) {
+        return (Term) super.substituteWithBinders(variable, term, state);
     }
 
     @Override
