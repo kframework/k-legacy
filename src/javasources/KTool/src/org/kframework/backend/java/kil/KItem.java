@@ -60,13 +60,13 @@ public final class KItem extends Term {
      */
     private final Set<String> possibleMinimalSorts;
 
-    public KItem(Term kLabel, Term kList, TermContext termContext) {
+    public KItem(Term kLabel, Term kList, State state) {
         super(Kind.KITEM);
 
         this.kLabel = kLabel;
         this.kList = kList;
 
-        Definition definition = termContext.definition();
+        Definition definition = state.definition();
         Context context = definition.context();
 
         if (kLabel instanceof KLabelConstant && kList instanceof KList
@@ -91,14 +91,14 @@ public final class KItem extends Term {
                     Collection<Rule> rules = definition.functionRules().get(sortPredLabel);
                     for (Rule rule : rules) {
                         KItem predArg = rule.getSortPredArgument();
-                        if (MetaK.matchable(kLabel, predArg.kLabel(), termContext).equals(BoolToken.TRUE)
-                                && MetaK.matchable(kList, predArg.kList(), termContext).equals(BoolToken.TRUE)) {
+                        if (MetaK.matchable(kLabel, predArg.kLabel(), state).equals(BoolToken.TRUE)
+                                && MetaK.matchable(kList, predArg.kList(), state).equals(BoolToken.TRUE)) {
                             sorts.add(rule.getPredSort());
                             if (kLabelConstant.isConstructor()) {
                                 possibleMinimalSorts.add(rule.getPredSort());
                             }
-                        } else if (MetaK.matchable(kLabel, predArg.kLabel(), termContext).equals(BoolToken.TRUE)
-                                && MetaK.unifiable(kList, predArg.kList(), termContext).equals(BoolToken.TRUE)) {
+                        } else if (MetaK.matchable(kLabel, predArg.kLabel(), state).equals(BoolToken.TRUE)
+                                && MetaK.unifiable(kList, predArg.kList(), state).equals(BoolToken.TRUE)) {
                             if (kLabelConstant.isConstructor()) {
                                 possibleMinimalSorts.add(rule.getPredSort());
                             }
@@ -213,7 +213,7 @@ public final class KItem extends Term {
         }
     }
 
-    public boolean isEvaluable(TermContext context) {
+    public boolean isEvaluable(State state) {
         if (evaluable != null) {
             return evaluable;
         }
@@ -229,7 +229,7 @@ public final class KItem extends Term {
         }
 
         if (kLabelConstant.label().startsWith("is")
-                || !context.definition().functionRules().get(kLabelConstant).isEmpty()
+                || !state.definition().functionRules().get(kLabelConstant).isEmpty()
                 || BuiltinFunction.isBuiltinKLabel(kLabelConstant)) {
             evaluable = true;
         }
@@ -242,16 +242,16 @@ public final class KItem extends Term {
      * @param constraint
      *            the existing symbolic constraint that needs to be taken into
      *            consideration when evaluating this function
-     * @param context
-     *            a term context
+     * @param state
+     *            a term state
      * @return the evaluated result on success, or this {@code KItem} otherwise
      */
-    public Term evaluateFunction(SymbolicConstraint constraint, TermContext context) {
-        if (!isEvaluable(context)) {
+    public Term evaluateFunction(SymbolicConstraint constraint, State state) {
+        if (!isEvaluable(state)) {
             return this;
         }
 
-        Definition definition = context.definition();
+        Definition definition = state.definition();
 
         if (!(kLabel instanceof KLabelConstant)) {
             return this;
@@ -266,7 +266,7 @@ public final class KItem extends Term {
         if (BuiltinFunction.isBuiltinKLabel(kLabelConstant)) {
             try {
                 Term[] arguments = kList.getContents().toArray(new Term[kList.getContents().size()]);
-                Term result = BuiltinFunction.invoke(context, kLabelConstant, arguments);
+                Term result = BuiltinFunction.invoke(state, kLabelConstant, arguments);
                 if (result != null) {
                     assert result.kind() == Kind.KITEM:
                             "unexpected kind " + result.kind() + " of term " + result + ";"
@@ -286,7 +286,7 @@ public final class KItem extends Term {
                     throw (RuntimeException)t;
                 }
                 if (t instanceof RuntimeException) {
-                    if (context.definition().context().globalOptions.verbose) {
+                    if (state.definition().context().globalOptions.verbose) {
                         System.err.println("Ignored exception thrown by hook " + kLabelConstant + " : ");
                         e.printStackTrace();
                     }
@@ -301,7 +301,7 @@ public final class KItem extends Term {
         // applying user-defined rules to allow the users to provide their
         // own rules for checking sort membership
         if (kLabelConstant.label().startsWith("is") && kList.getContents().size() == 1) {
-            Term checkResult = SortMembership.check(this, context.definition().context());
+            Term checkResult = SortMembership.check(this, state.definition().context());
             if (checkResult != this) {
                 return checkResult;
             }
@@ -314,7 +314,7 @@ public final class KItem extends Term {
             LinkedHashSet<Term> owiseResults = new LinkedHashSet<Term>();
             for (Rule rule : definition.functionRules().get(kLabelConstant)) {
                 /* function rules should be applied by pattern match rather than unification */
-                Collection<Map<Variable, Term>> solutions = PatternMatcher.patternMatch(this, rule, context);
+                Collection<Map<Variable, Term>> solutions = PatternMatcher.patternMatch(this, rule, state);
                 if (solutions.isEmpty()) {
                     continue;
                 }
@@ -335,9 +335,9 @@ public final class KItem extends Term {
                     /* rename unbound variables */
                     Map<Variable, Variable> freshSubstitution = Variable.getFreshSubstitution(rule.unboundVariables());
                     /* rename rule variables in the rule RHS */
-                    rightHandSide = rightHandSide.substituteWithBinders(freshSubstitution, context);
+                    rightHandSide = rightHandSide.substituteWithBinders(freshSubstitution, state);
                 }
-                rightHandSide = rightHandSide.substituteAndEvaluate(solution, context);
+                rightHandSide = rightHandSide.substituteAndEvaluate(solution, state);
 
                 /* update the constraint */
                 if (K.do_kompilation || K.do_concrete_exec) {

@@ -8,7 +8,7 @@ import org.kframework.backend.java.kil.KLabelInjection;
 import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.MetaVariable;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.State;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.symbolic.PatternMatcher;
 import org.kframework.backend.java.symbolic.SymbolicConstraint;
@@ -35,16 +35,16 @@ public class MetaK {
      *            the first term
      * @param term2
      *            the second term
-     * @param context
-     *            the term context
+     * @param state
+     *            the term state
      * @return {@link BoolToken#TRUE} if the two terms can be unified;
      *         otherwise, {@link BoolToken#FALSE}
      */
-    public static BoolToken unifiable(Term term1, Term term2, TermContext context) {
-//        Term freshTerm1 = term1.substitute(Variable.getFreshSubstitution(term1.variableSet()), context);
-//        Term freshTerm2 = term2.substitute(Variable.getFreshSubstitution(term2.variableSet()), context);
-        SymbolicConstraint constraint = new SymbolicConstraint(context);
-        SymbolicUnifier unifier = new SymbolicUnifier(constraint, context);
+    public static BoolToken unifiable(Term term1, Term term2, State state) {
+//        Term freshTerm1 = term1.substitute(Variable.getFreshSubstitution(term1.variableSet()), state);
+//        Term freshTerm2 = term2.substitute(Variable.getFreshSubstitution(term2.variableSet()), state);
+        SymbolicConstraint constraint = new SymbolicConstraint(state);
+        SymbolicUnifier unifier = new SymbolicUnifier(constraint, state);
         try {
             unifier.unify(term1, term2);
         } catch (UnificationFailure e) {
@@ -60,13 +60,13 @@ public class MetaK {
      *            the subject term
      * @param pattern
      *            the pattern term
-     * @param context
-     *            the term context
+     * @param state
+     *            the term state
      * @return {@link BoolToken#TRUE} if the two terms can be matched;
      *         otherwise, {@link BoolToken#FALSE}
      */
-    public static BoolToken matchable(Term subject, Term pattern, TermContext context) {
-        return PatternMatcher.matchable(subject, pattern, context) ? BoolToken.TRUE
+    public static BoolToken matchable(Term subject, Term pattern, State state) {
+        return PatternMatcher.matchable(subject, pattern, state) ? BoolToken.TRUE
                 : BoolToken.FALSE;
     }
     
@@ -79,13 +79,13 @@ public class MetaK {
      *            the given term
      * @param builtinSet
      *            the given set of meta variables
-     * @param context
-     *            the term context
+     * @param state
+     *            the term state
      * @return the resulting term if the renaming succeeds; or the original term
      *         if the given {@code BuiltinSet} has a frame or contains not only
      *         {@code MetaVariable}s
      */
-    public static Term rename(Term term, BuiltinSet builtinSet, TermContext context) {
+    public static Term rename(Term term, BuiltinSet builtinSet, State state) {
         if (builtinSet.hasFrame() /* || !builtinSet.operations().isEmpty() */) {
             return term;
         }
@@ -99,7 +99,7 @@ public class MetaK {
             variables.add(new Variable((MetaVariable) element));
         }
 
-        return term.substitute(Variable.getFreshSubstitution(variables), context);
+        return term.substitute(Variable.getFreshSubstitution(variables), state);
     }
 
     /**
@@ -107,13 +107,13 @@ public class MetaK {
      * 
      * @param term
      *            the given term
-     * @param context
-     *            the term context
+     * @param state
+     *            the term state
      * @return the resulting term after renaming
      */
-    public static Term renameVariables(Term term, TermContext context) {
+    public static Term renameVariables(Term term, State state) {
         Set<Variable> variables = term.variableSet();
-        return term.substitute(Variable.getFreshSubstitution(variables), context);
+        return term.substitute(Variable.getFreshSubstitution(variables), state);
     }
 
     /**
@@ -122,11 +122,11 @@ public class MetaK {
      * 
      * @param term
      *            the given term
-     * @param context
-     *            the term context
+     * @param state
+     *            the term state
      * @return a {@code BuiltinSet} of {@code MetaVariable}s
      */
-    public static BuiltinSet variables(Term term, TermContext context) {
+    public static BuiltinSet variables(Term term, State state) {
         Set<Term> metaVariables = new HashSet<Term>();
         for (Variable variable : term.variableSet()) {
             metaVariables.add(new MetaVariable(variable));
@@ -140,16 +140,16 @@ public class MetaK {
      * 
      * @param term
      *            the given term
-     * @param context
-     *            the term context
+     * @param state
+     *            the term state
      * @return a {@code BuiltinSet} of {@code Variable}s
      */
-    public static BuiltinSet trueVariables(Term term, TermContext context) {
+    public static BuiltinSet trueVariables(Term term, State state) {
         Set<Variable> trueVariables = term.variableSet();
         return new BuiltinSet(trueVariables);
     }
 
-    public static BuiltinMap variablesMap(Term term, TermContext context) {
+    public static BuiltinMap variablesMap(Term term, State state) {
         Set<Variable> variables = term.variableSet();
         Map<MetaVariable, Variable> result = new HashMap<>(variables.size());
         for (Variable variable : variables) {
@@ -164,12 +164,12 @@ public class MetaK {
      * 
      * @param kItem
      *            the specified {@code KItem}
-     * @param context
-     *            the term context
+     * @param state
+     *            the term state
      * @return the K label
      */
-    public static KItem getKLabel(KItem kItem, TermContext context) {
+    public static KItem getKLabel(KItem kItem, State state) {
         // TODO(AndreiS): handle KLabel variables
-        return new KItem(new KLabelInjection(kItem.kLabel()), new KList(), context);
+        return new KItem(new KLabelInjection(kItem.kLabel()), new KList(), state);
     }
 }

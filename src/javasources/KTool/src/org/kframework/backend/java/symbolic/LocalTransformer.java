@@ -15,14 +15,14 @@ import org.kframework.kil.ASTNode;
  */
 public class LocalTransformer implements Transformer {
 
-    protected final TermContext context;
+    protected final State state;
 
     public LocalTransformer() {
-        this.context = null;
+        this.state = null;
     }
 
-    public LocalTransformer(TermContext context) {
-        this.context = context;
+    public LocalTransformer(State state) {
+        this.state = state;
     }
 
     @Override

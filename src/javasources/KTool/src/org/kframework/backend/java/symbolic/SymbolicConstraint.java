@@ -18,7 +18,7 @@ import org.kframework.backend.java.kil.KLabelConstant;
 import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.Kind;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.State;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.kil.Z3Term;
 import org.kframework.backend.java.util.GappaPrinter;
@@ -126,10 +126,10 @@ public class SymbolicConstraint extends JavaSymbolicObject {
         for (Map.Entry<Variable, Term> entry : newSubstitution.entrySet()) {
             substitution.remove(entry.getValue());
             // TODO(YilongL): why not evaluate entry.getValue() after the substitution?
-            result.put(entry.getKey(), entry.getValue().substituteWithBinders(newSubstitution, context));
+            result.put(entry.getKey(), entry.getValue().substituteWithBinders(newSubstitution, state));
         }
         for (Map.Entry<Variable, Term> entry : substitution.entrySet()) {
-            result.put(entry.getKey(), entry.getValue().substituteWithBinders(newSubstitution, context));
+            result.put(entry.getKey(), entry.getValue().substituteWithBinders(newSubstitution, state));
         }
 
         substitution.clear();
@@ -304,8 +304,8 @@ public class SymbolicConstraint extends JavaSymbolicObject {
          *            the specified substitution map
          */
         private Equality substitute(Map<Variable, ? extends Term> substitution) {
-            Term returnLeftHandSide = leftHandSide.substituteWithBinders(substitution, context);
-            Term returnRightHandSide = rightHandSide.substituteWithBinders(substitution, context);
+            Term returnLeftHandSide = leftHandSide.substituteWithBinders(substitution, state);
+            Term returnRightHandSide = rightHandSide.substituteWithBinders(substitution, state);
             if (returnLeftHandSide != leftHandSide || returnRightHandSide != rightHandSide) {
                 return new Equality(returnLeftHandSide, returnRightHandSide);
             } else {
@@ -321,8 +321,8 @@ public class SymbolicConstraint extends JavaSymbolicObject {
          *            the specified substitution map
          */
         private Equality substituteAndEvaluate(Map<Variable, ? extends Term> substitution) {
-            Term returnLeftHandSide = leftHandSide.substituteAndEvaluate(substitution, context);
-            Term returnRightHandSide = rightHandSide.substituteAndEvaluate(substitution, context);
+            Term returnLeftHandSide = leftHandSide.substituteAndEvaluate(substitution, state);
+            Term returnRightHandSide = rightHandSide.substituteAndEvaluate(substitution, state);
             if (returnLeftHandSide != leftHandSide || returnRightHandSide != rightHandSide) {
                 return new Equality(returnLeftHandSide, returnRightHandSide);
             } else {
@@ -415,7 +415,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
      * It is null is this constraint is not false.
      */
     private Equality falsifyingEquality;
-    private final TermContext context;
+    private final State state;
     private final Definition definition;
 
     /**
@@ -424,22 +424,22 @@ public class SymbolicConstraint extends JavaSymbolicObject {
      */
     private final SymbolicUnifier unifier;
 
-    public SymbolicConstraint(SymbolicConstraint constraint, TermContext context) {
-        this(context);
+    public SymbolicConstraint(SymbolicConstraint constraint, State state) {
+        this(state);
         substitution.putAll(constraint.substitution);
         addAll(constraint);
     }
 
-    public SymbolicConstraint(TermContext context) {
-        this.context = context;
-        this.definition = context.definition();
-        unifier = new SymbolicUnifier(this, context);
+    public SymbolicConstraint(State state) {
+        this.state = state;
+        this.definition = state.definition();
+        unifier = new SymbolicUnifier(this, state);
         truthValue = TruthValue.TRUE;
         isNormal = true;
     }
 
-    public TermContext termContext() {
-        return context;
+    public State state() {
+        return state;
     }
 
     /**
@@ -468,8 +468,8 @@ public class SymbolicConstraint extends JavaSymbolicObject {
             }
         } else {
             simplify(); // YilongL: normalize() is not enough
-            leftHandSide = leftHandSide.substituteAndEvaluate(substitution, context);
-            rightHandSide = rightHandSide.substituteAndEvaluate(substitution, context);
+            leftHandSide = leftHandSide.substituteAndEvaluate(substitution, state);
+            rightHandSide = rightHandSide.substituteAndEvaluate(substitution, state);
 
             checkTruthValBeforePutIntoConstraint(leftHandSide, rightHandSide, false);
         }
@@ -659,7 +659,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
                 }
                 continue;
             }
-            IfThenElseFinder ifThenElseFinder = new IfThenElseFinder(context);
+            IfThenElseFinder ifThenElseFinder = new IfThenElseFinder(state);
             right.accept(ifThenElseFinder);
             if (!ifThenElseFinder.result.isEmpty()) {
                 KItem ite = ifThenElseFinder.result.get(0);
@@ -668,12 +668,12 @@ public class SymbolicConstraint extends JavaSymbolicObject {
                 if (DEBUG) {
                     System.out.println("Split on " + condition);
                 }
-                SymbolicConstraint left1 = new SymbolicConstraint(left, context);
+                SymbolicConstraint left1 = new SymbolicConstraint(left, state);
                 left1.add(condition, BoolToken.TRUE);
-                implications.add(new Implication(left1, new SymbolicConstraint(right,context)));
-                SymbolicConstraint left2 = new SymbolicConstraint(left, context);
+                implications.add(new Implication(left1, new SymbolicConstraint(right,state)));
+                SymbolicConstraint left2 = new SymbolicConstraint(left, state);
                 left2.add(condition, BoolToken.FALSE);
-                implications.add(new Implication(left2, new SymbolicConstraint(right,context)));
+                implications.add(new Implication(left2, new SymbolicConstraint(right,state)));
                 continue;
             }
 //            if (DEBUG) {
@@ -749,7 +749,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
                 }
                 /* TODO(AndreiS): fix translation to smt
             for (Map.Entry<Variable, Term> entry : constraint.substitution.entrySet()) {
-                inequalities[i++] = context.MkNot(context.MkEq(
+                inequalities[i++] = state.MkNot(state.MkEq(
                         ((Z3Term) entry.getKey().accept(transformer)).expression(),
                         ((Z3Term) entry.getValue().accept(transformer)).expression()));
             }
@@ -764,7 +764,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
                     } else if (variable.sort().equals(IntToken.SORT_NAME)) {
                         variableSorts[i] = context.MkIntSort();
                     //} else if (variable.sort().equals(BitVector.SORT_NAME)) {
-                    //    variableSorts[i] = context.MkBitVecSort(32);
+                    //    variableSorts[i] = state.MkBitVecSort(32);
                     // TODO(AndreiS): need support for parametric type MInt{32}, in order to
                     // translate to SMT
                     } else {
@@ -831,7 +831,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
     }
 
     private JavaSymbolicObject substituteTerms(JavaSymbolicObject constraint, Map<Term, Term> substitution) {
-        return (JavaSymbolicObject) constraint.accept(new TermSubstitutionTransformer(substitution,context));
+        return (JavaSymbolicObject) constraint.accept(new TermSubstitutionTransformer(substitution,state));
     }
 
     public boolean isFalse() {
@@ -887,7 +887,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
                 for (SymbolicConstraint cnstr1 : constraints) {
                     for (SymbolicConstraint cnstr2 : otherConstraints) {
                         SymbolicConstraint constraint = new SymbolicConstraint(
-                                this, context);
+                                this, state);
                         constraint.addAll(cnstr1);
                         constraint.addAll(cnstr2);
                         constraint.simplify();
@@ -1021,7 +1021,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
             equalitiesToRemove.add(equality);
 
             Map<Variable, Term> tempSubst = Collections.singletonMap(variable, term);
-            composeSubstitution(tempSubst, context, false);
+            composeSubstitution(tempSubst, state, false);
             if (truthValue == TruthValue.FALSE) {
                 return;
             }
@@ -1055,18 +1055,18 @@ public class SymbolicConstraint extends JavaSymbolicObject {
      *
      * @param substMap
      *            the specified substitution map
-     * @param context
-     *            the term context
+     * @param state
+     *            the term state
      * @param mayInvalidateNormality
      *            whether this operation may cause
      *            {@link SymbolicConstraint#isNormal} to be {@code false}
      */
     private void composeSubstitution(Map<Variable, Term> substMap,
-            TermContext context, boolean mayInvalidateNormality) {
+            State state, boolean mayInvalidateNormality) {
         @SuppressWarnings("unchecked")
         Map.Entry<Variable, Term>[] entries = substitution.entrySet().toArray(new Map.Entry[substitution.size()]);
         for (Map.Entry<Variable, Term> subst : entries) {
-            Term term = subst.getValue().substitute(substMap, context);
+            Term term = subst.getValue().substitute(substMap, state);
             if (term != subst.getValue()) {
                 checkTruthValBeforePutIntoConstraint(subst.getKey(), term, true);
             }
@@ -1105,7 +1105,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
 
         /* rename in substitution values */
         for (Map.Entry<Variable, Term> entry : substitution.entrySet()) {
-            entry.setValue(entry.getValue().substituteWithBinders(freshSubstitution, context));
+            entry.setValue(entry.getValue().substituteWithBinders(freshSubstitution, state));
         }
 
         for (int i = 0; i < equalities.size(); ++i) {
@@ -1119,20 +1119,20 @@ public class SymbolicConstraint extends JavaSymbolicObject {
      * Returns a new {@code SymbolicConstraint} instance obtained from this symbolic constraint
      * by applying substitution.
      */
-    public SymbolicConstraint substituteWithBinders(Map<Variable, ? extends Term> substitution, TermContext context) {
+    public SymbolicConstraint substituteWithBinders(Map<Variable, ? extends Term> substitution, State state) {
         if (substitution.isEmpty()) {
             return this;
         }
 
-        return (SymbolicConstraint) accept(new BinderSubstitutionTransformer(substitution, context));
+        return (SymbolicConstraint) accept(new BinderSubstitutionTransformer(substitution, state));
     }
 
     /**
      * Returns a new {@code SymbolicConstraint} instance obtained from this symbolic constraint by
      * substituting variable with term.
      */
-    public SymbolicConstraint substituteWithBinders(Variable variable, Term term, TermContext context) {
-        return substituteWithBinders(Collections.singletonMap(variable, term), context);
+    public SymbolicConstraint substituteWithBinders(Variable variable, Term term, State state) {
+        return substituteWithBinders(Collections.singletonMap(variable, term), state);
     }
 
     /**
@@ -1261,7 +1261,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
         final List<KItem> result;
         private String IF_THEN_ELSE_LABEL="'#if_#then_#else_#fi";
 
-        public IfThenElseFinder(TermContext context) {
+        public IfThenElseFinder(State state) {
             result = new ArrayList<>();
             preVisitor.addVisitor(new LocalVisitor() {
                 @Override

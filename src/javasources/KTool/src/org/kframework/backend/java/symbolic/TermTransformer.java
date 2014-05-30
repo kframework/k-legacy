@@ -13,8 +13,8 @@ import org.kframework.kil.ASTNode;
  */
 public class TermTransformer extends CopyOnWriteTransformer {
 
-    public TermTransformer(TermContext context) {
-        super(context);
+    public TermTransformer(State state) {
+        super(state);
     }
 
     public TermTransformer(Definition definition) {

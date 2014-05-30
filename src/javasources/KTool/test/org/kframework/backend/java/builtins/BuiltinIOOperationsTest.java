@@ -5,21 +5,21 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.State;
 import org.kframework.krun.api.io.FileSystem;
 import org.mockito.Mockito;
 
 public class BuiltinIOOperationsTest {
 
-    private TermContext context;
+    private State state;
     private FileSystem fs;
 
     @Before
     public void setUp() throws Exception {
-        context = Mockito.mock(TermContext.class);
+        state = Mockito.mock(State.class);
         fs = Mockito.mock(FileSystem.class);
 
-        Mockito.when(context.fileSystem()).thenReturn(fs);
+        Mockito.when(state.fileSystem()).thenReturn(fs);
     }
 
     @Test
@@ -29,7 +29,7 @@ public class BuiltinIOOperationsTest {
 
         Mockito.when(fs.open("foo", "r")).thenReturn(3L);
 
-        Term res = BuiltinIOOperations.open(path, mode, context);
+        Term res = BuiltinIOOperations.open(path, mode, state);
         Assert.assertTrue(res instanceof IntToken);
         Assert.assertEquals(3, ((IntToken)res).intValue());
     }

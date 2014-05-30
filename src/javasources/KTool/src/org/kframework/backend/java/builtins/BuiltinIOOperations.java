@@ -16,105 +16,105 @@ import org.kframework.krun.api.io.FileSystem;
  */
 public class BuiltinIOOperations {
 
-    public static FileSystem fs(TermContext context) {
-        return context.fileSystem();
+    public static FileSystem fs(State state) {
+        return state.fileSystem();
     }
 
-    public static Definition definition(TermContext context) {
-        return context.definition();
+    public static Definition definition(State state) {
+        return state.definition();
     }
 
-    public static Context context(TermContext context) {
-        return context.definition().context();
+    public static Context state(State state) {
+        return state.definition().context();
     }
 
-    public static Term open(StringToken term1, StringToken term2, TermContext context) {
+    public static Term open(StringToken term1, StringToken term2, State state) {
         try {
-            return IntToken.of(fs(context).open(term1.stringValue(), term2.stringValue()));
+            return IntToken.of(fs(state).open(term1.stringValue(), term2.stringValue()));
         } catch (IOException e) {
-            return processIOException(e.getMessage(), context);
+            return processIOException(e.getMessage(), state);
         }
     }
 
-    public static Term tell(IntToken term, TermContext context) {
+    public static Term tell(IntToken term, State state) {
         try {
-            return IntToken.of(fs(context).get(term.longValue()).tell());
+            return IntToken.of(fs(state).get(term.longValue()).tell());
         } catch (IOException e) {
-            return processIOException(e.getMessage(), context);
+            return processIOException(e.getMessage(), state);
         }
     }
 
-    public static Term getc(IntToken term, TermContext context) {
+    public static Term getc(IntToken term, State state) {
         try {
-            return IntToken.of(fs(context).get(term.longValue()).getc() & 0xff);
+            return IntToken.of(fs(state).get(term.longValue()).getc() & 0xff);
         } catch (IOException e) {
-            return processIOException(e.getMessage(), context);
+            return processIOException(e.getMessage(), state);
         }
     }
 
-    public static Term read(IntToken term1, IntToken term2, TermContext context) {
+    public static Term read(IntToken term1, IntToken term2, State state) {
         try {
-            return StringToken.of(fs(context).get(term1.longValue()).read(term2.intValue()));
+            return StringToken.of(fs(state).get(term1.longValue()).read(term2.intValue()));
         } catch (IOException e) {
-            return processIOException(e.getMessage(), context);
+            return processIOException(e.getMessage(), state);
         }
     }
 
-    public static Term close(IntToken term, TermContext context) {
+    public static Term close(IntToken term, State state) {
         try {
-            fs(context).close(term.longValue());
-            return new KItem(new KLabelInjection(new KSequence()), new KList(), context);
+            fs(state).close(term.longValue());
+            return new KItem(new KLabelInjection(new KSequence()), new KList(), state);
         } catch (IOException e) {
-            return processIOException(e.getMessage(), context);
+            return processIOException(e.getMessage(), state);
         }
     }
 
-    public static Term seek(IntToken term1, IntToken term2, TermContext context) {
+    public static Term seek(IntToken term1, IntToken term2, State state) {
         try {
-            fs(context).get(term1.longValue()).seek(term2.longValue());
-            return new KItem(new KLabelInjection(new KSequence()), new KList(), context);
+            fs(state).get(term1.longValue()).seek(term2.longValue());
+            return new KItem(new KLabelInjection(new KSequence()), new KList(), state);
         } catch (IOException e) {
-            return processIOException(e.getMessage(), context);
+            return processIOException(e.getMessage(), state);
         }
     }
 
-    public static Term putc(IntToken term1, IntToken term2, TermContext context) {
+    public static Term putc(IntToken term1, IntToken term2, State state) {
         try {
-            fs(context).get(term1.longValue()).putc(term2.unsignedByteValue());
-            return new KItem(new KLabelInjection(new KSequence()), new KList(), context);
+            fs(state).get(term1.longValue()).putc(term2.unsignedByteValue());
+            return new KItem(new KLabelInjection(new KSequence()), new KList(), state);
         } catch (IOException e) {
-            return processIOException(e.getMessage(), context);
+            return processIOException(e.getMessage(), state);
         }
     }
 
-    public static Term write(IntToken term1, StringToken term2, TermContext context) {
+    public static Term write(IntToken term1, StringToken term2, State state) {
         try {
-            fs(context).get(term1.longValue()).write(term2.byteArrayValue());
-            return new KItem(new KLabelInjection(new KSequence()), new KList(), context);
+            fs(state).get(term1.longValue()).write(term2.byteArrayValue());
+            return new KItem(new KLabelInjection(new KSequence()), new KList(), state);
         } catch (CharacterCodingException e) {
             throw new IllegalArgumentException(e);
         } catch (IOException e) {
-            return processIOException(e.getMessage(), context);
+            return processIOException(e.getMessage(), state);
         }
     }
 
-    public static Term parse(StringToken term1, StringToken term2, TermContext context) {
+    public static Term parse(StringToken term1, StringToken term2, State state) {
         try {
             RunProcess rp = new RunProcess();
-            org.kframework.kil.Term kast = rp.runParser(K.parser, term1.stringValue(), true, term2.stringValue(), context(context));
-            Term term = Term.of(kast, definition(context));
-            term = term.evaluate(context);
+            org.kframework.kil.Term kast = rp.runParser(K.parser, term1.stringValue(), true, term2.stringValue(), state(state));
+            Term term = Term.of(kast, definition(state));
+            term = term.evaluate(state);
             return term;
         } catch (ParseFailedException e) {
-            return processIOException("noparse", context);
+            return processIOException("noparse", state);
         }
     }
 
-    private static KItem processIOException(String errno, TermContext context) {
+    private static KItem processIOException(String errno, State state) {
         String klabelString = "'#" + errno;
-        Definition def = context.definition();
-        KLabelConstant klabel = KLabelConstant.of(klabelString, TermContext.of(def));
+        Definition def = state.definition();
+        KLabelConstant klabel = KLabelConstant.of(klabelString, State.of(def));
         assert def.kLabels().contains(klabel) : "No KLabel in definition for errno '" + errno + "'";
-        return new KItem(klabel, new KList(), context);
+        return new KItem(klabel, new KList(), state);
     }
 }

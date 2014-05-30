@@ -30,20 +30,20 @@ import com.google.common.collect.Multimap;
  */
 public class CopyOnWriteTransformer implements Transformer {
 
-    protected final TermContext context;
+    protected final State state;
     protected final Definition definition;
     
-    public CopyOnWriteTransformer(TermContext context) {
-        this.context = context;
-        this.definition = context.definition();
+    public CopyOnWriteTransformer(State state) {
+        this.state = state;
+        this.definition = state.definition();
     }
 
     public CopyOnWriteTransformer(Definition definition) {
-        this(TermContext.of(definition));
+        this(State.of(definition));
     }
 
     public CopyOnWriteTransformer() {
-        this.context = null;
+        this.state = null;
         this.definition = null;
     }
     
@@ -159,7 +159,7 @@ public class CopyOnWriteTransformer implements Transformer {
         Term kLabel = (Term) kItem.kLabel().accept(this);
         Term kList = (Term) kItem.kList().accept(this);
         if (kLabel != kItem.kLabel() || kList != kItem.kList()) {
-            kItem = new KItem(kLabel, kList, context);
+            kItem = new KItem(kLabel, kList, state);
         }
         return kItem;
     }
@@ -612,7 +612,7 @@ public class CopyOnWriteTransformer implements Transformer {
 
     @Override
     public ASTNode transform(SymbolicConstraint symbolicConstraint) {
-        SymbolicConstraint transformedSymbolicConstraint = new SymbolicConstraint(context);
+        SymbolicConstraint transformedSymbolicConstraint = new SymbolicConstraint(state);
 
         for (Map.Entry<Variable, Term> entry : symbolicConstraint.substitution().entrySet()) {
             transformedSymbolicConstraint.add(
@@ -643,7 +643,7 @@ public class CopyOnWriteTransformer implements Transformer {
     public ASTNode transform(BuiltinMgu mgu) {
         SymbolicConstraint transformedConstraint = (SymbolicConstraint) mgu.constraint().accept(this);
         if (transformedConstraint == mgu.constraint()) {
-            return BuiltinMgu.of(transformedConstraint, context);
+            return BuiltinMgu.of(transformedConstraint, state);
         } else {
             return mgu;
         }

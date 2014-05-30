@@ -17,7 +17,7 @@ import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.Rule;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.State;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.strategies.TransitionCompositeStrategy;
 import org.kframework.krun.api.SearchType;
@@ -27,7 +27,7 @@ import com.google.common.base.Stopwatch;
 // TODO(YilongL): extract common functionalities with SymbolicRewriter to superclass
 public class GroundRewriter {
     
-    private final TermContext termContext;
+    private final State state;
     private final TransitionCompositeStrategy strategy;
     private final Stopwatch stopwatch = new Stopwatch();
     private int step;
@@ -35,9 +35,9 @@ public class GroundRewriter {
     private boolean transition;
     private RuleIndex ruleIndex;
 
-    public GroundRewriter(Definition definition, TermContext termContext) {
+    public GroundRewriter(Definition definition, State state) {
         ruleIndex = definition.getIndex();
-        this.termContext = termContext;
+        this.state = state;
         this.strategy = new TransitionCompositeStrategy(definition.context().kompileOptions.transition);
     }
 
@@ -131,7 +131,7 @@ public class GroundRewriter {
      * @return the new subject term
      */
     private Term constructNewSubjectTerm(Rule rule, Map<Variable, Term> substitution) {
-        return rule.rightHandSide().substituteAndEvaluate(substitution, termContext);
+        return rule.rightHandSide().substituteAndEvaluate(substitution, state);
     }
 
     /**
@@ -142,7 +142,7 @@ public class GroundRewriter {
      * </p>
      */
     private List<Map<Variable,Term>> getMatchingResults(Term subject, Rule rule) {
-        return PatternMatcher.patternMatch(subject, rule, termContext);
+        return PatternMatcher.patternMatch(subject, rule, state);
     }
 
 
@@ -151,7 +151,7 @@ public class GroundRewriter {
     // can't be unified with the pattern.
     private Map<Variable, Term> getSubstitutionMap(Term term, Rule pattern) {
         // Create the initial constraints based on the pattern
-        SymbolicConstraint termConstraint = new SymbolicConstraint(termContext);
+        SymbolicConstraint termConstraint = new SymbolicConstraint(state);
         termConstraint.addAll(pattern.requires());
         for (Variable var : pattern.freshVariables()) {
             termConstraint.add(var, IntToken.fresh());
@@ -160,15 +160,15 @@ public class GroundRewriter {
         // Create a constrained term from the left hand side of the pattern.
         ConstrainedTerm lhs = new ConstrainedTerm(
                 pattern.leftHandSide(),
-                pattern.lookups().getSymbolicConstraint(termContext),
+                pattern.lookups().getSymbolicConstraint(state),
                 termConstraint,
-                termContext);
+                state);
 
         // Collect the variables we are interested in finding
         VariableCollector visitor = new VariableCollector();
         lhs.accept(visitor);
 
-        ConstrainedTerm cnstrTerm = new ConstrainedTerm(term, termContext);
+        ConstrainedTerm cnstrTerm = new ConstrainedTerm(term, state);
         Collection<SymbolicConstraint> constraints = cnstrTerm.unify(lhs);
         if (constraints.isEmpty()) {
             return null;
