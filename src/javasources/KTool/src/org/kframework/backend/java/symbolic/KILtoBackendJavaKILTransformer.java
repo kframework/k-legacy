@@ -444,17 +444,17 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
                     return new MapUpdate(mapUpdate.map(), mapUpdate.removeSet(), entries);
                 } else {
                     /* base instanceof Variable */
-                    return new BuiltinMap(entries, (Variable) base);
+                    return BuiltinMap.makePersistentMap(entries, (Variable) base);
                 }
             } else {
-                return new BuiltinMap(entries);
+                return BuiltinMap.makePersistentMap(entries);
             }
         } else {
             ArrayList<Term> baseTerms = new ArrayList<>(node.baseTerms().size());
             for (org.kframework.kil.Term term : node.baseTerms()) {
                 baseTerms.add((Term) this.visitNode(term));
             }
-            baseTerms.add(new BuiltinMap(entries));
+            baseTerms.add(BuiltinMap.makePersistentMap(entries));
 
             Term result = baseTerms.get(0);
             for (int i = 1; i < baseTerms.size(); ++i) {
@@ -474,7 +474,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
 //        for(org.kframework.kil.Term term: node.getContents()){
 //           Term backendTerm = this.transformTerm(term,this.definition);
 //        }
-        return new BuiltinMap();
+        return BuiltinMap.EMPTY_MAP;
     }
 
     @Override

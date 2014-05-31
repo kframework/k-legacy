@@ -1,6 +1,9 @@
 // Copyright (c) 2014 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
+import java.util.Iterator;
+import java.util.Map;
+
 import org.kframework.backend.java.symbolic.Matcher;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Unifier;
@@ -39,8 +42,9 @@ public class MapKeyChoice extends Term implements DataStructureChoice {
             return this;
         }
 
-        if (!((BuiltinMap) map).getEntries().isEmpty()) {
-            return ((BuiltinMap) map).getEntries().keySet().iterator().next();
+        Iterator<Map.Entry<Term, Term>> iter = ((BuiltinMap) map).iterator();
+        if (iter.hasNext()) {
+            return iter.next().getKey();
         } else if (((BuiltinMap) map).isEmpty()) {
             return new Bottom(kind);
         } else {

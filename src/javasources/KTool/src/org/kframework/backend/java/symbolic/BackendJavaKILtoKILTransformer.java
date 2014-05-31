@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 
 /**
@@ -160,12 +161,13 @@ public class BackendJavaKILtoKILTransformer extends CopyOnWriteTransformer {
     @Override
     public ASTNode transform(BuiltinMap map) {
         // TODO(AndreiS): use BuiltinMap
-        final Map<Term, Term> entries = map.getEntries();
-        List<Term> keys = new ArrayList<Term>(entries.keySet());
-        Collections.sort(keys);
+        final Map<Term, Term> treeMap = new TreeMap<>();
+        for (Map.Entry<Term, Term> e : map) {
+            treeMap.put(e.getKey(), e.getValue());
+        }
         List<org.kframework.kil.Term> items = new ArrayList<org.kframework.kil.Term>();
-        for (Term key : keys) {
-            Term value = entries.get(key);
+        for (Term key : treeMap.keySet()) {
+            Term value = treeMap.get(key);
             items.add(new org.kframework.kil.MapItem(
                     (org.kframework.kil.Term) key.accept(this),
                     (org.kframework.kil.Term) value.accept(this)));

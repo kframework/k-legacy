@@ -355,42 +355,29 @@ public class CopyOnWriteTransformer implements Transformer {
 
     @Override
     public ASTNode transform(BuiltinMap builtinMap) {
-        BuiltinMap transformedMap = null;
-        if (builtinMap.hasFrame()) {
-            Term frame = (Term) builtinMap.frame().accept(this);
-            if (frame != builtinMap.frame()) {
-                transformedMap = BuiltinMap.of(Collections.<Term, Term>emptyMap(), frame);
+        boolean changed = false;
+        
+        BuiltinMap transformedMap = builtinMap;
+        if (transformedMap.hasFrame()) {
+            Variable oldFrame = transformedMap.frame();
+            Term transformedFrame = (Term) oldFrame.accept(this);
+            if (transformedFrame != oldFrame) {
+                changed = true;
+                transformedMap = transformedMap.replaceFrame(transformedFrame);
             }
         }
-
-        for(Map.Entry<Term, Term> entry : builtinMap.getEntries().entrySet()) {
-            Term key = (Term) entry.getKey().accept(this);
+        
+        for (Map.Entry<Term, Term> entry : builtinMap) {
+            Term oldKey = entry.getKey();
+            Term key = (Term) oldKey.accept(this);
             Term value = (Term) entry.getValue().accept(this);
-
-            if (transformedMap == null && (key != entry.getKey() || value != entry.getValue())) {
-                if (builtinMap.hasFrame()) {
-                    transformedMap = new BuiltinMap(builtinMap.frame());
-                } else {
-                    transformedMap = new BuiltinMap();
-                }
-                for(Map.Entry<Term, Term> copyEntry : builtinMap.getEntries().entrySet()) {
-                    if (copyEntry.equals(entry)) {
-                        break;
-                    }
-                    transformedMap.put(copyEntry.getKey(), copyEntry.getValue());
-                }
-            }
-
-            if (transformedMap != null) {
-                transformedMap.put(key, value);
+            if (key != oldKey || value != entry.getValue()) {
+                changed = true;
+                transformedMap = transformedMap.delete(oldKey).assign(key, value);
             }
         }
-
-        if (transformedMap != null) {
-            return transformedMap;
-        } else {
-            return builtinMap;
-        }
+        
+        return changed ? transformedMap : builtinMap;
     }
 
     @Override
