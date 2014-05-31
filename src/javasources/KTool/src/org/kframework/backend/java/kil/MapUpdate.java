@@ -1,9 +1,7 @@
 // Copyright (c) 2013-2014 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,28 +45,27 @@ public class MapUpdate extends Term implements DataStructureUpdate {
             return this;
         }
 
-        BuiltinMap builtinMap = ((BuiltinMap) map);
-
-        Map<Term, Term> entries = new HashMap<Term, Term>(builtinMap.getEntries());
+        BuiltinMap oldMap = ((BuiltinMap) map);
+        BuiltinMap updatedMap = oldMap;
         Set<Term> keysToRemove = new HashSet<Term>();
-        for (Iterator<Term> iterator = removeSet.iterator(); iterator.hasNext();) {
-            Term nextKey = iterator.next();
-            if (entries.remove(nextKey) != null) {
-                keysToRemove.add(nextKey);
+        int numOfKeysRemained = updatedMap.size();
+        for (Term keyToRemove : removeSet) {
+            updatedMap = updatedMap.delete(keyToRemove);
+            if (numOfKeysRemained > updatedMap.size()) {
+                numOfKeysRemained--;
+                keysToRemove.add(keyToRemove);
             }
         }
-
-        if (removeSet.size() > keysToRemove.size()) {
-            return new MapUpdate(builtinMap, Sets.difference(removeSet, keysToRemove), updateMap);
+        
+        int numOfRemovedKeys = oldMap.size() - updatedMap.size();
+        if (numOfRemovedKeys < removeSet.size()) {
+            /* unable to complete the MapUpdate operation yet */
+            // TODO(YilongL): why not evaluate to Bottom when there is no frame variable?
+            return new MapUpdate(updatedMap, Sets.difference(removeSet, keysToRemove), updateMap);
         }
 
-        entries.putAll(updateMap);
-
-        if (builtinMap.hasFrame()) {
-            return new BuiltinMap(entries, builtinMap.frame());
-        } else {
-            return new BuiltinMap(entries);
-        }
+        updatedMap = updatedMap.assignAll(updateMap);
+        return updatedMap;
     }
 
     public Term map() {

@@ -2,7 +2,6 @@
 package org.kframework.backend.java.builtins;
 
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.kframework.backend.java.kil.BuiltinMap;
@@ -36,13 +35,13 @@ public class BuiltinUnificationOperations {
     public static BuiltinMap applyMgu(BuiltinMgu mgu, BuiltinMap map,
             TermContext context) {
         if (!map.hasFrame()) {
-            Map<Term, Term> entries = new HashMap<>();
+            BuiltinMap result = new BuiltinMap(map);
             Map<Variable, Term> subst = mgu.constraint().substitution();
-            for (Map.Entry<Term, Term> entry : map.getEntries().entrySet()) {
+            for (Map.Entry<Term, Term> entry : map) {
                 Term value = entry.getValue().substituteWithBinders(subst, context);
-                entries.put(entry.getKey(), value);
+                result = result.assign(entry.getKey(), value);
             }
-            return new BuiltinMap(entries);
+            return result;
         } else {
             throw new IllegalArgumentException("argument " + map + " has frame");
         }
