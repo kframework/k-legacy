@@ -4,7 +4,7 @@ package org.kframework.backend.java.symbolic;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.KLabelConstant;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.State;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.Production;
 import org.kframework.krun.K;
@@ -105,7 +105,7 @@ public class BuiltinFunction {
                             for (Method method : c.getDeclaredMethods()) {
                                 if (method.getName().equals(methodName)) {
                                     table.put(
-                                            KLabelConstant.of(label, TermContext.of(definition)),
+                                            KLabelConstant.of(label, State.of(definition)),
                                             method);
                                     break;
                                 }
@@ -131,7 +131,7 @@ public class BuiltinFunction {
      * Invokes the Java implementation of a builtin (hooked) operation.
      * 
      * @param context
-     *            the {@code TermContext}
+     *            the {@code State}
      * @param label
      *            the corresponding K label of the builtin operation
      * @param arguments
@@ -140,7 +140,7 @@ public class BuiltinFunction {
      * @throws IllegalAccessException
      * @throws IllegalArgumentException
      */
-    public static Term invoke(TermContext context, KLabelConstant label, Term ... arguments)
+    public static Term invoke(State context, KLabelConstant label, Term ... arguments)
             throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         Object[] args =  Arrays.copyOf(arguments, arguments.length + 1, Object[].class);
         args[arguments.length] =  context;

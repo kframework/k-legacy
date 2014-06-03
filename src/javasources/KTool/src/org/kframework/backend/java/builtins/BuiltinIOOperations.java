@@ -16,19 +16,19 @@ import org.kframework.krun.api.io.FileSystem;
  */
 public class BuiltinIOOperations {
 
-    public static FileSystem fs(TermContext context) {
+    public static FileSystem fs(State context) {
         return context.fileSystem();
     }
 
-    public static Definition definition(TermContext context) {
+    public static Definition definition(State context) {
         return context.definition();
     }
 
-    public static Context context(TermContext context) {
+    public static Context context(State context) {
         return context.definition().context();
     }
 
-    public static Term open(StringToken term1, StringToken term2, TermContext context) {
+    public static Term open(StringToken term1, StringToken term2, State context) {
         try {
             return IntToken.of(fs(context).open(term1.stringValue(), term2.stringValue()));
         } catch (IOException e) {
@@ -36,7 +36,7 @@ public class BuiltinIOOperations {
         }
     }
 
-    public static Term tell(IntToken term, TermContext context) {
+    public static Term tell(IntToken term, State context) {
         try {
             return IntToken.of(fs(context).get(term.longValue()).tell());
         } catch (IOException e) {
@@ -44,7 +44,7 @@ public class BuiltinIOOperations {
         }
     }
 
-    public static Term getc(IntToken term, TermContext context) {
+    public static Term getc(IntToken term, State context) {
         try {
             return IntToken.of(fs(context).get(term.longValue()).getc() & 0xff);
         } catch (IOException e) {
@@ -52,7 +52,7 @@ public class BuiltinIOOperations {
         }
     }
 
-    public static Term read(IntToken term1, IntToken term2, TermContext context) {
+    public static Term read(IntToken term1, IntToken term2, State context) {
         try {
             return StringToken.of(fs(context).get(term1.longValue()).read(term2.intValue()));
         } catch (IOException e) {
@@ -60,7 +60,7 @@ public class BuiltinIOOperations {
         }
     }
 
-    public static Term close(IntToken term, TermContext context) {
+    public static Term close(IntToken term, State context) {
         try {
             fs(context).close(term.longValue());
             return new KItem(new KLabelInjection(new KSequence()), new KList(), context);
@@ -69,7 +69,7 @@ public class BuiltinIOOperations {
         }
     }
 
-    public static Term seek(IntToken term1, IntToken term2, TermContext context) {
+    public static Term seek(IntToken term1, IntToken term2, State context) {
         try {
             fs(context).get(term1.longValue()).seek(term2.longValue());
             return new KItem(new KLabelInjection(new KSequence()), new KList(), context);
@@ -78,7 +78,7 @@ public class BuiltinIOOperations {
         }
     }
 
-    public static Term putc(IntToken term1, IntToken term2, TermContext context) {
+    public static Term putc(IntToken term1, IntToken term2, State context) {
         try {
             fs(context).get(term1.longValue()).putc(term2.unsignedByteValue());
             return new KItem(new KLabelInjection(new KSequence()), new KList(), context);
@@ -87,7 +87,7 @@ public class BuiltinIOOperations {
         }
     }
 
-    public static Term write(IntToken term1, StringToken term2, TermContext context) {
+    public static Term write(IntToken term1, StringToken term2, State context) {
         try {
             fs(context).get(term1.longValue()).write(term2.byteArrayValue());
             return new KItem(new KLabelInjection(new KSequence()), new KList(), context);
@@ -98,7 +98,7 @@ public class BuiltinIOOperations {
         }
     }
 
-    public static Term parse(StringToken term1, StringToken term2, TermContext context) {
+    public static Term parse(StringToken term1, StringToken term2, State context) {
         try {
             RunProcess rp = new RunProcess();
             org.kframework.kil.Term kast = rp.runParser(K.parser, term1.stringValue(), true, term2.stringValue(), context(context));
@@ -110,10 +110,10 @@ public class BuiltinIOOperations {
         }
     }
 
-    private static KItem processIOException(String errno, TermContext context) {
+    private static KItem processIOException(String errno, State context) {
         String klabelString = "'#" + errno;
         Definition def = context.definition();
-        KLabelConstant klabel = KLabelConstant.of(klabelString, TermContext.of(def));
+        KLabelConstant klabel = KLabelConstant.of(klabelString, State.of(def));
         assert def.kLabels().contains(klabel) : "No KLabel in definition for errno '" + errno + "'";
         return new KItem(klabel, new KList(), context);
     }

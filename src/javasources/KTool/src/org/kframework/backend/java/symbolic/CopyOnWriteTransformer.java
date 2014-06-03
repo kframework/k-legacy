@@ -30,16 +30,16 @@ import com.google.common.collect.Multimap;
  */
 public class CopyOnWriteTransformer implements Transformer {
 
-    protected final TermContext context;
+    protected final State context;
     protected final Definition definition;
     
-    public CopyOnWriteTransformer(TermContext context) {
+    public CopyOnWriteTransformer(State context) {
         this.context = context;
         this.definition = context.definition();
     }
 
     public CopyOnWriteTransformer(Definition definition) {
-        this(TermContext.of(definition));
+        this(State.of(definition));
     }
 
     public CopyOnWriteTransformer() {

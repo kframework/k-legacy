@@ -10,7 +10,7 @@ import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.Rule;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.State;
 import org.kframework.backend.java.kil.Variable;
 
 import com.google.common.base.Stopwatch;
@@ -73,7 +73,7 @@ public class StepRewriter {
         constrainedTermResults = new ArrayList<ConstrainedTerm>();
 
         SymbolicConstraint leftHandSideConstraint = new SymbolicConstraint(
-            constrainedTerm.termContext());
+            constrainedTerm.state());
         leftHandSideConstraint.addAll(rule.requires());
         for (Variable variable : rule.freshVariables()) {
             leftHandSideConstraint.add(variable, IntToken.fresh());
@@ -81,9 +81,9 @@ public class StepRewriter {
 
         ConstrainedTerm leftHandSide = new ConstrainedTerm(
                 rule.leftHandSide(),
-                rule.lookups().getSymbolicConstraint(constrainedTerm.termContext()),
+                rule.lookups().getSymbolicConstraint(constrainedTerm.state()),
                 leftHandSideConstraint,
-                constrainedTerm.termContext());
+                constrainedTerm.state());
 
         for (SymbolicConstraint constraint : constrainedTerm.unify(leftHandSide)) {
             constraint.addAll(rule.ensures());
@@ -92,17 +92,17 @@ public class StepRewriter {
 
             Term result = rule.rightHandSide();
             /* rename rule variables in the rule RHS */
-            result = result.substituteWithBinders(freshSubstitution, constrainedTerm.termContext());
+            result = result.substituteWithBinders(freshSubstitution, constrainedTerm.state());
             /* apply the constraints substitution on the rule RHS */
-            result = result.substituteWithBinders(constraint.substitution(), constrainedTerm.termContext());
+            result = result.substituteWithBinders(constraint.substitution(), constrainedTerm.state());
             /* evaluate pending functions in the rule RHS */
-            result = result.evaluate(constrainedTerm.termContext());
+            result = result.evaluate(constrainedTerm.state());
             /* eliminate anonymous variables */
             constraint.eliminateAnonymousVariables();
 
             /* compute all results */
             constrainedTermResults.add(new ConstrainedTerm(result, constraint,
-                constrainedTerm.termContext()));
+                constrainedTerm.state()));
         }
 
         stopwatch.stop();
@@ -115,7 +115,7 @@ public class StepRewriter {
 
         termResults = new ArrayList<Term>();
 
-        TermContext context = TermContext.of(definition);
+        State context = State.of(definition);
         ConstrainedTerm constrainedTerm = new ConstrainedTerm(term, context);
 
         SymbolicConstraint leftHandSideConstraint = new SymbolicConstraint(context);

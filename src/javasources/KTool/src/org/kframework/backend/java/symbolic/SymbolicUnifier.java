@@ -30,7 +30,7 @@ import org.kframework.backend.java.kil.MapUpdate;
 import org.kframework.backend.java.kil.MetaVariable;
 import org.kframework.backend.java.kil.SetUpdate;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.State;
 import org.kframework.backend.java.kil.Token;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.kil.loader.Context;
@@ -63,11 +63,11 @@ public class SymbolicUnifier extends AbstractUnifier {
      * A conjunction of disjunctions of {@code SymbolicConstraint}s created by this unifier.
      */
     public final java.util.Collection<java.util.Collection<SymbolicConstraint>> multiConstraints;
-    private final TermContext termContext;
+    private final State state;
 
-    public SymbolicUnifier(SymbolicConstraint constraint, TermContext context) {
+    public SymbolicUnifier(SymbolicConstraint constraint, State context) {
         this.fConstraint = constraint;
-        this.termContext = context;
+        this.state = context;
         multiConstraints = new ArrayList<java.util.Collection<SymbolicConstraint>>();
     }
 
@@ -110,7 +110,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         }
 
         if (term.kind() == Kind.CELL || term.kind() == Kind.CELL_COLLECTION) {
-            Context context = termContext.definition().context();
+            Context context = state.definition().context();
             term = CellCollection.upKind(term, otherTerm.kind(), context);
             otherTerm = CellCollection.upKind(otherTerm, term.kind(), context);
         }
@@ -275,7 +275,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         Set<String> unifiableCellLabels = new HashSet<String>(cellCollection.labelSet());
         unifiableCellLabels.retainAll(otherCellCollection.labelSet());
 
-        Context context = termContext.definition().context();
+        Context context = state.definition().context();
         
         /*
          * CASE 1: cellCollection has no explicitly specified starred-cell;
@@ -366,7 +366,7 @@ public class SymbolicUnifier extends AbstractUnifier {
             // start searching for all possible unifiers
             do {
                 // clear the constraint before each attempt of unification
-                fConstraint = new SymbolicConstraint(termContext);
+                fConstraint = new SymbolicConstraint(state);
 
                 try {
                     for (int i = 0; i < otherCells.length; ++i) {
@@ -505,7 +505,7 @@ public class SymbolicUnifier extends AbstractUnifier {
             assert cellMap.get(cellLabel).size() == 1;
         }
         
-        Context context = termContext.definition().context();
+        Context context = state.definition().context();
         
         if (frame != null) {
             if (otherFrame != null) {
@@ -618,11 +618,11 @@ public class SymbolicUnifier extends AbstractUnifier {
                     Term boundVars = terms.get(boundVarPosition);
                     Set<Variable> variables = boundVars.variableSet();
                     Map<Variable,Variable> freshSubstitution = Variable.getFreshSubstitution(variables);
-                    Term freshBoundVars = boundVars.substituteWithBinders(freshSubstitution, termContext);
+                    Term freshBoundVars = boundVars.substituteWithBinders(freshSubstitution, state);
                     terms.set(boundVarPosition, freshBoundVars);
                     for (Integer bindingExpPosition : binderMap.get(boundVarPosition)) {
                         Term bindingExp = terms.get(bindingExpPosition-1);
-                        Term freshbindingExp = bindingExp.substituteWithBinders(freshSubstitution, termContext);
+                        Term freshbindingExp = bindingExp.substituteWithBinders(freshSubstitution, state);
                         terms.set(bindingExpPosition-1, freshbindingExp);
                     }
                 }
