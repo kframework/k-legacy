@@ -29,6 +29,7 @@ import org.kframework.backend.java.util.Utils;
 import org.kframework.backend.java.util.Z3Wrapper;
 import org.kframework.kil.ASTNode;
 import org.kframework.krun.K;
+import org.kframework.utils.general.GlobalSettings;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -324,6 +325,20 @@ public class SymbolicConstraint extends JavaSymbolicObject {
                 return true;
             }
 
+            if (leftHandSide instanceof Variable
+                    && rightHandSide instanceof org.kframework.backend.java.kil.Collection
+                    && ((org.kframework.backend.java.kil.Collection) rightHandSide).hasFrame()
+                    && ((org.kframework.backend.java.kil.Collection) rightHandSide).size() != 0
+                    && leftHandSide.equals(((org.kframework.backend.java.kil.Collection) rightHandSide).frame())) {
+                return true;
+            } else if (rightHandSide instanceof Variable
+                    && leftHandSide instanceof org.kframework.backend.java.kil.Collection
+                    && ((org.kframework.backend.java.kil.Collection) leftHandSide).hasFrame()
+                    && ((org.kframework.backend.java.kil.Collection) leftHandSide).size() != 0
+                    && rightHandSide.equals(((org.kframework.backend.java.kil.Collection) leftHandSide).frame())) {
+                return true;
+            }
+
             if (!K.do_testgen) {
                 if (leftHandSide.isExactSort() && rightHandSide.isExactSort()) {
                     return !leftHandSide.sort().equals(rightHandSide.sort());
@@ -372,6 +387,21 @@ public class SymbolicConstraint extends JavaSymbolicObject {
          */
         public boolean isTrue() {
             if (leftHandSide  instanceof Bottom || rightHandSide instanceof Bottom) return false;
+
+            // TODO(AndreiS): hack around multiple representations for collection variables
+            Term leftHandSide = this.leftHandSide;
+            if (leftHandSide instanceof org.kframework.backend.java.kil.Collection
+                    && ((org.kframework.backend.java.kil.Collection) leftHandSide).hasFrame()
+                    && ((org.kframework.backend.java.kil.Collection) leftHandSide).size() == 0) {
+                leftHandSide = ((org.kframework.backend.java.kil.Collection) leftHandSide).frame();
+            }
+            Term rightHandSide = this.rightHandSide;
+            if (rightHandSide instanceof org.kframework.backend.java.kil.Collection
+                    && ((org.kframework.backend.java.kil.Collection) rightHandSide).hasFrame()
+                    && ((org.kframework.backend.java.kil.Collection) rightHandSide).size() == 0) {
+                rightHandSide = ((org.kframework.backend.java.kil.Collection) rightHandSide).frame();
+            }
+
             return leftHandSide.equals(rightHandSide);
         }
 
@@ -641,7 +671,9 @@ public class SymbolicConstraint extends JavaSymbolicObject {
             e.printStackTrace();
         } catch (UnsupportedOperationException e) {
             // TODO(AndreiS): fix this translation and the exceptions
-            e.printStackTrace();
+            if (GlobalSettings.verbose) {
+                e.printStackTrace();
+            }
         }
         return result;
     }
@@ -847,8 +879,10 @@ public class SymbolicConstraint extends JavaSymbolicObject {
 
                 result = solver.Check() == Status.UNSATISFIABLE;
                 context.Dispose();
-            } catch (Z3Exception e) {
-                e.printStackTrace();
+            } catch (RuntimeException | Z3Exception e) {
+                if (GlobalSettings.verbose) {
+                    e.printStackTrace();
+                }
             }
         }
         return  result;
