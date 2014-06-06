@@ -126,9 +126,22 @@ public class PatternMatcher extends AbstractMatcher {
             return Collections.emptyList();
         }
 
+        List<Map<Variable, Term>> results = evaluateConditions(rule, getMultiSubstitutions(matcher), context);
+
+        return results;
+    }
+
+    /**
+     * @param rule
+     * @param context
+     * @param matcher
+     * @return
+     */
+    private static List<Map<Variable, Term>> evaluateConditions(Rule rule, List<Map<Variable, Term>> list,
+            TermContext context) {
         /* handle fresh variables, data structure lookups, and side conditions */
         List<Map<Variable, Term>> results = new ArrayList<Map<Variable, Term>>();
-        for (Map<Variable, Term> subst : getMultiSubstitutions(matcher)) {
+        for (Map<Variable, Term> subst : list) {
             /* add bindings for fresh variables used in the rule */
             for (Variable variable : rule.freshVariables()) {
                 subst.put(variable, FreshOperations.fresh(variable.sort(), context));
@@ -176,11 +189,14 @@ public class PatternMatcher extends AbstractMatcher {
                         }
                     } else {
                         // the non-lookup term is not a variable and thus requires further pattern matching
-                        // for example: TODO(YilongL)
+                        // for example: L:List[Int(#"0")] = '#ostream(_)(I:Int), where L is the output buffer
+                        //           => '#ostream(_)(Int(#"1")) =? '#ostream(_)(I:Int)
                         PatternMatcher lookupMatcher = new PatternMatcher(context);
                         if (lookupMatcher.patternMatch(evalLookupOrChoice, nonLookupOrChoice)) {
                             // it's possible that multiple substitutions are viable from the pattern matching above
-                            for (Map<Variable, Term> subst1 : PatternMatcher.getMultiSubstitutions(lookupMatcher)) {
+                            List<Map<Variable, Term>> multiSubstitutions2 = PatternMatcher.getMultiSubstitutions(lookupMatcher);
+                            assert multiSubstitutions2.size() == 1;
+                            for (Map<Variable, Term> subst1 : multiSubstitutions2) {
                                 Map<Variable, Term> composedSubst = composeSubstitution(subst1, crntSubst);
                                 if (composedSubst != null) {
                                     updatedSubsts.add(composedSubst);
@@ -190,6 +206,7 @@ public class PatternMatcher extends AbstractMatcher {
                     }
                 }
                 substitutions = updatedSubsts;
+                assert substitutions.size() <= 1;
             }
 
             /* evaluate side conditions */
@@ -207,7 +224,6 @@ public class PatternMatcher extends AbstractMatcher {
 
             results.addAll(substitutions);
         }
-
         return results;
     }
 
