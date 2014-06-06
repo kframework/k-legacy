@@ -163,7 +163,7 @@ public class PatternMatcher extends AbstractMatcher {
                     "one side of the equality should be an instance of DataStructureLookup or DataStructureChoice";
 
                 List<Map<Variable, Term>> updatedSubsts = new ArrayList<>();
-                
+                boolean success = false;
                 if (substitutions.size() == 1) {
                     subst = substitutions.get(0);
 
@@ -180,6 +180,7 @@ public class PatternMatcher extends AbstractMatcher {
                         if (nonLookupOrChoice instanceof Variable) {
                             Variable variable = (Variable) nonLookupOrChoice;
                             if (checkOrderedSortedCondition(variable, evalLookupOrChoice, context)) {
+                                success = true;
                                 subst.put(variable, evalLookupOrChoice);
                                 updatedSubsts.add(subst);
                             }
@@ -189,12 +190,22 @@ public class PatternMatcher extends AbstractMatcher {
                             //           => '#ostream(_)(Int(#"1")) =? '#ostream(_)(I:Int)
                             PatternMatcher lookupMatcher = new PatternMatcher(context);
                             if (lookupMatcher.patternMatch(evalLookupOrChoice, nonLookupOrChoice)) {
+                                success = true;
                                 assert lookupMatcher.multiSubstitutions.isEmpty();
+                                subst = composeSubstitution(lookupMatcher.fSubstitution, subst);
+//                                updatedSubsts.add(subst);
                                 updatedSubsts.add(composeSubstitution(lookupMatcher.fSubstitution, subst));
                             }
                         }
                     }
                 }
+                
+                if (success) {
+                    substitutions = new ArrayList<>(Collections.singletonList(subst));
+                } else {
+                    substitutions = Collections.emptyList();
+                }
+                assert substitutions.equals(updatedSubsts);
                 substitutions = updatedSubsts;
                 assert substitutions.size() <= 1;
             }
