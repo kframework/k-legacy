@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Formatter;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Module;
 import org.kframework.kil.Rule;
@@ -30,6 +31,7 @@ import org.kframework.parser.concrete.disambiguate.PreferAvoidFilter;
 import org.kframework.parser.concrete.disambiguate.PriorityFilter;
 import org.kframework.parser.concrete.disambiguate.SentenceVariablesFilter;
 import org.kframework.parser.concrete.disambiguate.VariableTypeInferenceFilter;
+import org.kframework.parser.utils.CacheContainer;
 import org.kframework.utils.XmlLoader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -37,14 +39,17 @@ import org.w3c.dom.Node;
 
 public class ParseRulesFilter extends ParseForestTransformer {
     boolean checkInclusion = true;
+    final CacheContainer cachedDef;
 
     public ParseRulesFilter(Context context, boolean checkInclusion) {
         super("Parse Rules", context);
         this.checkInclusion = checkInclusion;
+        cachedDef = null;
     }
 
-    public ParseRulesFilter(Context context) {
+    public ParseRulesFilter(Context context, CacheContainer cachedDef) {
         super("Parse Rules", context);
+        this.cachedDef = cachedDef;
     }
 
     String localModule = null;
@@ -58,9 +63,9 @@ public class ParseRulesFilter extends ParseForestTransformer {
     public ASTNode visit(StringSentence ss, Void _) throws ParseFailedException {
         if (ss.getType().equals(Constants.RULE) || ss.getType().equals(Constants.CONTEXT)) {
             long startTime = System.currentTimeMillis();
-            try {
-                ASTNode config;
+            ASTNode config;
 
+            if (!(cachedDef.sentences.containsKey(localModule + ss.getContent()))) {
                 String parsed = null;
                 if (ss.containsAttribute("kore")) {
 
@@ -99,39 +104,49 @@ public class ParseRulesFilter extends ParseForestTransformer {
                     a = a + 1;
                 }
 
-                config = new SentenceVariablesFilter(context).visitNode(config);
-                config = new CellEndLabelFilter(context).visitNode(config);
-                if (checkInclusion)
-                    config = new InclusionFilter(localModule, context).visitNode(config);
-                config = new CellTypesFilter(context).visitNode(config);
-                config = new CorrectRewritePriorityFilter(context).visitNode(config);
-                config = new CorrectKSeqFilter(context).visitNode(config);
-                config = new CorrectCastPriorityFilter(context).visitNode(config);
-                // config = new CheckBinaryPrecedenceFilter().visitNode(config);
-                config = new PriorityFilter(context).visitNode(config);
-                config = new VariableTypeInferenceFilter(context).visitNode(config);
-                // config = new AmbDuplicateFilter(context).visitNode(config);
-                // config = new TypeSystemFilter(context).visitNode(config);
-                // config = new BestFitFilter(new GetFitnessUnitTypeCheckVisitor(context), context).visitNode(config);
-                // config = new TypeInferenceSupremumFilter(context).visitNode(config);
-                config = new BestFitFilter(new GetFitnessUnitKCheckVisitor(context), context).visitNode(config);
-                config = new PreferAvoidFilter(context).visitNode(config);
-                config = new FlattenListsFilter(context).visitNode(config);
-                config = new AmbDuplicateFilter(context).visitNode(config);
-                // last resort disambiguation
-                config = new AmbFilter(context).visitNode(config);
-
-                if (globalOptions.debug) {
-                    try (Formatter f = new Formatter(new FileWriter(context.dotk.getAbsolutePath() + "/timing.log", true))) {
-                        f.format("Parsing rule: Time: %6d Location: %s:%s\n", (System.currentTimeMillis() - startTime), ss.getFilename(), ss.getLocation());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                return config;
-            } catch (ParseFailedException te) {
-                te.printStackTrace();
+                // store into cache
+                // TODO: see how to report ambiguities next time when loading from cache
+                // because it uses the same objects, the filters will disambiguate before serialization
+                cachedDef.sentences.put(localModule + ss.getContent(), (Sentence) SerializationUtils.clone(config));
+                cachedDef.parsedSentences++;
+            } else {
+                // load from cache
+                config = SerializationUtils.clone(cachedDef.sentences.get(localModule + ss.getContent()));
+                //System.out.println(ss.getLocation() + " " + config.getLocation());
+                // TODO: fix the location information
             }
+
+            config = new SentenceVariablesFilter(context).visitNode(config);
+            config = new CellEndLabelFilter(context).visitNode(config);
+            if (checkInclusion)
+                config = new InclusionFilter(localModule, context).visitNode(config);
+            config = new CellTypesFilter(context).visitNode(config);
+            config = new CorrectRewritePriorityFilter(context).visitNode(config);
+            config = new CorrectKSeqFilter(context).visitNode(config);
+            config = new CorrectCastPriorityFilter(context).visitNode(config);
+            // config = new CheckBinaryPrecedenceFilter().visitNode(config);
+            config = new PriorityFilter(context).visitNode(config);
+            config = new VariableTypeInferenceFilter(context).visitNode(config);
+            // config = new AmbDuplicateFilter(context).visitNode(config);
+            // config = new TypeSystemFilter(context).visitNode(config);
+            // config = new BestFitFilter(new GetFitnessUnitTypeCheckVisitor(context), context).visitNode(config);
+            // config = new TypeInferenceSupremumFilter(context).visitNode(config);
+            config = new BestFitFilter(new GetFitnessUnitKCheckVisitor(context), context).visitNode(config);
+            config = new PreferAvoidFilter(context).visitNode(config);
+            config = new FlattenListsFilter(context).visitNode(config);
+            config = new AmbDuplicateFilter(context).visitNode(config);
+            // last resort disambiguation
+            config = new AmbFilter(context).visitNode(config);
+
+            if (globalOptions.debug) {
+                try (Formatter f = new Formatter(new FileWriter(context.dotk.getAbsolutePath() + "/timing.log", true))) {
+                    f.format("Parsing rule: Time: %6d Location: %s:%s\n", (System.currentTimeMillis() - startTime), ss.getFilename(), ss.getLocation());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            cachedDef.totalSentences++;
+            return config;
         }
         return ss;
     }
