@@ -13,13 +13,14 @@ import java.util.Set;
 
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.FreshOperations;
-import org.kframework.backend.java.builtins.IntToken;
 import org.kframework.backend.java.kil.*;
 import org.kframework.kil.loader.Context;
 import org.kframework.krun.K;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 
 
@@ -126,33 +127,31 @@ public class PatternMatcher extends AbstractMatcher {
             return Collections.emptyList();
         }
 
-        List<Map<Variable, Term>> results = evaluateConditions(rule, getMultiSubstitutions(matcher), context);
-
-        return results;
+        return evaluateConditions(rule, getMultiSubstitutions(matcher), context);
     }
 
     /**
+     * Evaluates the side-conditions of a rule against a list of possible
+     * instantiations.
+     * 
      * @param rule
+     * @param substitutions
      * @param context
-     * @param matcher
-     * @return
+     * @return a list of instantiations that satisfy the side-conditions; each
+     *         of which is updated with extra bindings introduced during the
+     *         evaluation
      */
-    private static List<Map<Variable, Term>> evaluateConditions(Rule rule, List<Map<Variable, Term>> list,
+    public static List<Map<Variable, Term>> evaluateConditions(Rule rule, List<Map<Variable, Term>> substitutions,
             TermContext context) {
         /* handle fresh variables, data structure lookups, and side conditions */
-        List<Map<Variable, Term>> results = new ArrayList<Map<Variable, Term>>();
-        for (Map<Variable, Term> subst : list) {
+        List<Map<Variable, Term>> results = Lists.newArrayList();
+        for (Map<Variable, Term> crntSubst : substitutions) {
             /* add bindings for fresh variables used in the rule */
             for (Variable variable : rule.freshVariables()) {
-                subst.put(variable, FreshOperations.fresh(variable.sort(), context));
+                crntSubst.put(variable, FreshOperations.fresh(variable.sort(), context));
             }
 
             /* evaluate data structure lookups/choices and add bindings for them */
-
-            // evaluate data structure lookups/choices may cause @{code subst}
-            // to split up into multiple substitutions which will be stored in
-            // @{code substitutions}
-            List<Map<Variable, Term>> substitutions = new ArrayList<>(Collections.singletonList(subst));
             for (UninterpretedConstraint.Equality equality : rule.lookups().equalities()) {
                 // TODO(YilongL): enforce the format of rule.lookups() in kompilation and simplify the following code
                 Term lookupOrChoice = equality.leftHandSide() instanceof DataStructureLookupOrChoice ?
@@ -162,68 +161,56 @@ public class PatternMatcher extends AbstractMatcher {
                 assert lookupOrChoice instanceof DataStructureLookupOrChoice :
                     "one side of the equality should be an instance of DataStructureLookup or DataStructureChoice";
 
-                List<Map<Variable, Term>> updatedSubsts = new ArrayList<>();
-                boolean success = false;
-                if (substitutions.size() == 1) {
-                    subst = substitutions.get(0);
-
-                    Term evalLookupOrChoice = lookupOrChoice.substituteAndEvaluate(subst, context);
-                    if (evalLookupOrChoice instanceof Bottom
-                            || evalLookupOrChoice instanceof DataStructureLookupOrChoice) {
-                        /* the data-structure lookup or choice operation is either undefined or pending due to symbolic argument(s) */
-                        
-                        // when the operation is pending, it is not really a valid match
-                        // for example, matching ``<env>... X |-> V ...</env>''
-                        // against ``<env> Rho </env>'' will result in a pending
-                        // choice operation due to the unknown ``Rho''.
+                boolean resolved = false;
+                Term evalLookupOrChoice = lookupOrChoice.substituteAndEvaluate(crntSubst, context);
+                if (evalLookupOrChoice instanceof Bottom
+                        || evalLookupOrChoice instanceof DataStructureLookupOrChoice) {
+                    /* the data-structure lookup or choice operation is either undefined or pending due to symbolic argument(s) */
+                    
+                    // when the operation is pending, it is not really a valid match
+                    // for example, matching ``<env>... X |-> V ...</env>''
+                    // against ``<env> Rho </env>'' will result in a pending
+                    // choice operation due to the unknown ``Rho''.
+                } else {
+                    if (nonLookupOrChoice instanceof Variable) {
+                        Variable variable = (Variable) nonLookupOrChoice;
+                        if (checkOrderedSortedCondition(variable, evalLookupOrChoice, context)) {
+                            resolved = true;
+                            crntSubst.put(variable, evalLookupOrChoice);
+                        }
                     } else {
-                        if (nonLookupOrChoice instanceof Variable) {
-                            Variable variable = (Variable) nonLookupOrChoice;
-                            if (checkOrderedSortedCondition(variable, evalLookupOrChoice, context)) {
-                                success = true;
-                                subst.put(variable, evalLookupOrChoice);
-                                updatedSubsts.add(subst);
-                            }
-                        } else {
-                            // the non-lookup term is not a variable and thus requires further pattern matching
-                            // for example: L:List[Int(#"0")] = '#ostream(_)(I:Int), where L is the output buffer
-                            //           => '#ostream(_)(Int(#"1")) =? '#ostream(_)(I:Int)
-                            PatternMatcher lookupMatcher = new PatternMatcher(context);
-                            if (lookupMatcher.patternMatch(evalLookupOrChoice, nonLookupOrChoice)) {
-                                success = true;
-                                assert lookupMatcher.multiSubstitutions.isEmpty();
-                                subst = composeSubstitution(lookupMatcher.fSubstitution, subst);
-//                                updatedSubsts.add(subst);
-                                updatedSubsts.add(composeSubstitution(lookupMatcher.fSubstitution, subst));
-                            }
+                        // the non-lookup term is not a variable and thus requires further pattern matching
+                        // for example: L:List[Int(#"0")] = '#ostream(_)(I:Int), where L is the output buffer
+                        //           => '#ostream(_)(Int(#"1")) =? '#ostream(_)(I:Int)
+                        PatternMatcher lookupMatcher = new PatternMatcher(context);
+                        if (lookupMatcher.patternMatch(evalLookupOrChoice, nonLookupOrChoice)) {
+                            resolved = true;
+                            assert lookupMatcher.multiSubstitutions.isEmpty();
+                            crntSubst = composeSubstitution(crntSubst, lookupMatcher.fSubstitution);
                         }
                     }
                 }
                 
-                if (success) {
-                    substitutions = new ArrayList<>(Collections.singletonList(subst));
-                } else {
-                    substitutions = Collections.emptyList();
+                if (!resolved) {
+                    crntSubst = null;
+                    break;
                 }
-                assert substitutions.equals(updatedSubsts);
-                substitutions = updatedSubsts;
-                assert substitutions.size() <= 1;
             }
 
             /* evaluate side conditions */
-            Iterator<Map<Variable, Term>> iter = substitutions.iterator();
-            while (iter.hasNext()) {
-                Map<Variable, Term> nextSubst = iter.next();
+            if (crntSubst != null) {
                 for (Term require : rule.requires()) {
-                    Term evaluatedReq = require.substituteAndEvaluate(nextSubst, context);
+                    Term evaluatedReq = require.substituteAndEvaluate(crntSubst, context);
                     if (!evaluatedReq.equals(BoolToken.TRUE)) {
-                        iter.remove();
+                        crntSubst = null;
                         break;
                     }
                 }
             }
 
-            results.addAll(substitutions);
+            if (crntSubst != null) {
+                results.add(crntSubst);
+            }
         }
         return results;
     }
@@ -268,7 +255,8 @@ public class PatternMatcher extends AbstractMatcher {
             }
             return result;
         } else {
-            return Collections.singletonList(matcher.fSubstitution);
+            Map<Variable, Term> substitution = Maps.newHashMap(matcher.fSubstitution);
+            return Collections.singletonList(substitution);
         }
     }
 
