@@ -163,43 +163,43 @@ public class PatternMatcher extends AbstractMatcher {
                     "one side of the equality should be an instance of DataStructureLookup or DataStructureChoice";
 
                 List<Map<Variable, Term>> updatedSubsts = new ArrayList<>();
-                for (Map<Variable, Term> crntSubst : substitutions) {
+                
+                if (substitutions.size() == 1) {
+                    Map<Variable, Term> crntSubst = substitutions.get(0);
+//                    boolean proceed = true;
+//                    assert substitutions.size() <= 1;
+//                for (Map<Variable, Term> crntSubst : substitutions) {
                     Term evalLookupOrChoice = lookupOrChoice.substituteAndEvaluate(crntSubst, context);
-                    if (evalLookupOrChoice instanceof Bottom) {
-                        /* the data-structure lookup or choice operation is undefined */
-                        continue;
-                    }
-
-                    if (evalLookupOrChoice instanceof DataStructureLookupOrChoice) {
-                        /* the data-structure lookup or choice operation is pending due to symbolic argument(s) */
-
-                        // in other words, this is not really a valid match.
+                    if (evalLookupOrChoice instanceof Bottom
+                            || evalLookupOrChoice instanceof DataStructureLookupOrChoice) {
+                        /* the data-structure lookup or choice operation is either undefined or pending due to symbolic argument(s) */
+                        
+                        // when the operation is pending, it is not really a valid match
                         // for example, matching ``<env>... X |-> V ...</env>''
                         // against ``<env> Rho </env>'' will result in a pending
                         // choice operation due to the unknown ``Rho''.
-                        continue;
-                    }
-
-                    if (nonLookupOrChoice instanceof Variable) {
-                        Variable variable = (Variable) nonLookupOrChoice;
-                        if (checkOrderedSortedCondition(variable, evalLookupOrChoice, context)) {
-                            Map<Variable, Term> newSubst = new HashMap<Variable, Term>(crntSubst);
-                            newSubst.put(variable, evalLookupOrChoice);
-                            updatedSubsts.add(newSubst);
-                        }
                     } else {
-                        // the non-lookup term is not a variable and thus requires further pattern matching
-                        // for example: L:List[Int(#"0")] = '#ostream(_)(I:Int), where L is the output buffer
-                        //           => '#ostream(_)(Int(#"1")) =? '#ostream(_)(I:Int)
-                        PatternMatcher lookupMatcher = new PatternMatcher(context);
-                        if (lookupMatcher.patternMatch(evalLookupOrChoice, nonLookupOrChoice)) {
-                            // it's possible that multiple substitutions are viable from the pattern matching above
-                            List<Map<Variable, Term>> multiSubstitutions2 = PatternMatcher.getMultiSubstitutions(lookupMatcher);
-                            assert multiSubstitutions2.size() == 1;
-                            for (Map<Variable, Term> subst1 : multiSubstitutions2) {
-                                Map<Variable, Term> composedSubst = composeSubstitution(subst1, crntSubst);
-                                if (composedSubst != null) {
-                                    updatedSubsts.add(composedSubst);
+                        if (nonLookupOrChoice instanceof Variable) {
+                            Variable variable = (Variable) nonLookupOrChoice;
+                            if (checkOrderedSortedCondition(variable, evalLookupOrChoice, context)) {
+                                Map<Variable, Term> newSubst = new HashMap<Variable, Term>(crntSubst);
+                                newSubst.put(variable, evalLookupOrChoice);
+                                updatedSubsts.add(newSubst);
+                            }
+                        } else {
+                            // the non-lookup term is not a variable and thus requires further pattern matching
+                            // for example: L:List[Int(#"0")] = '#ostream(_)(I:Int), where L is the output buffer
+                            //           => '#ostream(_)(Int(#"1")) =? '#ostream(_)(I:Int)
+                            PatternMatcher lookupMatcher = new PatternMatcher(context);
+                            if (lookupMatcher.patternMatch(evalLookupOrChoice, nonLookupOrChoice)) {
+                                // it's possible that multiple substitutions are viable from the pattern matching above
+                                List<Map<Variable, Term>> multiSubstitutions2 = PatternMatcher.getMultiSubstitutions(lookupMatcher);
+                                assert multiSubstitutions2.size() == 1;
+                                for (Map<Variable, Term> subst1 : multiSubstitutions2) {
+                                    Map<Variable, Term> composedSubst = composeSubstitution(subst1, crntSubst);
+                                    if (composedSubst != null) {
+                                        updatedSubsts.add(composedSubst);
+                                    }
                                 }
                             }
                         }
