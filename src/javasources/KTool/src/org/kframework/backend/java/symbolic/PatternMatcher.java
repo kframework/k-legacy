@@ -165,11 +165,9 @@ public class PatternMatcher extends AbstractMatcher {
                 List<Map<Variable, Term>> updatedSubsts = new ArrayList<>();
                 
                 if (substitutions.size() == 1) {
-                    Map<Variable, Term> crntSubst = substitutions.get(0);
-//                    boolean proceed = true;
-//                    assert substitutions.size() <= 1;
-//                for (Map<Variable, Term> crntSubst : substitutions) {
-                    Term evalLookupOrChoice = lookupOrChoice.substituteAndEvaluate(crntSubst, context);
+                    subst = substitutions.get(0);
+
+                    Term evalLookupOrChoice = lookupOrChoice.substituteAndEvaluate(subst, context);
                     if (evalLookupOrChoice instanceof Bottom
                             || evalLookupOrChoice instanceof DataStructureLookupOrChoice) {
                         /* the data-structure lookup or choice operation is either undefined or pending due to symbolic argument(s) */
@@ -182,9 +180,8 @@ public class PatternMatcher extends AbstractMatcher {
                         if (nonLookupOrChoice instanceof Variable) {
                             Variable variable = (Variable) nonLookupOrChoice;
                             if (checkOrderedSortedCondition(variable, evalLookupOrChoice, context)) {
-                                Map<Variable, Term> newSubst = new HashMap<Variable, Term>(crntSubst);
-                                newSubst.put(variable, evalLookupOrChoice);
-                                updatedSubsts.add(newSubst);
+                                subst.put(variable, evalLookupOrChoice);
+                                updatedSubsts.add(subst);
                             }
                         } else {
                             // the non-lookup term is not a variable and thus requires further pattern matching
@@ -192,15 +189,8 @@ public class PatternMatcher extends AbstractMatcher {
                             //           => '#ostream(_)(Int(#"1")) =? '#ostream(_)(I:Int)
                             PatternMatcher lookupMatcher = new PatternMatcher(context);
                             if (lookupMatcher.patternMatch(evalLookupOrChoice, nonLookupOrChoice)) {
-                                // it's possible that multiple substitutions are viable from the pattern matching above
-                                List<Map<Variable, Term>> multiSubstitutions2 = PatternMatcher.getMultiSubstitutions(lookupMatcher);
-                                assert multiSubstitutions2.size() == 1;
-                                for (Map<Variable, Term> subst1 : multiSubstitutions2) {
-                                    Map<Variable, Term> composedSubst = composeSubstitution(subst1, crntSubst);
-                                    if (composedSubst != null) {
-                                        updatedSubsts.add(composedSubst);
-                                    }
-                                }
+                                assert lookupMatcher.multiSubstitutions.isEmpty();
+                                updatedSubsts.add(composeSubstitution(lookupMatcher.fSubstitution, subst));
                             }
                         }
                     }
