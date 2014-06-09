@@ -671,9 +671,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
             e.printStackTrace();
         } catch (UnsupportedOperationException e) {
             // TODO(AndreiS): fix this translation and the exceptions
-            if (GlobalSettings.verbose) {
-                e.printStackTrace();
-            }
+            e.printStackTrace();
         }
         return result;
     }
@@ -880,9 +878,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
                 result = solver.Check() == Status.UNSATISFIABLE;
                 context.Dispose();
             } catch (RuntimeException | Z3Exception e) {
-                if (GlobalSettings.verbose) {
-                    e.printStackTrace();
-                }
+                e.printStackTrace();
             }
         }
         return  result;

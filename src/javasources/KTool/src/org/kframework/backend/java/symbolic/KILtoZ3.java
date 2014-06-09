@@ -1,7 +1,6 @@
 // Copyright (c) 2013-2014 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import com.microsoft.z3.*;
 import org.kframework.backend.java.builtins.BitVector;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.IntToken;
@@ -13,6 +12,13 @@ import org.kframework.backend.java.kil.Z3Term;
 import org.kframework.kil.ASTNode;
 
 import java.util.Set;
+
+import com.microsoft.z3.ArithExpr;
+import com.microsoft.z3.BitVecExpr;
+import com.microsoft.z3.BoolExpr;
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
+import com.microsoft.z3.Z3Exception;
 
 
 /**
