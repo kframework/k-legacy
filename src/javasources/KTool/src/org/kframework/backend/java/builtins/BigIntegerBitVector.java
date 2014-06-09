@@ -252,6 +252,15 @@ public final class BigIntegerBitVector extends BitVector<BigInteger> {
     }
 
     @Override
+    public BitVector extract(int beginIndex, int endIndex) {
+        int resultBitwidth = endIndex - beginIndex;
+        BigInteger mask = BigInteger.ONE.shiftLeft(resultBitwidth).subtract(BigInteger.ONE);
+        return BitVector.of(
+                value.shiftRight(bitwidth - endIndex).and(mask),
+                resultBitwidth);
+    }
+
+    @Override
     public List<BitVector> toDigits(int digitBitWidth, int count) {
         assert digitBitWidth > 0;
         assert digitBitWidth * count <= bitwidth;

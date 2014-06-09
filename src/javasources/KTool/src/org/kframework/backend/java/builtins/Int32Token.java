@@ -211,6 +211,14 @@ public class Int32Token extends BitVector<Integer> {
     }
 
     @Override
+    public BitVector extract(int beginIndex, int endIndex) {
+        int resultBitwidth = endIndex - beginIndex;
+        return BitVector.of(
+                (value >> (bitwidth - endIndex)) & ((1 << resultBitwidth) - 1),
+                resultBitwidth);
+    }
+
+    @Override
     public List<BitVector> toDigits(int digitBitWidth, int count) {
         assert digitBitWidth > 0;
         assert digitBitWidth * count <= bitwidth;

@@ -143,19 +143,19 @@ module MINT
    * The bits of the first machine integer are on the more significant
    * positions.
    */
-  syntax MInt ::= concatenateMInt(MInt, MInt)   [function, hook(#MINT:concat)]
+  syntax MInt ::= concatenateMInt(MInt, MInt)   [function, hook(#MINT:concatenate)]
 
   /*
-   * extractMInt(MI:MInt, N:Int, M:Int) 
-   * Returns a machine integer with the underlying bits the bits on positions N,  MI on   
+   * Returns a machine integer with the underlying bits the bits of the given
+   * machine integer in the given range. The bit on position 0 is the most
+   * significant bit.
    */
   syntax MInt ::= extractMInt(MInt, Int, Int)   [function, hook(#MINT:extract)]
 
   /*
-   * Returns a list of digits representing the given machine integers in the
-   * given base. Each digit is represented as a machine integers. The base must
-   * be an integer greater than 1. Useful for serializing a integer to a
-   * sequence of bytes.
+   * Returns a list of the first digits representing the given machine integer,
+   * each digit a machine integer on the given bitwidth. Useful for serializing
+   * a integer to a sequence of bytes.
    */
   syntax List ::= digitsOfMInt(MInt, Int, Int)   [function, hook(#MINT:toDigits)]
 

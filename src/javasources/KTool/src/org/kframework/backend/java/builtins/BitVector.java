@@ -189,6 +189,13 @@ public abstract class BitVector<T extends Number> extends Token {
     public abstract BoolToken eq(BitVector<T> bitVector);
     public abstract BoolToken ne(BitVector<T> bitVector);
 
+    public BitVector concatenate(BitVector bitVector) {
+        return BitVector.of(
+                unsignedValue().shiftLeft(bitVector.bitwidth).add(bitVector.unsignedValue()),
+                bitwidth + bitVector.bitwidth);
+    }
+    public abstract BitVector extract(int beginIndex, int endIndex);
+
     public abstract List<BitVector> toDigits(int digitBitWidth, int count);
 
     public static BitVector fromDigits(List<BitVector> digits) {

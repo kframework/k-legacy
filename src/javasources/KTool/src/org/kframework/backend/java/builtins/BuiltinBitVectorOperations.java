@@ -262,6 +262,18 @@ public final class BuiltinBitVectorOperations {
         }
     }
 
+    public static BitVector concatenate(BitVector term1, BitVector term2, TermContext context) {
+        return term1.concatenate(term2);
+    }
+
+    public static BitVector extract(
+            BitVector term,
+            IntToken beginIndex,
+            IntToken endIndex,
+            TermContext context) {
+        return term.extract(beginIndex.intValue(), endIndex.intValue());
+    }
+
     public static BuiltinList toDigits(
             BitVector term,
             IntToken bitwidth,
