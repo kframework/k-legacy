@@ -146,6 +146,10 @@ public class Parser {
         public int hashCode() {
             return this.key.hashCode();
         }
+        
+        int stateBegin() {
+            return key.stateBegin;
+        }
     //***************************** End Boilerplate *****************************
     }
 
@@ -172,17 +176,17 @@ public class Parser {
                 //  - state.orderingInfo,
                 //  - stateBegin and
                 //  - state.
-                ((x = Integer.compare(that.key.stateCall.key.ntCall.key.ntBegin,
-                                      this.key.stateCall.key.ntCall.key.ntBegin)) != 0) ? x :
+                ((x = Integer.compare(that.ntBegin(),
+                                      this.ntBegin())) != 0) ? x :
                 // TODO: ((x = this.key.stateCall.key.ntCall.key.nt.orderingInfo.compareTo(
                 //             that.key.stateCall.key.ntCall.key.nt.orderingInfo)) != 0) ? x :
-                ((x = Integer.compare(this.key.stateEnd, that.key.stateEnd)) != 0) ? x :
-                ((x = this.key.stateCall.key.state.orderingInfo.compareTo(
-                      that.key.stateCall.key.state.orderingInfo)) != 0) ? x :
+                ((x = Integer.compare(this.stateEnd(), that.stateEnd())) != 0) ? x :
+                ((x = this.state().orderingInfo.compareTo(
+                      that.state().orderingInfo)) != 0) ? x :
                 // NOTE: these last two comparisons are just so we don't conflate distinct values
-                ((x = Integer.compare(this.key.stateCall.key.stateBegin,
-                                      that.key.stateCall.key.stateBegin)) != 0) ? x :
-                this.key.stateCall.key.state.compareTo(that.key.stateCall.key.state);
+                ((x = Integer.compare(this.stateBegin(),
+                                      that.stateBegin())) != 0) ? x :
+                this.state().compareTo(that.state());
         }
 
         private static class Key implements AutoVivifyingBiMap.Create<StateReturn> {
@@ -195,7 +199,7 @@ public class Parser {
                 // if we are a lookahead, then force the the state end to be equal to the state begin
                 if (stateCall.key.state instanceof NonTerminalState &&
                     ((NonTerminalState)stateCall.key.state).isLookahead) {
-                    stateEnd = stateCall.key.stateBegin;
+                    stateEnd = stateCall.stateBegin();
                 }
     //***************************** Start Boilerplate *****************************
                 this.stateCall = stateCall; this.stateEnd = stateEnd;
@@ -229,13 +233,33 @@ public class Parser {
             this.key = key;
             //// NON-BOILERPLATE CODE: ////
             // update the NonTerminalCalls set of ExitStateReturns
-            if (this.key.stateCall.key.state instanceof ExitState) {
-                this.key.stateCall.key.ntCall.exitStateReturns.add(this);
+            if (this.state() instanceof ExitState) {
+                this.ntCall().exitStateReturns.add(this);
             }
         }
 
         public int hashCode() {
             return this.key.hashCode();
+        }
+        
+        public State state() {
+            return this.key.stateCall.key.state;
+        }
+        
+        public int stateBegin() {
+            return this.key.stateCall.stateBegin();
+        }
+        
+        public int stateEnd() {
+            return this.key.stateEnd;
+        }
+        
+        public NonTerminalCall ntCall() {
+            return this.key.stateCall.key.ntCall;
+        }
+        
+        public int ntBegin() {
+            return ntCall().key.ntBegin;
         }
     //***************************** End Boilerplate *****************************
     }
@@ -389,6 +413,24 @@ public class Parser {
             }
             lines[input.length()] = l;
             columns[input.length()] = c;
+        }
+        
+        void enqueueStateReturn(StateCall stateCall, int stateEnd)  {
+            this.stateReturnWorkList.enqueue(
+                    this.stateReturns.get(
+                            new StateReturn.Key(stateCall, stateEnd)));
+        }
+        
+        NonTerminalCall getNtCall(NonTerminal nt, int ntBegin) {
+            return ntCalls.get(new NonTerminalCall.Key(nt, ntBegin));
+        }
+        
+        StateCall getStateCall(NonTerminalCall ntCall, int stateBegin, State state) {
+            return stateCalls.get(new StateCall.Key(ntCall, stateBegin, state));
+        }
+        
+        StateCall getStateCall(NonTerminal nt, int ntBegin, int stateBegin, State state) {
+            return getStateCall(getNtCall(nt, ntBegin), stateBegin, state);
         }
     }
 
@@ -608,7 +650,7 @@ public class Parser {
                     }
                 });
             } else if (rule instanceof ContextSensitiveRule) {
-                Set<KList> ntCallContexts = stateReturn.key.stateCall.key.ntCall.context.contexts;
+                Set<KList> ntCallContexts = stateReturn.ntCall().context.contexts;
 
                 if (this.mapping instanceof Nil) { promote(ntCallContexts); }
 
@@ -632,7 +674,7 @@ public class Parser {
                         addAll(((ContextSensitiveRule) rule).apply(key, promotedThat.values.get(key), metaData));
                 }
 
-                stateReturn.key.stateCall.key.ntCall.reactivations.add(stateReturn);
+                stateReturn.ntCall().reactivations.add(stateReturn);
 
                 return result;
             } else { throw unknownMappingType(); }
@@ -654,18 +696,17 @@ public class Parser {
      * @return the result of parsing, as a Term
      */
     public Term parse(NonTerminal nt, int position) {
-        activateStateCall(s.stateCalls.get(new StateCall.Key(s.ntCalls.get(
-            new NonTerminalCall.Key(nt, position)), position, nt.entryState)),
-            Function.IDENTITY);
-
+        activateStateCall(s.getStateCall(nt, position, position, 
+                nt.entryState), Function.IDENTITY);
+        
         for (StateReturn stateReturn;
              (stateReturn = s.stateReturnWorkList.dequeue()) != null;) {
             this.workListStep(stateReturn);
         }
 
         Ambiguity result = new Ambiguity(KSorts.K, new ArrayList<Term>());
-        for(StateReturn stateReturn : s.ntCalls.get(new NonTerminalCall.Key(nt,position)).exitStateReturns) {
-            if (stateReturn.key.stateEnd == s.input.length()) {
+        for(StateReturn stateReturn : s.getNtCall(nt, position).exitStateReturns) {
+            if (stateReturn.stateEnd() == s.input.length()) {
                 result.getContents().add(new KList(new Ambiguity(
                     KSorts.K, stateReturn.function.applyToNull())));
             }
@@ -724,18 +765,16 @@ public class Parser {
     // finish the process of one state return from the work list
     private void workListStep(StateReturn stateReturn) {
         if (finishStateReturn(stateReturn)) {
-            State state = stateReturn.key.stateCall.key.state;
+            State state = stateReturn.state();
             if (state instanceof ExitState) {
-                for (StateCall stateCall : stateReturn.key.stateCall.key.ntCall.callers) {
-                    s.stateReturnWorkList.enqueue(
-                        s.stateReturns.get(
-                            new StateReturn.Key(stateCall, stateReturn.key.stateEnd)));
+                for (StateCall stateCall : stateReturn.ntCall().callers) {
+                    s.enqueueStateReturn(stateCall, stateReturn.stateEnd());
                 }
             } else if (state instanceof NextableState) {
                 for (State nextState : ((NextableState) state).next) {
-                    activateStateCall(s.stateCalls.get(new StateCall.Key(
-                        stateReturn.key.stateCall.key.ntCall, stateReturn.key.stateEnd, nextState)),
-                        stateReturn.function);
+                    activateStateCall(s.getStateCall(stateReturn.ntCall(), 
+                            stateReturn.stateEnd(), nextState), 
+                            stateReturn.function);
                 }
             } else { throw unknownStateType(); }
         }
@@ -744,34 +783,30 @@ public class Parser {
     // compute the Function for a state return based on the Function for the state call associated
     // with the state return, and the type of the state
     private boolean finishStateReturn(StateReturn stateReturn) {
-        if (stateReturn.key.stateCall.key.state instanceof EntryState) {
+        if (stateReturn.state() instanceof EntryState 
+                || stateReturn.state() instanceof ExitState) {
             return stateReturn.function.add(stateReturn.key.stateCall.function);
-        } else if (stateReturn.key.stateCall.key.state instanceof ExitState) {
-            return stateReturn.function.add(stateReturn.key.stateCall.function);
-        } else if (stateReturn.key.stateCall.key.state instanceof PrimitiveState) {
+        } else if (stateReturn.state() instanceof PrimitiveState) {
             return stateReturn.function.addToken(stateReturn.key.stateCall.function,
-                s.input.subSequence(stateReturn.key.stateCall.key.stateBegin,
-                    stateReturn.key.stateEnd).toString(),
-                ((PrimitiveState) stateReturn.key.stateCall.key.state).sort);
-        } else if (stateReturn.key.stateCall.key.state instanceof RuleState) {
-            int startPosition = stateReturn.key.stateCall.key.ntCall.key.ntBegin;
-            int endPosition = stateReturn.key.stateEnd;
+                s.input.subSequence(stateReturn.stateBegin(),
+                    stateReturn.stateEnd()).toString(),
+                ((PrimitiveState) stateReturn.state()).sort);
+        } else if (stateReturn.state() instanceof RuleState) {
+            int startPosition = stateReturn.ntBegin();
+            int endPosition = stateReturn.stateEnd();
             return stateReturn.function.addRule(stateReturn.key.stateCall.function,
-                ((RuleState) stateReturn.key.stateCall.key.state).rule, stateReturn,
+                ((RuleState) stateReturn.state()).rule, stateReturn,
                 new Rule.MetaData(
                     new Rule.MetaData.Location(startPosition, s.lines[startPosition], s.columns[startPosition]),
                     new Rule.MetaData.Location(endPosition, s.lines[endPosition], s.columns[endPosition])));
-        } else if (stateReturn.key.stateCall.key.state instanceof NonTerminalState) {
+        } else if (stateReturn.state() instanceof NonTerminalState) {
+            NonTerminalState ntState = (NonTerminalState) stateReturn.state();
             return stateReturn.function.addNTCall(
                 stateReturn.key.stateCall.function,
                 s.stateReturns.get(new StateReturn.Key(
-                    s.stateCalls.get(new StateCall.Key(
-                        s.ntCalls.get(new NonTerminalCall.Key(
-                            ((Grammar.NonTerminalState) stateReturn.key.stateCall.key.state).child,
-                            stateReturn.key.stateCall.key.stateBegin)),
-                        stateReturn.key.stateEnd,
-                        ((Grammar.NonTerminalState) stateReturn.key.stateCall.key.state).child.exitState)),
-                    stateReturn.key.stateEnd)).function);
+                        s.getStateCall(ntState.child, stateReturn.stateBegin(),
+                                stateReturn.stateEnd(), ntState.child.exitState),
+                                stateReturn.stateEnd())).function);
         } else { throw unknownStateType(); }
     }
 
@@ -784,41 +819,34 @@ public class Parser {
         if (nextState instanceof EntryState ||
             nextState instanceof ExitState ||
             nextState instanceof RuleState) {
-            s.stateReturnWorkList.enqueue(
-                s.stateReturns.get(
-                    new StateReturn.Key(stateCall, stateCall.key.stateBegin)));
+            s.enqueueStateReturn(stateCall, stateCall.stateBegin());
         } else if (nextState instanceof PrimitiveState) {
             for (PrimitiveState.MatchResult matchResult :
-                    ((PrimitiveState)nextState).matches(s.input, stateCall.key.stateBegin)) {
-                s.stateReturnWorkList.enqueue(
-                    s.stateReturns.get(
-                        new StateReturn.Key(stateCall, matchResult.matchEnd)));
+                    ((PrimitiveState)nextState).matches(s.input, stateCall.stateBegin())) {
+                s.enqueueStateReturn(stateCall, matchResult.matchEnd);
             }
         // not instanceof SimpleState
         } else if (nextState instanceof NonTerminalState) {
+            NonTerminalState ntState = (NonTerminalState) nextState;
             // make sure lookaheads have a stateReturn even if empty
-            if (((NonTerminalState) nextState).isLookahead) {
-                s.stateReturnWorkList.enqueue(
-                    s.stateReturns.get(
-                        new StateReturn.Key(stateCall, stateCall.key.stateBegin)));
+            if (ntState.isLookahead) {
+                s.enqueueStateReturn(stateCall, stateCall.stateBegin());
             }
             // add to the ntCall
-            NonTerminalCall ntCall = s.ntCalls.get(new NonTerminalCall.Key(
-                ((NonTerminalState) nextState).child, stateCall.key.stateBegin));
+            NonTerminalCall ntCall = s.getNtCall(ntState.child,
+                    stateCall.stateBegin());
             ntCall.callers.add(stateCall);
             if (ntCall.context.contexts.addAll(stateCall.function.results())) {
                 // enqueues anything sensitive
                 s.stateReturnWorkList.addAll(ntCall.reactivations);
             }
             // activate the entry state call (almost like activateStateCall but we have no stateReturn)
-            StateCall entryStateCall = s.stateCalls.get(new StateCall.Key(
-                ntCall, stateCall.key.stateBegin, ntCall.key.nt.entryState));
+            StateCall entryStateCall = s.getStateCall(ntCall,
+                    stateCall.stateBegin(), ntCall.key.nt.entryState);
             activateStateCall(entryStateCall, Function.IDENTITY);
             // process existStateReturns already done in the ntCall
             for (StateReturn exitStateReturn : ntCall.exitStateReturns) {
-                s.stateReturnWorkList.enqueue(
-                    s.stateReturns.get(
-                        new StateReturn.Key(stateCall, exitStateReturn.key.stateEnd)));
+                s.enqueueStateReturn(stateCall, exitStateReturn.stateEnd());
             }
         } else { throw unknownStateType(); }
     }
