@@ -11,7 +11,7 @@ import org.kframework.krun.api.io.FileSystem;
 /**
  * An object containing context specific to a particular configuration.
  */
-public class TermContext extends JavaSymbolicObject {
+public class TermContext {
 
     private BigInteger counter = BigInteger.ZERO;
     private final Definition def;
@@ -54,15 +54,4 @@ public class TermContext extends JavaSymbolicObject {
     public FileSystem fileSystem() {
         return fs;
     }
-
-    @Override
-    public ASTNode accept(Transformer transformer) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void accept(Visitor visitor) {
-        throw new UnsupportedOperationException();
-    }
-
 }
