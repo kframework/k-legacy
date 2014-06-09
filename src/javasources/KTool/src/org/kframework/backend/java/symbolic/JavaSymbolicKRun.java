@@ -168,34 +168,32 @@ public class JavaSymbolicKRun implements KRun {
 
         DataStructureToLookupUpdate mapTransformer = new DataStructureToLookupUpdate(context);
 
-        try {
-            List<Rule> rules = new ArrayList<Rule>();
-            for (org.kframework.kil.ModuleItem moduleItem : module.getItems()) {
-                if (!(moduleItem instanceof org.kframework.kil.Rule)) {
-                    continue;
-                }
+        List<Rule> rules = new ArrayList<Rule>();
+        for (org.kframework.kil.ModuleItem moduleItem : module.getItems()) {
+            if (!(moduleItem instanceof org.kframework.kil.Rule)) {
+                continue;
+            }
 
             Rule rule = transformer.transformRule(
                     (org.kframework.kil.Rule) mapTransformer.visitNode(moduleItem),
                     definition);
             Rule freshRule = rule.getFreshRule(termContext);
-//                System.out.println(freshRule.toString());
-                rules.add(freshRule);
+            rules.add(freshRule);
+        }
+
+        SymbolicRewriter symbolicRewriter = new SymbolicRewriter(definition);
+        for (org.kframework.kil.ModuleItem moduleItem : module.getItems()) {
+            if (!(moduleItem instanceof org.kframework.kil.Rule)) {
+                continue;
             }
 
-            SymbolicRewriter symbolicRewriter = new SymbolicRewriter(definition);
-            for (org.kframework.kil.ModuleItem moduleItem : module.getItems()) {
-                if (!(moduleItem instanceof org.kframework.kil.Rule)) {
-                    continue;
-                }
-
-                org.kframework.kil.Rule kilRule = (org.kframework.kil.Rule) moduleItem;
-                org.kframework.kil.Term kilLeftHandSide
-                        = ((org.kframework.kil.Rewrite) kilRule.getBody()).getLeft();
-                org.kframework.kil.Term kilRightHandSide =
-                        ((org.kframework.kil.Rewrite) kilRule.getBody()).getRight();
-                org.kframework.kil.Term kilRequires = kilRule.getRequires();
-                org.kframework.kil.Term kilEnsures = kilRule.getEnsures();
+            org.kframework.kil.Rule kilRule = (org.kframework.kil.Rule) moduleItem;
+            org.kframework.kil.Term kilLeftHandSide
+                    = ((org.kframework.kil.Rewrite) kilRule.getBody()).getLeft();
+            org.kframework.kil.Term kilRightHandSide =
+                    ((org.kframework.kil.Rewrite) kilRule.getBody()).getRight();
+            org.kframework.kil.Term kilRequires = kilRule.getRequires();
+            org.kframework.kil.Term kilEnsures = kilRule.getEnsures();
 
             org.kframework.kil.Rule kilDummyRule = new org.kframework.kil.Rule(
                     kilRightHandSide,
@@ -215,16 +213,14 @@ public class JavaSymbolicKRun implements KRun {
                     initialConstraint,
                     termContext);
 
-                SymbolicConstraint targetConstraint = new SymbolicConstraint(termContext);
-                targetConstraint.addAll(dummyRule.ensures());
-                ConstrainedTerm targetTerm = new ConstrainedTerm(
-                        dummyRule.leftHandSide().evaluate(termContext),
-                        dummyRule.lookups().getSymbolicConstraint(termContext),
-                        targetConstraint,
-                        termContext);
+            SymbolicConstraint targetConstraint = new SymbolicConstraint(termContext);
+            targetConstraint.addAll(dummyRule.ensures());
+            ConstrainedTerm targetTerm = new ConstrainedTerm(
+                    dummyRule.leftHandSide().evaluate(termContext),
+                    dummyRule.lookups().getSymbolicConstraint(termContext),
+                    targetConstraint,
+                    termContext);
 
-//                System.out.println("Initial: " + initialTerm);
-//                System.out.println("Target: " + targetTerm);
             proofResults.addAll(symbolicRewriter.proveRule(initialTerm, targetTerm, rules));
         }
 
