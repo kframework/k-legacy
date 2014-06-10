@@ -1,13 +1,24 @@
+// Copyright (c) 2014 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import com.google.common.collect.Sets;
-import org.kframework.backend.java.kil.*;
+import org.kframework.backend.java.kil.KItem;
+import org.kframework.backend.java.kil.KLabelConstant;
+import org.kframework.backend.java.kil.KList;
+import org.kframework.backend.java.kil.Rule;
+import org.kframework.backend.java.kil.Term;
+import org.kframework.backend.java.kil.TermContext;
 import org.kframework.kil.Attribute;
 
 import java.util.List;
 
+import com.google.common.collect.Sets;
+
+
 /**
- * Created by andrei on 6/4/14.
+ * Expands map patterns according to their definitions.
+ *
+ * @see org.kframework.backend.java.symbolic.PatternTriggerFinder
+ *
  */
 public class PatternExpander extends PrePostTransformer {
 

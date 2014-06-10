@@ -1,3 +1,4 @@
+// Copyright (c) 2014 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
 import org.kframework.backend.java.kil.BuiltinMap;
@@ -12,7 +13,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by andrei on 6/4/14.
+ * Class containing helper static methods for {@link org.kframework.backend.java.kil.BuiltinMap}.
+ *
+ * @author AndreiS
  */
 public class BuiltinMapUtils {
 
