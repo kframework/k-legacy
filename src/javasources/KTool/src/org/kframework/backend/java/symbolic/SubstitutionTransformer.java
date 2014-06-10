@@ -7,7 +7,7 @@ import org.kframework.backend.java.kil.KCollectionFragment;
 import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.KSequence;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.State;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.kil.ASTNode;
 
@@ -26,7 +26,7 @@ public class SubstitutionTransformer extends PrePostTransformer {
 
     private final Map<Variable, ? extends Term> substitution;
     
-    public SubstitutionTransformer(Map<Variable, ? extends Term> substitution, TermContext context) {
+    public SubstitutionTransformer(Map<Variable, ? extends Term> substitution, State context) {
         super(context);
         this.substitution = substitution;
         preTransformer.addTransformer(new LocalVariableChecker());

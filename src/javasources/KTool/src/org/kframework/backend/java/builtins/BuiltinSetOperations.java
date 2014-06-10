@@ -3,7 +3,7 @@ package org.kframework.backend.java.builtins;
 
 import org.kframework.backend.java.kil.BuiltinSet;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.State;
 import org.kframework.backend.java.kil.Variable;
 
 import java.util.HashSet;
@@ -17,7 +17,7 @@ import java.util.Set;
  */
 public class BuiltinSetOperations {
 
-    public static BuiltinSet construct(BuiltinSet term1, BuiltinSet term2, TermContext context) {
+    public static BuiltinSet construct(BuiltinSet term1, BuiltinSet term2, State context) {
         Variable frame = null;
         if (term1.hasFrame() && term2.hasFrame()) {
             throw new IllegalArgumentException(
@@ -33,7 +33,7 @@ public class BuiltinSetOperations {
         return new BuiltinSet(elements, frame);
     }
 
-    public static BuiltinSet difference(BuiltinSet term1, BuiltinSet term2, TermContext context) {
+    public static BuiltinSet difference(BuiltinSet term1, BuiltinSet term2, State context) {
         if (!term1.isGround()) {
             throw new IllegalArgumentException("first argument " + term1 + " is not ground");
         }
@@ -46,7 +46,7 @@ public class BuiltinSetOperations {
         return new BuiltinSet(elements);
     }
 
-    public static BoolToken in(Term term1, BuiltinSet term2, TermContext context) {
+    public static BoolToken in(Term term1, BuiltinSet term2, State context) {
         if (!term1.isGround()) {
             throw new IllegalArgumentException("first argument " + term1 + " is not ground");
         }

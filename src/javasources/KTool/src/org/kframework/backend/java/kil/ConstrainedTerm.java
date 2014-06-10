@@ -45,10 +45,10 @@ public class ConstrainedTerm extends Term {
      */
     private final SymbolicConstraint lookups;
     private final SymbolicConstraint constraint;
-    private final TermContext context;
+    private final State context;
 
     public ConstrainedTerm(Term term, SymbolicConstraint lookups, SymbolicConstraint constraint,
-            TermContext context) {
+            State context) {
         super(term.kind);
         this.term = term;
         this.lookups = lookups;
@@ -56,15 +56,15 @@ public class ConstrainedTerm extends Term {
         this.context = context;
     }
 
-    public ConstrainedTerm(Term term, SymbolicConstraint constraint, TermContext context) {
+    public ConstrainedTerm(Term term, SymbolicConstraint constraint, State context) {
         this(term, new SymbolicConstraint(context), constraint, context);
     }
 
-    public ConstrainedTerm(Term term, TermContext context) {
+    public ConstrainedTerm(Term term, State context) {
         this(term, new SymbolicConstraint(context), new SymbolicConstraint(context), context);
     }
 
-    public TermContext termContext() {
+    public State state() {
         return context;
     }
 
@@ -99,7 +99,7 @@ public class ConstrainedTerm extends Term {
     */
 
     public SymbolicConstraint matchImplies(ConstrainedTerm constrainedTerm) {
-        SymbolicConstraint unificationConstraint = new SymbolicConstraint(constrainedTerm.termContext());
+        SymbolicConstraint unificationConstraint = new SymbolicConstraint(constrainedTerm.state());
         unificationConstraint.add(term, constrainedTerm.term);
         unificationConstraint.simplify();
         Set<Variable> variables = constrainedTerm.variableSet();
@@ -109,7 +109,7 @@ public class ConstrainedTerm extends Term {
             return null;
         }
 
-        SymbolicConstraint implicationConstraint = new SymbolicConstraint(constrainedTerm.termContext());
+        SymbolicConstraint implicationConstraint = new SymbolicConstraint(constrainedTerm.state());
         implicationConstraint.addAll(unificationConstraint);
         implicationConstraint.addAll(constrainedTerm.lookups);
         implicationConstraint.addAll(constrainedTerm.constraint);
@@ -171,7 +171,7 @@ public class ConstrainedTerm extends Term {
         }
 
         /* unify the subject term and the pattern term without considering those associated constraints */
-        SymbolicConstraint unificationConstraint = new SymbolicConstraint(constrainedTerm.termContext());
+        SymbolicConstraint unificationConstraint = new SymbolicConstraint(constrainedTerm.state());
         unificationConstraint.add(term, constrainedTerm.term);
         unificationConstraint.simplify();
         if (unificationConstraint.isFalse()) {

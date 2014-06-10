@@ -4,7 +4,7 @@ package org.kframework.backend.java.builtins;
 import org.kframework.backend.java.kil.BuiltinMap;
 import org.kframework.backend.java.kil.BuiltinSet;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.State;
 import org.kframework.backend.java.kil.Variable;
 
 import java.util.HashMap;
@@ -20,7 +20,7 @@ import java.util.Set;
  */
 public class BuiltinMapOperations {
 
-    public static BuiltinSet keys(BuiltinMap term, TermContext context) {
+    public static BuiltinSet keys(BuiltinMap term, State context) {
         if (!term.hasFrame()) {
             Set<Term> elements = new HashSet<Term>(term.getEntries().keySet());
             return new BuiltinSet(elements);
@@ -29,7 +29,7 @@ public class BuiltinMapOperations {
         }
     }
 
-    public static BuiltinMap construct(BuiltinMap term1, BuiltinMap term2, TermContext context) {
+    public static BuiltinMap construct(BuiltinMap term1, BuiltinMap term2, State context) {
         Variable frame = null;
         if (term1.hasFrame() && term2.hasFrame()) {
             throw new IllegalArgumentException(
@@ -46,7 +46,7 @@ public class BuiltinMapOperations {
 
     }
 
-    public static BuiltinMap update(BuiltinMap term, Term key, Term value, TermContext context) {
+    public static BuiltinMap update(BuiltinMap term, Term key, Term value, State context) {
         if (!term.hasFrame()) {
             Map<Term, Term> entries = new HashMap<>(term.getEntries());
             entries.put(key, value);

@@ -69,21 +69,21 @@ public class Adjuster {
                 specside.constraint().rename(specside.term().variableSet());
         
         org.kframework.backend.java.kil.Term newImplTerm = 
-                implside.term().substituteWithBinders(implVars, implside.termContext());
+                implside.term().substituteWithBinders(implVars, implside.state());
         
         @SuppressWarnings("unchecked")
         Term newImplContent = ((Cell<Term>)newImplTerm).getContent();
         
         org.kframework.backend.java.kil.Term newSpecTerm = 
-                specside.term().substituteWithBinders(specVars, specside.termContext());
+                specside.term().substituteWithBinders(specVars, specside.state());
         
         @SuppressWarnings("unchecked")
         Term newSepcContent = ((Cell<Term>)newSpecTerm).getContent();
 
         SymbolicConstraint newImplside = 
-                implside.constraint().substituteWithBinders(implVars, implside.termContext());
+                implside.constraint().substituteWithBinders(implVars, implside.state());
         SymbolicConstraint newSpecside = 
-                specside.constraint().substituteWithBinders(specVars, specside.termContext());
+                specside.constraint().substituteWithBinders(specVars, specside.state());
 
         
 

@@ -8,7 +8,7 @@ import java.util.Map;
 import org.kframework.backend.java.kil.BuiltinMap;
 import org.kframework.backend.java.kil.BuiltinMgu;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.State;
 import org.kframework.backend.java.kil.Variable;
 
 /**
@@ -19,7 +19,7 @@ import org.kframework.backend.java.kil.Variable;
 public class BuiltinUnificationOperations {
 
     public static BuiltinMgu updateMgu(BuiltinMgu mgu, Term leftHandSide,
-            Term rightHandSide, TermContext context) {
+            Term rightHandSide, State context) {
         BuiltinMgu updatedMgu = BuiltinMgu.of(mgu.constraint(), context);
         updatedMgu.constraint().add(leftHandSide, rightHandSide);
         updatedMgu.constraint().simplify();
@@ -28,13 +28,13 @@ public class BuiltinUnificationOperations {
         return updatedMgu;
     }
 
-    public static BoolToken isUnificationFailed(BuiltinMgu mgu, TermContext context) {
+    public static BoolToken isUnificationFailed(BuiltinMgu mgu, State context) {
         mgu.constraint().simplify();
         return mgu.constraint().isFalse() ? BoolToken.TRUE : BoolToken.FALSE;
     }
 
     public static BuiltinMap applyMgu(BuiltinMgu mgu, BuiltinMap map,
-            TermContext context) {
+            State context) {
         if (!map.hasFrame()) {
             Map<Term, Term> entries = new HashMap<>();
             Map<Variable, Term> subst = mgu.constraint().substitution();

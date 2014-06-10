@@ -3,7 +3,7 @@ package org.kframework.backend.java.builtins;
 
 import org.kframework.backend.java.kil.BuiltinList;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.State;
 import org.kframework.backend.java.kil.Variable;
 
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class BuiltinListOperations {
 
-    public static BuiltinList construct(BuiltinList term1, BuiltinList term2, TermContext context) {
+    public static BuiltinList construct(BuiltinList term1, BuiltinList term2, State context) {
         Variable frame = null;
         List<Term> elementsLeft = new ArrayList<>();
         List<Term> elementsRight = new ArrayList<>();

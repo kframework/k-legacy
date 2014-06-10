@@ -9,7 +9,7 @@ import org.kframework.backend.java.kil.KItem;
 import org.kframework.backend.java.kil.KLabelConstant;
 import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.State;
 import org.kframework.backend.java.kil.Token;
 import org.kframework.kil.loader.Context;
 
@@ -58,7 +58,7 @@ public class SortMembership {
         }
     }
 
-    public static Term isBuiltin(Term term, TermContext context) {
+    public static Term isBuiltin(Term term, State context) {
         // TODO(AndreiS): fix this predicate based on sorts
         if (term.kind().isComputational()) {
             term = KCollection.downKind(term);
@@ -74,7 +74,7 @@ public class SortMembership {
         }
     }
 
-    public static Term isToken(Term term, TermContext context) {
+    public static Term isToken(Term term, State context) {
         // TODO(AndreiS): fix this predicate based on sorts
         if (term.kind().isComputational()) {
             term = KCollection.downKind(term);
