@@ -122,12 +122,10 @@ public class Variable extends Term {
     }
 
     @Override
-    public int hashCode() {
-        if (hashCode == 0) {
-            hashCode = 1;
-            hashCode = hashCode * Utils.HASH_PRIME + name.hashCode();
-            hashCode = hashCode * Utils.HASH_PRIME + sort.hashCode();
-        }
+    public int computeHash() {
+        int hashCode = 1;
+        hashCode = hashCode * Utils.HASH_PRIME + name.hashCode();
+        hashCode = hashCode * Utils.HASH_PRIME + sort.hashCode();
         return hashCode;
     }
 
@@ -160,13 +158,13 @@ public class Variable extends Term {
      * Renames serialized anonymous variables to avoid name clashes with existing anonymous
      * variables.
      */
-    private Object readResolve() {
+    Object readResolve() {
         if (anonymous) {
             int id = Integer.parseInt(name.substring(VARIABLE_PREFIX.length()));
             if (id < counter) {
                 Variable variable = deserializationAnonymousVariableMap.get(id);
                 if (variable == null) {
-                    variable = getFreshVariable(sort);
+                    variable = getFreshCopy();
                     deserializationAnonymousVariableMap.put(id, variable);
                 }
                 return variable;

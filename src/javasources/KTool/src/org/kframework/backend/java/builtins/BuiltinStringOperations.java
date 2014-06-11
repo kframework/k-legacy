@@ -5,6 +5,8 @@ import java.math.BigInteger;
 
 import org.apache.commons.lang3.StringUtils;
 import org.kframework.backend.java.kil.TermContext;
+import org.kframework.kil.FloatBuiltin;
+import org.kframework.backend.java.kil.Token;
 import org.kframework.utils.StringUtil;
 
 /**
@@ -93,29 +95,23 @@ public class BuiltinStringOperations {
     }
 
     public static IntToken string2int(StringToken term, TermContext context) {
-        try {
-            return IntToken.of(new BigInteger(term.stringValue()));
-        } catch (NumberFormatException e) {
-            if (term.stringValue().codePointCount(0, term.stringValue().length()) == 1) {
-                int numericValue = Character.getNumericValue(term.stringValue().codePointAt(0));
-                if (numericValue >= 0) {
-                    return IntToken.of(numericValue);
-                }
-            }
-            throw e;
-        }
+        return IntToken.of(term.stringValue());
     }
 
     public static IntToken string2base(StringToken term, IntToken base, TermContext context) {
         return IntToken.of(new BigInteger(term.stringValue(), base.intValue()));
     }
 
-    public static UninterpretedToken string2float(StringToken term, TermContext context) {
-        return UninterpretedToken.of("Float", term.value());
+    public static FloatToken string2float(StringToken term, TermContext context) {
+        try {
+            return FloatToken.of(term.stringValue());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
-    public static StringToken float2string(UninterpretedToken term, TermContext context) {
-        return StringToken.of(term.value());
+    public static StringToken float2string(FloatToken term, TermContext context) {
+        return StringToken.of(FloatBuiltin.printKFloat(term.bigFloatValue()));
     }
 
     public static StringToken int2string(IntToken term, TermContext context) {
@@ -153,6 +149,10 @@ public class BuiltinStringOperations {
 
     public static StringToken token2string(UninterpretedToken token, TermContext context) {
         return StringToken.of(token.value());
+    }
+
+    public static Token string2token(StringToken sort, StringToken value, TermContext context) {
+        return Token.of(sort.stringValue(), value.stringValue());
     }
     
     /**

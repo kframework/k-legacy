@@ -310,8 +310,10 @@ public class UnparserFilterNew extends NonCachingVisitor {
     @Override
     public Void visit(Variable variable, Void _) {
         prepare(variable);
-        if (variable.isFresh())
+        if (variable.isFreshVariable())
             indenter.write("?");
+        else if (variable.isFreshConstant())
+            indenter.write("!");
         indenter.write(variable.getName());
         if (!variableList.contains(variable.getName())) {
             indenter.write(":" + variable.getSort());
@@ -385,7 +387,7 @@ public class UnparserFilterNew extends NonCachingVisitor {
                             +((KLabelConstant) label).getLabel().replaceAll("`", "``").replaceAll("\\(", "`(").replaceAll("\\)", "`)").replaceAll("'", "")+" ";
                 }
             } else {
-                rawLabel = " "+((KLabelConstant) label).getLabel().replaceAll("`", "``").replaceAll("\\(", "`(").replaceAll("\\)", "`)").replaceAll("'", "")+" ";
+                rawLabel = ((KLabelConstant) label).getLabel().replaceAll("`", "``").replaceAll("\\(", "`(").replaceAll("\\)", "`)").replaceAll("'", "");
             }
             if (child instanceof KList) {
                 java.util.List<Term> termList = ((KList)child).getContents();
@@ -402,7 +404,9 @@ public class UnparserFilterNew extends NonCachingVisitor {
                         }
                         this.visitNode(termList.get(i));
                     }
-                    indenter.write(rawLabelList[i]);
+                    for (; i < rawLabelList.length; i++) {
+                        indenter.write(rawLabelList[i]);
+                    }
                 }
             }
             else {

@@ -37,6 +37,7 @@ import org.kframework.compile.ConfigurationCleaner;
 import org.kframework.compile.FlattenModules;
 import org.kframework.compile.transformers.AddTopCellConfig;
 import org.kframework.compile.transformers.Cell2DataStructure;
+import org.kframework.compile.utils.CompileDataStructures;
 import org.kframework.compile.utils.CompilerStepDone;
 import org.kframework.compile.utils.RuleCompilerSteps;
 import org.kframework.kil.ASTNode;
@@ -138,6 +139,7 @@ public class Main {
 
         Term configuration = (Term) new SubstitutionFilter(args, context).visitNode(cfgCleaned);
         configuration = (Term) new Cell2DataStructure(context).visitNode(configuration);
+        configuration = (Term) new CompileDataStructures(context).visitNode(configuration);
         return configuration;
     }
 
@@ -177,24 +179,24 @@ public class Main {
         }
         if (stdin != null) {
             KApp noIO = KApp.of(KLabelConstant.of("'#noIO", context));
-            if (K.backend.equals("java")) {
+//            if (K.backend.equals("java")) {
                 DataStructureSort myList = context.dataStructureListSortOf(DataStructureSort.DEFAULT_LIST_SORT);
                 if (myList != null) {
                     output.put("$noIO", DataStructureBuiltin.element(myList, noIO));
                 }
-            } else {
-                output.put("$noIO", new ListItem(noIO));
-            }
+//            } else {
+//                output.put("$noIO", new ListItem(noIO));
+//            }
             output.put("$stdin", StringBuiltin.kAppOf(stdin + "\n"));
         } else {
-            if (K.backend.equals("java")) {
+//            if (K.backend.equals("java")) {
                 DataStructureSort myList = context.dataStructureListSortOf(DataStructureSort.DEFAULT_LIST_SORT);
                 if (myList != null) {
                     output.put("$noIO", DataStructureBuiltin.empty(myList));
                 }
-            } else {
-                output.put("$noIO", org.kframework.kil.List.EMPTY);
-            }
+//            } else {
+//                output.put("$noIO", org.kframework.kil.List.EMPTY);
+//            }
             output.put("$stdin", StringBuiltin.EMPTY);
         }
 

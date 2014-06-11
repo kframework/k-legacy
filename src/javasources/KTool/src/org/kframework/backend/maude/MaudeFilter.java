@@ -74,6 +74,13 @@ public class MaudeFilter extends BackendFilter {
           result.append(mod.getName());
           result.append(" is\n");
 
+        result.append(" op fresh : #String -> KItem . \n");
+        for (Map.Entry<String, String> entry : context.freshFunctionNames.entrySet()) {
+            result.append(" eq fresh(\"").append(entry.getKey()).append("\") = ");
+            result.append(StringUtil.escapeMaude(entry.getValue()));
+            result.append("('#counter(.KList)) .\n");
+        }
+
           // TODO(AndreiS): move declaration of #token in a .maude file
           result.append("op #token : #String #String -> KLabel .\n");
 
@@ -424,6 +431,10 @@ public class MaudeFilter extends BackendFilter {
 
     @Override
     public Void visit(Variable variable, Void _) {
+        if (variable.isFreshConstant()) {
+            variable = variable.shallowCopy();
+            variable.setSort(KSorts.KITEM);
+        }
          if (MetaK.isBuiltinSort(variable.getSort())
                 || context.getDataStructureSorts().containsKey(variable.getSort())) {
             result.append("_`(_`)(");
@@ -494,7 +505,16 @@ public class MaudeFilter extends BackendFilter {
         Rewrite body = (Rewrite) rule.getBody();
         assert rule.getEnsures() == null : "Maude does not support conditions on the right hand side";
         final Term condition = rule.getRequires();
-        if (null != condition) {
+
+        boolean conditional = (null != condition);
+        Set<Variable> variables = body.variables();
+        for (Variable variable : variables) {
+            if (variable.isFreshConstant()) {
+                conditional = true;
+                break;
+            }
+        }
+        if (conditional) {
             result.append("c");
         }
         if (isTransition) {
@@ -510,10 +530,26 @@ public class MaudeFilter extends BackendFilter {
         }
         this.visitNode(body.getRight());
 
-        if (null != condition) {
+        boolean addAnd = false;
+        if (conditional) {
             result.append(" if ");
-            this.visitNode(condition);
-            result.append(" = _`(_`)(# true, .KList)");
+            if (null != condition) {
+                this.visitNode(condition);
+                result.append(" = _`(_`)(# true, .KList)");
+                addAnd = true;
+            }
+            for (Variable variable : variables) {
+                if (variable.isFreshConstant()) {
+                    if (addAnd) {
+                        result.append(" /\\ ");
+                    }
+                    addAnd = true;
+                    Variable kVariable = variable.shallowCopy();
+                    kVariable.setSort(KSorts.KITEM);
+                    this.visitNode(kVariable);
+                    result.append(" := fresh(\"").append(variable.getSort()).append("\")");
+                }
+            }
         }
         if (null != rule.getAttributes()) {
             result.append(" [");
@@ -633,7 +669,7 @@ public class MaudeFilter extends BackendFilter {
     }
 
     private java.util.Set<String> maudeBuiltinTokenSorts =
-        ImmutableSet.of("#Float", "#LtlFormula");
+        ImmutableSet.of("#LtlFormula");
 
     @Override
     public Void visit(GenericToken token, Void _) {
@@ -644,7 +680,29 @@ public class MaudeFilter extends BackendFilter {
         }
         return null;
     }
-
+    
+    boolean floatWarning = false;
+    @Override
+    public Void visit(FloatBuiltin token, Void _) {
+        result.append("#_(");
+        if (token.bigFloatValue().isNegativeZero() || token.bigFloatValue().isNaN()) {
+            GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL, 
+                    "Attempting to compile a definition containing -0.0 or NaN with the Maude backend. "
+                            + "Maude does not support these features, and floating point arithmetic is "
+                            + "unsupported in the Maude backend. Please recompile with --backend java."));
+        }
+        result.append(FloatBuiltin.printKFloat(token.bigFloatValue()));
+        result.append(")");
+        if (!floatWarning) {
+            GlobalSettings.kem.register(new KException(ExceptionType.WARNING, KExceptionGroup.INTERNAL, 
+                    "The Maude backend does not officially support floating point numbers. The results of "
+                    + "this semantics may be undefined or, in some cases, "
+                    + "incorrect."));
+            floatWarning = true;
+        }
+        return null;
+    }
+    
     @Override
     public Void visit(StringBuiltin token, Void _) {
         result.append("#_(\"" + StringUtil.escape(token.stringValue()) + "\")");
@@ -747,12 +805,8 @@ public class MaudeFilter extends BackendFilter {
                 visitMapElements((MapBuiltin) dataStructure);
             }
 
-            if (dataStructure.isLHSView() && dataStructure.hasViewBase() && !(dataStructure instanceof ListBuiltin)) {
-                result.append(", ");
-                Variable variable = new Variable(
-                        dataStructure.viewBase().getName(),
-                        dataStructure.sort().type());
-                this.visitNode(variable);
+            if (!(dataStructure instanceof ListBuiltin)) {
+                visitDataStructureBaseTerms(dataStructure);
             }
 
             result.append(")");
@@ -763,6 +817,12 @@ public class MaudeFilter extends BackendFilter {
 
         result.append("), .KList)");
         return null;
+    }
+
+    private void visitDataStructureVariable(String varName, String varType) {
+        result.append(varName);
+        result.append(":");
+        result.append(varType);
     }
 
     private void visitCollectionElements(CollectionBuiltin collection) {
@@ -787,22 +847,7 @@ public class MaudeFilter extends BackendFilter {
             result.append(")");
         }
 
-        // append base elements
-        for (Term term : listBuiltin.baseTerms()) {
-            result.append(", ");
-            if (term instanceof  Variable) {
-                Variable variable = new Variable(
-                        listBuiltin.viewBase().getName(),
-                        listBuiltin.sort().type());
-                this.visitNode(variable);
-            } else {
-                result.append(DataStructureSort.LABELS.get(listBuiltin.sort().type()).get(
-                        DataStructureSort.Label.ELEMENT));
-                result.append("(");
-                    this.visitNode(term);
-                    result.append(")");
-            }
-        }
+        visitDataStructureBaseTerms(listBuiltin);
 
         // append rhs elements
         for (Term term : listBuiltin.elementsRight()) {
@@ -814,6 +859,23 @@ public class MaudeFilter extends BackendFilter {
             result.append(")");
         }
         return null;
+    }
+
+    private void visitDataStructureBaseTerms(DataStructureBuiltin listBuiltin) {
+        // append base elements
+        for (Term term : listBuiltin.baseTerms()) {
+            result.append(", ");
+            if (term instanceof Variable) {
+                visitDataStructureVariable(
+                        ((Variable)term).getName(),
+                        listBuiltin.sort().type());
+            } else {
+                result.append("K2" + listBuiltin.sort().type());
+                result.append("(");
+                    this.visitNode(term);
+                    result.append(")");
+            }
+        }
     }
 
     private void visitMapElements(MapBuiltin map) {
@@ -1049,9 +1111,6 @@ public class MaudeFilter extends BackendFilter {
     private static java.util.Map<KSort, String> maudeCollectionConstructors = new HashMap<KSort, String>();
     static {
         maudeCollectionConstructors.put(KSort.Bag, "__");
-        maudeCollectionConstructors.put(KSort.Map, "__");
-        maudeCollectionConstructors.put(KSort.Set, "__");
-        maudeCollectionConstructors.put(KSort.List, "__");
         maudeCollectionConstructors.put(KSort.K, "_~>_");
         maudeCollectionConstructors.put(KSort.KList, "_`,`,_");
     }

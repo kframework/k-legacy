@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.kframework.backend.java.builtins.BoolToken;
+import org.kframework.backend.java.builtins.FreshOperations;
 import org.kframework.backend.java.builtins.IntToken;
 import org.kframework.backend.java.kil.*;
 import org.kframework.kil.loader.Context;
@@ -130,7 +131,7 @@ public class PatternMatcher extends AbstractMatcher {
         for (Map<Variable, Term> subst : getMultiSubstitutions(matcher)) {
             /* add bindings for fresh variables used in the rule */
             for (Variable variable : rule.freshVariables()) {
-                subst.put(variable, IntToken.fresh());
+                subst.put(variable, FreshOperations.fresh(variable.sort(), context));
             }
 
             /* evaluate data structure lookups/choices and add bindings for them */
@@ -844,7 +845,7 @@ public class PatternMatcher extends AbstractMatcher {
         // TODO(AndreiS): deal with KLabel variables
         if (kLabel instanceof KLabelConstant) {
             KLabelConstant kLabelConstant = (KLabelConstant) kLabel;
-            if (kLabelConstant.isBinder()) {
+            if (kLabelConstant.isMetaBinder()) {
                 // TODO(AndreiS): deal with non-concrete KLists
                 assert kList instanceof KList;
                 Multimap<Integer, Integer> binderMap = kLabelConstant.getBinderMap();

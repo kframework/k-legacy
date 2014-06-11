@@ -1,6 +1,9 @@
 // Copyright (c) 2013-2014 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
+import org.kframework.backend.java.builtins.BoolToken;
+import org.kframework.backend.java.builtins.IntToken;
+import org.kframework.backend.java.builtins.UninterpretedToken;
 import org.kframework.backend.java.symbolic.Matcher;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Unifier;
@@ -18,6 +21,17 @@ import java.util.Set;
  * @author AndreiS
  */
 public abstract class Token extends Term {
+
+    public static Token of(String sort, String value) {
+        switch (sort) {
+            case BoolToken.SORT_NAME:
+                return BoolToken.of(Boolean.parseBoolean(value));
+            case IntToken.SORT_NAME:
+                return IntToken.of(value);
+            default:
+                return UninterpretedToken.of(sort, value);
+        }
+    }
 
     public Token() {
         super(Kind.KITEM);
@@ -55,12 +69,10 @@ public abstract class Token extends Term {
     }
 
     @Override
-    public int hashCode() {
-        if (hashCode == 0) {
-            hashCode = 1;
-            hashCode = hashCode * Utils.HASH_PRIME + sort().hashCode();
-            hashCode = hashCode * Utils.HASH_PRIME + value().hashCode();
-        }
+    public int computeHash() {
+        int hashCode = 1;
+        hashCode = hashCode * Utils.HASH_PRIME + sort().hashCode();
+        hashCode = hashCode * Utils.HASH_PRIME + value().hashCode();
         return hashCode;
     }
 
