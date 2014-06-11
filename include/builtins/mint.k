@@ -334,9 +334,9 @@ module MINT
   rule digitsOfMInt(_:MInt, _:Int, 0) => .List
 
   rule
-    mIntOfDigits(ListItem(MI1:MInt) ListItem(MI2:MInt), L:List)
+    mIntOfDigits(ListItem(MI1:MInt) ListItem(MI2:MInt) L:List)
   =>
-    concatenateMInt(MI1, mIntOfDigits(ListItem(MI2), L))
+    concatenateMInt(MI1, mIntOfDigits(ListItem(MI2) L))
   rule mIntOfDigits(ListItem(MI:MInt)) => MI
 endmodule
 
