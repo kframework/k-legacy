@@ -850,7 +850,8 @@ public class SymbolicConstraint extends JavaSymbolicObject {
                     // TODO(AndreiS): need support for parametric type MInt{32}, in order to
                     // translate to SMT
                     } else {
-                        throw new RuntimeException();
+                        throw new UnsupportedOperationException(
+                                "unexpected variable sort " + variable.sort());
                     }
                     variableNames[i] = context.MkSymbol(variable.name());
                     ++i;
@@ -877,7 +878,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
 
                 result = solver.Check() == Status.UNSATISFIABLE;
                 context.Dispose();
-            } catch (RuntimeException | Z3Exception e) {
+            } catch (UnsupportedOperationException | Z3Exception e) {
                 e.printStackTrace();
             }
         }
