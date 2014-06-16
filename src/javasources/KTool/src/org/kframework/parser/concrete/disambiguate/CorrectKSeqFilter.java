@@ -31,7 +31,7 @@ public class CorrectKSeqFilter extends ParseForestTransformer {
     public ASTNode visit(Ambiguity amb, Void _) throws ParseFailedException {
         List<Term> children = new ArrayList<Term>();
         for (Term t : amb.getContents()) {
-            if (t instanceof KSequence) {
+            if (t instanceof KSequence && ((KSequence) t).getContents().size() > 0) {
                 children.add(t);
             }
         }

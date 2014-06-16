@@ -32,13 +32,13 @@ context-free syntax
 	Bag			-> RuleContentDz
 	KLabel		-> RuleContentDz
 
-	"<" CellLabel CellProperty* ">" ADz "</" CellLabel ">"	-> BagItem {cons("Bag1ClosedCell")}
+	"<" CellLabel CellProperty* ">" ADz "</" CellLabel ">"	-> Bag {cons("Bag1ClosedCell")}
 	"..." BDz			-> ADz {cons("LeftCell")}
 	BDz					-> ADz {avoid}
 	CellContents "..."	-> BDz {cons("RightCell")}
 	CellContents		-> BDz {avoid}
 
-	"<br" "/>"			-> BagItem {cons("BagItem1Break")}
+	"<br" "/>"			-> Bag {cons("Bag1Break")}
 
 
 	K		-> CellContents %%{cons("K")}

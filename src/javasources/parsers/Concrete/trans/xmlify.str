@@ -33,7 +33,7 @@ rules
 
 	// generate xml for cells
 	to-xml1:
-		Bag1ClosedCell(a, b', LeftCell(RightCell(c)), d) -> $[<cell label="[a]" endLabel="[d]" loc="[loc]"[prop] ellipses="both" sort="BagItem">
+		Bag1ClosedCell(a, b', LeftCell(RightCell(c)), d) -> $[<cell label="[a]" endLabel="[d]" loc="[loc]"[prop] ellipses="both" sort="Bag">
 											[<to-xml> c]
 		</cell>
 		]
@@ -42,7 +42,7 @@ rules
 		where loc := <getLocAsString>
 
 	to-xml1:
-		Bag1ClosedCell(a, b', RightCell(c), d) -> $[<cell label="[a]" endLabel="[d]" loc="[loc]"[prop] ellipses="right" sort="BagItem">
+		Bag1ClosedCell(a, b', RightCell(c), d) -> $[<cell label="[a]" endLabel="[d]" loc="[loc]"[prop] ellipses="right" sort="Bag">
 											[<to-xml> c]
 		</cell>
 		]
@@ -51,7 +51,7 @@ rules
 		where loc := <getLocAsString>
 
 	to-xml1:
-		Bag1ClosedCell(a, b', LeftCell(c), d) -> $[<cell label="[a]" endLabel="[d]" loc="[loc]"[prop] ellipses="left" sort="BagItem">
+		Bag1ClosedCell(a, b', LeftCell(c), d) -> $[<cell label="[a]" endLabel="[d]" loc="[loc]"[prop] ellipses="left" sort="Bag">
 											[<to-xml> c]
 		</cell>
 		]
@@ -60,7 +60,7 @@ rules
 		where loc := <getLocAsString>
 
 	to-xml1:
-		Bag1ClosedCell(a, b', c, d) -> $[<cell label="[a]" endLabel="[d]" loc="[loc]"[prop] sort="BagItem">
+		Bag1ClosedCell(a, b', c, d) -> $[<cell label="[a]" endLabel="[d]" loc="[loc]"[prop] sort="Bag">
 											[<to-xml> c]
 		</cell>
 		]
@@ -157,7 +157,7 @@ rules
 		where loc := <getLocAsString>
 
 	to-xml1:
-		BagItem1Break() -> $[<br sort="BagItem"/>
+		Bag1Break() -> $[<br sort="Bag"/>
 		]
 
 	to-xml1:
