@@ -248,9 +248,9 @@ public class JavaSymbolicKRun implements KRun {
         FileSystem fs = new PortableFileSystem();
 
         // Change Map, List, and Set to MyMap, MyList, and MySet.
-        CompileToBuiltins builtinTransformer = new CompileToBuiltins(context);
-        pattern = (org.kframework.kil.Rule)builtinTransformer.visit(pattern, null);
-        cfg = (org.kframework.kil.Term) builtinTransformer.visitNode(cfg);
+        //CompileToBuiltins builtinTransformer = new CompileToBuiltins(context);
+        //pattern = (org.kframework.kil.Rule)builtinTransformer.visit(pattern, null);
+        //cfg = (org.kframework.kil.Term) builtinTransformer.visitNode(cfg);
 
         GlobalContext globalContext = new GlobalContext(definition, fs);
         List<Rule> claims = Collections.emptyList();

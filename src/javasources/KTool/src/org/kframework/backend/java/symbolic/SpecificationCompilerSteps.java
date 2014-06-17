@@ -44,7 +44,6 @@ public class SpecificationCompilerSteps extends CompilerSteps<Module> {
         add(new ResolveOpenCells(context));
         add(new ResolveRewrite(context));
         add(new Cell2DataStructure(context));
-        add(new CompileToBuiltins(context));
         add(new CompileDataStructures(context));
         //add(new DataStructureToLookupUpdate(context));
     }

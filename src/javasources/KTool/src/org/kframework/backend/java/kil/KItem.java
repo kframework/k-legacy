@@ -1,25 +1,15 @@
 // Copyright (c) 2013-2014 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableList;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.MetaK;
 import org.kframework.backend.java.builtins.SortMembership;
-import org.kframework.backend.java.symbolic.Matcher;
-import org.kframework.backend.java.symbolic.PatternMatcher;
-import org.kframework.backend.java.symbolic.SymbolicConstraint;
-import org.kframework.backend.java.symbolic.Transformer;
-import org.kframework.backend.java.symbolic.Unifier;
-import org.kframework.backend.java.symbolic.Visitor;
+import org.kframework.backend.java.symbolic.*;
 import org.kframework.backend.java.util.Utils;
 import org.kframework.compile.transformers.CompleteSortLatice;
 import org.kframework.kil.ASTNode;
+import org.kframework.kil.Attribute;
 import org.kframework.kil.Production;
 import org.kframework.kil.loader.Context;
 import org.kframework.krun.K;
@@ -481,6 +471,93 @@ public final class KItem extends Term {
     @Override
     public ASTNode accept(Transformer transformer) {
         return transformer.transform(this);
+    }
+
+    /**
+     * Checks if the specified KItem is merely used as a wrapper for a non-K
+     * term.
+     *
+     * @param kItem
+     *            the specified KItem
+     * @return {@code true} if the specified KItem is an injection wrapper;
+     *         otherwise, {@code false}
+     */
+    public static boolean isInjectionWrapper(KItem kItem) {
+        return kItem.kLabel.getClass() == KLabelInjection.class && kItem.kList instanceof KList
+                && ((KList) kItem.kList).contents.isEmpty();
+    }
+
+    /**
+     * Extracts the injected non-K term inside the specified KItem.
+     *
+     * @param kItem
+     *            the specified KItem
+     * @return the injected term
+     */
+    public static Term extractInjectedTerm(KItem kItem) {
+        assert isInjectionWrapper(kItem);
+        return ((KLabelInjection) kItem.kLabel).term();
+    }
+
+    public Term expandPattern(SymbolicConstraint constraint, TermContext context) {
+        if (constraint == null) {
+            return this;
+        }
+
+        if (!(kLabel instanceof KLabelConstant && ((KLabelConstant) kLabel).isPattern() && kList instanceof KList)) {
+            return this;
+        }
+        KLabelConstant kLabel = (KLabelConstant) kLabel();
+        KList kList = (KList) kList();
+
+        int inputCount = Integer.parseInt(kLabel.productions().get(0).getAttribute(Attribute.PATTERN_KEY));
+        KList inputKList = new KList(getPatternInput(context));
+        KList outputKList = new KList(getPatternOutput(context));
+        for (Rule rule : context.definition().patternRules().get(kLabel)) {
+            KList ruleInputKList = new KList(((KItem) rule.leftHandSide()).getPatternInput(context));
+            KList ruleOutputKList = new KList(((KItem) rule.leftHandSide()).getPatternOutput(context));
+            SymbolicConstraint unificationConstraint = new SymbolicConstraint(context);
+            unificationConstraint.add(inputKList, ruleInputKList);
+            unificationConstraint.simplify();
+            // TODO(AndreiS): there is only one solution here, so no list of constraints
+            if (unificationConstraint.isFalse() || !unificationConstraint.isMatching(ruleInputKList.variableSet())) {
+                continue;
+            }
+
+            SymbolicConstraint ruleCondition = new SymbolicConstraint(context);
+            ruleCondition.addAll(rule.requires());
+            ruleCondition = (SymbolicConstraint) ruleCondition.substitute(unificationConstraint.substitution(), context);
+            assert Sets.intersection(ruleCondition.variableSet(), ruleInputKList.variableSet()).isEmpty();
+
+            if (!constraint.implies(ruleCondition)) {
+                continue;
+            }
+
+            unificationConstraint.add(outputKList, ruleOutputKList);
+            unificationConstraint.simplify();
+            if (unificationConstraint.isFalse()) {
+                continue;
+            }
+
+            // TODO(AndreiS): only one solution is required
+            return SymbolicRewriter.constructNewSubjectTerm(rule, unificationConstraint).term();
+        }
+
+        return this;
+    }
+
+    public ImmutableList<Term> getPatternInput(TermContext context) {
+        assert kLabel instanceof KLabelConstant && ((KLabelConstant) kLabel).isPattern() && kList instanceof KList;
+        int inputCount = Integer.parseInt(
+                ((KLabelConstant) kLabel).productions().get(0).getAttribute(Attribute.PATTERN_KEY));
+        return ((KList) kList).getContents().subList(0, inputCount);
+    }
+
+    public ImmutableList<Term> getPatternOutput(TermContext context) {
+        assert kLabel instanceof KLabelConstant && ((KLabelConstant) kLabel).isPattern() && kList instanceof KList;
+        int inputCount = Integer.parseInt(
+                ((KLabelConstant) kLabel).productions().get(0).getAttribute(Attribute.PATTERN_KEY));
+        return ((KList) kList).getContents().subList(inputCount, ((KList) kList).getContents().size());
     }
 
 }

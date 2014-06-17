@@ -155,6 +155,8 @@ public class ConstrainedTerm extends JavaSymbolicObject {
         SymbolicConstraint unificationConstraint = new SymbolicConstraint(constrainedTerm.termContext());
         unificationConstraint.add(data.term, constrainedTerm.data.term);
         unificationConstraint.simplify();
+        // TODO(AndreiS): fixpoint here
+        unificationConstraint.simplify();
 
         Set<Variable> variables = constrainedTerm.term.variableSet();
         variables.removeAll(variableSet());
@@ -262,6 +264,9 @@ public class ConstrainedTerm extends JavaSymbolicObject {
             if (candidate.isFalse()) {
                 continue;
             }
+
+            // TODO(AndreiS): find a better place for pattern expansion
+            candidate.expandPatterns(candidate);
 
             if (!K.do_kompilation) {
                 /*

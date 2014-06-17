@@ -29,7 +29,6 @@ import org.kframework.backend.java.util.Utils;
 import org.kframework.backend.java.util.Z3Wrapper;
 import org.kframework.kil.ASTNode;
 import org.kframework.krun.K;
-import org.kframework.utils.general.GlobalSettings;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -449,6 +448,16 @@ public class SymbolicConstraint extends JavaSymbolicObject {
             }
         }
 
+        private Equality expandPatterns(SymbolicConstraint constraint) {
+            Term returnLeftHandSide = leftHandSide.expandPatterns(constraint, context);
+            Term returnRightHandSide = rightHandSide.expandPatterns(constraint, context);
+            if (returnLeftHandSide != leftHandSide || returnRightHandSide != rightHandSide) {
+                return new Equality(returnLeftHandSide, returnRightHandSide);
+            } else {
+                return this;
+            }
+        }
+
         @Override
         public boolean equals(Object object) {
             if (this == object) {
@@ -477,6 +486,9 @@ public class SymbolicConstraint extends JavaSymbolicObject {
             return leftHandSide + SEPARATOR + rightHandSide;
         }
 
+        public boolean isSimplifiable() {
+            return !leftHandSide.isSymbolic() && !rightHandSide.isSymbolic();
+        }
     }
 
     public static final String SEPARATOR = " /\\ ";
@@ -1005,7 +1017,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
             simplifyingEqualities = true;
             for (Iterator<Equality> iterator = data.equalities.iterator(); iterator.hasNext();) {
                 Equality equality = iterator.next();
-                if (!equality.leftHandSide.isSymbolic() && !equality.rightHandSide.isSymbolic()) {
+                if (equality.isSimplifiable()) {
                     // if both sides of the equality could be further
                     // decomposed, discharge the equality
                     iterator.remove();
@@ -1018,7 +1030,22 @@ public class SymbolicConstraint extends JavaSymbolicObject {
                     }
 
                     change = true;
+                } else if (BuiltinMapUtils.isNormalMap(equality.leftHandSide)
+                        && BuiltinMapUtils.isNormalMap(equality.rightHandSide)) {
+                    try {
+                        iterator.remove();
+                        if (unifier.unifyMap(equality.leftHandSide, equality.rightHandSide)) {
+                            change = true;
+                        }
+                    } catch (UnificationFailure e) {
+                         falsify(new Equality(
+                                unifier.unificationFailureLeftHandSide(),
+                                unifier.unificationFailureRightHandSide()));
+                        simplifyingEqualities = false;
+                        break label;
+                    }
                 }
+
             }
 
             simplifyingEqualities = false;
@@ -1132,6 +1159,17 @@ public class SymbolicConstraint extends JavaSymbolicObject {
 
         for (int i = equalitiesToRemove.size() - 1; i >= 0; --i) {
             data.equalities.remove((int) equalitiesToRemove.get(i));
+        }
+    }
+
+    public void expandPatterns(SymbolicConstraint constraint) {
+        assert constraint.isNormal;
+
+        for (Map.Entry<Variable, Term> entry : substitution.entrySet()) {
+            entry.setValue(entry.getValue().expandPatterns(constraint, context));
+        }
+        for (int i = 0; i < equalities.size(); ++i) {
+            equalities.set(i, equalities.get(i).expandPatterns(constraint));
         }
     }
 
