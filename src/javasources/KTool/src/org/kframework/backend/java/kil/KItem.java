@@ -1,11 +1,17 @@
 // Copyright (c) 2013-2014 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
-import com.google.common.collect.ImmutableList;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.MetaK;
 import org.kframework.backend.java.builtins.SortMembership;
-import org.kframework.backend.java.symbolic.*;
+import org.kframework.backend.java.symbolic.BuiltinFunction;
+import org.kframework.backend.java.symbolic.Matcher;
+import org.kframework.backend.java.symbolic.PatternMatcher;
+import org.kframework.backend.java.symbolic.SymbolicConstraint;
+import org.kframework.backend.java.symbolic.SymbolicRewriter;
+import org.kframework.backend.java.symbolic.Transformer;
+import org.kframework.backend.java.symbolic.Unifier;
+import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Utils;
 import org.kframework.compile.transformers.CompleteSortLatice;
 import org.kframework.kil.ASTNode;
@@ -19,6 +25,17 @@ import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;
 import org.kframework.utils.general.GlobalSettings;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -499,7 +516,7 @@ public final class KItem extends Term {
         return ((KLabelInjection) kItem.kLabel).term();
     }
 
-    public Term expandPattern(SymbolicConstraint constraint, TermContext context) {
+    public Term expandPattern(SymbolicConstraint constraint, boolean narrowing, TermContext context) {
         if (constraint == null) {
             return this;
         }
@@ -510,40 +527,48 @@ public final class KItem extends Term {
         KLabelConstant kLabel = (KLabelConstant) kLabel();
         KList kList = (KList) kList();
 
-        int inputCount = Integer.parseInt(kLabel.productions().get(0).getAttribute(Attribute.PATTERN_KEY));
+        List<ConstrainedTerm> results = new ArrayList<>();
         KList inputKList = new KList(getPatternInput(context));
         KList outputKList = new KList(getPatternOutput(context));
         for (Rule rule : context.definition().patternRules().get(kLabel)) {
+            assert rule.requires().isEmpty() && rule.ensures().isEmpty();
             KList ruleInputKList = new KList(((KItem) rule.leftHandSide()).getPatternInput(context));
             KList ruleOutputKList = new KList(((KItem) rule.leftHandSide()).getPatternOutput(context));
             SymbolicConstraint unificationConstraint = new SymbolicConstraint(context);
             unificationConstraint.add(inputKList, ruleInputKList);
             unificationConstraint.simplify();
             // TODO(AndreiS): there is only one solution here, so no list of constraints
-            if (unificationConstraint.isFalse() || !unificationConstraint.isMatching(ruleInputKList.variableSet())) {
-                continue;
-            }
-
-            SymbolicConstraint ruleCondition = new SymbolicConstraint(context);
-            ruleCondition.addAll(rule.requires());
-            ruleCondition = (SymbolicConstraint) ruleCondition.substitute(unificationConstraint.substitution(), context);
-            assert Sets.intersection(ruleCondition.variableSet(), ruleInputKList.variableSet()).isEmpty();
-
-            if (!constraint.implies(ruleCondition)) {
-                continue;
-            }
-
-            unificationConstraint.add(outputKList, ruleOutputKList);
-            unificationConstraint.simplify();
             if (unificationConstraint.isFalse()) {
                 continue;
             }
 
-            // TODO(AndreiS): only one solution is required
-            return SymbolicRewriter.constructNewSubjectTerm(rule, unificationConstraint).term();
+            if (narrowing) {
+                SymbolicConstraint globalConstraint = new SymbolicConstraint(context);
+                for (SymbolicConstraint.Equality equality : constraint.equalities()) {
+                    globalConstraint.add(equality.leftHandSide(), equality.rightHandSide());
+                }
+                globalConstraint.addAll(unificationConstraint);
+                globalConstraint.simplify();
+                if (globalConstraint.isFalse() || globalConstraint.checkUnsat()) {
+                    continue;
+                }
+            } else {
+                if (!unificationConstraint.isMatching(ruleInputKList.variableSet())) {
+                    continue;
+                }
+            }
+
+            unificationConstraint.add(outputKList, ruleOutputKList);
+            unificationConstraint.simplify();
+            results.add(SymbolicRewriter.constructNewSubjectTerm(rule, unificationConstraint));
         }
 
-        return this;
+        if (results.size() == 1) {
+            constraint.addAll(results.get(0).constraint());
+            return results.get(0).term();
+        } else {
+            return this;
+        }
     }
 
     public ImmutableList<Term> getPatternInput(TermContext context) {

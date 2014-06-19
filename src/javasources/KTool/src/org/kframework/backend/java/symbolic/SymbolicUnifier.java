@@ -173,7 +173,7 @@ public class SymbolicUnifier extends AbstractUnifier {
 
         // TODO(AndreiS): treat Map unification less adhoc
         if (BuiltinMapUtils.isNormalMap(term) && BuiltinMapUtils.isNormalMap(otherTerm)) {
-            unifyMap(term, otherTerm);
+            unifyMap(term, otherTerm, true);
             return;
         }
 
@@ -203,7 +203,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         }
     }
 
-    public boolean unifyMap(Term term, Term otherTerm) {
+    public boolean unifyMap(Term term, Term otherTerm, boolean addUnchanged) {
         assert BuiltinMapUtils.getBuiltinMapUtils(term).rest.isEmpty();
         assert BuiltinMapUtils.getBuiltinMapUtils(otherTerm).rest.isEmpty();
 
@@ -213,7 +213,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         Map<Term, Term> remainingEntries = new HashMap<>();
         Map<Term, Term> otherRemainingEntries = new HashMap<>();
         for (Term key : commonKeys) {
-            entries.get(key).accept(this, otherEntries.get(key));
+            unify(entries.get(key), otherEntries.get(key));
         }
         for (Term key : entries.keySet()) {
             if (!commonKeys.contains(key)) {
@@ -238,7 +238,7 @@ public class SymbolicUnifier extends AbstractUnifier {
                     ImmutableList<Term> patternOutput = pattern.getPatternOutput(termContext);
                     ImmutableList<Term> otherPatternOutput = otherPattern.getPatternOutput(termContext);
                     for (int i = 0; i < patternOutput.size(); ++i) {
-                        patternOutput.get(i).accept(this, otherPatternOutput.get(i));
+                        unify(patternOutput.get(i), otherPatternOutput.get(i));
                     }
                     unifiedPatterns.add(pattern);
                     otherUnifiedPatterns.add(otherPattern);
@@ -283,27 +283,31 @@ public class SymbolicUnifier extends AbstractUnifier {
             fail(term, otherTerm);
         }
 
-        List<Term> mapItems = new ArrayList<>();
-        if (!remainingEntries.isEmpty()) {
-            BuiltinMap.Builder builder = BuiltinMap.builder();
-            builder.putAll(remainingEntries);
-            mapItems.add(builder.build());
-        }
-        mapItems.addAll(remainingPatterns);
-        mapItems.addAll(remainingVariables);
-        List<Term> otherMapItems = new ArrayList<>();
-        if (!otherRemainingEntries.isEmpty()) {
-            BuiltinMap.Builder otherBuilder = BuiltinMap.builder();
-            otherBuilder.putAll(otherRemainingEntries);
-            otherMapItems.add(otherBuilder.build());
-        }
-        otherMapItems.addAll(otherRemainingPatterns);
-        otherMapItems.addAll(otherRemainingVariables);
-        fConstraint.add(
-                BuiltinMap.concatenationMap(mapItems, termContext),
-                BuiltinMap.concatenationMap(otherMapItems, termContext));
+        if (!(commonKeys.isEmpty() && unifiedPatterns.isEmpty() && commonVariables.isEmpty()) || addUnchanged) {
+            List<Term> mapItems = new ArrayList<>();
+            if (!remainingEntries.isEmpty()) {
+                BuiltinMap.Builder builder = BuiltinMap.builder();
+                builder.putAll(remainingEntries);
+                mapItems.add(builder.build());
+            }
+            mapItems.addAll(remainingPatterns);
+            mapItems.addAll(remainingVariables);
+            List<Term> otherMapItems = new ArrayList<>();
+            if (!otherRemainingEntries.isEmpty()) {
+                BuiltinMap.Builder otherBuilder = BuiltinMap.builder();
+                otherBuilder.putAll(otherRemainingEntries);
+                otherMapItems.add(otherBuilder.build());
+            }
+            otherMapItems.addAll(otherRemainingPatterns);
+            otherMapItems.addAll(otherRemainingVariables);
 
-        return !(commonKeys.isEmpty() && unifiedPatterns.isEmpty() && commonVariables.isEmpty());
+            fConstraint.add(
+                    BuiltinMap.concatenationMap(mapItems, termContext.definition()),
+                    BuiltinMap.concatenationMap(otherMapItems, termContext.definition()));
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override

@@ -73,6 +73,15 @@ public class BuiltinMapUtils {
             return EMPTY;
         }
 
+        if (term instanceof KList) {
+            assert ((KList) term).size() == 1 && !((KList) term).hasFrame();
+            term = ((KList) term).get(0);
+        }
+        if (term instanceof KSequence) {
+            assert ((KSequence) term).size() == 1 && !((KSequence) term).hasFrame();
+            term = ((KSequence) term).get(0);
+        }
+
         if (term instanceof KItem
                 && ((KItem) term).kLabel() instanceof KLabel
                 && ((KItem) term).kList() instanceof KList) {

@@ -155,14 +155,8 @@ public class ConstrainedTerm extends JavaSymbolicObject {
         SymbolicConstraint unificationConstraint = new SymbolicConstraint(constrainedTerm.termContext());
         unificationConstraint.add(data.term, constrainedTerm.data.term);
         unificationConstraint.simplify();
-        // TODO(AndreiS): fixpoint here
-        unificationConstraint.simplify();
 
-        Set<Variable> variables = constrainedTerm.term.variableSet();
-        variables.removeAll(variableSet());
-        unificationConstraint.orientSubstitution(variables);
-        if (unificationConstraint.isFalse()
-                || !unificationConstraint.substitution().keySet().containsAll(variables)) {
+        if (unificationConstraint.isFalse()) {
             return null;
         }
 
@@ -170,7 +164,10 @@ public class ConstrainedTerm extends JavaSymbolicObject {
         unificationConstraint.addAll(constrainedTerm.constraint);
         unificationConstraint.simplify();
 
-        variables = constrainedTerm.variableSet();
+        unificationConstraint.expandPatterns(unificationConstraint, false);
+        unificationConstraint.simplify();
+
+        Set<Variable> variables = unificationConstraint.variableSet();
         variables.removeAll(variableSet());
         unificationConstraint.orientSubstitution(variables);
         if (unificationConstraint.isFalse()
@@ -193,7 +190,7 @@ public class ConstrainedTerm extends JavaSymbolicObject {
         }
         rightHandSide.simplify();
 
-        if (!leftHandSide.implies(rightHandSide)) {
+        if (!leftHandSide.implies(rightHandSide, variables)) {
             return null;
         }
 
@@ -266,7 +263,8 @@ public class ConstrainedTerm extends JavaSymbolicObject {
             }
 
             // TODO(AndreiS): find a better place for pattern expansion
-            candidate.expandPatterns(candidate);
+            candidate.expandPatterns(candidate, true);
+            candidate.simplify();
 
             if (!K.do_kompilation) {
                 /*

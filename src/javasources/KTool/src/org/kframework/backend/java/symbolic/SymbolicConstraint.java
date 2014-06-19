@@ -28,6 +28,7 @@ import org.kframework.backend.java.util.GappaServer;
 import org.kframework.backend.java.util.Utils;
 import org.kframework.backend.java.util.Z3Wrapper;
 import org.kframework.kil.ASTNode;
+import org.kframework.kil.Production;
 import org.kframework.krun.K;
 
 import java.util.ArrayList;
@@ -339,6 +340,9 @@ public class SymbolicConstraint extends JavaSymbolicObject {
             }
 
             if (!K.do_testgen) {
+                if (leftHandSide instanceof KItem) {
+
+                }
                 if (leftHandSide.isExactSort() && rightHandSide.isExactSort()) {
                     return !leftHandSide.sort().equals(rightHandSide.sort());
                 } else if (leftHandSide.isExactSort()) {
@@ -350,6 +354,32 @@ public class SymbolicConstraint extends JavaSymbolicObject {
                             leftHandSide.sort(),
                             rightHandSide.sort());
                 } else {
+                    if (leftHandSide instanceof Variable && rightHandSide instanceof KItem
+                            && ((KItem) rightHandSide).kLabel() instanceof KLabelConstant
+                            && ((KLabelConstant) ((KItem) rightHandSide).kLabel()).isConstructor()) {
+                        boolean flag = false;
+                        for (Production production : definition.context().productionsOf(((KLabelConstant) ((KItem) rightHandSide).kLabel()).label())) {
+                            if (definition.context().isSubsortedEq(leftHandSide.sort(), production.getSort())) {
+                                flag = true;
+                            }
+                        }
+                        if (!flag) {
+                            return true;
+                        }
+                    }
+                    if (rightHandSide instanceof Variable && leftHandSide instanceof KItem
+                            && ((KItem) leftHandSide).kLabel() instanceof KLabelConstant
+                            && ((KLabelConstant) ((KItem) leftHandSide).kLabel()).isConstructor()) {
+                        boolean flag = false;
+                        for (Production production : definition.context().productionsOf(((KLabelConstant) ((KItem) leftHandSide).kLabel()).label())) {
+                            if (definition.context().isSubsortedEq(rightHandSide.sort(), production.getSort())) {
+                                flag = true;
+                            }
+                        }
+                        if (!flag) {
+                            return true;
+                        }
+                    }
                     return null == definition.context().getGLBSort(ImmutableSet.of(
                             leftHandSide.sort(),
                             rightHandSide.sort()));
@@ -448,9 +478,9 @@ public class SymbolicConstraint extends JavaSymbolicObject {
             }
         }
 
-        private Equality expandPatterns(SymbolicConstraint constraint) {
-            Term returnLeftHandSide = leftHandSide.expandPatterns(constraint, context);
-            Term returnRightHandSide = rightHandSide.expandPatterns(constraint, context);
+        private Equality expandPatterns(SymbolicConstraint constraint, boolean narrow) {
+            Term returnLeftHandSide = leftHandSide.expandPatterns(constraint, narrow, context);
+            Term returnRightHandSide = rightHandSide.expandPatterns(constraint, narrow, context);
             if (returnLeftHandSide != leftHandSide || returnRightHandSide != rightHandSide) {
                 return new Equality(returnLeftHandSide, returnRightHandSide);
             } else {
@@ -673,16 +703,19 @@ public class SymbolicConstraint extends JavaSymbolicObject {
             KILtoZ3 transformer = new KILtoZ3(Collections.<Variable>emptySet(), context);
             Solver solver = context.MkSolver();
             for (Equality equality : data.equalities) {
-                solver.Assert(context.MkEq(
-                        ((Z3Term) equality.leftHandSide.accept(transformer)).expression(),
-                        ((Z3Term) equality.rightHandSide.accept(transformer)).expression()));
+                try {
+                    solver.Assert(context.MkEq(
+                            ((Z3Term) equality.leftHandSide.accept(transformer)).expression(),
+                            ((Z3Term) equality.rightHandSide.accept(transformer)).expression()));
+                } catch (UnsupportedOperationException e) {
+                    /* it is sound to skip the equalities that cannot be translated */
+                    // TODO(AndreiS): fix this translation and the exceptions
+                    e.printStackTrace();
+                }
+                result = solver.Check() == Status.UNSATISFIABLE;
+                context.Dispose();
             }
-            result = solver.Check() == Status.UNSATISFIABLE;
-            context.Dispose();
         } catch (Z3Exception e) {
-            e.printStackTrace();
-        } catch (UnsupportedOperationException e) {
-            // TODO(AndreiS): fix this translation and the exceptions
             e.printStackTrace();
         }
         return result;
@@ -732,7 +765,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
         return data.truthValue;
     }
 
-    public boolean implies(SymbolicConstraint constraint) {
+    public boolean implies(SymbolicConstraint constraint, Set<Variable> rightOnlyVariables) {
         LinkedList<Implication> implications = new LinkedList<>();
         implications.add(new Implication(this, constraint));
         while (!implications.isEmpty()) {
@@ -747,7 +780,8 @@ public class SymbolicConstraint extends JavaSymbolicObject {
             }
 
             right = left.simplifyConstraint(right);
-            if (right.isTrue() || right.equalities().isEmpty()) {
+            right.orientSubstitution(left.variableSet());
+            if (right.isTrue() || (right.equalities().isEmpty() && rightOnlyVariables.containsAll(right.substitution().keySet()))) {
                 if (DEBUG) {
                     System.out.println("Implication proved by simplification");
                 }
@@ -1033,8 +1067,8 @@ public class SymbolicConstraint extends JavaSymbolicObject {
                 } else if (BuiltinMapUtils.isNormalMap(equality.leftHandSide)
                         && BuiltinMapUtils.isNormalMap(equality.rightHandSide)) {
                     try {
-                        iterator.remove();
-                        if (unifier.unifyMap(equality.leftHandSide, equality.rightHandSide)) {
+                        if (unifier.unifyMap(equality.leftHandSide, equality.rightHandSide, false)) {
+                            iterator.remove();
                             change = true;
                         }
                     } catch (UnificationFailure e) {
@@ -1157,19 +1191,23 @@ public class SymbolicConstraint extends JavaSymbolicObject {
             }
         }
 
+        Collections.sort(equalitiesToRemove);
         for (int i = equalitiesToRemove.size() - 1; i >= 0; --i) {
             data.equalities.remove((int) equalitiesToRemove.get(i));
         }
     }
 
-    public void expandPatterns(SymbolicConstraint constraint) {
+    public void expandPatterns(SymbolicConstraint constraint, boolean narrow) {
         assert constraint.isNormal;
 
-        for (Map.Entry<Variable, Term> entry : substitution.entrySet()) {
-            entry.setValue(entry.getValue().expandPatterns(constraint, context));
+        Set<Variable> keys = new HashSet<>(data.substitution.keySet());
+        for (Variable variable : keys) {
+            data.substitution.put(
+                    variable,
+                    data.substitution.get(variable).expandPatterns(constraint, narrow, context));
         }
-        for (int i = 0; i < equalities.size(); ++i) {
-            equalities.set(i, equalities.get(i).expandPatterns(constraint));
+        for (int i = 0; i < data.equalities.size(); ++i) {
+            data.equalities.set(i, data.equalities.get(i).expandPatterns(constraint, narrow));
         }
     }
 

@@ -12,13 +12,13 @@ import org.kframework.kil.ASTNode;
  */
 public class PatternExpander extends PrePostTransformer {
 
-    private PatternExpander(SymbolicConstraint constraint, TermContext context) {
+    private PatternExpander(SymbolicConstraint constraint, boolean narrow, TermContext context) {
         super(context);
-        this.getPostTransformer().addTransformer(new LocalPatternExpander(constraint, context));
+        this.getPostTransformer().addTransformer(new LocalPatternExpander(constraint, narrow, context));
     }
 
-    public static Term expand(Term term, SymbolicConstraint constraint, TermContext context) {
-        return (Term) term.accept(new PatternExpander(constraint, context));
+    public static Term expand(Term term, SymbolicConstraint constraint, boolean narrow, TermContext context) {
+        return (Term) term.accept(new PatternExpander(constraint, narrow, context));
     }
 
     private static class LocalPatternExpander extends LocalTransformer {
@@ -28,14 +28,16 @@ public class PatternExpander extends PrePostTransformer {
         * terms to be evaluated by this evaluator.
         */
         private final SymbolicConstraint constraint;
+        private final boolean narrow;
 
-        public LocalPatternExpander(SymbolicConstraint constraint, TermContext context) {
+        public LocalPatternExpander(SymbolicConstraint constraint, boolean narrow, TermContext context) {
             super(context);
             this.constraint = constraint;
+            this.narrow = narrow;
         }
 
         public ASTNode transform(KItem kItem) {
-            return kItem.expandPattern(constraint, context);
+            return kItem.expandPattern(constraint, narrow, context);
         }
 
     }
