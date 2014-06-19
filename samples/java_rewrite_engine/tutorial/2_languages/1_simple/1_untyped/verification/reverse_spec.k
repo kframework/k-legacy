@@ -73,25 +73,23 @@ rule
                    _:List 
                 </xstack>
             </control>
-            <env>
-                reverse |-> 0
+            <env>...
                 x |-> Lx:Int
                 y |-> Ly:Int
                 t |-> Lt:Int
-            </env>
+            ...</env>
             <holds>
-                .Map
+                _:Map
             </holds>
             <id>
-                0
+                _:Int
             </id>
         </thread>
     </threads>
     <genv>
-        reverse |-> 0
+        _:Map
     </genv>
     <store>...
-        0 |-> lambda ( x , { var y ; (y = 0) ; while ( (x != 0) ) { var t ; (t = (x [ 1 ])) ; ((x [ 1 ]) = y) ; (y = x) ; (x = t) ; } } )
         Lx |-> (X1:Val => ?X2:Val)
         Ly |-> (Y1:Val => ?Y2:Val)
         Lt |-> (T1:Val => ?T2:Val)
