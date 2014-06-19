@@ -1,3 +1,5 @@
+// Copyright (c) 2014 K Team. All Rights Reserved.
+
 module LIST-PATTERN
   imports MAP
   imports SIMPLE-UNTYPED-SEMANTICS
