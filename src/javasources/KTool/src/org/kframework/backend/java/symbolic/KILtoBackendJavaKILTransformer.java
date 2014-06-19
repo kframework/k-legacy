@@ -461,7 +461,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
                 baseTerms.add((Term) this.visitNode(term));
             }
             baseTerms.add(builder.build());
-            return BuiltinMap.concatenationMap(baseTerms, globalContext);
+            return BuiltinMap.concatenationMap(baseTerms, TermContext.of(globalContext));
         }
     }
 

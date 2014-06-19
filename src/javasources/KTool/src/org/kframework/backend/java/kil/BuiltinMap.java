@@ -40,7 +40,7 @@ public class BuiltinMap extends Collection implements Iterable<Map.Entry<Term, T
         entries = Collections.emptyMap();
     }
 
-    public static Term concatenationMap(List<Term> maps, GlobalContext globalContext) {
+    public static Term concatenationMap(List<Term> maps, TermContext context) {
         if (maps.isEmpty()) {
             return BuiltinMap.EMPTY_MAP;
         }
@@ -48,9 +48,9 @@ public class BuiltinMap extends Collection implements Iterable<Map.Entry<Term, T
         Term result = maps.get(0);
         for (int i = 1; i < maps.size(); ++i) {
             result = KItem.of(
-                    KLabelConstant.of(DataStructureSort.DEFAULT_MAP_LABEL, globalContext.def),
+                    KLabelConstant.of(DataStructureSort.DEFAULT_MAP_LABEL, context.definition()),
                     new KList(ImmutableList.of(result, maps.get(i))),
-                    TermContext.of(globalContext));
+                    context);
         }
         return result;
     }
@@ -205,8 +205,6 @@ public class BuiltinMap extends Collection implements Iterable<Map.Entry<Term, T
         /**
          * Sets the entries as the given {@code BuiltinMap} without copying the
          * contents. Once the entries are set, no more modification is allowed.
-         * 
-         * @param map
          */
         public void setEntriesAs(BuiltinMap builtinMap) {
             // builtinMap.entries must be an UnmodifiableMap

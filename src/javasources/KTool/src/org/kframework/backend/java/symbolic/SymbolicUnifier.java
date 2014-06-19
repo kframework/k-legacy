@@ -234,9 +234,9 @@ public class SymbolicUnifier extends AbstractUnifier {
         List<KItem> otherRemainingPatterns = new ArrayList<>();
         for (KItem pattern : patterns) {
             for (KItem otherPattern : otherPatterns) {
-                if (pattern.getPatternInput(termContext).equals(otherPattern.getPatternInput(termContext))) {
-                    ImmutableList<Term> patternOutput = pattern.getPatternOutput(termContext);
-                    ImmutableList<Term> otherPatternOutput = otherPattern.getPatternOutput(termContext);
+                if (pattern.getPatternInput().equals(otherPattern.getPatternInput())) {
+                    ImmutableList<Term> patternOutput = pattern.getPatternOutput();
+                    ImmutableList<Term> otherPatternOutput = otherPattern.getPatternOutput();
                     for (int i = 0; i < patternOutput.size(); ++i) {
                         unify(patternOutput.get(i), otherPatternOutput.get(i));
                     }
@@ -302,8 +302,8 @@ public class SymbolicUnifier extends AbstractUnifier {
             otherMapItems.addAll(otherRemainingVariables);
 
             fConstraint.add(
-                    BuiltinMap.concatenationMap(mapItems, termContext.definition()),
-                    BuiltinMap.concatenationMap(otherMapItems, termContext.definition()));
+                    BuiltinMap.concatenationMap(mapItems, termContext),
+                    BuiltinMap.concatenationMap(otherMapItems, termContext));
             return true;
         } else {
             return false;

@@ -1198,7 +1198,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
     }
 
     public void expandPatterns(SymbolicConstraint constraint, boolean narrow) {
-        assert constraint.isNormal;
+        assert constraint.data.isNormal;
 
         Set<Variable> keys = new HashSet<>(data.substitution.keySet());
         for (Variable variable : keys) {

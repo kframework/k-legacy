@@ -490,32 +490,6 @@ public final class KItem extends Term {
         return transformer.transform(this);
     }
 
-    /**
-     * Checks if the specified KItem is merely used as a wrapper for a non-K
-     * term.
-     *
-     * @param kItem
-     *            the specified KItem
-     * @return {@code true} if the specified KItem is an injection wrapper;
-     *         otherwise, {@code false}
-     */
-    public static boolean isInjectionWrapper(KItem kItem) {
-        return kItem.kLabel.getClass() == KLabelInjection.class && kItem.kList instanceof KList
-                && ((KList) kItem.kList).contents.isEmpty();
-    }
-
-    /**
-     * Extracts the injected non-K term inside the specified KItem.
-     *
-     * @param kItem
-     *            the specified KItem
-     * @return the injected term
-     */
-    public static Term extractInjectedTerm(KItem kItem) {
-        assert isInjectionWrapper(kItem);
-        return ((KLabelInjection) kItem.kLabel).term();
-    }
-
     public Term expandPattern(SymbolicConstraint constraint, boolean narrowing, TermContext context) {
         if (constraint == null) {
             return this;
@@ -528,12 +502,12 @@ public final class KItem extends Term {
         KList kList = (KList) kList();
 
         List<ConstrainedTerm> results = new ArrayList<>();
-        KList inputKList = new KList(getPatternInput(context));
-        KList outputKList = new KList(getPatternOutput(context));
+        KList inputKList = new KList(getPatternInput());
+        KList outputKList = new KList(getPatternOutput());
         for (Rule rule : context.definition().patternRules().get(kLabel)) {
             assert rule.requires().isEmpty() && rule.ensures().isEmpty();
-            KList ruleInputKList = new KList(((KItem) rule.leftHandSide()).getPatternInput(context));
-            KList ruleOutputKList = new KList(((KItem) rule.leftHandSide()).getPatternOutput(context));
+            KList ruleInputKList = new KList(((KItem) rule.leftHandSide()).getPatternInput());
+            KList ruleOutputKList = new KList(((KItem) rule.leftHandSide()).getPatternOutput());
             SymbolicConstraint unificationConstraint = new SymbolicConstraint(context);
             unificationConstraint.add(inputKList, ruleInputKList);
             unificationConstraint.simplify();
@@ -571,18 +545,19 @@ public final class KItem extends Term {
         }
     }
 
-    public ImmutableList<Term> getPatternInput(TermContext context) {
+    public ImmutableList<Term> getPatternInput() {
         assert kLabel instanceof KLabelConstant && ((KLabelConstant) kLabel).isPattern() && kList instanceof KList;
         int inputCount = Integer.parseInt(
                 ((KLabelConstant) kLabel).productions().get(0).getAttribute(Attribute.PATTERN_KEY));
-        return ((KList) kList).getContents().subList(0, inputCount);
+        return ImmutableList.copyOf(((KList) kList).getContents()).subList(0, inputCount);
     }
 
-    public ImmutableList<Term> getPatternOutput(TermContext context) {
+    public ImmutableList<Term> getPatternOutput() {
         assert kLabel instanceof KLabelConstant && ((KLabelConstant) kLabel).isPattern() && kList instanceof KList;
         int inputCount = Integer.parseInt(
                 ((KLabelConstant) kLabel).productions().get(0).getAttribute(Attribute.PATTERN_KEY));
-        return ((KList) kList).getContents().subList(inputCount, ((KList) kList).getContents().size());
+        return ImmutableList.copyOf(((KList) kList).getContents())
+                .subList(inputCount, ((KList) kList).getContents().size());
     }
 
 }

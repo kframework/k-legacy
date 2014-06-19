@@ -61,7 +61,7 @@ public class MapUpdate extends Term implements DataStructureUpdate {
                 mapItems.add(builder.build());
             }
             return new MapUpdate(
-                    BuiltinMap.concatenationMap(mapItems, context.definition()),
+                    BuiltinMap.concatenationMap(mapItems, context),
                     pendingRemoveSet,
                     updateMap);
         }
@@ -70,7 +70,7 @@ public class MapUpdate extends Term implements DataStructureUpdate {
         if (!builder.getEntries().isEmpty()) {
             mapItems.add(builder.build());
         }
-        return BuiltinMap.concatenationMap(mapItems, context.definition());
+        return BuiltinMap.concatenationMap(mapItems, context);
     }
 
     public Term map() {
