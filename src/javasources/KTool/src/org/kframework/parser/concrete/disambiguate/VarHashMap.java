@@ -126,6 +126,25 @@ public class VarHashMap extends HashMap<String, Map<String, Set<String>>> {
         return this;
     }
 
+    public VarHashMap addAll(String varName, String location, Set<String> sorts) {
+        Map<String, Set<String>> locs;
+        if (this.containsKey(varName)) {
+            locs = this.get(varName);
+        } else {
+            locs = new HashMap<>();
+            this.put(varName, locs);
+        }
+        Set<String> sorts1;
+        if (locs.containsKey(location)) {
+            sorts1 = locs.get(location);
+        } else {
+            sorts1 = new HashSet<>();
+            locs.put(location, sorts1);
+        }
+        sorts1.addAll(sorts);
+        return this;
+    }
+
     public VarHashMap deepClone() {
         VarHashMap that = new VarHashMap();
         for (Map.Entry<String, Map<String, Set<String>>> thatNameEntry : that.entrySet()) {

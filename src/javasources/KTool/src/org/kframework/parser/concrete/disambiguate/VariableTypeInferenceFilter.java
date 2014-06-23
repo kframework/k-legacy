@@ -78,7 +78,7 @@ public class VariableTypeInferenceFilter extends ParseForestTransformer {
             for (VarHashMap variant : vars2.vars) {
                 // take each solution and do GLB on every variable
                 VarHashMap solution = new VarHashMap();
-                for (Map.Entry<String, Set<String>> entry : variant.entrySet()) {
+                for (Map.Entry<String, Set<String>> entry : variant.get("generated").entrySet()) {
                     Set<String> mins = new HashSet<String>();
                     for (String sort : context.definedSorts) { // for every declared sort
                         boolean min = true;
@@ -108,7 +108,7 @@ public class VariableTypeInferenceFilter extends ParseForestTransformer {
                         }
 
                         if (maxSorts.size() == 1)
-                            solution.put(entry.getKey(), maxSorts);
+                            solution.addAll(entry.getKey(), "generated", maxSorts);
                         else {
                             failsAmb = maxSorts;
                             failsAmbName = entry.getKey();
@@ -116,7 +116,7 @@ public class VariableTypeInferenceFilter extends ParseForestTransformer {
                             break;
                         }
                     } else {
-                        solution.put(entry.getKey(), mins);
+                        solution.addAll(entry.getKey(), "generated", mins);
                     }
                 }
                 // I found a solution that fits everywhere, then store it for disambiguation
@@ -139,7 +139,7 @@ public class VariableTypeInferenceFilter extends ParseForestTransformer {
 
                     }
                 } else if (solutions.size() == 1) {
-                    for (Map.Entry<String, Set<String>> entry : solutions.iterator().next().entrySet()) {
+                    for (Map.Entry<String, Set<String>> entry : solutions.iterator().next().get("generated").entrySet()) {
                         Variable var = new Variable(entry.getKey(), null);
                         var.setUserTyped(false);
                         var.setExpectedSort(entry.getValue().iterator().next());
@@ -211,7 +211,7 @@ public class VariableTypeInferenceFilter extends ParseForestTransformer {
                 } else {
                     Map<String, Set<String>> collect = new HashMap<String, Set<String>>();
                     for (VarHashMap sol : solutions) {
-                        for (Map.Entry<String, Set<String>> s : sol.entrySet())
+                        for (Map.Entry<String, Set<String>> s : sol.get("generated").entrySet())
                             if (collect.containsKey(s.getKey())) {
                                 collect.get(s.getKey()).addAll(s.getValue());
                             } else {
