@@ -34,7 +34,7 @@ public class CollectExpectedVariablesVisitor extends BasicVisitor {
             // create the split
             for (VarHashMap elem : vars) { // for every local type restrictions
                 for (VarHashMap elem2 : viz.vars) { // create a combination with every ambiguity detected
-                    newVars.add(combine(elem, elem2));
+                    newVars.add(elem.deepClone().addAll(elem2));
                 }
             }
             if (vars.size() == 0)
@@ -52,25 +52,9 @@ public class CollectExpectedVariablesVisitor extends BasicVisitor {
             if (vars.isEmpty())
                 vars.add(new VarHashMap());
             for (VarHashMap vars2 : vars)
-                vars2.add(var.getName(), var.getExpectedSort());
+                vars2.add(var.getName(), var.getLocation(), var.getExpectedSort());
         }
         return null;
-    }
-
-    private static VarHashMap duplicate(VarHashMap in) {
-        VarHashMap newM = new VarHashMap();
-        for (Map.Entry<String, Set<String>> elem : in.entrySet()) {
-            newM.put(elem.getKey(), new HashSet<>(elem.getValue()));
-        }
-        return newM;
-    }
-
-    private static VarHashMap combine(VarHashMap in1, VarHashMap in2) {
-        VarHashMap newM = duplicate(in1);
-        for (Map.Entry<String, Set<String>> elem : in2.entrySet()) {
-            newM.addAll(elem.getKey(), elem.getValue());
-        }
-        return newM;
     }
 
     /**
