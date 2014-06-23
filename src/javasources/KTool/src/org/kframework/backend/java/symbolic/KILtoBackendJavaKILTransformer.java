@@ -461,15 +461,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
                 baseTerms.add((Term) this.visitNode(term));
             }
             baseTerms.add(builder.build());
-
-            Term result = baseTerms.get(0);
-            for (int i = 1; i < baseTerms.size(); ++i) {
-                result = KItem.of(
-                        KLabelConstant.of(DataStructureSort.DEFAULT_MAP_LABEL, definition),
-                        new KList(ImmutableList.of(result, baseTerms.get(i))),
-                        TermContext.of(globalContext));
-            }
-            return result;
+            return BuiltinMap.concatenationMap(baseTerms, TermContext.of(globalContext));
         }
     }
 
@@ -747,11 +739,16 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
 
         /* replace the unevaluated rules and macros with their partially evaluated counterparts */
         partiallyEvaluatedRules.clear();
-        for (Rule rule : Iterables.concat(definition.rules(), definition.macros())) {
+        Iterable<Rule> rules = Iterables.concat(
+                definition.rules(),
+                definition.macros(),
+                definition.patternRules().values());
+        for (Rule rule : rules) {
             partiallyEvaluatedRules.add(evaluateRule(rule, globalContext));
         }
         definition.rules().clear();
         definition.macros().clear();
+        definition.patternRules().clear();
         definition.addRuleCollection(partiallyEvaluatedRules);
 
         return definition;
