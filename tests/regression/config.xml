@@ -420,6 +420,13 @@
            directory="user_substitution"
            programs="user_substitution/tests"
            results="user_substitution/tests" />
+           
+<!-- comment out strategy tests for now
+  <include file="strategy/config.xml"
+           directory="strategy"
+           programs="tests/regression/strategy"
+           results="tests/regression/strategy" />
+ -->
 
 </tests>
 

@@ -3,6 +3,7 @@ package org.kframework.backend.java.symbolic;
 
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.GlobalContext;
+import org.kframework.backend.java.kil.State;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.Rule;
@@ -95,12 +96,12 @@ public class JavaSymbolicKRun implements KRun {
 
         Term term = Term.of(cfg, definition);
         GlobalContext globalContext = new GlobalContext(definition, new PortableFileSystem());
-        TermContext termContext = TermContext.of(globalContext);
+        TermContext termContext = TermContext.of(new State<Term>(term, globalContext));
         term = term.evaluate(termContext);
 
         if (K.pattern_matching) {
-            GroundRewriter groundRewriter = new GroundRewriter(definition, termContext);
-            ConstrainedTerm rewriteResult = new ConstrainedTerm(groundRewriter.rewrite(term, bound), termContext);
+            GroundRewriter groundRewriter = new GroundRewriter(definition);
+            ConstrainedTerm rewriteResult = new ConstrainedTerm(groundRewriter.rewrite(termContext.state(), bound).topTerm, termContext);
             return rewriteResult;
         } else {
             SymbolicRewriter symbolicRewriter = new SymbolicRewriter(definition);
@@ -244,9 +245,9 @@ public class JavaSymbolicKRun implements KRun {
         if (K.pattern_matching) {
             Term initialTerm = Term.of(cfg, definition);
             Term targetTerm = null;
-            GroundRewriter rewriter = new GroundRewriter(definition, TermContext.of(globalContext));
+            GroundRewriter rewriter = new GroundRewriter(definition);
             hits = rewriter.search(initialTerm, targetTerm, claims,
-                    patternRule, bound, depth, searchType);
+                    patternRule, bound, depth, searchType, TermContext.of(globalContext));
         } else {
             ConstrainedTerm initialTerm = new ConstrainedTerm(Term.of(cfg, definition), TermContext.of(globalContext));
             ConstrainedTerm targetTerm = null;

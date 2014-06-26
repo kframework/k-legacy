@@ -40,7 +40,13 @@ public class RemovePreincludedRules extends CopyOnWriteTransformer {
                                 + File.separator + "float.k"))
                 || (node.getFilename().equals(KPaths.getKBase(false)
                         + File.separator + "include" + File.separator + "modules"
-                        + File.separator + "k-functional-visitor.k"))) {
+                        + File.separator + "k-functional-visitor.k"))
+                || (node.getFilename().equals(KPaths.getKBase(false)
+                    + File.separator + "include" + File.separator + "modules"
+                    + File.separator + "strategy-core.k"))
+                || (node.getFilename().equals(KPaths.getKBase(false)
+                    + File.separator + "include" + File.separator + "modules"
+                    + File.separator + "strategy-language.k"))) {
             return node;
         }
 

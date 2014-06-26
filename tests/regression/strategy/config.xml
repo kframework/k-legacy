@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Copyright (c) 2012-2014 K Team. All Rights Reserved. -->
+
+<!-- Tests for strategies -->
+
+<tests>
+  <test
+      definition="test-strategy.k"
+      programs="."
+      results="."
+      extension="test">
+      <kompile-option name="--backend" value="java" />
+<!--      <kompile-option name="-strategies" value="true" /> -->
+      <program name="oneapply.test">          <krun-option name="-cSTG" value="ab" />                       </program>      
+      <program name="ifthenelse-if.test">     <krun-option name="-cSTG" value="if ab then bc else false" /> </program>
+      <program name="ifthenelse-else.test">   <krun-option name="-cSTG" value="if bc then false else ab" /> </program>
+      
+      <program name="or1.test">   <krun-option name="-cSTG" value="ab &lt;+ bc" /> </program>      
+      <program name="or2.test">   <krun-option name="-cSTG" value="bc &lt;+ ab" /> </program>
+      
+      <program name="and1.test">   <krun-option name="-cSTG" value="ab ; bc" /> </program>
+      <program name="and2.test">   <krun-option name="-cSTG" value="bc ; ab" /> </program>
+      
+      <program name="and1.test">   <krun-option name="-cSTG" value="ab ; bc" /> </program>
+      <program name="and2.test">   <krun-option name="-cSTG" value="bc ; ab" /> </program>      
+  </test>
+</tests>

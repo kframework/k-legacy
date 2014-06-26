@@ -32,7 +32,7 @@ import org.kframework.krun.K;
  */
 public class ConstrainedTerm extends JavaSymbolicObject {
     
-    public static class Data {
+    public static class Data implements TermLike {
         public final Term term;
         /**
          * Represents key lookups of builtin data-structures as a symbolic

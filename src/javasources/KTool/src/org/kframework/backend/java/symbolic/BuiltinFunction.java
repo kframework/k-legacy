@@ -49,7 +49,8 @@ public class BuiltinFunction {
             "Visitor",
             "#IO",
             "#FRESH",
-            "Substitution");
+            "Substitution", 
+            "#Stuck");
 
     /**
      * Map of {@link KLabelConstant} representation of builtin (hooked) operations to

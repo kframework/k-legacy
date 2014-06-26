@@ -9,57 +9,71 @@ import org.kframework.kil.ASTNode;
 import org.kframework.krun.api.io.FileSystem;
 
 /**
- * An object containing context specific to a particular configuration.
+ * An object containing context specific to a term.
+ * 
+ * For now, it only contains a reference to a State object.
+ * The reference to global is just a shortcut to the global in State.
+ * 
+ * As an optimization (and because it would be hard to refactor now), 
+ * TermContext is mutable. The mutability is required by the counter,
+ * as all invocations of #fresh cannot be applied atomically. As the 
+ * counter is part of State, the state reference is updated each time
+ * the counter is incremented. 
+ * 
  */
 public class TermContext extends JavaSymbolicObject {
-
-    private BigInteger counter = BigInteger.ZERO;
-
+    private State<TermLike> state;
     public final GlobalContext global;
 
-    private ConstrainedTerm.Data topConstrainedTermData;
-
-    private TermContext(GlobalContext global) {
-        this.global = global;
+    private TermContext(GlobalContext global, BigInteger counter) {
+        this(new State(null, global, counter, false));
+    }
+    
+    private TermContext(State state) {
+        this.state = state;
+        this.global = state.global;
+    }
+    
+    public static <T extends Term> TermContext of(State<T> state) {
+        return new TermContext(state);
     }
 
+    public static TermContext of(GlobalContext global, BigInteger counter) {
+        return new TermContext(global, counter);
+    }
+    
     public static TermContext of(GlobalContext global) {
-        return new TermContext(global);
+        return new TermContext(global, BigInteger.ZERO);
     }
-
-    public static TermContext of(GlobalContext global, ConstrainedTerm.Data topConstrainedTermData) {
-        TermContext termContext = new TermContext(global);
-        termContext.setConstrainedTermData(topConstrainedTermData);
-        return termContext;
-    }
-
+    
     public BigInteger getCounter() {
-        return counter;
+        return state.counter;
     }
 
-    public void setCounter(BigInteger counter) {
-        this.counter = counter;
-    }
-
+    /**
+     * Increments the fresh variable counter. 
+     * 
+     * See TermContext's class javadoc for details on the underlying implementation.
+     */
     public BigInteger incrementCounter() {
-        counter = this.counter.add(BigInteger.ONE);
-        return counter;
+        state = state.incrementCounter();
+        return state.counter;
     }
 
     public Definition definition() {
-        return global.def;
+        return state.global.def;
     }
 
     public FileSystem fileSystem() {
-        return global.fs;
+        return state.global.fs;
     }
 
-    public ConstrainedTerm.Data getConstrainedTermData() {
-        return topConstrainedTermData;
+    public TermLike getConstrainedTermData() {
+        return state.topTerm;
     }
 
-    public void setConstrainedTermData(ConstrainedTerm.Data constrainedTermData) {
-        this.topConstrainedTermData = constrainedTermData;
+    public void setConstrainedTermData(TermLike constrainedTermData) {
+        this.state = this.state.copy(constrainedTermData);
     }
 
     @Override
@@ -70,5 +84,17 @@ public class TermContext extends JavaSymbolicObject {
     @Override
     public void accept(Visitor visitor) {
         throw new UnsupportedOperationException();
+    }
+
+    public State state() {
+        return state;
+    }
+    
+    public TermContext copy() {
+        return new TermContext(state);
+    }
+    
+    public TermContext copy(TermLike t) {
+        return new TermContext(state.copy(t));
     }
 }
