@@ -8,7 +8,9 @@ import org.kframework.kil.ASTNode;
 import org.kframework.kil.Ambiguity;
 import org.kframework.kil.Bracket;
 import org.kframework.kil.Cell;
+import org.kframework.kil.Cell.Ellipses;
 import org.kframework.kil.Configuration;
+import org.kframework.kil.KSorts;
 import org.kframework.kil.Rewrite;
 import org.kframework.kil.Syntax;
 import org.kframework.kil.Term;
@@ -39,7 +41,10 @@ public class CellTypesFilter extends ParseForestTransformer {
 
     @Override
     public ASTNode visit(Cell cell, Void _) throws ParseFailedException {
-        String sort = context.cellKinds.get(cell.getLabel());
+        String sort = context.cellSorts.get(cell.getLabel());
+        // if the k cell is opened, then the sort should be K because of ... desugaring
+        if (cell.getLabel().equals("k") && cell.getEllipses() != Ellipses.NONE)
+            sort = KSorts.K;
 
         if (sort == null) {
             if (cell.getLabel().equals("k"))
@@ -83,7 +88,9 @@ public class CellTypesFilter extends ParseForestTransformer {
 
         @Override
         public ASTNode visit(Term trm, Void _) throws ParseFailedException {
-            if (!context.isSubsortedEq(expectedSort, trm.getSort())) {
+            // accept only terms that have sort <= to the cell type, or terms of sort K
+            if (!context.isSubsortedEq(expectedSort, trm.getSort()) &&
+                !(trm.getSort().equals(KSorts.K) && context.isSubsortedEq(KSorts.K, expectedSort))) {
                 // if the found sort is not a subsort of what I was expecting
                 String msg = "Wrong type in cell '" + cellLabel + "'. Expected sort: " + expectedSort + " but found " + trm.getSort();
                 throw new ParseFailedException(new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL, msg, getName(), trm.getFilename(), trm.getLocation()));
@@ -100,6 +107,7 @@ public class CellTypesFilter extends ParseForestTransformer {
         @Override
         public ASTNode visit(Rewrite node, Void _) throws ParseFailedException {
             Rewrite result = new Rewrite(node);
+            result.setSort(expectedSort);
             result.replaceChildren((Term) this.visitNode(node.getLeft()), (Term) this.visitNode(node.getRight()), context);
             return result;
         }
@@ -122,7 +130,16 @@ public class CellTypesFilter extends ParseForestTransformer {
             if (terms.size() == 1) {
                 return terms.get(0);
             }
-            node.setContents(terms);
+            // try to be greedy and select only the terms that are directly subsorted to the cell sort
+            ArrayList<Term> subsorted = new ArrayList<>();
+            for (Term trm : node.getContents()) {
+                if (context.isSubsortedEq(expectedSort, trm.getSort()))
+                    subsorted.add(trm);
+            }
+            if (subsorted.size() > 0)
+                node.setContents(subsorted);
+            else
+                node.setContents(terms);
             return node;
         }
     }
