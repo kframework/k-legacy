@@ -475,7 +475,7 @@ public class DefinitionLoader {
         config = new TypeSystemFilter(context).visitNode(config);
         config = new VariableTypeInferenceFilter(context).visitNode(config);
         // config = new PriorityFilter().visitNode(config);
-        config = new BestFitFilter(new GetFitnessUnitTypeCheckVisitor(context), context).visitNode(config);
+        // config = new BestFitFilter(new GetFitnessUnitTypeCheckVisitor(context), context).visitNode(config);
         config = new TypeInferenceSupremumFilter(context).visitNode(config);
         config = new BestFitFilter(new GetFitnessUnitKCheckVisitor(context), context).visitNode(config);
         // config = new PreferAvoidFilter().visitNode(config);

@@ -27,9 +27,12 @@ import org.kframework.kil.DataStructureSort;
 import org.kframework.kil.KApp;
 import org.kframework.kil.KInjectedLabel;
 import org.kframework.kil.KSorts;
+import org.kframework.kil.Lexical;
 import org.kframework.kil.Production;
 import org.kframework.kil.Sort;
 import org.kframework.kil.Term;
+import org.kframework.kil.TermCons;
+import org.kframework.kil.Terminal;
 import org.kframework.kil.UserList;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.main.GlobalOptions;
@@ -400,8 +403,8 @@ public class Context implements Serializable {
     /**
      * Check to see if smallSort is subsorted to bigSort (strict)
      * 
-     * @param bigSort
-     * @param smallSort
+     * @param bigSort The more general sort.
+     * @param smallSort The more restrictive sort.
      * @return
      */
     public boolean isSubsorted(String bigSort, String smallSort) {
@@ -411,14 +414,71 @@ public class Context implements Serializable {
     /**
      * Check to see if smallSort is subsorted or equal to bigSort
      * 
-     * @param bigSort
-     * @param smallSort
+     * @param bigSort The more general sort.
+     * @param smallSort The more restrictive sort.
      * @return
      */
     public boolean isSubsortedEq(String bigSort, String smallSort) {
         if (bigSort.equals(smallSort))
             return true;
         return subsorts.isInRelation(bigSort, smallSort);
+    }
+
+    /**
+     * Checks to see if the two terms are alike.
+     * All of the children must have the same location information and the productions
+     * must be subsorted or equal from big to small.
+     * @param big The term with the more general production.
+     * @param small The term with the more restrictive production.
+     * @return true if all children are located in the same places and the productions are subsorted.
+     */
+    public boolean isSubsortedEq(TermCons big, TermCons small) {
+        if (big.getContents().size() != small.getContents().size())
+            return false;
+        for (int i = 0; i < big.getContents().size(); i++) {
+            String locBig = big.getContents().get(i).getLocation();
+            String locSmall = small.getContents().get(i).getLocation();
+            if (!locBig.equals(locSmall))
+                return false;
+        }
+        return isSubsortedEq(big.getProduction(), small.getProduction());
+    }
+
+    /**
+     * Checks to see if two productions are the same or subsorted one to another.
+     * Example Exps ::= List{Exp,","} and Vals ::= List{Val,","}. Vals is subsorted to Exps.
+     * All the terminals must be the same and in the same place, and all the non-terminals must
+     * be subsorted or equal from big to small.
+     * @param big The more general production.
+     * @param small The more restrictive production.
+     * @return true if the small production is a subsort of the big one.
+     */
+    public boolean isSubsortedEq(Production big, Production small) {
+        if (big == small)
+            return false;
+        if (big.getItems().size() != small.getItems().size())
+            return false;
+        if (!this.isSubsortedEq(big.getSort(), small.getSort()))
+            return false;
+        for (int i = 0; i < big.getItems().size(); i++) {
+            if (!(big.getItems().get(i) instanceof Terminal && small.getItems().get(i) instanceof Terminal) &&
+                    !(big.getItems().get(i) instanceof Sort && small.getItems().get(i) instanceof Sort) &&
+                    !(big.getItems().get(i) instanceof UserList && small.getItems().get(i) instanceof UserList) &&
+                    !(big.getItems().get(i) instanceof Lexical && small.getItems().get(i) instanceof Lexical)) {
+                return false;
+            } else if (big.getItems().get(i) instanceof Sort) {
+                String bigSort = ((Sort) big.getItems().get(i)).getName();
+                String smallSort = ((Sort) small.getItems().get(i)).getName();
+                if (!this.isSubsortedEq(bigSort, smallSort))
+                    return false;
+            } else if (big.getItems().get(i) instanceof UserList) {
+                String bigSort = ((UserList) big.getItems().get(i)).getSort();
+                String smallSort = ((UserList) small.getItems().get(i)).getSort();
+                if (!this.isSubsortedEq(bigSort, smallSort))
+                    return false;
+            }
+        }
+        return true;
     }
 
     public boolean isTagGenerated(String key) {

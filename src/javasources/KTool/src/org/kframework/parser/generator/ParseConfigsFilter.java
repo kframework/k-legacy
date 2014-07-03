@@ -24,6 +24,7 @@ import org.kframework.parser.concrete.disambiguate.InclusionFilter;
 import org.kframework.parser.concrete.disambiguate.PreferAvoidFilter;
 import org.kframework.parser.concrete.disambiguate.PriorityFilter;
 import org.kframework.parser.concrete.disambiguate.SentenceVariablesFilter;
+import org.kframework.parser.concrete.disambiguate.TypeInferenceSupremumFilter;
 import org.kframework.parser.concrete.disambiguate.VariableTypeInferenceFilter;
 import org.kframework.utils.XmlLoader;
 import org.w3c.dom.Document;
@@ -98,7 +99,7 @@ public class ParseConfigsFilter extends ParseForestTransformer {
                 // config = new AmbDuplicateFilter(context).visitNode(config);
                 // config = new TypeSystemFilter(context).visitNode(config);
                 // config = new BestFitFilter(new GetFitnessUnitTypeCheckVisitor(context), context).visitNode(config);
-                // config = new TypeInferenceSupremumFilter(context).visitNode(config);
+                config = new TypeInferenceSupremumFilter(context).visitNode(config);
                 config = new BestFitFilter(new GetFitnessUnitKCheckVisitor(context), context).visitNode(config);
                 config = new PreferAvoidFilter(context).visitNode(config);
                 config = new FlattenListsFilter(context).visitNode(config);
