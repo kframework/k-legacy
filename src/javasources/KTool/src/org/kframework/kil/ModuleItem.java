@@ -1,7 +1,7 @@
 // Copyright (c) 2012-2014 K Team. All Rights Reserved.
 package org.kframework.kil;
 
-public abstract class ModuleItem extends ASTNode {
+public abstract class ModuleItem extends ASTNode<ASTNode<?>> {
     public ModuleItem(ModuleItem s) {
         super(s);
     }

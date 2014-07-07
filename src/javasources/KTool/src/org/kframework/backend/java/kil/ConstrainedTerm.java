@@ -30,7 +30,7 @@ import org.kframework.krun.K;
  *
  * @author AndreiS
  */
-public class ConstrainedTerm extends JavaSymbolicObject {
+public class ConstrainedTerm extends JavaSymbolicObject<ConstrainedTerm> {
     
     public static class Data {
         public final Term term;
@@ -412,7 +412,7 @@ public class ConstrainedTerm extends JavaSymbolicObject {
                             for (Map.Entry<Variable, Term> entry : cnstr.substitution().entrySet())
                                 templCnstr.add(entry.getKey(), entry.getValue());
 
-                            for (Map.Entry<Term, Term> mapItem : map) {
+                            for (Map.Entry<Term, Term> mapItem : map.getEntries().entrySet()) {
                                 UninterpretedConstraint uninterpretedCnstr = templCnstr.deepCopy();
                                 uninterpretedCnstr.add(key, mapItem.getKey());
                                 uninterpretedCnstrs.add(uninterpretedCnstr);

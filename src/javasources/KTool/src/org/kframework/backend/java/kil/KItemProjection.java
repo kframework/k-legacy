@@ -31,7 +31,7 @@ public class KItemProjection extends Term {
         }
 
         if (!(((KItem) term).kList() instanceof KList)
-                || ((KList) ((KItem) term).kList()).size() != 0
+                || ((KList) ((KItem) term).kList()).concreteSize() != 0
                 || ((KList) ((KItem) term).kList()).hasFrame()) {
             return this;
         }
@@ -100,6 +100,19 @@ public class KItemProjection extends Term {
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public Term get(int index) {
+        if(index == 0)
+            return term;
+        else 
+            throw new IndexOutOfBoundsException();
+    }
+
+    @Override
+    public int size() {
+        return 1;
     }
 
 }

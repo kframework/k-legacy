@@ -4,7 +4,7 @@ package org.kframework.kil.visitors;
 import org.kframework.kil.*;
 
 public interface Visitor<P, R, E extends Throwable> {
-    public R visit(ASTNode node, P p) throws E;
+    public R visit(ASTNode<?> node, P p) throws E;
     public R visit(ParseError node, P p) throws E;
     public R visit(Definition node, P p) throws E;
     public R visit(DefinitionItem node, P p) throws E;
@@ -106,7 +106,7 @@ public interface Visitor<P, R, E extends Throwable> {
      * @return The value returned from visiting the entire ASTNode tree.
      * @throws E if the visitor implementation raises an exception.
      */
-    public R visitNode(ASTNode node, P p) throws E;
+    public R visitNode(ASTNode<?> node, P p) throws E;
     
     /**
      * Visit an AST tree with {@code p} equal to null. Useful if {@code <P>} is {@link Void}. 
@@ -117,7 +117,7 @@ public interface Visitor<P, R, E extends Throwable> {
      * @return The value returned from visiting the entire ASTNode tree.
      * @throws E if the visitor implementation raises an exception.
      */
-    public R visitNode(ASTNode node) throws E;
+    public R visitNode(ASTNode<?> node) throws E;
 
     /**
      * This method must be called by {@link ASTNode#accept(Visitor, Object)} with the ASTNode
@@ -131,5 +131,5 @@ public interface Visitor<P, R, E extends Throwable> {
      * @param Should be the result of visiting the ASTNode.
      * @return Implementations should return {@code r}.
      */
-    public R complete(ASTNode node, R r);
+    public R complete(ASTNode<?> node, R r);
 }

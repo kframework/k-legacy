@@ -10,8 +10,8 @@
 	<property name="javalibs" location="../../../lib/java"/>
 	<property name="ECLIPSE_HOME" value="../../../eclisespoofax" />
 	<property name="debuglevel" value="source,lines,vars" />
-	<property name="target" value="1.7" />
-	<property name="source" value="1.7" />
+	<property name="target" value="1.8" />
+	<property name="source" value="1.8" />
 	<path id="KTool.classpath">
 		<pathelement location="bin" />
 		<path id="KTool.classpath">

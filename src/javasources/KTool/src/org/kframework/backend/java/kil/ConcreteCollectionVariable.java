@@ -34,9 +34,9 @@ public class ConcreteCollectionVariable extends Variable {
             
             Collection collection = (Collection) term;
             if (collection.hasFrame()) {
-                return collection.size() <= concreteSize;
+                return collection.concreteSize() <= concreteSize;
             } else {
-                return collection.size() == concreteSize;
+                return collection.concreteSize() == concreteSize;
             }
         } else if (term instanceof Variable) {
             return true;

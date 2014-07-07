@@ -22,7 +22,7 @@ import java.util.Set;
  *
  * @author AndreiS
  */
-public abstract class JavaSymbolicObject extends ASTNode
+public abstract class JavaSymbolicObject<T extends JavaSymbolicObject<?>> extends ASTNode<T>
         implements Transformable, Visitable, Serializable {
 
     /**
@@ -47,28 +47,28 @@ public abstract class JavaSymbolicObject extends ASTNode
      * Returns a new {@code JavaSymbolicObject} instance obtained from this JavaSymbolicObject by
      * applying a substitution in (in a binder sensitive way) .
      */
-    public JavaSymbolicObject substituteWithBinders(
+    public JavaSymbolicObject<T> substituteWithBinders(
             Map<Variable, ? extends Term> substitution,
             TermContext context) {
         if (substitution.isEmpty() || isGround()) {
             return this;
         }
 
-        return (JavaSymbolicObject) accept(new BinderSubstitutionTransformer(substitution, context));
+        return (JavaSymbolicObject<T>) accept(new BinderSubstitutionTransformer(substitution, context));
     }
 
     /**
      * Returns a new {@code JavaSymbolicObject} instance obtained from this JavaSymbolicObject by
      * applying a substitution in (in a binder insensitive way) .
      */
-    public JavaSymbolicObject substitute(
+    public JavaSymbolicObject<T> substitute(
             Map<Variable, ? extends Term> substitution,
             TermContext context) {
         if (substitution.isEmpty() || isGround()) {
             return this;
         }
 
-        return (JavaSymbolicObject) accept(new SubstitutionTransformer(substitution, context));
+        return (JavaSymbolicObject<T>) accept(new SubstitutionTransformer(substitution, context));
     }
 
 

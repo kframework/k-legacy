@@ -20,7 +20,7 @@ import java.util.List;
  *
  * @see ASTNode
  */
-public class Attributes extends ASTNode implements Interfaces.MutableList<Attribute, Enum<?>> {
+public class Attributes extends ASTNode<ASTNode<?>> implements Interfaces.MutableList<Attribute, Enum<?>> {
 
     protected java.util.List<Attribute> contents;
 

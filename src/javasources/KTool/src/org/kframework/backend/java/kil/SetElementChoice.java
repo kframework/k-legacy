@@ -110,4 +110,17 @@ public class SetElementChoice extends Term implements DataStructureChoice {
         visitor.visit(this);
     }
 
+    @Override
+    public Term get(int index) {
+        if(index == 0)
+            return set;
+        else 
+            throw new IndexOutOfBoundsException();
+    }
+
+    @Override
+    public int size() {
+        return 1;
+    }
+
 }

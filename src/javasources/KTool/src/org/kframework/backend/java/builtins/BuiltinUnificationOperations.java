@@ -41,7 +41,7 @@ public class BuiltinUnificationOperations {
         
         BuiltinMap.Builder builder = BuiltinMap.builder();
         Map<Variable, Term> subst = mgu.constraint().substitution();
-        for (Map.Entry<Term, Term> entry : map) {
+        for (Map.Entry<Term, Term> entry : map.getEntries().entrySet()) {
             Term value = entry.getValue().substituteWithBinders(subst, context);
             builder.put(entry.getKey(), value);
         }

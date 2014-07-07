@@ -180,14 +180,14 @@ public class JavaSymbolicKRun implements KRun {
 
             SymbolicConstraint initialConstraint = new SymbolicConstraint(termContext);
             //initialConstraint.addAll(rule.condition());
-            initialConstraint.addAll(dummyRule.requires());
+            initialConstraint.addAllTerms(dummyRule.requires());
             ConstrainedTerm initialTerm = new ConstrainedTerm(
                     transformer.transformTerm(kilLeftHandSide, definition),
                     initialConstraint,
                     termContext);
 
             SymbolicConstraint targetConstraint = new SymbolicConstraint(termContext);
-            targetConstraint.addAll(dummyRule.ensures());
+            targetConstraint.addAllTerms(dummyRule.ensures());
             ConstrainedTerm targetTerm = new ConstrainedTerm(
                     dummyRule.leftHandSide(),
                     dummyRule.lookups().getSymbolicConstraint(termContext),

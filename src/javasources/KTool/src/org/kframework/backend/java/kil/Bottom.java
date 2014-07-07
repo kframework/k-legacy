@@ -71,4 +71,14 @@ public class Bottom extends Term {
 
     @Override
     public void accept(Visitor visitor) { }
+
+    @Override
+    public Term get(int index) {
+        throw new IndexOutOfBoundsException();
+    }
+
+    @Override
+    public int size() {
+        return 0;
+    }
 }

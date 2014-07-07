@@ -2,6 +2,7 @@
 package org.kframework.kil;
 
 import com.google.common.collect.Multimap;
+
 import org.kframework.compile.utils.MetaK;
 import org.kframework.kil.visitors.Visitor;
 
@@ -11,7 +12,7 @@ import java.util.List;
 /**
  * A production. Any explicit attributes on the production are stored in {@link ASTNode#attributes}.
  */
-public class Production extends ASTNode implements Interfaces.MutableList<ProductionItem, Enum<?>> {
+public class Production extends ASTNode<ASTNode<?>> implements Interfaces.MutableList<ProductionItem, Enum<?>> {
 
     /*
      * Andrei S: It appears that the cons attribute is mandatory for all new production added during compilation, otherwise a null pointer exception can be thrown in one of the later compilation

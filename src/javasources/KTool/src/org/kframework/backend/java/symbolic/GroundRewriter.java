@@ -152,7 +152,7 @@ public class GroundRewriter {
     private Map<Variable, Term> getSubstitutionMap(Term term, Rule pattern) {
         // Create the initial constraints based on the pattern
         SymbolicConstraint termConstraint = new SymbolicConstraint(termContext);
-        termConstraint.addAll(pattern.requires());
+        termConstraint.addAllTerms(pattern.requires());
         for (Variable var : pattern.freshVariables()) {
             termConstraint.add(var, FreshOperations.fresh(var.sort(), termContext));
         }

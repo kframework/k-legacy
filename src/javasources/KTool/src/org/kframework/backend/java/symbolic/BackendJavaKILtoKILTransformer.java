@@ -144,7 +144,7 @@ public class BackendJavaKILtoKILTransformer implements Transformer {
 
     private List<org.kframework.kil.Term> transformTerms(KCollection kCollection) {
         List<org.kframework.kil.Term> terms = new ArrayList<org.kframework.kil.Term>();
-        for (Term term : kCollection) {
+        for (Term term : kCollection.getContents()) {
             terms.add((org.kframework.kil.Term) term.accept(this));
         }
         if (kCollection.hasFrame()) {

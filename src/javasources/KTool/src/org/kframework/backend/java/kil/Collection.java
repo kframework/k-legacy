@@ -5,6 +5,8 @@ import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.kil.ASTNode;
 
+import com.google.common.base.Optional;
+
 
 /**
  * A collection of {@link Term}s.
@@ -62,7 +64,7 @@ public abstract class Collection extends Term {
      * Returns true if this {@code Collection} does not have any contents and does not have a frame.
      */
     public boolean isEmpty() {
-        return size() == 0 && !hasFrame();
+        return concreteSize() == 0 && !hasFrame();
     }
 
     /**
@@ -70,7 +72,7 @@ public abstract class Collection extends Term {
      *
      * @return the size of the contents
      */
-    public abstract int size();
+    public abstract int concreteSize();
     
     /**
      * Checks if this {@code Collection} term is a proper left-hand side view.
@@ -101,4 +103,17 @@ public abstract class Collection extends Term {
         return transformer.transform(this);
     }
 
+    private Optional<Term[]> elementsAsArray = Optional.absent();
+    
+    @Override
+    public Term get(int index) {
+        elementsAsArray = Optional.of(
+                elementsAsArray.or( () -> {
+                        Term[] arr = computeChildren();
+                        return arr;
+                }));
+        return elementsAsArray.get()[index];
+    }
+
+    protected abstract Term[] computeChildren();
 }

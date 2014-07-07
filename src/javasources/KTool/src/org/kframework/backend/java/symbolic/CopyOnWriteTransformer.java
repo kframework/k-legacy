@@ -255,8 +255,8 @@ public class CopyOnWriteTransformer implements Transformer {
     public ASTNode transform(KSequence kSequence) {
         boolean changed = false;
         // transform the contents
-        List<Term> transformedItems = Lists.newArrayListWithCapacity(kSequence.size());
-        for (Term term : kSequence) {
+        List<Term> transformedItems = Lists.newArrayListWithCapacity(kSequence.concreteSize());
+        for (Term term : kSequence.getContents()) {
             Term transformedTerm = (Term) term.accept(this);
             if (transformedTerm != term) {
                 changed = true;
@@ -278,7 +278,7 @@ public class CopyOnWriteTransformer implements Transformer {
         } else {
             KSequence transformedKSeq = KSequence.of(transformedItems, transformedFrame);
             
-            if (!transformedKSeq.hasFrame() && transformedKSeq.size() == 1) {
+            if (!transformedKSeq.hasFrame() && transformedKSeq.concreteSize() == 1) {
                 return transformedKSeq.get(0);
             } else {
                 return transformedKSeq;
@@ -326,7 +326,7 @@ public class CopyOnWriteTransformer implements Transformer {
         boolean changed = false;
         BuiltinMap.Builder builder = BuiltinMap.builder();
         
-        for (Map.Entry<Term, Term> entry : builtinMap) {
+        for (java.util.Map.Entry<Term, Term> entry : builtinMap.getEntries().entrySet()) {
             Term key = (Term) entry.getKey().accept(this);
             Term value = (Term) entry.getValue().accept(this);
             
@@ -334,7 +334,7 @@ public class CopyOnWriteTransformer implements Transformer {
             if (!changed && (key != entry.getKey() || value != entry.getValue())) {
                 changed = true;
                 // copy previous entries into the BuiltinMap being built
-                for (Map.Entry<Term, Term> copy : builtinMap) {
+                for (java.util.Map.Entry<Term, Term> copy : builtinMap.getEntries().entrySet()) {
                     if (copy.equals(entry)) {
                         // cannot rely on reference identity check here
                         break;

@@ -176,5 +176,14 @@ public class Variable extends Term {
             return this;
         }
     }
-
+    
+    @Override
+    public Term get(int index) {
+        throw new IndexOutOfBoundsException();
+    }
+    
+    @Override
+    public int size() {
+        return 0;
+    }
 }

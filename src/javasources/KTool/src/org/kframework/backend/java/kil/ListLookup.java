@@ -33,7 +33,7 @@ public class ListLookup extends Term implements DataStructureLookup {
         }
         int index = ((IntToken) key).intValue();
 
-        Term value = ((BuiltinList) list).get(index);
+        Term value = ((BuiltinList) list).symbolicGet(index);
         return value;
     }
 
@@ -109,4 +109,17 @@ public class ListLookup extends Term implements DataStructureLookup {
         visitor.visit(this);
     }
 
+    @Override
+    public Term get(int index) {
+        switch(index) {
+        case 0: return key;
+        case 1: return list;
+        default:throw new IndexOutOfBoundsException(); 
+        }
+    }
+
+    @Override
+    public int size() {
+        return 2;
+    }
 }

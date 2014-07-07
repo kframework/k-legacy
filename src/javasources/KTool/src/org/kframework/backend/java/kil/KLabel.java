@@ -60,5 +60,4 @@ public abstract class KLabel extends Term {
     public ASTNode accept(Transformer transformer) {
         return transformer.transform(this);
     }
-
 }

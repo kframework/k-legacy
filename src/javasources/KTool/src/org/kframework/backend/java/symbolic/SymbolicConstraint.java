@@ -58,7 +58,7 @@ import com.microsoft.z3.Z3Exception;
  *
  * @author AndreiS
  */
-public class SymbolicConstraint extends JavaSymbolicObject {
+public class SymbolicConstraint extends JavaSymbolicObject<SymbolicConstraint> {
     public static class Data {
         /**
          * Stores ordinary equalities in this symbolic constraint.
@@ -588,14 +588,12 @@ public class SymbolicConstraint extends JavaSymbolicObject {
      *            the side condition
      * @return the truth value after including the side condition
      */
-    public TruthValue addAll(Collection<Term> condition) {
+    public TruthValue addAllTerms(Collection<? extends Term> condition) {
         for (Term term : condition) {
             add(term, BoolToken.TRUE);
         }
-
         return data.truthValue;
     }
-
     /**
      * Adds all equalities in the given symbolic constraint to this one.
      *
@@ -1178,6 +1176,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
      * Returns a new {@code SymbolicConstraint} instance obtained from this symbolic constraint
      * by applying substitution.
      */
+    @Override
     public SymbolicConstraint substituteWithBinders(Map<Variable, ? extends Term> substitution, TermContext context) {
         if (substitution.isEmpty()) {
             return this;
@@ -1239,7 +1238,7 @@ public class SymbolicConstraint extends JavaSymbolicObject {
 
             if (entry.getKey() instanceof ConcreteCollectionVariable
                     && !(entry.getValue() instanceof ConcreteCollectionVariable && ((ConcreteCollectionVariable) entry.getKey()).concreteCollectionSize() == ((ConcreteCollectionVariable) entry.getValue()).concreteCollectionSize())
-                    && !(entry.getValue() instanceof org.kframework.backend.java.kil.Collection && !((org.kframework.backend.java.kil.Collection) entry.getValue()).hasFrame() && ((ConcreteCollectionVariable) entry.getKey()).concreteCollectionSize() == ((org.kframework.backend.java.kil.Collection) entry.getValue()).size())) {
+                    && !(entry.getValue() instanceof org.kframework.backend.java.kil.Collection && !((org.kframework.backend.java.kil.Collection) entry.getValue()).hasFrame() && ((ConcreteCollectionVariable) entry.getKey()).concreteCollectionSize() == ((org.kframework.backend.java.kil.Collection) entry.getValue()).concreteSize())) {
                 return false;
             }
         }

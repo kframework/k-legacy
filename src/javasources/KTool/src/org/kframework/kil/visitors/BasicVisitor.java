@@ -41,7 +41,7 @@ public class BasicVisitor extends AbstractVisitor<Void, Void, RuntimeException> 
     }
 
     @Override
-    public <T extends ASTNode> boolean changed(T o, T n) {
+    public <T extends ASTNode<?>> boolean changed(T o, T n) {
         return false;
     }
 

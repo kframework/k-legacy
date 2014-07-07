@@ -43,7 +43,7 @@ public class PrePostVisitor implements Visitor {
         preVisitor.resetProceed();
         builtinMap.accept(preVisitor);
         if (!preVisitor.isProceed()) return;
-        for (Map.Entry<Term, Term> entry : builtinMap) {
+        for (java.util.Map.Entry<Term, Term> entry : builtinMap.getEntries().entrySet()) {
             entry.getKey().accept(this);
             entry.getValue().accept(this);
         }
@@ -214,7 +214,7 @@ public class PrePostVisitor implements Visitor {
         preVisitor.resetProceed();
         kCollection.accept(preVisitor);
         if (!preVisitor.isProceed()) return;
-        for (Term term : kCollection) {
+        for (Term term : kCollection.getContents()) {
             term.accept(this);
         }
         if (kCollection.hasFrame())

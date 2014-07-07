@@ -97,4 +97,16 @@ public class KLabelInjection extends KLabel {
         return transformer.transform(this);
     }
 
+    @Override
+    public Term get(int index) {
+        if(index ==0 )
+            return term;
+        else 
+            throw new IndexOutOfBoundsException();
+    }
+
+    @Override
+    public int size() {
+        return 1;
+    }
 }

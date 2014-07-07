@@ -112,4 +112,22 @@ public class MapLookup extends Term implements DataStructureLookup {
         visitor.visit(this);
     }
 
+    @Override
+    public Term get(int index) {
+        switch (index) {
+        case 0:
+            return map;
+        case 1: 
+            return key;
+        default:
+            break;
+        }
+        throw new IndexOutOfBoundsException();
+    }
+
+    @Override
+    public int size() {
+        return 2;
+    }
+
 }

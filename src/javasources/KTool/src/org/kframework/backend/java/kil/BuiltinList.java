@@ -3,10 +3,15 @@
 package org.kframework.backend.java.kil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
+
+
+
 
 import org.kframework.backend.java.builtins.IntToken;
 import org.kframework.backend.java.symbolic.Matcher;
@@ -18,7 +23,11 @@ import org.kframework.backend.java.util.KSorts;
 import org.kframework.backend.java.util.Utils;
 import org.kframework.kil.ASTNode;
 
-import com.google.common.base.Joiner;
+
+
+
+import com.google.common.base.Joiner;import com.google.common.collect.ObjectArrays;
+
 
 
 /**
@@ -62,12 +71,12 @@ public class BuiltinList extends Collection {
         return elementsLeft.contains(key) || elementsRight.contains(key);
     }
 
-    public void add(Term element) {
-        addRight(element);
+    public boolean add(Term element) {
+        return addRight(element);
     }
 
-    public void addRight(Term element) {
-        elementsRight.add(element);
+    public boolean addRight(Term element) {
+        return elementsRight.add(element);
     }
 
     public void addLeft(Term element) {
@@ -81,7 +90,7 @@ public class BuiltinList extends Collection {
     }
 
     @Override
-    public int size() {
+    public int concreteSize() {
         return elementsLeft.size() + elementsRight.size();
     }
 
@@ -163,7 +172,7 @@ public class BuiltinList extends Collection {
         return transformer.transform(this);
     }
 
-    public Term get(int index) {
+    public Term symbolicGet(int index) {
         boolean onLeft = true;
         Deque<Term> elements = elementsLeft;
         Iterator<Term> iterator = elements.iterator();
@@ -302,5 +311,29 @@ public class BuiltinList extends Collection {
     public int removeRight() {
         return removeRight;
     }
+    
+    @Override 
+    public int size() {
+        int localSize = elementsLeft.size() + elementsRight.size();
+        if(super.frame == null)
+            return localSize;
+        else 
+            return localSize + 1;
+    }
 
+    @Override
+    protected Term[] computeChildren() {
+        int leftPlusFrameSize = elementsLeft.size();
+        if(frame != null)
+            leftPlusFrameSize += 1;
+        Term[] arrLeft = new Term[leftPlusFrameSize];
+        elementsLeft.toArray(arrLeft);
+        Term[] arrRight = new Term[elementsRight.size()];
+        elementsRight.toArray(arrRight);
+        Term[] arr = ObjectArrays.concat(arrLeft, arrRight, Term.class);
+        if(frame != null) {
+            arr[elementsLeft.size()] = frame;
+        }
+        return arr;
+    }
 }

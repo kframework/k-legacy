@@ -111,4 +111,18 @@ public class SetLookup extends Term implements DataStructureLookup {
         visitor.visit(this);
     }
 
+    @Override
+    public Term get(int index) {
+        switch(index) {
+        case 0: return base;
+        case 1: return key;
+        default: throw new IndexOutOfBoundsException();
+        }
+    }
+
+    @Override
+    public int size() {
+        return 2;
+    }
+
 }

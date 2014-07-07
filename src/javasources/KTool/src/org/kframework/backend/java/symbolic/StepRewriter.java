@@ -79,7 +79,7 @@ public class StepRewriter {
 
         SymbolicConstraint leftHandSideConstraint = new SymbolicConstraint(
             constrainedTerm.termContext());
-        leftHandSideConstraint.addAll(rule.requires());
+        leftHandSideConstraint.addAllTerms(rule.requires());
         for (Variable variable : rule.freshVariables()) {
             leftHandSideConstraint.add(
                     variable,
@@ -93,7 +93,7 @@ public class StepRewriter {
                 constrainedTerm.termContext());
 
         for (SymbolicConstraint constraint : constrainedTerm.unify(leftHandSide)) {
-            constraint.addAll(rule.ensures());
+            constraint.addAllTerms(rule.ensures());
             /* rename rule variables in the constraints */
             Map<Variable, Variable> freshSubstitution = constraint.rename(rule.variableSet());
 
@@ -126,7 +126,7 @@ public class StepRewriter {
         ConstrainedTerm constrainedTerm = new ConstrainedTerm(term, context);
 
         SymbolicConstraint leftHandSideConstraint = new SymbolicConstraint(context);
-        leftHandSideConstraint.addAll(rule.requires());
+        leftHandSideConstraint.addAllTerms(rule.requires());
         for (Variable variable : rule.freshVariables()) {
             leftHandSideConstraint.add(variable, FreshOperations.fresh(variable.sort(), context));
         }

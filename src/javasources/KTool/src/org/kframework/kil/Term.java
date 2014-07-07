@@ -12,7 +12,7 @@ import org.w3c.dom.Element;
 /**
  * Base of all nodes that represent terms in the semantics. Each term is labeled with a sort.
  */
-public abstract class Term extends ASTNode implements Comparable<Term> {
+public abstract class Term extends ASTNode<ASTNode<?>> implements Comparable<Term> {
     protected String sort;
 
     protected Term() {

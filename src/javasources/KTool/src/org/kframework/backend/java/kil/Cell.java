@@ -119,6 +119,19 @@ public class Cell<T extends Term> extends Term {
         return transformer.transform(this);
     }
 
+    @Override
+    public T get(int index) {
+        if(index == 0)
+            return content;
+        else
+            throw new IndexOutOfBoundsException("Cell has only one child, its content");
+    }
+
+    @Override
+    public int size() {
+        return 1;
+    }
+
 //    @Override
 //    public String sort() {
 //        return KSorts.BAG_ITEM;

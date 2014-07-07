@@ -11,7 +11,6 @@ import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;
 import org.kframework.utils.general.GlobalSettings;
 import org.kframework.utils.xml.XML;
-
 import org.w3c.dom.Element;
 
 import java.util.ArrayList;
@@ -25,7 +24,7 @@ import java.util.Map;
  * Includes contents from all {@code required}-d files.
  * @see DefinitionLoader
  */
-public class Definition extends ASTNode implements Interfaces.MutableList<DefinitionItem, Enum<?>> {
+public class Definition extends ASTNode<ASTNode<?>> implements Interfaces.MutableList<DefinitionItem, Enum<?>> {
 
     private List<DefinitionItem> items;
     private String mainFile;

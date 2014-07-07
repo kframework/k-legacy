@@ -36,7 +36,15 @@ public abstract class KCollection extends Collection implements Iterable<Term> {
     public abstract KCollection fragment(int fromIndex);
 
     public Term get(int index) {
-        return getContents().get(index);
+        if(index == concreteSize() && frame != null)
+            return frame;
+        else
+            return getContents().get(index);
+    }
+    
+    @Override
+    protected Term[] computeChildren() {
+        throw new UnsupportedOperationException();
     }
 
     public abstract String getSeparatorName();
@@ -56,7 +64,7 @@ public abstract class KCollection extends Collection implements Iterable<Term> {
      * @return the size of the contents
      */
     @Override
-    public int size() {
+    public int concreteSize() {
         return getContents().size();
     }
     
@@ -71,7 +79,7 @@ public abstract class KCollection extends Collection implements Iterable<Term> {
 
     @Override
     public final boolean isExactSort() {
-        if (size() == 1) {
+        if (concreteSize() == 1) {
             return !hasFrame() && this.get(0).isExactSort();
         } else {
             /* 2 elements make a proper K collection */
@@ -136,11 +144,11 @@ public abstract class KCollection extends Collection implements Iterable<Term> {
 
         /* promote KItem to K, and then promote K to KList */
         if (term.kind() == Kind.KITEM && (kind == Kind.K || kind == Kind.KLIST)) {
-            term = new KSequence(Lists.newArrayList(term));
+            term = new KSequence(Lists.newArrayList(new Term[] {term}));
         }
 
         if (term.kind() == Kind.K && kind == Kind.KLIST) {
-            term = new KList(Lists.newArrayList(term));
+            term = new KList(Lists.newArrayList(new Term[] {term}));
         }
 
         return term;
@@ -163,11 +171,11 @@ public abstract class KCollection extends Collection implements Iterable<Term> {
     public static Term downKind(Term term) {
         assert term.kind() == Kind.KITEM || term.kind() == Kind.K || term.kind() == Kind.KLIST;
 
-        if (term instanceof KList && !((KList) term).hasFrame() && ((KList) term).size() == 1) {
+        if (term instanceof KList && !((KList) term).hasFrame() && ((KList) term).concreteSize() == 1) {
             term = ((KList) term).get(0);
         }
 
-        if (term instanceof KSequence && !((KSequence) term).hasFrame() && ((KSequence) term).size() == 1) {
+        if (term instanceof KSequence && !((KSequence) term).hasFrame() && ((KSequence) term).concreteSize() == 1) {
             term = ((KSequence) term).get(0);
         }
 

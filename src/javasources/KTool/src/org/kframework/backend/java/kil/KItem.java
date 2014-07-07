@@ -138,10 +138,10 @@ public final class KItem extends Term {
                 boolean mustMatch = true;
                 boolean mayMatch = true;
                 
-                if (((KList) kList).size() == production.getArity()) {
+                if (((KList) kList).concreteSize() == production.getArity()) {
                     /* check if the production can match this KItem */
                     int idx = 0;
-                    for (Term term : (KList) kList) {
+                    for (Term term : ((KList) kList).getContents()) {
                         if (!mayMatch) {
                             break;
                         }
@@ -480,6 +480,20 @@ public final class KItem extends Term {
     @Override
     public ASTNode accept(Transformer transformer) {
         return transformer.transform(this);
+    }
+
+    @Override
+    public Term get(int index) {
+        switch(index) {
+        case 0: return kLabel;
+        case 1: return kList;
+        default: throw new IndexOutOfBoundsException();
+        }
+    }
+
+    @Override
+    public int size() {
+        return 2;
     }
 
 }

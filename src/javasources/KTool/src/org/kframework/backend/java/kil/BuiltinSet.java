@@ -13,7 +13,10 @@ import org.kframework.kil.ASTNode;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.ListIterator;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 
 /**
@@ -84,8 +87,8 @@ public class BuiltinSet extends Collection {
         return elements.contains(key);
     }
 
-    public void add(Term element) {
-        elements.add(element);
+    public boolean add(Term element) {
+        return elements.add(element);
 //        if (!(operations.isEmpty() && elements.contains(element))) {
 //            operations.add(new Insertion(element));
 //        }
@@ -108,7 +111,7 @@ public class BuiltinSet extends Collection {
 //    }
 
     @Override
-    public int size() {
+    public int concreteSize() {
         return elements.size();
     }
     
@@ -216,4 +219,21 @@ public class BuiltinSet extends Collection {
         return null;
     }
 
+    @Override
+    protected Term[] computeChildren() {
+        Term[] arr = new Term[size()];
+        elements.toArray(arr);
+        if(frame != null) {
+            arr[size()-1] = frame;
+        }
+        return arr;
+    }
+
+    @Override
+    public int size() {
+        if(super.frame == null)
+            return elements.size() ;
+        else
+            return elements.size() + 1;
+    }
 }

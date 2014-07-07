@@ -38,7 +38,7 @@ public class BottomUpVisitor implements Visitor {
 
     @Override
     public void visit(BuiltinMap builtinMap) {
-        for (java.util.Map.Entry<Term, Term> entry : builtinMap) {
+        for (java.util.Map.Entry<Term, Term> entry : builtinMap.getEntries().entrySet()) {
             entry.getKey().accept(this);
             entry.getValue().accept(this);
         }
@@ -128,7 +128,7 @@ public class BottomUpVisitor implements Visitor {
 
     @Override
     public void visit(KCollection kCollection) {
-        for (Term term : kCollection) {
+        for (Term term : kCollection.getContents()) {
             term.accept(this);
         }
         visit((Collection) kCollection);

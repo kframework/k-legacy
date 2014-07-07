@@ -115,4 +115,13 @@ public abstract class Token extends Term {
         return sort() + "(#\"" + value() + "\")";
     }
 
+    @Override
+    public Term get(int index) {
+        throw new IndexOutOfBoundsException();
+    }
+    
+    @Override
+    public int size() {
+        return 0;
+    }
 }

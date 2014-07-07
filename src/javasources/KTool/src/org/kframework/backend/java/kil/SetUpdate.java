@@ -12,6 +12,7 @@ import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Utils;
 import org.kframework.kil.ASTNode;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -130,13 +131,36 @@ public class SetUpdate extends Term implements DataStructureUpdate {
     }
 
     @Override
-    public ASTNode accept(Transformer transformer) {
+    public ASTNode<?> accept(Transformer transformer) {
         return transformer.transform(this);
     }
 
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
+    }
+    
+    private Optional<Term[]> elementsAsArray = Optional.absent();
+    
+    @Override
+    public Term get(int index) {
+        elementsAsArray = Optional.of(
+                elementsAsArray.or( () -> {
+                        Term[] arr = computeChildren();
+                        return arr;
+                }));
+        return elementsAsArray.get()[index];
+    }
+    
+    public Term[] computeChildren() {
+        Term[] arr = removeSet.toArray(new Term[size()]);
+        arr[size() - 1] = set;
+        return arr;
+    }
+
+    @Override
+    public int size() {
+        return removeSet.size()  + 1;
     }
 
 }

@@ -11,7 +11,7 @@ import org.w3c.dom.Element;
  * The inherited member attributes is used for location information
  * if this represents an explicitly written attribute. 
  */
-public class Attribute extends ASTNode {
+public class Attribute extends ASTNode<ASTNode<?>> {
 
     public static final String BUILTIN_KEY = "builtin";
     public static final String FUNCTION_KEY = "function";

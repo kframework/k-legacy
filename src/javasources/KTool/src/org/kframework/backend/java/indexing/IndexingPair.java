@@ -40,14 +40,14 @@ public class IndexingPair implements Serializable {
         if (term instanceof KSequence) {
             KSequence kSequence = (KSequence) term;
 
-            if (kSequence.size() == 0) {
+            if (kSequence.concreteSize() == 0) {
                 if (kSequence.hasFrame()) {
                     return new IndexingPair(TopIndex.TOP, TopIndex.TOP);
                 } else {
                     return new IndexingPair(BottomIndex.BOTTOM, BottomIndex.BOTTOM);
                 }
             }
-            else if (kSequence.size() == 1) {
+            else if (kSequence.concreteSize() == 1) {
                 if (kSequence.hasFrame()) {
                     return new IndexingPair(getIndex(kSequence.get(0), definition), TopIndex.TOP);
                 } else {

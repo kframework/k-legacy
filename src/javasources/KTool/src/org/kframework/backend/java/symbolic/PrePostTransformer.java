@@ -422,7 +422,7 @@ public abstract class PrePostTransformer extends CopyOnWriteTransformer {
         return mgu.accept(postTransformer);
     }
 
-    protected class DoneTransforming extends ASTNode {
+    protected class DoneTransforming extends ASTNode<ASTNode<?>> {
         public DoneTransforming(ASTNode node) {
             contents = node;
         }

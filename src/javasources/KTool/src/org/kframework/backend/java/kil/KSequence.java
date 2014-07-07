@@ -143,7 +143,7 @@ public class KSequence extends KCollection {
             return sort;
         }
 
-        sort = size() == 1 && !hasFrame() ? contents.get(0).sort() : KSorts.KSEQUENCE;
+        sort = concreteSize() == 1 && !hasFrame() ? contents.get(0).sort() : KSorts.KSEQUENCE;
         return sort;
     }
 

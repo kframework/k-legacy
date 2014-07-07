@@ -193,7 +193,7 @@ public class SymbolicRewriter {
 
                 SymbolicConstraint leftHandSideConstraint = new SymbolicConstraint(
                         constrainedTerm.termContext());
-                leftHandSideConstraint.addAll(rule.requires());
+                leftHandSideConstraint.addAllTerms(rule.requires());
 
                 CellCollection newTemp = new CellCollection();
 
@@ -211,7 +211,7 @@ public class SymbolicRewriter {
                 if (constraint == null) {
                     continue;
                 }
-                constraint.addAll(rule.ensures());
+                constraint.addAllTerms(rule.ensures());
 
                 /* rename rule variables in the constraints */
                 Map<Variable, Variable> freshSubstitution = constraint.rename(rule.variableSet());
@@ -335,7 +335,7 @@ public class SymbolicRewriter {
     private ConstrainedTerm preparePattern(Rule rule, TermContext termContext) {
         SymbolicConstraint leftHandSideConstraint = new SymbolicConstraint(
                 termContext);
-        leftHandSideConstraint.addAll(rule.requires());
+        leftHandSideConstraint.addAllTerms(rule.requires());
         for (Variable variable : rule.freshVariables()) {
             leftHandSideConstraint.add(
                     variable,
@@ -371,7 +371,7 @@ public class SymbolicRewriter {
         // "Pattern matching expected in concrete execution mode";
         // }
         constraint.orientSubstitution(rule.leftHandSide().variableSet());
-        constraint.addAll(rule.ensures());
+        constraint.addAllTerms(rule.ensures());
 
         Term result = rule.rightHandSide();
 
@@ -418,7 +418,7 @@ public class SymbolicRewriter {
 
             SymbolicConstraint leftHandSideConstraint = new SymbolicConstraint(
                     constrainedTerm.termContext());
-            leftHandSideConstraint.addAll(rule.requires());
+            leftHandSideConstraint.addAllTerms(rule.requires());
 
             ConstrainedTerm leftHandSideTerm = new ConstrainedTerm(
                     rule.leftHandSide(),
@@ -430,7 +430,7 @@ public class SymbolicRewriter {
             if (constraint == null) {
                 continue;
             }
-            constraint.addAll(rule.ensures());
+            constraint.addAllTerms(rule.ensures());
 
             /* rename rule variables in the constraints */
             Map<Variable, Variable> freshSubstitution = constraint.rename(rule.variableSet());
@@ -458,7 +458,7 @@ public class SymbolicRewriter {
     private Map<Variable, Term> getSubstitutionMap(ConstrainedTerm term, Rule pattern) {
         // Create the initial constraints based on the pattern
         SymbolicConstraint termConstraint = new SymbolicConstraint(term.termContext());
-        termConstraint.addAll(pattern.requires());
+        termConstraint.addAllTerms(pattern.requires());
         for (Variable var : pattern.freshVariables()) {
             termConstraint.add(var, FreshOperations.fresh(var.sort(), term.termContext()));
         }
@@ -887,7 +887,7 @@ public class SymbolicRewriter {
             Map<Variable, Variable> freshSubstitution = Variable.getFreshSubstitution(rule.variableSet());
 
             SymbolicConstraint sideConstraint = new SymbolicConstraint(context);
-            sideConstraint.addAll(rule.requires());
+            sideConstraint.addAllTerms(rule.requires());
             ConstrainedTerm initialTerm = new ConstrainedTerm(
                     rule.leftHandSide().substituteWithBinders(freshSubstitution, context),
                     rule.lookups().getSymbolicConstraint(context).substituteWithBinders(

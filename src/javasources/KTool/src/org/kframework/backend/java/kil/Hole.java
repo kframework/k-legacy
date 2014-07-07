@@ -79,4 +79,14 @@ public final class Hole extends Term {
         return HOLE;
     }
 
+    @Override
+    public Term get(int index) {
+        throw new IndexOutOfBoundsException();
+    }
+
+    @Override
+    public int size() {
+        return 0;
+    }
+
 }

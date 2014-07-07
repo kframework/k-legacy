@@ -2,18 +2,20 @@
 package org.kframework.kil;
 
 import java.io.Serializable;
+import java.util.AbstractList;
 import java.util.Set;
 
 import org.kframework.compile.utils.SyntaxByTag;
 import org.kframework.kil.loader.Constants;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.Visitor;
+import org.kframework.utils.NotImplementedError;
 import org.w3c.dom.Element;
 
 /**
  * Base class for K AST. Useful for Visitors and Transformers.
  */
-public abstract class ASTNode implements Serializable {
+public abstract class ASTNode<T> extends AbstractList<T> implements Serializable {
     /**
      * 
      */
@@ -252,4 +254,41 @@ public abstract class ASTNode implements Serializable {
     public abstract ASTNode shallowCopy();
     
     protected abstract <P, R, E extends Throwable> R accept(Visitor<P, R, E> visitor, P p) throws E;
+    
+    /**
+     * will be removed once the frontend side ASTNode descendants implement get and size(non-Javadoc)
+     */
+    @Override
+    public T get(int index) {
+        throw new NotImplementedError(); 
+    }
+    
+    /**
+     * will be removed once the frontend side ASTNode descendants implement get and size(non-Javadoc)
+     */    
+    @Override
+    public int size() {
+        throw new NotImplementedError(); 
+    }
+    
+    /**
+     * we replace the hashCode given by AbstractList with the original
+     * Object.hashCode (same as System.identityHashCode) because
+     * not all classes implement size() for now
+     * will be removed once the frontend side ASTNode descendants implement get and size
+     */
+    @Override
+    public int hashCode() {
+        return System.identityHashCode(this);
+    }
+    
+    /**
+     * we replace the equals given by AbstractList with the original
+     * Object.equals (same as ==) because not all classes implement size() for now
+     * will be removed once the frontend side ASTNode descendants implement get and size
+     */
+    @Override
+    public boolean equals(Object o) {
+        return this == o;
+    }
 }

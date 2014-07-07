@@ -29,7 +29,7 @@ import com.google.common.collect.ImmutableSet;
  *
  * @author AndreiS
  */
-public class Rule extends JavaSymbolicObject {
+public class Rule extends JavaSymbolicObject<Rule> {
 
     private final String label;
     private final Term leftHandSide;
@@ -116,7 +116,7 @@ public class Rule extends JavaSymbolicObject {
             
             assert leftHandSide instanceof KItem
                     && rightHandSide.equals(BoolToken.TRUE)
-                    && ((KList) ((KItem) leftHandSide).kList()).size() == 1 : 
+                    && ((KList) ((KItem) leftHandSide).kList()).concreteSize() == 1 : 
                         "unexpected sort predicate rule: " + this;
             Term arg = ((KList) ((KItem) leftHandSide).kList()).get(0);
             assert arg instanceof KItem : "unexpected sort predicate rule: " + this;

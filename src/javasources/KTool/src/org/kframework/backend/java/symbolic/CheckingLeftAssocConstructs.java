@@ -70,7 +70,7 @@ public class CheckingLeftAssocConstructs implements KastStructureCheckerPlugin {
             KLabel kLabel1 = (KLabel) kItem.kLabel();
             KList klist = (KList) kItem.kList();
             if (leftAssocKLabels.contains(kLabel1)) {
-                if (klist.size() != 2) {
+                if (klist.concreteSize() != 2) {
                     // TODO(YilongL): why is 'notBool or absInt left-assoc?
                     return;
                 }

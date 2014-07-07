@@ -208,4 +208,14 @@ public class KLabelConstant extends KLabel {
         }
         return  null;
     }
+
+    @Override
+    public Term get(int index) {
+        throw new IndexOutOfBoundsException();
+    }
+
+    @Override
+    public int size() {
+        return 0;
+    }
 }

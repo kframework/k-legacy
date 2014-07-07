@@ -41,7 +41,7 @@ public abstract class AbstractTransformer<E extends Throwable> extends AbstractV
     }
 
     @Override
-    public <T extends ASTNode> boolean changed(T o, T n) {
+    public <T extends ASTNode<?>> boolean changed(T o, T n) {
         return o != n;
     }
 
