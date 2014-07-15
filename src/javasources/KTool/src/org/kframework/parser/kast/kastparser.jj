@@ -10,168 +10,223 @@ options {
 PARSER_BEGIN(KastParser)
 package org.kframework.parser.kast;
 
-import org.kframework.kil.KApp;
+import org.kframework.kil.Term;
+import org.kframework.kil.ASTNode;
+import org.kframework.kil.IntBuiltin;
+import org.kframework.kil.BoolBuiltin;
+import org.kframework.kil.StringBuiltin;
 import org.kframework.kil.KLabelConstant;
+import org.kframework.kil.KLabel;
 import org.kframework.kil.KList;
 import org.kframework.kil.KSequence;
-import org.kframework.kil.Term;
-import org.kframework.kil.loader.Context;
-import org.kframework.utils.StringUtil;
-
-import java.io.Reader;
-import java.io.StringReader;
+import org.kframework.kil.KApp;
+import org.kframework.kil.KInjectedLabel;
+import org.kframework.kil.Variable;
+import org.kframework.kil.Bag;
+import org.kframework.kil.Rewrite;
+import org.kframework.kil.Cell;
+import org.kframework.kil.Sentence;
+import org.kframework.kil.Freezer;
+import org.kframework.kil.KSorts;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import org.kframework.kil.loader.Context;
+import java.io.StringReader;
+
+import org.kframework.utils.errorsystem.KException.ExceptionType;
+import org.kframework.utils.errorsystem.KException.KExceptionGroup;
+import org.kframework.utils.errorsystem.KException;
+import org.kframework.utils.general.GlobalSettings;
 
 public class KastParser {
-	private Context context;
-	public static Term parse(String kast, Context context) {
-		KastParser parser = new KastParser(new StringReader(kast));
-		parser.context = context;
-		try {
-			return parser.k();
-		} catch (ParseException e) {
-		}
-		return null;
-	}
+  private String filename;
+  
+  /** Parses a given string that was read from 'stringSentence'. */
+  public static Sentence parse(String filename, String string, Context context) {
+    KoreParser parser = new KoreParser(new StringReader(string));
+    try {
+      return parser.parseTopLevel(context);
+    } catch (ParseException e) {
+      // TODO: report location
+      GlobalSettings.kem.register(new KException(
+        ExceptionType.ERROR, KExceptionGroup.PARSER, e.toString(), filename, null));
+      return null;
+    } catch (TokenMgrError e) {
+      GlobalSettings.kem.register(new KException(
+        ExceptionType.ERROR, KExceptionGroup.PARSER, e.toString(), filename, null));
+      return null;
+    }
+  }
 
 }
 PARSER_END(KastParser)
 
 SKIP :
 {
-	" "
-|	"\t"
-|	"\r"
-|	"\n"
+  " "
+| "\r"
+| "\t"
+| "\n"
 }
 
-TOKEN :
-{
-	<KSEQ: "~>">
-|	<DOTK: ".K">
-|	<LPAREN: "(">
-|	<RPAREN: ")">
-|	<COMMA: ",">
-|	<DOTKLIST: ".KList">
-|	<TOKENLABEL: "#token">
+TOKEN : /* klabels */
+{ < NUM : ("-")?(< DIGIT >)+ >
+| < #DIGIT : [ "0"-"9" ] >
+| <STRING: "\"" (~["\"", "\n"] |
+                 "\\\"" | "\\n" | "\\r" | "\\t")* "\"">
+| "true"
+| "false"
+| ":"
+| ".K"
+| ","
+| "~>"
+| ".KList"
+| "#label"
+| "#token"
+| ".Bag"
+| "color"
+| "multiplicity"
+| "stream"
+| "requires"
+| "ensures"
+| < REWRITE : "=>" >
+| < EQUAL : "=" >
+| < LCELLPR : "<" >
+| < RCELLPR : ">" >
+| < LENDPR : "</" >
+| < RCELLPRDOT : ">..." >
+| < LENDPRDOT : "...</" >
+| < LPR : "(" >
+| < RPR : ")" >
+| <LCURLY: "{">
+| <RCURLY: "}">
+| < SORT_ID: ("#")?["A"-"Z","a"-"z","$","_","#"](~["~","/","<",">","=","]",
+		"[","}","{",".",":",",","\""," ",")","(","\r","\t", "\\", "\n"]
+		| "`)" | "`(" | "\\n" | "\\r" | "\\t" | "\\\\")*>
+| < LABELCONSTANT : ("\'") (~[" ",")","(","\r","\t", "\\",":", "\n"]
+		| "`)" | "`(" | "\\n" | "\\r" | "\\t" | "\\\\")+ >
 }
 
-MORE :
-{
-	"\"": STRING_STATE
-|	<["~", ".", "#"]>: KLABEL_STATE
-|	<~["~", ".", "#", "(", ")", ",", "`"]>: KLABEL_STATE
-|	<"`" ~[]> : KLABEL_STATE
+Sentence parseTopLevel(Context context) : {Term col;Term req=null;Term ens=null;}
+{ col=parseCollection(context)
+	("requires" req=parseKApp(context))?
+	 ("ensures" ens=parseKApp(context))? < EOF >
+{Sentence result = new Sentence(); result.setBody(col);
+	if (req!=null)
+		result.setRequires(req);
+	if (ens!=null)
+		result.setEnsures(ens);
+	return result; } }
+
+Term parseCollection(Context context) : {ArrayList<Term> result = new ArrayList<Term>();Term a;}
+{".Bag" {return Bag.EMPTY;}
+|  (a=parseCellItem(context) {result.add(a);})+
+{ if(result.size()==1)
+    return result.get(0);
+  else 
+    return new Bag(result);}
 }
 
-<STRING_STATE> MORE :
-{
-	<"\\" ~[]>
-|	<~["\"", "\\"]>
+Term parseCellItem(Context context) : {Term left;Term right;;Token label;Token endLabel;Term cellContents;
+		boolean leftEclipse;boolean rightEclipse;HashMap<String,String> attributes=null;}
+{ left = parseKSeq(context) {return left;}
+| < LCELLPR > label=< SORT_ID > attributes=parseAttributes() leftEclipse=parseLeftEclipse()
+	 cellContents=parseCollection(context) rightEclipse=parseRightEclipse() endLabel=< SORT_ID > < RCELLPR >
+	 {if(label.image.equals(endLabel.image))
+	 { if(leftEclipse)
+	{ if (rightEclipse)
+		return new Cell(label.image,cellContents,attributes,"both");
+	  else
+	  	return new Cell(label.image,cellContents,attributes,"left");
+	} else if (rightEclipse)
+		return new Cell(label.image,cellContents,attributes,"right");
+	  else
+	  	return new Cell(label.image,cellContents,attributes,"none");
+	}}
 }
 
-<STRING_STATE> TOKEN :
-{
-	<STRING: "\"">: DEFAULT
+boolean parseLeftEclipse() : {}
+{ < RCELLPR >
+{return false; }
+| < RCELLPRDOT >
+{return true;}
 }
 
-<KLABEL_STATE> MORE :
-{
-	<"`" ~[]>
-|	<~["(", "`"]>
+boolean parseRightEclipse() : {}
+{ < LENDPR >
+{return false; }
+| < LENDPRDOT >
+{return true;}
 }
 
-<KLABEL_STATE> TOKEN :
-{
-	<KLABEL: "(">
-	{
-		matchedToken.image = image.substring(0, image.length() - 1);
-	}: DEFAULT
+HashMap<String,String> parseAttributes() :
+	{HashMap<String,String > temp = new HashMap<String,String >();Token a;Token b;}
+{ (a="color" < EQUAL > b=< STRING > | a="multiplicity" < EQUAL > b=< STRING >
+	| a="stream" < EQUAL > b=< STRING > {
+	  if(a.image.equals("color"))
+	  	temp.put("color",b.image);
+	  else if(a.image.equals("multiplicity"))
+	  	temp.put("multiplicity",b.image);
+	  	else if(a.image.equals("stream"))
+	  	temp.put("stream",b.image);	
+	  })* {return temp;}  }
+ 
+Term parseKList(Context context) : {ArrayList<Term> temp = new ArrayList<Term>();Term a;Term e;}
+{ ".KList"
+{return KList.EMPTY;}
+| (a=parseKSeq(context)
+{temp.add(a);})
+("," e=parseKSeq(context)
+{temp.add(e); })*
+{ if(temp.size()==1)
+	return temp.get(0);
+  else
+    return new KList(temp);}
 }
 
-Term k() :
-{
-	List<Term> items = new ArrayList<Term>();
-	Term current;
-}
-{
-	current = kitem()
-	{
-		items.add(current);
-	}
-	(<KSEQ> current = kitem()
-	{
-		items.add(current);
-	}
-	)*
-	{
-		return new KSequence(items);
-	}
-|	<DOTK>
-	{
-		return KSequence.EMPTY;
-	}
+Term parseKSeq(Context context) :{ArrayList<Term> temp = new ArrayList<Term>();Term a;Term e;}
+{ ".K" {return KSequence.EMPTY;}
+| (a=parsePreKApp(context)
+{temp.add(a);})
+ ("~>" e=parsePreKApp(context)
+{temp.add(e); })*
+{if (temp.size()==1)
+	return temp.get(0);
+ else
+  return new KSequence(temp);}
 }
 
-Term kitem() :
-{
-	Term label;
-	Term list;
-}
-{
-	label = klabel() list = klist() <RPAREN>
-	{
-		return new KApp(label, list);
-	}
+Term parsePreKApp(Context context) : {Term left; Term right;}
+{ < LCURLY > left=parseCollection(context)< REWRITE > right=parseCollection(context) <RCURLY>
+{ return  new Rewrite(left, right, context);}
+| left=parseKApp(context)
+{return left;}
 }
 
-Term klist() :
-{
-	List<Term> items = new ArrayList<Term>();
-	Term current;
-}
-{
-	current = k()
-	{
-		items.add(current);
-	}
-	(<COMMA> current = k()
-	{
-		items.add(current);
-	}
-	)*
-	{
-		return new KList(items);
-	}
-|	<DOTKLIST>
-	{
-		return KList.EMPTY;
-	}
+
+Term parseKApp(Context context):{Term a; Term b=null;}
+{ a=parseLabel() (< LPR > b=parseKList(context) < RPR >)?
+{ if(b==null)
+	return a;
+  	return new KApp(a,b);}
+| a=parseKToken(context) {return a;}
 }
 
-Term klabel() :
-{
-	String sort;
-	String value;
+Term parseKToken(Context context): {Token n;Token m;Term a;}
+{ "#token" < LPR > n=< STRING > "," m=< STRING > < RPR >
+	{a = org.kframework.kil.Token.of(n.image.substring(1,n.image.length()-1),m.image.substring(1,m.image.length()-1));
+	 a.setSort(KSorts.KTOKEN);
+	 return a;}
+| "#label" < LPR > a=parseLabel() < RPR > {return new KApp(KLabelConstant.of("#label"),a);}
 }
-{
-	<TOKENLABEL> <LPAREN> <STRING>
-	{
-		value = StringUtil.unescape(token.image);
-		value = value.substring(1, value.length() - 1);
-	}
-	<COMMA> <STRING>
-	{
-		sort = StringUtil.unescape(token.image);
-		sort = sort.substring(1, sort.length() - 1);
-	}
-	<RPAREN> <LPAREN>
-	{
-		return org.kframework.kil.Token.kAppOf(sort, value);
-	}
-|	<KLABEL>
-	{
-		return KLabelConstant.of(StringUtil.unescapeMaude(token.image), context);
-	}
+
+Term parseLabel():{Token n;Token m;Term a;}
+{n= < LABELCONSTANT >  {return KLabelConstant.of(n.image);}
+| (LOOKAHEAD(2) a = choiceOne() | a = choiceTwo()) {return a;}
 }
+
+Term choiceOne() : {Token n; Token m;Variable a;}
+{ n = < SORT_ID > ":" m = < SORT_ID > {a=new Variable(n.image,m.image);a.setExpectedSort(a.getSort());return a;}}
+
+Term choiceTwo() : {Token n;}
+{n=< SORT_ID > {return (Term)KLabelConstant.of(n.image);} }
