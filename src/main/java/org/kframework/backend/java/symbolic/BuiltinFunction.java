@@ -10,7 +10,6 @@ import org.kframework.kil.Production;
 import org.kframework.main.Tool;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.file.KPaths;
 import org.kframework.utils.general.GlobalSettings;
 
 import java.io.IOException;
@@ -57,15 +56,12 @@ public class BuiltinFunction {
 
     public BuiltinFunction(Definition definition) {
         /* initialize {@code table} */
-        String separator = System.getProperty("file.separator");
-        String path = KPaths.getKBase(false) + separator + "include" + separator + "java";
         Properties properties = new Properties();
 
-        String propertyFile = path + separator + hookPropertiesFileName;
         try {
-            FileUtil.loadProperties(properties, propertyFile);
+            FileUtil.loadProperties(properties, getClass(), hookPropertiesFileName);
         } catch (IOException e) {
-            GlobalSettings.kem.registerInternalError("Could not read from " + propertyFile, e);
+            GlobalSettings.kem.registerInternalError("Could not read from resource " + hookPropertiesFileName, e);
         }
 
         for (String label : definition.context().klabels.keySet()) {
