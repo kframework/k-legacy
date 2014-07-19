@@ -144,7 +144,7 @@ Term parseCollection(Context context) : {ArrayList<Term> result = new ArrayList<
 Term parseCellItem(Context context) : {Term left;Term right;;Token label;Token endLabel;Term cellContents;
 		boolean leftEclipse;boolean rightEclipse;HashMap<String,String> attributes=null;}
 { < LCELLPR > label=< ALL_ID > attributes=parseAttributes() leftEclipse=parseLeftEclipse()
-	 cellContents=parseCollection(context) rightEclipse=parseRightEclipse() endLabel=< ALL_ID > < RCELLPR >
+	 cellContents=parsePreCollection(context) rightEclipse=parseRightEclipse() endLabel=< ALL_ID > < RCELLPR >
 	 {if(label.image.equals(endLabel.image))
 	 { if(leftEclipse)
 	{ if (rightEclipse)
