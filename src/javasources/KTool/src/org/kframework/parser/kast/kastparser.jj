@@ -20,6 +20,7 @@ import org.kframework.kil.KLabel;
 import org.kframework.kil.KList;
 import org.kframework.kil.KSequence;
 import org.kframework.kil.KApp;
+import org.kframework.kil.Hole;
 import org.kframework.kil.KInjectedLabel;
 import org.kframework.kil.Variable;
 import org.kframework.kil.Bag;
@@ -77,6 +78,7 @@ TOKEN : /* klabels */
 | "true"
 | "false"
 | ":"
+| "::"
 | ".K"
 | ","
 | "~>"
@@ -99,13 +101,15 @@ TOKEN : /* klabels */
 | < LENDPRDOT : "...</" >
 | < LPR : "(" >
 | < RPR : ")" >
+| < BackTick: "`" >
 | <LCURLY: "{">
 | <RCURLY: "}">
-| < SORT_ID: ("#")?["A"-"Z","a"-"z","$","_","#"](~["~","/","<",">","=","]",
+| < ALL_ID: ("#")?["A"-"Z","a"-"z","$","_","'","#"](~["~","/","<",">","=","]",
 		"[","}","{",".",":",",","\""," ",")","(","\r","\t", "\\", "\n"]
 		| "`)" | "`(" | "\\n" | "\\r" | "\\t" | "\\\\")*>
-| < LABELCONSTANT : ("\'") (~[" ",")","(","\r","\t", "\\",":", "\n"]
-		| "`)" | "`(" | "\\n" | "\\r" | "\\t" | "\\\\")+ >
+| < SORT_ID: ("#")?["A"-"Z","a"-"z","$","_","#"](["A"-"Z","a"-"z","0"-"9"])*>
+| < LABELCONSTANT : (~[" ","\r","\t", "\\",":", "`","\n"]
+		| "\\n" | "\\r" | "\\t" | "\\\\")+ >
 }
 
 Sentence parseTopLevel(Context context) : {Term col;Term req=null;Term ens=null;}
@@ -131,8 +135,8 @@ Term parseCollection(Context context) : {ArrayList<Term> result = new ArrayList<
 Term parseCellItem(Context context) : {Term left;Term right;;Token label;Token endLabel;Term cellContents;
 		boolean leftEclipse;boolean rightEclipse;HashMap<String,String> attributes=null;}
 { left = parseKSeq(context) {return left;}
-| < LCELLPR > label=< SORT_ID > attributes=parseAttributes() leftEclipse=parseLeftEclipse()
-	 cellContents=parseCollection(context) rightEclipse=parseRightEclipse() endLabel=< SORT_ID > < RCELLPR >
+| < LCELLPR > label=< ALL_ID > attributes=parseAttributes() leftEclipse=parseLeftEclipse()
+	 cellContents=parseCollection(context) rightEclipse=parseRightEclipse() endLabel=< ALL_ID > < RCELLPR >
 	 {if(label.image.equals(endLabel.image))
 	 { if(leftEclipse)
 	{ if (rightEclipse)
@@ -186,8 +190,7 @@ Term parseKList(Context context) : {ArrayList<Term> temp = new ArrayList<Term>()
 }
 
 Term parseKSeq(Context context) :{ArrayList<Term> temp = new ArrayList<Term>();Term a;Term e;}
-{ ".K" {return KSequence.EMPTY;}
-| (a=parsePreKApp(context)
+{ (a=parsePreKApp(context)
 {temp.add(a);})
  ("~>" e=parsePreKApp(context)
 {temp.add(e); })*
@@ -198,35 +201,30 @@ Term parseKSeq(Context context) :{ArrayList<Term> temp = new ArrayList<Term>();T
 }
 
 Term parsePreKApp(Context context) : {Term left; Term right;}
-{ < LCURLY > left=parseCollection(context)< REWRITE > right=parseCollection(context) <RCURLY>
+{".K" {return KSequence.EMPTY;}
+| "HOLE" {return Hole.KITEM_HOLE;}
+| < LCURLY > left=parseCollection(context)< REWRITE > right=parseCollection(context) <RCURLY>
 { return  new Rewrite(left, right, context);}
 | left=parseKApp(context)
 {return left;}
 }
 
 
-Term parseKApp(Context context):{Term a; Term b=null;}
-{ a=parseLabel() (< LPR > b=parseKList(context) < RPR >)?
-{ if(b==null)
-	return a;
-  	return new KApp(a,b);}
-| a=parseKToken(context) {return a;}
-}
-
-Term parseKToken(Context context): {Token n;Token m;Term a;}
-{ "#token" < LPR > n=< STRING > "," m=< STRING > < RPR >
-	{a = org.kframework.kil.Token.of(n.image.substring(1,n.image.length()-1),m.image.substring(1,m.image.length()-1));
-	 return a;}
-| "#klabel" < LPR > a=parseLabel() < RPR > {return new KApp(KLabelConstant.of("#label"),a);}
+Term parseKApp(Context context):{Token a=null; Term b=null;Token n=null;Token m=null;}
+{ <BackTick>
+	(a=< LABELCONSTANT > <BackTick> (< LPR > b=parseKList(context) < RPR >)
+     | n=< ALL_ID > "::" m=< SORT_ID >  <BackTick>
+     ) 
+{ if(a==null)
+      return new KApp(KLabelConstant.of(a.image),b);
+  else
+      return org.kframework.kil.Token.of(m.image,n.image); }
+| "#token" < LPR > n=< STRING > "," m=< STRING > < RPR >
+	{return org.kframework.kil.Token.of(n.image.substring(1,n.image.length()-1),
+				m.image.substring(1,m.image.length()-1));}
+| "#klabel" < LPR > b=parseLabel() < RPR > {return new KApp(KLabelConstant.of("#label"),b);}
 }
 
 Term parseLabel():{Token n;Token m;Term a;}
 {n= < LABELCONSTANT >  {return KLabelConstant.of(n.image);}
-| (LOOKAHEAD(2) a = choiceOne() | a = choiceTwo()) {return a;}
 }
-
-Term choiceOne() : {Token n; Token m;Variable a;}
-{ n = < SORT_ID > ":" m = < SORT_ID > {a=new Variable(n.image,m.image);a.setExpectedSort(a.getSort());return a;}}
-
-Term choiceTwo() : {Token n;}
-{n=< SORT_ID > {return (Term)KLabelConstant.of(n.image);} }
