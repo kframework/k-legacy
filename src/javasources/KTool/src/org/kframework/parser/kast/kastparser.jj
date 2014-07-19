@@ -82,7 +82,7 @@ TOKEN : /* klabels */
 | "~>"
 | "HOLE"
 | ".KList"
-| "#label"
+| "#klabel"
 | "#token"
 | ".Bag"
 | "color"
@@ -216,9 +216,8 @@ Term parseKApp(Context context):{Term a; Term b=null;}
 Term parseKToken(Context context): {Token n;Token m;Term a;}
 { "#token" < LPR > n=< STRING > "," m=< STRING > < RPR >
 	{a = org.kframework.kil.Token.of(n.image.substring(1,n.image.length()-1),m.image.substring(1,m.image.length()-1));
-	 a.setSort(KSorts.KTOKEN);
 	 return a;}
-| "#label" < LPR > a=parseLabel() < RPR > {return new KApp(KLabelConstant.of("#label"),a);}
+| "#klabel" < LPR > a=parseLabel() < RPR > {return new KApp(KLabelConstant.of("#label"),a);}
 }
 
 Term parseLabel():{Token n;Token m;Term a;}
