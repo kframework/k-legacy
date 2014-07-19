@@ -80,6 +80,7 @@ TOKEN : /* klabels */
 | ".K"
 | ","
 | "~>"
+| "HOLE"
 | ".KList"
 | "#label"
 | "#token"
