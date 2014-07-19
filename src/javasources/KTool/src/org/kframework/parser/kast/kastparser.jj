@@ -114,8 +114,9 @@ TOKEN : /* klabels */
 
 Sentence parseTopLevel(Context context) : {Term col;Term req=null;Term ens=null;}
 { col=parseCollection(context)
-	("requires" req=parseKApp(context))?
-	 ("ensures" ens=parseKApp(context))? < EOF >
+	("requires" req=parseKApp(context) ("ensures" ens=parseKApp(context))?
+     | "ensures" ens=parseKApp(context) ("requires" req=parseKApp(context))?)?
+	 < EOF >
 {Sentence result = new Sentence(); result.setBody(col);
 	if (req!=null)
 		result.setRequires(req);
