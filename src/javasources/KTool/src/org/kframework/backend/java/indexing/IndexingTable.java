@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.KLabelConstant;
 import org.kframework.backend.java.kil.Rule;
+import org.kframework.backend.java.kil.Sort;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.kil.Production;
 import org.kframework.kil.loader.Constants;
@@ -56,7 +57,7 @@ public class IndexingTable implements Serializable, RuleIndex{
         //        indices.add(new FreezerIndex(frozenKLabel, i));
         //    }
         //}
-        for (String sort : definition.builtinSorts()) {
+        for (Sort sort : definition.builtinSorts()) {
             indices.add(new TokenIndex(sort));
         }
 
@@ -191,7 +192,7 @@ public class IndexingTable implements Serializable, RuleIndex{
                 }
             }
         }
-        
+
         for (IndexingPair pair : cfgTermIdx.getOutstreamIndexingPairs()) {
             if (outstreamRuleTable.get(pair.first) != null) {
                 for (Rule rule : outstreamRuleTable.get(pair.first)) {
@@ -201,7 +202,7 @@ public class IndexingTable implements Serializable, RuleIndex{
                 }
             }
         }
-        
+
         for (IndexingPair pair : cfgTermIdx.getKCellIndexingPairs()) {
             if (ruleTable.get(pair.first) != null) {
                 rules.addAll(ruleTable.get(pair.first));
@@ -212,8 +213,8 @@ public class IndexingTable implements Serializable, RuleIndex{
             if (coolingRuleTable.get(pair.second) != null) {
                 rules.addAll(coolingRuleTable.get(pair.second));
             }
-        }        
-        
+        }
+
         rules.addAll(unindexedRules);
         return new ArrayList<>(rules);
     }

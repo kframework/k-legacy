@@ -117,10 +117,12 @@ public class StringUtil {
      */
     public static String unquoteString(String str) {
         StringBuilder sb = new StringBuilder();
-        assert str.charAt(0) == '"' :
-                "Expected to find double quote at the beginning of string: " + str;
-        assert str.charAt(str.length() - 1) == '"' :
-                "Expected to find double quote at the end of string: " + str;
+        if (str.charAt(0) != '"') {
+            throw new IllegalArgumentException("Expected to find double quote at the beginning of string: " + str);
+        }
+        if (str.charAt(str.length() - 1) != '"') {
+            throw new IllegalArgumentException("Expected to find double quote at the end of string: " + str);
+        }
         for (int i = 1; i < str.length() - 1; i++) {
             if (str.charAt(i) == '\\') {
                 if (str.charAt(i + 1) == '"') {
@@ -350,7 +352,7 @@ public class StringUtil {
 
     /**
      * Generate incremental numbers that dosn't contain the number 1
-     * 
+     *
      * @return an integer that doesn't contain the number 1
      */
     public static int getUniqueId() {
@@ -460,7 +462,7 @@ public class StringUtil {
             builder.append(nl);
             if (line.length() < 80) {
                 builder.append(line);
-                
+
             } else {
                 builder.append(splitLine(line, col));
             }
@@ -486,13 +488,13 @@ public class StringUtil {
 
     /**
      * Finesse the JCommander usage output to make it more readable to the user.
-     * 
-     * This function does two things. First, it reworks the indentation to fix a 
+     *
+     * This function does two things. First, it reworks the indentation to fix a
      * bug where different commands are indented differently. Second, it
      * separates out experimental and non-experimental options in order to print
      * their usage separately.
      * @param string The unfiltered output from JCommander's usage
-     * @return An array of strings. If the command has experimental options, they 
+     * @return An array of strings. If the command has experimental options, they
      * are in the second string, and the main options are in the first string.
      * Otherwise, there will only be one string outputted.
      */
@@ -521,7 +523,7 @@ public class StringUtil {
         }
         return new String[] {mainOptions.toString(), experimentalOptions.toString()};
     }
-    
+
     public static String escapeShell(String[] args, OS os) {
         if (os.isPosix) {
             StringBuilder sb = new StringBuilder();

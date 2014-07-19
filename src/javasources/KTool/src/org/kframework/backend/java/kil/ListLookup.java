@@ -44,7 +44,7 @@ public class ListLookup extends Term implements DataStructureLookup {
     public Term list() {
         return base();
     }
-    
+
     @Override
     public Term base() {
         return list;
@@ -63,8 +63,8 @@ public class ListLookup extends Term implements DataStructureLookup {
     }
 
     @Override
-    public String sort() {
-        return kind.toString();
+    public Sort sort() {
+        return kind.asSort();
     }
 
     @Override
@@ -79,7 +79,7 @@ public class ListLookup extends Term implements DataStructureLookup {
         hashCode = hashCode * Utils.HASH_PRIME + list.hashCode();
         return hashCode;
     }
-    
+
     @Override
     protected boolean computeHasCell() {
         throw new UnsupportedOperationException();

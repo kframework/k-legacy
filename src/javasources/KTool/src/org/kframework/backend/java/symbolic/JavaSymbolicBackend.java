@@ -49,7 +49,7 @@ public class JavaSymbolicBackend extends BasicBackend {
         }
         @Override
         public ASTNode visit(Definition node, Void _)  {
-            BinaryLoader.save(new File(context.kompiled, "defx-java.bin").toString(), node);
+            BinaryLoader.save(new File(context.kompiled, "defx-java.bin").toString(), node, context);
 
             return node;
         }
@@ -75,7 +75,7 @@ public class JavaSymbolicBackend extends BasicBackend {
 
         BinaryLoader.save(new File(context.kompiled,
                 JavaSymbolicBackend.DEFINITION_FILENAME).toString(),
-                definition);
+                definition, context);
 
         return javaDef;
     }
@@ -125,7 +125,7 @@ public class JavaSymbolicBackend extends BasicBackend {
         // steps.add(new ResolveFresh());
         //steps.add(new FreshCondToFreshVar(context));
         //steps.add(new ResolveFreshVarMOS(context));
-        
+
         /* fast rewriting related stuff */
         steps.add(new ComputeCellsOfInterest(context));
 
@@ -135,7 +135,6 @@ public class JavaSymbolicBackend extends BasicBackend {
         steps.add(new ResolveBinder(context));
         steps.add(new ResolveAnonymousVariables(context));
         //steps.add(new AddK2SMTLib(context));
-        steps.add(new AddPredicates(context));
         //steps.add(new ResolveSyntaxPredicates(context));
         steps.add(new ResolveBuiltins(context));
         steps.add(new ResolveListOfK(context));
@@ -152,7 +151,6 @@ public class JavaSymbolicBackend extends BasicBackend {
         steps.add(new ResolveRewrite(context));
 
         /* data structure related stuff */
-       // steps.add(new CompileToBuiltins(context));
         steps.add(new CompileDataStructures(context));
         steps.add(new Cell2DataStructure(context));
         steps.add(new DataStructureToLookupUpdate(context));
@@ -165,7 +163,7 @@ public class JavaSymbolicBackend extends BasicBackend {
 
         /* remove rules that are from k dist */
         steps.add(new RemovePreincludedRules(context));
-        
+
         steps.add(new AddLocalRewritesUnderCells(context));
         steps.add(new GenerateKRewriteMachineInstructions(context));
 

@@ -27,7 +27,7 @@ public class Variable extends Term implements Immutable {
     /**
      * Given a set of {@link Variable}s, returns a substitution that maps each
      * element inside to a fresh {@code Variable}.
-     * 
+     *
      * @param variableSet
      *            the set of {@code Variable}s
      * @return the substitution
@@ -42,21 +42,21 @@ public class Variable extends Term implements Immutable {
 
     /**
      * Returns a fresh {@code Variable} of a given sort.
-     * 
+     *
      * @param sort
      *            the given sort
      * @return the fresh variable
      */
-    public static Variable getFreshVariable(String sort) {
+    public static Variable getFreshVariable(Sort sort) {
         return new Variable(VARIABLE_PREFIX + (counter++), sort, true);
     }
-    
+
     /* TODO(AndreiS): cache the variables */
     private final String name;
-    private final String sort;
+    private final Sort sort;
     private final boolean anonymous;
 
-    public Variable(String name, String sort, boolean anonymous) {
+    public Variable(String name, Sort sort, boolean anonymous) {
         super(Kind.of(sort));
 
         assert name != null && sort != null;
@@ -66,7 +66,7 @@ public class Variable extends Term implements Immutable {
         this.anonymous = anonymous;
     }
 
-    public Variable(String name, String sort) {
+    public Variable(String name, Sort sort) {
         this(name, sort, false);
     }
 
@@ -89,11 +89,8 @@ public class Variable extends Term implements Immutable {
         return anonymous;
     }
 
-    /**
-     * Returns a {@code String} representation of the sort of this variable.
-     */
     @Override
-    public String sort() {
+    public Sort sort() {
         return sort;
     }
 

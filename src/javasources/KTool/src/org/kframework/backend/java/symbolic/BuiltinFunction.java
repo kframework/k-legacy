@@ -8,6 +8,7 @@ import org.kframework.backend.java.kil.TermContext;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.Production;
 import org.kframework.krun.K;
+import org.kframework.krun.K.Tool;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;
@@ -28,7 +29,7 @@ import com.google.common.collect.ImmutableSet;
 /**
  * Utility class that handles the builtin (hooked) operations and their Java
  * implementations.
- * 
+ *
  * @author AndreiS
  */
 public class BuiltinFunction {
@@ -84,7 +85,7 @@ public class BuiltinFunction {
                      * exclude hook from evaluation during compilation if the hook is dynamic
                      * in nature (is related to I/O or to meta properties).
                      * */
-                    if (K.do_kompilation && hookMetaModules.contains(hookPrefix)) {
+                    if (K.tool() == Tool.KOMPILE && hookMetaModules.contains(hookPrefix)) {
                         continue;
                     }
 
@@ -125,7 +126,7 @@ public class BuiltinFunction {
 
     /**
      * Invokes the Java implementation of a builtin (hooked) operation.
-     * 
+     *
      * @param context
      *            the {@code TermContext}
      * @param label
@@ -150,7 +151,7 @@ public class BuiltinFunction {
 
     /**
      * Checks if the given K label represents a builtin (hooked) operation.
-     * 
+     *
      * @param label
      *            the given K label
      * @return true if the given K label corresponds to a builtin operation;

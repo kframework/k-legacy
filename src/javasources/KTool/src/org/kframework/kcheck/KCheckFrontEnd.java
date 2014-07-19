@@ -29,7 +29,7 @@ public class KCheckFrontEnd {
     public static CommandLine cmd;
 
     /**
-     * 
+     *
      * @param args
      * @return true if the application completed normally; false otherwise
      */
@@ -115,11 +115,11 @@ public class KCheckFrontEnd {
             context.dotk.mkdirs();
 
             genericCompile(lang, backend, null, context);
-            BinaryLoader.save(context.dotk.getAbsolutePath() + "/compile-options.bin", cmd);
+            BinaryLoader.save(context.dotk.getAbsolutePath() + "/compile-options.bin", cmd, context);
 
             verbose(cmd, context);
         }
-        
+
         return true;
     }
 
@@ -153,14 +153,14 @@ public class KCheckFrontEnd {
         }
 
         BinaryLoader.save(
-                context.dotk.getAbsolutePath() + "/configuration.bin", MetaK.getConfiguration(javaDef, context));
-        try {                
+                context.dotk.getAbsolutePath() + "/configuration.bin", MetaK.getConfiguration(javaDef, context), context);
+        try {
             backend.run(javaDef);
         } catch (IOException e) {
             if (context.globalOptions.debug) {
                 e.printStackTrace();
             }
-            GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.INTERNAL, 
+            GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.INTERNAL,
                     "IO error executing backend"));
         }
     }
