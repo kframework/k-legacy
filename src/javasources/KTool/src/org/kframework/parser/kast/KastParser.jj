@@ -113,7 +113,7 @@ TOKEN : /* klabels */
 }
 
 Sentence parseTopLevel(Context context) : {Term col;Term req=null;Term ens=null;}
-{ col=parseCollection(context)
+{ col=parsePreCollection(context)
 	("requires" req=parseKApp(context) ("ensures" ens=parseKApp(context))?
      | "ensures" ens=parseKApp(context) ("requires" req=parseKApp(context))?)?
 	 < EOF >
@@ -124,8 +124,16 @@ Sentence parseTopLevel(Context context) : {Term col;Term req=null;Term ens=null;
 		result.setEnsures(ens);
 	return result; } }
 
+Term parsePreCollection(Context context): {Term a=null;Term b=null;}
+{ a=parseCollection(context) (< REWRITE > b=parseCollection(context))?
+	{if(b==null)
+	    return a;
+	 else
+	    return new Rewrite(a, b, context);}}
+
 Term parseCollection(Context context) : {ArrayList<Term> result = new ArrayList<Term>();Term a;}
 {".Bag" {return Bag.EMPTY;}
+| a = parseKSeq(context) {return a;}
 |  (a=parseCellItem(context) {result.add(a);})+
 { if(result.size()==1)
     return result.get(0);
@@ -135,8 +143,7 @@ Term parseCollection(Context context) : {ArrayList<Term> result = new ArrayList<
 
 Term parseCellItem(Context context) : {Term left;Term right;;Token label;Token endLabel;Term cellContents;
 		boolean leftEclipse;boolean rightEclipse;HashMap<String,String> attributes=null;}
-{ left = parseKSeq(context) {return left;}
-| < LCELLPR > label=< ALL_ID > attributes=parseAttributes() leftEclipse=parseLeftEclipse()
+{ < LCELLPR > label=< ALL_ID > attributes=parseAttributes() leftEclipse=parseLeftEclipse()
 	 cellContents=parseCollection(context) rightEclipse=parseRightEclipse() endLabel=< ALL_ID > < RCELLPR >
 	 {if(label.image.equals(endLabel.image))
 	 { if(leftEclipse)
@@ -191,9 +198,9 @@ Term parseKList(Context context) : {ArrayList<Term> temp = new ArrayList<Term>()
 }
 
 Term parseKSeq(Context context) :{ArrayList<Term> temp = new ArrayList<Term>();Term a;Term e;}
-{ (a=parsePreKApp(context)
+{ (a=parseKApp(context)
 {temp.add(a);})
- ("~>" e=parsePreKApp(context)
+ ("~>" e=parseKApp(context)
 {temp.add(e); })*
 {if (temp.size()==1)
 	return temp.get(0);
@@ -201,23 +208,19 @@ Term parseKSeq(Context context) :{ArrayList<Term> temp = new ArrayList<Term>();T
   return new KSequence(temp);}
 }
 
-Term parsePreKApp(Context context) : {Term left; Term right;}
-{".K" {return KSequence.EMPTY;}
-| "HOLE" {return Hole.KITEM_HOLE;}
-| < LCURLY > left=parseCollection(context)< REWRITE > right=parseCollection(context) <RCURLY>
-{ return  new Rewrite(left, right, context);}
-| left=parseKApp(context)
-{return left;}
-}
-
 
 Term parseKApp(Context context):{Token a=null; Term b=null;Token n=null;Token m=null;}
-{ <BackTick>
+{".K" {return KSequence.EMPTY;}
+| "HOLE" {return Hole.KITEM_HOLE;}
+|   <BackTick>
 	(a=< LABELCONSTANT > <BackTick> (< LPR > b=parseKList(context) < RPR >)
      | n=< ALL_ID > "::" m=< SORT_ID >  <BackTick>
+     | b=parsePreCollection(context) <BackTick>
      ) 
-{ if(a==null)
+{ if(a!=null)
       return new KApp(KLabelConstant.of(a.image),b);
+  else if(b!=null)
+      return b;
   else
       return org.kframework.kil.Token.of(m.image,n.image); }
 | "#token" < LPR > n=< STRING > "," m=< STRING > < RPR >
