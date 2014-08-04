@@ -29,6 +29,7 @@ import org.kframework.kil.Cell;
 import org.kframework.kil.Sentence;
 import org.kframework.kil.Freezer;
 import org.kframework.kil.KSorts;
+import org.kframework.kil.Sort;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.kframework.kil.loader.Context;
@@ -222,9 +223,9 @@ Term parseKApp(Context context):{Token a=null; Term b=null;Token n=null;Token m=
   else if(b!=null)
       return b;
   else
-      return org.kframework.kil.Token.of(m.image,n.image); }
+      return org.kframework.kil.Token.of(Sort.of(m.image),n.image); }
 | "#token" < LPR > n=< STRING > "," m=< STRING > < RPR >
-	{return org.kframework.kil.Token.of(n.image.substring(1,n.image.length()-1),
+	{return org.kframework.kil.Token.of(Sort.of(n.image.substring(1,n.image.length()-1)),
 				m.image.substring(1,m.image.length()-1));}
 | "#klabel" < LPR > b=parseLabel() < RPR > {return new KApp(KLabelConstant.of("#label"),b);}
 }
