@@ -1,11 +1,9 @@
 // Copyright (c) 2013-2014 K Team. All Rights Reserved.
 package org.kframework.compile.transformers;
 
-import com.google.common.collect.Sets;
 import org.kframework.compile.utils.KilProperty;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.BuiltinLookup;
-import org.kframework.kil.KSort;
 import org.kframework.kil.ListBuiltin;
 import org.kframework.kil.ListLookup;
 import org.kframework.kil.ListUpdate;
@@ -17,6 +15,7 @@ import org.kframework.kil.Rule;
 import org.kframework.kil.SetBuiltin;
 import org.kframework.kil.SetLookup;
 import org.kframework.kil.SetUpdate;
+import org.kframework.kil.Sort;
 import org.kframework.kil.Term;
 import org.kframework.kil.Variable;
 import org.kframework.kil.loader.Context;
@@ -34,6 +33,9 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
+
+
 /**
  * Transformer class compiling builtin data structure accesses into lookup and update operations.
  *
@@ -47,7 +49,6 @@ import java.util.Set;
  * @author AndreiS
  */
 @KilProperty.Requires({KilProperty.TOP_REWRITING, KilProperty.COMPILED_DATA_STRUCTURES})
-@KilProperty.Ensures(KilProperty.NO_DATA_STRUCTURE_PATTERN_MATCHING)
 public class DataStructureToLookupUpdate extends CopyOnWriteTransformer {
 
     private interface VariableCache {
@@ -60,7 +61,7 @@ public class DataStructureToLookupUpdate extends CopyOnWriteTransformer {
     private class ExtendedListLookup extends ListLookup implements VariableCache {
         private Set<Variable> variables;
 
-        ExtendedListLookup(Variable list, int key, Term value, KSort kind) {
+        ExtendedListLookup(Variable list, int key, Term value, Sort kind) {
             super(list, key, value, kind);
             variables = new HashSet<>();
             variables.add(list);
@@ -75,7 +76,7 @@ public class DataStructureToLookupUpdate extends CopyOnWriteTransformer {
     private class ExtendedMapLookup extends MapLookup implements VariableCache {
         private Set<Variable> variables;
 
-        ExtendedMapLookup(Variable map, Term key, Term value, KSort kind) {
+        ExtendedMapLookup(Variable map, Term key, Term value, Sort kind) {
             super(map, key, value, kind, false);
             variables = new HashSet<>();
             variables.add(map);
@@ -119,6 +120,8 @@ public class DataStructureToLookupUpdate extends CopyOnWriteTransformer {
     private Map<Variable, Integer> concreteSize = new HashMap<>();
     private ArrayList<VariableCache> queue = new ArrayList<>();
     private Status status;
+    private String location;
+    private String filename;
 
     public DataStructureToLookupUpdate(Context context) {
         super("Compile maps into load and store operations", context);
@@ -130,9 +133,15 @@ public class DataStructureToLookupUpdate extends CopyOnWriteTransformer {
                "expected rewrite at the top of rule " + node + ". "
                + "DataStructureToLookupUpdate pass should be applied after ResolveRewrite pass.";
 
+        if (context.krunOptions != null && context.krunOptions.experimental.prove() != null) {
+            return node;
+        }
+
         reverseMap.clear();
         concreteSize.clear();
         queue.clear();
+        location = node.getLocation();
+        filename = node.getFilename();
 
         Rewrite rewrite = (Rewrite) node.getBody();
 
@@ -282,6 +291,10 @@ public class DataStructureToLookupUpdate extends CopyOnWriteTransformer {
         returnNode.setConcreteDataStructureSize(
                 new HashMap<>(returnNode.getConcreteDataStructureSize()));
         returnNode.getConcreteDataStructureSize().putAll(concreteSize);
+
+        location = null;
+        filename = null;
+
         return returnNode;
     }
 
@@ -289,14 +302,25 @@ public class DataStructureToLookupUpdate extends CopyOnWriteTransformer {
     public ASTNode visit(ListBuiltin node, Void _)  {
         node = (ListBuiltin) super.visit(node, _);
         if (status == Status.LHS) {
-            assert node.isLHSView();
+            if (!node.isLHSView()) {
+                GlobalSettings.kem.register(new KException(
+                        KException.ExceptionType.ERROR,
+                        KException.KExceptionGroup.CRITICAL,
+                        "unexpected left-hand side data structure format; "
+                        + "expected elements and at most one variable\n"
+                        + node,
+                        getName(),
+                        filename,
+                        location));
+                return null;
+            }
 
             if (node.elementsLeft().isEmpty() && node.elementsRight().isEmpty()
                     && node.hasViewBase()) {
                 return node.viewBase();
             }
 
-            Variable variable = Variable.getFreshVar(node.sort().name());
+            Variable variable = Variable.getFreshVar(Sort.of(node.sort().name()));
             if (node.hasViewBase()) {
                 /* TODO(AndreiS): check the uniqueness of list variables in the LHS */
                 assert !reverseMap.containsKey(node.viewBase());
@@ -316,7 +340,7 @@ public class DataStructureToLookupUpdate extends CopyOnWriteTransformer {
                         variable,
                         key,
                         term,
-                        KSort.getKSort(term.getSort())));
+                        term.getSort().getKSort()));
                 key++;
             }
 
@@ -326,7 +350,7 @@ public class DataStructureToLookupUpdate extends CopyOnWriteTransformer {
                         variable,
                         key,
                         term,
-                        KSort.getKSort(term.getSort())));
+                        term.getSort().getKSort()));
                 key++;
             }
 
@@ -382,13 +406,24 @@ public class DataStructureToLookupUpdate extends CopyOnWriteTransformer {
     public ASTNode visit(MapBuiltin node, Void _)  {
         node = (MapBuiltin) super.visit(node, _);
         if (status == Status.LHS) {
-            assert node.isLHSView();
+            if (!node.isLHSView()) {
+                GlobalSettings.kem.register(new KException(
+                        KException.ExceptionType.ERROR,
+                        KException.KExceptionGroup.CRITICAL,
+                        "unexpected left-hand side data structure format; "
+                        + "expected elements and at most one variable\n"
+                        + node,
+                        getName(),
+                        filename,
+                        location));
+                return null;
+            }
 
             if (node.elements().isEmpty() && node.hasViewBase()) {
                     return node.viewBase();
             }
 
-            Variable variable = Variable.getFreshVar(node.sort().name());
+            Variable variable = Variable.getFreshVar(Sort.of(node.sort().name()));
             if (node.hasViewBase()) {
                 /* TODO(AndreiS): check the uniqueness of map variables in the LHS */
                 assert !reverseMap.containsKey(node.viewBase());
@@ -405,7 +440,7 @@ public class DataStructureToLookupUpdate extends CopyOnWriteTransformer {
                         variable,
                         entry.getKey(),
                         entry.getValue(),
-                        KSort.getKSort(entry.getValue().getSort())));
+                        entry.getValue().getSort().getKSort()));
             }
 
             return variable;
@@ -455,13 +490,24 @@ public class DataStructureToLookupUpdate extends CopyOnWriteTransformer {
     public ASTNode visit(SetBuiltin node, Void _)  {
         node = (SetBuiltin) super.visit(node, _);
         if (status == Status.LHS) {
-            assert node.isLHSView();
+            if (!node.isLHSView()) {
+                GlobalSettings.kem.register(new KException(
+                        KException.ExceptionType.ERROR,
+                        KException.KExceptionGroup.CRITICAL,
+                        "unexpected left-hand side data structure format; "
+                        + "expected elements and at most one variable\n"
+                        + node,
+                        getName(),
+                        filename,
+                        location));
+                return null;
+            }
 
             if (node.elements().isEmpty() && node.hasViewBase()) {
                 return node.viewBase();
             }
 
-            Variable variable = Variable.getFreshVar(node.sort().name());
+            Variable variable = Variable.getFreshVar(Sort.of(node.sort().name()));
             if (node.hasViewBase()) {
                 /* TODO(AndreiS): check the uniqueness of map variables in the LHS */
                 assert !reverseMap.containsKey(node.viewBase());

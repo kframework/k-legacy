@@ -1,7 +1,6 @@
 // Copyright (c) 2014 K Team. All Rights Reserved.
 package org.kframework.krun;
 
-import java.awt.Color;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -14,14 +13,15 @@ import org.kframework.kil.Attribute;
 import org.kframework.kil.Cell;
 import org.kframework.kil.KSorts;
 import org.kframework.kil.Sentence;
+import org.kframework.kil.Sort;
 import org.kframework.kil.Variable;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.exceptions.ParseFailedException;
 import org.kframework.krun.api.SearchType;
 import org.kframework.main.GlobalOptions;
 import org.kframework.parser.DefinitionLoader;
-import org.kframework.utils.ColorUtil;
 import org.kframework.utils.file.FileUtil;
+import org.kframework.utils.general.GlobalSettings;
 import org.kframework.utils.options.BaseEnumConverter;
 import org.kframework.utils.options.DefinitionLoadingOptions;
 import org.kframework.utils.options.OnOffConverter;
@@ -32,8 +32,15 @@ import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.ParametersDelegate;
+import com.google.inject.Inject;
 
 public final class KRunOptions {
+
+    public KRunOptions() {}
+
+    //TODO(dwightguth): remove in Guice 4.0
+    @Inject
+    public KRunOptions(Void v) {}
 
     public enum OutputMode {
         PRETTY(true), SMART(true), COMPATIBLE(true), KORE(true), RAW(false), BINARY(false), NONE(false), NO_WRAP(true);
@@ -57,6 +64,12 @@ public final class KRunOptions {
 
     public static final class ConfigurationCreationOptions {
 
+        public ConfigurationCreationOptions() {}
+
+        //TODO(dwightguth): remove in Guice 4.0
+        @Inject
+        public ConfigurationCreationOptions(Void v) {}
+
         @Parameter(description="<file>")
         private List<String> parameters;
 
@@ -65,7 +78,7 @@ public final class KRunOptions {
                 return null;
             }
             if (parameters.size() > 1) {
-                throw new ParameterException("You can only specify $PGM on the command line itself");
+                GlobalSettings.kem.registerCriticalError("You can only specify $PGM on the command line itself");
             }
             return parameters.get(0);
         }
@@ -112,7 +125,7 @@ public final class KRunOptions {
             }
             if (!term() && pgm() != null) {
                 if (configVars.containsKey("PGM")) {
-                    throw new ParameterException("Cannot specify both -cPGM and a program to parse.");
+                    GlobalSettings.kem.registerCriticalError("Cannot specify both -cPGM and a program to parse.");
                 }
                 result.put("PGM", Pair.of(pgm(), parser(context)));
             }
@@ -124,10 +137,10 @@ public final class KRunOptions {
 
         public boolean term() {
             if (term && configVars.size() > 0) {
-                throw new ParameterException("You cannot specify both the term and the configuration variables.");
+                GlobalSettings.kem.registerCriticalError("You cannot specify both the term and the configuration variables.");
             }
             if (term && pgm() == null) {
-                throw new ParameterException("You must specify something to parse with the --term option.");
+                GlobalSettings.kem.registerCriticalError("You must specify something to parse with the --term option.");
             }
             return term;
         }
@@ -139,13 +152,13 @@ public final class KRunOptions {
 
     public boolean io() {
         if (io != null && io == true && search()) {
-            throw new ParameterException("You cannot specify both --io on and --search");
+            GlobalSettings.kem.registerCriticalError("You cannot specify both --io on and --search");
         }
         if (io != null && io == true && experimental.javaExecution.generateTests) {
-            throw new ParameterException("You cannot specify both --io on and --generate-tests");
+            GlobalSettings.kem.registerCriticalError("You cannot specify both --io on and --generate-tests");
         }
         if (io != null && io == true && experimental.ltlmc() != null) {
-            throw new ParameterException("You cannot specify both --io on and --ltlmc");
+            GlobalSettings.kem.registerCriticalError("You cannot specify both --io on and --ltlmc");
         }
         if (search() || experimental.javaExecution.generateTests || experimental.ltlmc() != null) {
             return false;
@@ -156,33 +169,8 @@ public final class KRunOptions {
         return io;
     }
 
-    @Parameter(names="--color", description="Use colors in output. Default is on.")
-    private ColorSetting color;
-
-    public ColorSetting color() {
-        if (color == null) {
-            if (experimental.outputFile != null) {
-                return ColorSetting.OFF;
-            }
-            return ColorSetting.ON;
-        }
-        return color;
-    }
-
-    public static class ColorModeConverter extends BaseEnumConverter<ColorSetting> {
-
-        @Override
-        public Class<ColorSetting> enumClass() {
-            return ColorSetting.class;
-        }
-    }
-
-    @Parameter(names="--terminal-color", description="Background color of the terminal. Cells won't be colored in this color.")
-    private String terminalColor = "black";
-
-    public Color terminalColor() {
-        return ColorUtil.getColorByName(terminalColor);
-    }
+    @ParametersDelegate
+    public ColorOptions color = new ColorOptions();
 
     @Parameter(names={"--output", "-o"}, converter=OutputModeConverter.class,
             description="How to display Maude results. <mode> is either [pretty|smart|compatible|kore|raw|binary|none].")
@@ -218,7 +206,7 @@ public final class KRunOptions {
     public SearchType searchType() {
         if (search) {
             if (searchFinal || searchAll || searchOneStep || searchOneOrMoreSteps) {
-                throw new ParameterException("You can specify only one type of search.");
+                GlobalSettings.kem.registerCriticalError("You can specify only one type of search.");
             }
             if (depth != null) {
                 return SearchType.STAR;
@@ -226,17 +214,17 @@ public final class KRunOptions {
             return SearchType.FINAL;
         } else if (searchFinal) {
             if (searchAll || searchOneStep || searchOneOrMoreSteps) {
-                throw new ParameterException("You can specify only one type of search.");
+                GlobalSettings.kem.registerCriticalError("You can specify only one type of search.");
             }
             return SearchType.FINAL;
         } else if (searchAll) {
             if (searchOneStep || searchOneOrMoreSteps) {
-                throw new ParameterException("You can specify only one type of search.");
+                GlobalSettings.kem.registerCriticalError("You can specify only one type of search.");
             }
             return SearchType.STAR;
         } else if (searchOneStep) {
             if (searchOneOrMoreSteps) {
-                throw new ParameterException("You can specify only one type of search.");
+                GlobalSettings.kem.registerCriticalError("You can specify only one type of search.");
             }
             return SearchType.ONE;
         } else if (searchOneOrMoreSteps) {
@@ -257,7 +245,7 @@ public final class KRunOptions {
             return null;
         }
         if (pattern != null && (experimental.prove != null || experimental.ltlmc() != null)) {
-            throw new ParameterException("Pattern matching is not supported by model checking or proving");
+            GlobalSettings.kem.registerCriticalError("Pattern matching is not supported by model checking or proving");
         }
         String patternToParse = pattern;
         if (pattern == null) {
@@ -265,7 +253,7 @@ public final class KRunOptions {
         }
         if (patternToParse.equals(DEFAULT_PATTERN)) {
             Sentence s = new Sentence();
-            s.setBody(new Cell("generatedTop", new Variable("B", "Bag")));
+            s.setBody(new Cell("generatedTop", new Variable("B", Sort.BAG)));
             s.addAttribute(Attribute.ANYWHERE);
             return s;
         }
@@ -286,9 +274,6 @@ public final class KRunOptions {
 
     @Parameter(names="--graph", description="Displays the search graph generated by the last search.")
     public boolean graph = false;
-
-    @Parameter(names={"--help-experimental", "-X"}, description="Print help on non-standard options.", help=true)
-    public boolean helpExperimental = false;
 
     @ParametersDelegate
     public Experimental experimental = new Experimental();

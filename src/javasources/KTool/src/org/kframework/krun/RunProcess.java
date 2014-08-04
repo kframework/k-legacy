@@ -3,6 +3,7 @@ package org.kframework.krun;
 
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.BackendTerm;
+import org.kframework.kil.Sort;
 import org.kframework.kil.Term;
 import org.kframework.kil.visitors.exceptions.ParseFailedException;
 import org.kframework.parser.ParserType;
@@ -45,7 +46,7 @@ public class RunProcess {
             realEnvironment.putAll(environment);
 
             // set execution directory to current user dir
-            pb.directory(new File(K.userdir));
+            pb.directory(new File("."));
 
             // start process
             Process process = pb.start();
@@ -164,7 +165,7 @@ public class RunProcess {
 
                 //hopefully sort information will get filled in later if we need it, e.g. by SubstitutionFilter
                 //TODO(dwightguth): parse the output of the external parser into real kil classes
-                term = new BackendTerm("", kast);
+                term = new BackendTerm(Sort.of(""), kast);
         }
 
         return term;

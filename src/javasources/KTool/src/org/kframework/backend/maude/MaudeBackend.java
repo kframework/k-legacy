@@ -2,7 +2,6 @@
 package org.kframework.backend.maude;
 
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.kframework.backend.BasicBackend;
 import org.kframework.compile.sharing.FreshVariableNormalizer;
 import org.kframework.compile.sharing.SortRulesNormalizer;
 import org.kframework.kil.Definition;
@@ -13,17 +12,18 @@ import org.kframework.utils.Stopwatch;
 import org.kframework.utils.StringBuilderUtil;
 import org.kframework.utils.file.FileUtil;
 
-import java.io.IOException;
 import java.util.Map;
 
-public class MaudeBackend extends BasicBackend {
+public class MaudeBackend {
 
+    private final Stopwatch sw;
+    private final Context context;
     public MaudeBackend(Stopwatch sw, Context context) {
-        super(sw, context);
+        this.sw = sw;
+        this.context = context;
     }
 
-    @Override
-    public void run(Definition definition) throws IOException {
+    public void run(Definition definition) {
         definition = (Definition) new FreshVariableNormalizer(context).visitNode(definition);
         definition = (Definition) new SortRulesNormalizer(context).visitNode(definition);
         MaudeFilter maudeFilter = new MaudeFilter(context);
@@ -72,10 +72,5 @@ public class MaudeBackend extends BasicBackend {
             b.append('\n');
         }
         return b;
-    }
-
-    @Override
-    public String getDefaultStep() {
-        return "LastStep";
     }
 }

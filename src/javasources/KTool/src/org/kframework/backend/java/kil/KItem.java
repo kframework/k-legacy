@@ -1,34 +1,39 @@
 // Copyright (c) 2013-2014 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.MetaK;
 import org.kframework.backend.java.builtins.SortMembership;
-import org.kframework.backend.java.symbolic.CopyOnShareSubstAndEvalTransformer;
 import org.kframework.backend.java.symbolic.Matcher;
 import org.kframework.backend.java.symbolic.PatternMatcher;
+import org.kframework.backend.java.symbolic.SymbolicConstraint;
+import org.kframework.backend.java.symbolic.SymbolicRewriter;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Unifier;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Subsorts;
 import org.kframework.backend.java.util.Utils;
 import org.kframework.kil.ASTNode;
+import org.kframework.kil.Attribute;
 import org.kframework.kil.Production;
-import org.kframework.krun.K;
+import org.kframework.main.Tool;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;
 import org.kframework.utils.general.GlobalSettings;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 
@@ -58,6 +63,7 @@ public final class KItem extends Term {
     private final boolean isExactSort;
     private final Sort sort;
     private Boolean evaluable = null;
+    private Boolean anywhereApplicable = null;
 
     public static KItem of(Term kLabel, Term kList, TermContext termContext) {
         // TODO(AndreiS): remove defensive coding
@@ -95,7 +101,7 @@ public final class KItem extends Term {
             /* at runtime, checks if the result has been cached */
             CacheTableColKey cacheTabColKey = null;
             CacheTableValue cacheTabVal = null;
-            boolean enableCache = (K.tool() != K.Tool.KOMPILE)
+            boolean enableCache = (Tool.instance() != Tool.KOMPILE)
                     && definition.sortPredicateRulesOn(kLabelConstant).isEmpty();
             if (enableCache) {
                 cacheTabColKey = new CacheTableColKey(kLabelConstant, (KList) kList);
@@ -134,7 +140,7 @@ public final class KItem extends Term {
         Set<Sort> sorts = Sets.newHashSet();
         Set<Sort> possibleSorts = Sets.newHashSet();
 
-        if (K.tool() != K.Tool.KOMPILE) {
+        if (Tool.instance() != Tool.KOMPILE) {
             /**
              * Sort checks in the Java engine are not implemented as
              * rewrite rules, so we need to precompute the sort of
@@ -177,7 +183,7 @@ public final class KItem extends Term {
                     }
                     Sort childSort = term.sort();
 
-                    if (!definition.context().isSubsortedEq(production.getChildSort(idx), childSort.name())) {
+                    if (!definition.context().isSubsortedEq(production.getChildSort(idx), childSort.toFrontEnd())) {
                         mustMatch = false;
                         /*
                          * YilongL: the following analysis can be made more
@@ -186,7 +192,7 @@ public final class KItem extends Term {
                          * compute for our purpose
                          */
                         mayMatch = !term.isExactSort()
-                                && definition.context().hasCommonSubsort(production.getChildSort(idx), childSort.name());
+                                && definition.context().hasCommonSubsort(production.getChildSort(idx), childSort.toFrontEnd());
                     }
                     idx++;
                 }
@@ -195,9 +201,9 @@ public final class KItem extends Term {
             }
 
             if (mustMatch) {
-                sorts.add(Sort.of(production.getSort()));
+                sorts.add(Sort.of(production.getSort().getName()));
             } else if (mayMatch) {
-                possibleSorts.add(Sort.of(production.getSort()));
+                possibleSorts.add(Sort.of(production.getSort().getName()));
             }
         }
 
@@ -219,6 +225,25 @@ public final class KItem extends Term {
         boolean isExactSort = kLabelConstant.isConstructor() && possibleSorts.isEmpty();
 
         return new CacheTableValue(sort, isExactSort);
+    }
+
+    /**
+     * Evaluates this {@code KItem} if it is a predicate or function; otherwise,
+     * applies [anywhere] rules associated with this {@code KItem}
+     *
+     * @param copyOnShareSubstAndEval
+     *            specifies whether to use
+     *            {@link CopyOnShareSubstAndEvalTransformer} when applying rules
+     *
+     * @param context
+     *            a term context
+     *
+     * @return the reduced result on success, or this {@code KItem} otherwise
+     */
+    public Term resolveFunctionAndAnywhere(boolean copyOnShareSubstAndEval, TermContext context) {
+        return isEvaluable(context) ?
+                evaluateFunction(copyOnShareSubstAndEval, context) :
+                applyAnywhereRules(copyOnShareSubstAndEval, context);
     }
 
     public boolean isEvaluable(TermContext context) {
@@ -263,15 +288,8 @@ public final class KItem extends Term {
         }
 
         Definition definition = context.definition();
-
-        if (!(kLabel instanceof KLabelConstant)) {
-            return this;
-        }
         KLabelConstant kLabelConstant = (KLabelConstant) kLabel;
 
-        if (!(kList instanceof KList)) {
-            return this;
-        }
         KList kList = (KList) this.kList;
 
         if (context.global.builtins.isBuiltinKLabel(kLabelConstant)) {
@@ -280,8 +298,8 @@ public final class KItem extends Term {
                 Term result = context.global.builtins.invoke(context, kLabelConstant, arguments);
                 if (result != null) {
                     assert result.kind() == Kind.KITEM:
-                            "unexpected kind " + result.kind() + " of term " + result + ";"
-                            + "expected kind " + Kind.KITEM + " instead";
+                        "unexpected kind " + result.kind() + " of term " + result + ";"
+                        + "expected kind " + Kind.KITEM + " instead";
                     return result;
                 }
             } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -328,10 +346,10 @@ public final class KItem extends Term {
                 }
 
                 Map<Variable, Term> solution = solutions.iterator().next();
-                if (K.tool() == K.Tool.KOMPILE || definition.context().javaExecutionOptions.concreteExecution()) {
+                if (Tool.instance() == Tool.KOMPILE || definition.context().javaExecutionOptions.concreteExecution()) {
                     assert solutions.size() <= 1 :
-                         "[non-deterministic function definition]: more than one way to apply the rule\n"
-                            + rule + "\nagainst the function\n" + this;
+                        "[non-deterministic function definition]: more than one way to apply the rule\n"
+                        + rule + "\nagainst the function\n" + this;
                 }
 
                 Term rightHandSide = rule.rightHandSide();
@@ -368,7 +386,7 @@ public final class KItem extends Term {
                 } else {
                     if (definition.context().javaExecutionOptions.concreteExecution()) {
                         assert result == null || result.equals(rightHandSide):
-                                "[non-deterministic function definition]: more than one rule can apply to the function\n" + this;
+                            "[non-deterministic function definition]: more than one rule can apply to the function\n" + this;
                     }
                     result = rightHandSide;
                 }
@@ -377,7 +395,7 @@ public final class KItem extends Term {
                  * If the function definitions do not need to be deterministic, try them in order
                  * and apply the first one that matches.
                  */
-                if (!context.definition().context().javaExecutionOptions.deterministicFunctions
+                if (!definition.context().javaExecutionOptions.deterministicFunctions
                         && result != null) {
                     return result;
                 }
@@ -388,8 +406,66 @@ public final class KItem extends Term {
             } else if (!owiseResults.isEmpty()) {
                 assert owiseResults.size() == 1 :
                     "[non-deterministic function definition]: more than one ``owise'' rule for the function\n"
-                        + this;
+                    + this;
                 return owiseResults.iterator().next();
+            }
+        }
+
+        return this;
+    }
+
+    private boolean isAnywhereApplicable(TermContext context) {
+        if (anywhereApplicable != null) {
+            return anywhereApplicable;
+        }
+
+        anywhereApplicable = (kLabel instanceof KLabelConstant)
+                && !context.definition().anywhereRules()
+                        .get((KLabelConstant) kLabel).isEmpty();
+        return anywhereApplicable;
+    }
+
+    /**
+     * Apply [anywhere] associated with this {@code KItem}.
+     *
+     * @param copyOnShareSubstAndEval
+     *            specifies whether to use
+     *            {@link CopyOnShareSubstAndEvalTransformer} when applying
+     *            [anywhere] rules
+     *
+     * @param context
+     *            a term context
+     *
+     * @return the result on success, or this {@code KItem} otherwise
+     */
+    private Term applyAnywhereRules(boolean copyOnShareSubstAndEval, TermContext context) {
+        if (!isAnywhereApplicable(context)) {
+            return this;
+        }
+
+        Definition definition = context.definition();
+        KLabelConstant kLabelConstant = (KLabelConstant) kLabel;
+
+        /* apply [anywhere] rules */
+        /* TODO(YilongL): make KLabelConstant dependent on Definition and store
+         * anywhere rules in KLabelConstant */
+        for (Rule rule : definition.anywhereRules().get(kLabelConstant)) {
+            /* anywhere rules should be applied by pattern match rather than unification */
+            Collection<Map<Variable, Term>> solutions = PatternMatcher.patternMatch(this, rule, context);
+            if (solutions.isEmpty()) {
+                continue;
+            } else {
+                Map<Variable, Term> solution = solutions.iterator().next();
+                Term rightHandSide = rule.rightHandSide();
+                if (copyOnShareSubstAndEval) {
+                    rightHandSide = rightHandSide.copyOnShareSubstAndEval(
+                            solution,
+                            rule.reusableVariables().elementSet(),
+                            context);
+                } else {
+                    rightHandSide = rightHandSide.substituteAndEvaluate(solution, context);
+                }
+                return rightHandSide;
             }
         }
 
@@ -417,7 +493,8 @@ public final class KItem extends Term {
     public boolean isSymbolic() {
         // TODO(AndreiS): handle KLabel variables
         //return !(kLabel instanceof KLabel) || ((KLabel) kLabel).isFunction();
-        return kLabel instanceof KLabel && ((KLabel) kLabel).isFunction();
+        return kLabel instanceof KLabel
+                && (((KLabel) kLabel).isFunction() || ((KLabel) kLabel).isPattern());
     }
 
     @Override
@@ -485,6 +562,89 @@ public final class KItem extends Term {
     @Override
     public ASTNode accept(Transformer transformer) {
         return transformer.transform(this);
+    }
+
+    public Term expandPattern(SymbolicConstraint constraint, boolean narrowing, TermContext context) {
+        if (constraint == null) {
+            return this;
+        }
+
+        if (!(kLabel instanceof KLabelConstant && ((KLabelConstant) kLabel).isPattern() && kList instanceof KList)) {
+            return this;
+        }
+        KLabelConstant kLabel = (KLabelConstant) kLabel();
+        KList kList = (KList) kList();
+
+        List<ConstrainedTerm> results = new ArrayList<>();
+        KList inputKList = new KList(getPatternInput());
+        KList outputKList = new KList(getPatternOutput());
+        for (Rule rule : context.definition().patternRules().get(kLabel)) {
+            KList ruleInputKList = new KList(((KItem) rule.leftHandSide()).getPatternInput());
+            KList ruleOutputKList = new KList(((KItem) rule.leftHandSide()).getPatternOutput());
+            SymbolicConstraint unificationConstraint = new SymbolicConstraint(context);
+            unificationConstraint.add(inputKList, ruleInputKList);
+            unificationConstraint.simplify();
+            // TODO(AndreiS): there is only one solution here, so no list of constraints
+            if (unificationConstraint.isFalse()) {
+                continue;
+            }
+
+            if (narrowing) {
+                SymbolicConstraint globalConstraint = new SymbolicConstraint(context);
+                for (SymbolicConstraint.Equality equality : constraint.equalities()) {
+                    globalConstraint.add(equality.leftHandSide(), equality.rightHandSide());
+                }
+                globalConstraint.addAll(unificationConstraint);
+                globalConstraint.addAll(rule.requires());
+                globalConstraint.simplify();
+                if (globalConstraint.isFalse() || globalConstraint.checkUnsat()) {
+                    continue;
+                }
+            } else {
+                if (!unificationConstraint.isMatching(ruleInputKList.variableSet())) {
+                    continue;
+                }
+
+                SymbolicConstraint requires = new SymbolicConstraint(context);
+                requires.addAll(rule.requires());
+                requires.addAll(unificationConstraint);
+                requires.simplify();
+                requires.orientSubstitution(ruleInputKList.variableSet());
+                if (!constraint.implies(requires, ruleInputKList.variableSet())) {
+                    continue;
+                }
+            }
+
+            unificationConstraint.add(outputKList, ruleOutputKList);
+            unificationConstraint.addAll(rule.ensures());
+            unificationConstraint.simplify();
+            results.add(SymbolicRewriter.constructNewSubjectTerm(
+                    rule,
+                    unificationConstraint,
+                    variableSet()));
+        }
+
+        if (results.size() == 1) {
+            constraint.addAll(results.get(0).constraint());
+            return results.get(0).term();
+        } else {
+            return this;
+        }
+    }
+
+    public ImmutableList<Term> getPatternInput() {
+        assert kLabel instanceof KLabelConstant && ((KLabelConstant) kLabel).isPattern() && kList instanceof KList;
+        int inputCount = Integer.parseInt(
+                ((KLabelConstant) kLabel).productions().get(0).getAttribute(Attribute.PATTERN_KEY));
+        return ImmutableList.copyOf(((KList) kList).getContents()).subList(0, inputCount);
+    }
+
+    public ImmutableList<Term> getPatternOutput() {
+        assert kLabel instanceof KLabelConstant && ((KLabelConstant) kLabel).isPattern() && kList instanceof KList;
+        int inputCount = Integer.parseInt(
+                ((KLabelConstant) kLabel).productions().get(0).getAttribute(Attribute.PATTERN_KEY));
+        return ImmutableList.copyOf(((KList) kList).getContents())
+                .subList(inputCount, ((KList) kList).getContents().size());
     }
 
     /**

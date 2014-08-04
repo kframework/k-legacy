@@ -15,6 +15,7 @@ import org.kframework.krun.FlattenDisambiguationFilter;
 import org.kframework.krun.SubstitutionFilter;
 import org.kframework.krun.KRunOptions.OutputMode;
 import org.kframework.parser.concrete.disambiguate.TypeInferenceSupremumFilter;
+import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;
@@ -121,12 +122,13 @@ public class KRunState implements Serializable, Comparable<KRunState> {
     }
 
     public String toString(boolean includeStateId) {
-        UnparserFilterNew printer = new UnparserFilterNew(true, context.krunOptions.color(),
+        UnparserFilterNew printer = new UnparserFilterNew(true,context.colorOptions.color(),
                 context.krunOptions.output, false, context);
         printer.visitNode(getResult());
         if (includeStateId) {
             return "\nNode " + stateId + ":\n" + printer.getResult();
         }
+        Stopwatch.instance().printIntermediate("Pretty printing");
         return printer.getResult();
     }
 

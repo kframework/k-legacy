@@ -3,79 +3,91 @@ package org.kframework.utils;
 
 import java.io.*;
 
-import org.kframework.kil.loader.Context;
-import org.kframework.utils.errorsystem.KException;
-import org.kframework.utils.errorsystem.KException.ExceptionType;
-import org.kframework.utils.errorsystem.KException.KExceptionGroup;
-import org.kframework.utils.general.GlobalSettings;
+import org.kframework.utils.errorsystem.KExceptionManager;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
 
+@Singleton
 public class BinaryLoader {
 
-    public static void save(String fileName, Object o) throws IOException {
-        save(new FileOutputStream(fileName), o, fileName);
+    private final KExceptionManager kem;
+    // Do *NOT* use this for anything except its intended usage!
+    // We are injecting the injector because of limitations of java deserialization *ONLY*.
+    // Eventually once the framework is completely converted this will go away and
+    // be replaced by serialized objects containing data only.
+    private final Injector injector;
+
+    @Inject private static BinaryLoader loader;
+
+    @Deprecated
+    public static BinaryLoader instance() {
+        return loader;
     }
 
-    public static void save(String fileName, Object o, Context context) {
-        save(fileName, o, context.globalOptions.debug);
+    @Inject
+    public BinaryLoader(
+            KExceptionManager kem,
+            Injector injector) {
+        this.kem = kem;
+        this.injector = injector;
     }
 
-    public static void save(String fileName, Object o, boolean debug) {
+    public void save(String fileName, Object o) throws IOException {
+        save(new FileOutputStream(fileName), o);
+    }
+
+    public void saveOrDie(String fileName, Object o) {
         try {
-            save(fileName, o);
+            saveOrDie(new FileOutputStream(fileName), o, fileName);
         } catch (IOException e) {
-            if (debug) {
-                e.printStackTrace();
-            }
-            GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL,
-                    "Could not write to " + fileName));
+            kem.registerCriticalError("Could not write to " + fileName, e);
         }
     }
 
-    public static void save(OutputStream out, Object o) throws IOException {
-        save(out, o, "output stream");
+    private void saveOrDie(OutputStream out, Object o, String fileName) {
+        try {
+            save(out, o);
+        } catch (IOException e) {
+            kem.registerCriticalError("Could not write to " + fileName, e);
+        }
     }
 
-    private static void save(OutputStream out, Object o, String name) throws IOException {
+    public void saveOrDie(OutputStream out, Object o) {
+        saveOrDie(out, o, "output stream");
+    }
+
+    public void save(OutputStream out, Object o) throws IOException {
         try(ObjectOutputStream serializer
                 = new ObjectOutputStream(new BufferedOutputStream(out))) {
             serializer.writeObject(o);
         }
     }
 
-    public static <T> T load(Class<T> cls, String fileName) throws IOException, ClassNotFoundException {
+    public <T> T load(Class<T> cls, String fileName) throws IOException, ClassNotFoundException {
         return cls.cast(load(fileName));
     }
 
-    public static <T> T load(Class<T> cls, String fileName, Context context) {
-        return load(cls, fileName, context.globalOptions.debug);
-    }
-
-    public static <T> T load(Class<T> cls, String fileName, boolean debug) {
+    public <T> T loadOrDie(Class<T> cls, String fileName) {
         try {
             return load(cls, fileName);
         } catch (ClassNotFoundException e) {
             throw new AssertionError("Something wrong with deserialization", e);
         } catch (ObjectStreamException e) {
-            if (debug) {
-                e.printStackTrace();
-            }
-            GlobalSettings.kem.register(new KException(KException.ExceptionType.ERROR,
-                    KException.KExceptionGroup.CRITICAL, "Kompiled definition is out of date with "
-                    + "the latest version of the K tool. Please re-run kompile and try again."));
+            kem.registerCriticalError("Kompiled definition is out of date with "
+                    + "the latest version of the K tool. Please re-run kompile and try again.", e);
         } catch (IOException e) {
-            if (debug) {
-                e.printStackTrace();
-            }
-            GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL,
-                    "Could not read from " + fileName));
+            kem.registerCriticalError("Could not read from " + fileName, e);
         }
         return null;
     }
 
-    public static Object load(String fileName) throws IOException, ClassNotFoundException {
+    public Object load(String fileName) throws IOException, ClassNotFoundException {
         try (ObjectInputStream deserializer
                      = new ObjectInputStream(new BufferedInputStream(new FileInputStream(fileName)))) {
-            return deserializer.readObject();
+            Object obj = deserializer.readObject();
+            injector.injectMembers(obj);
+            return obj;
         }
     }
 }

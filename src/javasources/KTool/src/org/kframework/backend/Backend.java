@@ -3,11 +3,10 @@ package org.kframework.backend;
 
 import org.kframework.compile.utils.CompilerSteps;
 import org.kframework.kil.Definition;
-
-import java.io.IOException;
+import org.kframework.kompile.KompileOptions;
 
 public interface Backend {
-    public void run(Definition definition) throws IOException;
+    public void run(Definition definition);
 
     public String getDefaultStep();
 
@@ -30,6 +29,8 @@ public interface Backend {
     Definition lastStep(Definition def);
 
     public boolean autoinclude();
+
+    public KompileOptions.Backend getEnum();
 
     /**
      * Gets all compilation steps of this backend.

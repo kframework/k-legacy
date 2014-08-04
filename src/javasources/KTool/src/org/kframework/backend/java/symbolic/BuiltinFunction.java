@@ -7,11 +7,8 @@ import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.Production;
-import org.kframework.krun.K;
-import org.kframework.krun.K.Tool;
+import org.kframework.main.Tool;
 import org.kframework.utils.errorsystem.KException;
-import org.kframework.utils.errorsystem.KException.ExceptionType;
-import org.kframework.utils.errorsystem.KException.KExceptionGroup;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.KPaths;
 import org.kframework.utils.general.GlobalSettings;
@@ -68,11 +65,7 @@ public class BuiltinFunction {
         try {
             FileUtil.loadProperties(properties, propertyFile);
         } catch (IOException e) {
-            if (definition.context().globalOptions.debug) {
-                e.printStackTrace();
-            }
-            GlobalSettings.kem.register(new KException(ExceptionType.ERROR,
-                    KExceptionGroup.INTERNAL, "Could not read from " + propertyFile));
+            GlobalSettings.kem.registerInternalError("Could not read from " + propertyFile, e);
         }
 
         for (String label : definition.context().labels.keySet()) {
@@ -85,7 +78,7 @@ public class BuiltinFunction {
                      * exclude hook from evaluation during compilation if the hook is dynamic
                      * in nature (is related to I/O or to meta properties).
                      * */
-                    if (K.tool() == Tool.KOMPILE && hookMetaModules.contains(hookPrefix)) {
+                    if (Tool.instance() == Tool.KOMPILE && hookMetaModules.contains(hookPrefix)) {
                         continue;
                     }
 
@@ -110,14 +103,8 @@ public class BuiltinFunction {
                             }
                         }
                     } catch (ClassNotFoundException | SecurityException e) {
-                        if (definition.context().globalOptions.debug) {
-                            e.printStackTrace();
-                        }
-                        GlobalSettings.kem.register(new KException(
-                                KException.ExceptionType.WARNING,
-                                KException.KExceptionGroup.CRITICAL,
-                                "missing implementation for hook " + hookAttribute + ":\n" + hook,
-                                production.getFilename(), production.getLocation()));
+                        GlobalSettings.kem.registerCriticalWarning("missing implementation for hook "
+                                + hookAttribute + ":\n" + hook, e, production);
                     }
                 }
             }

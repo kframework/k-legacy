@@ -2,6 +2,7 @@
 package org.kframework.backend.kore;
 
 import org.kframework.backend.BasicBackend;
+import org.kframework.backend.FirstStep;
 import org.kframework.backend.unparser.Indenter;
 import org.kframework.compile.checks.CheckConfigurationCells;
 import org.kframework.compile.checks.CheckRewrite;
@@ -42,9 +43,11 @@ import org.kframework.kil.*;
 import org.kframework.kil.visitors.BasicVisitor;
 import org.kframework.kil.loader.Context;
 import org.kframework.krun.ColorSetting;
-import org.kframework.main.FirstStep;
 import org.kframework.utils.ColorUtil;
 import org.kframework.utils.Stopwatch;
+import org.kframework.utils.general.GlobalSettings;
+
+import com.google.inject.Inject;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -55,12 +58,14 @@ import java.util.List;
 import java.util.Map.Entry;
 
 public class KoreBackend extends BasicBackend {
-  public KoreBackend(Stopwatch sw, Context context) {
+
+  @Inject
+  KoreBackend(Stopwatch sw, Context context) {
     super(sw, context);
   }
 
   @Override
-  public void run(Definition toKore) throws IOException {
+  public void run(Definition toKore) {
 
       try {
         toKore = this.getCompilationSteps().compile(toKore, this.getDefaultStep());
@@ -74,10 +79,15 @@ public class KoreBackend extends BasicBackend {
 
           if(!fileTable.containsKey(((toKore.getItems().get(i)).getFilename()))){
 
+              String filename = ((toKore.getItems().get(i)).getFilename().substring(0,
+                      (toKore.getItems().get(i)).getFilename().length()-2))+".kore";
+              try {
               fileTable.put((toKore.getItems().get(i)).getFilename(),
-                      new PrintWriter(((toKore.getItems().get(i)).getFilename().substring(0,
-                              (toKore.getItems().get(i)).getFilename().length()-2))+".kore"));
+                      new PrintWriter(filename));
+              } catch (IOException e) {
+                  GlobalSettings.kem.registerCriticalError("Could not write to " + filename, e);
               }
+          }
       }
 
       for(int i = 0; i < toKore.getItems().size(); ++i){
@@ -269,7 +279,7 @@ class KoreFilter extends BasicVisitor {
         if (node.isSyntactic()) {
             indenter.write(":");
         }
-        indenter.write(node.getSort());
+        indenter.write(node.getSort().getName());
         indenter.write(")");
         return null;
     }
@@ -443,8 +453,8 @@ class KoreFilter extends BasicVisitor {
         @Override
         public Void visit(KInjectedLabel kInjectedLabel, Void _) {
             Term term = kInjectedLabel.getTerm();
-            if (MetaK.isKSort(term.getSort())) {
-                indenter.write(KInjectedLabel.getInjectedSort(term.getSort()));
+            if (term.getSort().isKSort()) {
+                indenter.write(KInjectedLabel.getInjectedSort(term.getSort()).getName());
                 indenter.write("2KLabel ");
             } else {
                 indenter.write("# ");
@@ -644,7 +654,7 @@ class KoreFilter extends BasicVisitor {
         }
 
         @Override
-        public Void visit(Sort node, Void _) {
+        public Void visit(NonTerminal node, Void _) {
             indenter.write(node.toString());
             return null;
         }
@@ -659,7 +669,7 @@ class KoreFilter extends BasicVisitor {
         public Void visit(Syntax node, Void _) {
 
             indenter.write("  syntax ");
-            this.visitNode(node.getSort());
+            this.visitNode(node.getDeclaredSort());
             indenter.write(" ::=");
             for (int i = 0; i < node.getPriorityBlocks().size(); ++i){
                 PriorityBlock production = node.getPriorityBlocks().get(i);

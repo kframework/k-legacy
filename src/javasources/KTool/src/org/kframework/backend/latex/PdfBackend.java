@@ -12,12 +12,16 @@ import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;
 import org.kframework.utils.general.GlobalSettings;
 
+import com.google.inject.Inject;
+
 import java.io.*;
 
 import static org.apache.commons.io.FileUtils.copyFile;
 
 public class PdfBackend extends BasicBackend {
-    public PdfBackend(Stopwatch sw, Context context) {
+
+    @Inject
+    PdfBackend(Stopwatch sw, Context context) {
         super(sw, context);
     }
 
@@ -58,13 +62,18 @@ public class PdfBackend extends BasicBackend {
     }
 
     @Override
-    public void run(Definition definition) throws IOException {
+    public void run(Definition definition) {
         LatexBackend latexBackend = new LatexBackend(sw, context);
         latexBackend.compile(definition);
         File latexFile = latexBackend.getLatexFile();
         File pdfFile = generatePdf(latexFile);
         if (pdfFile.exists()) {
-            copyFile(pdfFile, new File(options.directory, FilenameUtils.removeExtension(new File(definition.getMainFile()).getName()) + ".pdf"));
+            File output = new File(options.directory, FilenameUtils.removeExtension(new File(definition.getMainFile()).getName()) + ".pdf");
+            try {
+                copyFile(pdfFile, output);
+            } catch (IOException e) {
+                GlobalSettings.kem.registerCriticalError("Could not write to " + output.getAbsolutePath(), e);
+            }
         }
     }
 

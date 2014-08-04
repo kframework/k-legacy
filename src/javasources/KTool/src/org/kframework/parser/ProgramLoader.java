@@ -12,6 +12,7 @@ import org.kframework.compile.utils.RuleCompilerSteps;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Rule;
 import org.kframework.kil.Sentence;
+import org.kframework.kil.Sort;
 import org.kframework.kil.Term;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.loader.JavaClassesFactory;
@@ -82,7 +83,7 @@ public class ProgramLoader {
     public static Term processPgm(String content, String filename, String startSymbol,
             Context context, ParserType whatParser) throws ParseFailedException {
         Stopwatch.instance().printIntermediate("Importing Files");
-        if (!context.definedSorts.contains(startSymbol)) {
+        if (!context.definedSorts.contains(Sort.of(startSymbol))) {
             throw new ParseFailedException(new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL,
                     "The start symbol must be declared in the definition. Found: " + startSymbol));
         }
@@ -111,12 +112,12 @@ public class ProgramLoader {
                 }
                 out = ((Rule) out).getBody();
             } else if (whatParser == ParserType.BINARY) {
-                out = BinaryLoader.load(Term.class, filename, context);
+                out = BinaryLoader.instance().loadOrDie(Term.class, filename);
             } else if (whatParser == ParserType.NEWPROGRAM) {
                 // load the new parser
                 // TODO(Radu): after the parser is in a good enough shape, replace the program parser
                 // TODO(Radu): (the default one) with this branch of the 'if'
-                Grammar grammar = (Grammar) BinaryLoader.load(Grammar.class, context.kompiled.getAbsolutePath() + "/pgm/newParser.bin", context);
+                Grammar grammar = BinaryLoader.instance().loadOrDie(Grammar.class, context.kompiled.getAbsolutePath() + "/pgm/newParser.bin");
 
                 Parser parser = new Parser(content);
                 out = parser.parse(grammar.get(startSymbol), 0);

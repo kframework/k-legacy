@@ -16,6 +16,7 @@ import org.kframework.kil.DataStructureSort;
 import org.kframework.kil.ListBuiltin;
 import org.kframework.kil.MapBuiltin;
 import org.kframework.kil.SetBuiltin;
+import org.kframework.kil.Sort;
 import org.kframework.kil.loader.Context;
 
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ public class BackendJavaKILtoKILTransformer implements Transformer {
      * @return the translated term
      */
     private ASTNode transformJavaBackendSpecificTerm(Term term) {
-        return new org.kframework.kil.BackendTerm(term.sort().name(), term.toString());
+        return new org.kframework.kil.BackendTerm(term.sort().toFrontEnd(), term.toString());
     }
 
     @Override
@@ -109,7 +110,7 @@ public class BackendJavaKILtoKILTransformer implements Transformer {
     @Override
     public ASTNode transform(KItemProjection kItemProj) {
         return new org.kframework.kil.KItemProjection(
-                kItemProj.kind().toString(),
+                Sort.of(kItemProj.kind().toString()),
                 (org.kframework.kil.Term) kItemProj.term().accept(this));
     }
 
@@ -161,11 +162,13 @@ public class BackendJavaKILtoKILTransformer implements Transformer {
             elements.add((org.kframework.kil.Term)entry.accept(this));
         }
         Collections.sort(elements);
-        if (set.hasFrame()) {
-            baseTerms.add((org.kframework.kil.Term) set.frame().accept(this));
+        for (Term term : set.baseTerms()) {
+            baseTerms.add((org.kframework.kil.Term) term.accept(this));
         }
-        return new SetBuiltin(context.dataStructureSortOf(DataStructureSort.DEFAULT_SET_SORT),
-                baseTerms, elements);
+        return new SetBuiltin(
+                context.dataStructureSortOf(DataStructureSort.DEFAULT_SET_SORT),
+                baseTerms,
+                elements);
     }
 
 
@@ -200,22 +203,24 @@ public class BackendJavaKILtoKILTransformer implements Transformer {
                     (org.kframework.kil.Term) key.accept(this),
                     (org.kframework.kil.Term) value.accept(this));
         }
-        if (map.hasFrame()) {
-            baseTerms.add((org.kframework.kil.Term) map.frame().accept(this));
+        for (Term term : map.baseTerms()) {
+            baseTerms.add((org.kframework.kil.Term) term.accept(this));
         }
-        return new MapBuiltin(context.dataStructureSortOf(DataStructureSort.DEFAULT_MAP_SORT),
-                baseTerms, elements);
+        return new MapBuiltin(
+                context.dataStructureSortOf(DataStructureSort.DEFAULT_MAP_SORT),
+                baseTerms,
+                elements);
     }
 
     @Override
     public ASTNode transform(Token token) {
-        return org.kframework.kil.Token.kAppOf(token.sort().name(), token.value());
+        return org.kframework.kil.Token.kAppOf(token.sort().toFrontEnd(), token.value());
     }
 
     @Override
     public ASTNode transform(Variable variable) {
 //        System.out.println("VARIABLE*************"+ variable.name()+"->"+variable.sort());
-        ASTNode node = new org.kframework.kil.Variable(variable.name(), variable.sort().name());
+        ASTNode node = new org.kframework.kil.Variable(variable.name(), variable.sort().toFrontEnd());
 //        System.out.println("NODE: "+node.toString());
 //        System.out.println("**********VARIABLE"+ variable.name()+"->"+variable.sort());
         return node;
