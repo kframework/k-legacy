@@ -3,7 +3,7 @@ package org.kframework.krun.api;
 
 import edu.uci.ics.jung.graph.DirectedGraph;
 
-import org.kframework.backend.unparser.UnparserFilterNew;
+import org.kframework.backend.unparser.UnparserFilter;
 import org.kframework.kil.Term;
 import org.kframework.kil.loader.Context;
 
@@ -31,7 +31,7 @@ public class SearchResults {
         for (SearchResult solution : getSolutions()) {
             Map<String, Term> substitution = solution.getSubstitution();
             if (isDefaultPattern()) {
-                UnparserFilterNew unparser = new UnparserFilterNew(true, context.colorOptions.color(),
+                UnparserFilter unparser = new UnparserFilter(true, context.colorOptions.color(),
                         context.krunOptions.output, false, context);
                 unparser.visitNode(substitution.get("B:Bag"));
                 solutionStrings.add("\n" + unparser.getResult());
@@ -40,7 +40,7 @@ public class SearchResults {
 
                 StringBuilder varStringBuilder = new StringBuilder();
                 for (String variable : substitution.keySet()) {
-                    UnparserFilterNew unparser = new UnparserFilterNew(true, context.colorOptions.color(),
+                    UnparserFilter unparser = new UnparserFilter(true, context.colorOptions.color(),
                             context.krunOptions.output, false, context);
                     unparser.visitNode(substitution.get(variable));
                     varStringBuilder.append("\n" + variable + " -->\n" + unparser.getResult());

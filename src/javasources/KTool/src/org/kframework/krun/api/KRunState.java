@@ -3,7 +3,7 @@ package org.kframework.krun.api;
 
 import org.kframework.backend.unparser.AddBracketsFilter;
 import org.kframework.backend.unparser.AddBracketsFilter2;
-import org.kframework.backend.unparser.UnparserFilterNew;
+import org.kframework.backend.unparser.UnparserFilter;
 import org.kframework.kil.Cell;
 import org.kframework.kil.Term;
 import org.kframework.kil.Variable;
@@ -122,7 +122,7 @@ public class KRunState implements Serializable, Comparable<KRunState> {
     }
 
     public String toString(boolean includeStateId) {
-        UnparserFilterNew printer = new UnparserFilterNew(true,context.colorOptions.color(),
+        UnparserFilter printer = new UnparserFilter(true,context.colorOptions.color(),
                 context.krunOptions.output, false, context);
         printer.visitNode(getResult());
         if (includeStateId) {
