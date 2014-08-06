@@ -98,7 +98,7 @@ reject programs which throw uncaught exceptions.
 \end{itemize}
 Like in untyped SIMPLE, some constructs can be desugared into a
 smaller set of basic constructs.  In general, it should be clear why a
-program does not type by looking at the top of the textsf{k} cells in
+program does not type by looking at the top of the \textsf{k} cells in
 its stuck configuration. */
 
 
@@ -347,7 +347,7 @@ variable. */
     when notBool(X in keys(Rho))
   rule <k> T:Type X:Id; => stmt ...</k> <tenv> Rho => Rho[X <- T] </tenv>
 
-  context _:Type _::Exp[HOLE::Exps];
+  context _:Type _:>Exp[HOLE:>Exps];
 // The rule below may need to sort E to Exp in the future, if the
 // parser gets stricter; without that information, it may not be able
 // to complete the LHS into T E[int,Ts],.Exps; (and similarly for the RHS)
@@ -365,7 +365,7 @@ to its declared function type), but also adds a task into the
 \textsf{tasks} cell.  The task consists of a typing of the statement
 declaring all the function parameters followed by the function body,
 together with the expected return type of the function.  The
-\texttt{types} and \texttt{mkDecls} functions, defined at the end of
+\texttt{getTypes} and \texttt{mkDecls} functions, defined at the end of
 the file in the section on auxiliary operations, extracts the list of
 types and makes a sequence of variable declarations from a list of
 function parameters, respectively.  Note that, although in the dynamic
@@ -582,7 +582,7 @@ exceptions which are not caught. */
 /*@ The function \texttt{mkDecls} turns a list of parameters into a
 list of variable declarations. */
 
-  syntax Decl ::= mkDecls(Params)  [function]
+  syntax Stmts ::= mkDecls(Params)  [function]
   rule mkDecls(T:Type X:Id, Ps:Params) => T X; mkDecls(Ps)
   rule mkDecls(.Params) => {}
 

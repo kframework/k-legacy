@@ -24,7 +24,7 @@ module INT-HOOKS
                | Int "divInt" Int               [function, left, smtlib(div), hook(#INT:_divInt_)]
                | Int "modInt" Int               [function, left, smtlib(mod), hook(#INT:_modInt_)]
                > left:
-                 Int "+Int" Int                 [function, left, smtlib(+), latex({#1}\mathrel{+_{\scriptstyle\it Int}}{#2}), hook(#INT:_+Int_), cons(Int1PlusSyn)]
+                 Int "+Int" Int                 [function, left, smtlib(+), latex({#1}\mathrel{+_{\scriptstyle\it Int}}{#2}), hook(#INT:_+Int_)]
                | Int "-Int" Int                 [function, left, smtlib(-), latex({#1}\mathrel{-_{\scriptstyle\it Int}}{#2}), hook(#INT:_-Int_)]
                > left:
                  Int ">>Int" Int                [function, left, latex({#1}\mathrel{\gg_{\scriptstyle\it Int}}{#2}), hook(#INT:_>>Int_)]
@@ -71,7 +71,7 @@ module INT-HOOKS
   rule isNat(I:Int) => I >=Int 0 [function, anywhere]
 
   rule 0 +Int I:Int => I [anywhere]
-  rule 0 *Int I:Int => 0 [anywhere]
+  rule 0 *Int _:Int => 0 [anywhere]
 
   syntax Int ::= freshInt(Int)    [freshGenerator, function]
   rule freshInt(I:Int) => I

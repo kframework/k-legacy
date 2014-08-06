@@ -26,10 +26,10 @@ module URIS
 
   syntax KItem ::= "#parse" "(" String "," String ")" [function, klabel(#parse), hook(#K-PARSER:#parse)]
   rule #open(S:String) => #open(S:String, "rw")
-  rule #open(S:String, Mode:String) => #string2Int((#tcpRequest("open\x01" +String S +String "\x01" +String Mode +String "\x01"))::K) when Mode ==String "r" orBool Mode ==String "w" orBool Mode ==String "rw"
+  rule #open(S:String, Mode:String) => #string2Int(#tcpRequest("open\x01" +String S +String "\x01" +String Mode +String "\x01")<:TCPAnswer) when Mode ==String "r" orBool Mode ==String "w" orBool Mode ==String "rw"
 
   rule #close(N:Int)
-      => String2DotK((#tcpRequest("close\x01" +String Int2String(N) +String "\x01"))::K)
+      => String2DotK((#tcpRequest("close\x01" +String Int2String(N) +String "\x01"))<:TCPAnswer)
 
   syntax K ::= String2DotK(TCPAnswer)  [function]
   rule String2DotK(S:String) => #ioError(#retrieveTCPError(S)) when #isTCPError(S)
@@ -42,11 +42,11 @@ module URIS
   rule String2Bool("1") => true
   rule String2Bool("true") => true
 
-  rule #tell(N:Int) => #string2Int((#tcpRequest("position\x01" +String Int2String(N) +String "\x01"))::K)
+  rule #tell(N:Int) => #string2Int((#tcpRequest("position\x01" +String Int2String(N) +String "\x01"))<:TCPAnswer)
 
   rule #seek(N:Int,P:Int)
       => String2DotK((#tcpRequest("seek\x01" +String Int2String(N) +String "\x01"
-                              +String Int2String(P) +String "\x01"))::K)
+                              +String Int2String(P) +String "\x01"))<:TCPAnswer)
 
 
   syntax Int ::= "#stdin"   [function]
@@ -69,19 +69,19 @@ module URIS
 
   rule #putc(N:Int,B:Int)
     => String2DotK((#tcpRequest("writebyte\x01" +String Int2String(N) +String "\x01"
-                              +String Int2String(B) +String "\x01"))::K) when B >=Int 0 andBool B <Int 256 andBool N =/=Int 0
+                              +String Int2String(B) +String "\x01"))<:TCPAnswer) when B >=Int 0 andBool B <Int 256 andBool N =/=Int 0
 
   rule #write(N:Int,S:String)
     => String2DotK((#tcpRequest("writebytes\x01" +String Int2String(N) +String "\x01"
-                              +String S +String "\x01"))::K) when N =/=Int 0
+                              +String S +String "\x01"))<:TCPAnswer) when N =/=Int 0
 
   rule #stat(S:String)
-    => #statTypes(#string2klist((#tcpRequest("stat\x01" +String S +String "\x01true\x01"))::K))
+    => #statTypes(#string2klist(#tcpRequest("stat\x01" +String S +String "\x01true\x01")<:TCPAnswer))
 
   rule #lstat(S:String)
-    => #statTypes(#string2klist((#tcpRequest("stat\x01" +String S +String "\x01false\x01"))::K))
+    => #statTypes(#string2klist((#tcpRequest("stat\x01" +String S +String "\x01false\x01"))<:TCPAnswer))
 
-  rule #opendir(S:String) => #string2klist((#tcpRequest("opendir\x01" +String S +String "\x01"))::K)
+  rule #opendir(S:String) => #string2klist((#tcpRequest("opendir\x01" +String S +String "\x01"))<:TCPAnswer)
 
   syntax KList ::= #string2klist(String) [function]
   rule #string2klist(S:String) => substrString(S, 0, findString(S, "\x01", 0)) ,, #string2klist(substrString(S, findString(S, "\x01", 0) +Int 1, lengthString(S))) when findString(S, "\x01", 0) =/=Int -1
@@ -92,10 +92,10 @@ module URIS
   rule #statTypes(S1:String,,S2:String,,S3:String,,S4:String,,S5:String,,S6:String,,S7:String,,S8:String,,S9:String,,S10:String,,S11:String,,S12:String) => String2Int(S1),,String2Int(S2),,String2Int(S3),,String2Bool(S4),,String2Bool(S5),,String2Bool(S6),,String2Int(S7),,String2Int(S8),,String2Int(S9),,String2Int(S10),,String2Int(S11),,String2Int(S12)
   rule #statTypes(K:K) => K
 
-  syntax Stream ::= "#parseInput" "(" String "," String ")"   [cons(Stream1ParseSyn), klabel(#parseInput)]
-  syntax Stream ::= "#buffer" "(" K ")"           [cons(Stream1IOBufferSyn), klabel(#buffer)]
-  syntax Stream ::= "#istream" "(" Int ")"        [cons(Stream1InputStreamSyn)]
-                    | "#ostream" "(" Int ")"        [cons(Stream1OutputStreamSyn)]
+  syntax Stream ::= #parseInput(String, String)
+  syntax Stream ::= #buffer(K)
+  syntax Stream ::= #istream(Int)
+                  | #ostream(Int)
   syntax Stream ::= "#noIO"
 
   rule ListItem(#ostream(_)) ListItem(#buffer(Buffer:String => Buffer +String Float2String(F))) (ListItem(F:Float) => .List) _:List [stdout, stderr]

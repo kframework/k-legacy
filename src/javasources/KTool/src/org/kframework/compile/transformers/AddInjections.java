@@ -7,12 +7,12 @@ import org.kframework.kil.Definition;
 import org.kframework.kil.KApp;
 import org.kframework.kil.KItemProjection;
 import org.kframework.kil.KLabelInjection;
-import org.kframework.kil.KSorts;
+import org.kframework.kil.Module;
+import org.kframework.kil.NonTerminal;
 import org.kframework.kil.PriorityBlock;
 import org.kframework.kil.Production;
 import org.kframework.kil.Rewrite;
 import org.kframework.kil.Rule;
-import org.kframework.kil.NonTerminal;
 import org.kframework.kil.Sort;
 import org.kframework.kil.Syntax;
 import org.kframework.kil.Term;
@@ -34,11 +34,8 @@ public class AddInjections extends CopyOnWriteTransformer{
 
     private TransformationState state;
 
-//    private Stack<String> expectedSortStack;
-
     public AddInjections(Context context) {
         super("", context);
-//        expectedSortStack = new Stack<>();
     }
 
     @Override
@@ -50,6 +47,19 @@ public class AddInjections extends CopyOnWriteTransformer{
         state = TransformationState.REMOVE_REDUNDANT_INJECTIONS;
         definition = (Definition) super.visit(definition, _);
         return definition;
+    }
+
+    @Override
+    public Module visit(Module module, Void _) {
+        if (state == null) {
+            state = TransformationState.TRANSFORM_PRODUCTIONS;
+            module = (Module) super.visit(module, _);
+            state = TransformationState.TRANSFORM_TERMS;
+            module = (Module) super.visit(module, _);
+            return module;
+        } else {
+            return (Module) super.visit(module, _);
+        }
     }
 
     /* Phase one: transform productions such that each user-defined production has sort subsorted to KItem and each
@@ -78,11 +88,15 @@ public class AddInjections extends CopyOnWriteTransformer{
             production.setSort(Sort.KITEM);
         }
 
+        if (sort.equals(Sort.BAG) && production.containsAttribute(Attribute.PATTERN_KEY)) {
+            production = production.shallowCopy();
+            production.setSort(Sort.MAP);
+        }
+
         Syntax returnNode;
         if (production != node.getPriorityBlocks().get(0).getProductions().get(0)) {
-            String cons = context.conses.inverse().get(
-                    node.getPriorityBlocks().get(0).getProductions().get(0));
-            context.conses.forcePut(cons, production);
+            context.removeProduction(node.getPriorityBlocks().get(0).getProductions().get(0));
+            context.addProduction(production);
 
             returnNode = node.shallowCopy();
             PriorityBlock priorityBlock = node.getPriorityBlocks().get(0).shallowCopy();
@@ -183,7 +197,11 @@ public class AddInjections extends CopyOnWriteTransformer{
 
         Sort sort = node.getProduction().getSort();
         if (needProjectionTo(sort)) {
-            transformedNode.setSort(Sort.KITEM);
+            if (!node.getProduction().containsAttribute(Attribute.PATTERN_KEY)) {
+                transformedNode.setSort(Sort.KITEM);
+            } else {
+                transformedNode.setSort(Sort.MAP);
+            }
             // TODO (AndreiS): remove special case
             if (node.getProduction().getLabel().equals("#if_#then_#else_#fi") && !sort.equals(Sort.KLIST)) {
                 return transformedNode;

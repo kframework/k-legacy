@@ -30,6 +30,7 @@
 	<classpathentry kind="lib" path="/home/qangel/project/k-unified/lib/java/cloning-1.8.5.jar"/>
 	<classpathentry kind="lib" path="/home/qangel/project/k-unified/lib/java/mpfr_java-1.0.jar"/>
 	<classpathentry kind="lib" path="/home/qangel/project/k-unified/lib/java/mpfr_java-1.0-linux64.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="lib/mockito-all.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -170,9 +170,9 @@
           <java jar="${javasources}/../../lib/java/k3.jar" fork="true" failonerror="true">
 	     <arg value="-ktest"/>
 	     <arg value="${config}"/>
-	     <arg value="-programs"/>
+	     <arg value="--programs"/>
 	     <arg value="."/>
-	     <arg value="-results"/>
+	     <arg value="--results"/>
 	     <arg value="."/>
 	   </java>
 	</target>
@@ -191,7 +191,8 @@
          </classpath>
          <batchtest>
            <fileset dir="${javasources}/KTool/test">
-             <include name="**/*.java" />
+             <include name="**/*Test.java" />
+             <include name="**/Test*.java" />
              <exclude name="org/kframework/utils/BaseTestCase.java" />
            </fileset>
          </batchtest>

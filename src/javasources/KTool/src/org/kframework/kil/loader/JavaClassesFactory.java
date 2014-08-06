@@ -2,7 +2,6 @@
 package org.kframework.kil.loader;
 
 import java.util.HashMap;
-
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Ambiguity;
 import org.kframework.kil.Attribute;
@@ -59,7 +58,7 @@ public class JavaClassesFactory {
             return new Rewrite(element, context);
         if (Constants.TERM.equals(element.getNodeName())) {
             assert context != null;
-            return new TermCons(element, context);
+            return new TermCons(element, context.getConses());
         }
         if (Constants.BRACKET.equals(element.getNodeName()))
             return new Bracket(element);
@@ -79,18 +78,8 @@ public class JavaClassesFactory {
             return new KApp(element, context);
         if (KSorts.KLIST.equals(element.getNodeName()))
             return new KList(element);
-        if (Constants.EMPTY.equals(element.getNodeName())) {
-            if (element.getAttribute(Constants.SORT_sort_ATTR).equals(KSorts.K)) {
-                return KSequence.EMPTY;
-            } else if (element.getAttribute(Constants.SORT_sort_ATTR).equals(KSorts.KLIST)) {
-                return KList.EMPTY;
-            } else if (element.getAttribute(Constants.SORT_sort_ATTR).equals(KSorts.BAG)) {
-                return Bag.EMPTY;
-            } else {
-                // user defined empty list
-                return new ListTerminator(element, null);
-            }
-        }
+        if (Constants.EMPTY.equals(element.getNodeName()))
+            return new ListTerminator(element, null);
         if (Constants.CONFIG.equals(element.getNodeName()))
             return new Configuration(element);
         if (Constants.CELL.equals(element.getNodeName()))
@@ -106,7 +95,7 @@ public class JavaClassesFactory {
         if (Constants.CONTEXT.equals(element.getNodeName()))
             return new org.kframework.kil.Context(element);
         if (Constants.HOLE.equals(element.getNodeName()))
-            return Hole.KITEM_HOLE;
+            return new Hole(element);
         if (Constants.FREEZERHOLE.equals(element.getNodeName()))
             return new FreezerHole(element);
         if (Constants.DEFINITION.equals(element.getNodeName()))
