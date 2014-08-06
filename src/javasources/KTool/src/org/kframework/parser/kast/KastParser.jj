@@ -50,6 +50,7 @@ public class KastParser {
       return parser.parseTopLevel(context);
     } catch (ParseException e) {
       // TODO: report location
+      System.out.println(e.toString());
       GlobalSettings.kem.register(new KException(
         ExceptionType.ERROR, KExceptionGroup.INNER_PARSER, e.toString(), filename, null));
       return null;
@@ -108,9 +109,8 @@ TOKEN : /* klabels */
 | < ALL_ID: ("#")?["A"-"Z","a"-"z","$","_","'","#"](~["~","/","<",">","=","]",
 		"[","}","{",".",":",",","\""," ",")","(","\r","\t", "\\", "\n"]
 		| "`)" | "`(" | "\\n" | "\\r" | "\\t" | "\\\\")*>
-| < SORT_ID: ("#")?["A"-"Z","a"-"z","$","_","#"](["A"-"Z","a"-"z","0"-"9"])*>
-| < LABELCONSTANT : (~[" ","\r","\t", "\\",":", "`","\n"]
-		| "\\n" | "\\r" | "\\t" | "\\\\")+ >
+| < LABELCONSTANT : ("`")(~["\r","\t", "\\","`","\n"]
+		| "\\n" | "\\r" | "\\t" | "\\\\")+("`") >
 }
 
 Sentence parseTopLevel(Context context) : {Term col;Term req=null;Term ens=null;}
@@ -210,26 +210,39 @@ Term parseKSeq(Context context) :{ArrayList<Term> temp = new ArrayList<Term>();T
 }
 
 
-Term parseKApp(Context context):{Token a=null; Term b=null;Token n=null;Token m=null;}
+Term parseKApp(Context context):{Term a=null; Term b=null;Token n=null;Token m=null;}
 {".K" {return KSequence.EMPTY;}
 | "HOLE" {return Hole.KITEM_HOLE;}
-|   <BackTick>
-	(a=< LABELCONSTANT > <BackTick> (< LPR > b=parseKList(context) < RPR >)
-     | n=< ALL_ID > "::" m=< SORT_ID >  <BackTick>
-     | b=parsePreCollection(context) <BackTick>
-     ) 
-{ if(a!=null)
-      return new KApp(KLabelConstant.of(a.image),b);
-  else if(b!=null)
-      return b;
-  else
-      return org.kframework.kil.Token.of(Sort.of(m.image),n.image); }
-| "#token" < LPR > n=< STRING > "," m=< STRING > < RPR >
-	{return org.kframework.kil.Token.of(Sort.of(n.image.substring(1,n.image.length()-1)),
-				m.image.substring(1,m.image.length()-1));}
-| "#klabel" < LPR > b=parseLabel() < RPR > {return new KApp(KLabelConstant.of("#label"),b);}
+| n= < LABELCONSTANT >
+	(< LPR > b=parseKList(context) < RPR > |
+	   "::" m=< ALL_ID > )
+  {if(b!=null)
+      return new KApp(KLabelConstant.of(n.image.substring(1,n.image.length()-1)),b);
+   else if(m.image.equals("Int"))
+      return org.kframework.kil.Token.of(Sort.BUILTIN_INT,
+				n.image.substring(1,n.image.length()-1));
+   else if(m.image.equals("String"))
+      return org.kframework.kil.Token.of(Sort.BUILTIN_STRING,
+				n.image.substring(1,n.image.length()-1));
+   else if(m.image.equals("Bool"))
+      return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,
+				n.image.substring(1,n.image.length()-1));
+   else
+      return org.kframework.kil.Token.of(Sort.of(m.image),
+				n.image.substring(1,n.image.length()-1));}
+| <BackTick> b=parsePreCollection(context) <BackTick> { return b; }
+| a=parseKToken()
+	{return a;}
+| "#klabel" < LPR > n=< LABELCONSTANT > < RPR >
+{return new KApp(KLabelConstant.of("#label"),
+		KLabelConstant.of(n.image.substring(1,n.image.length()-1)));}
 }
 
-Term parseLabel():{Token n;Token m;Term a;}
-{n= < LABELCONSTANT >  {return KLabelConstant.of(n.image);}
-}
+Term parseKToken():{Token n=null;Token m=null;}
+{ n=< NUM > {return org.kframework.kil.Token.of(Sort.BUILTIN_INT,n.image);}
+| n=< STRING > {return org.kframework.kil.Token.of(Sort.BUILTIN_STRING,n.image);}
+| "true" {return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,"true");}
+| "false" {return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,"false");}
+| "#token" < LPR > n=< STRING > "," m=< STRING > < RPR >
+	{return org.kframework.kil.Token.of(Sort.of(n.image.substring(1,n.image.length()-1)),
+				m.image.substring(1,m.image.length()-1));}}

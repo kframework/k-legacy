@@ -11,8 +11,14 @@ public class KastParserTest {
 	@Test
 	public void test() {
 		final Context context = new Context();
-		System.out.println(KastParser.parse("output.txt", ".Bag", context));
-		System.out.println(Bag.EMPTY);
 		assertTrue(KastParser.parse("output.txt", ".Bag", context).getBody().equals(Bag.EMPTY));
+		assertTrue(KastParser.parse("output.txt", "0", context).getBody()
+						.equals(KastParser.parse("output.txt", "`0`::Int", context).getBody()));
+		assertTrue(KastParser.parse("output.txt", "true", context).getBody()
+				.equals(KastParser.parse("output.txt", "`true`::Bool", context).getBody()));
+		assertTrue(KastParser.parse("output.txt", "false", context).getBody()
+				.equals(KastParser.parse("output.txt", "`false`::Bool", context).getBody()));
+		System.out.println(KastParser.parse("output.txt", "<abc> .Bag </abc>", context));
+		System.out.println(KastParser.parse("output.txt", "`abc`(0,0)", context));
 	}
 }
