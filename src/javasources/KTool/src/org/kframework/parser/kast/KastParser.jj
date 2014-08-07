@@ -1,0 +1,320 @@
+// Copyright (c) 2013-2014 K Team. All Rights Reserved.
+options {
+  STATIC = false;
+  UNICODE_INPUT = true;
+  SUPPORT_CLASS_VISIBILITY_PUBLIC = false;
+  TOKEN_MANAGER_USES_PARSER = true;
+  // FORCE_LA_CHECK = true; // Useful for development, but causes a warning in Production()
+}
+
+PARSER_BEGIN(KastParser)
+package org.kframework.parser.kast;
+
+import org.kframework.kil.Term;
+import org.kframework.kil.ASTNode;
+import org.kframework.kil.IntBuiltin;
+import org.kframework.kil.BoolBuiltin;
+import org.kframework.kil.StringBuiltin;
+import org.kframework.kil.KLabelConstant;
+import org.kframework.kil.KLabel;
+import org.kframework.kil.KList;
+import org.kframework.kil.KSequence;
+import org.kframework.kil.KApp;
+import org.kframework.kil.Hole;
+import org.kframework.kil.KInjectedLabel;
+import org.kframework.kil.Variable;
+import org.kframework.kil.Bag;
+import org.kframework.kil.Rewrite;
+import org.kframework.kil.Cell;
+import org.kframework.kil.Sentence;
+import org.kframework.kil.Freezer;
+import org.kframework.kil.KSorts;
+import org.kframework.kil.Sort;
+import java.util.ArrayList;
+import java.util.HashMap;
+import org.kframework.kil.loader.Context;
+import java.io.StringReader;
+
+import org.kframework.utils.errorsystem.KException.ExceptionType;
+import org.kframework.utils.errorsystem.KException.KExceptionGroup;
+import org.kframework.utils.errorsystem.KException;
+import org.kframework.utils.general.GlobalSettings;
+
+/*
+This is the grammar of the parser:
+
+Top = Cells | Cells requires Cells | Cells ensures Cells
+        | Cells requires Cells ensures Cells
+	    | Cells ensures Cells requires Cells
+
+Cells = CellList | CellList => CellList
+
+CellList = KSeq | Cell+
+
+Cell = < name attribute > CellList </ name >
+    |  < name attribute >... CellList </ name >
+    |  < name attribute > CellList ...</ name >
+    |  < name attribute >... CellList ...</ name >
+
+KSeq = KApp | KApp ~> KSeq
+
+KApp = .K | HOLE | KToken | `KLabel`(KList) | `Cells`
+
+KList = .KList | List{KSeq,","}
+
+KLabel = Name
+
+KToken = Num | String | Bool | `Num` | `String` | `Bool`
+        | `Value::Sort` #token(Sort,Value) | #klabel(KLabel)
+
+Num = ("-")?([ "0"-"9" ])+
+
+String = "Name"
+
+Bool = true | false
+*/
+public class KastParser {
+  private String filename;
+  
+  /** Parses a given string that was read from 'stringSentence'. */
+  public static Sentence parse(String filename, String string, Context context) {
+    KastParser parser = new KastParser(new StringReader(string));
+    try {
+      return parser.parseTopLevel(context);
+    } catch (ParseException e) {
+      // TODO: report location
+      System.out.println(e.toString());
+      GlobalSettings.kem.register(new KException(
+        ExceptionType.ERROR, KExceptionGroup.INNER_PARSER, e.toString(), filename, null));
+      return null;
+    } catch (TokenMgrError e) {
+      GlobalSettings.kem.register(new KException(
+        ExceptionType.ERROR, KExceptionGroup.INNER_PARSER, e.toString(), filename, null));
+      return null;
+    }
+  }
+
+}
+PARSER_END(KastParser)
+
+SKIP :
+{
+  " "
+| "\r"
+| "\t"
+| "\n"
+}
+
+TOKEN : /* klabels */
+{ < NUM : ("-")?(< DIGIT >)+ >
+| < #DIGIT : [ "0"-"9" ] >
+| <STRING: "\"" (~["\"", "\n"] |
+                 "\\\"" | "\\n" | "\\r" | "\\t")* "\"">
+| "true"
+| "false"
+| ":"
+| "::"
+| ".K"
+| ","
+| "~>"
+| "HOLE"
+| ".KList"
+| "#klabel"
+| "#token"
+| ".Bag"
+| "color"
+| "multiplicity"
+| "stream"
+| "requires"
+| "ensures"
+| < REWRITE : "=>" >
+| < EQUAL : "=" >
+| < LCELLPR : "<" >
+| < RCELLPR : ">" >
+| < LENDPR : "</" >
+| < RCELLPRDOT : ">..." >
+| < LENDPRDOT : "...</" >
+| < LPR : "(" >
+| < RPR : ")" >
+| < BackTick: "`" >
+| <LCURLY: "{">
+| <RCURLY: "}">
+| < ALL_ID: ("#")?["A"-"Z","a"-"z","$","_","'","#"](~["~","/","<",">","=","]",
+		"[","}","{",".",":",",","\""," ",")","(","\r","\t", "\\", "\n"]
+		| "`)" | "`(" | "\\n" | "\\r" | "\\t" | "\\\\")*>
+| < LABELCONSTANT : ("`")(~["\r","\t", "\\","`","\n"]
+		| "\\n" | "\\r" | "\\t" | "\\\\")+("`") >
+}
+
+/*
+Top level parser to parse the sentence.
+We allow only one requires term and one ensures term.
+*/
+Sentence parseTopLevel(Context context) : {Term col;Term req=null;Term ens=null;}
+{ col=parsePreCollection(context)
+	("requires" req=parseKApp(context) ("ensures" ens=parseKApp(context))?
+     | "ensures" ens=parseKApp(context) ("requires" req=parseKApp(context))?)?
+	 < EOF >
+{Sentence result = new Sentence(); result.setBody(col);
+	if (req!=null)
+		result.setRequires(req);
+	if (ens!=null)
+		result.setEnsures(ens);
+	return result; } }
+
+Term parsePreCollection(Context context): {Term a=null;Term b=null;}
+{ a=parseCollection(context) (< REWRITE > b=parseCollection(context))?
+	{if(b==null)
+	    return a;
+	 else
+	    return new Rewrite(a, b, context);}}
+
+//a function to parse a cell list
+Term parseCollection(Context context) : {ArrayList<Term> result = new ArrayList<Term>();Term a;}
+{".Bag" {return Bag.EMPTY;}
+| a = parseKSeq(context) {return a;}
+|  (a=parseCellItem(context) {result.add(a);})+
+{ if(result.size()==1)
+    return result.get(0);
+  else 
+    return new Bag(result);}
+}
+
+//a function to parse a signle cell
+Term parseCellItem(Context context) : {Term left;Term right;;Token label;Token endLabel;Term cellContents;
+        boolean leftEclipse;boolean rightEclipse;HashMap<String,String> attributes=null;}
+{ < LCELLPR > label=< ALL_ID > attributes=parseAttributes() leftEclipse=parseLeftEclipse()
+     cellContents=parsePreCollection(context)
+       rightEclipse=parseRightEclipse() endLabel=< ALL_ID > < RCELLPR >
+     {if(label.image.equals(endLabel.image))
+     { if(leftEclipse)
+    { if (rightEclipse)
+        return new Cell(label.image,cellContents,attributes,"both");
+      else
+          return new Cell(label.image,cellContents,attributes,"left");
+    } else if (rightEclipse)
+        return new Cell(label.image,cellContents,attributes,"right");
+      else
+          return new Cell(label.image,cellContents,attributes,"none");
+    }}
+}
+
+boolean parseLeftEclipse() : {}
+{ < RCELLPR >
+{return false; }
+| < RCELLPRDOT >
+{return true;}
+}
+
+boolean parseRightEclipse() : {}
+{ < LENDPR >
+{return false; }
+| < LENDPRDOT >
+{return true;}
+}
+
+//a function to parse all attributes in cells
+HashMap<String,String> parseAttributes() :
+    {HashMap<String,String > temp = new HashMap<String,String >();Token a;Token b;}
+{ (a="color" < EQUAL > b=< STRING > | a="multiplicity" < EQUAL > b=< STRING >
+    | a="stream" < EQUAL > b=< STRING > {
+      if(a.image.equals("color"))
+          temp.put("color",b.image);
+      else if(a.image.equals("multiplicity"))
+          temp.put("multiplicity",b.image);
+          else if(a.image.equals("stream"))
+          temp.put("stream",b.image);    
+      })* {return temp;}  }
+
+/*
+a function to parse KList. Currently, we don't allow users to write KList in the top level.
+every format must be K ~> K, KLabel(KList) or <abc>Bag</abc>
+*/
+Term parseKList(Context context) : {ArrayList<Term> temp = new ArrayList<Term>();Term a;Term e;}
+{ ".KList"
+{return KList.EMPTY;}
+| (a=parseKSeq(context)
+{temp.add(a);})
+("," e=parseKSeq(context)
+{temp.add(e); })*
+{ if(temp.size()==1)
+    return temp.get(0);
+  else
+    return new KList(temp);}
+}
+
+/*
+parse K term as K ~> K
+*/
+Term parseKSeq(Context context) :{ArrayList<Term> temp = new ArrayList<Term>();Term a;Term e;}
+{ (a=parseKApp(context)
+{temp.add(a);})
+ ("~>" e=parseKApp(context)
+{temp.add(e); })*
+{if (temp.size()==1)
+    return temp.get(0);
+ else
+  return new KSequence(temp);}
+}
+
+/*
+parse KItem including KLabel, KToken and backtick blocks
+*/
+Term parseKApp(Context context):{Term a=null; Term b=null;Token n=null;Token m=null;}
+{".K" {return KSequence.EMPTY;}
+| "HOLE" {return Hole.KITEM_HOLE;}
+| n= < LABELCONSTANT >
+    (< LPR > b=parseKList(context) < RPR >)?
+  {if(b!=null)
+      return new KApp(KLabelConstant.of(n.image.substring(1,n.image.length()-1)),b);
+   else
+      {
+        if(n.image.charAt(n.image.length()-2) == '\"')        {           return org.kframework.kil.Token.of(Sort.BUILTIN_STRING,
+                n.image.substring(2,n.image.length()-2));
+        }
+        int sortLocation=n.image.lastIndexOf("::");
+        if(sortLocation==-1)        {
+           if(n.image.substring(1,n.image.length()-1).equals("true")
+             || n.image.substring(1,n.image.length()-1).equals("false"))
+             return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,
+                n.image.substring(1,n.image.length()-1));
+           else
+             return org.kframework.kil.Token.of(Sort.BUILTIN_INT,
+                n.image.substring(1,n.image.length()-1));
+                      }
+        String theSort = n.image.substring(sortLocation+2,n.image.length()-1);
+        if(theSort.equals("Int"))
+           return org.kframework.kil.Token.of(Sort.BUILTIN_INT,
+                n.image.substring(1,sortLocation));
+        else if(theSort.equals("Bool"))
+           return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,
+                n.image.substring(1,sortLocation));
+        else if(theSort.equals("String"))
+           return org.kframework.kil.Token.of(Sort.BUILTIN_STRING,
+                n.image.substring(2,sortLocation-1));
+        else 
+           return org.kframework.kil.Token.of(Sort.of(theSort),
+                n.image.substring(1,sortLocation));}}
+| <BackTick> b=parsePreCollection(context) <BackTick> { return b; }
+| a=parseKToken()
+    {return a;}
+| "#klabel" < LPR > n=< LABELCONSTANT > < RPR >
+{return new KApp(KLabelConstant.of("#klabel"),
+        KLabelConstant.of(n.image.substring(1,n.image.length()-1)));}
+}
+
+/*the function will parse different kinds of tokens.
+currently, we allow three ways to write a tokens:
+First, we allow users to write Num,String and boolean values directly
+Second, we allow users to write tokens as `100:Int`.
+Third, we allow users to write #token(Sort,Value)
+*/
+Term parseKToken():{Token n=null;Token m=null;}
+{ n=< NUM > {return org.kframework.kil.Token.of(Sort.BUILTIN_INT,n.image);}
+| n=< STRING > {return org.kframework.kil.Token.of(Sort.BUILTIN_STRING,
+                                n.image.substring(1,n.image.length()-1));}
+| "true" {return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,"true");}
+| "false" {return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,"false");}
+| "#token" < LPR > n=< STRING > "," m=< STRING > < RPR >
+    {return org.kframework.kil.Token.of(Sort.of(n.image.substring(1,n.image.length()-1)),
+                m.image.substring(1,m.image.length()-1));}}
