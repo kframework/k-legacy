@@ -1,9 +1,19 @@
+// Copyright (c) 2012-2014 K Team. All Rights Reserved.
 package org.kframework.parser.kast;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Test;
+import org.kframework.kil.KList;
 import org.kframework.kil.Bag;
+import org.kframework.kil.Cell;
+import org.kframework.kil.IntBuiltin;
+import org.kframework.kil.KApp;
+import org.kframework.kil.KLabelConstant;
+import org.kframework.kil.Term;
 import org.kframework.kil.loader.Context;
 
 public class KastParserTest {
@@ -33,7 +43,15 @@ public class KastParserTest {
 				.equals(KastParser.parse("output.txt", "`false::Bool`", context).getBody()));
 		
 		//test parsing klabel and cells
-		System.out.println(KastParser.parse("output.txt", "<abc> .Bag </abc>", context));
-		System.out.println(KastParser.parse("output.txt", "`abc`(0,0)", context));
+		Cell testCell = new Cell("abc",Bag.EMPTY);
+		assertTrue(KastParser.parse("output.txt", "<abc> .Bag </abc>", context)
+					.getBody().equals(testCell));
+		
+		//test parsing a KItem
+		List<Term> testKList = new ArrayList<Term>();
+		testKList.add(IntBuiltin.of(0));
+		testKList.add(IntBuiltin.of(0));
+		assertTrue(KastParser.parse("output.txt", "`abc`(0,0)", context)
+				.getBody().equals(new KApp(KLabelConstant.of("abc"), (Term)(new KList(testKList)))));
 	}
 }

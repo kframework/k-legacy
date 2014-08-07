@@ -40,6 +40,39 @@ import org.kframework.utils.errorsystem.KException.KExceptionGroup;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.general.GlobalSettings;
 
+/*
+This is the grammar of the parser:
+
+Top = Cells | Cells requires Cells | Cells ensures Cells
+        | Cells requires Cells ensures Cells
+	    | Cells ensures Cells requires Cells
+
+Cells = CellList | CellList => CellList
+
+CellList = KSeq | Cell+
+
+Cell = < name attribute > CellList </ name >
+    |  < name attribute >... CellList </ name >
+    |  < name attribute > CellList ...</ name >
+    |  < name attribute >... CellList ...</ name >
+
+KSeq = KApp | KApp ~> KSeq
+
+KApp = .K | HOLE | KToken | `KLabel`(KList) | `Cells`
+
+KList = .KList | List{KSeq,","}
+
+KLabel = Name
+
+KToken = Num | String | Bool | `Num` | `String` | `Bool`
+        | `Value::Sort` #token(Sort,Value) | #klabel(KLabel)
+
+Num = ("-")?([ "0"-"9" ])+
+
+String = "Name"
+
+Bool = true | false
+*/
 public class KastParser {
   private String filename;
   
@@ -113,6 +146,10 @@ TOKEN : /* klabels */
 		| "\\n" | "\\r" | "\\t" | "\\\\")+("`") >
 }
 
+/*
+Top level parser to parse the sentence.
+We allow only one requires term and one ensures term.
+*/
 Sentence parseTopLevel(Context context) : {Term col;Term req=null;Term ens=null;}
 { col=parsePreCollection(context)
 	("requires" req=parseKApp(context) ("ensures" ens=parseKApp(context))?
@@ -132,6 +169,7 @@ Term parsePreCollection(Context context): {Term a=null;Term b=null;}
 	 else
 	    return new Rewrite(a, b, context);}}
 
+//a function to parse a cell list
 Term parseCollection(Context context) : {ArrayList<Term> result = new ArrayList<Term>();Term a;}
 {".Bag" {return Bag.EMPTY;}
 | a = parseKSeq(context) {return a;}
@@ -142,10 +180,12 @@ Term parseCollection(Context context) : {ArrayList<Term> result = new ArrayList<
     return new Bag(result);}
 }
 
+//a function to parse a signle cell
 Term parseCellItem(Context context) : {Term left;Term right;;Token label;Token endLabel;Term cellContents;
 		boolean leftEclipse;boolean rightEclipse;HashMap<String,String> attributes=null;}
 { < LCELLPR > label=< ALL_ID > attributes=parseAttributes() leftEclipse=parseLeftEclipse()
-	 cellContents=parsePreCollection(context) rightEclipse=parseRightEclipse() endLabel=< ALL_ID > < RCELLPR >
+	 cellContents=parsePreCollection(context)
+	   rightEclipse=parseRightEclipse() endLabel=< ALL_ID > < RCELLPR >
 	 {if(label.image.equals(endLabel.image))
 	 { if(leftEclipse)
 	{ if (rightEclipse)
@@ -173,6 +213,7 @@ boolean parseRightEclipse() : {}
 {return true;}
 }
 
+//a function to parse all attributes in cells
 HashMap<String,String> parseAttributes() :
 	{HashMap<String,String > temp = new HashMap<String,String >();Token a;Token b;}
 { (a="color" < EQUAL > b=< STRING > | a="multiplicity" < EQUAL > b=< STRING >
@@ -184,7 +225,11 @@ HashMap<String,String> parseAttributes() :
 	  	else if(a.image.equals("stream"))
 	  	temp.put("stream",b.image);	
 	  })* {return temp;}  }
- 
+
+/*
+a function to parse KList. Currently, we don't allow users to write KList in the top level.
+every format must be K ~> K, KLabel(KList) or <abc>Bag</abc>
+*/
 Term parseKList(Context context) : {ArrayList<Term> temp = new ArrayList<Term>();Term a;Term e;}
 { ".KList"
 {return KList.EMPTY;}
@@ -198,6 +243,9 @@ Term parseKList(Context context) : {ArrayList<Term> temp = new ArrayList<Term>()
     return new KList(temp);}
 }
 
+/*
+parse K term as K ~> K
+*/
 Term parseKSeq(Context context) :{ArrayList<Term> temp = new ArrayList<Term>();Term a;Term e;}
 { (a=parseKApp(context)
 {temp.add(a);})
@@ -209,7 +257,9 @@ Term parseKSeq(Context context) :{ArrayList<Term> temp = new ArrayList<Term>();T
   return new KSequence(temp);}
 }
 
-
+/*
+parse KItem including KLabel, KToken and backtick blocks
+*/
 Term parseKApp(Context context):{Term a=null; Term b=null;Token n=null;Token m=null;}
 {".K" {return KSequence.EMPTY;}
 | "HOLE" {return Hole.KITEM_HOLE;}
@@ -253,6 +303,12 @@ Term parseKApp(Context context):{Term a=null; Term b=null;Token n=null;Token m=n
 		KLabelConstant.of(n.image.substring(1,n.image.length()-1)));}
 }
 
+/*the function will parse different kinds of tokens.
+currently, we allow three ways to write a tokens:
+First, we allow users to write Num,String and boolean values directly
+Second, we allow users to write tokens as `100:Int`.
+Third, we allow users to write #token(Sort,Value)
+*/
 Term parseKToken():{Token n=null;Token m=null;}
 { n=< NUM > {return org.kframework.kil.Token.of(Sort.BUILTIN_INT,n.image);}
 | n=< STRING > {return org.kframework.kil.Token.of(Sort.BUILTIN_STRING,
