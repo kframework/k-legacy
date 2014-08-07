@@ -214,33 +214,49 @@ Term parseKApp(Context context):{Term a=null; Term b=null;Token n=null;Token m=n
 {".K" {return KSequence.EMPTY;}
 | "HOLE" {return Hole.KITEM_HOLE;}
 | n= < LABELCONSTANT >
-	(< LPR > b=parseKList(context) < RPR > |
-	   "::" m=< ALL_ID > )
+	(< LPR > b=parseKList(context) < RPR >)?
   {if(b!=null)
       return new KApp(KLabelConstant.of(n.image.substring(1,n.image.length()-1)),b);
-   else if(m.image.equals("Int"))
-      return org.kframework.kil.Token.of(Sort.BUILTIN_INT,
-				n.image.substring(1,n.image.length()-1));
-   else if(m.image.equals("String"))
-      return org.kframework.kil.Token.of(Sort.BUILTIN_STRING,
-				n.image.substring(1,n.image.length()-1));
-   else if(m.image.equals("Bool"))
-      return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,
-				n.image.substring(1,n.image.length()-1));
    else
-      return org.kframework.kil.Token.of(Sort.of(m.image),
-				n.image.substring(1,n.image.length()-1));}
+      {
+        if(n.image.charAt(n.image.length()-2) == '\"')        {           return org.kframework.kil.Token.of(Sort.BUILTIN_STRING,
+				n.image.substring(2,n.image.length()-2));
+        }
+        int sortLocation=n.image.lastIndexOf("::");
+        if(sortLocation==-1)        {
+           if(n.image.substring(1,n.image.length()-1).equals("true")
+             || n.image.substring(1,n.image.length()-1).equals("false"))
+             return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,
+				n.image.substring(1,n.image.length()-1));
+		   else
+             return org.kframework.kil.Token.of(Sort.BUILTIN_INT,
+				n.image.substring(1,n.image.length()-1));
+		              }
+        String theSort = n.image.substring(sortLocation+2,n.image.length()-1);
+        if(theSort.equals("Int"))
+           return org.kframework.kil.Token.of(Sort.BUILTIN_INT,
+				n.image.substring(1,sortLocation));
+		else if(theSort.equals("Bool"))
+		   return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,
+				n.image.substring(1,sortLocation));
+		else if(theSort.equals("String"))
+		   return org.kframework.kil.Token.of(Sort.BUILTIN_STRING,
+				n.image.substring(2,sortLocation-1));
+        else 
+           return org.kframework.kil.Token.of(Sort.of(theSort),
+                n.image.substring(1,sortLocation));}}
 | <BackTick> b=parsePreCollection(context) <BackTick> { return b; }
 | a=parseKToken()
 	{return a;}
 | "#klabel" < LPR > n=< LABELCONSTANT > < RPR >
-{return new KApp(KLabelConstant.of("#label"),
+{return new KApp(KLabelConstant.of("#klabel"),
 		KLabelConstant.of(n.image.substring(1,n.image.length()-1)));}
 }
 
 Term parseKToken():{Token n=null;Token m=null;}
 { n=< NUM > {return org.kframework.kil.Token.of(Sort.BUILTIN_INT,n.image);}
-| n=< STRING > {return org.kframework.kil.Token.of(Sort.BUILTIN_STRING,n.image);}
+| n=< STRING > {return org.kframework.kil.Token.of(Sort.BUILTIN_STRING,
+								n.image.substring(1,n.image.length()-1));}
 | "true" {return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,"true");}
 | "false" {return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,"false");}
 | "#token" < LPR > n=< STRING > "," m=< STRING > < RPR >
