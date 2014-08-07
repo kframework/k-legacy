@@ -182,21 +182,21 @@ Term parseCollection(Context context) : {ArrayList<Term> result = new ArrayList<
 
 //a function to parse a signle cell
 Term parseCellItem(Context context) : {Term left;Term right;;Token label;Token endLabel;Term cellContents;
-		boolean leftEclipse;boolean rightEclipse;HashMap<String,String> attributes=null;}
+        boolean leftEclipse;boolean rightEclipse;HashMap<String,String> attributes=null;}
 { < LCELLPR > label=< ALL_ID > attributes=parseAttributes() leftEclipse=parseLeftEclipse()
-	 cellContents=parsePreCollection(context)
-	   rightEclipse=parseRightEclipse() endLabel=< ALL_ID > < RCELLPR >
-	 {if(label.image.equals(endLabel.image))
-	 { if(leftEclipse)
-	{ if (rightEclipse)
-		return new Cell(label.image,cellContents,attributes,"both");
-	  else
-	  	return new Cell(label.image,cellContents,attributes,"left");
-	} else if (rightEclipse)
-		return new Cell(label.image,cellContents,attributes,"right");
-	  else
-	  	return new Cell(label.image,cellContents,attributes,"none");
-	}}
+     cellContents=parsePreCollection(context)
+       rightEclipse=parseRightEclipse() endLabel=< ALL_ID > < RCELLPR >
+     {if(label.image.equals(endLabel.image))
+     { if(leftEclipse)
+    { if (rightEclipse)
+        return new Cell(label.image,cellContents,attributes,"both");
+      else
+          return new Cell(label.image,cellContents,attributes,"left");
+    } else if (rightEclipse)
+        return new Cell(label.image,cellContents,attributes,"right");
+      else
+          return new Cell(label.image,cellContents,attributes,"none");
+    }}
 }
 
 boolean parseLeftEclipse() : {}
@@ -215,16 +215,16 @@ boolean parseRightEclipse() : {}
 
 //a function to parse all attributes in cells
 HashMap<String,String> parseAttributes() :
-	{HashMap<String,String > temp = new HashMap<String,String >();Token a;Token b;}
+    {HashMap<String,String > temp = new HashMap<String,String >();Token a;Token b;}
 { (a="color" < EQUAL > b=< STRING > | a="multiplicity" < EQUAL > b=< STRING >
-	| a="stream" < EQUAL > b=< STRING > {
-	  if(a.image.equals("color"))
-	  	temp.put("color",b.image);
-	  else if(a.image.equals("multiplicity"))
-	  	temp.put("multiplicity",b.image);
-	  	else if(a.image.equals("stream"))
-	  	temp.put("stream",b.image);	
-	  })* {return temp;}  }
+    | a="stream" < EQUAL > b=< STRING > {
+      if(a.image.equals("color"))
+          temp.put("color",b.image);
+      else if(a.image.equals("multiplicity"))
+          temp.put("multiplicity",b.image);
+          else if(a.image.equals("stream"))
+          temp.put("stream",b.image);    
+      })* {return temp;}  }
 
 /*
 a function to parse KList. Currently, we don't allow users to write KList in the top level.
@@ -238,7 +238,7 @@ Term parseKList(Context context) : {ArrayList<Term> temp = new ArrayList<Term>()
 ("," e=parseKSeq(context)
 {temp.add(e); })*
 { if(temp.size()==1)
-	return temp.get(0);
+    return temp.get(0);
   else
     return new KList(temp);}
 }
@@ -252,7 +252,7 @@ Term parseKSeq(Context context) :{ArrayList<Term> temp = new ArrayList<Term>();T
  ("~>" e=parseKApp(context)
 {temp.add(e); })*
 {if (temp.size()==1)
-	return temp.get(0);
+    return temp.get(0);
  else
   return new KSequence(temp);}
 }
@@ -264,43 +264,43 @@ Term parseKApp(Context context):{Term a=null; Term b=null;Token n=null;Token m=n
 {".K" {return KSequence.EMPTY;}
 | "HOLE" {return Hole.KITEM_HOLE;}
 | n= < LABELCONSTANT >
-	(< LPR > b=parseKList(context) < RPR >)?
+    (< LPR > b=parseKList(context) < RPR >)?
   {if(b!=null)
       return new KApp(KLabelConstant.of(n.image.substring(1,n.image.length()-1)),b);
    else
       {
         if(n.image.charAt(n.image.length()-2) == '\"')        {           return org.kframework.kil.Token.of(Sort.BUILTIN_STRING,
-				n.image.substring(2,n.image.length()-2));
+                n.image.substring(2,n.image.length()-2));
         }
         int sortLocation=n.image.lastIndexOf("::");
         if(sortLocation==-1)        {
            if(n.image.substring(1,n.image.length()-1).equals("true")
              || n.image.substring(1,n.image.length()-1).equals("false"))
              return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,
-				n.image.substring(1,n.image.length()-1));
-		   else
+                n.image.substring(1,n.image.length()-1));
+           else
              return org.kframework.kil.Token.of(Sort.BUILTIN_INT,
-				n.image.substring(1,n.image.length()-1));
-		              }
+                n.image.substring(1,n.image.length()-1));
+                      }
         String theSort = n.image.substring(sortLocation+2,n.image.length()-1);
         if(theSort.equals("Int"))
            return org.kframework.kil.Token.of(Sort.BUILTIN_INT,
-				n.image.substring(1,sortLocation));
-		else if(theSort.equals("Bool"))
-		   return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,
-				n.image.substring(1,sortLocation));
-		else if(theSort.equals("String"))
-		   return org.kframework.kil.Token.of(Sort.BUILTIN_STRING,
-				n.image.substring(2,sortLocation-1));
+                n.image.substring(1,sortLocation));
+        else if(theSort.equals("Bool"))
+           return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,
+                n.image.substring(1,sortLocation));
+        else if(theSort.equals("String"))
+           return org.kframework.kil.Token.of(Sort.BUILTIN_STRING,
+                n.image.substring(2,sortLocation-1));
         else 
            return org.kframework.kil.Token.of(Sort.of(theSort),
                 n.image.substring(1,sortLocation));}}
 | <BackTick> b=parsePreCollection(context) <BackTick> { return b; }
 | a=parseKToken()
-	{return a;}
+    {return a;}
 | "#klabel" < LPR > n=< LABELCONSTANT > < RPR >
 {return new KApp(KLabelConstant.of("#klabel"),
-		KLabelConstant.of(n.image.substring(1,n.image.length()-1)));}
+        KLabelConstant.of(n.image.substring(1,n.image.length()-1)));}
 }
 
 /*the function will parse different kinds of tokens.
@@ -312,9 +312,9 @@ Third, we allow users to write #token(Sort,Value)
 Term parseKToken():{Token n=null;Token m=null;}
 { n=< NUM > {return org.kframework.kil.Token.of(Sort.BUILTIN_INT,n.image);}
 | n=< STRING > {return org.kframework.kil.Token.of(Sort.BUILTIN_STRING,
-								n.image.substring(1,n.image.length()-1));}
+                                n.image.substring(1,n.image.length()-1));}
 | "true" {return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,"true");}
 | "false" {return org.kframework.kil.Token.of(Sort.BUILTIN_BOOL,"false");}
 | "#token" < LPR > n=< STRING > "," m=< STRING > < RPR >
-	{return org.kframework.kil.Token.of(Sort.of(n.image.substring(1,n.image.length()-1)),
-				m.image.substring(1,m.image.length()-1));}}
+    {return org.kframework.kil.Token.of(Sort.of(n.image.substring(1,n.image.length()-1)),
+                m.image.substring(1,m.image.length()-1));}}
