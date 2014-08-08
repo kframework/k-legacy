@@ -1,0 +1,50 @@
+<T>
+    <observers>
+        ListItem(n)
+        ListItem(i)
+        ListItem(s)
+    </observers>
+    <goals>
+        .Bag
+    </goals>
+    <hypos>
+        <hypo>
+            <hcondition>
+                #symInt ( k0 ) ==Int #symInt ( i02 ) *Int #symInt ( i02 ) 
+                  andBool #symInt ( i01 ) ==Int #symInt ( i02 ) andBool 
+                  #symInt ( 1 ) ==Int #symInt ( 2 ) andBool #symInt ( 3 ) 
+                  ==Int #symInt ( 4 ) andBool #symInt ( 5 ) ==Int #symInt ( 
+                  i01 ) andBool #symInt ( 6 ) ==Int #symInt ( 1 ) andBool 
+                  #symInt ( 7 ) ==Int #symInt ( 3 ) andBool #symInt ( 8 ) 
+                  ==Int #symInt ( i02 ) andBool #symInt ( 9 ) ==Int #symInt ( 
+                  k0 ) andBool #symInt ( 10 ) ==Int #symInt ( 2 ) andBool 
+                  #symInt ( 11 ) ==Int #symInt ( 4 )
+            </hcondition>
+            <patt1>
+                <hk1>
+                    (while (i <= n) do ((s := (s + (i * i))) ; (i := (i + 1)))
+                      )
+                </hk1>
+                <henv1>
+                    #symbMap ( M1 )
+                    i |-> #symInt ( 5 )
+                    n |-> #symInt ( 6 )
+                    s |-> #symInt ( 7 )
+                </henv1>
+            </patt1>
+            <patt2>
+                <hk2>
+                    (while (i <= n) do (((s := (s + k)) ; (k := (((k + i) + i)
+                       + 1))) ; (i := (i + 1))))
+                </hk2>
+                <henv2>
+                    #symbMap ( M2 )
+                    i |-> #symInt ( 8 )
+                    k |-> #symInt ( 9 )
+                    n |-> #symInt ( 10 )
+                    s |-> #symInt ( 11 )
+                </henv2>
+            </patt2>
+        </hypo>
+    </hypos>
+</T>

@@ -1,0 +1,44 @@
+<T>
+    <goals>
+        .Bag
+    </goals>
+    <hypos>
+        <hypo>
+            <patt1>
+                <hout1>
+                    (0 : ([]))
+                </hout1>
+                <hk1>
+                    (zip ( (1 : (not ( #symVariableBSExp(1) ))), 
+                      #symVariableBSExp(1) ))
+                </hk1>
+            </patt1>
+            <patt2>
+                <hout2>
+                    (0 : ([]))
+                </hout2>
+                <hk2>
+                    ((neg ( 0 )) : (f ( #symVariableBSExp(1) )))
+                </hk2>
+            </patt2>
+        </hypo>
+        <hypo>
+            <patt1>
+                <hout1>
+                    ([])
+                </hout1>
+                <hk1>
+                     f`( $S:BSExp`) 
+                </hk1>
+            </patt1>
+            <patt2>
+                <hout2>
+                    ([])
+                </hout2>
+                <hk2>
+                     zip`( $S:BSExp, (not ( $S:BSExp ))`) 
+                </hk2>
+            </patt2>
+        </hypo>
+    </hypos>
+</T>

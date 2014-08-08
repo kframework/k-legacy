@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Copyright (c) 2013-2014 K Team. All Rights Reserved. -->
+
+<tests>
+<!--
+  Testing the prototype for stream equivalence of programs w.r.t. the approach
+  from IFM 2013.
+-->
+
+  <test
+      definition="seq.k"
+      programs="../programs"
+      extension="seq"
+      results="../programs" >
+      <all-programs>
+        <krun-option name="--color" value="off" />
+      </all-programs>
+  </test> 
+</tests>

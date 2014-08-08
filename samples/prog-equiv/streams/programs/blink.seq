@@ -17,6 +17,7 @@ zip(xs, ys) :~ hd(xs) : L.zip(ys, tl(xs));
 </sspecs> ;
 
 /*
+// just for testing more goals once
 <k> L.one </k>
 <sspecs>
 one :~ 1 : L.one;

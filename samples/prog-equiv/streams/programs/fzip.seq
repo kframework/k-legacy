@@ -1,5 +1,8 @@
 /*
  This is an example of STREAM equivalence.
+
+ Running command: krun programs/fzip.seq --search
+
 */
                                      
 

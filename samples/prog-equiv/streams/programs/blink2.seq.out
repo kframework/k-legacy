@@ -1,0 +1,61 @@
+<T>
+    <goals>
+        .Bag
+    </goals>
+    <hypos>
+        <hypo>
+            <patt1>
+                <hout1>
+                    (0 : (1 : ([])))
+                </hout1>
+                <hk1>
+                    (0 : blink1)
+                </hk1>
+            </patt1>
+            <patt2>
+                <hout2>
+                    (0 : (1 : ([])))
+                </hout2>
+                <hk2>
+                    blink
+                </hk2>
+            </patt2>
+        </hypo>
+        <hypo>
+            <patt1>
+                <hout1>
+                    (0 : ([]))
+                </hout1>
+                <hk1>
+                    (1 : blink)
+                </hk1>
+            </patt1>
+            <patt2>
+                <hout2>
+                    (0 : ([]))
+                </hout2>
+                <hk2>
+                    blink1
+                </hk2>
+            </patt2>
+        </hypo>
+        <hypo>
+            <patt1>
+                <hout1>
+                    ([])
+                </hout1>
+                <hk1>
+                    blink
+                </hk1>
+            </patt1>
+            <patt2>
+                <hout2>
+                    ([])
+                </hout2>
+                <hk2>
+                    blink2
+                </hk2>
+            </patt2>
+        </hypo>
+    </hypos>
+</T>

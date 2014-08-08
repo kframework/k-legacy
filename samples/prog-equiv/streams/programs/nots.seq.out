@@ -1,0 +1,25 @@
+<T>
+    <goals>
+        .Bag
+    </goals>
+    <hypos>
+        <hypo>
+            <patt1>
+                <hout1>
+                    ([])
+                </hout1>
+                <hk1>
+                     id`( $S:BSExp`) 
+                </hk1>
+            </patt1>
+            <patt2>
+                <hout2>
+                    ([])
+                </hout2>
+                <hk2>
+                     not`( (not ( $S:BSExp ))`) 
+                </hk2>
+            </patt2>
+        </hypo>
+    </hypos>
+</T>

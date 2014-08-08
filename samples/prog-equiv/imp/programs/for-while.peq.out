@@ -1,0 +1,40 @@
+<T>
+    <observers>
+        ListItem(allObs)
+    </observers>
+    <goals>
+        .Bag
+    </goals>
+    <hypos>
+        <hypo>
+            <hcondition>
+                i isNotModifiedBy (#symStmt ( s )) andBool (#symAExp ( a1 )) 
+                  isNotModifiedBy (#symStmt ( s )) andBool (#symAExp ( a2 )) 
+                  isNotModifiedBy (#symStmt ( s )) andBool #symInt ( 2 ) ==Int
+                   #symInt ( i1 ) andBool #symInt ( 3 ) ==Int #symInt ( i1 )
+            </hcondition>
+            <patt1>
+                <hk1>
+                    (for i from #symInt ( 1 ) to (#symAExp ( a2 )) do (
+                      #symStmt ( s )))
+                </hk1>
+                <henv1>
+                    #symbMap ( M )
+                    (#symAExp ( a1 )) |-> #symInt ( 1 )
+                    i |-> #symInt ( 2 )
+                </henv1>
+            </patt1>
+            <patt2>
+                <hk2>
+                    (i := (#symAExp ( a1 ))) ~> (while (i <= (#symAExp ( a2 ))
+                      ) do ((#symStmt ( s )) ; (L : (i := (i + 1)))))
+                </hk2>
+                <henv2>
+                    #symbMap ( M )
+                    (#symAExp ( a1 )) |-> #symInt ( 1 )
+                    i |-> #symInt ( 3 )
+                </henv2>
+            </patt2>
+        </hypo>
+    </hypos>
+</T>

@@ -1,5 +1,8 @@
 /*
  This is an example of STREAM equivalence.
+
+ Running command: krun programs/morse.seq --search
+
 */
 
 <k> L.f($S:BSExp) </k>
@@ -18,8 +21,7 @@ neg(x) := 1 <| x = 0 |> 0;
 not(xs) :~ 1 <| hd(xs) = 0 |> 0 : not(tl(xs));
 zip(xs, ys) :~ hd(xs) : L.zip(ys, tl(xs));
 f(xs) :~ hd(xs) : L.(neg(hd(xs)) : L.f(tl(xs)));
-</sspecs> ;
-                                  
+</sspecs> ;                               
 
 <k> L.morse </k>
 <sspecs>

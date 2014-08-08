@@ -1,0 +1,130 @@
+<T>
+    <observers>
+        ListItem(n)
+        ListItem(i)
+        ListItem(s)
+    </observers>
+    <goals>
+        <goal>
+            <condition>
+                #symInt ( k0 ) ==Int #symInt ( i02 ) *Int #symInt ( i02 ) 
+                  andBool #symInt ( i01 ) ==Int #symInt ( i02 ) andBool 
+                  #symInt ( 1 ) ==Int #symInt ( 2 ) andBool #symInt ( 3 ) 
+                  ==Int #symInt ( 4 ) andBool #symInt ( 5 ) ==Int #symInt ( 
+                  i01 ) andBool #symInt ( 6 ) ==Int #symInt ( 1 ) andBool 
+                  #symInt ( 7 ) ==Int #symInt ( 3 ) andBool #symInt ( 8 ) 
+                  ==Int #symInt ( i02 ) andBool #symInt ( 9 ) ==Int #symInt ( 
+                  k0 ) andBool #symInt ( 10 ) ==Int #symInt ( 2 ) andBool 
+                  #symInt ( 11 ) ==Int #symInt ( 4 ) andBool #symInt ( i01 ) 
+                  <=Int #symInt ( 1 ) andBool #symInt ( i02 ) <=Int #symInt ( 
+                  2 )
+            </condition>
+            <config>
+                <k>
+                    checkHypo ( (while (i <= n) do ((s := (s + (i * i))) ; (i 
+                      := (i + 2)))) , #symbMap ( M1 ) i |-> #symInt ( i01 ) 
+                      +Int 2 n |-> #symInt ( 1 ) s |-> #symInt ( 3 ) +Int 
+                      #symInt ( i01 ) *Int #symInt ( i01 ) , (while (i <= n) 
+                      do (((s := (s + k)) ; (k := (((k + i) + i) + 1))) ; (i 
+                      := (i + 1)))) , #symbMap ( M2 ) i |-> #symInt ( i02 ) 
+                      +Int 1 k |-> #symInt ( k0 ) +Int #symInt ( i02 ) +Int 
+                      #symInt ( i02 ) +Int 1 n |-> #symInt ( 2 ) s |-> #symInt
+                       ( 4 ) +Int #symInt ( k0 ) , <hypo> <hcondition> #symInt
+                       ( k0 ) ==Int #symInt ( i02 ) *Int #symInt ( i02 ) 
+                      andBool #symInt ( i01 ) ==Int #symInt ( i02 ) andBool 
+                      #symInt ( 1 ) ==Int #symInt ( 2 ) andBool #symInt ( 3 ) 
+                      ==Int #symInt ( 4 ) andBool #symInt ( 5 ) ==Int #symInt 
+                      ( i01 ) andBool #symInt ( 6 ) ==Int #symInt ( 1 ) 
+                      andBool #symInt ( 7 ) ==Int #symInt ( 3 ) andBool 
+                      #symInt ( 8 ) ==Int #symInt ( i02 ) andBool #symInt ( 9 
+                      ) ==Int #symInt ( k0 ) andBool #symInt ( 10 ) ==Int 
+                      #symInt ( 2 ) andBool #symInt ( 11 ) ==Int #symInt ( 4 )
+                       </hcondition> <patt1> <hk1> (while (i <= n) do ((s := (
+                      s + (i * i))) ; (i := (i + 2)))) </hk1> <henv1> #symbMap
+                       ( M1 ) i |-> #symInt ( 5 ) n |-> #symInt ( 6 ) s |-> 
+                      #symInt ( 7 ) </henv1> </patt1> <patt2> <hk2> (while (i 
+                      <= n) do (((s := (s + k)) ; (k := (((k + i) + i) + 1))) 
+                      ; (i := (i + 1)))) </hk2> <henv2> #symbMap ( M2 ) i |-> 
+                      #symInt ( 8 ) k |-> #symInt ( 9 ) n |-> #symInt ( 10 ) s
+                       |-> #symInt ( 11 ) </henv2> </patt2> </hypo> ) ~> (if (
+                      i <= n) then (((s := (s + (i * i))) ; (i := (i + 2))) ; 
+                      (L : (while (i <= n) do ((s := (s + (i * i))) ; (i := (i
+                       + 2)))))) else (skip))
+                </k>
+                <env>
+                    #symbMap ( M1 )
+                    i |-> #symInt ( i01 ) +Int 2
+                    n |-> #symInt ( 1 )
+                    s |-> #symInt ( 3 ) +Int #symInt ( i01 ) *Int #symInt ( 
+                      i01 )
+                </env>
+            </config>
+            <config>
+                <k>
+                    break ~> (if (i <= n) then ((((s := (s + k)) ; (k := (((k 
+                      + i) + i) + 1))) ; (i := (i + 1))) ; (L : (while (i <= n
+                      ) do (((s := (s + k)) ; (k := (((k + i) + i) + 1))) ; (i
+                       := (i + 1)))))) else (skip))
+                </k>
+                <env>
+                    #symbMap ( M2 )
+                    i |-> #symInt ( i02 ) +Int 1
+                    k |-> #symInt ( k0 ) +Int #symInt ( i02 ) +Int #symInt ( 
+                      i02 ) +Int 1
+                    n |-> #symInt ( 2 )
+                    s |-> #symInt ( 4 ) +Int #symInt ( k0 )
+                </env>
+            </config>
+            <cash-env>
+                #symInt ( 5 ) <=Int #symInt ( 1 ) |-> true
+                #symInt ( 8 ) <=Int #symInt ( 2 ) |-> true
+                #symInt ( i01 ) <=Int #symInt ( 1 ) |-> true
+                #symInt ( i01 ) <=Int #symInt ( 2 ) |-> true
+                #symInt ( i01 ) <=Int #symInt ( 6 ) |-> true
+                #symInt ( i02 ) <=Int #symInt ( 1 ) |-> true
+                #symInt ( i02 ) <=Int #symInt ( 2 ) |-> true
+                #symInt ( i02 ) <=Int #symInt ( 10 ) |-> true
+            </cash-env>
+        </goal>
+    </goals>
+    <hypos>
+        <hypo>
+            <hcondition>
+                #symInt ( k0 ) ==Int #symInt ( i02 ) *Int #symInt ( i02 ) 
+                  andBool #symInt ( i01 ) ==Int #symInt ( i02 ) andBool 
+                  #symInt ( 1 ) ==Int #symInt ( 2 ) andBool #symInt ( 3 ) 
+                  ==Int #symInt ( 4 ) andBool #symInt ( 5 ) ==Int #symInt ( 
+                  i01 ) andBool #symInt ( 6 ) ==Int #symInt ( 1 ) andBool 
+                  #symInt ( 7 ) ==Int #symInt ( 3 ) andBool #symInt ( 8 ) 
+                  ==Int #symInt ( i02 ) andBool #symInt ( 9 ) ==Int #symInt ( 
+                  k0 ) andBool #symInt ( 10 ) ==Int #symInt ( 2 ) andBool 
+                  #symInt ( 11 ) ==Int #symInt ( 4 )
+            </hcondition>
+            <patt1>
+                <hk1>
+                    (while (i <= n) do ((s := (s + (i * i))) ; (i := (i + 2)))
+                      )
+                </hk1>
+                <henv1>
+                    #symbMap ( M1 )
+                    i |-> #symInt ( 5 )
+                    n |-> #symInt ( 6 )
+                    s |-> #symInt ( 7 )
+                </henv1>
+            </patt1>
+            <patt2>
+                <hk2>
+                    (while (i <= n) do (((s := (s + k)) ; (k := (((k + i) + i)
+                       + 1))) ; (i := (i + 1))))
+                </hk2>
+                <henv2>
+                    #symbMap ( M2 )
+                    i |-> #symInt ( 8 )
+                    k |-> #symInt ( 9 )
+                    n |-> #symInt ( 10 )
+                    s |-> #symInt ( 11 )
+                </henv2>
+            </patt2>
+        </hypo>
+    </hypos>
+</T>

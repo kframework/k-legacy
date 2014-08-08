@@ -33,26 +33,26 @@ module STREAM-SYNTAX
 
   //@ Integer Expressions
   syntax IExp ::=  Int | Id
-                | "hd" "(" SExp ")" [strict]
+                | "hd" "(" SExp ")" [strict, head]
                 | "(" IExp ")" [bracket]
                 > Id "(" IExps ")" [strict(2)]
                 > IExp "<|" BExp "|>" IExp [strict(2)]
                 | IExp "+" IExp [strict]
  
   syntax IExps ::= List{IExp,","} [strict]
+
   //@ Stream Expressions
 
 
   syntax SExp ::= Id 
                 | "tl" "(" SExp ")" [strict, prefer]
                 | "(" SExp ")" [bracket]
-                > Id "(" SExps ")" [strict(2)]
-                > Id "." SExp [strict(2), lsexp]
+                > Id "(" SExps ")" [strict(2), sexp]
+                > Id "." SExp // [strict(2), lsexp]
                 > IExp ":" SExp [strict(1), right, constr]
                 | "[]"
 
   syntax SExps ::= List{SExp,","} [strict]
-
 
   //@ Expressions
   syntax Exp ::= IExp | SExp
@@ -60,8 +60,8 @@ module STREAM-SYNTAX
 
 
   //@ Stream Specifications
-  syntax SSpec ::= Id ":~" Exp ";"
-                 | Id "(" Ids ")" ":~" Exp ";"
+  syntax SSpec ::= Id ":~" SExp ";"
+                 | Id "(" Ids ")" ":~" SExp ";"
                  | Id ":=" IExp ";"
                  | Id "(" Ids ")" ":=" IExp ";"
   syntax Ids ::= List{Id,","}
@@ -97,13 +97,6 @@ module STREAM-SYNTAX
     Extending with symbolic values:
    */
 
-/*
-  syntax IExp ::= "#symIExp" "(" Id ")"  [onlyLabel, klabel(#symIExp)]
-
-  syntax SExp ::= "#symSExp" "(" Id ")"  [onlyLabel, klabel(#symSExp)]
-
-  syntax Int ::= "#symInt" "(" Id ")" [onlyLabel, klabel(#symInt)]
-*/
   //@ Variables
 
   syntax VariableSExp ::= Token{[\$][A-Z][a-zA-Z0-9]*[\:][S][E][x][p]} [onlyLabel]
@@ -114,13 +107,6 @@ module STREAM-SYNTAX
 
 endmodule
 
-
-/*!
-\setlength{\parindent}{1em}
-\title{PEQ (Program Equivalence)}
-\author{Dorel Lucanu (\texttt{dlucanu@info.uaic.ro}) and Vlad Rusu (Vlad.Rusu@inria.fr)}
-\organization{"Alexandru Ioan Cuza" University of Iasi, INRIA Lille}
-*/
 
 //@ \section{Symbolic Maps}
 
@@ -150,10 +136,11 @@ substitution always exists).
   Any extension of the language implies the update of this definition.
 */
 
-  syntax Substitution ::= "getSubst" "(" K "," K ")" [function]
-            |  K "replBy" K [strict]  // a substitution pair
+  syntax Substitution ::= K "replBy" K [strict]  // a substitution pair
             |  Substitution ";;" Substitution [left]      // concatenation of substitutions
             |  "emptySubst"
+
+  syntax Substitution ::= "getSubst" "(" K "," K ")" [function]  
 
   rule getSubst(K:K, K) => emptySubst
 
@@ -198,7 +185,7 @@ substitution always exists).
   Check if a Substitution is indeed a substitution:
 */
 
-  syntax K ::= "isSubst" "("  K ")"  [function]
+  syntax Bool ::= "isSubst" "("  K ")"  [function]
 
   rule isSubst(emptySubst) => true
 
@@ -206,7 +193,7 @@ substitution always exists).
 
   rule isSubst(M:K ;; (I:K replBy A:K)) => isSubst(M)
 
-  // to be refactored
+  // to be refactored in order to check the function property
 
  //@ Two auxiliary rules
 
@@ -249,7 +236,7 @@ substitution always exists).
   rule SE:Exp[(V:Exp, .Exps) / (X:Id, .Ids)] => replace(X, V, SE)
 
 
-  //@ Append
+  //@ Append (this is a special append)
 
   syntax SExp ::= append(Int, SExp) [function]
 
@@ -294,23 +281,14 @@ substitution always exists).
 
   syntax SExp ::= removeLabels(SExp) [function]
 
-/*
-  syntax SExp ::= Id 
-                | "tl" "(" SExp ")" [strict, prefer]
-                | "(" SExp ")" [bracket]
-                > Id "(" SExps ")" [strict(2)]
-                > Id "." SExp [strict(2), lsexp]
-                > IExp ":" SExp [strict(1), right, constr]
-                | "[]"
-*/
   rule removeLabels(X:Id) => X
   rule removeLabels(V:VariableSExp) => V
   rule removeLabels(tl(SE:SExp)) => tl(removeLabels(SE))
   rule removeLabels(X:Id(SEs:SExps)) => X(removeLabels(SEs))
   rule removeLabels(_:Id . SE:SExp) => removeLabels(SE)
-  rule removeLabels(_:IExp : SE:SExp) => removeLabels(SE)
+  rule removeLabels(IE:IExp : SE:SExp) => IE : removeLabels(SE)
 
-  syntax SExp ::= removeLabels(SExps) [function]
+  syntax SExps ::= removeLabels(SExps) [function]
 
   rule removeLabels(SE:SExp, SEs:SExps) => removeLabels(SE), removeLabels(SEs)
   rule removeLabels(.SExps) => .SExps
@@ -357,6 +335,7 @@ module SEQ
                       </patt2>
                     </hypo>
                   </hypos>
+//<debug> .K </debug>
                 </T>
 
  //@ The right-hand side of a specification is stored as a $\lambda$-expression:
@@ -367,10 +346,12 @@ module SEQ
 */
   syntax KResult ::= Int | Bool
 
-
   rule isKResult(_:Int : _:SExp) => true
   rule isKResult('_._(_:Id ,, _:Int : _:SExp)) => true
 
+  //@ contexts
+
+  context _:Id . (HOLE:SExp) ~> K:K when K =/=K .K 
 
   //@ Preprocessing
 
@@ -381,29 +362,33 @@ module SEQ
        => 
        <goal> <config> <k> EP </k> Cfg </config> Cfg' </goal>
        <goal> <config> <k> EPs </k> Cfg </config> Cfg' </goal>
+       [structural]
 
   rule SS:SSpec SSs:SSpecs E:Exp => SS ~> SSs E
+       [structural]
 
   rule (SS:SSpec E:Exp) => SS ~> E
+       [structural]
 
   rule <k> F:Id :~ SE:SExp; => . ...</k>
        <sspecs>... . => F |-> lambda(.Ids) SE </sspecs>
+       [structural]
 
 
   rule <k> F:Id(Ys:Ids) :~ SE:SExp; => . ...</k>
        <sspecs>... . => F |-> lambda(Ys) SE </sspecs>
+       [structural]
 
   rule <k> F:Id := IE:IExp; => . ...</k>
        <sspecs>... . => F |-> lambda(.Ids) IE </sspecs>
+       [structural]
 
   rule <k> F:Id(Ys:Ids) := IE:IExp; => . ...</k>
        <sspecs>... . => F |-> lambda(Ys) IE </sspecs>
+       [structural]
 
- // cotext
 
-  context '_._(_:Id ,, HOLE : _:SExp)
-
- //@ Computations:
+ //@ Computations over boolean expressions:
 
   rule I1:Int = I2:Int => I1 ==Int I2
 
@@ -417,18 +402,22 @@ module SEQ
 
   rule _:IExp <| false |> IE:IExp => IE
 
-  // only for bit streams
+  /* only for symbolic bit streams: the following two rules
+     compute the result form of a symbolic variable
+     (the equivalence must be checked with search in that case)
+   */
 
-  rule <k> V:VariableBSExp => 0 : V ...</k>
-       <kb> KB:Map => (KB V |-> (0 : V)) </kb>
-       requires notBool V in keys(KB)
+  rule <k> V:VariableBSExp => 0 : V' ...</k>
+       <kb> KB:Map => (KB V |-> (0 : V')) </kb>
+       requires notBool V in keys(KB) andBool fresh(V':VariableBSExp)
        [transition]
 
-  rule <k> V:VariableBSExp => 1 : V ...</k>
-       <kb> KB:Map => (KB V |-> (1 : V)) </kb>
-       requires notBool V in keys(KB)
+  rule <k> V:VariableBSExp => 1 : V' ...</k>
+       <kb> KB:Map => (KB V |-> (1 : V')) </kb>
+       requires notBool V in keys(KB) andBool fresh(V':VariableBSExp)
        [transition]
 
+  // the sumbolic variable hsas already a result form
   rule <k> V:VariableBSExp => SE ...</k>
        <kb>... V |-> SE:SExp  ...</kb>
 
@@ -454,32 +443,25 @@ module SEQ
 
   rule <k> F:Id => SE ...</k>
        <sspecs>... F |-> lambda(.Ids) SE ...</sspecs>
-       [transition]
-
-  rule <k> V:VariableSExp => SE ...</k>
-       <sspecs>... V |-> lambda(.Ids) SE ...</sspecs>
-       [transition]
 
  //@ Stream specification with parameters:
 
   rule <k> F:Id(SEs:SExps) => SE[SEs / Xs] ...</k>
        <sspecs>... F |-> lambda(Xs:Ids) SE:SExp ...</sspecs>
-       [transition]
 
   rule <k> F:Id(IEs:IExps) => IE[IEs / Xs] ...</k>
        <sspecs>... F |-> lambda(Xs:Ids) IE:IExp ...</sspecs>
-       [transition]
 
 
   //@ The semantics of the new introduced labelled expressions:
 
   rule [labelled-sexp] :
        <k>
-          ( L:Id . SE:SExp
-            =>
-            lbldStmt(L, SE) ~> SE // ~> K) ~> SE
-          ) // ~> K:K 
+          L:Id . SE:SExp
+          =>
+          lbldStmt(L, SE) ~> SE
        </k>
+       [labelled-sexp]
 
 
 
@@ -506,8 +488,8 @@ module SEQ
        ...</goal>
        =>
        .)
+//<debug> .K => "basic-entailment" ...</debug>
        when OUT ==K OUT'
-//       [transition]
 
 
 
@@ -582,7 +564,6 @@ module SEQ
          ...</config>
        ...</goal> 
        when OUT1 ==K OUT2
-       [transition]
 
 
 /*@
@@ -593,7 +574,6 @@ module SEQ
   the substitution restrictied to the environment component to the hypothesis
   path formula, as well the formula representing the substitution restricted
   to program (k cell) component.
-
 */
 
   /*@
@@ -635,14 +615,14 @@ module SEQ
          ...</config>
        ...</goal>
        =>
-// <goal> <config> <k> getSubst(SE1', SE1) ~> getSubst(SE2', SE2) </k> </config> <sspecs> .Map </sspecs> <out> [] </out> </goal> ) // for debugging
-       .)
+       .Bag)
+// <debug> .K => "check-hypo1" ~> getSubst(SE1', removeLabels(SE1)) ~> getSubst(SE2', removeLabels(SE2)) ...</debug>
        when (OUT1 ==K OUT2)
        andBool (isSubst(getSubst(SE1', removeLabels(SE1))) ==K true)
        andBool (isSubst(getSubst(SE2', removeLabels(SE2))) ==K true)
        andBool isInstanceOfSExp(OUT1, OUT1') ==K true
        andBool isInstanceOfSExp(OUT2, OUT2') ==K true
-       [transition]
+
   /*@
   Second case: there is substitution between the current configuration
   <c1, c2> /\ F and the hypothesis <c2', c1'> /\ F' and the current configuration
@@ -682,14 +662,13 @@ module SEQ
          ...</config>
        ...</goal>
        =>
-// <goal> <config> <k> getSubst(SE2', SE1) ~> getSubst(SE1', SE2) </k> </config> <sspecs> .Map </sspecs> <out> [] </out> </goal>) // for debugging
-      .)
+      .Bag)
+// <debug> .K => "check-hypo2" ~> isSubst(getSubst(SE2', removeLabels(SE1))) ~> getSubst(SE1', removeLabels(SE2)) ...</debug>
        when (OUT1 ==K OUT2)
        andBool (isSubst(getSubst(SE2', removeLabels(SE1))) ==K true)
        andBool (isSubst(getSubst(SE1', removeLabels(SE2))) ==K true)
        andBool isInstanceOfSExp(OUT1, OUT2') ==K true
        andBool isInstanceOfSExp(OUT2, OUT1') ==K true
-       [transition]
 
   rule [check-hypo] :
        <goal>
@@ -725,11 +704,16 @@ module SEQ
            <out> OUT2 </out>
          ...</config>
        ...</goal>
-       when (isSubst(getSubst(SE1', removeLabels(SE1))) =/=K true)
-       orBool (isSubst(getSubst(SE2', removeLabels(SE2))) =/=K true)
+       when ((isSubst(getSubst(SE1', removeLabels(SE1))) =/=K true) andBool 
+             (isSubst(getSubst(SE2', removeLabels(SE1))) =/=K true))
+       orBool ((isSubst(getSubst(SE2', removeLabels(SE2))) =/=K true) andBool 
+               (isSubst(getSubst(SE1', removeLabels(SE2))) =/=K true))
+       orBool ((isSubst(getSubst(SE1', removeLabels(SE1))) =/=K true) andBool 
+               (isSubst(getSubst(SE1', removeLabels(SE2))) =/=K true))
+       orBool ((isSubst(getSubst(SE2', removeLabels(SE2))) =/=K true) andBool 
+               (isSubst(getSubst(SE2', removeLabels(SE1))) =/=K true))
        orBool isInstanceOfSExp(OUT1, OUT1') =/=K true
        orBool isInstanceOfSExp(OUT2, OUT2') =/=K true
-       [transition]
 
 
   /*@ The rules preparing the storing of an hypothesis. The hypothesis is
@@ -739,7 +723,6 @@ module SEQ
        <config> 
          <k> storeHypo(K1:K) => restore(K1) ...</k> // just for conformance
        ...</config> 
-//       [transition]
 
 
   syntax K ::= "restore" "(" K ")"
@@ -770,7 +753,6 @@ module SEQ
            </patt2>
          </hypo>
        </hypos>
-//      [transition]
 
 
   /*@
@@ -791,7 +773,6 @@ module SEQ
        when
        (L1 =/=K L2) orBool
        (OUT1 =/=K OUT2)
-//       [transition]
 
 /*@
   The following rule creates the initial configuration from the equivalence
@@ -816,5 +797,7 @@ module SEQ
          <sspecs> .Map </sspecs>
          <out> [] </out>
        </config>)
+       [structural]
 
 endmodule
+

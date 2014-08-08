@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Copyright (c) 2012-2014 K Team. All Rights Reserved. -->
+
+<tests>
+<!--
+  Testing the prototype for equivalence of programs w.r.t. the approach
+  from IFM 2013.
+-->
+
+
+
+  <test
+      definition="peq.k"
+      programs="../programs"
+      extension="peq"
+      results="../programs" >
+      <all-programs>
+        <krun-option name="--color" value="off" />
+      </all-programs>
+  </test>
+</tests>
