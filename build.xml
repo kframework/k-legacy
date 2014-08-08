@@ -59,6 +59,7 @@
                 </delete>
 		<delete>
 			<fileset dir="${javasources}/KTool/src/org/kframework/parser/basic" includes="*.java" />
+			<fileset dir="${javasources}/KTool/src/org/kframework/parser/kast" includes="*.java" />
 			<fileset dir="${javasources}/KTool/src/org/kframework/utils/kastparser" includes="*.java" />
 		</delete>
 	</target>
@@ -213,6 +214,7 @@
                 <exclude name="src/org/kframework/parser/concrete/lib/**" />
                 <exclude name="src/org/kframework/utils/kastparser/*.java" />
                 <exclude name="src/org/kframework/parser/basic/*.java" />
+                <exclude name="src/org/kframework/parser/kast/*.java" />
             </fileset>
         </checkstyle>
         <checkstyle config="${javasources}/KTool/checkstyle-k.xml">

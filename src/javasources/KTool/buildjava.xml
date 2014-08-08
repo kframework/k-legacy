@@ -67,7 +67,7 @@
 			</fileset>
 		</copy>
 		<javacc target="src/org/kframework/parser/basic/Basic.jj" javacchome="../../../lib/java"/>
-		<javacc target="src/org/kframework/utils/kastparser/KastParser.jj" javacchome="../../../lib/java" />
+		<javacc target="src/org/kframework/parser/kast/KastParser.jj" javacchome="../../../lib/java" />
 	</target>
 	<target name="clean">
 		<delete dir="bin" />
