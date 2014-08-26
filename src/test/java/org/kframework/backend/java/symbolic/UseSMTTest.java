@@ -4,18 +4,24 @@ package org.kframework.backend.java.symbolic;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import java.util.HashSet;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.kil.BuiltinMap;
 import org.kframework.backend.java.kil.Definition;
+import org.kframework.backend.java.kil.KLabelConstant;
+import org.kframework.backend.java.kil.Rule;
 import org.kframework.backend.java.kil.TermContext;
 import org.kframework.kil.loader.Context;
 import org.kframework.utils.options.SMTOptions;
 import org.kframework.utils.options.SMTSolver;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import com.google.common.collect.HashMultimap;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UseSMTTest {
@@ -33,8 +39,10 @@ public class UseSMTTest {
     public void setUp() {
         when(tc.definition()).thenReturn(definition);
         when(tc.definition().context()).thenReturn(context);
+        when(tc.definition().functionRules()).thenReturn(HashMultimap.<KLabelConstant, Rule>create());
         context.smtOptions = new SMTOptions();
         context.smtOptions.smt = SMTSolver.Z3;
+        context.productions = new HashSet<>();
     }
 
     @Test
