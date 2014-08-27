@@ -77,3 +77,4 @@ University Extreme! Lab Software License.
 KXML2 (http://kxml.sourceforge.net/kxml2/) is licensed under the BSD license.
 
 SSCTarjan (https://github.com/indy256/codelibrary) is licensed under the Unlicense.
+Alphanum (http://www.davekoelle.com/alphanum.html) is licensed under the LGPL license.
