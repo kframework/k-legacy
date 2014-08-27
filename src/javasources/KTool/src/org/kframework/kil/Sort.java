@@ -36,7 +36,7 @@ public class Sort implements Serializable {
     public static final Sort BUILTIN_BOOL = Sort.of("#Bool");
     public static final Sort BUILTIN_INT = Sort.of("#Int");
     public static final Sort BUILTIN_FLOAT = Sort.of("#Float");
-    public static final Sort BUILTIN_STRING = Sort.of("#String");
+    public static final Sort BUILTIN_STRING = Sort.of("String");
     public static final Sort BUILTIN_BOT = Sort.of("#Bot");
 
     /* IO */
