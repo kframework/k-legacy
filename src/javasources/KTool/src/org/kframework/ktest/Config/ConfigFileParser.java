@@ -44,11 +44,18 @@ public class ConfigFileParser {
         // validate xml file structure
         Source schemaFile = new StreamSource(new File(getSchema()));
         Source xmlFile = new StreamSource(configFile);
-        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants
-                .W3C_XML_SCHEMA_NS_URI);
+        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema schema = schemaFactory.newSchema(schemaFile);
         Validator validator = schema.newValidator();
-        validator.validate(xmlFile);
+        try {
+            validator.validate(xmlFile);
+        } catch (SAXException e) {
+            // unfortunately validator doesn't provide error locations so all we can say is this
+            String formatDoc = "https://github.com/kframework/k/wiki/Manual%20(to%20be%20processed)#ktest-configuration-files-test-element";
+            String pre = "Invalid config file formatting. ";
+            String post = " (see " + formatDoc + " for config file formatting)";
+            throw new SAXException(pre + e.getMessage() + post);
+        }
 
         // parse xml file
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
