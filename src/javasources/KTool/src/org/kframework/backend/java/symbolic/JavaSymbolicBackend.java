@@ -94,6 +94,7 @@ public class JavaSymbolicBackend extends BasicBackend {
         steps.add(new CheckVisitorStep<Definition>(new CheckVariables(context), context));
         steps.add(new CheckVisitorStep<Definition>(new CheckRewrite(context), context));
         steps.add(new FlattenModules(context));
+        steps.add(new RemoveRedundantConfigCells(context));
 
         steps.add(new CompleteSortLatice(context));
         steps.add(new CheckVisitorStep<Definition>(new CollectProductionsVisitor(context), context));
