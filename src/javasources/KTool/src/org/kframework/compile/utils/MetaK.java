@@ -161,7 +161,7 @@ public class MetaK {
         return wrap(t, komputationCellName, Ellipses.RIGHT);
     }
 
-    public static Term wrap(Term t, String label, Ellipses ellipses) {
+    public static Cell wrap(Term t, String label, Ellipses ellipses) {
         Cell cell = new Cell(t.getLocation(),t.getSource());
         cell.setLabel(label);
         cell.setEllipses(ellipses);
