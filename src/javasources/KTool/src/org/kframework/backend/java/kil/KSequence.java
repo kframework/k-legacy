@@ -10,10 +10,12 @@ import org.kframework.backend.java.symbolic.Unifier;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.kil.ASTNode;
 import org.pcollections.ConsPStack;
-import org.pcollections.Empty;
 import org.pcollections.PStack;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multiset;
 
 
 /**
@@ -36,117 +38,56 @@ public class KSequence extends KCollection {
 
     private static final String SEPARATOR_NAME = " ~> ";
     private static final String IDENTITY_NAME = "." + Kind.K;
-    public static final KSequence EMPTY = new KSequence();
+    public static final KSequence EMPTY = new KSequence(ConsPStack.<Term>empty(), null, ImmutableMultiset.<Variable>of());
 
-    /**
-     * Marked as {@code transient} because {@code PStack} doesn't implement the
-     * {@code Serializable} interface.
-     */
     private transient final PStack<Term> contents;
-    private Sort sort;
 
     /**
-     * Concatenates a sequence of elements of sort K or KItem and a frame term.
-     * <p>
-     * Note: parameter {@code `List<Term> items'} can be modified by this
-     * factory method; it is the caller's responsibility to make a defensive
-     * copy when necessary.
-     *
-     * @param items
-     * @param frame
-     * @return the resulting K sequence
+     * Set of variables of sort K in contents.
      */
-    public static KSequence of(List<Term> items, Term frame) {
-        if (frame != null) {
-            if (frame.kind() == Kind.K) {
-                if (frame instanceof KSequence) {
-                    KSequence kseq = (KSequence) frame;
-                    return new KSequence(items, new KSequence(kseq.contents, null), kseq.frame);
-                } else {
-                    // otherwise, frame must be a variable of sort K
-                }
-            } else {
-                assert frame.kind() == Kind.KITEM;
-                items.add(frame);
-                frame = null;
-            }
-        }
-        return new KSequence(items, null, (Variable) frame);
+    private final ImmutableMultiset<Variable> kSequenceVariables;
+
+    public static KSequence singleton(Term term) {
+        assert term.kind().equals(Kind.KITEM);
+        return new KSequence(ConsPStack.singleton(term), null, ImmutableMultiset.<Variable>of());
     }
 
-    public KSequence(List<Term> items, Variable frame) {
-        this(items, null, frame);
-    }
-
-    public KSequence(List<Term> items) {
-        this(items, null, null);
-    }
-
-    private KSequence(List<Term> items, KSequence kSequence, Variable frame) {
-        super(frame, Kind.K);
-
-        assert kSequence == null || !kSequence.hasFrame();
-        PStack<Term> stack = kSequence == null ? Empty.<Term>stack() : kSequence.contents;
-
-        /* normalize (flatten) the items before creating the new KSequence */
-        for (Term term : Lists.reverse(items)) {
-            // TODO (AndreiS): fix KItem projection
-            if (!(term instanceof Variable) && !(term instanceof KItemProjection) && (term.kind() == kind)) {
-                // TODO(YilongL): the condition above seems hacky
-                assert term instanceof KSequence :
-                    "associative use of KSequence(" + items + ", " + frame + ")";
-
-                KSequence kseq = (KSequence) term;
-
-                assert !kseq.hasFrame() : "associative use of KSequence";
-
-                if (stack.isEmpty()) {
-                    stack = kseq.contents;
-                } else {
-                    stack = kseq.contents.size() <= 1 ?
-                            stack.plusAll(kseq.contents) :
-                            stack.plusAll(Lists.reverse(Lists.newArrayList(kseq.contents)));
-                }
-            } else {
-                stack = stack.plus(term);
-            }
-        }
-        this.contents = stack;
-    }
-
-    private KSequence() {
-        super(null, Kind.K);
-        contents = Empty.stack();
-    }
-
-    /**
-     * Private constructor only used for building KSequence fragment.
-     * @param contents
-     * @param frame
-     */
-    private KSequence(PStack<Term> contents, Variable frame) {
+    private KSequence(PStack<Term> contents, Variable frame, ImmutableMultiset<Variable> kSequenceVariables) {
         super(frame, Kind.K);
         this.contents = contents;
+        this.kSequenceVariables = kSequenceVariables;
     }
 
     @Override
-    public KSequence fragment(int fromIndex) {
-        return new KSequence(contents.subList(fromIndex), frame);
+    public Term fragment(int fromIndex) {
+        if (fromIndex == contents.size()) {
+            return hasFrame() ? frame : EMPTY;
+        } else {
+            if (kSequenceVariables.isEmpty()) {
+                return new KSequence(contents.subList(fromIndex), frame, kSequenceVariables);
+            } else {
+                /* YilongL: this case should never happen in practice because
+                 * this method should only be called by KSequence on the LHS */
+                Multiset<Variable> multiset = HashMultiset.create(kSequenceVariables);
+                multiset.removeAll(contents.subList(0, fromIndex));
+                return new KSequence(contents.subList(fromIndex), frame, ImmutableMultiset.copyOf(multiset));
+            }
+        }
     }
 
     @Override
-    public PStack<Term> getContents() {
+    public List<Term> getContents() {
         return contents;
     }
 
     @Override
-    public Sort sort() {
-        if (sort != null) {
-            return sort;
-        }
+    public final boolean isConcreteCollection() {
+        return !hasFrame() && kSequenceVariables.isEmpty();
+    }
 
-        sort = concreteSize() == 1 && !hasFrame() ? contents.get(0).sort() : Sort.KSEQUENCE;
-        return sort;
+    @Override
+    public Sort sort() {
+        return !hasFrame() && concreteSize() == 1 ? contents.get(0).sort() : Sort.KSEQUENCE;
     }
 
     @Override
@@ -195,6 +136,88 @@ public class KSequence extends KCollection {
         return transformer.transform(this);
     }
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private final List<Term> terms = Lists.newArrayListWithExpectedSize(32);
+
+        private final ImmutableMultiset.Builder<Variable> variablesBuilder = ImmutableMultiset.builder();
+
+        public void concatenate(Term term) {
+            if (term instanceof KSequence) {
+                terms.add(term);
+            } else if (term instanceof Variable) {
+                assert term.sort().equals(Sort.KSEQUENCE) || term.kind().equals(Kind.KITEM);
+                terms.add(term);
+            } else if (term.kind().equals(Kind.KITEM)) {
+                terms.add(term);
+            } else if (term instanceof KItemProjection) {
+                // TODO(AndreiS): fix KItem projection
+                terms.add(term);
+            } else {
+                assert false : "unexpected concatenated term" + term;
+            }
+        }
+
+        public Term build() {
+            if (terms.isEmpty()) {
+                return EMPTY;
+            } else if (terms.size() == 1) {
+                return terms.get(0);
+            } else {
+                Variable frame = null;
+                KSequence ksequence = null; // reusable KSequence
+                int index = terms.size() - 1;
+
+                /* compute ksequence and frame */
+                Term term1 = terms.get(terms.size() - 1);
+                Term term2 = terms.get(terms.size() - 2);
+                if (term1 instanceof Variable && term1.sort().equals(Sort.KSEQUENCE)) {
+                    index--;
+                    frame = (Variable) term1;
+                    if (term2 instanceof KSequence && !((KSequence) term2).hasFrame()) {
+                        index--;
+                        ksequence = (KSequence) term2;
+                    }
+                } else if (term1 instanceof KSequence) {
+                    index--;
+                    ksequence = (KSequence) term1;
+                }
+
+                /* build contents */
+                PStack<Term> contents = ConsPStack.empty();
+                if (ksequence != null) {
+                    contents = ksequence.contents;
+                    if (ksequence.hasFrame()) {
+                        assert frame == null;
+                        frame = ksequence.frame;
+                    }
+                }
+
+                for (int i = index; i >= 0; i--) {
+                    Term term = terms.get(i);
+                    if (term instanceof KSequence) {
+                        KSequence kseq = (KSequence) term;
+                        contents = kseq.hasFrame() ? contents.plus(kseq.frame) : contents;
+                        contents = kseq.contents.size() <= 1 ?
+                                    contents.plusAll(kseq.contents) :
+                                    contents.plusAll(Lists.reverse(Lists.newArrayList(kseq.contents)));
+                        variablesBuilder.addAll(kseq.kSequenceVariables);
+                    } else {
+                        contents = contents.plus(term);
+                        if (term instanceof Variable && term.sort().equals(Sort.KSEQUENCE)) {
+                            variablesBuilder.add((Variable) term);
+                        }
+                    }
+                }
+                return new KSequence(contents, frame, variablesBuilder.build());
+            }
+        }
+    }
+
     /**
      * When this {@code KSequence} is being serialized, serialize its proxy
      * class instead.
@@ -209,19 +232,22 @@ public class KSequence extends KCollection {
 
         private List<Term> terms;
         private Variable frame;
+        private ImmutableMultiset<Variable> variables;
 
         private SerializationProxy(KSequence kSequence) {
             /* converts the non-serializable PStack to normal list */
             this.terms = Lists.newArrayList(kSequence.contents);
             this.frame = kSequence.frame;
+            this.variables = kSequence.kSequenceVariables;
         }
 
         private Object readResolve() {
-            PStack<Term> stack = ConsPStack.empty();
+            PStack<Term> contents = ConsPStack.empty();
             for (Term term : Lists.reverse(terms)) {
-                stack = stack.plus(term);
+                contents = contents.plus(term);
             }
-            return new KSequence(stack, frame);
+            return new KSequence(contents, frame, variables);
         }
     }
+
 }

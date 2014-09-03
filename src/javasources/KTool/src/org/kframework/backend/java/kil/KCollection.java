@@ -33,7 +33,7 @@ public abstract class KCollection extends Collection implements Iterable<Term> {
      *            the start index of the fragment
      * @return a view of the specified fragment
      */
-    public abstract KCollection fragment(int fromIndex);
+    public abstract Term fragment(int fromIndex);
 
     public final Term get(int index) {
         return getContents().get(index);
@@ -61,20 +61,6 @@ public abstract class KCollection extends Collection implements Iterable<Term> {
     }
 
     @Override
-    public final boolean isConcreteCollection() {
-        return !hasFrame();
-    }
-
-    /**
-     * {@code KCollection} is guaranteed to have only one frame; thus, they can
-     * always be used in the left-hand side of a rule.
-     */
-    @Override
-    public boolean isLHSView() {
-        return true;
-    }
-
-    @Override
     public final boolean isExactSort() {
         if (concreteSize() == 1) {
             return !hasFrame() && this.get(0).isExactSort();
@@ -93,9 +79,9 @@ public abstract class KCollection extends Collection implements Iterable<Term> {
     }
 
     @Override
-    protected final boolean computeHasCell() {
+    protected final boolean computeMutability() {
         for (Term term : getContents()) {
-            if (term.hasCell()) {
+            if (term.isMutable()) {
                 return true;
             }
         }
@@ -151,7 +137,7 @@ public abstract class KCollection extends Collection implements Iterable<Term> {
 
         /* promote KItem to K, and then promote K to KList */
         if (term.kind() == Kind.KITEM && (kind == Kind.K || kind == Kind.KLIST)) {
-            term = new KSequence(Lists.newArrayList(term));
+            term = KSequence.singleton(term);
         }
 
         if (term.kind() == Kind.K && kind == Kind.KLIST) {

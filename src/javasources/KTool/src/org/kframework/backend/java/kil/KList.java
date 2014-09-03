@@ -93,6 +93,11 @@ public class KList extends KCollection {
     }
 
     @Override
+    public final boolean isConcreteCollection() {
+        return !hasFrame();
+    }
+
+    @Override
     public Sort sort() {
         if (sort != null) {
             return sort;
