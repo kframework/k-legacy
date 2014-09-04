@@ -61,10 +61,10 @@ public class PdfBackend extends BasicBackend {
             return new File(FilenameUtils.removeExtension(latexFile.getCanonicalPath()) + ".pdf");
         } catch (IOException | InterruptedException e) {
             GlobalSettings.kem.registerCriticalError(
-                            "Cannot generate the pdf version of the definition. " +
-                            "It seems that `pdflatex` is not installed or is not in your path. " +
-                            "To generate the pdf version you can run `pdflatex` having as " +
-                            "argument the latex version of the definition.", e);
+                    "Cannot generate the pdf version of the definition. " +
+                    "`pdflatex` may not be installed or may not be in your path. " +
+                    "To generate the pdf version you can run `pdflatex` having as " +
+                    "argument the latex version of the definition. (" + e.getMessage() + ")");
         }
         return null; // unreachable code
     }
