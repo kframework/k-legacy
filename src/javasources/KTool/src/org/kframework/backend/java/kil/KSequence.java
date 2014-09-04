@@ -43,7 +43,7 @@ public class KSequence extends KCollection {
     private transient final PStack<Term> contents;
 
     /**
-     * Set of variables of sort K in contents.
+     * Set of variables of sort K in {@link KSequence#contents}.
      */
     private final ImmutableMultiset<Variable> kSequenceVariables;
 
@@ -152,7 +152,6 @@ public class KSequence extends KCollection {
 
         private final ImmutableMultiset.Builder<Variable> variablesBuilder = ImmutableMultiset.builder();
 
-        // TODO(YilongL): rename it to prepend and change the implementation accordingly
         public void concatenate(Term term) {
             if (term instanceof KSequence) {
                 if (!term.equals(EMPTY)) {
