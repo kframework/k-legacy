@@ -50,7 +50,7 @@ public abstract class Term extends JavaSymbolicObject implements Transformable, 
             public void visit(Cell cell) {
                 if (cell.getLabel().equals("k")) {
                     indexingPairs.add(IndexingPair.getKCellIndexingPair(cell, definition));
-                } else if (cell.contentKind() == Kind.CELL_COLLECTION) {
+                } else if (cell.contentKind().isStructural()) {
                     super.visit(cell);
                 }
             }
@@ -83,7 +83,7 @@ public abstract class Term extends JavaSymbolicObject implements Transformable, 
                     if (outstream instanceof BuiltinList) {
                         maxOutputBufLen.setValue(Math.max(maxOutputBufLen.intValue(), ((BuiltinList) outstream).concreteSize()));
                     }
-                } else if (cell.contentKind() == Kind.CELL_COLLECTION) {
+                } else if (cell.contentKind().isStructural()) {
                     super.visit(cell);
                 }
             }

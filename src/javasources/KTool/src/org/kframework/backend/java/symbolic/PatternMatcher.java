@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -632,9 +632,6 @@ public class PatternMatcher extends AbstractMatcher {
         match(cell.getContent(), otherCell.getContent());
     }
 
-    /**
-     *
-     */
     @Override
     public void match(CellCollection cellCollection, Term pattern) {
         assert !(pattern instanceof Variable);
@@ -643,6 +640,8 @@ public class PatternMatcher extends AbstractMatcher {
             fail(cellCollection, pattern);
         }
         CellCollection otherCellCollection = (CellCollection) pattern;
+
+        Context context = termContext.definition().context();
 
         if (cellCollection.hasFrame()) {
         // TODO(dwightguth): put this assertion back in once this class is constructed by
@@ -656,8 +655,8 @@ public class PatternMatcher extends AbstractMatcher {
 
         Set<String> unifiableCellLabels = new HashSet<String>(cellCollection.labelSet());
         unifiableCellLabels.retainAll(otherCellCollection.labelSet());
-
-        Context context = termContext.definition().context();
+        Term disjointCellCol = cellCollection.removeAll(unifiableCellLabels, context);
+        Term otherDisjointCellCol = otherCellCollection.removeAll(unifiableCellLabels, context);
 
         /*
          * Case 1: at least one of the cell collections has no explicitly
@@ -672,16 +671,7 @@ public class PatternMatcher extends AbstractMatcher {
                         otherCellCollection.get(label).iterator().next());
             }
 
-            Multimap<String, Cell> cellMap = ArrayListMultimap.create();
-            Multimap<String, Cell> otherCellMap = ArrayListMultimap.create();
-            computeDisjointCellMaps(unifiableCellLabels, cellCollection,
-                    cellMap, otherCellCollection, otherCellMap);
-
-            if (!addCellCollectionConstraint(
-                    cellMap,
-                    cellCollection.hasFrame() ? cellCollection.frame() : null,
-                    otherCellMap,
-                    otherCellCollection.hasFrame() ? otherCellCollection.frame() : null)) {
+            if (!addCellCollectionConstraint(disjointCellCol, otherDisjointCellCol)) {
                 fail(cellCollection, otherCellCollection);
             }
         }
@@ -690,17 +680,16 @@ public class PatternMatcher extends AbstractMatcher {
             assert !isStarNested : "nested cells with multiplicity='*' not supported";
             // TODO(AndreiS): fix this assertions
 
-            Multimap<String, Cell> cellMap = ArrayListMultimap.create();
-            Multimap<String, Cell> otherCellMap = ArrayListMultimap.create();
-            computeDisjointCellMaps(unifiableCellLabels, cellCollection,
-                    cellMap, otherCellCollection, otherCellMap);
+            ListMultimap<String, Cell> cellMap = CellCollection.getCellMap(disjointCellCol);
+            ListMultimap<String, Cell> otherCellMap = CellCollection.getCellMap(otherDisjointCellCol);
+
             if (!otherCellMap.isEmpty()) {
                 fail(cellCollection, otherCellCollection);
             }
 
             for (Iterator<String> iter = unifiableCellLabels.iterator(); iter.hasNext(); ) {
                 String cellLabel = iter.next();
-                if (!context.getConfigurationStructureMap().get(cellLabel).isStarOrPlus()) {
+                if (!termContext.definition().context().getConfigurationStructureMap().get(cellLabel).isStarOrPlus()) {
                     assert cellCollection.get(cellLabel).size() == 1
                             && otherCellCollection.get(cellLabel).size() == 1;
                     match(cellCollection.get(cellLabel).iterator().next(),
@@ -760,21 +749,25 @@ public class PatternMatcher extends AbstractMatcher {
                     continue;
                 }
 
-                Multimap<String, Cell> cm = ArrayListMultimap.create();
+                CellCollection.Builder builder = CellCollection.builder(termContext.definition().context());
                 for (int i = 0; i < cells.length; ++i) {
                     if (!generator.selected.contains(i)) {
-                        cm.put(cells[i].getLabel(), cells[i]);
+                        builder.add(cells[i]);
                     }
                 }
-                cm.putAll(cellMap);
+                builder.putAll(cellMap);
+                if (frame != null) {
+                    builder.concatenate(frame);
+                }
+                Term cellcoll = builder.build();
 
                 if (otherFrame != null) {
-                    addSubstitution(otherFrame, new CellCollection(cm, frame, context));
+                    addSubstitution(otherFrame, cellcoll);
                 } else {
                     // we should've guaranteed that
                     //   cellMap.isEmpty() && cells.length == otherCells.length
                     // when otherFrame == null
-                    assert cm.isEmpty();
+                    assert cellcoll.equals(CellCollection.EMPTY);
                 }
                 substitutions.add(fSubstitution);
             } while (generator.generate());
@@ -791,25 +784,6 @@ public class PatternMatcher extends AbstractMatcher {
                 addSubstitution(substitutions.iterator().next());
             } else {
                 multiSubstitutions.add(substitutions);
-            }
-        }
-    }
-
-    private void computeDisjointCellMaps(Set<String> unifiableCellLabels,
-            CellCollection cellCollection, Multimap<String, Cell> cellMap,
-            CellCollection otherCellCollection,
-            Multimap<String, Cell> otherCellMap) {
-        cellMap.clear();
-        for (String label : cellCollection.labelSet()) {
-            if (!unifiableCellLabels.contains(label)) {
-                cellMap.putAll(label, cellCollection.get(label));
-            }
-        }
-
-        otherCellMap.clear();
-        for (String label : otherCellCollection.labelSet()) {
-            if (!unifiableCellLabels.contains(label)) {
-                otherCellMap.putAll(label, otherCellCollection.get(label));
             }
         }
     }
@@ -874,35 +848,32 @@ public class PatternMatcher extends AbstractMatcher {
     }
 
     /**
-     * Private helper method to compute and add constraint(s) between two
-     * specialized cell collections. One precondition for the arguments:
-     * The two specified cell collections shall have no common cell label in
-     * their explicit contents.
+     * Private helper method to compute and add constraints between two
+     * specialized cell collections. One precondition for the arguments: The two
+     * specified cell collections shall have no common cell label in their
+     * explicit contents.
      *
-     * @return true if the constraint addition does not make the matching to
-     *         fail
+     * @return {@code true} if the constraint addition does not fail the
+     *         unification; otherwise, {@code false}
      */
-    private boolean addCellCollectionConstraint(
-            Multimap<String, Cell> cellMap,
-            Variable frame,
-            Multimap<String, Cell> otherCellMap,
-            Variable otherFrame) {
+    private boolean addCellCollectionConstraint(Term cellCollection, Term otherCellCollection) {
+        ListMultimap<String, Cell> cellMap = CellCollection.getCellMap(cellCollection);
+        ListMultimap<String, Cell> otherCellMap = CellCollection.getCellMap(otherCellCollection);
+        Variable frame = CellCollection.getFrame(cellCollection);
+        Variable otherFrame = CellCollection.getFrame(otherCellCollection);
+
+        /* check preconditions */
         for (String cellLabel : cellMap.keySet()) {
             assert !otherCellMap.containsKey(cellLabel);
         }
 
-        Context context = termContext.definition().context();
-
         if (frame != null) {
-            if (!otherCellMap.isEmpty()) {
-                return false;
-            } else if (otherFrame == null) {
-                return false;
+            if (otherFrame != null && otherCellMap.isEmpty()) {
+                addSubstitution(otherFrame, cellCollection);
             } else {
-                // otherFrame != null && otherCellMap.isEmpty() == true
-                addSubstitution(otherFrame, new CellCollection(cellMap, frame, context));
+                return false;
             }
-        } else { // frame == null
+        } else {
             if (!otherCellMap.isEmpty()) {
                 return false;
             }
@@ -911,7 +882,7 @@ public class PatternMatcher extends AbstractMatcher {
                     return false;
                 }
             } else {
-                addSubstitution(otherFrame, new CellCollection(cellMap, context));
+                addSubstitution(otherFrame, cellCollection);
             }
         }
 

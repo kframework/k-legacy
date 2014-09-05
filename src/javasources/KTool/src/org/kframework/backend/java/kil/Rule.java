@@ -155,7 +155,7 @@ public class Rule extends JavaSymbolicObject {
             public void visit(Cell cell) {
                 if (cell.getLabel().equals("k")) {
                     tempContainsKCell = true;
-                } else if (cell.contentKind() == Kind.CELL_COLLECTION) {
+                } else if (cell.contentKind().isStructural()) {
                     super.visit(cell);
                 }
             }
