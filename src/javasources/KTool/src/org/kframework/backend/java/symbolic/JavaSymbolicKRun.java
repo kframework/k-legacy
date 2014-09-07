@@ -35,7 +35,7 @@ import org.kframework.krun.api.UnsupportedBackendOptionException;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import edu.uci.ics.jung.graph.DirectedGraph;
-
+import org.kframework.debugger.backend.java.JavaBackendDebugger;
 import org.kframework.utils.general.IndexingStatistics;
 
 import com.google.inject.Inject;
@@ -335,7 +335,7 @@ public class JavaSymbolicKRun implements KRun {
 
     @Override
     public KRunDebugger debug(org.kframework.kil.Term cfg) {
-        throw new UnsupportedBackendOptionException("--debug");
+        return new JavaBackendDebugger(cfg, this, context);
     }
 
     @Override
