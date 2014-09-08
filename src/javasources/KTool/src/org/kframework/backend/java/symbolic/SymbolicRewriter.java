@@ -58,6 +58,12 @@ public class SymbolicRewriter {
         this.strategy = new TransitionCompositeStrategy(kompileOptions.transition);
     }
 
+    public List<ConstrainedTerm> getResultsList(){
+        return results;
+    }
+    public List<Rule> getRulesList(){
+        return appliedRules;
+    }
     public ConstrainedTerm rewrite(ConstrainedTerm constrainedTerm, int bound) {
         stopwatch.start();
 

@@ -308,7 +308,6 @@ public class JavaSymbolicKRun implements KRun {
         }
         return searchResultsKRunResult;
     }
-
     @Override
     public KRunResult<SearchResults> generate(
             Integer bound,

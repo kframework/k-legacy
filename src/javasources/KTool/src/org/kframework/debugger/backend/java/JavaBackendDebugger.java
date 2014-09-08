@@ -51,7 +51,7 @@ public class JavaBackendDebugger implements KRunDebugger {
 
     @Override
     public Transition getEdge(int state1, int state2){
-        return null;
+        return stateGraph.findEdge(idMap.get(state1), idMap.get(state2));
     }
 
     @Override
