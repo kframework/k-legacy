@@ -28,6 +28,13 @@ public class JavaBackendDebugger implements KRunDebugger {
         //add the id to the id-Map
         currentId = idCounter;
         idMap.put(idCounter++, initialState);
+        //for debugging purposes
+        try {
+            this.step(1);
+        }
+        catch(Exception e){
+            ;
+        }
     }
 
     @Override

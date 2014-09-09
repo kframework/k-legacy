@@ -348,7 +348,7 @@ public class JavaSymbolicKRun implements KRun {
     }
 
     public KRunDebugResult debugStep(org.kframework.kil.Term cfg, int steps)throws KRunExecutionException {
-    Term term = kilFactory.term(cfg);
+        Term term = kilFactory.term(cfg);
         TermContext termContext = TermContext.of(globalContext);
         term = term.evaluate(termContext);
         SymbolicConstraint constraint = new SymbolicConstraint(termContext);

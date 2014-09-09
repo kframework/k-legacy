@@ -272,7 +272,9 @@ public class KRunFrontEnd extends FrontEnd {
                 System.out.println();
                 String input;
                 try {
-                    input = reader.readLine("Command > ");
+                    reader = new ConsoleReader();
+                    reader.setDefaultPrompt("Kdb > ");
+                    input = reader.readLine();
                 } catch (IOException e) {
                     kem.registerInternalError("IO error detected interacting with console", e);
                     return false;
@@ -320,6 +322,7 @@ public class KRunFrontEnd extends FrontEnd {
                         debugger.resume();
                         System.out.println(debugger.printState(debugger.getCurrentState()));
                     } else if (command(jc) instanceof KRunDebuggerOptions.CommandStep) {
+                        System.out.println("yay");
                         debugger.step(options.step.numSteps);
                         System.out.println(debugger.printState(debugger.getCurrentState()));
                     } else if (command(jc) instanceof KRunDebuggerOptions.CommandSearch) {
