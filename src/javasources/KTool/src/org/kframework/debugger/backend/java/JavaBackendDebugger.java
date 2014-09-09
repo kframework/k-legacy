@@ -3,6 +3,7 @@ package org.kframework.debugger.backend.java;
 import edu.uci.ics.jung.graph.DirectedGraph;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import org.apache.commons.collections15.bidimap.DualHashBidiMap;
+import org.kframework.backend.java.symbolic.JavaSymbolicKRun;
 import org.kframework.kil.Term;
 import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.api.*;
@@ -56,7 +57,8 @@ public class JavaBackendDebugger implements KRunDebugger {
 
     @Override
     public void step(int steps) throws KRunExecutionException {
-
+        JavaSymbolicKRun javaKRun = (JavaSymbolicKRun)kRun;
+        javaKRun.debugStep((idMap.get(currentId)).getRawResult(), 1);
     }
 
     @Override
@@ -71,7 +73,7 @@ public class JavaBackendDebugger implements KRunDebugger {
 
     @Override
     public String printState(int stateNum) {
-        return null;
+        return idMap.get(currentId).toString();
     }
 
     @Override

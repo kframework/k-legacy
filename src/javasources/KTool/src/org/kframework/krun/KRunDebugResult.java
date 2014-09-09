@@ -3,7 +3,6 @@ package org.kframework.krun;
 
 import org.kframework.backend.java.kil.Rule;
 import org.kframework.krun.api.KRunState;
-
 import java.util.List;
 
 public class KRunDebugResult {

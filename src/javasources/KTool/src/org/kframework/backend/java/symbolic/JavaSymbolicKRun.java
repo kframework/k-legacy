@@ -19,6 +19,7 @@ import org.kframework.compile.utils.Substitution;
 import org.kframework.kil.Module;
 import org.kframework.kil.loader.Context;
 import org.kframework.krun.ColorSetting;
+import org.kframework.krun.KRunDebugResult;
 import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.SubstitutionFilter;
 import org.kframework.krun.KRunOptions.OutputMode;
@@ -346,4 +347,17 @@ public class JavaSymbolicKRun implements KRun {
     public void setBackendOption(String key, Object value) {
     }
 
+    public KRunDebugResult debugStep(org.kframework.kil.Term cfg, int steps)throws KRunExecutionException {
+    Term term = kilFactory.term(cfg);
+        TermContext termContext = TermContext.of(globalContext);
+        term = term.evaluate(termContext);
+        SymbolicConstraint constraint = new SymbolicConstraint(termContext);
+        ConstrainedTerm constrainedTerm = new ConstrainedTerm(term, constraint, termContext);
+        ConstrainedTerm rewriteResult = symbolicRewriter.get().rewrite(constrainedTerm, steps);
+        List<ConstrainedTerm> termList = symbolicRewriter.get().getResultsList();
+        List<Rule> ruleList = symbolicRewriter.get().getRulesList();
+        System.out.println(termList);
+        System.out.println(ruleList);
+        return null;
+    }
 }
