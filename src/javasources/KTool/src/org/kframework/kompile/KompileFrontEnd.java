@@ -98,7 +98,7 @@ public class KompileFrontEnd extends FrontEnd {
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
                     try {
-                        FileUtils.deleteDirectory(context.dotk);
+                        FileUtils.deleteDirectory(new File(options.directory, ".k"));
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
