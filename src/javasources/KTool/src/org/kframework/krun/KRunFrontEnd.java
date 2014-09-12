@@ -322,7 +322,6 @@ public class KRunFrontEnd extends FrontEnd {
                         debugger.resume();
                         System.out.println(debugger.printState(debugger.getCurrentState()));
                     } else if (command(jc) instanceof KRunDebuggerOptions.CommandStep) {
-                        System.out.println("yay");
                         debugger.step(options.step.numSteps);
                         System.out.println(debugger.printState(debugger.getCurrentState()));
                     } else if (command(jc) instanceof KRunDebuggerOptions.CommandSearch) {

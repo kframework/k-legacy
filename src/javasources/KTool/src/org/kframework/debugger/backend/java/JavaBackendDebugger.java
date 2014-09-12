@@ -5,6 +5,7 @@ import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import org.apache.commons.collections15.bidimap.DualHashBidiMap;
 import org.kframework.backend.java.symbolic.JavaSymbolicKRun;
 import org.kframework.kil.Term;
+import org.kframework.krun.KRunDebugResult;
 import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.api.*;
 import org.kframework.kil.loader.Context;
@@ -23,18 +24,13 @@ public class JavaBackendDebugger implements KRunDebugger {
         stateGraph = new DirectedSparseGraph<KRunState, Transition>();
         idMap = new DualHashBidiMap<Integer, KRunState>();
         KRunState initialState = new KRunState(cfg, context);
+        initialState.setStateId(idCounter);
         //add the initial state to the graph
         stateGraph.addVertex(initialState);
         //add the id to the id-Map
         currentId = idCounter;
         idMap.put(idCounter++, initialState);
-        //for debugging purposes
-        try {
-            this.step(1);
-        }
-        catch(Exception e){
-            ;
-        }
+
     }
 
     @Override
@@ -65,7 +61,18 @@ public class JavaBackendDebugger implements KRunDebugger {
     @Override
     public void step(int steps) throws KRunExecutionException {
         JavaSymbolicKRun javaKRun = (JavaSymbolicKRun)kRun;
-        javaKRun.debugStep((idMap.get(currentId)).getRawResult(), 1);
+        KRunState currentState = getState(getCurrentState());
+        for(int step = 0; step < steps; ++step){
+            KRunDebugResult result = javaKRun.debugStep((idMap.get(currentId)).getRawResult(), 1);
+            KRunState resultState = result.getStateList().get(0);
+            if(!stateGraph.containsVertex(resultState)){
+                resultState.setStateId(idCounter++);
+                currentId = resultState.getStateId();
+                stateGraph.addVertex(resultState);
+                Transition transition = Transition.rule(result.getRuleList().get(0), context);
+                stateGraph.addEdge(transition, currentState, resultState);
+            }
+        }
     }
 
     @Override

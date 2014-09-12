@@ -353,11 +353,18 @@ public class JavaSymbolicKRun implements KRun {
         term = term.evaluate(termContext);
         SymbolicConstraint constraint = new SymbolicConstraint(termContext);
         ConstrainedTerm constrainedTerm = new ConstrainedTerm(term, constraint, termContext);
-        ConstrainedTerm rewriteResult = symbolicRewriter.get().rewrite(constrainedTerm, steps);
-        List<ConstrainedTerm> termList = symbolicRewriter.get().getResultsList();
-        List<Rule> ruleList = symbolicRewriter.get().getRulesList();
-        System.out.println(termList);
-        System.out.println(ruleList);
-        return null;
+        SymbolicRewriter rewriter = symbolicRewriter.get();
+        ConstrainedTerm rewriteResult = rewriter.rewrite(constrainedTerm, steps);
+        //Need the termList and the RuleList for the debugger's graph.
+        List<ConstrainedTerm> termList = rewriter.getResultsList();
+        List<Rule> ruleList = rewriter.getRulesList();
+        //Creting the termList to be returned to the Debugger
+        List<KRunState> stateList = new ArrayList<KRunState>();
+        for(ConstrainedTerm cTerm : termList){
+            org.kframework.kil.Term kilTerm = (org.kframework.kil.Term) cTerm.term().accept(
+                    new BackendJavaKILtoKILTransformer(context));
+            stateList.add(new KRunState(kilTerm, context));
+        }
+        return new KRunDebugResult(stateList, ruleList);
     }
 }
