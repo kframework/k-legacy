@@ -11,22 +11,29 @@ import org.kframework.krun.api.*;
 import org.kframework.kil.loader.Context;
 import org.mockito.internal.matchers.Null;
 
+import java.util.ArrayList;
+
 public class JavaBackendDebugger implements KRunDebugger {
     private KRun kRun;
     private DirectedGraph<KRunState, Transition> stateGraph;
     private DualHashBidiMap<Integer, KRunState> idMap;
+    private ArrayList<KRunState> primaryStateList;
     private int idCounter = 0;
     private int currentId;
     private Context context;
+
     public JavaBackendDebugger(Term cfg, KRun kRun, Context context){
         this.kRun = kRun;
         this.context = context;
         stateGraph = new DirectedSparseGraph<KRunState, Transition>();
         idMap = new DualHashBidiMap<Integer, KRunState>();
+        primaryStateList = new ArrayList<KRunState>();
         KRunState initialState = new KRunState(cfg, context);
         initialState.setStateId(idCounter);
         //add the initial state to the graph
         stateGraph.addVertex(initialState);
+        //add the state to the primary state list
+        primaryStateList.add(initialState);
         //add the id to the id-Map
         currentId = idCounter;
         idMap.put(idCounter++, initialState);
@@ -62,21 +69,47 @@ public class JavaBackendDebugger implements KRunDebugger {
     public void step(int steps) throws KRunExecutionException {
         JavaSymbolicKRun javaKRun = (JavaSymbolicKRun)kRun;
         KRunState currentState = getState(getCurrentState());
+        boolean primaryState = primaryStateList.contains(currentState);
         for(int step = 0; step < steps; ++step){
             KRunDebugResult result = javaKRun.debugStep((idMap.get(currentId)).getRawResult(), 1);
+            //check if final state is reached
+            if(result.getStateList().size() == 0){
+                System.out.println("Final State Reached");
+                break;
+            }
             KRunState resultState = result.getStateList().get(0);
             if(!stateGraph.containsVertex(resultState)){
                 resultState.setStateId(idCounter++);
-                currentId = resultState.getStateId();
                 stateGraph.addVertex(resultState);
+                idMap.put(resultState.getStateId(), resultState);
+                //if the first state is primary, all following states will be primary in step
+                if(primaryState){
+                    primaryStateList.add(resultState);
+                }
                 Transition transition = Transition.rule(result.getRuleList().get(0), context);
                 stateGraph.addEdge(transition, currentState, resultState);
+                currentState = resultState;
+                currentId = resultState.getStateId();
+            }
+            else {
+                //state already exists, add the transition
+                if(primaryState){
+                    primaryStateList.add(resultState);
+                }
+                Transition transition = Transition.rule(result.getRuleList().get(0), context);
+                stateGraph.addEdge(transition, currentState, resultState);
+                currentState = resultState;
+                currentId = resultState.getStateId();
             }
         }
     }
 
     @Override
     public SearchResults stepAll(int steps) throws KRunExecutionException {
+        KRunState currentState = idMap.get(currentId);
+        for(int counter = 0; counter < steps; ++counter){
+            ;
+        }
         return null;
     }
 

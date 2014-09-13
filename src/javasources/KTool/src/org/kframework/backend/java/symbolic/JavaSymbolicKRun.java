@@ -367,4 +367,13 @@ public class JavaSymbolicKRun implements KRun {
         }
         return new KRunDebugResult(stateList, ruleList);
     }
+    public KRunDebugResult debugStepAll(org.kframework.kil.Term cfg, int steps){
+        Term term = kilFactory.term(cfg);
+        TermContext termContext = TermContext.of(globalContext);
+        term = term.evaluate(termContext);
+        SymbolicConstraint symbolicConstraint = new SymbolicConstraint(termContext);
+        SymbolicRewriter rewriter = symbolicRewriter.get();
+        //ConstrainedTerm
+        return null;
+    }
 }
