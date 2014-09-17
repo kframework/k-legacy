@@ -6,11 +6,18 @@ import org.apache.commons.collections15.bidimap.DualHashBidiMap;
 import org.kframework.backend.java.kil.Rule;
 import org.kframework.backend.java.symbolic.JavaSymbolicKRun;
 import org.kframework.compile.utils.RuleCompilerSteps;
+import org.kframework.kil.ASTNode;
+import org.kframework.kil.Location;
+import org.kframework.kil.Source;
 import org.kframework.kil.Term;
 import org.kframework.krun.KRunDebugResult;
 import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.api.*;
 import org.kframework.kil.loader.Context;
+import org.kframework.krun.api.io.File;
+import org.kframework.utils.file.FileUtil;
+import org.kframework.utils.inject.Options;
+import edu.uci.ics.jung.graph.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -145,17 +152,38 @@ public class JavaBackendDebugger implements KRunDebugger {
                 //SearchResult result = new SearchResult(stepState, s)
             }
 
-        }
+        }*/
 
         KRunState currentState = idMap.get(currentId);
         KRunResult<SearchResults> searchResult = kRun.search(null, steps, SearchType.STAR, null,
                                                             currentState.getRawResult(), new RuleCompilerSteps(context));
         SearchResults results = searchResult.getResult();
         DirectedGraph<KRunState, Transition> partialGraph = results.getGraph();
-        mergeGraph(partialGraph);*/
-        return null;
+        mergeGraph(partialGraph);
+        return searchResult.getResult();
     }
-
+    public void mergeGraph(DirectedGraph<KRunState, Transition> partialGraph){
+        for (KRunState state : partialGraph.getVertices()){
+            if(! stateGraph.containsVertex(state)){
+                state.setStateId(idCounter++);
+                idMap.put(state.getStateId(), state);
+                stateGraph.addVertex(state);
+            }
+        }
+        for(Transition edge : partialGraph.getEdges()){
+            Pair<KRunState> vertices = partialGraph.getEndpoints(edge);
+            Transition originalEdge = stateGraph.findEdge(vertices.getFirst(), vertices.getSecond());
+            if (originalEdge != null){
+                //update the original edge
+                stateGraph.removeEdge(originalEdge);
+                stateGraph.addEdge(edge, vertices.getFirst(), vertices.getSecond());
+            }
+            //add the new edge to the graph
+            else{
+                stateGraph.addEdge(edge, vertices.getFirst(), vertices.getSecond());
+            }
+        }
+    }
     public DirectedGraph<KRunState, Transition> debugStepAll(int steps){
         JavaSymbolicKRun javaKRun = (JavaSymbolicKRun)kRun;
         boolean primaryState;
@@ -216,12 +244,23 @@ public class JavaBackendDebugger implements KRunDebugger {
             throw new IllegalArgumentException("State doesn't exist");
         }
         else{
-            return (stateGraph.findEdge(idMap.get(state1), idMap.get(state2))).toString();
+            Transition transition = stateGraph.findEdge(idMap.get(state1), idMap.get(state2));
+            if(transition == null){
+                throw new IllegalStateException("No edge between these states");
+            }
+            return processTransition(transition);
         }
     }
 
     @Override
     public void readFromStdin(String s) {
 
+    }
+    private String processTransition(Transition transition){
+        ASTNode rule = transition.getRule();
+        Location ruleLocation = rule.getLocation();
+        Source ruleSource = rule.getSource();
+        //String file = FileUtil.getFileContent(ruleSource.toString());
+        return rule.toString();
     }
 }
