@@ -332,7 +332,7 @@ public class JavaSymbolicKRun implements KRun {
 
     @Override
     public KRunDebugger debug(DirectedGraph<KRunState, Transition> graph) {
-        throw new UnsupportedBackendOptionException("--debug");
+        return new JavaBackendDebugger(graph, this, context);
     }
 
     @Override

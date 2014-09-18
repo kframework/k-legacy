@@ -17,8 +17,8 @@ import org.kframework.krun.api.*;
 import org.kframework.kil.loader.Context;
 import org.kframework.parser.DefinitionLoader;
 import edu.uci.ics.jung.graph.util.Pair;
-import org.kframework.utils.file.FileUtil;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,9 +35,9 @@ public class JavaBackendDebugger implements KRunDebugger {
     public JavaBackendDebugger(Term cfg, KRun kRun, Context context){
         this.kRun = kRun;
         this.context = context;
-        stateGraph = new DirectedSparseGraph<KRunState, Transition>();
-        idMap = new DualHashBidiMap<Integer, KRunState>();
-        primaryStateList = new ArrayList<KRunState>();
+        stateGraph = new DirectedSparseGraph<>();
+        idMap = new DualHashBidiMap<>();
+        primaryStateList = new ArrayList<>();
         KRunState initialState = new KRunState(cfg, context);
         initialState.setStateId(idCounter);
         //add the initial state to the graph
@@ -65,7 +65,26 @@ public class JavaBackendDebugger implements KRunDebugger {
         }
 
     }
-
+    public JavaBackendDebugger(DirectedGraph<KRunState, Transition> graph, KRun kRun, Context context){
+        this.kRun = kRun;
+        this.context = context;
+        //state Graph and Id Graph have to be initialized
+        stateGraph = new DirectedSparseGraph<>();
+        idMap = new DualHashBidiMap<>();
+        for (KRunState state : graph.getVertices()){
+            //add the vertices with new
+            int curId = idCounter++;
+            state.setStateId(curId);
+            idMap.put(curId, state);
+            stateGraph.addVertex(state);
+            currentId = curId;
+        }
+        for(Transition transition : graph.getEdges()){
+            Pair<KRunState> states = graph.getEndpoints(transition);
+            stateGraph.addEdge(transition, states.getFirst(), states.getSecond());
+        }
+        System.out.println("Graph Successfully loaded");
+    }
     @Override
     public DirectedGraph<KRunState, Transition> getGraph() {
         return stateGraph;
@@ -208,7 +227,7 @@ public class JavaBackendDebugger implements KRunDebugger {
         JavaSymbolicKRun javaKRun = (JavaSymbolicKRun)kRun;
         boolean primaryState;
         //partial graph is to be returned to the frontend.
-        DirectedGraph<KRunState, Transition> partialGraph = new DirectedSparseGraph<KRunState, Transition>();
+        DirectedGraph<KRunState, Transition> partialGraph = new DirectedSparseGraph<>();
         for(int counter = 0; counter < steps; ++counter){
             KRunState currentState = idMap.get(currentId);
             partialGraph.addVertex(currentState);
@@ -283,12 +302,12 @@ public class JavaBackendDebugger implements KRunDebugger {
     }
     private String processTransition(Transition transition){
         Rule rule = (Rule)transition.getRule();
-        Location ruleLocation = rule.getLocation();
-        System.out.println(ruleLocation);
-        Source ruleSource = rule.getSource();
-        File sourceFile = ((FileSource) ruleSource).getFile();
+
         String ruleStr = "";
         try {
+            Location ruleLocation = rule.getLocation();
+            Source ruleSource = rule.getSource();
+            File sourceFile = ((FileSource) ruleSource).getFile();
             List<String> contents = FileUtils.readLines(sourceFile);
             if (ruleLocation.lineStart == ruleLocation.lineEnd){
                 ruleStr += contents.get(ruleLocation.lineStart - 1).substring(ruleLocation.columnStart, ruleLocation.columnEnd);
@@ -298,8 +317,11 @@ public class JavaBackendDebugger implements KRunDebugger {
                 ruleStr += contents.get(ruleLocation.lineEnd - 1).substring(0, ruleLocation.columnEnd);
             }
         }
-        catch (Exception e){
-            System.out.println(e.getMessage());
+        catch (IOException ioException){
+            System.out.println("Sorry! The K File could not be read");
+        }
+        catch (NullPointerException nullPointerException){
+            System.out.println("Sorry! The Main K file could not be found");
         }
         return ruleStr;
     }
