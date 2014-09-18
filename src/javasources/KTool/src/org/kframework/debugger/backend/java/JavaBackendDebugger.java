@@ -3,6 +3,7 @@ package org.kframework.debugger.backend.java;
 import edu.uci.ics.jung.graph.DirectedGraph;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import org.apache.commons.collections15.bidimap.DualHashBidiMap;
+import org.apache.commons.io.FileUtils;
 import org.kframework.backend.java.kil.Rule;
 import org.kframework.backend.java.symbolic.JavaSymbolicKRun;
 import org.kframework.compile.utils.CompilerStepDone;
@@ -16,7 +17,8 @@ import org.kframework.krun.api.*;
 import org.kframework.kil.loader.Context;
 import org.kframework.parser.DefinitionLoader;
 import edu.uci.ics.jung.graph.util.Pair;
-
+import org.kframework.utils.file.FileUtil;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -280,10 +282,25 @@ public class JavaBackendDebugger implements KRunDebugger {
 
     }
     private String processTransition(Transition transition){
-        ASTNode rule = transition.getRule();
+        Rule rule = (Rule)transition.getRule();
         Location ruleLocation = rule.getLocation();
+        System.out.println(ruleLocation);
         Source ruleSource = rule.getSource();
-        //String file = FileUtil.getFileContent(ruleSource.toString());
-        return rule.toString();
+        File sourceFile = ((FileSource) ruleSource).getFile();
+        String ruleStr = "";
+        try {
+            List<String> contents = FileUtils.readLines(sourceFile);
+            if (ruleLocation.lineStart == ruleLocation.lineEnd){
+                ruleStr += contents.get(ruleLocation.lineStart - 1).substring(ruleLocation.columnStart, ruleLocation.columnEnd);
+            }
+            else{
+                ruleStr += contents.get(ruleLocation.lineStart - 1).substring(ruleLocation.columnStart - 1);
+                ruleStr += contents.get(ruleLocation.lineEnd - 1).substring(0, ruleLocation.columnEnd);
+            }
+        }
+        catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+        return ruleStr;
     }
 }
