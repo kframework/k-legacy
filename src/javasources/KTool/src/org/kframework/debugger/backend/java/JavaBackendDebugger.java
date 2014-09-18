@@ -5,16 +5,17 @@ import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import org.apache.commons.collections15.bidimap.DualHashBidiMap;
 import org.kframework.backend.java.kil.Rule;
 import org.kframework.backend.java.symbolic.JavaSymbolicKRun;
+import org.kframework.compile.utils.CompilerStepDone;
 import org.kframework.compile.utils.RuleCompilerSteps;
-import org.kframework.kil.ASTNode;
-import org.kframework.kil.Location;
-import org.kframework.kil.Source;
-import org.kframework.kil.Term;
+import org.kframework.kil.*;
+import org.kframework.kil.visitors.exceptions.ParseFailedException;
 import org.kframework.krun.KRunDebugResult;
 import org.kframework.krun.KRunExecutionException;
+import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.*;
 import org.kframework.kil.loader.Context;
 import org.kframework.krun.api.io.File;
+import org.kframework.parser.DefinitionLoader;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.inject.Options;
 import edu.uci.ics.jung.graph.util.Pair;
@@ -30,7 +31,8 @@ public class JavaBackendDebugger implements KRunDebugger {
     private int idCounter = 0;
     private int currentId;
     private Context context;
-
+    private static org.kframework.kil.Rule defaultPattern;
+    private static RuleCompilerSteps defaultPatternInfo;
     public JavaBackendDebugger(Term cfg, KRun kRun, Context context){
         this.kRun = kRun;
         this.context = context;
@@ -46,6 +48,22 @@ public class JavaBackendDebugger implements KRunDebugger {
         //add the id to the id-Map
         currentId = idCounter;
         idMap.put(idCounter++, initialState);
+        try {
+            org.kframework.parser.concrete.KParser.ImportTblRule(context.kompiled);
+            ASTNode pattern = DefinitionLoader.parsePattern(
+                    KRunOptions.DEFAULT_PATTERN,
+                    null,
+                    KSorts.BAG,
+                    context);
+            defaultPatternInfo = new RuleCompilerSteps(context);
+            pattern = defaultPatternInfo.compile(new org.kframework.kil.Rule((Sentence) pattern), null);
+
+            defaultPattern = (org.kframework.kil.Rule) pattern;
+        } catch (CompilerStepDone e) {
+            e.printStackTrace();
+        } catch (ParseFailedException e) {
+            e.report();
+        }
 
     }
 
@@ -153,13 +171,16 @@ public class JavaBackendDebugger implements KRunDebugger {
             }
 
         }*/
-
         KRunState currentState = idMap.get(currentId);
-        KRunResult<SearchResults> searchResult = kRun.search(null, steps, SearchType.STAR, null,
+        KRunResult<SearchResults> searchResult = kRun.search(null, steps, SearchType.STAR, defaultPattern,
                                                             currentState.getRawResult(), new RuleCompilerSteps(context));
+        System.out.println("hello from stepall");
         SearchResults results = searchResult.getResult();
+        System.out.println(results.toString());
         DirectedGraph<KRunState, Transition> partialGraph = results.getGraph();
+        System.out.println(partialGraph);
         mergeGraph(partialGraph);
+        //System.out.println(searchResult);
         return searchResult.getResult();
     }
     public void mergeGraph(DirectedGraph<KRunState, Transition> partialGraph){
