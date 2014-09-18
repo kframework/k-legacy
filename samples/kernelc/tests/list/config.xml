@@ -7,6 +7,7 @@
             programs="."
             results="."
             extension="c"
+            skip="pdf"
             >
         <kompile-option name="--backend" value="java" />
         <kompile-option name="-d" value="list" />
