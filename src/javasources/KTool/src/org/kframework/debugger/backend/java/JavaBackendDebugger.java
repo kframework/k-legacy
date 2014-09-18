@@ -14,10 +14,7 @@ import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.*;
 import org.kframework.kil.loader.Context;
-import org.kframework.krun.api.io.File;
 import org.kframework.parser.DefinitionLoader;
-import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.inject.Options;
 import edu.uci.ics.jung.graph.util.Pair;
 
 import java.util.ArrayList;
@@ -173,7 +170,7 @@ public class JavaBackendDebugger implements KRunDebugger {
         }*/
         KRunState currentState = idMap.get(currentId);
         KRunResult<SearchResults> searchResult = kRun.search(null, steps, SearchType.STAR, defaultPattern,
-                                                            currentState.getRawResult(), new RuleCompilerSteps(context));
+                currentState.getRawResult(), defaultPatternInfo);
         System.out.println("hello from stepall");
         SearchResults results = searchResult.getResult();
         System.out.println(results.toString());
@@ -205,7 +202,7 @@ public class JavaBackendDebugger implements KRunDebugger {
             }
         }
     }
-    public DirectedGraph<KRunState, Transition> debugStepAll(int steps){
+    public List<KRunState> debugStepAll(int steps){
         JavaSymbolicKRun javaKRun = (JavaSymbolicKRun)kRun;
         boolean primaryState;
         //partial graph is to be returned to the frontend.
@@ -245,7 +242,12 @@ public class JavaBackendDebugger implements KRunDebugger {
                 //SearchResult result = new SearchResult(stepState, s)
             }
         }
-        return partialGraph;
+        List<KRunState> stateList = new ArrayList<>();
+        for (KRunState state : partialGraph.getVertices()){
+            stateList.add(state);
+        }
+        return stateList;
+
     }
 
     @Override

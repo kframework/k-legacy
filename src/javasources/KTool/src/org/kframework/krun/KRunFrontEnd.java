@@ -22,6 +22,7 @@ import org.kframework.backend.java.symbolic.JavaExecutionOptions;
 import org.kframework.backend.java.symbolic.JavaSymbolicKRunModule;
 import org.kframework.compile.utils.CompilerStepDone;
 import org.kframework.compile.utils.RuleCompilerSteps;
+import org.kframework.debugger.backend.java.JavaBackendDebugger;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Definition;
 import org.kframework.kil.Module;
@@ -325,8 +326,16 @@ public class KRunFrontEnd extends FrontEnd {
                         debugger.step(options.step.numSteps);
                         System.out.println(debugger.printState(debugger.getCurrentState()));
                     } else if (command(jc) instanceof KRunDebuggerOptions.CommandSearch) {
-                        SearchResults states = debugger.stepAll(options.search.numSteps);
-                        System.out.println(states);
+                        if(debugger instanceof JavaBackendDebugger){
+                            List<KRunState> results = ((JavaBackendDebugger) debugger).debugStepAll(options.search.numSteps);
+                            for(KRunState result: results){
+                                System.out.println("Id - "+ result.getStateId() + " " + result.toString());
+                            }
+                        }
+                        else {
+                            SearchResults states = debugger.stepAll(options.search.numSteps);
+                            System.out.println(states);
+                        }
                     } else if (command(jc) instanceof KRunDebuggerOptions.CommandSelect) {
                         debugger.setCurrentState(options.select.stateId);
                         System.out.println(debugger.printState(debugger.getCurrentState()));
