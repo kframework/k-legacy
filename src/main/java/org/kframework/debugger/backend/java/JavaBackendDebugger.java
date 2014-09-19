@@ -1,3 +1,5 @@
+// Copyright (c) 2013-2014 K Team. All Rights Reserved.
+
 package org.kframework.debugger.backend.java;
 
 import edu.uci.ics.jung.graph.DirectedGraph;
@@ -6,16 +8,11 @@ import org.apache.commons.collections15.bidimap.DualHashBidiMap;
 import org.apache.commons.io.FileUtils;
 import org.kframework.backend.java.kil.Rule;
 import org.kframework.backend.java.symbolic.JavaSymbolicKRun;
-import org.kframework.compile.utils.CompilerStepDone;
-import org.kframework.compile.utils.RuleCompilerSteps;
 import org.kframework.kil.*;
-import org.kframework.kil.visitors.exceptions.ParseFailedException;
 import org.kframework.krun.KRunDebugResult;
 import org.kframework.krun.KRunExecutionException;
-import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.*;
 import org.kframework.kil.loader.Context;
-import org.kframework.parser.DefinitionLoader;
 import edu.uci.ics.jung.graph.util.Pair;
 import java.io.File;
 import java.io.IOException;
@@ -30,8 +27,15 @@ public class JavaBackendDebugger implements KRunDebugger {
     private int idCounter = 0;
     private int currentId;
     private Context context;
-    private static org.kframework.kil.Rule defaultPattern;
-    private static RuleCompilerSteps defaultPatternInfo;
+/*    private static org.kframework.kil.Rule defaultPattern;
+    private static RuleCompilerSteps defaultPatternInfo;*/
+
+    /**
+     * Constructor to start debugger.
+     * @param cfg - The initial Configuration
+     * @param kRun - The current kRun instance
+     * @param context
+     */
     public JavaBackendDebugger(Term cfg, KRun kRun, Context context){
         this.kRun = kRun;
         this.context = context;
@@ -47,7 +51,8 @@ public class JavaBackendDebugger implements KRunDebugger {
         //add the id to the id-Map
         currentId = idCounter;
         idMap.put(idCounter++, initialState);
-        try {
+        //for unparsing of rules. To be integrated at a later stage
+        /*try {
             org.kframework.parser.concrete.KParser.ImportTblRule(context.kompiled);
             ASTNode pattern = DefinitionLoader.parsePattern(
                     KRunOptions.DEFAULT_PATTERN,
@@ -62,9 +67,16 @@ public class JavaBackendDebugger implements KRunDebugger {
             e.printStackTrace();
         } catch (ParseFailedException e) {
             e.report();
-        }
+        }*/
 
     }
+
+    /**
+     * Constructor
+     * @param graph - Previous Graph
+     * @param kRun - Current kRun instance.
+     * @param context - Current context.
+     */
     public JavaBackendDebugger(DirectedGraph<KRunState, Transition> graph, KRun kRun, Context context){
         this.kRun = kRun;
         this.context = context;
@@ -152,6 +164,9 @@ public class JavaBackendDebugger implements KRunDebugger {
     }
 
     @Override
+    /**
+     * To be implemented later. Currently function performed by debug step-all
+     */
     public SearchResults stepAll(int steps) throws KRunExecutionException {
 /*        JavaSymbolicKRun javaKRun = (JavaSymbolicKRun)kRun;
         boolean primaryState;
@@ -189,7 +204,7 @@ public class JavaBackendDebugger implements KRunDebugger {
             }
 
         }*/
-        KRunState currentState = idMap.get(currentId);
+       /* KRunState currentState = idMap.get(currentId);
         KRunResult<SearchResults> searchResult = kRun.search(null, steps, SearchType.STAR, defaultPattern,
                 currentState.getRawResult(), defaultPatternInfo);
         System.out.println("hello from stepall");
@@ -199,7 +214,8 @@ public class JavaBackendDebugger implements KRunDebugger {
         System.out.println(partialGraph);
         mergeGraph(partialGraph);
         //System.out.println(searchResult);
-        return searchResult.getResult();
+        return searchResult.getResult();*/
+        return null;
     }
     public void mergeGraph(DirectedGraph<KRunState, Transition> partialGraph){
         for (KRunState state : partialGraph.getVertices()){
@@ -223,6 +239,13 @@ public class JavaBackendDebugger implements KRunDebugger {
             }
         }
     }
+
+    /**
+     * The function that replaces the original step all function. Maintains a record
+     * of the states that would have been followed in the original Run.
+     * @param steps
+     * @return List of KRunStates that are stepped into from current state
+     */
     public List<KRunState> debugStepAll(int steps){
         JavaSymbolicKRun javaKRun = (JavaSymbolicKRun)kRun;
         boolean primaryState;
@@ -300,6 +323,12 @@ public class JavaBackendDebugger implements KRunDebugger {
     public void readFromStdin(String s) {
 
     }
+
+    /**
+     * Helper Function for Parsing the file for reading rules.
+     * @param transition Transition containing rule to be parsed
+     * @return String of rule to be printed
+     */
     private String processTransition(Transition transition){
         Rule rule = (Rule)transition.getRule();
 

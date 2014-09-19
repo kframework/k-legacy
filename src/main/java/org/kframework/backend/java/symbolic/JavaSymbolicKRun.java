@@ -27,9 +27,8 @@ import org.kframework.krun.api.*;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import edu.uci.ics.jung.graph.DirectedGraph;
-import org.kframework.debugger.backend.java.JavaBackendDebugger;
 import org.kframework.utils.general.IndexingStatistics;
-
+import org.kframework.debugger.backend.java.JavaBackendDebugger;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
