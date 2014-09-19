@@ -3,19 +3,11 @@ package org.kframework.krun;
 
 import static org.apache.commons.io.FileUtils.writeStringToFile;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
 
-import jline.ArgumentCompletor;
-import jline.Completor;
-import jline.ConsoleReader;
-import jline.FileNameCompletor;
-import jline.MultiCompletor;
-import jline.SimpleCompletor;
+import jline.*;
 
 import org.fusesource.jansi.AnsiString;
 import org.kframework.backend.java.symbolic.JavaExecutionOptions;
@@ -243,7 +235,7 @@ public class KRunFrontEnd extends FrontEnd {
             // commandline by using the JLine library
             reader.setBellEnabled(false);
 
-            List<Completor> argCompletor = new LinkedList<Completor>();
+            List<Completor> argCompletor = new LinkedList<>();
             argCompletor.add(new SimpleCompletor(new String[] { "help",
                     "exit", "resume", "step", "search", "select",
                     "show-graph", "show-state", "show-transition", "save", "load", "read" }));
@@ -273,7 +265,7 @@ public class KRunFrontEnd extends FrontEnd {
                 System.out.println();
                 String input;
                 try {
-                    reader = new ConsoleReader();
+                    //reader = new ConsoleReader();
                     reader.setDefaultPrompt("Kdb > ");
                     input = reader.readLine();
                 } catch (IOException e) {
