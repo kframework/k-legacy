@@ -245,7 +245,7 @@ public class KRunFrontEnd extends FrontEnd {
             argCompletor.add(new SimpleCompletor(new String[] { "help",
                     "exit", "resume", "step", "search", "select",
                     "show-graph", "show-state", "show-transition", "save", "load", "read" }));
-            argCompletor.add(new FileNameCompletor());
+            //argCompletor.add(new FileNameCompletor());
             List<Completor> completors = new LinkedList<Completor>();
             completors.add(new ArgumentCompletor(argCompletor));
             reader.addCompletor(new MultiCompletor(completors));

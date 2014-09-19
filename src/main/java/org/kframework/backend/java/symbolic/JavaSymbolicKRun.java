@@ -338,6 +338,13 @@ public class JavaSymbolicKRun implements KRun {
     public void setBackendOption(String key, Object value) {
     }
 
+    /**
+     * Helper Method for the debugger, since the debugger does not have access to the rewrite engine.
+     * @param cfg Initial Configuration
+     * @param steps No of steps
+     * @return KRunDebug Result object
+     * @throws KRunExecutionException
+     */
     public KRunDebugResult debugStep(org.kframework.kil.Term cfg, int steps)throws KRunExecutionException {
         Term term = kilFactory.term(cfg);
         TermContext termContext = TermContext.of(globalContext);
@@ -358,6 +365,13 @@ public class JavaSymbolicKRun implements KRun {
         }
         return new KRunDebugResult(stateList, ruleList);
     }
+
+    /**
+     * Helper Method for Java Backend Debugger, since it doesn't have access to the rewrite engine.
+     * @param cfg  Initial Configuration
+     * @param steps No of steps
+     * @return KRunDebugResult object
+     */
     public KRunDebugResult debugStepAll(org.kframework.kil.Term cfg, int steps){
         Term term = kilFactory.term(cfg);
         TermContext termContext = TermContext.of(globalContext);

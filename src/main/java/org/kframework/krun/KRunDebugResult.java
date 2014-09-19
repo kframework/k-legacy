@@ -1,5 +1,6 @@
-package org.kframework.krun;
+// Copyright (c) 2012-2014 K Team. All Rights Reserved.
 
+package org.kframework.krun;
 
 import org.kframework.backend.java.kil.Rule;
 import org.kframework.krun.api.KRunState;

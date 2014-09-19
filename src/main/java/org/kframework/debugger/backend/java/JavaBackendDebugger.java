@@ -27,8 +27,6 @@ public class JavaBackendDebugger implements KRunDebugger {
     private int idCounter = 0;
     private int currentId;
     private Context context;
-/*    private static org.kframework.kil.Rule defaultPattern;
-    private static RuleCompilerSteps defaultPatternInfo;*/
 
     /**
      * Constructor to start debugger.
@@ -51,24 +49,6 @@ public class JavaBackendDebugger implements KRunDebugger {
         //add the id to the id-Map
         currentId = idCounter;
         idMap.put(idCounter++, initialState);
-        //for unparsing of rules. To be integrated at a later stage
-        /*try {
-            org.kframework.parser.concrete.KParser.ImportTblRule(context.kompiled);
-            ASTNode pattern = DefinitionLoader.parsePattern(
-                    KRunOptions.DEFAULT_PATTERN,
-                    null,
-                    KSorts.BAG,
-                    context);
-            defaultPatternInfo = new RuleCompilerSteps(context);
-            pattern = defaultPatternInfo.compile(new org.kframework.kil.Rule((Sentence) pattern), null);
-
-            defaultPattern = (org.kframework.kil.Rule) pattern;
-        } catch (CompilerStepDone e) {
-            e.printStackTrace();
-        } catch (ParseFailedException e) {
-            e.report();
-        }*/
-
     }
 
     /**
@@ -152,6 +132,8 @@ public class JavaBackendDebugger implements KRunDebugger {
             }
             else {
                 //state already exists, add the transition
+                int resultStateId = idMap.getKey(resultState);
+                resultState.setStateId(resultStateId);
                 if(primaryState){
                     primaryStateList.add(resultState);
                 }
@@ -168,76 +150,7 @@ public class JavaBackendDebugger implements KRunDebugger {
      * To be implemented later. Currently function performed by debug step-all
      */
     public SearchResults stepAll(int steps) throws KRunExecutionException {
-/*        JavaSymbolicKRun javaKRun = (JavaSymbolicKRun)kRun;
-        boolean primaryState;
-        List<SearchResult> searchResults = new ArrayList<>();
-        for(int counter = 0; counter < steps; ++counter){
-            KRunState currentState = idMap.get(currentId);
-            primaryState = primaryStateList.contains(currentState);
-            KRunDebugResult stepResult = javaKRun.debugStepAll(currentState.getRawResult(), 1);
-            List<KRunState> stateList = stepResult.getStateList();
-            List<Rule> ruleList = stepResult.getRuleList();
-            for(int index = 0; index < stateList.size(); ++index){
-                KRunState stepState = stateList.get(index);
-                //first state is important, since kRun follows the first state
-                if(!stateGraph.containsVertex(stepState)){
-                    stepState.setStateId(idCounter++);
-                    idMap.put(stepState.getStateId(), stepState);
-                }
-                Rule rule = ruleList.get(index);
-                Transition transition = Transition.rule(rule, context);
-                stateGraph.addEdge(transition, currentState, stepState);
-                if(index == 0){
-                    //the first step of primary state is primary
-                    if(primaryState) {
-                        if (!primaryStateList.contains(stepState)) {
-                            primaryStateList.add(stepState);
-                        }
-                    }
-                    //the next state for the step, since KRun also does this.
-                    currentState = stepState;
-
-                    currentId = currentState.getStateId();
-                }
-                //adding the state to the search results
-                //SearchResult result = new SearchResult(stepState, s)
-            }
-
-        }*/
-       /* KRunState currentState = idMap.get(currentId);
-        KRunResult<SearchResults> searchResult = kRun.search(null, steps, SearchType.STAR, defaultPattern,
-                currentState.getRawResult(), defaultPatternInfo);
-        System.out.println("hello from stepall");
-        SearchResults results = searchResult.getResult();
-        System.out.println(results.toString());
-        DirectedGraph<KRunState, Transition> partialGraph = results.getGraph();
-        System.out.println(partialGraph);
-        mergeGraph(partialGraph);
-        //System.out.println(searchResult);
-        return searchResult.getResult();*/
         return null;
-    }
-    public void mergeGraph(DirectedGraph<KRunState, Transition> partialGraph){
-        for (KRunState state : partialGraph.getVertices()){
-            if(! stateGraph.containsVertex(state)){
-                state.setStateId(idCounter++);
-                idMap.put(state.getStateId(), state);
-                stateGraph.addVertex(state);
-            }
-        }
-        for(Transition edge : partialGraph.getEdges()){
-            Pair<KRunState> vertices = partialGraph.getEndpoints(edge);
-            Transition originalEdge = stateGraph.findEdge(vertices.getFirst(), vertices.getSecond());
-            if (originalEdge != null){
-                //update the original edge
-                stateGraph.removeEdge(originalEdge);
-                stateGraph.addEdge(edge, vertices.getFirst(), vertices.getSecond());
-            }
-            //add the new edge to the graph
-            else{
-                stateGraph.addEdge(edge, vertices.getFirst(), vertices.getSecond());
-            }
-        }
     }
 
     /**
@@ -266,6 +179,9 @@ public class JavaBackendDebugger implements KRunDebugger {
                     stepState.setStateId(idCounter++);
                     idMap.put(stepState.getStateId(), stepState);
                 }
+                else{
+                    stepState.setStateId(idMap.getKey(stepState));
+                }
                 Rule rule = ruleList.get(index);
                 Transition transition = Transition.rule(rule, context);
                 stateGraph.addEdge(transition, currentState, stepState);
@@ -282,8 +198,6 @@ public class JavaBackendDebugger implements KRunDebugger {
 
                     currentId = currentState.getStateId();
                 }
-                //adding the state to the search results
-                //SearchResult result = new SearchResult(stepState, s)
             }
         }
         List<KRunState> stateList = new ArrayList<>();
@@ -302,7 +216,13 @@ public class JavaBackendDebugger implements KRunDebugger {
 
     @Override
     public String printState(int stateNum) {
-        return idMap.get(currentId).toString();
+        KRunState printState = idMap.get(stateNum);
+        if(printState != null) {
+            return idMap.get(stateNum).toString();
+        }
+        else{
+            return ("State not Found");
+        }
     }
 
     @Override
@@ -336,7 +256,7 @@ public class JavaBackendDebugger implements KRunDebugger {
         try {
             Location ruleLocation = rule.getLocation();
             Source ruleSource = rule.getSource();
-            File sourceFile = ((FileSource) ruleSource).getFile();
+            File sourceFile = ((FileSource)ruleSource).getFile();
             List<String> contents = FileUtils.readLines(sourceFile);
             if (ruleLocation.lineStart == ruleLocation.lineEnd){
                 ruleStr += contents.get(ruleLocation.lineStart - 1).substring(ruleLocation.columnStart, ruleLocation.columnEnd);

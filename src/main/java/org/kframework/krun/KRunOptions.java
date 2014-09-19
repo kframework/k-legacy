@@ -284,7 +284,7 @@ public final class KRunOptions {
         public boolean statistics = false;
 
         @Parameter(names="--debugger", description="Run an execution in debug mode.")
-        private boolean debugger = false;
+        public boolean debugger = false;
 
         public boolean debugger() {
             if (debugger && search()) {
