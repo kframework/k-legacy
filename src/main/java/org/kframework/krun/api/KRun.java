@@ -35,7 +35,6 @@ public interface KRun {
     @param searchType Represents the types of result states to return
     @param pattern A kompiled rule without rewrites (i.e. a pattern and a side condition) to
     use to determine whether a particular state is a search result
-    @param cfg The term to begin the search at
     @param compilationInfo the object used to kompile the search pattern, which contains
     metadata used to pretty-print results
     @exception KRunExecutionException Thrown if the backend fails to successfully perform the

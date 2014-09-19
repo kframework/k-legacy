@@ -1,0 +1,277 @@
+// Copyright (c) 2013-2014 K Team. All Rights Reserved.
+
+package org.kframework.debugger.backend.java;
+
+import edu.uci.ics.jung.graph.DirectedGraph;
+import edu.uci.ics.jung.graph.DirectedSparseGraph;
+import org.apache.commons.collections15.bidimap.DualHashBidiMap;
+import org.apache.commons.io.FileUtils;
+import org.kframework.backend.java.kil.Rule;
+import org.kframework.backend.java.symbolic.JavaSymbolicKRun;
+import org.kframework.kil.*;
+import org.kframework.krun.KRunDebugResult;
+import org.kframework.krun.KRunExecutionException;
+import org.kframework.krun.api.*;
+import org.kframework.kil.loader.Context;
+import edu.uci.ics.jung.graph.util.Pair;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class JavaBackendDebugger implements KRunDebugger {
+    private KRun kRun;
+    private DirectedGraph<KRunState, Transition> stateGraph;
+    private DualHashBidiMap<Integer, KRunState> idMap;
+    private ArrayList<KRunState> primaryStateList;
+    private int idCounter = 0;
+    private int currentId;
+    private Context context;
+
+    /**
+     * Constructor to start debugger.
+     * @param cfg - The initial Configuration
+     * @param kRun - The current kRun instance
+     * @param context
+     */
+    public JavaBackendDebugger(Term cfg, KRun kRun, Context context){
+        this.kRun = kRun;
+        this.context = context;
+        stateGraph = new DirectedSparseGraph<>();
+        idMap = new DualHashBidiMap<>();
+        primaryStateList = new ArrayList<>();
+        KRunState initialState = new KRunState(cfg, context);
+        initialState.setStateId(idCounter);
+        //add the initial state to the graph
+        stateGraph.addVertex(initialState);
+        //add the state to the primary state list
+        primaryStateList.add(initialState);
+        //add the id to the id-Map
+        currentId = idCounter;
+        idMap.put(idCounter++, initialState);
+    }
+
+    /**
+     * Constructor
+     * @param graph - Previous Graph
+     * @param kRun - Current kRun instance.
+     * @param context - Current context.
+     */
+    public JavaBackendDebugger(DirectedGraph<KRunState, Transition> graph, KRun kRun, Context context){
+        this.kRun = kRun;
+        this.context = context;
+        //state Graph and Id Graph have to be initialized
+        stateGraph = new DirectedSparseGraph<>();
+        idMap = new DualHashBidiMap<>();
+        for (KRunState state : graph.getVertices()){
+            //add the vertices with new
+            int curId = idCounter++;
+            state.setStateId(curId);
+            idMap.put(curId, state);
+            stateGraph.addVertex(state);
+            currentId = curId;
+        }
+        for(Transition transition : graph.getEdges()){
+            Pair<KRunState> states = graph.getEndpoints(transition);
+            stateGraph.addEdge(transition, states.getFirst(), states.getSecond());
+        }
+        System.out.println("Graph Successfully loaded");
+    }
+    @Override
+    public DirectedGraph<KRunState, Transition> getGraph() {
+        return stateGraph;
+    }
+
+    @Override
+    public Integer getCurrentState() {
+        return currentId;
+    }
+
+    @Override
+    public void setCurrentState(Integer stateNum) {
+        currentId = stateNum;
+    }
+
+    @Override
+    public KRunState getState(int stateNum) {
+        return idMap.get(stateNum);
+    }
+
+    @Override
+    public Transition getEdge(int state1, int state2){
+        return stateGraph.findEdge(idMap.get(state1), idMap.get(state2));
+    }
+
+    @Override
+    public void step(int steps) throws KRunExecutionException {
+        JavaSymbolicKRun javaKRun = (JavaSymbolicKRun)kRun;
+        KRunState currentState = getState(getCurrentState());
+        boolean primaryState = primaryStateList.contains(currentState);
+        int step = 0;
+        while(step != steps){
+            ++step;
+            KRunDebugResult result = javaKRun.debugStep((idMap.get(currentId)).getRawResult(), 1);
+            //check if final state is reached
+            if(result.getStateList().size() == 0){
+                System.out.println("Final State Reached");
+                break;
+            }
+            KRunState resultState = result.getStateList().get(0);
+            if(!stateGraph.containsVertex(resultState)){
+                resultState.setStateId(idCounter++);
+                stateGraph.addVertex(resultState);
+                idMap.put(resultState.getStateId(), resultState);
+                //if the first state is primary, all following states will be primary in step
+                if(primaryState){
+                    primaryStateList.add(resultState);
+                }
+                Transition transition = Transition.rule(result.getRuleList().get(0), context);
+                stateGraph.addEdge(transition, currentState, resultState);
+                currentState = resultState;
+                currentId = resultState.getStateId();
+            }
+            else {
+                //state already exists, add the transition
+                int resultStateId = idMap.getKey(resultState);
+                resultState.setStateId(resultStateId);
+                if(primaryState){
+                    primaryStateList.add(resultState);
+                }
+                Transition transition = Transition.rule(result.getRuleList().get(0), context);
+                stateGraph.addEdge(transition, currentState, resultState);
+                currentState = resultState;
+                currentId = resultState.getStateId();
+            }
+        }
+    }
+
+    @Override
+    /**
+     * To be implemented later. Currently function performed by debug step-all
+     */
+    public SearchResults stepAll(int steps) throws KRunExecutionException {
+        return null;
+    }
+
+    /**
+     * The function that replaces the original step all function. Maintains a record
+     * of the states that would have been followed in the original Run.
+     * @param steps
+     * @return List of KRunStates that are stepped into from current state
+     */
+    public List<KRunState> debugStepAll(int steps){
+        JavaSymbolicKRun javaKRun = (JavaSymbolicKRun)kRun;
+        boolean primaryState;
+        //partial graph is to be returned to the frontend.
+        DirectedGraph<KRunState, Transition> partialGraph = new DirectedSparseGraph<>();
+        for(int counter = 0; counter < steps; ++counter){
+            KRunState currentState = idMap.get(currentId);
+            partialGraph.addVertex(currentState);
+            primaryState = primaryStateList.contains(currentState);
+            KRunDebugResult stepResult = javaKRun.debugStepAll(currentState.getRawResult(), 1);
+            List<KRunState> stateList = stepResult.getStateList();
+            List<Rule> ruleList = stepResult.getRuleList();
+            for(int index = 0; index < stateList.size(); ++index){
+                KRunState stepState = stateList.get(index);
+                partialGraph.addVertex(stepState);
+                //first state is important, since kRun follows the first state
+                if(!stateGraph.containsVertex(stepState)){
+                    stepState.setStateId(idCounter++);
+                    idMap.put(stepState.getStateId(), stepState);
+                }
+                else{
+                    stepState.setStateId(idMap.getKey(stepState));
+                }
+                Rule rule = ruleList.get(index);
+                Transition transition = Transition.rule(rule, context);
+                stateGraph.addEdge(transition, currentState, stepState);
+                partialGraph.addEdge(transition, currentState, stepState);
+                if(index == 0){
+                    //the first step of primary state is primary
+                    if(primaryState) {
+                        if (!primaryStateList.contains(stepState)) {
+                            primaryStateList.add(stepState);
+                        }
+                    }
+                    //the next state for the step, since KRun also does this.
+                    currentState = stepState;
+
+                    currentId = currentState.getStateId();
+                }
+            }
+        }
+        List<KRunState> stateList = new ArrayList<>();
+        for (KRunState state : partialGraph.getVertices()){
+            stateList.add(state);
+        }
+        return stateList;
+
+    }
+
+    @Override
+    public void resume() throws KRunExecutionException {
+        //step until final state is reached. Change Magic Number later.
+        step(-1);
+    }
+
+    @Override
+    public String printState(int stateNum) {
+        KRunState printState = idMap.get(stateNum);
+        if(printState != null) {
+            return idMap.get(stateNum).toString();
+        }
+        else{
+            return ("State not Found");
+        }
+    }
+
+    @Override
+    public String printEdge(int state1, int state2) {
+        if(! idMap.containsKey(state1) || !idMap.containsKey(state2)){
+            throw new IllegalArgumentException("State doesn't exist");
+        }
+        else{
+            Transition transition = stateGraph.findEdge(idMap.get(state1), idMap.get(state2));
+            if(transition == null){
+                throw new IllegalStateException("No edge between these states");
+            }
+            return processTransition(transition);
+        }
+    }
+
+    @Override
+    public void readFromStdin(String s) {
+
+    }
+
+    /**
+     * Helper Function for Parsing the file for reading rules.
+     * @param transition Transition containing rule to be parsed
+     * @return String of rule to be printed
+     */
+    private String processTransition(Transition transition){
+        Rule rule = (Rule)transition.getRule();
+
+        String ruleStr = "";
+        try {
+            Location ruleLocation = rule.getLocation();
+            Source ruleSource = rule.getSource();
+            File sourceFile = ((FileSource)ruleSource).getFile();
+            List<String> contents = FileUtils.readLines(sourceFile);
+            if (ruleLocation.lineStart == ruleLocation.lineEnd){
+                ruleStr += contents.get(ruleLocation.lineStart - 1).substring(ruleLocation.columnStart, ruleLocation.columnEnd);
+            }
+            else{
+                ruleStr += contents.get(ruleLocation.lineStart - 1).substring(ruleLocation.columnStart - 1);
+                ruleStr += contents.get(ruleLocation.lineEnd - 1).substring(0, ruleLocation.columnEnd);
+            }
+        }
+        catch (IOException ioException){
+            System.out.println("Sorry! The K File could not be read");
+        }
+        catch (NullPointerException nullPointerException){
+            System.out.println("Sorry! The Main K file could not be found");
+        }
+        return ruleStr;
+    }
+}

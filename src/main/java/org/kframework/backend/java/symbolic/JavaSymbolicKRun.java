@@ -19,28 +19,20 @@ import org.kframework.compile.utils.Substitution;
 import org.kframework.kil.Module;
 import org.kframework.kil.loader.Context;
 import org.kframework.krun.ColorSetting;
+import org.kframework.krun.KRunDebugResult;
 import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.SubstitutionFilter;
 import org.kframework.krun.KRunOptions.OutputMode;
-import org.kframework.krun.api.KRun;
-import org.kframework.krun.api.KRunDebugger;
-import org.kframework.krun.api.KRunProofResult;
-import org.kframework.krun.api.KRunResult;
-import org.kframework.krun.api.KRunState;
-import org.kframework.krun.api.SearchResult;
-import org.kframework.krun.api.SearchResults;
-import org.kframework.krun.api.SearchType;
-import org.kframework.krun.api.Transition;
-import org.kframework.krun.api.UnsupportedBackendOptionException;
+import org.kframework.krun.api.*;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import edu.uci.ics.jung.graph.DirectedGraph;
-
 import org.kframework.utils.general.IndexingStatistics;
-
+import org.kframework.debugger.backend.java.JavaBackendDebugger;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -308,7 +300,6 @@ public class JavaSymbolicKRun implements KRun {
         }
         return searchResultsKRunResult;
     }
-
     @Override
     public KRunResult<SearchResults> generate(
             Integer bound,
@@ -335,16 +326,67 @@ public class JavaSymbolicKRun implements KRun {
 
     @Override
     public KRunDebugger debug(org.kframework.kil.Term cfg) {
-        throw new UnsupportedBackendOptionException("--debug");
+        return new JavaBackendDebugger(cfg, this, context);
     }
 
     @Override
     public KRunDebugger debug(DirectedGraph<KRunState, Transition> graph) {
-        throw new UnsupportedBackendOptionException("--debug");
+        return new JavaBackendDebugger(graph, this, context);
     }
 
     @Override
     public void setBackendOption(String key, Object value) {
     }
 
+    /**
+     * Helper Method for the debugger, since the debugger does not have access to the rewrite engine.
+     * @param cfg Initial Configuration
+     * @param steps No of steps
+     * @return KRunDebug Result object
+     * @throws KRunExecutionException
+     */
+    public KRunDebugResult debugStep(org.kframework.kil.Term cfg, int steps)throws KRunExecutionException {
+        Term term = kilFactory.term(cfg);
+        TermContext termContext = TermContext.of(globalContext);
+        term = term.evaluate(termContext);
+        SymbolicConstraint constraint = new SymbolicConstraint(termContext);
+        ConstrainedTerm constrainedTerm = new ConstrainedTerm(term, constraint, termContext);
+        SymbolicRewriter rewriter = symbolicRewriter.get();
+        ConstrainedTerm rewriteResult = rewriter.rewrite(constrainedTerm, steps);
+        //Need the termList and the RuleList for the debugger's graph.
+        List<ConstrainedTerm> termList = rewriter.getResultsList();
+        List<Rule> ruleList = rewriter.getRulesList();
+        //Creting the termList to be returned to the Debugger
+        List<KRunState> stateList = new ArrayList<KRunState>();
+        for(ConstrainedTerm cTerm : termList){
+            org.kframework.kil.Term kilTerm = (org.kframework.kil.Term) cTerm.term().accept(
+                    new BackendJavaKILtoKILTransformer(context));
+            stateList.add(new KRunState(kilTerm, context));
+        }
+        return new KRunDebugResult(stateList, ruleList);
+    }
+
+    /**
+     * Helper Method for Java Backend Debugger, since it doesn't have access to the rewrite engine.
+     * @param cfg  Initial Configuration
+     * @param steps No of steps
+     * @return KRunDebugResult object
+     */
+    public KRunDebugResult debugStepAll(org.kframework.kil.Term cfg, int steps){
+        Term term = kilFactory.term(cfg);
+        TermContext termContext = TermContext.of(globalContext);
+        term = term.evaluate(termContext);
+        SymbolicConstraint symbolicConstraint = new SymbolicConstraint(termContext);
+        ConstrainedTerm constrainedTerm = new ConstrainedTerm(term, symbolicConstraint, termContext);
+        SymbolicRewriter rewriter = symbolicRewriter.get();
+        ArrayList<ConstrainedTerm> constrainedResultList = rewriter.rewriteAll(constrainedTerm);
+        List<Rule> ruleList = rewriter.getRulesList();
+        List<KRunState> stateList = new ArrayList<KRunState>();
+        for(ConstrainedTerm cTerm : constrainedResultList){
+            org.kframework.kil.Term kilTerm = (org.kframework.kil.Term) cTerm.term().accept(
+                    new BackendJavaKILtoKILTransformer(context));
+            stateList.add(new KRunState(kilTerm, context));
+        }
+        return new KRunDebugResult(stateList, ruleList);
+    }
 }

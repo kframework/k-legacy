@@ -17,6 +17,7 @@ import org.kframework.backend.java.indexing.IndexingPair;
 import org.kframework.backend.java.indexing.RuleIndex;
 import org.kframework.backend.java.indexing.IndexingTable;
 import org.kframework.backend.java.kil.*;
+import org.kframework.krun.KRunOptions;
 import org.kframework.utils.general.IndexingStatistics;
 import org.kframework.backend.java.strategies.TransitionCompositeStrategy;
 import org.kframework.kompile.KompileOptions;
@@ -44,6 +45,8 @@ public class SymbolicRewriter {
     private boolean transition;
     private RuleIndex ruleIndex;
     private final boolean indexingStats;
+    //private final KRunOptions kRunOptions;
+    //private final boolean debugExecution;
 
     /*
      * Liyi Li : add simulation rules in the constructor, and allow user to input label [alphaRule] as
@@ -54,10 +57,15 @@ public class SymbolicRewriter {
         this.definition = definition;
         this.indexingStats = javaOptions.indexingStats;
         ruleIndex = definition.getIndex();
-
         this.strategy = new TransitionCompositeStrategy(kompileOptions.transition);
     }
 
+    public List<ConstrainedTerm> getResultsList(){
+        return results;
+    }
+    public List<Rule> getRulesList(){
+        return appliedRules;
+    }
     public ConstrainedTerm rewrite(ConstrainedTerm constrainedTerm, int bound) {
         stopwatch.start();
 

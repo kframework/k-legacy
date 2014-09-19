@@ -11,18 +11,14 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import jline.ArgumentCompletor;
-import jline.Completor;
-import jline.ConsoleReader;
-import jline.FileNameCompletor;
-import jline.MultiCompletor;
-import jline.SimpleCompletor;
+import jline.*;
 
 import org.fusesource.jansi.AnsiString;
 import org.kframework.backend.java.symbolic.JavaExecutionOptions;
 import org.kframework.backend.java.symbolic.JavaSymbolicKRunModule;
 import org.kframework.compile.utils.CompilerStepDone;
 import org.kframework.compile.utils.RuleCompilerSteps;
+import org.kframework.debugger.backend.java.JavaBackendDebugger;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Definition;
 import org.kframework.kil.Module;
@@ -245,11 +241,11 @@ public class KRunFrontEnd extends FrontEnd {
             // commandline by using the JLine library
             reader.setBellEnabled(false);
 
-            List<Completor> argCompletor = new LinkedList<Completor>();
+            List<Completor> argCompletor = new LinkedList<>();
             argCompletor.add(new SimpleCompletor(new String[] { "help",
                     "exit", "resume", "step", "search", "select",
                     "show-graph", "show-state", "show-transition", "save", "load", "read" }));
-            argCompletor.add(new FileNameCompletor());
+            //argCompletor.add(new FileNameCompletor());
             List<Completor> completors = new LinkedList<Completor>();
             completors.add(new ArgumentCompletor(argCompletor));
             reader.addCompletor(new MultiCompletor(completors));
@@ -275,7 +271,9 @@ public class KRunFrontEnd extends FrontEnd {
                 System.out.println();
                 String input;
                 try {
-                    input = reader.readLine("Command > ");
+                    //reader = new ConsoleReader();
+                    reader.setDefaultPrompt("Kdb > ");
+                    input = reader.readLine();
                 } catch (IOException e) {
                     kem.registerInternalError("IO error detected interacting with console", e);
                     return false;
@@ -326,8 +324,16 @@ public class KRunFrontEnd extends FrontEnd {
                         debugger.step(options.step.numSteps);
                         System.out.println(debugger.printState(debugger.getCurrentState()));
                     } else if (command(jc) instanceof KRunDebuggerOptions.CommandSearch) {
-                        SearchResults states = debugger.stepAll(options.search.numSteps);
-                        System.out.println(states);
+                        if(debugger instanceof JavaBackendDebugger){
+                            List<KRunState> results = ((JavaBackendDebugger) debugger).debugStepAll(options.search.numSteps);
+                            for(KRunState result: results){
+                                System.out.println("Id - "+ result.getStateId() + " " + result.toString());
+                            }
+                        }
+                        else {
+                            SearchResults states = debugger.stepAll(options.search.numSteps);
+                            System.out.println(states);
+                        }
                     } else if (command(jc) instanceof KRunDebuggerOptions.CommandSelect) {
                         debugger.setCurrentState(options.select.stateId);
                         System.out.println(debugger.printState(debugger.getCurrentState()));
