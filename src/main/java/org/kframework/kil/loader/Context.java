@@ -27,13 +27,7 @@ import org.kframework.utils.options.SMTOptions;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -80,7 +74,6 @@ public class Context implements Serializable {
     public Map<String, Sort> cellSorts = new HashMap<>();
     public Map<Sort, Production> listProductions = new HashMap<>();
     public SetMultimap<String, Production> listKLabels = HashMultimap.create();
-    public Map<String, String> listLabelSeparator = new HashMap<>();
     public Map<String, ASTNode> locations = new HashMap<String, ASTNode>();
 
     public Map<Sort, Production> canonicalBracketForSort = new HashMap<>();
@@ -97,7 +90,6 @@ public class Context implements Serializable {
     public File dotk = null;
     public File kompiled = null;
     public boolean initialized = false;
-    protected java.util.List<String> komputationCells = null;
     public Map<String, CellDataStructure> cellDataStructures = new HashMap<>();
     public Set<Sort> variableTokenSorts = new HashSet<>();
     public HashMap<Sort, String> freshFunctionNames = new HashMap<>();
@@ -561,7 +553,7 @@ public class Context implements Serializable {
     public void setDataStructureSorts(Map<Sort, DataStructureSort> dataStructureSorts) {
         assert !initialized;
 
-        this.dataStructureSorts = new HashMap<Sort, DataStructureSort>(dataStructureSorts);
+        this.dataStructureSorts = new LinkedHashMap<>(dataStructureSorts);
     }
 
     public DataStructureSort dataStructureSortOf(Sort sort) {
@@ -588,7 +580,7 @@ public class Context implements Serializable {
     public void setTokenSorts(Set<Sort> tokenSorts) {
         assert !initialized;
 
-        this.tokenSorts = new HashSet<>(tokenSorts);
+        this.tokenSorts = new LinkedHashSet<>(tokenSorts);
     }
 
     public void makeFreshFunctionNamesMap(Set<Production> freshProductions) {

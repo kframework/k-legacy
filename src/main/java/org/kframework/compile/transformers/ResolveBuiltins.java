@@ -5,10 +5,7 @@ import org.kframework.kil.*;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.CopyOnWriteTransformer;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Class adding #_ : Builtin -> KLabel wrappers and is#Builtin predicates for each builtin.
@@ -17,7 +14,7 @@ import java.util.Set;
  */
 public class ResolveBuiltins extends CopyOnWriteTransformer {
 
-    private Set<Sort> builtinSorts = new HashSet<>();
+    private Set<Sort> builtinSorts = new LinkedHashSet<>();
 
     public ResolveBuiltins(Context context) {
         super("Resolve Builtins", context);
