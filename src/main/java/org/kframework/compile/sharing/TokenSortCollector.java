@@ -12,7 +12,7 @@ import org.kframework.kil.visitors.BasicVisitor;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.utils.general.GlobalSettings;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -23,9 +23,9 @@ import java.util.Set;
  */
 public class TokenSortCollector extends BasicVisitor {
 
-    private final Set<Sort> tokenSorts = new HashSet<>();
+    private final Set<Sort> tokenSorts = new LinkedHashSet<>();
 
-    private final Set<Sort> nonTokenSorts = new HashSet<>();
+    private final Set<Sort> nonTokenSorts = new LinkedHashSet<>();
 
     /**
      * Collects the names of all token sorts within a specified
