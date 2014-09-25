@@ -275,10 +275,10 @@ public class SymbolicConstraint extends JavaSymbolicObject {
             }
 
             if (leftHandSide instanceof ConcreteCollectionVariable
-                    && !((ConcreteCollectionVariable) leftHandSide).matchConcreteSize(rightHandSide)) {
+                    && !((ConcreteCollectionVariable) leftHandSide).unify(rightHandSide)) {
                 return true;
             } else if (rightHandSide instanceof ConcreteCollectionVariable
-                    && !((ConcreteCollectionVariable) rightHandSide).matchConcreteSize(leftHandSide)) {
+                    && !((ConcreteCollectionVariable) rightHandSide).unify(leftHandSide)) {
                 return true;
             }
 
