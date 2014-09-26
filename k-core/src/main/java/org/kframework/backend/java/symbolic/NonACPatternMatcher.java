@@ -119,7 +119,7 @@ public class NonACPatternMatcher {
 
                 /* special case for concrete collections  */
                 check(!(variable instanceof ConcreteCollectionVariable)
-                        || ((ConcreteCollectionVariable) variable).matchConcreteSize(subject));
+                        || ((ConcreteCollectionVariable) variable).match(subject));
                 if (failed) {
                     return false;
                 }
