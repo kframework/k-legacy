@@ -19,7 +19,7 @@ import java.io.*;
  */
 public class Z3Wrapper {
 
-    private static final int Z3_RESTART_LIMIT = 3;
+    private static final int Z3_RESTART_LIMIT = 2;
     public static Z3Wrapper Z3_WRAPPER;
     public static Z3Wrapper instance(Context context) {
         if (Z3_WRAPPER == null) {
@@ -82,7 +82,8 @@ public class Z3Wrapper {
                         OS.current().getNativeExecutable("z3").getAbsolutePath(),
                         "-in",
                         "-smt2",
-                        "-t:" + timeout);
+                        "-t:" + timeout,
+                        "-memory:64");
                 pb.redirectInput(ProcessBuilder.Redirect.PIPE);
                 pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
                 Process z3Process = pb.start();
@@ -105,7 +106,7 @@ public class Z3Wrapper {
         if (result == null) {
             result = "unknown";
             if (context.globalOptions.debug) {
-                System.err.println("Z3 crashed on query:\n" + SMT_PRELUDE + query + "(check-sat)\n");
+                System.err.println("Z3 didn't terminate properly on query:\n" + query);
             }
         }
         return result.equals("unsat");
