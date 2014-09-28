@@ -17,6 +17,7 @@ import org.kframework.main.Tool;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 
 /**
@@ -123,25 +124,6 @@ public class ConstrainedTerm extends JavaSymbolicObject {
     public SymbolicConstraint lookups() {
         return lookups;
     }
-    /*
-    public SymbolicConstraint match(ConstrainedTerm constrainedTerm, Definition definition) {
-        SymbolicConstraint unificationConstraint = new SymbolicConstraint(definition);
-        unificationConstraint.add(term, constrainedTerm.term);
-        unificationConstraint.simplify();
-        if (unificationConstraint.isFalse() || !unificationConstraint.isSubstitution()) {
-            return null;
-        }
-
-        unificationConstraint.addAll(constrainedTerm.lookups);
-        unificationConstraint.simplify();
-        if (unificationConstraint.isFalse() || !unificationConstraint.isSubstitution()) {
-            return null;
-        }
-
-
-    }
-    */
-
 
     /**
      * Checks if this constrained term implies the given constrained term, assuming the variables
@@ -159,8 +141,6 @@ public class ConstrainedTerm extends JavaSymbolicObject {
 
         /* apply pattern folding */
         unificationConstraint.simplify(true);
-        //unificationConstraint.simplify();
-        //unificationConstraint.addAllThenSimplify(constrainedTerm.lookups, constrainedTerm.constraint);
         unificationConstraint.addAll(constrainedTerm.lookups);
         unificationConstraint.addAll(constrainedTerm.constraint);
         unificationConstraint.simplify(true);
@@ -174,30 +154,31 @@ public class ConstrainedTerm extends JavaSymbolicObject {
         unificationConstraint.expandPatternsAndSimplify(false);
         unificationConstraint.expandPatternsAndSimplify(false);
 
-        final Set<Variable> variables = unificationConstraint.variableSet();
-        variables.removeAll(variableSet());
-        unificationConstraint.orientSubstitution(variables);
+        // variables occurring only in the given constrainedTerm are existentially quantified
+        final Set<Variable> existentialVars = Sets.difference(unificationConstraint.variableSet(), variableSet());
+        unificationConstraint.orientSubstitution(existentialVars);
         if (unificationConstraint.isFalse()
-                || !unificationConstraint.substitution().keySet().containsAll(variables)) {
+                || !unificationConstraint.substitution().keySet().containsAll(existentialVars)) {
             return null;
         }
 
         SymbolicConstraint leftHandSide = SymbolicConstraint
                 .simplifiedConstraintFrom(constrainedTerm.termContext(), constraint);
 
-        Predicate<Variable> notInVariables = new Predicate<Variable>() {
-            @Override
-            public boolean apply(Variable var) {
-                return variables.contains(var);
-            }
+        Predicate<Variable> isExistentialVar = new Predicate<Variable>() {
+                @Override
+                public boolean apply(Variable var) {
+                    return existentialVars.contains(var);
+                }
         };
+
         SymbolicConstraint rightHandSide = SymbolicConstraint
                 .simplifiedConstraintFrom(constrainedTerm.termContext(),
-                        Maps.filterKeys(unificationConstraint.substitution(), notInVariables),
+                        Maps.filterKeys(unificationConstraint.substitution(), isExistentialVar),
                         unificationConstraint.equalities(),
                         leftHandSide.substitution());
 
-        if (!leftHandSide.implies(rightHandSide, variables)) {
+        if (!leftHandSide.implies(rightHandSide, existentialVars)) {
             return null;
         }
 
@@ -205,13 +186,6 @@ public class ConstrainedTerm extends JavaSymbolicObject {
 
         return unificationConstraint;
     }
-
-    ///**
-    // * Simplify map lookups.
-    // */
-    //public ConstrainedTerm simplifyLookups() {
-    //    for (SymbolicConstraint.Equality equality : constraint.equalities())
-    //}
 
     public Term term() {
         return data.term;
