@@ -80,7 +80,9 @@ public class KSequence extends KCollection {
             return hasFrame() ? frame : EMPTY;
         } else {
             if (kSequenceVariables.isEmpty()) {
-                return new KSequence(contents.subList(fromIndex, contents.size()), frame, kSequenceVariables);
+                return fromIndex + 1 == contents.size() ?
+                        contents.get(fromIndex) :
+                        new KSequence(contents.subList(fromIndex, contents.size()), frame, kSequenceVariables);
             } else {
                 /* YilongL: this case should never happen in practice because
                  * this method should only be called by KSequence on the LHS */
