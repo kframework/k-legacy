@@ -99,7 +99,7 @@ public class JavaSymbolicBackend extends BasicBackend {
         steps.add(new CheckVisitorStep<Definition>(new CheckRewrite(context), context));
         steps.add(new FlattenModules(context));
 
-        steps.add(new CompleteSortLatice(context));
+        steps.add(new CompleteSortLattice(context));
         steps.add(new CheckVisitorStep<Definition>(new CollectProductionsVisitor(context), context));
         steps.add(new CheckVisitorStep<Definition>(new CollectSubsortsVisitor(context), context));
         steps.add(new CheckVisitorStep<Definition>(new CollectBracketsVisitor(context), context));

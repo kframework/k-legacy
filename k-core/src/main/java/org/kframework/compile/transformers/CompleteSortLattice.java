@@ -37,9 +37,9 @@ import java.util.Set;
  *
  * @author AndreiS
  */
-public class CompleteSortLatice extends CopyOnWriteTransformer {
+public class CompleteSortLattice extends CopyOnWriteTransformer {
 
-    public CompleteSortLatice(Context context) {
+    public CompleteSortLattice(Context context) {
         super("Subsort syntactic lists", context);
     }
 
