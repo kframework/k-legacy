@@ -1,14 +1,22 @@
-// Copyright (c) 2012-2014 K Team. All Rights Reserved.
+// Copyright (c) 2014 K Team. All Rights Reserved.
 package org.kframework.backend.unparser;
 
+import org.kframework.compile.utils.ConfigurationStructureMap;
 import org.kframework.kil.*;
 import org.kframework.kil.visitors.NonCachingVisitor;
 import org.kframework.krun.ColorSetting;
 import org.kframework.utils.ColorUtil;
-import org.kframework.utils.StringUtil;
+
+import com.davekoelle.AlphanumComparator;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
 public class UnparserFilter extends NonCachingVisitor {
@@ -17,10 +25,10 @@ public class UnparserFilter extends NonCachingVisitor {
     private boolean firstProduction = false;
     private boolean inConfiguration = false;
     private boolean addParentheses;
-    private final OutputModes outputMode;
     private int inTerm = 0;
     private ColorSetting color = ColorSetting.OFF;
     private Color terminalColor = Color.black;
+    private final OutputModes outputMode;
     private boolean annotateLocation;
     public static int TAB = 4;
     private boolean forEquivalence = false; /* true when unparsing for kagreg; does not print configuration/imports/etc */
@@ -60,7 +68,9 @@ public class UnparserFilter extends NonCachingVisitor {
         this.addParentheses = outputMode != OutputModes.SMART;
         this.annotateLocation = annotateLocation;
         this.outputMode = outputMode;
-        //TODO(dwightguth): clean up pretty printing so we don't need this ugly hack
+        if (outputMode == OutputModes.NO_WRAP) {
+            indenter.setWidth(-1);
+        }
         if (context.colorOptions != null) {
             terminalColor = context.colorOptions.terminalColor();
         }
@@ -227,7 +237,6 @@ public class UnparserFilter extends NonCachingVisitor {
 
     @Override
     public Void visit(Configuration configuration, Void _) {
-        prepare(configuration);
         if (!forEquivalence) {
             indenter.write("configuration");
             indenter.endLine();
@@ -241,6 +250,41 @@ public class UnparserFilter extends NonCachingVisitor {
         }
         return postpare();
     }
+
+    private class UnparserBagItemComparator implements Comparator<Term> {
+
+        private java.util.Map<Term, String> unparsedResults;
+
+        private AlphanumComparator comparator = new AlphanumComparator();
+
+        public UnparserBagItemComparator(java.util.Map<Term, String> unparsedResults) {
+            this.unparsedResults = unparsedResults;
+        }
+
+        @Override
+        public int compare(Term o1, Term o2) {
+            // case 1: one of o1 and o2 is a cell
+            if ((o1 instanceof Cell) && !(o2 instanceof Cell)
+                    || !(o1 instanceof Cell) && (o2 instanceof Cell)) {
+                return o1 instanceof Cell ? -1 : 1;
+            }
+
+            // case 2: o1 and o2 are cells with different labels
+            if (o1 instanceof Cell && o2 instanceof Cell
+                    && (!((Cell) o1).getLabel().equals(((Cell) o2).getLabel()))) {
+                Cell crntCell = (Cell) stack.peek();
+                ConfigurationStructureMap sons = context.getConfigurationStructureMap().get(crntCell.getLabel()).sons;
+                return sons.positionOf(((Cell) o1).getLabel()) < sons.positionOf(((Cell) o2).getLabel()) ? -1 : 1;
+            }
+
+            // case 3: neither o1 nor o2 is a cell
+            // case 4: o1 and o2 are cells with the same label
+            String s1 = unparsedResults.get(o1);
+            String s2 = unparsedResults.get(o2);
+            return comparator.compare(s1, s2);
+        }
+
+    };
 
     @Override
     public Void visit(Cell cell, Void _) {
@@ -275,7 +319,24 @@ public class UnparserFilter extends NonCachingVisitor {
         if (!colorCode.equals("")) {
             indenter.write(ColorUtil.ANSI_NORMAL);
         }
-        this.visitNode(cell.getContents());
+
+        /* if the contents of this cell is a bag, sort them properly */
+        Term contents = cell.getContents();
+        if (contents instanceof Bag) {
+            Bag sortedBag = ((Bag) contents).shallowCopy();
+            sortedBag.setContents(new ArrayList<>(sortedBag.getContents()));
+            java.util.Map<Term, String> unparsedChildren = new HashMap<>();
+            for (Term child : sortedBag.getContents()) {
+                UnparserFilter unparser = new UnparserFilter(context);
+                unparser.visitNode(child);
+                unparsedChildren.put(child, unparser.getResult());
+            }
+            Collections.sort(sortedBag.getContents(), new UnparserBagItemComparator(unparsedChildren));
+            this.visitNode(sortedBag);
+        } else {
+            this.visitNode(contents);
+        }
+
         indenter.write(colorCode);
         if (inConfiguration && inTerm == 0) {
             indenter.endLine();
@@ -358,31 +419,61 @@ public class UnparserFilter extends NonCachingVisitor {
         if (label instanceof Token) {
             assert child instanceof KList : "child of KApp with Token is not KList";
             assert ((KList) child).isEmpty() : "child of KApp with Token is not empty";
+
+            List<Terminal> temp = this.findRightSyntax(label.getSort());
+            if(!temp.isEmpty()){
+                indenter.write(temp.get(0).getTerminal());
+            }
+
             indenter.write(((Token) label).value());
-        } else if ((outputMode == OutputModes.PRETTY || outputMode == OutputModes.NO_WRAP)
-                && (label instanceof KLabelConstant) && ((KLabelConstant) label).getLabel().contains("'_")) {
 
-            String rawLabel = "("+((KLabelConstant) label).getLabel().replaceAll("`", "``").replaceAll("\\(", "`(").replaceAll("\\)", "`)").replaceAll("'", "") + ")";
+            if(temp.size()>1){
 
+                indenter.write(temp.get(1).getTerminal());
+            }
+        } else if ((outputMode == OutputModes.PRETTY || outputMode == OutputModes.NO_WRAP) && (label instanceof KLabelConstant) && ((KLabelConstant) label).getLabel().contains("'_")) {
+
+            String rawLabel = null;
+            List<Terminal> temp = this.findRightSyntax(label.getSort());
+            if(!temp.isEmpty()){
+                if(temp.size()>1){
+                    rawLabel = temp.get(0).getTerminal()
+                            +((KLabelConstant) label).getLabel().replaceAll("`", "``").replaceAll("\\(", "`(").replaceAll("\\)", "`)").replaceAll("'", "") +
+                            temp.get(1).getTerminal();
+
+                } else {
+                    rawLabel = temp.get(0).getTerminal()
+                            +((KLabelConstant) label).getLabel().replaceAll("`", "``").replaceAll("\\(", "`(").replaceAll("\\)", "`)").replaceAll("'", "")+" ";
+                }
+            } else {
+                rawLabel = ((KLabelConstant) label).getLabel().replaceAll("`", "``").replaceAll("\\(", "`(").replaceAll("\\)", "`)").replaceAll("'", "");
+            }
             if (child instanceof KList) {
-                java.util.List<Term> termList = ((KList)child).getContents();
+                java.util.List<Term> termList = new ArrayList<>(((KList) child).getContents());
 
                 if(termList.size()==0){
                     indenter.write(rawLabel);
                 } else{
                     int i = 0;
-                    String [] rawLabelList = rawLabel.split("_");
+                    String [] rawLabelList = rawLabel.split("_", -1);
+                    int lastIdx = termList.size() - 1;
+                    if (termList.get(lastIdx) instanceof ListTerminator) {
+                        termList.remove(lastIdx);
+                        if (termList.size() >= 1 && lastIdx + 1 < rawLabelList.length) {
+                            rawLabelList[lastIdx] = rawLabelList[lastIdx + 1];
+                        }
+                        rawLabelList = Arrays.copyOf(rawLabelList, rawLabelList.length - 1);
+                    }
                     for (i = 0; i < termList.size(); ++i) {
                         indenter.write(rawLabelList[i]);
                         if (i > 0) {
                             indenter.write(" ");
                         }
                         this.visitNode(termList.get(i));
-                        if (i < termList.size() - 1) {
-                            indenter.write(" ");
-                        }
                     }
-                    indenter.write(rawLabelList[i]);
+                    for (; i < rawLabelList.length; i++) {
+                        indenter.write(rawLabelList[i]);
+                    }
                 }
             }
             else {
@@ -418,48 +509,78 @@ public class UnparserFilter extends NonCachingVisitor {
         return postpare();
     }
 
-    @Override
-    public Void visit(Constant t, Void _) {
-        prepare(t);
-        indenter.write(t.getValue());
-        return postpare();
-    }
-
+    /*
+     * TermCons actually controls most input terms, ie. most input terms will
+     * have classes TermCons.
+     * The way to deal with TermCons is that if the syntax of the given definition allowed,
+     * we will put parentheses surrounding a TermCons term.
+     * We will also delete the final ListTerminator if the input mode is pretty printing.
+     */
     @Override
     public Void visit(TermCons termCons, Void _) {
-        prepare(termCons);
+        //prepare(termCons);
+        List<Terminal> temp = this.findRightSyntax(termCons.getSort());
+        if(!temp.isEmpty()){
+            indenter.write(temp.get(0).getTerminal());
+        }
         inTerm++;
         Production production = termCons.getProduction();
         if (production.isListDecl()) {
             UserList userList = (UserList) production.getItems().get(0);
             String separator = userList.getSeparator();
             java.util.List<Term> contents = termCons.getContents();
-            if (contents.size() == 0) {
-                indenter.write("." + production.getSort());
-            } else {
-                this.visitNode(contents.get(0));
-                if (!(contents.get(1) instanceof ListTerminator)) {
-                    indenter.write(separator + " ");
-                    this.visitNode(contents.get(1));
-                }
+            this.visitNode(contents.get(0));
+            if (!(contents.get(1) instanceof ListTerminator)
+                    || (! (outputMode == OutputModes.PRETTY || outputMode == OutputModes.NO_WRAP) && ! (outputMode == OutputModes.KORE))) {
+                indenter.write(separator + " ");
+                this.visitNode(contents.get(1));
             }
         } else {
             int where = 0;
             for (int i = 0; i < production.getItems().size(); ++i) {
                 ProductionItem productionItem = production.getItems().get(i);
                 if (!(productionItem instanceof Terminal)) {
-                    this.visitNode(termCons.getContents().get(where++));
+                    Term subterm = termCons.getContents().get(where);
+                    if(!(subterm instanceof ListTerminator) || (! (outputMode == OutputModes.PRETTY || outputMode == OutputModes.NO_WRAP) && ! (outputMode == OutputModes.KORE))){
+                        if (subterm instanceof TermCons && !isDataStructure(termCons.getProduction()) && isDataStructure(((TermCons) subterm).getProduction())) {
+                            indenter.endLine();
+                            indenter.indent(TAB);
+                            this.visitNode(subterm);
+                            indenter.unindent();
+                        } else {
+                            this.visitNode(subterm);
+                        }
+                    }
+                    where++;
                 } else {
                     indenter.write(((Terminal) productionItem).getTerminal());
                 }
                 // TODO(YilongL): not sure I can simply remove the following code
                 if (i != production.getItems().size() - 1) {
-                    indenter.write(" ");
+                    if (isDataStructure(production)) {
+                        indenter.endLine();
+                    } else {
+                        indenter.write(" ");
+                    }
                 }
             }
         }
         inTerm--;
-        return postpare();
+        if(temp.size()>1){
+
+            indenter.write(temp.get(1).getTerminal());
+        }
+        return null;
+    }
+
+    private boolean isDataStructure(Production production) {
+        DataStructureSort dsSort = context.dataStructureSortOf(production.getSort());
+        if (dsSort != null && dsSort.constructorLabel().equals(production.getKLabel())) {
+            //is a constructor of a data structure
+            //special case a new line between each item and indentation
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -552,9 +673,9 @@ public class UnparserFilter extends NonCachingVisitor {
     @Override
     public Void visit(KLabel kLabel, Void _) {
         prepare(kLabel);
-//        indenter.endLine();
-//        indenter.write("Don't know how to pretty print KLabel");
-//        indenter.endLine();
+        indenter.endLine();
+        indenter.write("Don't know how to pretty print KLabel");
+        indenter.endLine();
         super.visit(kLabel, _);
         return postpare();
     }
@@ -686,11 +807,10 @@ public class UnparserFilter extends NonCachingVisitor {
         stack.push(astNode);
         if (annotateLocation) {
             if (astNode.getLocation() == null) {
-                astNode.setLocation(new Location(indenter.getLineNo(), indenter.getColNo(), 0, 0));
-            } else {
-                astNode.getLocation().lineStart = indenter.getLineNo();
-                astNode.getLocation().columnStart = indenter.getColNo();
+                astNode.setLocation(new Location(0, 0, 0, 0));
             }
+            astNode.getLocation().lineStart = indenter.getLineNo();
+            astNode.getLocation().columnStart = indenter.getColNo();
         }
     }
 
@@ -708,6 +828,22 @@ public class UnparserFilter extends NonCachingVisitor {
         return null;
     }
 
+    private List<Terminal> findRightSyntax(Sort sort){
+
+        Production p = context.canonicalBracketForSort.get(sort);
+        if (p == null) {
+            return new ArrayList<Terminal>();
+        } else {
+            List<Terminal> terminals = new ArrayList<>();
+            for (ProductionItem item : p.getItems()) {
+                if (item instanceof Terminal) {
+                    terminals.add((Terminal)item);
+                }
+            }
+            return terminals;
+        }
+    }
+
     private boolean needsParenthesis(ASTNode upper, ASTNode astNode) {
         if (!addParentheses)
             return false;
@@ -716,6 +852,16 @@ public class UnparserFilter extends NonCachingVisitor {
                 return false;
             }
             return true;
+        } else if(astNode instanceof TermCons){
+            List<Terminal> isRightSyntax = findRightSyntax(((TermCons) astNode).getSort());
+
+            if(isRightSyntax.isEmpty()){
+
+                return false;
+            }
+
+            return true;
+
         } else if ((astNode instanceof TermCons) && (upper instanceof TermCons)) {
             TermCons termConsNext = (TermCons) astNode;
             TermCons termCons = (TermCons) upper;
