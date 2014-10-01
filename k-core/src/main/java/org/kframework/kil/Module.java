@@ -120,11 +120,6 @@ public class Module extends DefinitionItem implements Interfaces.MutableList<Mod
         context.addSubsort(sort, subsort);
     }
 
-    public void removeSubsort(Sort sort, Sort subsort, Context context) {
-        // TODO: remove production
-        context.removeSubsort(sort, subsort);
-    }
-
     public void addConstant(Sort ctSort, String ctName) {
         this.addProduction(ctSort, new Terminal(ctName));
     }

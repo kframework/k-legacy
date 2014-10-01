@@ -427,10 +427,6 @@ public class Context implements Serializable {
         subsorts.addRelation(bigSort, smallSort);
     }
 
-    public void removeSubsort(Sort bigSort, Sort smallSort) {
-        subsorts.removeRelation(bigSort, smallSort);
-    }
-
     public void addSyntacticSubsort(Sort bigSort, Sort smallSort) {
         syntacticSubsorts.addRelation(bigSort, smallSort);
     }

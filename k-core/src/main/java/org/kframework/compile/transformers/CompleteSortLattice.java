@@ -97,7 +97,6 @@ public class CompleteSortLattice extends CopyOnWriteTransformer {
 
                     if (context.isSubsorted(sort1, sort2)) {
                         // `sort1 < sort2` and `sort2 < sort1`, make them equal
-                        transformedNode.removeSubsort(sort1, sort2, context);
                         Set<Sort> sort1EqCls = sortEqClasses.get(sort1);
                         Set<Sort> sort2EqCls = sortEqClasses.get(sort2);
                         if (sort1EqCls != null && sort2EqCls != null) {

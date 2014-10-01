@@ -49,11 +49,6 @@ public class Poset<T> implements Serializable {
         invalidateCache();
     }
 
-    public void removeRelation(T big, T small) {
-        relations.remove(new Tuple<>(big, small));
-        invalidateCache();
-    }
-
     public boolean isInRelation(T big, T small) {
         Set<T> bigEqs = equivalentElems.get(big);
         Set<T> smallEqs = equivalentElems.get(small);
