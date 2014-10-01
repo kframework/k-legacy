@@ -335,5 +335,23 @@
     </all-programs>
   </test>
 
+  <test
+      definition="equal_sorts/test1/issue.k"
+      programs="equal_sorts/test1/programs"
+      results="equal_sorts/test1/results"
+      extension="issue"
+      >
+    <kompile-option name="--backend" value="java" />
+  </test>
+
+  <test
+      definition="equal_sorts/test2/issue.k"
+      programs="equal_sorts/test2/programs"
+      results="equal_sorts/test2/results"
+      extension="issue"
+      >
+    <kompile-option name="--backend" value="java" />
+  </test>
+
 <!-- end Java Rewrite Engine tests -->
 </tests>
