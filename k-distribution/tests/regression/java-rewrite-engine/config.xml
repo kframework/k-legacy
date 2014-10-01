@@ -353,5 +353,14 @@
     <kompile-option name="--backend" value="java" />
   </test>
 
+  <test
+      definition="equal_sorts/test3/issue.k"
+      programs="equal_sorts/test3/programs"
+      results="equal_sorts/test3/results"
+      extension="issue"
+      >
+    <kompile-option name="--backend" value="java" />
+  </test>
+
 <!-- end Java Rewrite Engine tests -->
 </tests>
