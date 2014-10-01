@@ -1,4 +1,4 @@
-module TEST
+module ISSUE
 
   syntax S1 ::= Int
   syntax S2 ::= Bool | S1
