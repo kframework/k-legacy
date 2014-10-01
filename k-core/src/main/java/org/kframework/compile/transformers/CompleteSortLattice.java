@@ -90,7 +90,7 @@ public class CompleteSortLattice extends CopyOnWriteTransformer {
                     }
 
                     for (Production production : sort1Prods) {
-                        if (!context.isSubsortedEq(sort2, production.getChildSort(0))) {
+                        if (!context.isSubsorted(sort2, production.getChildSort(0))) {
                             continue sort2_loop;
                         }
                     }
