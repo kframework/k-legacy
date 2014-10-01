@@ -1,23 +1,13 @@
 // Copyright (c) 2013-2014 K Team. All Rights Reserved.
 package org.kframework.compile.transformers;
 
-import org.kframework.kil.ASTNode;
-import org.kframework.kil.Module;
-import org.kframework.kil.ModuleItem;
-import org.kframework.kil.Production;
-import org.kframework.kil.ProductionItem;
-import org.kframework.kil.NonTerminal;
-import org.kframework.kil.Sort;
-import org.kframework.kil.UserList;
+import org.kframework.kil.*;
 import org.kframework.kil.loader.CollectProductionsVisitor;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.CopyOnWriteTransformer;
 
-import java.util.ArrayList;
+import java.util.*;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Completes the sort lattice as follows:
@@ -39,6 +29,8 @@ import java.util.Set;
  */
 public class CompleteSortLattice extends CopyOnWriteTransformer {
 
+    private final Map<Sort, Set<Sort>> sortEqClasses = new HashMap<>();
+
     public CompleteSortLattice(Context context) {
         super("Subsort syntactic lists", context);
     }
@@ -46,9 +38,9 @@ public class CompleteSortLattice extends CopyOnWriteTransformer {
     @Override
     public ASTNode visit(Module node, Void _)  {
         Module transformedNode = node.shallowCopy();
-        transformedNode.setItems(new ArrayList<ModuleItem>(node.getItems()));
+        transformedNode.setItems(new ArrayList<>(node.getItems()));
 
-        Set<String> separators = new HashSet<String>();
+        Set<String> separators = new HashSet<>();
         for (Production production : context.listProductions.values()) {
             UserList userList = (UserList) production.getItems().get(0);
             separators.add(userList.getSeparator());
@@ -79,12 +71,12 @@ public class CompleteSortLattice extends CopyOnWriteTransformer {
 
         sort1_loop:
             for (Sort sort1 : node.getAllSorts()) {
-                Collection<Production> productions = node.getProductionsOf(sort1);
-                if (productions.isEmpty()) {
+                Collection<Production> sort1Prods = node.getProductionsOf(sort1);
+                if (sort1Prods.isEmpty()) {
                     continue;
                 }
 
-                for (Production production : productions) {
+                for (Production production : sort1Prods) {
                     if (!production.isSubsort()) {
                         continue sort1_loop;
                     }
@@ -92,20 +84,46 @@ public class CompleteSortLattice extends CopyOnWriteTransformer {
 
             sort2_loop:
                 for (Sort sort2 : node.getAllSorts()) {
-                    // TODO(AndreiS): deal with equivalent sorts
-                    if (context.isSubsortedEq(sort2, sort1) || context.isSubsortedEq(sort1, sort2)
-                            || context.isListSort(sort2)) {
+                    if (sort1.equals(sort2)
+                            || context.isSubsorted(sort2, sort1)) {
                         continue;
                     }
 
-                    for (Production production : productions) {
+                    for (Production production : sort1Prods) {
                         if (!context.isSubsorted(sort2, production.getChildSort(0))) {
                             continue sort2_loop;
                         }
                     }
 
-                    transformedNode.addSubsort(sort2, sort1, context);
-                    change = true;
+                    if (context.isSubsorted(sort1, sort2)) {
+                        // `sort1 < sort2` and `sort2 < sort1`, make them equal
+                        transformedNode.removeSubsort(sort1, sort2, context);
+                        Set<Sort> sort1EqCls = sortEqClasses.get(sort1);
+                        Set<Sort> sort2EqCls = sortEqClasses.get(sort2);
+                        if (sort1EqCls != null && sort2EqCls != null) {
+                            for (Sort s : sort2EqCls) {
+                                sortEqClasses.put(s, sort1EqCls);
+                                sort1EqCls.add(s);
+                            }
+                        } else if (sort1EqCls != null) {
+                            sort1EqCls.add(sort2);
+                            sortEqClasses.put(sort2, sort1EqCls);
+                        } else if (sort2EqCls != null) {
+                            sort2EqCls.add(sort1);
+                            sortEqClasses.put(sort1, sort2EqCls);
+                        } else {
+                            Set<Sort> eqCls = new HashSet<>();
+                            eqCls.add(sort1);
+                            eqCls.add(sort2);
+                            sortEqClasses.put(sort1, eqCls);
+                            sortEqClasses.put(sort2, eqCls);
+                        }
+                        // no new subsorts added, no need to loop
+                        change = false;
+                    } else {
+                        transformedNode.addSubsort(sort2, sort1, context);
+                        change = true;
+                    }
                 }
             }
 
@@ -113,8 +131,10 @@ public class CompleteSortLattice extends CopyOnWriteTransformer {
             context.computeSubsortTransitiveClosure();
         } while (change);
 
+        context.setEquivalentSorts(sortEqClasses);
+
         /*
-         * Add list of Sort2 for a separator it there is some syntactic list of Sort1 with the
+         * Add list of Sort2 for a separator if there is some syntactic list of Sort1 with the
          * same separator such that Sort2 is a subsort of Sort1
          * (i.e. List{Sort2, separator} if List{Sort1, separator} and Sort2 < Sort1)
          */

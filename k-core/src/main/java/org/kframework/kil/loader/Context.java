@@ -27,13 +27,7 @@ import org.kframework.utils.options.SMTOptions;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -433,6 +427,10 @@ public class Context implements Serializable {
         subsorts.addRelation(bigSort, smallSort);
     }
 
+    public void removeSubsort(Sort bigSort, Sort smallSort) {
+        subsorts.removeRelation(bigSort, smallSort);
+    }
+
     public void addSyntacticSubsort(Sort bigSort, Sort smallSort) {
         syntacticSubsorts.addRelation(bigSort, smallSort);
     }
@@ -639,4 +637,7 @@ public class Context implements Serializable {
         }
     }
 
+    public void setEquivalentSorts(Map<Sort, Set<Sort>> equivalentSorts) {
+        subsorts.setEquivalentSorts(equivalentSorts);
+    }
 }

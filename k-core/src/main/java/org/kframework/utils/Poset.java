@@ -4,9 +4,11 @@ package org.kframework.utils;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
@@ -22,6 +24,7 @@ public class Poset<T> implements Serializable {
 
     private java.util.Set<Tuple<T>> relations = new HashSet<>();
     private java.util.Set<T> elements = new HashSet<>();
+    private Map<T, Set<T>> equivalentElems = new HashMap<>();
 
     public static <T> Poset<T> create() {
         return new Poset<T>();
@@ -46,8 +49,33 @@ public class Poset<T> implements Serializable {
         invalidateCache();
     }
 
+    public void removeRelation(T big, T small) {
+        relations.remove(new Tuple<>(big, small));
+        invalidateCache();
+    }
+
     public boolean isInRelation(T big, T small) {
-        return relations.contains(new Tuple<T>(big, small));
+        Set<T> bigEqs = equivalentElems.get(big);
+        Set<T> smallEqs = equivalentElems.get(small);
+
+        if (bigEqs == null) {
+            bigEqs = new HashSet<>();
+            bigEqs.add(big);
+        }
+        if (smallEqs == null) {
+            smallEqs = new HashSet<>();
+            smallEqs.add(small);
+        }
+
+        for (T s1 : bigEqs) {
+            for (T s2 : smallEqs) {
+                boolean rel = relations.contains(new Tuple<>(s1, s2));
+                if (rel) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public void transitiveClosure() {
@@ -82,6 +110,10 @@ public class Poset<T> implements Serializable {
             }
         } while (!maxim);
         return start;
+    }
+
+    public void setEquivalentSorts(Map<T, Set<T>> equivalentSorts) {
+        this.equivalentElems = equivalentSorts;
     }
 
     private abstract class BoundType implements Serializable {
