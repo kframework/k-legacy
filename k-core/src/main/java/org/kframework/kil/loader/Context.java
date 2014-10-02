@@ -633,7 +633,7 @@ public class Context implements Serializable {
         }
     }
 
-    public void setEquivalentSorts(Map<Sort, Set<Sort>> equivalentSorts) {
-        subsorts.setEquivalentSorts(equivalentSorts);
+    public void makeSortsEquivalent(Sort sort1, Sort sort2) {
+        subsorts.makeElemsEquivalent(sort1, sort2);
     }
 }

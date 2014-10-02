@@ -29,8 +29,6 @@ import java.util.Collection;
  */
 public class CompleteSortLattice extends CopyOnWriteTransformer {
 
-    private final Map<Sort, Set<Sort>> sortEqClasses = new HashMap<>();
-
     public CompleteSortLattice(Context context) {
         super("Subsort syntactic lists", context);
     }
@@ -84,53 +82,29 @@ public class CompleteSortLattice extends CopyOnWriteTransformer {
 
             sort2_loop:
                 for (Sort sort2 : node.getAllSorts()) {
-                    if (sort1.equals(sort2)
-                            || context.isSubsorted(sort2, sort1)) {
+                    if (context.isSubsortedEq(sort2, sort1)) {
                         continue;
                     }
 
                     for (Production production : sort1Prods) {
-                        if (!context.isSubsorted(sort2, production.getChildSort(0))) {
+                        if (!context.isSubsortedEq(sort2, production.getChildSort(0))) {
                             continue sort2_loop;
                         }
                     }
 
                     if (context.isSubsorted(sort1, sort2)) {
                         // `sort1 < sort2` and `sort2 < sort1`, make them equal
-                        Set<Sort> sort1EqCls = sortEqClasses.get(sort1);
-                        Set<Sort> sort2EqCls = sortEqClasses.get(sort2);
-                        if (sort1EqCls != null && sort2EqCls != null) {
-                            for (Sort s : sort2EqCls) {
-                                sortEqClasses.put(s, sort1EqCls);
-                                sort1EqCls.add(s);
-                            }
-                        } else if (sort1EqCls != null) {
-                            sort1EqCls.add(sort2);
-                            sortEqClasses.put(sort2, sort1EqCls);
-                        } else if (sort2EqCls != null) {
-                            sort2EqCls.add(sort1);
-                            sortEqClasses.put(sort1, sort2EqCls);
-                        } else {
-                            Set<Sort> eqCls = new HashSet<>();
-                            eqCls.add(sort1);
-                            eqCls.add(sort2);
-                            sortEqClasses.put(sort1, eqCls);
-                            sortEqClasses.put(sort2, eqCls);
-                        }
-                        // no new subsorts added, no need to loop
-                        change = false;
+                        context.makeSortsEquivalent(sort1, sort2);
                     } else {
                         transformedNode.addSubsort(sort2, sort1, context);
-                        change = true;
                     }
+                    change = true;
                 }
             }
 
             // TODO(AndreiS): subsort queries should implement lazy subsort computation
             context.computeSubsortTransitiveClosure();
         } while (change);
-
-        context.setEquivalentSorts(sortEqClasses);
 
         /*
          * Add list of Sort2 for a separator if there is some syntactic list of Sort1 with the

@@ -62,6 +62,10 @@ public class Poset<T> implements Serializable {
             smallEqs.add(small);
         }
 
+        if (smallEqs == bigEqs) {
+            return true;
+        }
+
         for (T s1 : bigEqs) {
             for (T s2 : smallEqs) {
                 boolean rel = relations.contains(new Tuple<>(s1, s2));
@@ -107,8 +111,29 @@ public class Poset<T> implements Serializable {
         return start;
     }
 
-    public void setEquivalentSorts(Map<T, Set<T>> equivalentSorts) {
-        this.equivalentElems = equivalentSorts;
+    public void makeElemsEquivalent(T elem1, T elem2) {
+        relations.remove(new Tuple<>(elem1, elem2));
+        relations.remove(new Tuple<>(elem2, elem1));
+        Set<T> elem1EqCls = equivalentElems.get(elem1);
+        Set<T> elem2EqCls = equivalentElems.get(elem2);
+        if (elem1EqCls != null && elem2EqCls != null) {
+            for (T e : elem2EqCls) {
+                equivalentElems.put(e, elem1EqCls);
+                elem1EqCls.add(e);
+            }
+        } else if (elem1EqCls != null) {
+            elem1EqCls.add(elem2);
+            equivalentElems.put(elem2, elem1EqCls);
+        } else if (elem2EqCls != null) {
+            elem2EqCls.add(elem1);
+            equivalentElems.put(elem1, elem2EqCls);
+        } else {
+            Set<T> eqCls = new HashSet<>();
+            eqCls.add(elem1);
+            eqCls.add(elem2);
+            equivalentElems.put(elem1, eqCls);
+            equivalentElems.put(elem2, eqCls);
+        }
     }
 
     private abstract class BoundType implements Serializable {
