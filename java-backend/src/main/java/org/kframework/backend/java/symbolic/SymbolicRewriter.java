@@ -187,8 +187,7 @@ public class SymbolicRewriter {
         Map<Variable, Variable> freshSubstitution = Variable.getFreshSubstitution(rule.variableSet());
 
         /* rename rule variables in the constraints */
-//        constraint = (SymbolicConstraint) constraint.substituteWithBinders(freshSubstitution, constraint.termContext());
-        constraint.rename(freshSubstitution);
+        constraint = (SymbolicConstraint) constraint.substituteWithBinders(freshSubstitution, constraint.termContext());
 
         /* rename rule variables in the rule RHS */
         Term term = rule.rightHandSide().substituteWithBinders(freshSubstitution, constraint.termContext());
@@ -229,8 +228,7 @@ public class SymbolicRewriter {
             Map<Variable, Variable> freshSubstitution = Variable.getFreshSubstitution(rule.variableSet());
 
             /* rename rule variables in the constraints */
-//            constraint = (SymbolicConstraint) constraint.substituteWithBinders(freshSubstitution, constraint.termContext());
-            constraint.rename(freshSubstitution);
+            constraint = (SymbolicConstraint) constraint.substituteWithBinders(freshSubstitution, constraint.termContext());
 
             /* rename rule variables in the rule RHS */
             Term result = rule.rightHandSide().substituteWithBinders(freshSubstitution, constrainedTerm.termContext());
