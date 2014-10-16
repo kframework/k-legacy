@@ -178,7 +178,7 @@ public class SymbolicRewriter {
             Rule rule,
             SymbolicConstraint constraint) {
         constraint.orientSubstitution(rule.leftHandSide().variableSet());
-        for (Variable variable : rule.freshVariables()) {
+        for (Variable variable : rule.freshConstants()) {
             constraint.add(variable, FreshOperations.fresh(variable.sort(), constraint.termContext()));
         }
         constraint.addAll(rule.ensures());
@@ -258,7 +258,7 @@ public class SymbolicRewriter {
         // Create the initial constraints based on the pattern
         SymbolicConstraint termConstraint = new SymbolicConstraint(term.termContext());
         termConstraint.addAll(pattern.requires());
-        for (Variable var : pattern.freshVariables()) {
+        for (Variable var : pattern.freshConstants()) {
             termConstraint.add(var, FreshOperations.fresh(var.sort(), term.termContext()));
         }
 
