@@ -78,8 +78,14 @@ public class Variable extends Term {
         expectedSort = variable.expectedSort;
     }
 
+    // TODO(YilongL): rename it to getAnonVar
     public static Variable getFreshVar(Sort sort) {
         return new Variable(GENERATED_FRESH_VAR + nextVariableIndex++, sort);
+    }
+
+    // TODO(YilongL): rename it to getAnonVar
+    public static Variable getFreshVar(Sort sort, boolean freshVariable, boolean freshConstant) {
+        return new Variable(GENERATED_FRESH_VAR + nextVariableIndex++, sort, freshVariable, freshConstant);
     }
 
     public void setName(String name) {
