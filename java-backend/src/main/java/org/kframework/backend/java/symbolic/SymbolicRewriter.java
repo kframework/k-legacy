@@ -189,6 +189,7 @@ public class SymbolicRewriter {
 
         /* rename rule variables in the constraints */
         constraint = (SymbolicConstraint) constraint.substituteWithBinders(freshSubstitution, constraint.termContext());
+        constraint.simplify();
 
         /* rename rule variables in the rule RHS */
         Term term = rule.rightHandSide().substituteWithBinders(freshSubstitution, constraint.termContext());
@@ -233,6 +234,7 @@ public class SymbolicRewriter {
 
             /* rename rule variables in the constraints */
             constraint = (SymbolicConstraint) constraint.substituteWithBinders(freshSubstitution, constraint.termContext());
+            constraint.simplify();
 
             /* rename rule variables in the rule RHS */
             Term result = rule.rightHandSide().substituteWithBinders(freshSubstitution, constrainedTerm.termContext());
