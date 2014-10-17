@@ -105,7 +105,7 @@ public class GroundRewriter extends AbstractRewriter {
         // Create the initial constraints based on the pattern
         SymbolicConstraint termConstraint = new SymbolicConstraint(termContext);
         termConstraint.addAll(pattern.requires());
-        for (Variable var : pattern.freshVariables()) {
+        for (Variable var : pattern.freshConstants()) {
             termConstraint.add(var, FreshOperations.fresh(var.sort(), termContext));
         }
 

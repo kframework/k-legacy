@@ -12,9 +12,6 @@ import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.symbolic.PatternMatcher;
 import org.kframework.backend.java.symbolic.SymbolicConstraint;
-import org.kframework.backend.java.symbolic.SymbolicUnifier;
-import org.kframework.backend.java.symbolic.UnificationFailure;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,27 +33,29 @@ public class MetaK {
      * @param context
      *            the term context
      * @return {@link BoolToken#TRUE} if the two terms can be unified;
-     *         otherwise, {@link BoolToken#FALSE}
+     *         {@link BoolToken#FALSE} if they cannot be unified; otherwise,
+     *         {@code null}
      */
     public static BoolToken unifiable(Term term1, Term term2, TermContext context) {
-//        Term freshTerm1 = term1.substitute(Variable.getFreshSubstitution(term1.variableSet()), context);
-//        Term freshTerm2 = term2.substitute(Variable.getFreshSubstitution(term2.variableSet()), context);
         SymbolicConstraint constraint = new SymbolicConstraint(context);
-        SymbolicUnifier unifier = new SymbolicUnifier(constraint, context);
-        try {
-            unifier.unify(term1, term2);
-        } catch (UnificationFailure e) {
+        constraint.add(term1, term2);
+        constraint.simplify();
+        if (constraint.isFalse()) {
             return BoolToken.FALSE;
         }
 
-        constraint.simplify();
-        if (constraint.isSubstitution()) {
-            return BoolToken.TRUE;
-        } else if (constraint.isFalse()) {
-            return BoolToken.FALSE;
-        } else {
-            return null;
+        BoolToken result = BoolToken.FALSE;
+        for (SymbolicConstraint solution : constraint.getMultiConstraints()) {
+            solution.simplify();
+            if (solution.isSubstitution()) {
+                return BoolToken.TRUE;
+            } else if (!solution.isFalse()) {
+                /* when none of the solutions is true and at least one of the
+                 * them is not certainly false, the result is unknown */
+                result = null;
+            }
         }
+        return result;
     }
 
     /**
