@@ -11,6 +11,8 @@ import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.inject.Inject;
+
 import org.kframework.compile.utils.MetaK;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Ambiguity;
@@ -22,16 +24,20 @@ import org.kframework.kil.Variable;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.ParseForestTransformer;
 import org.kframework.kil.visitors.BasicVisitor;
-import org.kframework.kil.visitors.exceptions.ParseFailedException;
 import org.kframework.utils.errorsystem.KException;
+import org.kframework.utils.errorsystem.KExceptionManager;
+import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;
-import org.kframework.utils.general.GlobalSettings;
 
 public class VariableTypeInferenceFilter extends ParseForestTransformer {
 
-    public VariableTypeInferenceFilter(Context context) {
+    private final KExceptionManager kem;
+
+    @Inject
+    public VariableTypeInferenceFilter(Context context, KExceptionManager kem) {
         super("Variable type inference", context);
+        this.kem = kem;
     }
 
     @Override
@@ -159,11 +165,7 @@ public class VariableTypeInferenceFilter extends ParseForestTransformer {
                         var.setSyntactic(false);
                         varDeclMap.put(key, var);
                     }
-                    try {
-                        r = (Sentence) new VariableTypeFilter(varDeclMap, true, context).visitNode(r);
-                    } catch (ParseFailedException e) {
-                        e.report();
-                    }
+                    r = (Sentence) new VariableTypeFilter(varDeclMap, true, context).visitNode(r);
                     // correct the sorts for each variable after type inference
                     CollectRemainingVarsVisitor vars3 = new CollectRemainingVarsVisitor(context);
                     vars3.visitNode(r);
@@ -211,15 +213,11 @@ public class VariableTypeInferenceFilter extends ParseForestTransformer {
                         // store the solution for later disambiguation
                         varDeclMap.put(vmin.getName(), vmin);
                         String msg = "Variable '" + vmin.getName() + "' was not declared. Assuming sort " + vmin.getSort() + " and expected sort " + vmin.getExpectedSort() + ".";
-                        GlobalSettings.kem.register(new KException(ExceptionType.HIDDENWARNING, KExceptionGroup.COMPILER, msg, vmin.getSource(), vmin.getLocation()));
+                        kem.register(new KException(ExceptionType.HIDDENWARNING, KExceptionGroup.COMPILER, msg, vmin.getSource(), vmin.getLocation()));
                     }
                     // after type inference for concrete sorts, reject erroneous branches
                     if (!varDeclMap.isEmpty()) {
-                        try {
-                            r = (Sentence) new VariableTypeFilter(varDeclMap, false, context).visitNode(r);
-                        } catch (ParseFailedException e) {
-                            e.report();
-                        }
+                        r = (Sentence) new VariableTypeFilter(varDeclMap, false, context).visitNode(r);
                     }
                 } else {
                     Multimap<String, String> collect = HashMultimap.create();

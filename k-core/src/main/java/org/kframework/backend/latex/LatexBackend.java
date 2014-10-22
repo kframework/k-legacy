@@ -3,11 +3,14 @@ package org.kframework.backend.latex;
 
 import org.apache.commons.io.FilenameUtils;
 import org.kframework.backend.BasicBackend;
+import org.kframework.backend.FirstStep;
+import org.kframework.compile.utils.CompilerSteps;
 import org.kframework.kil.Definition;
 import org.kframework.kil.loader.Context;
 import org.kframework.utils.Stopwatch;
+import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-
+import org.kframework.utils.file.JarInfo;
 import com.google.inject.Inject;
 
 import java.io.File;
@@ -87,5 +90,11 @@ public class LatexBackend extends BasicBackend {
     @Override
     public boolean generatesDefinition() {
         return false;
+    }
+
+    public CompilerSteps<Definition> getCompilationSteps() {
+        CompilerSteps<Definition> steps = new CompilerSteps<Definition>(context);
+        steps.add(new FirstStep(this, context));
+        return steps;
     }
 }

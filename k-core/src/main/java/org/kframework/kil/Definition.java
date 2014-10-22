@@ -6,8 +6,12 @@ import org.kframework.compile.sharing.TokenSortCollector;
 import org.kframework.kil.loader.*;
 import org.kframework.kil.visitors.Visitor;
 import org.kframework.parser.DefinitionLoader;
-import org.kframework.utils.general.GlobalSettings;
 import java.io.File;
+import org.kframework.utils.errorsystem.KExceptionManager;
+import org.kframework.utils.xml.XML;
+import org.w3c.dom.Element;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -129,7 +133,7 @@ public class Definition extends ASTNode implements Interfaces.MutableList<Defini
         }
         if (modules.size() != 1) {
             String msg = "Should have been only one module when calling this method.";
-            GlobalSettings.kem.registerInternalError(msg, this);
+            throw KExceptionManager.internalError(msg, this);
         }
         return modules.get(0);
     }

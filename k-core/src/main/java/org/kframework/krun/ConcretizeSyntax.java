@@ -10,8 +10,8 @@ import org.kframework.kil.*;
 import org.kframework.kil.Cast.CastType;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.CopyOnWriteTransformer;
-import org.kframework.kil.visitors.exceptions.ParseFailedException;
 import org.kframework.parser.concrete.disambiguate.TypeSystemFilter;
+import org.kframework.utils.errorsystem.ParseFailedException;
 
 import com.davekoelle.AlphanumComparator;
 
@@ -73,7 +73,7 @@ public class ConcretizeSyntax extends CopyOnWriteTransformer {
             if (child instanceof TermCons) {
                 TermCons termCons = (TermCons) child;
                 if (termCons.getProduction().isListDecl()) {
-                    if (new AddEmptyLists(context).isAddEmptyList(tcParent.getProduction().getChildSort(i), termCons.getContents().get(0).getSort()) && termCons.getContents().get(1) instanceof ListTerminator) {
+                    if (AddEmptyLists.isAddEmptyList(context,tcParent.getProduction().getChildSort(i), termCons.getContents().get(0).getSort()) && termCons.getContents().get(1) instanceof ListTerminator) {
 
                         tcParent.getContents().set(i, termCons.getContents().get(0));
                     }

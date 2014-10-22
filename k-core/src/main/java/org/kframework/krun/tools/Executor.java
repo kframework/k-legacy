@@ -4,21 +4,27 @@ package org.kframework.krun.tools;
 import org.kframework.compile.utils.CompilerStepDone;
 import org.kframework.compile.utils.RuleCompilerSteps;
 import org.kframework.kil.ASTNode;
+import org.kframework.kil.Attribute;
 import org.kframework.kil.Attributes;
+import org.kframework.kil.Cell;
 import org.kframework.kil.Rule;
 import org.kframework.kil.Sentence;
+import org.kframework.kil.Sort;
 import org.kframework.kil.Term;
+import org.kframework.kil.Variable;
 import org.kframework.kil.loader.Context;
-import org.kframework.kil.visitors.exceptions.ParseFailedException;
 import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.KRunResult;
 import org.kframework.krun.api.KRunState;
 import org.kframework.krun.api.SearchResults;
 import org.kframework.krun.api.SearchType;
+import org.kframework.parser.ProgramLoader;
 import org.kframework.transformation.Transformation;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KExceptionManager;
+import org.kframework.utils.errorsystem.ParseFailedException;
+import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.inject.Main;
 
 import com.google.inject.Inject;
@@ -77,6 +83,8 @@ public interface Executor {
         private final Stopwatch sw;
         private final KExceptionManager kem;
         private final Executor executor;
+        private final ProgramLoader loader;
+        private final FileUtil files;
 
         @Inject
         Tool(
@@ -85,13 +93,17 @@ public interface Executor {
                 Stopwatch sw,
                 @Main Context context,
                 KExceptionManager kem,
-                @Main Executor executor) {
+                @Main Executor executor,
+                ProgramLoader loader,
+                @Main FileUtil files) {
             this.options = options;
             this.initialConfiguration = initialConfiguration;
             this.context = context;
             this.sw = sw;
             this.kem = kem;
             this.executor = executor;
+            this.loader = loader;
+            this.files = files;
         }
 
         public KRunResult<?> run(Void v, Attributes a) {
@@ -103,11 +115,7 @@ public interface Executor {
                     return execute();
                 }
             } catch (KRunExecutionException e) {
-                kem.registerCriticalError(e.getMessage(), e);
-                throw new AssertionError("unreachable");
-            } catch (ParseFailedException e) {
-                e.report();
-                throw new AssertionError("unreachable");
+                throw KExceptionManager.criticalError(e.getMessage(), e);
             }
         }
 
@@ -116,7 +124,7 @@ public interface Executor {
             public final Rule patternRule;
 
             public SearchPattern(ASTNode pattern) {
-                steps = new RuleCompilerSteps(context);
+                steps = new RuleCompilerSteps(context, kem);
                 try {
                     pattern = steps.compile(new Rule((Sentence) pattern), null);
                 } catch (CompilerStepDone e) {
@@ -128,7 +136,7 @@ public interface Executor {
         }
 
         public KRunResult<SearchResults> search() throws ParseFailedException, KRunExecutionException {
-            ASTNode pattern = options.pattern(context);
+            ASTNode pattern = pattern(options, context);
             SearchPattern searchPattern = new SearchPattern(pattern);
             KRunResult<SearchResults> result;
             result = executor.search(
@@ -151,7 +159,7 @@ public interface Executor {
                 result = executor.run(initialConfiguration);
                 sw.printIntermediate("Normal execution total");
             }
-            ASTNode pattern = options.pattern(context);
+            ASTNode pattern = pattern(options, context);
             if (pattern != null && !options.search()) {
                 SearchPattern searchPattern = new SearchPattern(pattern);
                 Object krs = result.getResult();
@@ -165,6 +173,34 @@ public interface Executor {
         @Override
         public String getName() {
             return "concrete execution";
+        }
+
+        public ASTNode pattern(KRunOptions options, Context context) throws ParseFailedException {
+            if (options.pattern == null && !options.search()) {
+                //user did not specify a pattern and it's not a search, so
+                //we should return null to indicate no pattern is needed
+                return null;
+            }
+            if (options.pattern != null && (options.experimental.prove != null || options.experimental.ltlmc() != null)) {
+                throw KExceptionManager.criticalError("Pattern matching is not supported by model checking or proving");
+            }
+            String patternToParse = options.pattern;
+            if (options.pattern == null) {
+                patternToParse = options.DEFAULT_PATTERN;
+            }
+            if (patternToParse.equals(options.DEFAULT_PATTERN)) {
+                Sentence s = new Sentence();
+                s.setBody(new Cell("generatedTop", new Variable("B", Sort.BAG)));
+                s.addAttribute(Attribute.ANYWHERE);
+                return s;
+            }
+            org.kframework.parser.concrete.KParser
+            .ImportTblRule(files.resolveKompiled("."));
+            return loader.parsePattern(
+                    patternToParse,
+                    null,
+                    Sort.BAG,
+                    context);
         }
     }
 }

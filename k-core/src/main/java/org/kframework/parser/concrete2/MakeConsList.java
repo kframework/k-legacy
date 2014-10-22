@@ -2,21 +2,11 @@
 package org.kframework.parser.concrete2;
 
 import org.kframework.kil.ASTNode;
-import org.kframework.kil.Ambiguity;
-import org.kframework.kil.KList;
 import org.kframework.kil.Term;
 import org.kframework.kil.TermCons;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.ParseForestTransformer;
-import org.kframework.kil.visitors.exceptions.ParseFailedException;
-import org.kframework.utils.errorsystem.KException;
-import org.kframework.utils.errorsystem.KException.ExceptionType;
-import org.kframework.utils.errorsystem.KException.KExceptionGroup;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import org.kframework.utils.errorsystem.ParseFailedException;
 
 /**
  * Transforms a list with multiple elements into a sequence of constructors with only two or zero elements.

@@ -4,6 +4,8 @@ package org.kframework.backend.latex;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.kframework.backend.BasicBackend;
+import org.kframework.backend.FirstStep;
+import org.kframework.compile.utils.CompilerSteps;
 import org.kframework.kil.Definition;
 import org.kframework.kil.loader.Context;
 import org.kframework.utils.Stopwatch;
@@ -17,19 +19,16 @@ public class PdfBackend extends BasicBackend {
 
     private final LatexBackend latexBackend;
     private final FileUtil files;
-    private final KExceptionManager kem;
 
     @Inject
     PdfBackend(
             Stopwatch sw,
             Context context,
             LatexBackend latexBackend,
-            FileUtil files,
-            KExceptionManager kem) {
+            FileUtil files) {
         super(sw, context);
         this.latexBackend = latexBackend;
         this.files = files;
-        this.kem = kem;
     }
 
     private String generatePdf(File latexFile) {
@@ -57,7 +56,7 @@ public class PdfBackend extends BasicBackend {
             if (process.exitValue() != 0) {
                 String latexLogFile = FilenameUtils.removeExtension(latexFile.getName()) + ".log";
                 files.copyTempFileToDefinitionDirectory(latexLogFile);
-                kem.registerCriticalError("pdflatex returned a non-zero exit code. " +
+                throw KExceptionManager.compilerError("pdflatex returned a non-zero exit code. " +
                                 "The pdf might be generated, but with bugs. " +
                                 "Please inspect the latex logs.");
             }
@@ -65,13 +64,12 @@ public class PdfBackend extends BasicBackend {
 
             return FilenameUtils.removeExtension(latexFile.getName()) + ".pdf";
         } catch (IOException | InterruptedException e) {
-            kem.registerCriticalError(
+            throw KExceptionManager.criticalError(
                             "Cannot generate the pdf version of the definition. " +
                             "It seems that `pdflatex` is not installed or is not in your path. " +
                             "To generate the pdf version you can run `pdflatex` having as " +
                             "argument the latex version of the definition.", e);
         }
-        return null; // unreachable code
     }
 
     @Override
@@ -80,6 +78,12 @@ public class PdfBackend extends BasicBackend {
         String latexFile = latexBackend.getLatexFile();
         String pdfFile = generatePdf(files.resolveTemp(latexFile));
         files.copyTempFileToDefinitionDirectory(pdfFile);
+    }
+
+    public CompilerSteps<Definition> getCompilationSteps() {
+        CompilerSteps<Definition> steps = new CompilerSteps<Definition>(context);
+        steps.add(new FirstStep(this, context));
+        return steps;
     }
 
     @Override

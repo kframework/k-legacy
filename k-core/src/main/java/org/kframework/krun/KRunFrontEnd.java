@@ -44,7 +44,6 @@ public class KRunFrontEnd extends FrontEnd {
 
 
     private final TransformationProvider<Transformation<Void, Void>> toolProvider;
-    private final KExceptionManager kem;
 
     @Inject
     KRunFrontEnd(
@@ -57,7 +56,6 @@ public class KRunFrontEnd extends FrontEnd {
             JarInfo jarInfo) {
         super(kem, options, usage, experimentalUsage, jarInfo);
         this.toolProvider = toolProvider;
-        this.kem = kem;
     }
 
     /**
@@ -71,8 +69,7 @@ public class KRunFrontEnd extends FrontEnd {
             return true;
         } catch (TransformationNotSatisfiedException
                 | AmbiguousTransformationException e) {
-            kem.registerCriticalError(e.getMessage(), e);
-            throw new AssertionError("unreachable");
+            throw KExceptionManager.criticalError(e.getMessage(), e);
         }
     }
 }

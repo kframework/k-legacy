@@ -28,7 +28,7 @@ import org.kframework.kil.TermComment;
 import org.kframework.kil.TermCons;
 import org.kframework.kil.Token;
 import org.kframework.kil.Variable;
-import org.kframework.utils.general.GlobalSettings;
+import org.kframework.utils.errorsystem.KExceptionManager;
 import org.w3c.dom.Element;
 
 /**
@@ -107,8 +107,7 @@ public class JavaClassesFactory {
         if (Constants.ATTRIBUTES.equals(element.getNodeName()))
             return new Attributes(element);
 
-        GlobalSettings.kem.registerCriticalError(">>> " + element.getNodeName() + " <<< - unimplemented yet: org.kframework.kil.loader.JavaClassesFactory");
-        return null;
+        throw KExceptionManager.criticalError(">>> " + element.getNodeName() + " <<< - unimplemented yet: org.kframework.kil.loader.JavaClassesFactory");
     }
 
     private static java.util.Map<Integer, ASTNode> cache = new HashMap<Integer, ASTNode>();

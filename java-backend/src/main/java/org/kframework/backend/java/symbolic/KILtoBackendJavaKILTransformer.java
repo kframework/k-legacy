@@ -22,6 +22,7 @@ import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.Hole;
 import org.kframework.backend.java.kil.JavaBackendRuleData;
 import org.kframework.backend.java.kil.KItem;
+import org.kframework.backend.java.kil.KItem.KItemOperations;
 import org.kframework.backend.java.kil.KItemProjection;
 import org.kframework.backend.java.kil.KLabelConstant;
 import org.kframework.backend.java.kil.KLabelFreezer;
@@ -56,6 +57,7 @@ import org.kframework.kil.StringBuiltin;
 import org.kframework.kil.TermComment;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.CopyOnWriteTransformer;
+import org.kframework.utils.errorsystem.KExceptionManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -93,24 +95,30 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
             = Collections.emptyMap();
     private final GlobalContext globalContext;
     private final IndexingTable.Data indexingData;
+    private final KItemOperations kItemOps;
+    private final KExceptionManager kem;
 
     @Inject
     public KILtoBackendJavaKILTransformer(
             Context context,
             GlobalContext globalContext,
             @FreshRules boolean freshRules,
-            IndexingTable.Data data) {
+            IndexingTable.Data data,
+            KItemOperations kItemOps,
+            KExceptionManager kem) {
         super("Transform KIL into java backend KIL", context);
         this.freshRules = freshRules;
         this.globalContext = globalContext;
         this.indexingData = data;
+        this.kItemOps = kItemOps;
+        this.kem = kem;
     }
 
     public Definition transformDefinition(org.kframework.kil.Definition node) {
         Definition transformedDef = (Definition) this.visitNode(node);
         globalContext.setDefinition(transformedDef);
 
-        Definition expandedDefinition = new MacroExpander(TermContext.of(globalContext)).processDefinition();
+        Definition expandedDefinition = new MacroExpander(TermContext.of(globalContext), kem).processDefinition();
         globalContext.setDefinition(expandedDefinition);
 
         Definition evaluatedDefinition = evaluateDefinition(globalContext);
@@ -120,7 +128,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
 
     public Rule transformAndEval(org.kframework.kil.Rule node) {
         Rule rule = null;
-        rule = new MacroExpander(TermContext.of(globalContext)).processRule((Rule) this.visitNode(node));
+        rule = new MacroExpander(TermContext.of(globalContext), kem).processRule((Rule) this.visitNode(node));
         rule = evaluateRule(rule, globalContext);
 
         return rule;
@@ -128,7 +136,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
 
     public Term transformAndEval(org.kframework.kil.Term node) {
         Term term = null;
-        term = new MacroExpander(TermContext.of(globalContext)).processTerm((Term) this.visitNode(node));
+        term = new MacroExpander(TermContext.of(globalContext), kem).processTerm((Term) this.visitNode(node));
         term = term.evaluate(TermContext.of(globalContext));
 
         return term;
@@ -167,7 +175,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
         if (kList instanceof Variable) {
             kList = kList.sort().equals(Sort.KLIST) ? kList : KList.singleton(kList);
         }
-        return KItem.of(kLabel, kList, TermContext.of(globalContext));
+        return kItemOps.newKItem(kLabel, kList, TermContext.of(globalContext));
     }
 
     @Override
@@ -589,7 +597,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
 
     @Override
     public ASTNode visit(org.kframework.kil.Definition node, Void _) {
-        Definition definition = new Definition(context, indexingData);
+        Definition definition = new Definition(context, kem, indexingData);
         globalContext.setDefinition(definition);
 
         Module singletonModule = node.getSingletonModule();

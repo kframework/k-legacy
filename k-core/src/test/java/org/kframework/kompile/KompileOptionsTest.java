@@ -37,8 +37,6 @@ public class KompileOptionsTest {
     public void setUp() {
         options = new KompileOptions();
         options.setFiles(files);
-        GlobalSettings.kem = kem;
-        doThrow(KEMException.class).when(kem).registerCriticalError(Matchers.anyString());
         when(files.resolveWorkingDirectory(Matchers.anyString())).thenAnswer(new Answer<File>() {
             @Override
             public File answer(InvocationOnMock invocation) throws Throwable {

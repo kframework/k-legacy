@@ -24,6 +24,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 public class MaudeModelChecker implements LtlModelChecker {
 
@@ -31,6 +32,8 @@ public class MaudeModelChecker implements LtlModelChecker {
     private final MaudeExecutor executor;
     private final KExceptionManager kem;
     private final FileUtil files;
+    private final Provider<MaudeFilter> maudeFilterProvider;
+
     private final Context context;
 
     @Inject
@@ -39,19 +42,21 @@ public class MaudeModelChecker implements LtlModelChecker {
             KompileOptions kompileOptions,
             MaudeExecutor executor,
             KExceptionManager kem,
-            FileUtil files) {
+            FileUtil files,
+            Provider<MaudeFilter> maudeFilterProvider) {
         this.context = context;
         this.kompileOptions = kompileOptions;
         this.executor = executor;
         this.kem = kem;
         this.files = files;
+        this.maudeFilterProvider = maudeFilterProvider;
     }
 
     @Override
     public KRunProofResult<KRunGraph> modelCheck(Term formula, Term cfg) throws KRunExecutionException {
-        MaudeFilter formulaFilter = new MaudeFilter(context);
+        MaudeFilter formulaFilter = maudeFilterProvider.get();
         formulaFilter.visitNode(formula);
-        MaudeFilter cfgFilter = new MaudeFilter(context);
+        MaudeFilter cfgFilter = maudeFilterProvider.get();
         cfgFilter.visitNode(cfg);
 
         StringBuilder cmd = new StringBuilder()
@@ -176,8 +181,7 @@ public class MaudeModelChecker implements LtlModelChecker {
         } else if (sort.equals("#TransitionList") && op.equals("LTLnil")) {
             executor.assertXML(child.size() == 0);
         } else {
-            kem.registerCriticalError("Cannot parse result xml from maude due to production " + op + " of sort " + sort + ". Please file an error on the issue tracker which includes this error message.");
-            executor.assertXML(false);
+            throw KExceptionManager.criticalError("Cannot parse result xml from maude due to production " + op + " of sort " + sort + ". Please file an error on the issue tracker which includes this error message.");
         }
     }
 

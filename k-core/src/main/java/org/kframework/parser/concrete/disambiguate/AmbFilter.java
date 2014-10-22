@@ -16,15 +16,22 @@ import org.kframework.kil.Term;
 import org.kframework.kil.TermCons;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.ParseForestTransformer;
-import org.kframework.kil.visitors.exceptions.ParseFailedException;
 import org.kframework.utils.errorsystem.KException;
+import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;
-import org.kframework.utils.general.GlobalSettings;
+import org.kframework.utils.errorsystem.KExceptionManager;
+
+import com.google.inject.Inject;
 
 public class AmbFilter extends ParseForestTransformer {
-    public AmbFilter(Context context) {
+
+    private final KExceptionManager kem;
+
+    @Inject
+    public AmbFilter(Context context, KExceptionManager kem) {
         super("Ambiguity filter", context);
+        this.kem = kem;
     }
 
     @Override
@@ -63,7 +70,7 @@ public class AmbFilter extends ParseForestTransformer {
             unparserFilter.visitNode(elem);
             msg += "\n   " + unparserFilter.getResult().replace("\n", "\n   ");
         }
-        GlobalSettings.kem.register(new KException(ExceptionType.WARNING, KExceptionGroup.INNER_PARSER, msg, getName(), amb.getSource(), amb.getLocation()));
+        kem.register(new KException(ExceptionType.WARNING, KExceptionGroup.INNER_PARSER, msg, getName(), amb.getSource(), amb.getLocation()));
 
         return this.visitNode(amb.getContents().get(0));
     }

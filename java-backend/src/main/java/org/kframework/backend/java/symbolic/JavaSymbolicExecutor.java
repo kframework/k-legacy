@@ -27,6 +27,8 @@ import org.kframework.krun.api.SearchResult;
 import org.kframework.krun.api.SearchResults;
 import org.kframework.krun.api.SearchType;
 import org.kframework.krun.tools.Executor;
+import org.kframework.parser.ProgramLoader;
+
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -39,6 +41,7 @@ public class JavaSymbolicExecutor implements Executor {
     private final Provider<SymbolicRewriter> symbolicRewriter;
     private final KILtoBackendJavaKILTransformer transformer;
     private final Context context;
+    private final ProgramLoader loader;
 
     @Inject
     JavaSymbolicExecutor(
@@ -48,7 +51,8 @@ public class JavaSymbolicExecutor implements Executor {
             GlobalContext globalContext,
             Provider<SymbolicRewriter> symbolicRewriter,
             KILtoBackendJavaKILTransformer transformer,
-            Definition definition) {
+            Definition definition,
+            ProgramLoader loader) {
         this.context = context;
         this.javaOptions = javaOptions;
         this.kilTransformer = kilTransformer;
@@ -56,6 +60,7 @@ public class JavaSymbolicExecutor implements Executor {
         this.symbolicRewriter = symbolicRewriter;
         this.transformer = transformer;
         this.definition = definition;
+        this.loader = loader;
         globalContext.setDefinition(definition);
     }
 
@@ -150,7 +155,7 @@ public class JavaSymbolicExecutor implements Executor {
                     new KRunState(rawResult),
                     substitutionMap,
                     compilationInfo,
-                    context));
+                    context, loader));
         }
 
         // TODO(ericmikida): Make the isDefaultPattern option set in some reasonable way

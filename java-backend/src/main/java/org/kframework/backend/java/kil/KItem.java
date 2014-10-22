@@ -19,12 +19,7 @@ import org.kframework.kil.Attribute;
 import org.kframework.kil.Production;
 import org.kframework.main.GlobalOptions;
 import org.kframework.main.Tool;
-import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
-import org.kframework.utils.errorsystem.KException.ExceptionType;
-import org.kframework.utils.errorsystem.KException.KExceptionGroup;
-import org.kframework.utils.general.GlobalSettings;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,21 +62,6 @@ public final class KItem extends Term {
     private Boolean evaluable = null;
     private Boolean anywhereApplicable = null;
 
-    public static KItem of(Term kLabel, Term kList, TermContext termContext) {
-        /* YilongL: since KList.Builder always canonicalizes its result, the
-         * following conversion is necessary */
-        kList = KCollection.upKind(kList, Kind.KLIST);
-
-        if (kLabel instanceof KLabelConstant) {
-            KLabelConstant kLabelConstant = (KLabelConstant) kLabel;
-            if (kLabelConstant.isListLabel()) {
-                return kLabelConstant.getListTerminator();
-            }
-        }
-
-        return new KItem(kLabel, kList, termContext);
-    }
-
     KItem(Term kLabel, Term kList, Sort sort, boolean isExactSort) {
         this(kLabel, kList, sort, isExactSort, Collections.singleton(sort));
     }
@@ -95,7 +75,7 @@ public final class KItem extends Term {
         this.possibleSorts = possibleSorts;
     }
 
-    private KItem(Term kLabel, Term kList, TermContext termContext) {
+    private KItem(Term kLabel, Term kList, TermContext termContext, Tool tool) {
         super(Kind.KITEM);
         this.kLabel = kLabel;
         this.kList = kList;
@@ -109,7 +89,7 @@ public final class KItem extends Term {
             /* at runtime, checks if the result has been cached */
             CacheTableColKey cacheTabColKey = null;
             CacheTableValue cacheTabVal = null;
-            boolean enableCache = (Tool.instance() != Tool.KOMPILE)
+            boolean enableCache = (tool != Tool.KOMPILE)
                     && definition.sortPredicateRulesOn(kLabelConstant).isEmpty();
             if (enableCache) {
                 cacheTabColKey = new CacheTableColKey(kLabelConstant, (KList) kList);
@@ -123,7 +103,7 @@ public final class KItem extends Term {
             }
 
             /* cache miss, compute sort information and cache it */
-            cacheTabVal = computeSort(kLabelConstant, (KList) kList, termContext);
+            cacheTabVal = computeSort(kLabelConstant, (KList) kList, termContext, tool);
             if (enableCache) {
                 SORT_CACHE_TABLE.put(definition, cacheTabColKey, cacheTabVal);
             }
@@ -146,14 +126,14 @@ public final class KItem extends Term {
     }
 
     private CacheTableValue computeSort(KLabelConstant kLabelConstant,
-            KList kList, TermContext termContext) {
+            KList kList, TermContext termContext, Tool tool) {
         Definition definition = termContext.definition();
         Subsorts subsorts = definition.subsorts();
 
         Set<Sort> sorts = Sets.newHashSet();
         Set<Sort> possibleSorts = Sets.newHashSet();
 
-        if (Tool.instance() != Tool.KOMPILE) {
+        if (tool != Tool.KOMPILE) {
             /**
              * Sort checks in the Java engine are not implemented as
              * rewrite rules, so we need to precompute the sort of
@@ -222,9 +202,8 @@ public final class KItem extends Term {
          */
         Sort sort = sorts.isEmpty() ? kind.asSort() : subsorts.getGLBSort(sorts);
         if (sort == null) {
-            GlobalSettings.kem.register(new KException(ExceptionType.ERROR,
-                    KExceptionGroup.CRITICAL, "Cannot compute least sort of term: " +
-                            this.toString() + "\nPossible least sorts are: " + sorts));
+            throw KExceptionManager.criticalError("Cannot compute least sort of term: " +
+                            this.toString() + "\nPossible least sorts are: " + sorts);
         }
         /* the sort is exact iff the klabel is a constructor and there is no other possible sort */
         boolean isExactSort = kLabelConstant.isConstructor() && possibleSorts.isEmpty();
@@ -281,6 +260,28 @@ public final class KItem extends Term {
             this.javaOptions = javaOptions;
             this.globalOptions = globalOptions;
             this.kem = kem;
+        }
+
+        /**
+         * Returns an injection of the term into a {@link org.kframework.backend.java.kil.KItem}.
+         */
+        public KItem injectionOf(Term term, TermContext context) {
+            return newKItem(new KLabelInjection(term), KList.EMPTY, context);
+        }
+
+        public KItem newKItem(Term kLabel, Term kList, TermContext termContext) {
+            /* YilongL: since KList.Builder always canonicalizes its result, the
+             * following conversion is necessary */
+            kList = KCollection.upKind(kList, Kind.KLIST);
+
+            if (kLabel instanceof KLabelConstant) {
+                KLabelConstant kLabelConstant = (KLabelConstant) kLabel;
+                if (kLabelConstant.isListLabel()) {
+                    return kLabelConstant.getListTerminator();
+                }
+            }
+
+            return new KItem(kLabel, kList, termContext, tool);
         }
 
         /**
@@ -405,7 +406,7 @@ public final class KItem extends Term {
                             owiseResult = rightHandSide;
                         }
                     } else {
-                        if (javaOptions.concreteExecution()) {
+                        if (tool == Tool.KRUN) {
                             assert result == null || result.equals(rightHandSide):
                                 "[non-deterministic function definition]: more than one rule can apply to the function\n" + kItem;
                         }

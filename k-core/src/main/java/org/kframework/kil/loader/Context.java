@@ -22,8 +22,7 @@ import org.kframework.main.GlobalOptions;
 import org.kframework.utils.Poset;
 import org.kframework.utils.StringUtil;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.general.GlobalSettings;
-
+import org.kframework.utils.errorsystem.KExceptionManager;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -391,7 +390,7 @@ public class Context implements Serializable {
         try {
             fileRequirements.addRelation(required.getCanonicalFile(), local.getCanonicalFile());
         } catch (IOException e) {
-           GlobalSettings.kem.registerInternalError("Cannot create canonical files from " + required + " and " + local, e);
+           throw KExceptionManager.internalError("Cannot create canonical files from " + required + " and " + local, e);
         }
     }
 
@@ -426,7 +425,7 @@ public class Context implements Serializable {
             required = required.getCanonicalFile();
             local = local.getCanonicalFile();
         } catch (IOException e) {
-            GlobalSettings.kem.registerInternalError("Cannot create canonical files from " + required + " and " + local, e);
+            throw KExceptionManager.internalError("Cannot create canonical files from " + required + " and " + local, e);
         }
         if (required.equals(local))
             return true;
@@ -457,7 +456,7 @@ public class Context implements Serializable {
             for (Sort sort : circuit)
                 msg += sort + " < ";
             msg += circuit.get(0);
-            GlobalSettings.kem.registerCriticalError(msg);
+            throw KExceptionManager.criticalError(msg);
         }
         subsorts.transitiveClosure();
         // detect if lists are subsorted (Vals Ids < Exps)
@@ -598,13 +597,13 @@ public class Context implements Serializable {
     public void makeFreshFunctionNamesMap(Set<Production> freshProductions) {
         for (Production production : freshProductions) {
             if (!production.containsAttribute(Attribute.FUNCTION_KEY)) {
-                GlobalSettings.kem.registerCompilerError(
+                throw KExceptionManager.compilerError(
                         "missing [function] attribute for fresh function " + production,
                         production);
             }
 
             if (freshFunctionNames.containsKey(production.getSort())) {
-                GlobalSettings.kem.registerCompilerError(
+                throw KExceptionManager.compilerError(
                         "multiple fresh functions for sort " + production.getSort(),
                         production);
             }

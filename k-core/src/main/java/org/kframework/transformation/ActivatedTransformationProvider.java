@@ -5,8 +5,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.kframework.utils.errorsystem.KExceptionManager;
-
 import com.beust.jcommander.JCommander;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -31,7 +29,6 @@ import com.google.inject.TypeLiteral;
 public class ActivatedTransformationProvider<P, R> implements TransformationProvider<Transformation<P, R>> {
 
     private final JCommander jc;
-    private final KExceptionManager kem;
     private final Map<ToolActivation, Provider<Transformation<P, R>>> availableTransformations;
 
     private final TypeLiteral<P> ptype;
@@ -40,12 +37,10 @@ public class ActivatedTransformationProvider<P, R> implements TransformationProv
     @Inject
     ActivatedTransformationProvider(
             JCommander jc,
-            KExceptionManager kem,
             TypeLiteral<P> ptype,
             TypeLiteral<R> rtype,
             Map<ToolActivation, Provider<Transformation<P, R>>> availableTransformations) {
         this.jc = jc;
-        this.kem = kem;
         this.ptype = ptype;
         this.rtype = rtype;
         this.availableTransformations = availableTransformations;

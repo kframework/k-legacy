@@ -12,32 +12,22 @@ import com.google.inject.Singleton;
 @Singleton
 public class BinaryLoader {
 
-    private final KExceptionManager kem;
     // Do *NOT* use this for anything except its intended usage!
     // We are injecting the injector because of limitations of java deserialization *ONLY*.
     // Eventually once the framework is completely converted this will go away and
     // be replaced by serialized objects containing data only.
     private final Injector injector;
 
-    @Inject private static BinaryLoader loader;
-
-    @Deprecated
-    public static BinaryLoader instance() {
-        return loader;
-    }
-
     @Inject
     public BinaryLoader(
-            KExceptionManager kem,
             Injector injector) {
-        this.kem = kem;
         this.injector = injector;
     }
 
     public void save(File fileName, Object o) throws IOException {
         File dir = fileName.getAbsoluteFile().getParentFile();
         if (!dir.exists() && !dir.mkdirs()) {
-            kem.registerCriticalError("Could not create directory " + dir);
+            throw KExceptionManager.criticalError("Could not create directory " + dir);
         }
         try (OutputStream out = new FileOutputStream(fileName)) {
             save(out, o);
@@ -47,12 +37,12 @@ public class BinaryLoader {
     public void saveOrDie(File fileName, Object o) {
         File dir = fileName.getAbsoluteFile().getParentFile();
         if (!dir.exists() && !dir.mkdirs()) {
-            kem.registerCriticalError("Could not create directory " + dir);
+            throw KExceptionManager.criticalError("Could not create directory " + dir);
         }
         try (OutputStream out = new FileOutputStream(fileName)) {
             saveOrDie(out, o, fileName.getAbsolutePath());
         } catch (IOException e) {
-            kem.registerCriticalError("Could not write to " + fileName, e);
+            throw KExceptionManager.criticalError("Could not write to " + fileName, e);
         }
     }
 
@@ -60,7 +50,7 @@ public class BinaryLoader {
         try {
             save(out, o);
         } catch (IOException e) {
-            kem.registerCriticalError("Could not write to " + fileName, e);
+            throw KExceptionManager.criticalError("Could not write to " + fileName, e);
         }
     }
 
@@ -87,9 +77,8 @@ public class BinaryLoader {
         try (InputStream in = new BufferedInputStream(new FileInputStream(fileName))) {
             return loadOrDie(cls, in, fileName.getAbsolutePath());
         } catch (IOException e) {
-            kem.registerCriticalError("Could not read from " + fileName, e);
+            throw KExceptionManager.criticalError("Could not read from " + fileName, e);
         }
-        return null;
     }
 
     public Object load(InputStream in) throws IOException, ClassNotFoundException {
@@ -118,11 +107,10 @@ public class BinaryLoader {
         } catch (ClassNotFoundException e) {
             throw new AssertionError("Something wrong with deserialization", e);
         } catch (ObjectStreamException e) {
-            kem.registerCriticalError("Kompiled definition is out of date with "
+            throw KExceptionManager.criticalError("Kompiled definition is out of date with "
                     + "the latest version of the K tool. Please re-run kompile and try again.", e);
         } catch (IOException e) {
-            kem.registerCriticalError("Could not read from " + fileName, e);
+            throw KExceptionManager.criticalError("Could not read from " + fileName, e);
         }
-        return null;
     }
 }

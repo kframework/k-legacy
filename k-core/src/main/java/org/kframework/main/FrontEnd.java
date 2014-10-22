@@ -42,11 +42,12 @@ public abstract class FrontEnd {
                 try {
                     succeeded = run();
                 } catch (ParameterException e) {
-                    kem.registerCriticalError(e.getMessage(), e);
+                    throw KExceptionManager.criticalError(e.getMessage(), e);
                 }
                 kem.print();
             }
         } catch (KExceptionManager.KEMException e) {
+            e.register(kem);
             // terminated with errors, so we need to return nonzero error code.
             succeeded = false;
             if (globalOptions.debug) {

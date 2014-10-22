@@ -66,7 +66,7 @@ public class InitialConfigurationProvider implements Provider<Term> {
 
         if (options.term()) {
             sw.printIntermediate("Parse term");
-            return rp.runParserOrDie(options.parser(context),
+            return rp.runParser(options.parser(context),
                     options.pgm(), false, null, context);
         }
 
@@ -81,7 +81,7 @@ public class InitialConfigurationProvider implements Provider<Term> {
                         "User specified configuration variable " + name + " which does not exist.");
             }
             Sort sort = context.configVarSorts.get(name);
-            Term parsed = rp.runParserOrDie(parser, value, false, sort, context);
+            Term parsed = rp.runParser(parser, value, false, sort, context);
             parsed = (Term) new ResolveVariableAttribute(context).visitNode(parsed);
             output.put("$" + name, parsed);
         }
@@ -120,7 +120,7 @@ public class InitialConfigurationProvider implements Provider<Term> {
                 buffer = br.readLine();
             }
         } catch (IOException e) {
-            kem.registerInternalError("IO error detected reading from stdin", e);
+            throw KExceptionManager.internalError("IO error detected reading from stdin", e);
         }
         if (buffer == null) {
             return "";
@@ -137,7 +137,7 @@ public class InitialConfigurationProvider implements Provider<Term> {
             cfgCleaned = Bag.EMPTY;
         } else {
             if (!(cfgCleanedNode instanceof Configuration)) {
-                kem.registerInternalError(
+                throw KExceptionManager.internalError(
                         "Configuration Cleaner failed.", cfg);
             }
             cfgCleaned = ((Configuration) cfgCleanedNode).getBody();
@@ -147,7 +147,7 @@ public class InitialConfigurationProvider implements Provider<Term> {
 
         Term configuration = (Term) new SubstitutionFilter(args, context).visitNode(cfgCleaned);
         configuration = (Term) new Cell2DataStructure(context).visitNode(configuration);
-        configuration = (Term) new CompileDataStructures(context).visitNode(configuration);
+        configuration = (Term) new CompileDataStructures(context, kem).visitNode(configuration);
         return configuration;
     }
 

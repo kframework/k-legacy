@@ -16,13 +16,6 @@ import org.kframework.kil.ASTNode;
  */
 public class KLabelInjection extends KLabel {
 
-    /**
-     * Returns an injection of the term into a {@link org.kframework.backend.java.kil.KItem}.
-     */
-    public static KItem injectionOf(Term term, TermContext context) {
-        return KItem.of(new KLabelInjection(term), KList.EMPTY, context);
-    }
-
     private final Term term;
 
     public KLabelInjection(Term term) {

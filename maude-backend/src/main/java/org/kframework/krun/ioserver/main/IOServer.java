@@ -2,13 +2,10 @@
 package org.kframework.krun.ioserver.main;
 
 import org.kframework.kil.loader.Context;
+import org.kframework.krun.RunProcess;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.ioserver.commands.*;
-import org.kframework.utils.errorsystem.KException;
-import org.kframework.utils.errorsystem.KException.ExceptionType;
-import org.kframework.utils.errorsystem.KException.KExceptionGroup;
-import org.kframework.utils.general.GlobalSettings;
-
+import org.kframework.utils.errorsystem.KExceptionManager;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.channels.ClosedByInterruptException;
@@ -30,12 +27,14 @@ public class IOServer {
     ThreadPoolExecutor pool;
     private int POOL_THREADS_SIZE = 10;
     private Logger _logger;
-    protected Context context;
-    protected FileSystem fs;
+    private final Context context;
+    private final FileSystem fs;
+    private final RunProcess rp;
 
-    public IOServer(int port, Logger logger, Context context, FileSystem fs) {
+    public IOServer(int port, Logger logger, Context context, FileSystem fs, RunProcess rp) {
         this.context = context;
         this.fs = fs;
+        this.rp = rp;
         this.port = port;
         _logger = logger;
         pool = (ThreadPoolExecutor) Executors.newFixedThreadPool(POOL_THREADS_SIZE);
@@ -48,7 +47,7 @@ public class IOServer {
             serverSocket.socket().bind(new InetSocketAddress(port));
             this.port = serverSocket.socket().getLocalPort();
         } catch (IOException e) {
-            GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL, "IO Server could not listen on port " + port));
+            throw KExceptionManager.criticalError("IO Server could not listen on port " + port, e);
         }
     }
 
@@ -176,10 +175,10 @@ public class IOServer {
             return c;
         }
         if (command.equals("parse")) {
-            return new CommandParse(args, socket, logger, context, fs);
+            return new CommandParse(args, socket, logger, context, fs, rp);
         }
         if (command.equals("system")) {
-            return new CommandSystem(args, socket, logger, context, fs);
+            return new CommandSystem(args, socket, logger, fs, rp, context);
         }
 
         return new CommandUnknown(args, socket, logger, fs); //, (long) 0);

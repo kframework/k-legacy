@@ -1,7 +1,6 @@
 // Copyright (c) 2013-2014 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import com.google.common.collect.ImmutableList;
 import org.kframework.backend.java.kil.*;
 import org.kframework.kil.ASTNode;
 
@@ -60,7 +59,7 @@ public class BinderSubstitutionTransformer extends SubstitutionTransformer {
                         Map<Variable,Variable> freshSubstitution = Variable.getFreshSubstitution(variables);
                         Term freshBoundVars = boundVars.substitute(freshSubstitution, context);
                         Term freshbindingExp = bindingExp.substitute(freshSubstitution, context);
-                        kItem = KItem.of(kLabel, KList.concatenate(freshBoundVars, freshbindingExp), context);
+                        kItem = context.global().kItemOps.newKItem(kLabel, KList.concatenate(freshBoundVars, freshbindingExp), context);
 //                    }
                 }
             }

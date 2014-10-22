@@ -15,15 +15,22 @@ import org.kframework.kil.TermCons;
 import org.kframework.kil.Terminal;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.ParseForestTransformer;
-import org.kframework.kil.visitors.exceptions.ParseFailedException;
 import org.kframework.utils.errorsystem.KException;
+import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;
-import org.kframework.utils.general.GlobalSettings;
+import org.kframework.utils.errorsystem.KExceptionManager;
+
+import com.google.inject.Inject;
 
 public class NormalizeASTTransformer extends ParseForestTransformer {
-    public NormalizeASTTransformer(Context context) {
+
+    private final KExceptionManager kem;
+
+    @Inject
+    public NormalizeASTTransformer(Context context, KExceptionManager kem) {
         super(NormalizeASTTransformer.class.getName(), context);
+        this.kem = kem;
     }
 
     /**
@@ -85,7 +92,7 @@ public class NormalizeASTTransformer extends ParseForestTransformer {
         if (result != null) {
             if (!lt.isUserTyped()) {
                 String msg = "Inferring the sort of . as being " + lt.getSort();
-                GlobalSettings.kem.register(new KException(ExceptionType.HIDDENWARNING,
+                kem.register(new KException(ExceptionType.HIDDENWARNING,
                         KExceptionGroup.LISTS, msg,
                         lt.getSource(), lt.getLocation()));
             }

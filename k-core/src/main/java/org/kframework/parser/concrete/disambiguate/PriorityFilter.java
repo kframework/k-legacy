@@ -8,8 +8,8 @@ import org.kframework.kil.Term;
 import org.kframework.kil.TermCons;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.ParseForestTransformer;
-import org.kframework.kil.visitors.exceptions.ParseFailedException;
 import org.kframework.parser.concrete.disambiguate.PriorityFilter2.Side;
+import org.kframework.utils.errorsystem.ParseFailedException;
 
 public class PriorityFilter extends ParseForestTransformer {
     public PriorityFilter(Context context) {

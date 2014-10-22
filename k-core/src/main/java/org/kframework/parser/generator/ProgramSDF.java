@@ -21,15 +21,26 @@ import org.kframework.kil.loader.Context;
 import org.kframework.parser.concrete2.KSyntax2GrammarStatesFilter;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.StringUtil;
+import org.kframework.utils.errorsystem.KExceptionManager;
+import com.google.inject.Inject;
 
 /**
  * Collect the syntax module, call the syntax collector and print SDF for programs.
  */
 public class ProgramSDF {
 
-    public static StringBuilder getSdfForPrograms(Definition def, Context context) {
+    private final BinaryLoader loader;
+    private final KExceptionManager kem;
+
+    @Inject
+    public ProgramSDF(BinaryLoader loader, KExceptionManager kem) {
+        this.loader = loader;
+        this.kem = kem;
+    }
+
+    public StringBuilder getSdfForPrograms(Definition def, Context context) {
         // collect all the syntax modules
-        CollectSynModulesVisitor csmv = new CollectSynModulesVisitor(context);
+        CollectSynModulesVisitor csmv = new CollectSynModulesVisitor(context, kem);
         csmv.visitNode(def);
 
         // collect the syntax from those modules
@@ -40,7 +51,7 @@ public class ProgramSDF {
             Module m = def.getModulesMap().get(modName);
             ctv.visitNode(m);
         }
-        KSyntax2GrammarStatesFilter ks2gsf = new KSyntax2GrammarStatesFilter(context, ctv);
+        KSyntax2GrammarStatesFilter ks2gsf = new KSyntax2GrammarStatesFilter(context, ctv, kem);
         // generate SDF and states for the new parser, using the terminals collected from the
         // previous step
         for (String modName : csmv.synModNames) {
@@ -63,7 +74,7 @@ public class ProgramSDF {
         }
 
         // save the new parser info
-        BinaryLoader.instance().saveOrDie(context.files.resolveKompiled("newParser.bin"), ks2gsf.getGrammar());
+        loader.saveOrDie(context.files.resolveKompiled("newParser.bin"), ks2gsf.getGrammar());
 
         StringBuilder sdf = new StringBuilder();
         sdf.append("module Program\n\n");

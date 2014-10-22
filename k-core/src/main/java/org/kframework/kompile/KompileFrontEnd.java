@@ -47,7 +47,6 @@ public class KompileFrontEnd extends FrontEnd {
     private final KompileOptions options;
     private final Backend backend;
     private final Stopwatch sw;
-    private final KExceptionManager kem;
     private final BinaryLoader loader;
     private final DefinitionLoader defLoader;
     private final FileUtil files;
@@ -70,7 +69,6 @@ public class KompileFrontEnd extends FrontEnd {
         this.options = options;
         this.backend = backend;
         this.sw = sw;
-        this.kem = kem;
         this.loader = loader;
         this.defLoader = defLoader;
         this.files = files;
@@ -79,7 +77,7 @@ public class KompileFrontEnd extends FrontEnd {
     @Override
     public boolean run() {
         if (!options.mainDefinitionFile().exists()) {
-            kem.registerCriticalError("Definition file doesn't exist: " +
+            throw KExceptionManager.criticalError("Definition file doesn't exist: " +
                     options.mainDefinitionFile().getAbsolutePath());
         }
 
@@ -95,7 +93,7 @@ public class KompileFrontEnd extends FrontEnd {
 
     private void verbose() {
         sw.printTotal("Total");
-        if (context.globalOptions.verbose) {
+        if (options.global.verbose) {
             context.printStatistics();
         }
     }

@@ -9,7 +9,10 @@ import org.kframework.kil.Term;
 import org.kframework.kil.loader.Context;
 import org.kframework.krun.api.KRunState;
 import org.kframework.krun.api.SearchResult;
+import org.kframework.parser.ProgramLoader;
 import org.kframework.transformation.Transformation;
+
+import com.google.inject.Inject;
 
 public class PrettyPrintingOutputMode  {
 
@@ -17,9 +20,16 @@ public class PrettyPrintingOutputMode  {
 
     public static class PrintKRunState implements Transformation<KRunState, ASTNode> {
 
+        private final ProgramLoader loader;
+
+        @Inject
+        public PrintKRunState(ProgramLoader loader) {
+            this.loader = loader;
+        }
+
         @Override
         public Term run(KRunState state, Attributes a) {
-            return state.getResult(a.typeSafeGet(Context.class));
+            return state.getResult(a.typeSafeGet(Context.class), loader);
         }
 
         @Override

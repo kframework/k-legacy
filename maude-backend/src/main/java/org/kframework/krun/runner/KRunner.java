@@ -2,11 +2,11 @@
 package org.kframework.krun.runner;
 
 import org.kframework.kil.loader.Context;
+import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.JarInfo;
+import org.kframework.krun.RunProcess;
 import org.kframework.krun.ioserver.main.MainServer;
 import org.kframework.krun.tasks.MaudeTask;
-import org.kframework.utils.general.GlobalSettings;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -30,7 +30,8 @@ public class KRunner {
     private String _maudeModule;
     private boolean _createLogs;
     private boolean _noServer;
-    protected Context context;
+    private final Context context;
+    private final RunProcess rp;
 
     public KRunner(
             File maudeFile,
@@ -41,9 +42,10 @@ public class KRunner {
             String maudeModuleName,
             boolean createLogs,
             boolean noServer,
-            Context context) {
+            Context context,
+            RunProcess rp) {
         this(maudeFile, 0, false, outputFile, errorFile, maudeCommandFile, xmlOutFile,
-                maudeModuleName, createLogs, noServer, context);
+                maudeModuleName, createLogs, noServer, context, rp);
     }
 
     public KRunner(
@@ -57,8 +59,10 @@ public class KRunner {
             String maudeModuleName,
             boolean createLogs,
             boolean noServer,
-            Context context) {
+            Context context,
+            RunProcess rp) {
         this.context = context;
+        this.rp = rp;
         this._maudeFile = maudeFile;
         this._maudeFileName = _maudeFile.getAbsolutePath();
         this._maudeCommandFile = maudeCommandFile;
@@ -91,7 +95,7 @@ public class KRunner {
                 fh.setFormatter(new SimpleFormatter());
                 _logger.addHandler(fh);
             } catch (IOException e) {
-                GlobalSettings.kem.registerInternalError("Could not open krunner.log", e);
+                throw KExceptionManager.internalError("Could not open krunner.log", e);
             }
         }
         _logger.setUseParentHandlers(false);
@@ -99,7 +103,7 @@ public class KRunner {
 
     Thread startServer() {
         _logger.info("Trying to start server on port " + _port);
-        MainServer server = new MainServer(_port, _logger, context);
+        MainServer server = new MainServer(_port, _logger, context, rp);
         Thread t = new Thread(server);
         t.start();
         while (!server._started) {

@@ -87,7 +87,7 @@ public class UserSubstitutionTransformer extends PrePostTransformer {
                     for (Integer keyIndex : binderMap.keySet()) {
                         Term boundVar = kList.get(keyIndex);
                         if (!unboundedTerms.contains(boundVar) && !substitution.containsKey(boundVar)) continue;
-                        Term freshBoundVar = FreshOperations.fresh(boundVar.sort(), context);
+                        Term freshBoundVar = new FreshOperations(context.global().kItemOps).fresh(boundVar.sort(), context);
                         freshSubstitution.put(keyIndex, freshBoundVar);
                         backBinding.put(keyIndex, keyIndex);
                         for (Integer valueIndex : binderMap.get(keyIndex)) {
@@ -113,7 +113,7 @@ public class UserSubstitutionTransformer extends PrePostTransformer {
                         termList.set(idx, resultBindingExp);
                     }
 
-                    kItem = KItem.of(kLabel, KList.concatenate(termList), context);
+                    kItem = context.global().kItemOps.newKItem(kLabel, KList.concatenate(termList), context);
                     return new DoneTransforming(kItem);
                 }
             }

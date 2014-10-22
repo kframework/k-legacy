@@ -5,6 +5,8 @@ import org.kframework.kil.*;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.CopyOnWriteTransformer;
 
+import com.google.inject.Inject;
+
 /**
  * Initially created by: Traian Florin Serbanuta
  * <p/>
@@ -14,9 +16,10 @@ import org.kframework.kil.visitors.CopyOnWriteTransformer;
 public class MaudeRuleExtractor extends CopyOnWriteTransformer {
     MaudeFilter maudeFilter;
 
-    public MaudeRuleExtractor(Context context) {
+    @Inject
+    public MaudeRuleExtractor(Context context, MaudeFilter maudeFilter) {
         super("Maude Rules Extractor", context);
-        maudeFilter = new MaudeFilter(context);
+        this.maudeFilter = maudeFilter;
     }
 
     public String getResult() {

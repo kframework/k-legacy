@@ -55,6 +55,7 @@ import org.kframework.kil.loader.Context;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.KRunOptions;
+import org.kframework.krun.RunProcess;
 import org.kframework.krun.SubstitutionFilter;
 import org.kframework.krun.XmlUtil;
 import org.kframework.krun.api.KRunGraph;
@@ -66,6 +67,7 @@ import org.kframework.krun.api.SearchType;
 import org.kframework.krun.api.Transition;
 import org.kframework.krun.runner.KRunner;
 import org.kframework.krun.tools.Executor;
+import org.kframework.parser.ProgramLoader;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.StringUtil;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -76,6 +78,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 import edu.uci.ics.jung.graph.DirectedGraph;
 import edu.uci.ics.jung.io.GraphIOException;
@@ -94,12 +97,14 @@ public class MaudeExecutor implements Executor {
     public static final String processedXmlOutFile = "maudeoutput_simplified.xml";
 
     private final KompileOptions kompileOptions;
-    private final KExceptionManager kem;
     private final KRunOptions options;
     private final MaudeKRunOptions maudeOptions;
     private final Stopwatch sw;
     private final Context context;
     private final FileUtil files;
+    private final RunProcess rp;
+    private final Provider<MaudeFilter> maudeFilterProvider;
+    private final ProgramLoader loader;
 
     private boolean ioServer;
     private int counter = 0;
@@ -112,14 +117,19 @@ public class MaudeExecutor implements Executor {
             Context context,
             KExceptionManager kem,
             MaudeKRunOptions maudeOptions,
-            FileUtil files) {
+            FileUtil files,
+            RunProcess rp,
+            Provider<MaudeFilter> maudeFilterProvider,
+            ProgramLoader loader) {
         this.options = options;
         this.sw = sw;
         this.context = context;
         this.kompileOptions = kompileOptions;
-        this.kem = kem;
         this.maudeOptions = maudeOptions;
         this.files = files;
+        this.rp = rp;
+        this.maudeFilterProvider = maudeFilterProvider;
+        this.loader = loader;
 
         ioServer = options.io();
     }
@@ -131,7 +141,7 @@ public class MaudeExecutor implements Executor {
         KRunner runner = new KRunner(files.resolveKompiled("main.maude"),
                     files.resolveTemp(outFile), files.resolveTemp(errFile), files.resolveTemp(inFile), files.resolveTemp(xmlOutFile),
                     kompileOptions.mainModule(),
-                    maudeOptions.logIO, !ioServer, context);
+                    maudeOptions.logIO, !ioServer, context, rp);
         returnValue = runner.run();
         if (files.resolveTemp(errFile).exists()) {
             String content = files.loadFromTemp(errFile);
@@ -140,7 +150,7 @@ public class MaudeExecutor implements Executor {
             }
         }
         if (returnValue != 0) {
-            kem.registerCriticalError("Maude returned non-zero value: " + returnValue);
+            throw KExceptionManager.criticalError("Maude returned non-zero value: " + returnValue);
         }
     }
 
@@ -150,7 +160,7 @@ public class MaudeExecutor implements Executor {
     }
 
     private KRunResult<KRunState> run(String maude_cmd, Term cfg) throws KRunExecutionException {
-        MaudeFilter maudeFilter = new MaudeFilter(context);
+        MaudeFilter maudeFilter = maudeFilterProvider.get();
         maudeFilter.visitNode(cfg);
         StringBuilder cmd = new StringBuilder();
 
@@ -492,15 +502,15 @@ public class MaudeExecutor implements Executor {
         } else if (depth != null) {
             cmd.append("[,").append(depth).append("] ");
         }
-        MaudeFilter maudeFilter = new MaudeFilter(context);
+        MaudeFilter maudeFilter = maudeFilterProvider.get();
         maudeFilter.visitNode(cfg);
         cmd.append(maudeFilter.getResult()).append(" ");
-        MaudeFilter patternBody = new MaudeFilter(context);
+        MaudeFilter patternBody = maudeFilterProvider.get();
         patternBody.visitNode(pattern.getBody());
         String patternString = "=>" + getSearchType(searchType) + " " + patternBody.getResult();
         //TODO: consider replacing Requires with Ensures here.
         if (pattern.getRequires() != null) {
-            MaudeFilter patternCondition = new MaudeFilter(context);
+            MaudeFilter patternCondition = maudeFilterProvider.get();
             patternCondition.visitNode(pattern.getRequires());
             patternString += " such that " + patternCondition.getResult() + " = # true(.KList)";
         }
@@ -537,7 +547,7 @@ public class MaudeExecutor implements Executor {
                 writer.write(text, 0, text.length());
             }
         } catch (IOException e) {
-            kem.registerInternalError("Could not read from " + xmlOutFile
+            throw KExceptionManager.internalError("Could not read from " + xmlOutFile
                     + " and write to " + processedXmlOutFile, e);
         }
 
@@ -613,11 +623,9 @@ public class MaudeExecutor implements Executor {
                 edgeTransformer, hyperEdgeTransformer);
             return graphmlParser.readGraph();
         } catch (GraphIOException e) {
-            kem.registerInternalError("Failed to parse graphml from maude", e);
-            throw new AssertionError("unreachable");
+            throw KExceptionManager.internalError("Failed to parse graphml from maude", e);
         } catch (IOException e) {
-            kem.registerInternalError("Failed to read from " + processedXmlOutFile, e);
-            throw new AssertionError("unreachable");
+            throw KExceptionManager.internalError("Failed to read from " + processedXmlOutFile, e);
         }
     }
 
@@ -652,7 +660,7 @@ public class MaudeExecutor implements Executor {
                     .visitNode(pattern.getBody());
             KRunState state = new KRunState(rawResult);
             SearchResult result = new SearchResult(state, rawSubstitution, compilationInfo,
-                    context);
+                    context, loader);
             results.add(result);
         }
         list = doc.getElementsByTagName("result");

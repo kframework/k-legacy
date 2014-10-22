@@ -1,6 +1,7 @@
 // Copyright (c) 2012-2014 K Team. All Rights Reserved.
 package org.kframework.krun;
 
+import org.kframework.utils.errorsystem.KExceptionManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -13,6 +14,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +46,7 @@ public class XmlUtil {
         } catch (ParserConfigurationException | IOException | SAXException e) {
             e.printStackTrace();
 
-            org.kframework.utils.Error.report("Error while reading XML:" + e.getMessage());
+            throw KExceptionManager.criticalError("Error while reading XML:" + e.getMessage(), e);
         }
         return doc;
     }
@@ -75,14 +77,11 @@ public class XmlUtil {
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "1");
             transformer.transform(xmlSource, result);
         } catch (TransformerFactoryConfigurationError factoryError) {
-            // factoryError.printStackTrace();
-            org.kframework.utils.Error.report("Error creating TransformerFactory:" + factoryError.getMessage());
+            throw KExceptionManager.criticalError("Error creating TransformerFactory:" + factoryError.getMessage(), factoryError);
         } catch (TransformerException transformerError) {
-            // transformerError.printStackTrace();
-            org.kframework.utils.Error.report("Error transforming document:" + transformerError.getMessage());
+            throw KExceptionManager.criticalError("Error transforming document:" + transformerError.getMessage(), transformerError);
         } catch (IOException ioException) {
-            // ioException.printStackTrace();
-            org.kframework.utils.Error.report("Error while serialize XML:" + ioException.getMessage());
+            throw KExceptionManager.criticalError("Error while serialize XML:" + ioException.getMessage(), ioException);
         }
     }
 

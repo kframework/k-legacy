@@ -16,13 +16,14 @@ import org.kframework.kil.StringBuiltin;
 import org.kframework.kil.Term;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.CopyOnWriteTransformer;
-import org.kframework.kil.visitors.exceptions.ParseFailedException;
 import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.Transition.TransitionType;
 import org.kframework.krun.tools.Debugger;
 import org.kframework.krun.tools.Executor;
-import org.kframework.parser.DefinitionLoader;
+import org.kframework.parser.ProgramLoader;
+import org.kframework.utils.errorsystem.KExceptionManager;
+
 import com.google.inject.Inject;
 
 import edu.uci.ics.jung.graph.DirectedGraph;
@@ -40,32 +41,36 @@ public class ExecutorDebugger implements Debugger {
 
     private final Context context;
     private final Executor executor;
+    private final ProgramLoader loader;
+    private final KExceptionManager kem;
 
     @Inject
     public ExecutorDebugger(
             Executor executor,
-            Context context) throws KRunExecutionException {
+            Context context,
+            ProgramLoader loader,
+            KExceptionManager kem) throws KRunExecutionException {
         this.context = context;
         this.executor = executor;
+        this.loader = loader;
+        this.kem = kem;
     }
 
     @Override
     public void start(Term initialConfiguration) throws KRunExecutionException {
         try {
             org.kframework.parser.concrete.KParser.ImportTblRule(context.files.resolveKompiled("."));
-            ASTNode pattern = DefinitionLoader.parsePattern(
+            ASTNode pattern = loader.parsePattern(
                     KRunOptions.DEFAULT_PATTERN,
                     null,
                     Sort.BAG,
                     context);
-            defaultPatternInfo = new RuleCompilerSteps(context);
+            defaultPatternInfo = new RuleCompilerSteps(context, kem);
             pattern = defaultPatternInfo.compile(new Rule((Sentence) pattern), null);
 
             defaultPattern = (Rule) pattern;
         } catch (CompilerStepDone e) {
             e.printStackTrace();
-        } catch (ParseFailedException e) {
-            e.report();
         }
 
         KRunState initialState = new KRunState(initialConfiguration);

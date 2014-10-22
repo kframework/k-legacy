@@ -4,6 +4,7 @@ package org.kframework.backend.maude;
 import org.kframework.kil.*;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.CopyOnWriteTransformer;
+import com.google.inject.Inject;
 
 /**
  * Initially created by: Traian Florin Serbanuta
@@ -12,10 +13,13 @@ import org.kframework.kil.visitors.CopyOnWriteTransformer;
  * Time: 12:59 AM
  */
 public class MaudeContextExtractor extends CopyOnWriteTransformer {
-    MaudeFilter maudeFilter = new MaudeFilter(context);
 
-    public MaudeContextExtractor(Context context) {
+    private final MaudeFilter maudeFilter;
+
+    @Inject
+    public MaudeContextExtractor(Context context, MaudeFilter maudeFilter) {
         super("Maude Contexts Extractor", context);
+        this.maudeFilter = maudeFilter;
     }
 
     public String getResult() {

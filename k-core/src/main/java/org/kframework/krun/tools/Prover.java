@@ -9,12 +9,11 @@ import org.kframework.kil.Module;
 import org.kframework.kil.Sources;
 import org.kframework.kil.Term;
 import org.kframework.kil.loader.Context;
-import org.kframework.kil.visitors.exceptions.ParseFailedException;
 import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.KRunProofResult;
 import org.kframework.krun.api.KRunResult;
-import org.kframework.parser.DefinitionLoader;
+import org.kframework.parser.ProgramLoader;
 import org.kframework.transformation.Transformation;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -42,9 +41,9 @@ public interface Prover {
         private final Context context;
         private final Stopwatch sw;
         private final Term initialConfiguration;
-        private final KExceptionManager kem;
         private final Prover prover;
         private final FileUtil files;
+        private final ProgramLoader loader;
 
         @Inject
         protected Tool(
@@ -54,14 +53,15 @@ public interface Prover {
                 @Main Term initialConfiguration,
                 KExceptionManager kem,
                 @Main Prover prover,
-                @Main FileUtil files) {
+                @Main FileUtil files,
+                ProgramLoader loader) {
             this.options = options;
             this.context = context;
             this.sw = sw;
             this.initialConfiguration = initialConfiguration;
-            this.kem = kem;
             this.prover = prover;
             this.files = files;
+            this.loader = loader;
         }
 
         @Override
@@ -70,18 +70,14 @@ public interface Prover {
             try {
                 String proofFile = options.experimental.prove;
                 String content = files.loadFromWorkingDirectory(proofFile);
-                Definition parsed = DefinitionLoader.parseString(content,
+                Definition parsed = loader.parseString(content,
                         Sources.fromFile(proofFile), context);
                 Module mod = parsed.getSingletonModule();
                 KRunProofResult<Set<Term>> result = prover.prove(mod, initialConfiguration);
                 sw.printIntermediate("Proof total");
                 return result;
             } catch (KRunExecutionException e) {
-                kem.registerCriticalError(e.getMessage(), e);
-                throw new AssertionError("unreachable");
-            } catch (ParseFailedException e) {
-                e.report();
-                throw new AssertionError("unreachable");
+                throw KExceptionManager.criticalError(e.getMessage(), e);
             }
         }
 

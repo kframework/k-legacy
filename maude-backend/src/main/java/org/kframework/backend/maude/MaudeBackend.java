@@ -7,23 +7,30 @@ import org.kframework.kil.Definition;
 import org.kframework.kil.loader.Context;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.StringBuilderUtil;
+import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
+
+import com.google.inject.Inject;
 
 public class MaudeBackend {
 
     private final Stopwatch sw;
     private final Context context;
     private final FileUtil files;
-    public MaudeBackend(Stopwatch sw, Context context, FileUtil files) {
+    private final KExceptionManager kem;
+
+    @Inject
+    public MaudeBackend(Stopwatch sw, Context context, KExceptionManager kem, FileUtil files) {
         this.sw = sw;
         this.context = context;
+        this.kem = kem;
         this.files = files;
     }
 
     public void run(Definition definition) {
         definition = (Definition) new FreshVariableNormalizer(context).visitNode(definition);
         definition = (Definition) new SortRulesNormalizer(context).visitNode(definition);
-        MaudeFilter maudeFilter = new MaudeFilter(context);
+        MaudeFilter maudeFilter = new MaudeFilter(context, kem);
         maudeFilter.visitNode(definition);
 
         final String mainModule = definition.getMainModule();

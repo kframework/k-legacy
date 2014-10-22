@@ -5,6 +5,7 @@ import org.kframework.compile.utils.RuleCompilerSteps;
 import org.kframework.kil.Term;
 import org.kframework.kil.Variable;
 import org.kframework.kil.loader.Context;
+import org.kframework.parser.ProgramLoader;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,14 +24,16 @@ public class SearchResult {
     rewriting.
     */
     private Map<String, Term> rawSubstitution;
-    private Context context;
-    private RuleCompilerSteps compilationInfo;
+    private final Context context;
+    private final RuleCompilerSteps compilationInfo;
+    private final ProgramLoader loader;
 
-    public SearchResult(KRunState state, Map<String, Term> rawSubstitution, RuleCompilerSteps compilationInfo, Context context) {
+    public SearchResult(KRunState state, Map<String, Term> rawSubstitution, RuleCompilerSteps compilationInfo, Context context, ProgramLoader loader) {
         this.state = state;
         this.rawSubstitution = rawSubstitution;
         this.context = context;
         this.compilationInfo = compilationInfo;
+        this.loader = loader;
     }
 
     public Map<String, Term> getSubstitution() {
@@ -41,7 +44,7 @@ public class SearchResult {
 
                 rawValue = rawSubstitution.get(var.getName());
 
-                substitution.put(var.toString(), KRunState.concretize(rawValue, context));
+                substitution.put(var.toString(), KRunState.concretize(rawValue, context, loader));
             }
         }
         return substitution;

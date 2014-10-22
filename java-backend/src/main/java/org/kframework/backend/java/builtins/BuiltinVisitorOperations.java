@@ -2,9 +2,12 @@
 package org.kframework.backend.java.builtins;
 
 import org.kframework.backend.java.kil.*;
+import org.kframework.backend.java.kil.KItem.KItemOperations;
 import org.kframework.backend.java.symbolic.LocalTransformer;
 import org.kframework.backend.java.symbolic.PrePostTransformer;
 import org.kframework.kil.ASTNode;
+
+import com.google.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +22,15 @@ import java.util.List;
  */
 public class BuiltinVisitorOperations {
 
-    public static class BuiltinVisitor extends PrePostTransformer {
+    private final KItemOperations kItemOps;
+
+    @Inject
+    public BuiltinVisitorOperations(KItemOperations kItemOps) {
+        this.kItemOps = kItemOps;
+    }
+
+
+    public class BuiltinVisitor extends PrePostTransformer {
         /**
          * KLabel of the guard controlling whether a node is visited.
          */
@@ -79,7 +90,7 @@ public class BuiltinVisitorOperations {
 
         private Term visitNode(Term term) {
             visitParams.set(0, term);
-            term = KItem.of(
+            term = kItemOps.newKItem(
                     visitLabel,
                     KList.concatenate(visitParams),
                     context);
@@ -88,7 +99,7 @@ public class BuiltinVisitorOperations {
 
         private boolean evaluateGuard(Term term) {
             ifParams.set(0, term);
-            KItem test = KItem.of(
+            KItem test = kItemOps.newKItem(
                     ifLabel,
                     KList.concatenate(ifParams),
                     context);
@@ -114,7 +125,7 @@ public class BuiltinVisitorOperations {
      *
      * @see org.kframework.backend.java.kil.KLabelInjection
      */
-    public static Term visit(
+    public Term visit(
             Term term,
             KItem visitLabelTerm,
             KItem visitListTerm,

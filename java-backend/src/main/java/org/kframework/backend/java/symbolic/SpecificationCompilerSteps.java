@@ -18,6 +18,7 @@ import org.kframework.compile.utils.CompileDataStructures;
 import org.kframework.compile.utils.CompilerSteps;
 import org.kframework.kil.Module;
 import org.kframework.kil.loader.Context;
+import org.kframework.utils.errorsystem.KExceptionManager;
 
 
 /**
@@ -25,12 +26,12 @@ import org.kframework.kil.loader.Context;
  */
 public class SpecificationCompilerSteps extends CompilerSteps<Module> {
 
-    public SpecificationCompilerSteps(Context context) {
+    public SpecificationCompilerSteps(Context context, KExceptionManager kem) {
         super(context);
 
         //add(new CheckVisitorStep<Definition>(new CheckConfigurationCells(context), context));
         add(new RemoveBrackets(context));
-        add(new AddEmptyLists(context));
+        add(new AddEmptyLists(context, kem));
         add(new RemoveSyntacticCasts(context));
         //add(new CheckVisitorStep<Definition>(new CheckVariables(context), context));
         //add(new CheckVisitorStep<Definition>(new CheckRewrite(context), context));
@@ -41,11 +42,11 @@ public class SpecificationCompilerSteps extends CompilerSteps<Module> {
         add(new ResolveListOfK(context));
         add(new AddInjections(context));
         add(new FlattenTerms(context));
-        add(new ResolveContextAbstraction(context));
+        add(new ResolveContextAbstraction(context, kem));
         add(new ResolveOpenCells(context));
         add(new ResolveRewrite(context));
         add(new Cell2DataStructure(context));
-        add(new CompileDataStructures(context));
+        add(new CompileDataStructures(context, kem));
         //add(new DataStructureToLookupUpdate(context));
     }
 

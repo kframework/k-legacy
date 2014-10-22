@@ -4,18 +4,19 @@ package org.kframework.backend.java.builtins;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.KItem;
 import org.kframework.backend.java.kil.KLabelConstant;
-import org.kframework.backend.java.kil.KLabelInjection;
 import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.KSequence;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.KItem.KItemOperations;
 import org.kframework.backend.java.symbolic.KILtoBackendJavaKILTransformer;
 import org.kframework.kil.Sort;
 import org.kframework.kil.loader.Context;
-import org.kframework.kil.visitors.exceptions.ParseFailedException;
 import org.kframework.krun.KRunOptions.ConfigurationCreationOptions;
 import org.kframework.krun.RunProcess;
+import org.kframework.krun.RunProcess.ProcessOutput;
 import org.kframework.krun.api.io.FileSystem;
+import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.file.WorkingDir;
 
 import com.google.inject.Inject;
@@ -38,6 +39,8 @@ public class BuiltinIOOperationsImpl implements BuiltinIOOperations {
     private final ConfigurationCreationOptions ccOptions;
     private final KILtoBackendJavaKILTransformer kilTransformer;
     private final File workingDir;
+    private final KItemOperations kItemOps;
+    private final RunProcess rp;
 
     @Inject
     public BuiltinIOOperationsImpl(
@@ -46,13 +49,17 @@ public class BuiltinIOOperationsImpl implements BuiltinIOOperations {
             Context context,
             ConfigurationCreationOptions ccOptions,
             KILtoBackendJavaKILTransformer kilTransformer,
-            @WorkingDir File workingDir) {
+            @WorkingDir File workingDir,
+            KItemOperations kItemOps,
+            RunProcess rp) {
         this.def = def;
         this.fs = fs;
         this.context = context;
         this.ccOptions = ccOptions;
         this.kilTransformer = kilTransformer;
         this.workingDir = workingDir;
+        this.kItemOps = kItemOps;
+        this.rp = rp;
     }
 
     @Override
@@ -95,9 +102,9 @@ public class BuiltinIOOperationsImpl implements BuiltinIOOperations {
     public Term close(IntToken term, TermContext termContext) {
         try {
             fs.close(term.longValue());
-            return KLabelInjection.injectionOf(KSequence.EMPTY, termContext);
+            return kItemOps.injectionOf(KSequence.EMPTY, termContext);
         } catch (IOException e) {
-            return KLabelInjection.injectionOf(
+            return kItemOps.injectionOf(
                     processIOException(e.getMessage(), termContext),
                     termContext);
         }
@@ -107,9 +114,9 @@ public class BuiltinIOOperationsImpl implements BuiltinIOOperations {
     public Term seek(IntToken term1, IntToken term2, TermContext termContext) {
         try {
             fs.get(term1.longValue()).seek(term2.longValue());
-            return KLabelInjection.injectionOf(KSequence.EMPTY, termContext);
+            return kItemOps.injectionOf(KSequence.EMPTY, termContext);
         } catch (IOException e) {
-            return KLabelInjection.injectionOf(
+            return kItemOps.injectionOf(
                     processIOException(e.getMessage(), termContext),
                     termContext);
         }
@@ -119,9 +126,9 @@ public class BuiltinIOOperationsImpl implements BuiltinIOOperations {
     public Term putc(IntToken term1, IntToken term2, TermContext termContext) {
         try {
             fs.get(term1.longValue()).putc(term2.unsignedByteValue());
-            return KLabelInjection.injectionOf(KSequence.EMPTY, termContext);
+            return kItemOps.injectionOf(KSequence.EMPTY, termContext);
         } catch (IOException e) {
-            return KLabelInjection.injectionOf(
+            return kItemOps.injectionOf(
                     processIOException(e.getMessage(), termContext),
                     termContext);
         }
@@ -131,11 +138,11 @@ public class BuiltinIOOperationsImpl implements BuiltinIOOperations {
     public Term write(IntToken term1, StringToken term2, TermContext termContext) {
         try {
             fs.get(term1.longValue()).write(term2.byteArrayValue());
-            return KLabelInjection.injectionOf(KSequence.EMPTY, termContext);
+            return kItemOps.injectionOf(KSequence.EMPTY, termContext);
         } catch (CharacterCodingException e) {
             throw new IllegalArgumentException(e);
         } catch (IOException e) {
-            return KLabelInjection.injectionOf(
+            return kItemOps.injectionOf(
                     processIOException(e.getMessage(), termContext),
                     termContext);
         }
@@ -144,7 +151,6 @@ public class BuiltinIOOperationsImpl implements BuiltinIOOperations {
     @Override
     public Term parse(StringToken term1, StringToken term2, TermContext termContext) {
         try {
-            RunProcess rp = new RunProcess();
             org.kframework.kil.Term kast = rp.runParser(
                     ccOptions.parser(context),
                     term1.stringValue(), true, Sort.of(term2.stringValue()), context);
@@ -157,11 +163,10 @@ public class BuiltinIOOperationsImpl implements BuiltinIOOperations {
 
     @Override
     public Term system(StringToken term, TermContext termContext) {
-        RunProcess rp = new RunProcess();
         Map<String, String> environment = new HashMap<>();
         String[] args = term.stringValue().split("\001", -1);
         //for (String c : args) { System.out.println(c); }
-        rp.execute(workingDir, environment, args);
+        ProcessOutput output = rp.execute(workingDir, environment, args);
 
         KLabelConstant klabel = KLabelConstant.of("'#systemResult(_,_,_)", context);
         /*
@@ -169,9 +174,9 @@ public class BuiltinIOOperationsImpl implements BuiltinIOOperations {
         KLabelConstant klabel = KLabelConstant.of(klabelString, context);
         assert def.kLabels().contains(klabel) : "No KLabel in definition for " + klabelString;
         */
-        String stdout = rp.getStdout() != null ? rp.getStdout() : "";
-        String stderr = rp.getErr()    != null ? rp.getErr()    : "";
-        return KItem.of(klabel, KList.concatenate(IntToken.of(rp.getExitCode()),
+        String stdout = output.stdout != null ? output.stdout : "";
+        String stderr = output.stderr != null ? output.stderr : "";
+        return kItemOps.newKItem(klabel, KList.concatenate(IntToken.of(output.exitCode),
             StringToken.of(stdout.trim()), StringToken.of(stderr.trim())), termContext);
     }
 
@@ -179,7 +184,7 @@ public class BuiltinIOOperationsImpl implements BuiltinIOOperations {
         String klabelString = "'#" + errno;
         KLabelConstant klabel = KLabelConstant.of(klabelString, context);
         assert def.kLabels().contains(klabel) : "No KLabel in definition for errno '" + errno + "'";
-        return KItem.of(klabel, klist, termContext);
+        return kItemOps.newKItem(klabel, klist, termContext);
     }
 
     private KItem processIOException(String errno, TermContext termContext) {

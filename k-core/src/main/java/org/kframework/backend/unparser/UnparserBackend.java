@@ -3,6 +3,8 @@ package org.kframework.backend.unparser;
 
 import org.apache.commons.io.FilenameUtils;
 import org.kframework.backend.BasicBackend;
+import org.kframework.backend.FirstStep;
+import org.kframework.compile.utils.CompilerSteps;
 import org.kframework.kil.Definition;
 import org.kframework.kil.loader.Context;
 import org.kframework.krun.ConcretizeSyntax;
@@ -56,6 +58,12 @@ public class UnparserBackend extends BasicBackend {
     @Override
     public boolean generatesDefinition() {
         return false;
+    }
+
+    public CompilerSteps<Definition> getCompilationSteps() {
+        CompilerSteps<Definition> steps = new CompilerSteps<Definition>(context);
+        steps.add(new FirstStep(this, context));
+        return steps;
     }
 
 }

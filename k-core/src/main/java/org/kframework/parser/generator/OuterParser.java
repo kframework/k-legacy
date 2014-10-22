@@ -20,6 +20,7 @@ import org.kframework.main.GlobalOptions;
 import org.kframework.parser.outer.Outer;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
+import org.kframework.utils.file.JarInfo;
 import com.google.inject.Inject;
 
 public class OuterParser {
@@ -62,7 +63,7 @@ public class OuterParser {
             // parse first the file given at console for fast failure in case of error
             File file = files.resolveWorkingDirectory(fileName);
             if (!file.exists())
-                kem.registerCriticalError(missingFileMsg + fileName + " given at console.");
+                throw KExceptionManager.criticalError(missingFileMsg + fileName + " given at console.");
 
             slurp2(file, context, false);
 
@@ -73,7 +74,7 @@ public class OuterParser {
 
                 File autoinclude = files.resolveKBase("include/" + autoincludedFile);
                 if (!autoinclude.exists())
-                    kem.registerCriticalError(missingFileMsg + autoinclude + " autoimported for every definition ");
+                    throw KExceptionManager.criticalError(missingFileMsg + autoinclude + " autoimported for every definition ");
 
                 slurp2(autoinclude, context, true);
                 moduleItems.addAll(tempmi);
@@ -108,7 +109,7 @@ public class OuterParser {
                     }
 
                     if (!newFile.exists())
-                        kem.registerCriticalError(missingFileMsg + req.getValue(), req);
+                        throw KExceptionManager.criticalError(missingFileMsg + req.getValue(), req);
 
                     slurp2(newFile, context, predefinedRequirement);
                     context.addFileRequirement(newFile, file);
@@ -129,7 +130,7 @@ public class OuterParser {
                     Module previous = this.modulesMap.put(m.getName(), m);
                     if (previous != null) {
                         String msg = "Found two modules with the same name: " + m.getName();
-                        kem.registerCriticalError(msg, m);
+                        throw KExceptionManager.criticalError(msg, m);
                     }
                 }
             }

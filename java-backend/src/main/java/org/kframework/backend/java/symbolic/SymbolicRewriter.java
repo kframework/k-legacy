@@ -178,7 +178,7 @@ public class SymbolicRewriter {
             SymbolicConstraint constraint) {
         constraint.orientSubstitution(rule.leftHandSide().variableSet());
         for (Variable variable : rule.freshVariables()) {
-            constraint.add(variable, FreshOperations.fresh(variable.sort(), constraint.termContext()));
+            constraint.add(variable, new FreshOperations(constraint.termContext().global().kItemOps).fresh(variable.sort(), constraint.termContext()));
         }
         constraint.addAll(rule.ensures());
 

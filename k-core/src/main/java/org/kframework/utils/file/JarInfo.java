@@ -3,8 +3,6 @@ package org.kframework.utils.file;
 
 import org.kframework.utils.errorsystem.KExceptionManager;
 
-import com.google.inject.Inject;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -51,13 +49,6 @@ public class JarInfo {
         return null;
     }
 
-    private final KExceptionManager kem;
-
-    @Inject
-    public JarInfo(KExceptionManager kem) {
-        this.kem = kem;
-    }
-
     public void printVersionMessage() {
         try {
             URL url = JarInfo.class.getResource("versionMarker");
@@ -71,7 +62,7 @@ public class JarInfo {
             System.out.println("Git branch: " + branch);
             System.out.println("Build date: " + date.toString());
         } catch (IOException e) {
-            kem.registerInternalError("Could not load version info. Check your build system?");
+            throw KExceptionManager.internalError("Could not load version info. Check your build system?");
         }
     }
 }

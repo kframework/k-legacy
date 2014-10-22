@@ -4,6 +4,7 @@ package org.kframework.backend.java.builtins;
 import org.kframework.backend.java.kil.BuiltinMap;
 import org.kframework.backend.java.kil.BuiltinSet;
 import org.kframework.backend.java.kil.KItem;
+import org.kframework.backend.java.kil.KItem.KItemOperations;
 import org.kframework.backend.java.kil.KLabelInjection;
 import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.MetaVariable;
@@ -15,6 +16,8 @@ import org.kframework.backend.java.symbolic.SymbolicConstraint;
 import org.kframework.backend.java.symbolic.SymbolicUnifier;
 import org.kframework.backend.java.symbolic.UnificationFailure;
 
+import com.google.inject.Inject;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,6 +28,13 @@ import java.util.Set;
  * @author AndreiS
  */
 public class MetaK {
+
+    private final KItemOperations kItemOps;
+
+    @Inject
+    public MetaK(KItemOperations kItemOps) {
+        this.kItemOps = kItemOps;
+    }
 
     /**
      * Checks if two given {@link Term}s can be unified.
@@ -161,8 +171,8 @@ public class MetaK {
      *            the term context
      * @return the K label
      */
-    public static KItem getKLabel(KItem kItem, TermContext context) {
+    public KItem getKLabel(KItem kItem, TermContext context) {
         // TODO(AndreiS): handle KLabel variables
-        return KItem.of(new KLabelInjection(kItem.kLabel()), KList.EMPTY, context);
+        return kItemOps.newKItem(new KLabelInjection(kItem.kLabel()), KList.EMPTY, context);
     }
 }

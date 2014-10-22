@@ -16,7 +16,6 @@ import com.google.inject.Provider;
 
 public class Simulator implements Transformation<Void, KRunResult<?>> {
 
-    private final KExceptionManager kem;
 
     @Inject
     Simulator(
@@ -25,15 +24,12 @@ public class Simulator implements Transformation<Void, KRunResult<?>> {
             @Main Provider<org.kframework.kil.Term> implTerm,
             @Spec Provider<org.kframework.kil.Term> specTerm,
             @Main GlobalContext implGlobalContext,
-            @Spec GlobalContext specGlobalContext,
-            KExceptionManager kem) {
-        this.kem = kem;
+            @Spec GlobalContext specGlobalContext) {
     }
 
     @Override
     public KRunProofResult<?> run(Void v, Attributes a) {
-        kem.registerCriticalError("--simulation is not currently supported");
-        throw new AssertionError("unreachable");
+        throw KExceptionManager.criticalError("--simulation is not currently supported");
     }
 
     @Override

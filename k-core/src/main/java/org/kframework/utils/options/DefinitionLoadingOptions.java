@@ -1,6 +1,10 @@
 // Copyright (c) 2014 K Team. All Rights Reserved.
 package org.kframework.utils.options;
 
+import java.io.File;
+import java.io.FilenameFilter;
+
+import org.kframework.utils.errorsystem.KExceptionManager;
 import com.beust.jcommander.Parameter;
 import com.google.inject.Inject;
 
