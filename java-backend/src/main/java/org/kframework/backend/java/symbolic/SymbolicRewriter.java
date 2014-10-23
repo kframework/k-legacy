@@ -2,11 +2,11 @@
 package org.kframework.backend.java.symbolic;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.FreshOperations;
@@ -26,6 +26,7 @@ import org.kframework.kompile.KompileOptions;
 import org.kframework.krun.api.SearchType;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.BiMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -177,27 +178,43 @@ public class SymbolicRewriter {
     public static ConstrainedTerm buildResult(
             Rule rule,
             SymbolicConstraint constraint) {
-        constraint.orientSubstitution(rule.leftHandSide().variableSet());
-        for (Variable variable : rule.freshVariables()) {
+        return buildResult(rule, constraint, false);
+    }
+
+    private static ConstrainedTerm buildResult(Rule rule,
+            SymbolicConstraint constraint, boolean expandPattern) {
+        for (Variable variable : rule.freshConstants()) {
             constraint.add(variable, FreshOperations.fresh(variable.sort(), constraint.termContext()));
         }
-        constraint.addAll(rule.ensures());
+        constraint.addAllThenSimplify(rule.ensures());
 
         /* get fresh substitutions of rule variables */
-        Map<Variable, Variable> freshSubstitution = Variable.getFreshSubstitution(rule.variableSet());
+        BiMap<Variable, Variable> freshSubstitution = Variable.getFreshSubstitution(rule.variableSet());
 
         /* rename rule variables in the constraints */
-//        constraint = (SymbolicConstraint) constraint.substituteWithBinders(freshSubstitution, constraint.termContext());
-        constraint.rename(freshSubstitution);
+        /* TODO(YilongL): implement a faster rename method in
+         * SymbolicConstraint which do not require calling simplify after */
+        constraint = (SymbolicConstraint) constraint.substituteWithBinders(freshSubstitution, constraint.termContext());
+        constraint.simplify();
 
         /* rename rule variables in the rule RHS */
         Term term = rule.rightHandSide().substituteWithBinders(freshSubstitution, constraint.termContext());
         /* apply the constraints substitution on the rule RHS */
+        constraint.orientSubstitution(rule.boundVariables().stream()
+                .map(p -> freshSubstitution.get(p))
+                .collect(Collectors.toSet()));
         term = term.substituteAndEvaluate(
                 constraint.substitution(),
                 constraint.termContext());
         /* eliminate bindings of rule variables */
         constraint.removeBindings(freshSubstitution.values());
+
+        if (expandPattern) {
+            // TODO(AndreiS): move these some other place
+            constraint.expandPatternsAndSimplify(true);
+            term = term.expandPatterns(constraint, true);
+//            System.err.println(rule.getLocation() + " " + rule.getSource());
+        }
 
         return new ConstrainedTerm(term, constraint);
     }
@@ -223,29 +240,8 @@ public class SymbolicRewriter {
             if (constraint == null) {
                 continue;
             }
-            constraint.addAllThenSimplify(rule.ensures());
 
-            /* get fresh substitutions of rule variables */
-            Map<Variable, Variable> freshSubstitution = Variable.getFreshSubstitution(rule.variableSet());
-
-            /* rename rule variables in the constraints */
-//            constraint = (SymbolicConstraint) constraint.substituteWithBinders(freshSubstitution, constraint.termContext());
-            constraint.rename(freshSubstitution);
-
-            /* rename rule variables in the rule RHS */
-            Term result = rule.rightHandSide().substituteWithBinders(freshSubstitution, constrainedTerm.termContext());
-            /* apply the constraints substitution on the rule RHS and evaluate pending functions */
-            result = result.substituteAndEvaluate(constraint.substitution(), constrainedTerm.termContext());
-            /* eliminate bindings of rule variables */
-            constraint.removeBindings(freshSubstitution.values());
-
-            // TODO(AndreiS): move these some other place
-            constraint.expandPatternsAndSimplify(true);
-            result = result.expandPatterns(constraint, true, constrainedTerm.termContext());
-
-            /* return first solution */
-//            System.err.println(rule.getLocation() + " " + rule.getSource());
-            return new ConstrainedTerm(result, constraint);
+            return buildResult(rule, constraint, true);
         }
 
         return null;
@@ -256,45 +252,16 @@ public class SymbolicRewriter {
      * the pattern to the terms they unify with. Returns {@code null} if the
      * term can't be unified with the pattern.
      */
-    private Map<Variable, Term> getSubstitutionMap(ConstrainedTerm term, Rule pattern) {
-        // Create the initial constraints based on the pattern
-        SymbolicConstraint termConstraint = new SymbolicConstraint(term.termContext());
-        termConstraint.addAll(pattern.requires());
-        for (Variable var : pattern.freshVariables()) {
-            termConstraint.add(var, FreshOperations.fresh(var.sort(), term.termContext()));
-        }
-
-        // Create a constrained term from the left hand side of the pattern.
-        ConstrainedTerm lhs = new ConstrainedTerm(
-                pattern.leftHandSide(),
-                pattern.lookups().getSymbolicConstraint(term.termContext()),
-                termConstraint);
-
-        // Collect the variables we are interested in finding
-        VariableCollector visitor = new VariableCollector();
-        lhs.accept(visitor);
-
-        Collection<SymbolicConstraint> constraints = term.unify(lhs);
-        if (constraints.isEmpty()) {
+    private Map<Variable, Term> getSubstitutionMap(ConstrainedTerm initialTerm, Rule pattern) {
+        assert Sets.intersection(initialTerm.term().variableSet(),
+                initialTerm.constraint().substitution().keySet()).isEmpty();
+        List<Map<Variable, Term>> maps = PatternMatcher.match(initialTerm.term(), pattern, initialTerm.termContext());
+        if (maps.size() != 1) {
             return null;
         }
 
-        // Build a substitution map containing the variables in the pattern from
-        // the substitution constraints given by unification.
-        Map<Variable, Term> map = Maps.newHashMap();
-        for (SymbolicConstraint constraint : constraints) {
-            if (!constraint.isSubstitution()) {
-                return null;
-            }
-            constraint.orientSubstitution(visitor.getVariableSet());
-            for (Variable variable : visitor.getVariableSet()) {
-                Term value = constraint.substitution().get(variable);
-                if (value == null) {
-                    return null;
-                }
-                map.put(variable, new Cell<>(CellLabel.GENERATED_TOP, value));
-            }
-        }
+        Map<Variable, Term> map = maps.get(0);
+        map.entrySet().forEach(e -> e.setValue(new Cell<>(CellLabel.GENERATED_TOP, e.getValue())));
         return map;
     }
 
@@ -311,23 +278,26 @@ public class SymbolicRewriter {
      * @return a list of substitution mappings for results that matched the pattern
      */
     public List<Map<Variable,Term>> search(
-            ConstrainedTerm initialTerm,
-            ConstrainedTerm targetTerm,
+            Term initialTerm,
+            Term targetTerm,
             List<Rule> rules,
             Rule pattern,
             int bound,
             int depth,
-            SearchType searchType) {
+            SearchType searchType,
+            TermContext context) {
         stopwatch.start();
 
         List<Map<Variable,Term>> searchResults = Lists.newArrayList();
         Set<ConstrainedTerm> visited = Sets.newHashSet();
 
+        ConstrainedTerm initCnstrTerm = new ConstrainedTerm(initialTerm, context);
+
         // If depth is 0 then we are just trying to match the pattern.
         // A more clean solution would require a bit of a rework to how patterns
         // are handled in krun.Main when not doing search.
         if (depth == 0) {
-            Map<Variable, Term> map = getSubstitutionMap(initialTerm, pattern);
+            Map<Variable, Term> map = getSubstitutionMap(initCnstrTerm, pattern);
             if (map != null) {
                 searchResults.add(map);
             }
@@ -337,17 +307,17 @@ public class SymbolicRewriter {
         }
 
         // The search queues will map terms to their depth in terms of transitions.
-        Map<ConstrainedTerm,Integer> queue = Maps.newLinkedHashMap();
-        Map<ConstrainedTerm,Integer> nextQueue = Maps.newLinkedHashMap();
+        Map<ConstrainedTerm, Integer> queue = Maps.newLinkedHashMap();
+        Map<ConstrainedTerm, Integer> nextQueue = Maps.newLinkedHashMap();
 
-        visited.add(initialTerm);
-        queue.put(initialTerm, 0);
+        visited.add(initCnstrTerm);
+        queue.put(initCnstrTerm, 0);
 
         if (searchType == SearchType.ONE) {
             depth = 1;
         }
         if (searchType == SearchType.STAR) {
-            Map<Variable, Term> map = getSubstitutionMap(initialTerm, pattern);
+            Map<Variable, Term> map = getSubstitutionMap(initCnstrTerm, pattern);
             if (map != null) {
                 searchResults.add(map);
             }
@@ -429,8 +399,7 @@ public class SymbolicRewriter {
         initialTerm = new ConstrainedTerm(
                 initialTerm.term().expandPatterns(
                         initialTerm.constraint(),
-                        true,
-                        initialTerm.termContext()),
+                        true),
                 initialTerm.constraint());
 
         visited.add(initialTerm);

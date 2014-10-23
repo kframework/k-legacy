@@ -1,12 +1,10 @@
 // Copyright (c) 2014 K Team. All Rights Reserved.
 package org.kframework.krun;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
-import org.kframework.backend.Backends;
 import org.kframework.backend.unparser.BinaryOutputMode;
 import org.kframework.backend.unparser.KASTOutputMode;
 import org.kframework.backend.unparser.NoOutputMode;
@@ -33,6 +31,8 @@ import org.kframework.krun.api.KRunState;
 import org.kframework.krun.api.SearchResult;
 import org.kframework.krun.api.SearchResults;
 import org.kframework.krun.api.Transition;
+import org.kframework.krun.api.io.FileSystem;
+import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import org.kframework.krun.tools.Debugger;
 import org.kframework.krun.tools.Executor;
 import org.kframework.krun.tools.LtlModelChecker;
@@ -50,6 +50,7 @@ import org.kframework.transformation.TransformationProvider;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KExceptionManager;
+import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.inject.InjectGeneric;
 import org.kframework.utils.inject.Main;
 import org.kframework.utils.inject.Options;
@@ -93,6 +94,8 @@ public class KRunModule extends AbstractModule {
         bind(SMTOptions.class).toInstance(options.experimental.smt);
         bind(GlobalOptions.class).toInstance(options.global);
         bind(ColorOptions.class).toInstance(options.color);
+
+        bind(FileSystem.class).to(PortableFileSystem.class);
 
         Multibinder<Object> optionsBinder = Multibinder.newSetBinder(binder(), Object.class, Options.class);
         optionsBinder.addBinding().toInstance(options);
@@ -200,6 +203,7 @@ public class KRunModule extends AbstractModule {
 
             bind(Term.class).toProvider(InitialConfigurationProvider.class);
 
+            bind(FileUtil.class);
 
         }
 
@@ -239,9 +243,9 @@ public class KRunModule extends AbstractModule {
         }
 
         @Provides @Singleton
-        Configuration configuration(BinaryLoader loader, Context context, Stopwatch sw) {
+        Configuration configuration(BinaryLoader loader, Context context, Stopwatch sw, FileUtil files) {
             Configuration cfg = loader.loadOrDie(Configuration.class,
-                    new File(context.kompiled, "configuration.bin").getAbsolutePath());
+                    files.resolveKompiled("configuration.bin"));
             sw.printIntermediate("Reading configuration from binary");
             return cfg;
         }

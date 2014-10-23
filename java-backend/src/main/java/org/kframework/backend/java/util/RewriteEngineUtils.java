@@ -23,7 +23,9 @@ import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.symbolic.NonACPatternMatcher;
 import org.kframework.backend.java.symbolic.PatternMatcher;
+import org.kframework.backend.java.symbolic.SymbolicConstraint;
 import org.kframework.backend.java.symbolic.UninterpretedConstraint;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -33,6 +35,14 @@ import com.google.common.collect.Maps;
  * @author YilongL
  */
 public class RewriteEngineUtils {
+
+    public static boolean isSubsorted(Term big, Term small, TermContext context) {
+        return context.definition().subsorts().isSubsorted(big.sort(), small.sort());
+    }
+
+    public static boolean isSubsortedEq(Term big, Term small, TermContext context) {
+        return context.definition().subsorts().isSubsortedEq(big.sort(), small.sort());
+    }
 
     /**
      * Evaluates the side-conditions of a rule according to a given
@@ -50,7 +60,7 @@ public class RewriteEngineUtils {
 
         Map<Variable, Term> crntSubst = substitution;
         /* add bindings for fresh variables used in the rule */
-        for (Variable variable : rule.freshVariables()) {
+        for (Variable variable : rule.freshConstants()) {
             crntSubst.put(variable, FreshOperations.fresh(variable.sort(), context));
         }
 
@@ -139,7 +149,7 @@ public class RewriteEngineUtils {
         List<Map<Variable, Term>> results = Lists.newArrayList();
         for (Map<Variable, Term> crntSubst : substitutions) {
             /* add bindings for fresh variables used in the rule */
-            for (Variable variable : rule.freshVariables()) {
+            for (Variable variable : rule.freshConstants()) {
                 crntSubst.put(variable, FreshOperations.fresh(variable.sort(), context));
             }
 
@@ -301,6 +311,38 @@ public class RewriteEngineUtils {
         } else {
             Map<Variable, Term> substitution = Maps.newHashMap(fSubstitution);
             return Collections.singletonList(substitution);
+        }
+    }
+
+    public static List<SymbolicConstraint> getMultiConstraints(
+            SymbolicConstraint constraint,
+            List<List<SymbolicConstraint>> multiConstraints) {
+        TermContext context = constraint.termContext();
+        if (!multiConstraints.isEmpty()) {
+            assert multiConstraints.size() <= 2;
+
+            List<SymbolicConstraint> result = Lists.newArrayList();
+            if (multiConstraints.size() == 1) {
+                for (SymbolicConstraint cnstr : multiConstraints.get(0)) {
+                    SymbolicConstraint composedCnstr = SymbolicConstraint
+                            .simplifiedConstraintFrom(context, cnstr, constraint);
+                    result.add(composedCnstr);
+                }
+            } else {
+                List<SymbolicConstraint> constraints1 = multiConstraints.get(0);
+                List<SymbolicConstraint> constraints2 = multiConstraints.get(1);
+                for (SymbolicConstraint cnstr1 : constraints1) {
+                    for (SymbolicConstraint cnstr2 : constraints2) {
+                        SymbolicConstraint composedCnstr = SymbolicConstraint
+                                .simplifiedConstraintFrom(context, constraint, cnstr1, cnstr2);
+                        result.add(composedCnstr);
+                    }
+                }
+            }
+            return result;
+        } else {
+            // TODO(YilongL): no need to copy the constraint when it becomes immutable
+            return Collections.singletonList(new SymbolicConstraint(constraint));
         }
     }
 

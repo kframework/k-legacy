@@ -38,6 +38,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -53,7 +54,7 @@ public class PatternMatcher extends AbstractMatcher {
     /**
      * Represents the substitution after the pattern matching.
      */
-    private Map<Variable, Term> fSubstitution = new HashMap<>();
+    private Map<Variable, Term> fSubstitution;
 
     /**
      * Represents a conjunction of multiple collections of substitutions; each
@@ -149,7 +150,8 @@ public class PatternMatcher extends AbstractMatcher {
     public PatternMatcher(boolean isLemma, TermContext context) {
         this.matchOnFunctionSymbol = isLemma;
         this.termContext = context;
-        multiSubstitutions = new ArrayList<>();
+        this.fSubstitution = Maps.newHashMap();
+        this.multiSubstitutions = Lists.newArrayList();
     }
 
     /**
@@ -287,6 +289,14 @@ public class PatternMatcher extends AbstractMatcher {
     public void match(BuiltinList builtinList, Term pattern) {
         if (!(pattern instanceof BuiltinList)) {
             this.fail(builtinList, pattern);
+        }
+
+        if (matchOnFunctionSymbol) {
+            builtinList.toK(termContext).accept(this, ((BuiltinList) pattern).toK(termContext));
+            // TODO(AndreiS): this ad-hoc evaluation is converting from the KLabel/KList format
+            // (used during associative matching) back to builtin representation
+            evaluateSubstitution(fSubstitution, termContext);
+            return;
         }
 
         throw new UnsupportedOperationException(
@@ -768,6 +778,12 @@ public class PatternMatcher extends AbstractMatcher {
     @Override
     public String getName() {
         return this.getClass().toString();
+    }
+
+    public static void evaluateSubstitution(Map<Variable, Term> substitution, TermContext context) {
+        for (Map.Entry<Variable, Term> entry : substitution.entrySet()) {
+            entry.setValue(entry.getValue().evaluate(context));
+        }
     }
 
 }

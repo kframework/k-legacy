@@ -8,6 +8,9 @@ import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Utils;
 import org.kframework.kil.ASTNode;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -32,8 +35,8 @@ public class Variable extends Term implements Immutable {
      *            the set of {@code Variable}s
      * @return the substitution
      */
-    public static Map<Variable, Variable> getFreshSubstitution(Set<Variable> variableSet) {
-        Map<Variable, Variable> substitution = new HashMap<Variable, Variable>();
+    public static BiMap<Variable, Variable> getFreshSubstitution(Set<Variable> variableSet) {
+        BiMap<Variable, Variable> substitution = HashBiMap.create(variableSet.size());
         for (Variable variable : variableSet) {
             substitution.put(variable, variable.getFreshCopy());
         }
@@ -41,13 +44,13 @@ public class Variable extends Term implements Immutable {
     }
 
     /**
-     * Returns a fresh {@code Variable} of a given sort.
+     * Returns a fresh anonymous {@code Variable} of a given sort.
      *
      * @param sort
      *            the given sort
      * @return the fresh variable
      */
-    public static Variable getFreshVariable(Sort sort) {
+    public static Variable getAnonVariable(Sort sort) {
         return new Variable(VARIABLE_PREFIX + (counter++), sort, true);
     }
 
@@ -76,7 +79,7 @@ public class Variable extends Term implements Immutable {
     }
 
     public Variable getFreshCopy() {
-        Variable var = Variable.getFreshVariable(sort);
+        Variable var = Variable.getAnonVariable(sort);
         var.copyAttributesFrom(this);
         return var;
     }
@@ -105,6 +108,10 @@ public class Variable extends Term implements Immutable {
     @Override
     public final boolean isSymbolic() {
         return true;
+    }
+
+    public boolean unifyCollection(Collection collection) {
+        return !(collection.concreteSize() != 0 && collection.collectionVariables().contains(this));
     }
 
     @Override

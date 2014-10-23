@@ -1,4 +1,7 @@
-.k
+.kompile*
+.krun*
+.kast*
+.ktest*
 *-kompiled
 *.kore
 *.pdf
@@ -7,6 +10,7 @@
 .recommenders
 .cache
 .idea
+*.iml
 .project
 .classpath
 .settings/
