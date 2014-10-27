@@ -4,7 +4,9 @@ package org.kframework.main;
 import org.kframework.utils.StringUtil;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
+import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.file.JarInfo;
+
 import com.beust.jcommander.ParameterException;
 
 public abstract class FrontEnd {
@@ -51,6 +53,10 @@ public abstract class FrontEnd {
             succeeded = false;
             if (globalOptions.debug) {
                 e.printStackTrace();
+            }
+            // TODO(dwightguth): remove with kem refactoring
+            if (e instanceof ParseFailedException) {
+                kem.getExceptions().add(e.exception);
             }
             kem.print();
         }
