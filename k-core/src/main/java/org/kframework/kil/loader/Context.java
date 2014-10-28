@@ -81,7 +81,6 @@ public class Context implements Serializable {
     private Poset<String> assocLeft = Poset.create();
     private Poset<String> assocRight = Poset.create();
     public Sort startSymbolPgm = Sort.K;
-    public Map<String, Sort> configVarSorts = new HashMap<>();
     @Deprecated
     public transient FileUtil files;
     public boolean initialized = false;

@@ -42,7 +42,6 @@ public class JavaSymbolicKRunModuleTest extends BaseTestCase {
     @Before
     public void setUp() {
         context.klabels = HashMultimap.<String, Production>create();
-        context.configVarSorts = new HashMap<>();
         when(rp.runParser("kast", "foo.c", false, null, context)).thenReturn(KSequence.EMPTY);
     }
 

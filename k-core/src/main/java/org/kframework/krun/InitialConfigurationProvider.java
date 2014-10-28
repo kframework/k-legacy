@@ -17,6 +17,7 @@ import org.kframework.kil.Bag;
 import org.kframework.kil.Configuration;
 import org.kframework.kil.DataStructureBuiltin;
 import org.kframework.kil.DataStructureSort;
+import org.kframework.kil.Definition;
 import org.kframework.kil.KApp;
 import org.kframework.kil.KLabelConstant;
 import org.kframework.kil.Sort;
@@ -33,6 +34,7 @@ import com.google.inject.Provider;
 public class InitialConfigurationProvider implements Provider<Term> {
 
     private final Context context;
+    private final Definition definition;
     private final Stopwatch sw;
     private final ConfigurationCreationOptions options;
     private final Configuration cfg;
@@ -50,10 +52,12 @@ public class InitialConfigurationProvider implements Provider<Term> {
             ConfigurationCreationOptions ccOptions,
             Stopwatch sw,
             Context context,
+            Definition definition,
             Configuration cfg,
             KExceptionManager kem,
             RunProcess rp) {
         this.context = context;
+        this.definition = definition;
         this.sw = sw;
         this.options = ccOptions;
         this.cfg = cfg;
@@ -76,11 +80,11 @@ public class InitialConfigurationProvider implements Provider<Term> {
             String name = entry.getKey();
             String value = entry.getValue().getLeft();
             String parser = entry.getValue().getRight();
-            if (!context.configVarSorts.containsKey(name)) {
+            if (!definition.configVarSorts.containsKey(name)) {
                 kem.registerCriticalWarning(
                         "User specified configuration variable " + name + " which does not exist.");
             }
-            Sort sort = context.configVarSorts.get(name);
+            Sort sort = definition.configVarSorts.get(name);
             Term parsed = rp.runParser(parser, value, false, sort, context);
             parsed = (Term) new ResolveVariableAttribute(context).visitNode(parsed);
             output.put("$" + name, parsed);

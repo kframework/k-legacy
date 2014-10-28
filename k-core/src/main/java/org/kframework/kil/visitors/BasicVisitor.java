@@ -26,6 +26,10 @@ public class BasicVisitor extends AbstractVisitor<Void, Void, RuntimeException> 
         super(name, context);
     }
 
+    public BasicVisitor(Context context, Definition currentDefinition, Module currentModule) {
+        super(null, context, currentDefinition, currentModule);
+    }
+
     @Override
     public Void defaultReturnValue(ASTNode node, Void _) {
         return null;

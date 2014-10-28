@@ -38,7 +38,6 @@ public class KRunModuleTest extends BaseTestCase {
 
     @Before
     public void setUp() {
-        context.configVarSorts = new HashMap<>();
         when(rp.runParser("kast", "foo.c", false, null, context)).thenReturn(KSequence.EMPTY);
     }
 

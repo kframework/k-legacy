@@ -10,6 +10,7 @@ import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.Poset;
 import java.io.File;
 import java.util.Formatter;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,8 @@ public class Definition extends ASTNode implements Interfaces.MutableList<Defini
     private Map<String, Module> modulesMap;
     private String mainSyntaxModule;
     private Poset<String> modules = Poset.create();
+
+    public Map<String, Sort> configVarSorts = new HashMap<>();
 
     /** For statistics. See {@link #printStatistics}. */
     public int numModules, numSentences, numProductions, numCells;

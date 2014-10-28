@@ -60,7 +60,8 @@ public class ParseConfigsFilter extends ParseForestTransformer {
     @Override
     public ASTNode visit(Module m, Void _) throws ParseFailedException {
         ASTNode rez = super.visit(m, _);
-        new CollectStartSymbolPgmVisitor(context).visitNode(rez);
+        new CollectStartSymbolPgmVisitor(context, getCurrentDefinition(), getCurrentModule())
+                .visitNode(rez);
         return rez;
     }
 
