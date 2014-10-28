@@ -87,6 +87,7 @@ public class KompileFrontEnd extends FrontEnd {
         Definition compiledDef = genericCompile(options.experimental.step);
 
         loader.saveOrDie(files.resolveKompiled("context.bin"), context);
+        loader.saveOrDie(files.resolveKompiled("definition.bin"), compiledDef);
 
         verbose(compiledDef);
         return true;

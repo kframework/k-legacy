@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Map;
 
+import org.kframework.kil.Definition;
 import org.kframework.kil.loader.Context;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.main.GlobalOptions;
@@ -39,10 +40,16 @@ public class DefinitionLoadingModule extends AbstractModule {
         Context context = loader.loadOrDie(Context.class, files.resolveKompiled("context.bin"));
         context.files = files;
 
-        sw.printIntermediate("Loading serialized context");
+        sw.printIntermediate("Loading serialized Context object");
 
-        sw.printIntermediate("Initializing definition paths");
         return context;
+    }
+
+    @Provides @Singleton
+    Definition definition(BinaryLoader loader, Stopwatch sw, FileUtil files) {
+        Definition def = loader.loadOrDie(Definition.class, files.resolveKompiled("definition.bin"));
+        sw.printIntermediate("Loading serialized Definition object");
+        return def;
     }
 
     @Provides
