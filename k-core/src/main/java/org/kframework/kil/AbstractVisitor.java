@@ -63,6 +63,10 @@ public abstract class AbstractVisitor<P, R, E extends Throwable> implements Visi
 
     protected IdentityHashMap<ASTNode, R> cache = new IdentityHashMap<>();
 
+    public AbstractVisitor()  {
+        this(null, null, null, null);
+    }
+
     public AbstractVisitor(Context context) {
         this(null, context, null, null);
     }

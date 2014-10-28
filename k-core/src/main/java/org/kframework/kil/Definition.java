@@ -9,6 +9,7 @@ import org.kframework.parser.DefinitionLoader;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.Poset;
 import java.io.File;
+import java.util.Formatter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,9 @@ public class Definition extends ASTNode implements Interfaces.MutableList<Defini
     private Map<String, Module> modulesMap;
     private String mainSyntaxModule;
     private Poset<String> modules = Poset.create();
+
+    /** For statistics. See {@link #printStatistics}. */
+    public int numModules, numSentences, numProductions, numCells;
 
     public Definition() {
         super();
@@ -111,7 +115,7 @@ public class Definition extends ASTNode implements Interfaces.MutableList<Defini
         new CollectStartSymbolPgmVisitor(context).visitNode(this);
         new CollectConfigCellsVisitor(context).visitNode(this);
         new CollectLocationsVisitor(context).visitNode(this);
-        new CountNodesVisitor(context).visitNode(this);
+        new CountNodesVisitor().visitNode(this);
         new CollectVariableTokens(context).visitNode(this);
 
         /* collect lexical token sorts */
@@ -168,5 +172,14 @@ public class Definition extends ASTNode implements Interfaces.MutableList<Defini
     @Override
     public void setChildren(List<DefinitionItem> children, Enum<?> _) {
         this.items = children;
+    }
+
+    public void printStatistics() {
+        Formatter f = new Formatter(System.out);
+        f.format("%n");
+        f.format("%-60s = %5d%n", "Number of Modules", numModules);
+        f.format("%-60s = %5d%n", "Number of Sentences", numSentences);
+        f.format("%-60s = %5d%n", "Number of Productions", numProductions);
+        f.format("%-60s = %5d%n", "Number of Cells", numCells);
     }
 }

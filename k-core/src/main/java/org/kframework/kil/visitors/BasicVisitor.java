@@ -14,6 +14,10 @@ import org.kframework.kil.loader.Context;
  */
 public class BasicVisitor extends AbstractVisitor<Void, Void, RuntimeException> {
 
+    public BasicVisitor() {
+        super();
+    }
+
     public BasicVisitor(Context context) {
         super(context);
     }

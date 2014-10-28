@@ -17,6 +17,7 @@ import org.kframework.kil.Cell;
 import org.kframework.kil.Cell.Ellipses;
 import org.kframework.kil.Collection;
 import org.kframework.kil.Configuration;
+import org.kframework.kil.Context;
 import org.kframework.kil.Definition;
 import org.kframework.kil.GenericToken;
 import org.kframework.kil.Hole;
@@ -109,9 +110,9 @@ public class MetaK {
         return key.startsWith("#");
     }
 
-    public static Configuration getConfiguration(Definition node, org.kframework.kil.loader.Context context) {
+    public static Configuration getConfiguration(Definition node) {
         final List<Configuration> result = new LinkedList<Configuration>();
-        new BasicVisitor(context) {
+        new BasicVisitor() {
             @Override
             public Void visit(Configuration node, Void _) {
                 result.add(node);
@@ -119,7 +120,7 @@ public class MetaK {
             }
 
             @Override
-            public Void visit(org.kframework.kil.Context node, Void _) {
+            public Void visit(Context node, Void _) {
                 return null;
             }
 

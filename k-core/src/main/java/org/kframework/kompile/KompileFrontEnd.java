@@ -1,7 +1,6 @@
 // Copyright (c) 2013-2014 K Team. All Rights Reserved.
 package org.kframework.kompile;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,29 +84,28 @@ public class KompileFrontEnd extends FrontEnd {
 
         context.files = files;
 
-        genericCompile(options.experimental.step);
+        Definition compiledDef = genericCompile(options.experimental.step);
 
         loader.saveOrDie(files.resolveKompiled("context.bin"), context);
 
-        verbose();
+        verbose(compiledDef);
         return true;
     }
 
-    private void verbose() {
+    private void verbose(Definition def) {
         sw.printTotal("Total");
         if (context.globalOptions.verbose) {
-            context.printStatistics();
+            def.printStatistics();
         }
     }
 
 
-    private void genericCompile(String step) {
-        org.kframework.kil.Definition javaDef;
+    private Definition genericCompile(String step) {
         sw.start();
-        javaDef = defLoader.loadDefinition(options.mainDefinitionFile(), options.mainModule(),
-                context);
+        Definition javaDef = defLoader.loadDefinition(options.mainDefinitionFile(),
+                options.mainModule(), context);
 
-        new CountNodesVisitor(context).visitNode(javaDef);
+        new CountNodesVisitor().visitNode(javaDef);
 
         CompilerSteps<Definition> steps = backend.getCompilationSteps();
 
@@ -121,10 +119,11 @@ public class KompileFrontEnd extends FrontEnd {
         }
 
         loader.saveOrDie(files.resolveKompiled("configuration.bin"),
-                MetaK.getConfiguration(javaDef, context));
+                MetaK.getConfiguration(javaDef));
 
         backend.run(javaDef);
 
+        return javaDef;
     }
 }
 

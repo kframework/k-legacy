@@ -57,8 +57,8 @@ public class ResolveBlockingInput extends GetLhsPattern {
 
     @Override
     public ASTNode visit(Definition node, Void _)  {
-        Configuration config = MetaK.getConfiguration(node, context);
-        new BasicVisitor(context) {
+        Configuration config = MetaK.getConfiguration(node);
+        new BasicVisitor() {
             @Override
             public Void visit(Cell node, Void _) {
                 String stream = node.getCellAttributes().get("stream");
