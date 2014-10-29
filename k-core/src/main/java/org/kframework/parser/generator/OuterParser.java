@@ -21,6 +21,7 @@ import org.kframework.parser.outer.Outer;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import com.google.inject.Inject;
+import org.kframework.utils.file.JarInfo;
 
 public class OuterParser {
     private List<DefinitionItem> moduleItems;
@@ -71,7 +72,7 @@ public class OuterParser {
                 List<DefinitionItem> tempmi = moduleItems;
                 moduleItems = new ArrayList<DefinitionItem>();
 
-                File autoinclude = files.resolveKBase("include/" + autoincludedFile);
+                File autoinclude = buildCanonicalPath(autoincludedFile, file);
                 if (!autoinclude.exists())
                     throw KExceptionManager.criticalError(missingFileMsg + autoinclude + " autoimported for every definition ");
 
@@ -83,6 +84,27 @@ public class OuterParser {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Calculates the path of a required file depending on the current file location.
+     * First of all look relatively to the current file location. If the file doesn't exist
+     * look in the /include directory. This allows for an easy way to avoid including
+     * the predefined files. Just add an autoinclude.k in the current working directory.
+     * @param fileName   name of the required file, as a string.
+     * @param parentFile File object of the current file.
+     * @return File object of the found file, or null if the file couldn't be found.
+     * @throws IOException
+     */
+    private File buildCanonicalPath(String fileName, File parentFile) throws IOException {
+        File file = new File(parentFile.getCanonicalFile().getParent() + "/" + fileName);
+        if (file.exists())
+            return file;
+        file = new File(JarInfo.getKBase(false) + "/include/" + fileName);
+        if (file.exists())
+            return file;
+
+        return null;
     }
 
     private void slurp2(File file, Context context, boolean predefined) throws IOException {
@@ -99,7 +121,7 @@ public class OuterParser {
                 if (di instanceof Require) {
                     Require req = (Require) di;
 
-                    File newFile = new File(file.getCanonicalFile().getParentFile(), req.getValue());
+                    File newFile = buildCanonicalPath(req.getValue(), file);
                     boolean predefinedRequirement = predefined;
                     if (!newFile.exists()) {
                         predefinedRequirement = true;
