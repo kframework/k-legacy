@@ -3,8 +3,6 @@ package org.kframework.parser.concrete.disambiguate;
 
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Ambiguity;
-import org.kframework.kil.Definition;
-import org.kframework.kil.Module;
 import org.kframework.kil.NonTerminal;
 import org.kframework.kil.Term;
 import org.kframework.kil.TermCons;
@@ -16,10 +14,6 @@ import org.kframework.parser.concrete.disambiguate.PriorityFilter2.Side;
 public class PriorityFilter extends ParseForestTransformer {
     public PriorityFilter(Context context) {
         super("Priority filter", context);
-    }
-
-    public PriorityFilter(Context context, Definition currentDefinition, Module currentModule) {
-        super("Priority filter", context, currentDefinition, currentModule);
     }
 
     @Override

@@ -82,10 +82,10 @@ public class ProgramLoader {
 
         ASTNode out = new  JavaClassesFactory(context).getTerm((Element) doc.getDocumentElement().getFirstChild().getNextSibling());
 
-        out = new PriorityFilter(context, null, null).visitNode(out);
-        out = new PreferAvoidFilter(context, null, null).visitNode(out);
+        out = new PriorityFilter(context).visitNode(out);
+        out = new PreferAvoidFilter(context).visitNode(out);
         out = new NormalizeASTTransformer(context, kem).visitNode(out);
-        out = new AmbFilter(context, kem, null, null).visitNode(out);
+        out = new AmbFilter(context, kem).visitNode(out);
         out = new RemoveBrackets(context).visitNode(out);
 
         if (kappize)
@@ -152,11 +152,11 @@ public class ProgramLoader {
                 out = new MakeConsList(context).visitNode(out);
                 if (globalOptions.debug)
                     System.err.println("Clean: " + out + "\n");
-                out = new PriorityFilter(context, null, null).visitNode(out);
-                out = new PreferAvoidFilter(context, null, null).visitNode(out);
+                out = new PriorityFilter(context).visitNode(out);
+                out = new PreferAvoidFilter(context).visitNode(out);
                 if (globalOptions.debug)
                     System.err.println("Filtered: " + out + "\n");
-                out = new AmbFilter(context, kem, null, null).visitNode(out);
+                out = new AmbFilter(context, kem).visitNode(out);
                 out = new RemoveBrackets(context).visitNode(out);
                 out = new FlattenTerms(context).visitNode(out);
             } catch (ParseFailedException te) {

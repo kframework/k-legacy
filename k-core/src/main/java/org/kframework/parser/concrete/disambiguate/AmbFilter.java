@@ -6,12 +6,10 @@ import org.kframework.kil.ASTNode;
 import org.kframework.kil.Ambiguity;
 import org.kframework.kil.BoolBuiltin;
 import org.kframework.kil.Constant;
-import org.kframework.kil.Definition;
 import org.kframework.kil.FloatBuiltin;
 import org.kframework.kil.GenericToken;
 import org.kframework.kil.IntBuiltin;
 import org.kframework.kil.KApp;
-import org.kframework.kil.Module;
 import org.kframework.kil.Sort;
 import org.kframework.kil.StringBuiltin;
 import org.kframework.kil.Term;
@@ -29,12 +27,6 @@ public class AmbFilter extends ParseForestTransformer {
 
     public AmbFilter(Context context, KExceptionManager kem) {
         super("Ambiguity filter", context);
-        this.kem = kem;
-    }
-
-    public AmbFilter(Context context, KExceptionManager kem, Definition currentDefinition,
-                     Module currentModule) {
-        super("Ambiguity filter", context, currentDefinition, currentModule);
         this.kem = kem;
     }
 

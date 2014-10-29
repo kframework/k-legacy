@@ -113,7 +113,7 @@ public class ParseConfigsFilter extends ParseForestTransformer {
                 config = new CorrectKSeqFilter(context, d, m).visitNode(config);
                 config = new CorrectCastPriorityFilter(context, d, m).visitNode(config);
                 // config = new CheckBinaryPrecedenceFilter().visitNode(config);
-                config = new PriorityFilter(context, d, m).visitNode(config);
+                config = new PriorityFilter(context).visitNode(config);
                 config = new PreferDotsFilter(context, d, m).visitNode(config);
                 config = new VariableTypeInferenceFilter(context, kem, d, m).visitNode(config);
                 // config = new AmbDuplicateFilter(context).visitNode(config);
@@ -121,11 +121,11 @@ public class ParseConfigsFilter extends ParseForestTransformer {
                 // config = new BestFitFilter(new GetFitnessUnitTypeCheckVisitor(context), context).visitNode(config);
                 // config = new TypeInferenceSupremumFilter(context).visitNode(config);
                 config = new BestFitFilter(new GetFitnessUnitKCheckVisitor(context, d, m), context, d, m).visitNode(config);
-                config = new PreferAvoidFilter(context, d, m).visitNode(config);
+                config = new PreferAvoidFilter(context).visitNode(config);
                 config = new FlattenListsFilter(context, d, m).visitNode(config);
                 config = new AmbDuplicateFilter(context, d, m).visitNode(config);
                 // last resort disambiguation
-                config = new AmbFilter(context, kem, d, m).visitNode(config);
+                config = new AmbFilter(context, kem).visitNode(config);
 
                 if (context.globalOptions.debug) {
                     File file = context.files.resolveTemp("timing.log");
