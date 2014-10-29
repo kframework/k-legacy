@@ -42,10 +42,17 @@ public class Definition extends ASTNode implements Interfaces.MutableList<Defini
 
     public Definition(Definition d) {
         super(d);
+        this.items = d.items;
         this.mainFile = d.mainFile;
         this.mainModule = d.mainModule;
+        this.modulesMap = d.modulesMap;
         this.mainSyntaxModule = d.mainSyntaxModule;
-        this.items = d.items;
+        this.modules = d.modules;
+        this.configVarSorts = d.configVarSorts;
+        this.numModules = d.numModules;
+        this.numSentences = d.numSentences;
+        this.numProductions = d.numProductions;
+        this.numCells = d.numCells;
     }
 
     @Override
