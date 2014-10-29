@@ -2,6 +2,7 @@
 package org.kframework.kompile;
 
 import java.util.ArrayList;
+import java.util.Formatter;
 import java.util.List;
 
 import org.kframework.backend.Backend;
@@ -96,7 +97,9 @@ public class KompileFrontEnd extends FrontEnd {
     private void verbose(Definition def) {
         sw.printTotal("Total");
         if (context.globalOptions.verbose) {
-            def.printStatistics();
+            CountNodesVisitor visitor = new CountNodesVisitor();
+            visitor.visitNode(def);
+            printStatistics(visitor);
         }
     }
 
@@ -105,8 +108,6 @@ public class KompileFrontEnd extends FrontEnd {
         sw.start();
         Definition javaDef = defLoader.loadDefinition(options.mainDefinitionFile(),
                 options.mainModule(), context);
-
-        new CountNodesVisitor().visitNode(javaDef);
 
         CompilerSteps<Definition> steps = backend.getCompilationSteps();
 
@@ -125,6 +126,15 @@ public class KompileFrontEnd extends FrontEnd {
         backend.run(javaDef);
 
         return javaDef;
+    }
+
+    private void printStatistics(CountNodesVisitor visitor) {
+        Formatter f = new Formatter(System.out);
+        f.format("%n");
+        f.format("%-60s = %5d%n", "Number of Modules", visitor.numModules);
+        f.format("%-60s = %5d%n", "Number of Sentences", visitor.numSentences);
+        f.format("%-60s = %5d%n", "Number of Productions", visitor.numProductions);
+        f.format("%-60s = %5d%n", "Number of Cells", visitor.numCells);
     }
 }
 
