@@ -3,6 +3,8 @@ package org.kframework.parser.concrete.disambiguate;
 
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Collection;
+import org.kframework.kil.Definition;
+import org.kframework.kil.Module;
 import org.kframework.kil.Term;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.ParseForestTransformer;
@@ -15,6 +17,10 @@ public class FlattenListsFilter extends ParseForestTransformer {
 
     public FlattenListsFilter(Context context) {
         super("Flatten lists", context);
+    }
+
+    public FlattenListsFilter(Context context, Definition currentDefinition, Module currentModule) {
+        super("Flatten lists", context, currentDefinition, currentModule);
     }
 
     @Override

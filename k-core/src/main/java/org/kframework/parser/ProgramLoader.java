@@ -74,19 +74,18 @@ public class ProgramLoader {
     public ASTNode loadPgmAst(String content, Source source, Boolean kappize, Sort startSymbol, Context context)
             throws ParseFailedException {
         // ------------------------------------- import files in Stratego
-        ASTNode out;
-
         String parsed = org.kframework.parser.concrete.DefinitionLocalKParser.ParseProgramString(content, startSymbol.toString(), context.files.resolveKompiled("."));
         Document doc = XmlLoader.getXMLDoc(parsed);
 
         XmlLoader.addSource(doc.getFirstChild(), source);
         XmlLoader.reportErrors(doc);
-        out = new  JavaClassesFactory(context).getTerm((Element) doc.getDocumentElement().getFirstChild().getNextSibling());
 
-        out = new PriorityFilter(context).visitNode(out);
-        out = new PreferAvoidFilter(context).visitNode(out);
+        ASTNode out = new  JavaClassesFactory(context).getTerm((Element) doc.getDocumentElement().getFirstChild().getNextSibling());
+
+        out = new PriorityFilter(context, null, null).visitNode(out);
+        out = new PreferAvoidFilter(context, null, null).visitNode(out);
         out = new NormalizeASTTransformer(context, kem).visitNode(out);
-        out = new AmbFilter(context, kem).visitNode(out);
+        out = new AmbFilter(context, kem, null, null).visitNode(out);
         out = new RemoveBrackets(context).visitNode(out);
 
         if (kappize)
@@ -114,13 +113,13 @@ public class ProgramLoader {
 
         ASTNode out;
         if (whatParser == ParserType.GROUND) {
-            out = termLoader.parseCmdString(new String(content), source, startSymbol, context);
+            out = termLoader.parseCmdString(content, source, startSymbol, context);
             out = new RemoveBrackets(context).visitNode(out);
             out = new AddEmptyLists(context, kem).visitNode(out);
             out = new RemoveSyntacticCasts(context).visitNode(out);
             out = new FlattenTerms(context).visitNode(out);
         } else if (whatParser == ParserType.RULES) {
-            out = termLoader.parsePattern(new String(content), source, startSymbol, context);
+            out = termLoader.parsePattern(content, source, startSymbol, context);
             out = new RemoveBrackets(context).visitNode(out);
             out = new AddEmptyLists(context, kem).visitNode(out);
             out = new RemoveSyntacticCasts(context).visitNode(out);
@@ -144,8 +143,7 @@ public class ProgramLoader {
             // TODO(Radu): (the default one) with this branch of the 'if'
             Grammar grammar = loader.loadOrDie(Grammar.class, context.files.resolveKompiled("newParser.bin"));
 
-            String contentString = new String(content);
-            Parser parser = new Parser(contentString);
+            Parser parser = new Parser(content);
             out = parser.parse(grammar.get(startSymbol.toString()), 0);
             if (globalOptions.debug)
                 System.err.println("Raw: " + out + "\n");
@@ -154,19 +152,19 @@ public class ProgramLoader {
                 out = new MakeConsList(context).visitNode(out);
                 if (globalOptions.debug)
                     System.err.println("Clean: " + out + "\n");
-                out = new PriorityFilter(context).visitNode(out);
-                out = new PreferAvoidFilter(context).visitNode(out);
+                out = new PriorityFilter(context, null, null).visitNode(out);
+                out = new PreferAvoidFilter(context, null, null).visitNode(out);
                 if (globalOptions.debug)
                     System.err.println("Filtered: " + out + "\n");
-                out = new AmbFilter(context, kem).visitNode(out);
+                out = new AmbFilter(context, kem, null, null).visitNode(out);
                 out = new RemoveBrackets(context).visitNode(out);
                 out = new FlattenTerms(context).visitNode(out);
             } catch (ParseFailedException te) {
                 ParseError perror = parser.getErrors();
 
-                String msg = contentString.length() == perror.position ?
+                String msg = content.length() == perror.position ?
                     "Parse error: unexpected end of file." :
-                    "Parse error: unexpected character '" + contentString.charAt(perror.position) + "'.";
+                    "Parse error: unexpected character '" + content.charAt(perror.position) + "'.";
                 Location loc = new Location(perror.line, perror.column,
                                             perror.line, perror.column + 1);
                 throw new ParseFailedException(new KException(
@@ -174,7 +172,7 @@ public class ProgramLoader {
             }
             out = new ResolveVariableAttribute(context).visitNode(out);
         } else {
-            out = loadPgmAst(new String(content), source, startSymbol, context);
+            out = loadPgmAst(content, source, startSymbol, context);
             out = new ResolveVariableAttribute(context).visitNode(out);
         }
         sw.printIntermediate("Parsing Program");

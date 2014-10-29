@@ -6,8 +6,6 @@ import org.kframework.kil.visitors.ParseForestTransformer;
 import org.kframework.kil.visitors.BasicVisitor;
 import org.kframework.kil.visitors.CopyOnWriteTransformer;
 import org.kframework.kil.visitors.Visitor;
-import org.kframework.kompile.KompileOptions;
-import org.kframework.main.GlobalOptions;
 import org.kframework.kil.loader.Context;
 
 import java.util.ArrayList;

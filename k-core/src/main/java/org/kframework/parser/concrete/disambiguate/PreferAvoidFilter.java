@@ -5,8 +5,10 @@ import java.util.ArrayList;
 
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Ambiguity;
+import org.kframework.kil.Definition;
 import org.kframework.kil.IntBuiltin;
 import org.kframework.kil.KApp;
+import org.kframework.kil.Module;
 import org.kframework.kil.Term;
 import org.kframework.kil.TermCons;
 import org.kframework.kil.loader.Context;
@@ -16,6 +18,10 @@ import org.kframework.utils.errorsystem.ParseFailedException;
 public class PreferAvoidFilter extends ParseForestTransformer {
     public PreferAvoidFilter(Context context) {
         super("Ambiguity filter", context);
+    }
+
+    public PreferAvoidFilter(Context context, Definition currentDefinition, Module currentModule) {
+        super("Ambiguity filter", context, currentDefinition, currentModule);
     }
 
     @Override

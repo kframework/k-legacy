@@ -4,7 +4,6 @@ package org.kframework.compile.utils;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.AbstractTransformer;
-import org.kframework.utils.Stopwatch;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -3,6 +3,8 @@ package org.kframework.parser.concrete.disambiguate;
 
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Cell;
+import org.kframework.kil.Definition;
+import org.kframework.kil.Module;
 import org.kframework.kil.Syntax;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.ParseForestTransformer;
@@ -15,6 +17,10 @@ public class CellEndLabelFilter extends ParseForestTransformer {
 
     public CellEndLabelFilter(Context context) {
         super("Cell End Label", context);
+    }
+
+    public CellEndLabelFilter(Context context, Definition currentDefinition, Module currentModule) {
+        super("Cell End Label", context, currentDefinition, currentModule);
     }
 
     @Override

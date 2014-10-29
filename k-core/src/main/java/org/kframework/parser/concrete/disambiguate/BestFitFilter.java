@@ -3,6 +3,8 @@ package org.kframework.parser.concrete.disambiguate;
 
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Ambiguity;
+import org.kframework.kil.Definition;
+import org.kframework.kil.Module;
 import org.kframework.kil.Term;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.ParseForestTransformer;
@@ -12,12 +14,18 @@ import java.util.ArrayList;
 
 public class BestFitFilter extends ParseForestTransformer {
 
+    private final GetFitnessUnitBasicVisitor getFitnessUnit;
+
     public BestFitFilter(GetFitnessUnitBasicVisitor gfubv, Context context) {
         super("Best fit filter", context);
         getFitnessUnit = gfubv;
     }
 
-    private GetFitnessUnitBasicVisitor getFitnessUnit;
+    public BestFitFilter(GetFitnessUnitBasicVisitor gfubv, Context context,
+                         Definition currentDefinition, Module currentModule) {
+        super("Best fit filter", context, currentDefinition, currentModule);
+        getFitnessUnit = gfubv;
+    }
 
     @Override
     public ASTNode visit(Ambiguity amb, Void _) throws ParseFailedException {

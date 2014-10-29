@@ -16,6 +16,11 @@ public class GetFitnessUnitKCheckVisitor extends GetFitnessUnitBasicVisitor {
         super(context);
     }
 
+    public GetFitnessUnitKCheckVisitor(Context context, Definition currentDefinition,
+                                       Module currentModule) {
+        super(context, currentDefinition, currentModule);
+    }
+
     @Override
     public Void visit(TermCons tc, Void _) {
         super.visit(tc, _);
@@ -44,8 +49,6 @@ public class GetFitnessUnitKCheckVisitor extends GetFitnessUnitBasicVisitor {
      *
      * @param declSort
      *            - the sort declared in the production.
-     * @param termSort
-     *            - the sort found in the term.
      * @return
      */
     private int getFitnessUnit2(Sort declSort, Term childTerm) {
@@ -81,6 +84,6 @@ public class GetFitnessUnitKCheckVisitor extends GetFitnessUnitBasicVisitor {
 
     @Override
     public GetFitnessUnitBasicVisitor getInstance() {
-        return new GetFitnessUnitKCheckVisitor(context);
+        return new GetFitnessUnitKCheckVisitor(context, getCurrentDefinition(), getCurrentModule());
     }
 }

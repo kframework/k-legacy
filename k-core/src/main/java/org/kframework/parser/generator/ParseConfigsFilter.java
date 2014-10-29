@@ -102,29 +102,30 @@ public class ParseConfigsFilter extends ParseForestTransformer {
                 st.setSource(ss.getSource());
 
                 // disambiguate configs
-                config = new SentenceVariablesFilter(context).visitNode(config);
-                config = new CellEndLabelFilter(context).visitNode(config);
+                Definition d = getCurrentDefinition();
+                Module m = getCurrentModule();
+                config = new SentenceVariablesFilter(context, d, m).visitNode(config);
+                config = new CellEndLabelFilter(context, d, m).visitNode(config);
                 if (checkInclusion)
-                    config = new InclusionFilter(context, getCurrentDefinition(),
-                            getCurrentModule()).visitNode(config);
+                    config = new InclusionFilter(context, d, m).visitNode(config);
                 // config = new CellTypesFilter().visitNode(config); not the case on configs
                 // config = new CorrectRewritePriorityFilter().visitNode(config);
-                config = new CorrectKSeqFilter(context).visitNode(config);
-                config = new CorrectCastPriorityFilter(context).visitNode(config);
+                config = new CorrectKSeqFilter(context, d, m).visitNode(config);
+                config = new CorrectCastPriorityFilter(context, d, m).visitNode(config);
                 // config = new CheckBinaryPrecedenceFilter().visitNode(config);
-                config = new PriorityFilter(context).visitNode(config);
-                config = new PreferDotsFilter(context).visitNode(config);
-                config = new VariableTypeInferenceFilter(context, kem).visitNode(config);
+                config = new PriorityFilter(context, d, m).visitNode(config);
+                config = new PreferDotsFilter(context, d, m).visitNode(config);
+                config = new VariableTypeInferenceFilter(context, kem, d, m).visitNode(config);
                 // config = new AmbDuplicateFilter(context).visitNode(config);
                 // config = new TypeSystemFilter(context).visitNode(config);
                 // config = new BestFitFilter(new GetFitnessUnitTypeCheckVisitor(context), context).visitNode(config);
                 // config = new TypeInferenceSupremumFilter(context).visitNode(config);
-                config = new BestFitFilter(new GetFitnessUnitKCheckVisitor(context), context).visitNode(config);
-                config = new PreferAvoidFilter(context).visitNode(config);
-                config = new FlattenListsFilter(context).visitNode(config);
-                config = new AmbDuplicateFilter(context).visitNode(config);
+                config = new BestFitFilter(new GetFitnessUnitKCheckVisitor(context, d, m), context, d, m).visitNode(config);
+                config = new PreferAvoidFilter(context, d, m).visitNode(config);
+                config = new FlattenListsFilter(context, d, m).visitNode(config);
+                config = new AmbDuplicateFilter(context, d, m).visitNode(config);
                 // last resort disambiguation
-                config = new AmbFilter(context, kem).visitNode(config);
+                config = new AmbFilter(context, kem, d, m).visitNode(config);
 
                 if (context.globalOptions.debug) {
                     File file = context.files.resolveTemp("timing.log");

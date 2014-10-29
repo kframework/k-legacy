@@ -7,7 +7,9 @@ import org.kframework.kil.ASTNode;
 import org.kframework.kil.Ambiguity;
 import org.kframework.kil.Bracket;
 import org.kframework.kil.Cast;
+import org.kframework.kil.Definition;
 import org.kframework.kil.KSequence;
+import org.kframework.kil.Module;
 import org.kframework.kil.Rewrite;
 import org.kframework.kil.NonTerminal;
 import org.kframework.kil.Term;
@@ -24,11 +26,17 @@ import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;
 
 public class CorrectCastPriorityFilter extends ParseForestTransformer {
-    private CorrectCastPriorityFilter2 secondFilter;
+    private final CorrectCastPriorityFilter2 secondFilter;
 
     public CorrectCastPriorityFilter(Context context) {
         super(CorrectCastPriorityFilter.class.getName(), context);
         secondFilter = new CorrectCastPriorityFilter2(context);
+    }
+
+    public CorrectCastPriorityFilter(Context context, Definition currentDefinition,
+                                     Module currentModule) {
+        super(CorrectCastPriorityFilter.class.getName(), context, currentDefinition, currentModule);
+        secondFilter = new CorrectCastPriorityFilter2(context, currentDefinition, currentModule);
     }
 
     @Override
@@ -67,6 +75,12 @@ public class CorrectCastPriorityFilter extends ParseForestTransformer {
     public class CorrectCastPriorityFilter2 extends LocalTransformer {
         public CorrectCastPriorityFilter2(Context context) {
             super(CorrectCastPriorityFilter2.class.getName(), context);
+        }
+
+        public CorrectCastPriorityFilter2(Context context, Definition currentDefinition,
+                                          Module currentModule) {
+            super(CorrectCastPriorityFilter2.class.getName(), context,
+                    currentDefinition, currentModule);
         }
 
         @Override

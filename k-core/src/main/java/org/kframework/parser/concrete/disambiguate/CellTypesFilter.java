@@ -8,6 +8,8 @@ import org.kframework.kil.Ambiguity;
 import org.kframework.kil.Bracket;
 import org.kframework.kil.Cell;
 import org.kframework.kil.Configuration;
+import org.kframework.kil.Definition;
+import org.kframework.kil.Module;
 import org.kframework.kil.Rewrite;
 import org.kframework.kil.Sort;
 import org.kframework.kil.Syntax;
@@ -24,6 +26,11 @@ public class CellTypesFilter extends ParseForestTransformer {
 
     public CellTypesFilter(org.kframework.kil.loader.Context context) {
         super("Cell types", context);
+    }
+
+    public CellTypesFilter(org.kframework.kil.loader.Context context, Definition currentDefinition,
+                           Module currentModule) {
+        super("Cell types", context, currentDefinition, currentModule);
     }
 
     // don't do anything for configuration and syntax
