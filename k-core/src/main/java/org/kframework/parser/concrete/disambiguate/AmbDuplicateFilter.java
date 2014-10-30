@@ -3,6 +3,8 @@ package org.kframework.parser.concrete.disambiguate;
 
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Ambiguity;
+import org.kframework.kil.Definition;
+import org.kframework.kil.Module;
 import org.kframework.kil.Term;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.ParseForestTransformer;
@@ -11,8 +13,13 @@ import org.kframework.utils.errorsystem.ParseFailedException;
 import java.util.ArrayList;
 
 public class AmbDuplicateFilter extends ParseForestTransformer {
+
     public AmbDuplicateFilter(Context context) {
         super("Remove ambiguity duplicates", context);
+    }
+
+    public AmbDuplicateFilter(Context context, Definition currentDefinition, Module currentModule) {
+        super("Remove ambiguity duplicates", context, currentDefinition, currentModule);
     }
 
     @Override

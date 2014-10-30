@@ -14,12 +14,20 @@ import org.kframework.kil.loader.Context;
  */
 public class BasicVisitor extends AbstractVisitor<Void, Void, RuntimeException> {
 
+    public BasicVisitor() {
+        super();
+    }
+
     public BasicVisitor(Context context) {
         super(context);
     }
 
     public BasicVisitor(String name, Context context) {
         super(name, context);
+    }
+
+    public BasicVisitor(Context context, Definition currentDefinition, Module currentModule) {
+        super(null, context, currentDefinition, currentModule);
     }
 
     @Override

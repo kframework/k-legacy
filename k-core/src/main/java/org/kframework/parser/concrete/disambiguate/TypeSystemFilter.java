@@ -3,9 +3,10 @@ package org.kframework.parser.concrete.disambiguate;
 
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Cast;
+import org.kframework.kil.Definition;
+import org.kframework.kil.Module;
 import org.kframework.kil.Production;
 import org.kframework.kil.NonTerminal;
-import org.kframework.kil.Sort;
 import org.kframework.kil.Term;
 import org.kframework.kil.TermCons;
 import org.kframework.kil.UserList;
@@ -17,6 +18,10 @@ public class TypeSystemFilter extends ParseForestTransformer {
 
     public TypeSystemFilter(Context context) {
         super("Type system", context);
+    }
+
+    public TypeSystemFilter(Context context, Definition currentDefinition, Module currentModule) {
+        super("Type system", context, currentDefinition, currentModule);
     }
 
     @Override

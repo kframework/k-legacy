@@ -22,6 +22,11 @@ public class SentenceVariablesFilter extends ParseForestTransformer {
         super("Sentence Variable Filter", context);
     }
 
+    public SentenceVariablesFilter(org.kframework.kil.loader.Context context,
+                                   Definition currentDefinition, Module currentModule) {
+        super("Sentence Variable Filter", context, currentDefinition, currentModule);
+    }
+
     @Override
     public ASTNode visit(Configuration cfg, Void _) throws ParseFailedException {
         config = true;

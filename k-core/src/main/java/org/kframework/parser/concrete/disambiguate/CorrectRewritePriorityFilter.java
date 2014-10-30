@@ -7,8 +7,10 @@ import java.util.List;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Ambiguity;
 import org.kframework.kil.Configuration;
+import org.kframework.kil.Definition;
 import org.kframework.kil.KList;
 import org.kframework.kil.KSequence;
+import org.kframework.kil.Module;
 import org.kframework.kil.Rewrite;
 import org.kframework.kil.NonTerminal;
 import org.kframework.kil.Sort;
@@ -25,11 +27,17 @@ import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;
 
 public class CorrectRewritePriorityFilter extends ParseForestTransformer {
-    private CorrectRewriteFilter2 secondFilter;
+    private final CorrectRewriteFilter2 secondFilter;
 
     public CorrectRewritePriorityFilter(Context context) {
         super("Correct Rewrite priority", context);
         secondFilter = new CorrectRewriteFilter2(context);
+    }
+
+    public CorrectRewritePriorityFilter(Context context, Definition currentDefinition,
+                                        Module currentModule) {
+        super("Correct Rewrite priority", context, currentDefinition, currentModule);
+        secondFilter = new CorrectRewriteFilter2(context, currentDefinition, currentModule);
     }
 
     @Override
@@ -121,6 +129,12 @@ public class CorrectRewritePriorityFilter extends ParseForestTransformer {
     public class CorrectRewriteFilter2 extends LocalTransformer {
         public CorrectRewriteFilter2(Context context) {
             super("org.kframework.parser.concrete.disambiguate.CorrectKSeqFilter2", context);
+        }
+
+        public CorrectRewriteFilter2(Context context, Definition currentDefinition,
+                                     Module currentModule) {
+            super("org.kframework.parser.concrete.disambiguate.CorrectKSeqFilter2", context,
+                    currentDefinition, currentModule);
         }
 
         @Override

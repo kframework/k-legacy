@@ -6,7 +6,9 @@ import java.util.List;
 
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Ambiguity;
+import org.kframework.kil.Definition;
 import org.kframework.kil.KSequence;
+import org.kframework.kil.Module;
 import org.kframework.kil.NonTerminal;
 import org.kframework.kil.Term;
 import org.kframework.kil.TermCons;
@@ -20,11 +22,16 @@ import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;
 
 public class CorrectKSeqFilter extends ParseForestTransformer {
-    private CorrectKSeqFilter2 secondFilter;
+    private final CorrectKSeqFilter2 secondFilter;
 
     public CorrectKSeqFilter(Context context) {
         super("Correct K sequences", context);
         secondFilter = new CorrectKSeqFilter2(context);
+    }
+
+    public CorrectKSeqFilter(Context context, Definition currentDefinition, Module currentModule) {
+        super("Correct K sequences", context, currentDefinition, currentModule);
+        secondFilter = new CorrectKSeqFilter2(context, currentDefinition, currentModule);
     }
 
     @Override
@@ -76,6 +83,12 @@ public class CorrectKSeqFilter extends ParseForestTransformer {
     public class CorrectKSeqFilter2 extends LocalTransformer {
         public CorrectKSeqFilter2(Context context) {
             super("org.kframework.parser.concrete.disambiguate.CorrectKSeqFilter2", context);
+        }
+
+        public CorrectKSeqFilter2(Context context, Definition currentDefinition,
+                                  Module currentModule) {
+            super("org.kframework.parser.concrete.disambiguate.CorrectKSeqFilter2", context,
+                    currentDefinition, currentModule);
         }
 
         @Override

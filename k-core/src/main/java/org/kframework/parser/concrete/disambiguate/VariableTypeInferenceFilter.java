@@ -15,7 +15,9 @@ import com.google.common.collect.Multimap;
 import org.kframework.compile.utils.MetaK;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Ambiguity;
+import org.kframework.kil.Definition;
 import org.kframework.kil.Location;
+import org.kframework.kil.Module;
 import org.kframework.kil.Sentence;
 import org.kframework.kil.Sort;
 import org.kframework.kil.Term;
@@ -35,6 +37,12 @@ public class VariableTypeInferenceFilter extends ParseForestTransformer {
 
     public VariableTypeInferenceFilter(Context context, KExceptionManager kem) {
         super("Variable type inference", context);
+        this.kem = kem;
+    }
+
+    public VariableTypeInferenceFilter(Context context, KExceptionManager kem,
+                                       Definition currentDefinition, Module currentModule) {
+        super("Variable type inference", context, currentDefinition, currentModule);
         this.kem = kem;
     }
 

@@ -1,8 +1,9 @@
 // Copyright (c) 2012-2014 K Team. All Rights Reserved.
 package org.kframework.kil.loader;
 
+import org.kframework.kil.Definition;
+import org.kframework.kil.Module;
 import org.kframework.kil.Rule;
-import org.kframework.kil.Sort;
 import org.kframework.kil.Syntax;
 import org.kframework.kil.Variable;
 import org.kframework.kil.visitors.BasicVisitor;
@@ -17,6 +18,11 @@ public class CollectStartSymbolPgmVisitor extends BasicVisitor {
 
     public CollectStartSymbolPgmVisitor(Context context) {
         super(context);
+    }
+
+    public CollectStartSymbolPgmVisitor(Context context, Definition currentDefinition,
+                                        Module currentModule) {
+        super(context, currentDefinition, currentModule);
     }
 
     @Override
@@ -40,7 +46,7 @@ public class CollectStartSymbolPgmVisitor extends BasicVisitor {
             context.startSymbolPgm = node.getSort();
         }
         assert node.getName().startsWith("$") : "Configuration variables must start with $ symbol.";
-        context.configVarSorts.put(node.getName().substring(1), node.getSort());
+        getCurrentDefinition().configVarSorts.put(node.getName().substring(1), node.getSort());
         return null;
     }
 }

@@ -6,8 +6,6 @@ import org.kframework.kil.visitors.ParseForestTransformer;
 import org.kframework.kil.visitors.BasicVisitor;
 import org.kframework.kil.visitors.CopyOnWriteTransformer;
 import org.kframework.kil.visitors.Visitor;
-import org.kframework.kompile.KompileOptions;
-import org.kframework.main.GlobalOptions;
 import org.kframework.kil.loader.Context;
 
 import java.util.ArrayList;
@@ -62,6 +60,10 @@ public abstract class AbstractVisitor<P, R, E extends Throwable> implements Visi
     final String name;
 
     protected IdentityHashMap<ASTNode, R> cache = new IdentityHashMap<>();
+
+    public AbstractVisitor()  {
+        this(null, null, null, null);
+    }
 
     public AbstractVisitor(Context context) {
         this(null, context, null, null);

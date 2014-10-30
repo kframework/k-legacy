@@ -9,6 +9,7 @@ import org.kframework.parser.DefinitionLoader;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.Poset;
 import java.io.File;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -29,16 +30,21 @@ public class Definition extends ASTNode implements Interfaces.MutableList<Defini
     private String mainSyntaxModule;
     private Poset<String> modules = Poset.create();
 
+    public Map<String, Sort> configVarSorts = new HashMap<>();
+
     public Definition() {
         super();
     }
 
     public Definition(Definition d) {
         super(d);
+        this.items = d.items;
         this.mainFile = d.mainFile;
         this.mainModule = d.mainModule;
+        this.modulesMap = d.modulesMap;
         this.mainSyntaxModule = d.mainSyntaxModule;
-        this.items = d.items;
+        this.modules = d.modules;
+        this.configVarSorts = d.configVarSorts;
     }
 
     @Override
@@ -111,7 +117,7 @@ public class Definition extends ASTNode implements Interfaces.MutableList<Defini
         new CollectStartSymbolPgmVisitor(context).visitNode(this);
         new CollectConfigCellsVisitor(context).visitNode(this);
         new CollectLocationsVisitor(context).visitNode(this);
-        new CountNodesVisitor(context).visitNode(this);
+        new CountNodesVisitor().visitNode(this);
         new CollectVariableTokens(context).visitNode(this);
 
         /* collect lexical token sorts */

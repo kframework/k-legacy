@@ -6,7 +6,9 @@ import org.kframework.kil.Ambiguity;
 import org.kframework.kil.Cast;
 import org.kframework.kil.Cell;
 import org.kframework.kil.Configuration;
+import org.kframework.kil.Definition;
 import org.kframework.kil.ListTerminator;
+import org.kframework.kil.Module;
 import org.kframework.kil.Rewrite;
 import org.kframework.kil.Rule;
 import org.kframework.kil.Sort;
@@ -27,6 +29,10 @@ public class PreferDotsFilter extends ParseForestTransformer {
 
     public PreferDotsFilter(Context context) {
         super(PreferDotsFilter.class.getName(), context);
+    }
+
+    public PreferDotsFilter(Context context, Definition currentDefinition, Module currentModule) {
+        super(PreferDotsFilter.class.getName(), context, currentDefinition, currentModule);
     }
 
     // don't do anything for configuration and syntax

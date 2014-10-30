@@ -47,7 +47,8 @@ public class ConcretizeSyntax extends CopyOnWriteTransformer {
     public ASTNode visit(KApp kapp, Void _)  {
         ASTNode t = internalTransform(kapp);
         try {
-            t = new TypeSystemFilter(context).visitNode(t);
+            t = new TypeSystemFilter(context, getCurrentDefinition(), getCurrentModule())
+                    .visitNode(t);
         } catch (ParseFailedException e) {
             //type error, so don't disambiguate
         }
