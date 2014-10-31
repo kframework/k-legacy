@@ -1,7 +1,10 @@
 package org.kframework.debugger.frontend;
 
 /**
- * Created by manasvi on 10/30/14.
+ * Enumeration representing commands that the frontend can
+ * give to the Controller.
  */
 public enum Command {
+    STEP, STEP_ALL, SEARCH, SET_STATE, GET_STATE,
+    EXIT, GET_GRAPH, GET_TRANSITION, SAVE, LOAD, INVALID
 }

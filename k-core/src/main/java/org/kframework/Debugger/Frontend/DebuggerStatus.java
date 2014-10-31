@@ -1,7 +1,8 @@
-package org.kframework.Debugger.Frontend;
+package org.kframework.debugger.frontend;
 
 /**
- * Created by manasvi on 10/24/14.
+ * Enum depicting the status of the FrontEnd.
  */
 public enum DebuggerStatus {
+    SUCCESS, FAILURE;
 }
