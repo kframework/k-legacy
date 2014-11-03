@@ -20,7 +20,7 @@ import org.kframework.kil.visitors.exceptions.ParseFailedException;
 import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.Transition.TransitionType;
-import org.kframework.krun.tools.Debugger;
+import org.kframework.debugger.backend.Debugger;
 import org.kframework.krun.tools.Executor;
 import org.kframework.parser.DefinitionLoader;
 import com.google.inject.Inject;

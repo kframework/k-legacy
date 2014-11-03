@@ -17,6 +17,7 @@ import org.kframework.backend.unparser.PrintSearchResults;
 import org.kframework.backend.unparser.PrintTerm;
 import org.kframework.backend.unparser.PrintTransition;
 import org.kframework.backend.unparser.RawOutputMode;
+import org.kframework.debugger.controller.DebuggerController;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Configuration;
 import org.kframework.kil.Term;
@@ -152,7 +153,7 @@ public class KRunModule extends AbstractModule {
                 binder(), TypeLiteral.get(ToolActivation.class), new TypeLiteral<Transformation<Void, Void>>() {});
         MapBinder<ToolActivation, Transformation<Void, KRunResult<?>>> krunResultTools = MapBinder.newMapBinder(
                 binder(), TypeLiteral.get(ToolActivation.class), new TypeLiteral<Transformation<Void, KRunResult<?>>>() {});
-        mainTools.addBinding(new ToolActivation.OptionActivation("--debugger")).to(Debugger.Tool.class);
+        mainTools.addBinding(new ToolActivation.OptionActivation("--debugger")).to(DebuggerController.class);
         krunResultTools.addBinding(new ToolActivation.OptionActivation("--ltlmc")).to(LtlModelChecker.Tool.class);
         krunResultTools.addBinding(new ToolActivation.OptionActivation("--ltlmc-file")).to(LtlModelChecker.Tool.class);
         krunResultTools.addBinding(new ToolActivation.OptionActivation("--prove")).to(Prover.Tool.class);

@@ -36,7 +36,6 @@ public class DebuggerController implements Transformation<Void, Void>{
     private final Context context;
     private final FileUtil files;
 
-    @Inject
     DebuggerController(
             KExceptionManager kem,
             @Main Term initialConfiguration,
