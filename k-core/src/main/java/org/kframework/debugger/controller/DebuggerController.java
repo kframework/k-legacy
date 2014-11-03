@@ -32,10 +32,9 @@ public class DebuggerController implements Transformation<Void, Void>{
     @InjectGeneric private Transformation<SearchResults, String> searchPrinter;
     @InjectGeneric private Transformation<KRunGraph, String> graphPrinter;
     @InjectGeneric private Transformation<Transition, String> transitionPrinter;
-    private final Debugger debugger;
+    private  Debugger debugger;
     private final Context context;
     private final FileUtil files;
-
 
     @Inject
     DebuggerController(
