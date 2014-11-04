@@ -77,9 +77,6 @@ public class KompileModule extends AbstractModule {
 
     @Provides @KompiledDir
     File kompiledDir(@DefinitionDir File defDir, KompileOptions options, Backend backend, @TempDir File tempDir) {
-        if (!backend.generatesDefinition()) {
-            return tempDir;
-        }
         return new File(defDir, FilenameUtils.removeExtension(options.mainDefinitionFile().getName()) + "-kompiled");
     }
 
