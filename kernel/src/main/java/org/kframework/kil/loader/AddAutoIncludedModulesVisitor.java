@@ -18,6 +18,7 @@ public class AddAutoIncludedModulesVisitor extends BasicVisitor {
     @Override
     public Void visit(Definition def, Void _) {
         Import importMod = new Import(Constants.AUTO_INCLUDED_MODULE);
+        Import importModSyntax = new Import(Constants.AUTO_INCLUDED_SYNTAX_MODULE);
 
         for (Entry<String, Module> e : def.getModulesMap().entrySet()) {
             Module m = e.getValue();
@@ -28,6 +29,11 @@ public class AddAutoIncludedModulesVisitor extends BasicVisitor {
                     m.getItems().add(0, importMod);
             }
         }
+        Module m = def.getModulesMap().get(def.getMainSyntaxModule());
+        CollectIncludesVisitor getIncludes = new CollectIncludesVisitor(context);
+        getIncludes.visitNode(m);
+        if (!getIncludes.getImportList().contains(importModSyntax))
+            m.getItems().add(0, importModSyntax);
         return null;
     }
 }

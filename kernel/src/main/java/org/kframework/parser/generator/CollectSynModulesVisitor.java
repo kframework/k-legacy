@@ -40,13 +40,6 @@ public class CollectSynModulesVisitor extends BasicVisitor {
             synQue.add(def.getMainModule());
         }
 
-        Module bshm = def.getModulesMap().get("AUTO-INCLUDED-MODULE-SYNTAX");
-        if (bshm == null) {
-            String msg = "Could not find module AUTO-INCLUDED-MODULE-SYNTAX (automatically included in the main syntax module)!";
-            kem.register(new KException(ExceptionType.HIDDENWARNING, KExceptionGroup.INNER_PARSER, msg));
-        } else
-            synQue.add("AUTO-INCLUDED-MODULE-SYNTAX");
-
         while (!synQue.isEmpty()) {
             String mname = synQue.remove(0);
             if (!synModNames.contains(mname)) {
