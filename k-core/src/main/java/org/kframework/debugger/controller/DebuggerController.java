@@ -7,10 +7,8 @@ import org.kframework.kil.Attributes;
 import org.kframework.kil.Term;
 import org.kframework.kil.loader.Context;
 import org.kframework.kompile.KompileOptions;
-import org.kframework.krun.api.KRunGraph;
-import org.kframework.krun.api.KRunState;
-import org.kframework.krun.api.SearchResults;
-import org.kframework.krun.api.Transition;
+import org.kframework.krun.KRunExecutionException;
+import org.kframework.krun.api.*;
 import org.kframework.transformation.Transformation;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -79,8 +77,24 @@ public class DebuggerController {
         }
 
         @Override
-        public Void run(Void aVoid, Attributes attrs) {
-            System.out.println("Successful injection");
+        public Void run(Void v, Attributes a) {
+            //entry point into the entire debugger architecture
+            a.add(Context.class, context);
+            try{
+                backend.start(initialConfiguration);
+            }
+            catch(UnsupportedBackendOptionException e){
+                kem.registerCriticalError("Backend \""
+                        + kompileOptions.backend
+                        + "\" does not support option " + e.getMessage(), e);
+                throw new AssertionError("unreachable");
+            }
+            catch(KRunExecutionException e){
+                kem.registerCriticalError(e.getMessage(), e);
+            }
+
+            //initialize the frontend
+            frontend.initFrontend();
 
             return null;
         }
