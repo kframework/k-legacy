@@ -1,6 +1,7 @@
 package org.kframework.debugger.controller;
 
 import org.kframework.debugger.backend.Debugger;
+import org.kframework.debugger.frontend.DebuggerFrontend;
 import com.google.inject.Inject;
 import org.kframework.kil.Attributes;
 import org.kframework.kil.Term;
@@ -32,7 +33,8 @@ public class DebuggerController {
         @InjectGeneric private Transformation<SearchResults, String> searchPrinter;
         @InjectGeneric private Transformation<KRunGraph, String> graphPrinter;
         @InjectGeneric private Transformation<Transition, String> transitionPrinter;
-        private final Debugger debugger;
+        private final Debugger backend;
+        private final DebuggerFrontend frontend;
         private final Context context;
         private final FileUtil files;
 
@@ -42,16 +44,18 @@ public class DebuggerController {
                 @Main Term initialConfiguration,
                 @Main KompileOptions kompileOptions,
                 BinaryLoader loader,
-                @Main Debugger debugger,
+                @Main Debugger backend,
+                @Main DebuggerFrontend frontend,
                 @Main Context context,
                 @Main FileUtil files) {
             this.kem = kem;
             this.initialConfiguration = initialConfiguration;
             this.kompileOptions = kompileOptions;
             this.loader = loader;
-            this.debugger = debugger;
+            this.backend = backend;
             this.context = context;
             this.files = files;
+            this.frontend = frontend;
         }
 
         Controller(
@@ -63,10 +67,11 @@ public class DebuggerController {
                 Transformation<SearchResults, String> searchPrinter,
                 Transformation<KRunGraph, String> graphPrinter,
                 Transformation<Transition, String> transitionPrinter,
-                @Main Debugger debugger,
+                @Main Debugger backend,
+                @Main DebuggerFrontend frontend,
                 @Main Context context,
                 @Main FileUtil files) {
-            this(kem, initialConfiguration, kompileOptions, loader, debugger, context, files);
+            this(kem, initialConfiguration, kompileOptions, loader, backend, frontend, context, files);
             this.statePrinter = statePrinter;
             this.searchPrinter = searchPrinter;
             this.graphPrinter = graphPrinter;
