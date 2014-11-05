@@ -34,7 +34,7 @@ import org.kframework.krun.api.SearchResults;
 import org.kframework.krun.api.Transition;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
-import org.kframework.krun.tools.Debugger;
+import org.kframework.debugger.backend.Debugger;
 import org.kframework.krun.tools.Executor;
 import org.kframework.krun.tools.LtlModelChecker;
 import org.kframework.krun.tools.Prover;

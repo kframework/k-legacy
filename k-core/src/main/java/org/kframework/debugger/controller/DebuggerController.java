@@ -21,65 +21,68 @@ import org.kframework.utils.inject.Main;
  * The Controller Class that acts as a sandwich layer between the frontend
  * and the backend.
  */
-public class DebuggerController implements Transformation<Void, Void>{
+public class DebuggerController {
 
-    private final KExceptionManager kem;
-    private final Term initialConfiguration;
-    private final KompileOptions kompileOptions;
-    private final BinaryLoader loader;
-    @InjectGeneric
-    private Transformation<KRunState, String> statePrinter;
-    @InjectGeneric private Transformation<SearchResults, String> searchPrinter;
-    @InjectGeneric private Transformation<KRunGraph, String> graphPrinter;
-    @InjectGeneric private Transformation<Transition, String> transitionPrinter;
-    private  Debugger debugger;
-    private final Context context;
-    private final FileUtil files;
+    public static class Controller implements Transformation<Void, Void> {
+        private final KExceptionManager kem;
+        private final Term initialConfiguration;
+        private final KompileOptions kompileOptions;
+        private final BinaryLoader loader;
+        @InjectGeneric private Transformation<KRunState, String> statePrinter;
+        @InjectGeneric private Transformation<SearchResults, String> searchPrinter;
+        @InjectGeneric private Transformation<KRunGraph, String> graphPrinter;
+        @InjectGeneric private Transformation<Transition, String> transitionPrinter;
+        private final Debugger debugger;
+        private final Context context;
+        private final FileUtil files;
 
-    DebuggerController(
-            KExceptionManager kem,
-            @Main Term initialConfiguration,
-            @Main KompileOptions kompileOptions,
-            BinaryLoader loader,
-            @Main Debugger debugger,
-            @Main Context context,
-            @Main FileUtil files) {
-        this.kem = kem;
-        this.initialConfiguration = initialConfiguration;
-        this.kompileOptions = kompileOptions;
-        this.loader = loader;
-        this.debugger = debugger;
-        this.context = context;
-        this.files = files;
-    }
+        @Inject
+        Controller(
+                KExceptionManager kem,
+                @Main Term initialConfiguration,
+                @Main KompileOptions kompileOptions,
+                BinaryLoader loader,
+                @Main Debugger debugger,
+                @Main Context context,
+                @Main FileUtil files) {
+            this.kem = kem;
+            this.initialConfiguration = initialConfiguration;
+            this.kompileOptions = kompileOptions;
+            this.loader = loader;
+            this.debugger = debugger;
+            this.context = context;
+            this.files = files;
+        }
 
-    @Inject
-    DebuggerController(
-            KExceptionManager kem,
-            @Main Term initialConfiguration,
-            @Main KompileOptions kompileOptions,
-            BinaryLoader loader,
-            Transformation<KRunState, String> statePrinter,
-            Transformation<SearchResults, String> searchPrinter,
-            Transformation<KRunGraph, String> graphPrinter,
-            Transformation<Transition, String> transitionPrinter,
-            @Main Debugger debugger,
-            @Main Context context,
-            @Main FileUtil files) {
-        this(kem, initialConfiguration, kompileOptions, loader, debugger, context, files);
-        this.statePrinter = statePrinter;
-        this.searchPrinter = searchPrinter;
-        this.graphPrinter = graphPrinter;
-        this.transitionPrinter = transitionPrinter;
-    }
+        Controller(
+                KExceptionManager kem,
+                @Main Term initialConfiguration,
+                @Main KompileOptions kompileOptions,
+                BinaryLoader loader,
+                Transformation<KRunState, String> statePrinter,
+                Transformation<SearchResults, String> searchPrinter,
+                Transformation<KRunGraph, String> graphPrinter,
+                Transformation<Transition, String> transitionPrinter,
+                @Main Debugger debugger,
+                @Main Context context,
+                @Main FileUtil files) {
+            this(kem, initialConfiguration, kompileOptions, loader, debugger, context, files);
+            this.statePrinter = statePrinter;
+            this.searchPrinter = searchPrinter;
+            this.graphPrinter = graphPrinter;
+            this.transitionPrinter = transitionPrinter;
+        }
 
-    @Override
-    public Void run(Void aVoid, Attributes attrs) {
-        return null;
-    }
+        @Override
+        public Void run(Void aVoid, Attributes attrs) {
+            System.out.println("Successful injection");
 
-    @Override
-    public String getName() {
-        return null;
+            return null;
+        }
+
+        @Override
+        public String getName() {
+            return null;
+        }
     }
 }
