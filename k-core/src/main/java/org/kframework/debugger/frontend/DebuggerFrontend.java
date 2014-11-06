@@ -3,6 +3,8 @@ package org.kframework.debugger.frontend;
 /**
  *  The Interface for every frontend. The Instance is
  *  dependency injected into the Controller.
+ *  It must be kept in mind that the frontend is stateless, all the state
+ *  is maintained by the backend/controller. 
  */
 public interface DebuggerFrontend {
 
@@ -11,7 +13,7 @@ public interface DebuggerFrontend {
      * such as setting prompt for Textual Debugger e.t.c., should be performed here.
      * @return DebuggerStatus Enum type specifying the status of the operation
      */
-    public abstract DebuggerStatus initFrontend();
+    public abstract FrontendStatus initFrontend();
 
     /**
      * Called by the controller when it's ready to receive a command. The frontend should
@@ -26,6 +28,6 @@ public interface DebuggerFrontend {
      * @return DebuggerStatus specifying the result of the operation. Specifying FAILURE will lead to the
      *         same result in function being called again with the same result
      */
-    public abstract DebuggerStatus publishResult();
+    public abstract FrontendStatus publishResult();
 
 }

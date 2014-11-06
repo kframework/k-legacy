@@ -1,8 +1,10 @@
 package org.kframework.debugger.controller;
 
 import org.kframework.debugger.backend.Debugger;
+import org.kframework.debugger.frontend.DebuggerCommand;
 import org.kframework.debugger.frontend.DebuggerFrontend;
 import com.google.inject.Inject;
+import org.kframework.debugger.frontend.FrontendStatus;
 import org.kframework.kil.Attributes;
 import org.kframework.kil.Term;
 import org.kframework.kil.loader.Context;
@@ -94,9 +96,23 @@ public class DebuggerController {
             }
 
             //initialize the frontend
-            frontend.initFrontend();
+            FrontendStatus status = frontend.initFrontend();
+            if(status == FrontendStatus.FAILURE){
+                //throw customized exception
+                return null;
+            }
+            //start the actual debugging loop
+            try {
+                backend.start(initialConfiguration);
+                //wait for the command
+                do {
+                    DebuggerCommand command = frontend.getCommand();
+                }while(true);
+            }
+            catch(Exception e){
 
-            return null;
+            }
+
         }
 
         @Override

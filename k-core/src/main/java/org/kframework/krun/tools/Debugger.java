@@ -203,7 +203,7 @@ public interface Debugger {
             } catch (UnsupportedBackendOptionException e) {
                 kem.registerCriticalError("Backend \""
                         + kompileOptions.backend
-                        + "\" does not support option " + e.getMessage(), e);
+                            + "\" does not support option " + e.getMessage(), e);
                 throw new AssertionError("unreachable");
             } catch (KRunExecutionException e) {
                 kem.registerCriticalError(e.getMessage(), e);
