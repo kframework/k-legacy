@@ -3,11 +3,10 @@ package org.kframework.krun.ioserver.main;
 
 import org.kframework.kil.loader.Context;
 import org.kframework.krun.KRunOptions.ConfigurationCreationOptions;
+import org.kframework.krun.RunProcess;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.ioserver.commands.*;
-import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.general.GlobalSettings;
-
+import org.kframework.utils.errorsystem.KExceptionManager;
 import com.google.inject.Inject;
 
 import java.net.InetSocketAddress;
@@ -31,15 +30,17 @@ public class IOServer implements Runnable {
     private final Context context;
     private final FileSystem fs;
     private final ConfigurationCreationOptions options;
-    private final FileUtil files;
+    private final RunProcess rp;
+    private final KExceptionManager kem;
     private int port;
 
     @Inject
-    public IOServer(Context context, FileSystem fs, ConfigurationCreationOptions options, FileUtil files) {
+    public IOServer(Context context, FileSystem fs, ConfigurationCreationOptions options, RunProcess rp, KExceptionManager kem) {
         this.context = context;
         this.fs = fs;
         this.options = options;
-        this.files = files;
+        this.rp = rp;
+        this.kem = kem;
     }
 
     public int getPort() {
@@ -53,7 +54,7 @@ public class IOServer implements Runnable {
             serverSocket.socket().bind(new InetSocketAddress(port));
             this.port = serverSocket.socket().getLocalPort();
         } catch (IOException e) {
-            GlobalSettings.kem.registerCriticalError("IO Server could not listen on port " + port, e);
+            throw KExceptionManager.criticalError("IO Server could not listen on port " + port, e);
         }
     }
 
@@ -177,10 +178,10 @@ public class IOServer implements Runnable {
             return c;
         }
         if (command.equals("parse")) {
-            return new CommandParse(args, socket, context, fs, options);
+            return new CommandParse(args, socket, context, fs, options, rp, kem);
         }
         if (command.equals("system")) {
-            return new CommandSystem(args, socket, fs, files);
+            return new CommandSystem(args, socket, fs, rp);
         }
 
         return new CommandUnknown(args, socket, fs); //, (long) 0);
@@ -208,7 +209,7 @@ public class IOServer implements Runnable {
             output.close();
             socket.close();
         } catch (IOException e) {
-            GlobalSettings.kem.registerCriticalError("Error writing output to client", e);
+            throw KExceptionManager.criticalError("Error writing output to client", e);
         }
     }
 
@@ -218,14 +219,17 @@ public class IOServer implements Runnable {
 
     @Override
     public void run() {
-        createServer();
-        synchronized(this) {
-            this.notify();
+        try {
+            createServer();
+        } finally {
+            synchronized(this) {
+                this.notifyAll();
+            }
         }
         try {
             acceptConnections();
         } catch (IOException e) {
-            GlobalSettings.kem.registerInternalError("Failed to start IO server: " + e.getMessage(), e);
+            throw KExceptionManager.internalError("Failed to start IO server: " + e.getMessage(), e);
         }
 
     }

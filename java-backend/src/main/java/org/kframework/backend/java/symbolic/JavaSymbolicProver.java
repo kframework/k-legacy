@@ -9,7 +9,6 @@ import java.util.Set;
 
 import org.kframework.backend.java.compile.DataStructureToLookupUpdate;
 import org.kframework.backend.java.kil.ConstrainedTerm;
-import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.Rule;
 import org.kframework.backend.java.kil.TermContext;
@@ -18,11 +17,13 @@ import org.kframework.compile.utils.CompilerStepDone;
 import org.kframework.compile.utils.ConfigurationSubstitutionVisitor;
 import org.kframework.compile.utils.MetaK;
 import org.kframework.compile.utils.Substitution;
+import org.kframework.kil.Attribute;
 import org.kframework.kil.Module;
 import org.kframework.kil.loader.Context;
 import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.api.KRunProofResult;
 import org.kframework.krun.tools.Prover;
+import org.kframework.utils.errorsystem.KExceptionManager;
 
 import com.google.inject.Inject;
 
@@ -31,7 +32,7 @@ public class JavaSymbolicProver implements Prover {
     private final JavaSymbolicExecutor executor;
     private final GlobalContext globalContext;
     private final KILtoBackendJavaKILTransformer transformer;
-    private final Definition definition;
+    private final KExceptionManager kem;
 
     private final Context context;
 
@@ -41,12 +42,12 @@ public class JavaSymbolicProver implements Prover {
             GlobalContext globalContext,
             JavaSymbolicExecutor executor,
             KILtoBackendJavaKILTransformer transformer,
-            Definition definition) {
+            KExceptionManager kem) {
         this.context = context;
         this.executor = executor;
         this.globalContext = globalContext;
         this.transformer = transformer;
-        this.definition = definition;
+        this.kem = kem;
     }
 
     @Override
@@ -67,7 +68,7 @@ public class JavaSymbolicProver implements Prover {
             module = mod;
         }
         try {
-            module = new SpecificationCompilerSteps(context).compile(module, null);
+            module = new SpecificationCompilerSteps(context, kem).compile(module, null);
         } catch (CompilerStepDone e) {
             assert false: "dead code";
         }
@@ -89,7 +90,7 @@ public class JavaSymbolicProver implements Prover {
 
         SymbolicRewriter symbolicRewriter = executor.getSymbolicRewriter();
         for (org.kframework.kil.ModuleItem moduleItem : module.getItems()) {
-            if (!(moduleItem instanceof org.kframework.kil.Rule)) {
+            if (!(moduleItem instanceof org.kframework.kil.Rule) || moduleItem.containsAttribute(Attribute.TRUSTED_KEY)) {
                 continue;
             }
 

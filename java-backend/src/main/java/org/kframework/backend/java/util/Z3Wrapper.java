@@ -1,10 +1,9 @@
 // Copyright (c) 2013-2014 K Team. All Rights Reserved.
 package org.kframework.backend.java.util;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.io.Files;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.microsoft.z3.Params;
 import com.microsoft.z3.Solver;
 import com.microsoft.z3.Status;
@@ -13,6 +12,7 @@ import com.microsoft.z3.Z3Exception;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.OS;
 import org.kframework.utils.errorsystem.KExceptionManager;
+import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.options.SMTOptions;
 
 import java.io.*;
@@ -31,25 +31,21 @@ public class Z3Wrapper {
     private final SMTOptions options;
     private final GlobalOptions globalOptions;
     private final KExceptionManager kem;
+    private final Provider<ProcessBuilder> pb;
 
     @Inject
     public Z3Wrapper(
             SMTOptions options,
             KExceptionManager kem,
-            GlobalOptions globalOptions) {
+            GlobalOptions globalOptions,
+            Provider<ProcessBuilder> pb,
+            FileUtil files) {
         this.options = options;
         this.kem = kem;
         this.globalOptions = globalOptions;
+        this.pb = pb;
 
-        String s = "";
-        try {
-            if (options.smtPrelude() != null) {
-                s = Files.toString(options.smtPrelude(), Charsets.UTF_8);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        SMT_PRELUDE = s;
+        SMT_PRELUDE = options.smtPrelude == null ? "" : files.loadFromWorkingDirectory(options.smtPrelude);
     }
 
     public boolean checkQuery(String query, int timeout) {
@@ -85,7 +81,7 @@ public class Z3Wrapper {
         String result = "";
         try {
             for (int i = 0; i < Z3_RESTART_LIMIT; i++) {
-                ProcessBuilder pb = new ProcessBuilder(
+                ProcessBuilder pb = this.pb.get().command(
                         OS.current().getNativeExecutable("z3"),
                         "-in",
                         "-smt2",

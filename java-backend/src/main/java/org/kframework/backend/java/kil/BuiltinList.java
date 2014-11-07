@@ -8,14 +8,14 @@ import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Utils;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.DataStructureSort;
-
+import org.kframework.utils.errorsystem.KExceptionManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.ListUtils;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -222,23 +222,12 @@ public class BuiltinList extends Collection {
         return toString(" ", ".List");
     }
 
-    /**
-     * TODO(YilongL): use Java8 functional features instead
-     * @deprecated
-     */
-    private static final Function<Term, String> ELEMENT_TO_STRING_FUNCTION = new Function<Term, String>() {
-        @Override
-        public String apply(Term term) {
-            return "ListItem(" + term + ")";
-        }
-    };
-
     public String toString(String operator, String identity) {
         if (!isEmpty()) {
             return Joiner.on(operator).join(
-                    Joiner.on(operator).join(Lists.transform(elementsLeft, ELEMENT_TO_STRING_FUNCTION)),
+                    Joiner.on(operator).join(elementsLeft.stream().map(e -> "ListItem(" + e + ")").collect(Collectors.toList())),
                     Joiner.on(operator).join(baseTerms),
-                    Joiner.on(operator).join(Lists.transform(elementsRight, ELEMENT_TO_STRING_FUNCTION)));
+                    Joiner.on(operator).join(elementsRight.stream().map(e -> "ListItem(" + e + ")").collect(Collectors.toList())));
         } else {
             return identity;
         }
@@ -404,7 +393,7 @@ public class BuiltinList extends Collection {
                 baseTermTypesBuilder.add(BaseTermType.VARIABLE);
                 listVariablesBuilder.add((Variable) term);
             } else {
-                assert false : "unexpected concatenated term " + term;
+                throw KExceptionManager.criticalError("unexpected concatenated term" + term);
             }
         }
 
@@ -418,9 +407,11 @@ public class BuiltinList extends Collection {
          * Concatenates a term of sort List to this builder.
          */
         public void concatenate(Term term) {
-            assert term.sort().equals(Sort.LIST)
-                : "unexpected sort " + term.sort() + " of concatenated term " + term
-                + "; expected " + Sort.LIST;
+            if (!term.sort().equals(Sort.LIST)) {
+                throw KExceptionManager.criticalError("unexpected sort "
+                        + term.sort() + " of concatenated term " + term
+                        + "; expected " + Sort.LIST);
+            }
 
             if (status == BuilderStatus.ELEMENTS_LEFT) {
                 if (!(term instanceof BuiltinList)) {
@@ -459,8 +450,9 @@ public class BuiltinList extends Collection {
                     }
                 }
             } else {
-                assert false : "the builder is not allowed to concatencate list terms in "
-                        + BuilderStatus.ELEMENTS_RIGHT;
+                throw KExceptionManager.criticalError(
+                        "the builder is not allowed to concatencate list terms in "
+                        + BuilderStatus.ELEMENTS_RIGHT);
             }
         }
 

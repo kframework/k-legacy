@@ -8,7 +8,7 @@ import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Utils;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.DataStructureSort;
-
+import org.kframework.utils.errorsystem.KExceptionManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -50,6 +50,20 @@ public class BuiltinSet extends AssociativeCommutativeCollection {
         Builder builder = new Builder();
         builder.concatenate(sets);
         return builder.build();
+    }
+
+    /**
+     * TODO(YilongL): implement it properly!
+     */
+    public boolean isUnifiableByCurrentAlgorithm() {
+        return true;
+    }
+
+    public static boolean isSetUnifiableByCurrentAlgorithm(Term term, Term otherTerm) {
+        return term instanceof BuiltinSet
+                && ((BuiltinSet) term).isUnifiableByCurrentAlgorithm()
+                && otherTerm instanceof BuiltinSet
+                && ((BuiltinSet) term).isUnifiableByCurrentAlgorithm();
     }
 
     public boolean contains(Term element) {
@@ -186,7 +200,7 @@ public class BuiltinSet extends AssociativeCommutativeCollection {
 
         public <T extends Term> boolean addAll(Collection<T> elements) {
             // elements refers to the one in the outer class
-            return this.elements.<T>addAll(elements);
+            return this.elements.addAll(elements);
         }
 
         public boolean remove(Term element) {
@@ -198,9 +212,11 @@ public class BuiltinSet extends AssociativeCommutativeCollection {
          */
         public void concatenate(Term... terms) {
             for (Term term : terms) {
-                assert term.sort().equals(Sort.SET)
-                        : "unexpected sort " + term.sort() + " of concatenated term " + term
-                        + "; expected " + Sort.SET;
+                if (!term.sort().equals(Sort.SET)) {
+                    throw KExceptionManager.criticalError("unexpected sort "
+                            + term.sort() + " of concatenated term " + term
+                            + "; expected " + Sort.SET);
+                }
 
                 if (term instanceof BuiltinSet) {
                     BuiltinSet set = (BuiltinSet) term;
@@ -217,7 +233,7 @@ public class BuiltinSet extends AssociativeCommutativeCollection {
                 } else if (term instanceof Variable) {
                     variablesBuilder.add((Variable) term);
                 } else {
-                    assert false : "unexpected concatenated term" + term;
+                    throw KExceptionManager.criticalError("unexpected concatenated term" + term);
                 }
             }
         }
