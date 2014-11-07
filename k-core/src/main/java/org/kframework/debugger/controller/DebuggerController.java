@@ -107,6 +107,14 @@ public class DebuggerController {
                 //wait for the command
                 do {
                     DebuggerCommand command = frontend.getCommand();
+                    switch(command.getCommand()){
+                        case STEP:
+                            if(command.getStepCount() > 0){
+                                backend.step(command.getStepCount());
+                            }
+
+                    }
+
                 }while(true);
             }
             catch(Exception e){

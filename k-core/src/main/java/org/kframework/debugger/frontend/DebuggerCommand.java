@@ -34,4 +34,12 @@ public class DebuggerCommand {
     public void setStateTwo(int stateTwo){
         this.stateTwo = stateTwo;
     }
+
+    public Command getCommand(){
+        return command;
+    }
+
+    public int getStepCount(){
+        return stepCount;
+    }
 }

@@ -89,7 +89,11 @@ public class TextualDebuggerFrontend implements DebuggerFrontend{
                         }
                     }
                 }  else if (command(jc) instanceof KRunDebuggerOptions.CommandStep) {
-                    
+                    //intended usage of the command object
+                    command.setCommand(Command.STEP);
+                    command.setStepCount(options.step.numSteps);
+                    return command;
+
                 }
 
 
