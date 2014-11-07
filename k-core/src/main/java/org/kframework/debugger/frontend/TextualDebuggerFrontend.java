@@ -120,7 +120,7 @@ public class TextualDebuggerFrontend implements DebuggerFrontend{
 
             }
             catch(IOException e){
-                //tell backend to stop.
+                command.setCommand(GenericCommand.EXIT);
             }
 
         }
