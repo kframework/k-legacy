@@ -42,4 +42,12 @@ public class DebuggerCommand {
     public int getStepCount(){
         return stepCount;
     }
+
+    public int getStateOne(){
+        return stateOne;
+    }
+
+    public int getStateTwo(){
+        return stateTwo;
+    }
 }

@@ -3,21 +3,34 @@ package org.kframework.debugger.frontend;
 import org.kframework.kil.Attributes;
 import org.kframework.krun.api.KRunGraph;
 import org.kframework.krun.api.KRunState;
+import org.kframework.krun.api.SearchResults;
 import org.kframework.transformation.Transformation;
 
 /**
- *
+ *  Format of the Result:
+ *  Pass the required values in the constructor as parameters.
+ *  For eg, for a step operation, valid call is
+ *  ControllerResult(Attributes, originalState, SteppedState, originalCommand, null, Status.VALID)
  */
 public class ControllerResult {
+    enum Status{
+        VALID, INVALID
+    }
     Transformation transformation;                  //will be set depending on the kind of transformation
-
     private KRunState originalState;
     private KRunState newState;
     private DebuggerCommand command;                //represents the command issued by the frontend
     private Attributes a;
+    private SearchResults searchResults;
+    public SearchResults getSearchResults() {
+        return searchResults;
+    }
 
+    public void setSearchResults(SearchResults searchResults) {
+        this.searchResults = searchResults;
+    }
 
-    public ControllerResult(Attributes a){
+    public ControllerResult(Attributes a, originalState, newState, command, searchResults, Status){
         this.a = a;
     }
 

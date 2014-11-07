@@ -1,17 +1,15 @@
 package org.kframework.debugger.controller;
 
 import org.kframework.debugger.backend.Debugger;
-import org.kframework.debugger.frontend.ControllerResult;
-import org.kframework.debugger.frontend.DebuggerCommand;
-import org.kframework.debugger.frontend.DebuggerFrontend;
+import org.kframework.debugger.frontend.*;
 import com.google.inject.Inject;
-import org.kframework.debugger.frontend.FrontendStatus;
 import org.kframework.kil.Attributes;
 import org.kframework.kil.Term;
 import org.kframework.kil.loader.Context;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.api.*;
+import org.kframework.krun.ioserver.commands.Command;
 import org.kframework.transformation.Transformation;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -113,6 +111,7 @@ public class DebuggerController {
                         case STEP:
                             if(command.getStepCount() > 0){
                                 backend.step(command.getStepCount());
+                                ControllerResult  result =
                                 ControllerResult result = new ControllerResult(a);
                                 result.setCommand(command);
                                 result.setOriginalState(currentState);
@@ -121,6 +120,18 @@ public class DebuggerController {
                                 frontend.publishResult(result);
                                 break;
                             }
+                        case SET_STATE:
+                            backend.setCurrentState(command.getStateOne());
+                            break;
+                        case GET_STATE:
+                            KRunState state = backend.getState(command.getStateOne());
+                            ControllerResult result = new ControllerResult(a);
+                            result.setCommand(command);
+                            result.setNewState(state);
+                            result.setTransformation(statePrinter);
+                            frontend.publishResult(result);
+                            break;
+                        case SEARCH:
 
                     }
 
