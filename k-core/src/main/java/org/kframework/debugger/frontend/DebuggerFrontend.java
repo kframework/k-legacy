@@ -28,6 +28,6 @@ public interface DebuggerFrontend {
      * @return DebuggerStatus specifying the result of the operation. Specifying FAILURE will lead to the
      *         same result in function being called again with the same result
      */
-    public abstract FrontendStatus publishResult();
+    public abstract FrontendStatus publishResult(ControllerResult result);
 
 }

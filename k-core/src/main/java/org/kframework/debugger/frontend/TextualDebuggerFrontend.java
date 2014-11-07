@@ -111,7 +111,7 @@ public class TextualDebuggerFrontend implements DebuggerFrontend{
     }
 
     @Override
-    public FrontendStatus publishResult() {
-        return null;
+    public FrontendStatus publishResult(ControllerResult result) {
+
     }
 }

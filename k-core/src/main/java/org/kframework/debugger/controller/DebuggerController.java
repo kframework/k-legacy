@@ -1,6 +1,7 @@
 package org.kframework.debugger.controller;
 
 import org.kframework.debugger.backend.Debugger;
+import org.kframework.debugger.frontend.ControllerResult;
 import org.kframework.debugger.frontend.DebuggerCommand;
 import org.kframework.debugger.frontend.DebuggerFrontend;
 import com.google.inject.Inject;
@@ -107,10 +108,17 @@ public class DebuggerController {
                 //wait for the command
                 do {
                     DebuggerCommand command = frontend.getCommand();
+                    KRunState currentState = backend.getState(backend.getCurrentState());
                     switch(command.getCommand()){
                         case STEP:
                             if(command.getStepCount() > 0){
                                 backend.step(command.getStepCount());
+                                ControllerResult result = new ControllerResult(a);
+                                result.setCommand(command);
+                                result.setOriginalState(currentState);
+                                result.setNewState(backend.getState(backend.getCurrentState()));
+                                result.setTransformation(statePrinter);
+
                             }
 
                     }

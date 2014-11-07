@@ -15,7 +15,7 @@ public class ControllerResult {
     private KRunState newState;
     private DebuggerCommand command;                //represents the command issued by the frontend
     private Attributes a;
-    
+
 
     public ControllerResult(Attributes a){
         this.a = a;
