@@ -3,7 +3,6 @@ package org.kframework.debugger.frontend;
 import com.beust.jcommander.JCommander;
 import jline.*;
 import org.kframework.krun.KRunDebuggerOptions;
-
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -94,6 +93,28 @@ public class TextualDebuggerFrontend implements DebuggerFrontend{
                     command.setStepCount(options.step.numSteps);
                     return command;
 
+                } else if (command(jc) instanceof KRunDebuggerOptions.CommandSearch) {
+                    command.setCommand(GenericCommand.SEARCH);
+                    System.out.println(options.search.numSteps);
+                    command.setStepCount(options.search.numSteps);
+                    return command;
+
+                } else if(command(jc) instanceof KRunDebuggerOptions.CommandSelect) {
+                    command.setCommand(GenericCommand.SELECT);
+                    command.setStateOne(options.select.stateId);
+                    return command;
+                } else if(command(jc) instanceof KRunDebuggerOptions.CommandResume) {
+                    command.setCommand(GenericCommand.RESUME);
+                    return command;
+                } else if(command(jc) instanceof KRunDebuggerOptions.CommandShowState) {
+                    command.setCommand(GenericCommand.GET_STATE);
+                    command.setStateOne(options.showState.stateId);
+                    return command;
+                } else if(command(jc) instanceof KRunDebuggerOptions.CommandShowTransition) {
+                    command.setCommand(GenericCommand.GET_TRANSITION);
+                    command.setStateOne(options.showTransition.state1());
+                    command.setStateTwo(options.showTransition.state2());
+                    return command;
                 }
 
 
@@ -116,6 +137,20 @@ public class TextualDebuggerFrontend implements DebuggerFrontend{
             case STEP:
                 System.out.println(result.getTransformation().run(result.getNewState(), result.getAttributes()));
                 return FrontendStatus.SUCCESS;
+            case SEARCH:
+                System.out.println(result.getTransformation().run(result.getSearchResults(), result.getAttributes()));
+                return FrontendStatus.SUCCESS;
+            case SELECT:
+                System.out.println("Selected State : ");
+                System.out.println(result.getTransformation().run(result.getNewState(), result.getAttributes()));
+                return FrontendStatus.SUCCESS;
+            case RESUME:
+                System.out.println(result.getTransformation().run(result.getNewState(), result.getAttributes()));
+            case GET_STATE:
+                System.out.println(result.getTransformation().run(result.getNewState(), result.getAttributes()));
+            case GET_TRANSITION:
+                System.out.println(result.getTransformation().run(res));
+
         }
         return FrontendStatus.FAILURE;
     }

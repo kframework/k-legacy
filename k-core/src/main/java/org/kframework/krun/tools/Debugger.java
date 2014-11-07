@@ -169,9 +169,9 @@ public interface Debugger {
             this.transitionPrinter = transitionPrinter;
         }
 
-            private static Object command(JCommander jc) {
-                return jc.getCommands().get(jc.getParsedCommand()).getObjects().get(0);
-            }
+        private static Object command(JCommander jc) {
+            return jc.getCommands().get(jc.getParsedCommand()).getObjects().get(0);
+        }
 
         @Override
         public Void run(Void v, Attributes a) {
@@ -203,7 +203,7 @@ public interface Debugger {
             } catch (UnsupportedBackendOptionException e) {
                 kem.registerCriticalError("Backend \""
                         + kompileOptions.backend
-                            + "\" does not support option " + e.getMessage(), e);
+                        + "\" does not support option " + e.getMessage(), e);
                 throw new AssertionError("unreachable");
             } catch (KRunExecutionException e) {
                 kem.registerCriticalError(e.getMessage(), e);

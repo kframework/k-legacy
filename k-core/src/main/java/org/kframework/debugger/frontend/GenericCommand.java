@@ -5,6 +5,7 @@ package org.kframework.debugger.frontend;
  * give to the Controller.
  */
 public enum GenericCommand {
-    STEP, STEP_ALL, SEARCH, SET_STATE, GET_STATE,
-    EXIT, GET_GRAPH, GET_TRANSITION, SAVE, LOAD, INVALID
+    STEP, SEARCH, SELECT, SET_STATE, GET_STATE,
+    EXIT, GET_GRAPH, GET_TRANSITION, SAVE, LOAD, INVALID,
+    RESUME
 }

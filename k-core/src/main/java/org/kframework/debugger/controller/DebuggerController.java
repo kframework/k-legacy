@@ -9,7 +9,6 @@ import org.kframework.kil.loader.Context;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.api.*;
-import org.kframework.krun.ioserver.commands.Command;
 import org.kframework.transformation.Transformation;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -103,6 +102,8 @@ public class DebuggerController {
             //start the actual debugging loop
             try {
                 backend.start(initialConfiguration);
+                ControllerResult result;
+                KRunState state;
                 //wait for the command
                 do {
                     DebuggerCommand command = frontend.getCommand();
@@ -111,7 +112,7 @@ public class DebuggerController {
                         case STEP:
                             if(command.getStepCount() > 0){
                                 backend.step(command.getStepCount());
-                                ControllerResult result = new ControllerResult(
+                                result = new ControllerResult(
                                         a,
                                         currentState,
                                         backend.getState(backend.getCurrentState()),
@@ -126,12 +127,10 @@ public class DebuggerController {
                             else{
                                break;
                             }
-                        case SET_STATE:
+                        case SELECT:
                             backend.setCurrentState(command.getStateOne());
-                            break;
-                        case GET_STATE:
-                            KRunState state = backend.getState(command.getStateOne());
-                            ControllerResult result = new ControllerResult(
+                            state = backend.getState(backend.getCurrentState());
+                            result = new ControllerResult(
                                     a,
                                     currentState,
                                     state,
@@ -140,21 +139,53 @@ public class DebuggerController {
                                     statePrinter,
                                     ControllerResult.Status.VALID
                             );
-
-                            ControllerResult result = new ControllerResult(a);
-                            result.setCommand(command);
-                            result.setNewState(state);
-                            result.setTransformation(statePrinter);
+                            frontend.publishResult(result);
+                            break;
+                        case GET_STATE:
+                            state = backend.getState(command.getStateOne());
+                            result = new ControllerResult(
+                                    a,
+                                    currentState,
+                                    state,
+                                    command,
+                                    null,
+                                    statePrinter,
+                                    ControllerResult.Status.VALID
+                            );
                             frontend.publishResult(result);
                             break;
                         case SEARCH:
+                            SearchResults searchResults = backend.stepAll(command.getStepCount());
+                            result = new ControllerResult(
+                                    a,
+                                    currentState,
+                                    null,
+                                    command,
+                                    searchResults,
+                                    searchPrinter,
+                                    ControllerResult.Status.VALID
+                            );
+                            frontend.publishResult(result);
+                            break;
+                        case RESUME:
+                            backend.resume();
+                            result = new ControllerResult(
+                                    a,
+                                    currentState,
+                                    backend.getState(backend.getCurrentState()),
+                                    command,
+                                    null,
+                                    statePrinter,
+                                    ControllerResult.Status.VALID
+                            );
+                            frontend.publishResult(result);
 
                     }
 
                 }while(true);
             }
             catch(Exception e){
-
+                System.out.println(e.getMessage());
             }
             return null;
         }
