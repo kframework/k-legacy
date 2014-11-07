@@ -133,7 +133,7 @@ public class DebuggerController {
 
         @Override
         public String getName() {
-            return null;
+
         }
     }
 }

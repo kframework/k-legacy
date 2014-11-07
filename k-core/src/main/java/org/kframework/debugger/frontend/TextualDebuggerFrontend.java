@@ -70,7 +70,7 @@ public class TextualDebuggerFrontend implements DebuggerFrontend{
             try {
                 input = console.readLine("Kdb > ");
                 if(input == null){
-                    command.setCommand(Command.EXIT);
+                    command.setCommand(GenericCommand.EXIT);
                     return command;
                 }
                 if(input.equals("")){
@@ -90,7 +90,7 @@ public class TextualDebuggerFrontend implements DebuggerFrontend{
                     }
                 }  else if (command(jc) instanceof KRunDebuggerOptions.CommandStep) {
                     //intended usage of the command object
-                    command.setCommand(Command.STEP);
+                    command.setCommand(GenericCommand.STEP);
                     command.setStepCount(options.step.numSteps);
                     return command;
 
@@ -112,6 +112,6 @@ public class TextualDebuggerFrontend implements DebuggerFrontend{
 
     @Override
     public FrontendStatus publishResult(ControllerResult result) {
-
+        switch(result.getCommand().getCommand())
     }
 }

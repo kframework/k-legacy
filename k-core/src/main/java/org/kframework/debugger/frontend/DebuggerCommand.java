@@ -6,7 +6,7 @@ package org.kframework.debugger.frontend;
  */
 public class DebuggerCommand {
     private int stepCount;
-    private Command command;
+    private GenericCommand command;
     private int stateOne;
     private int stateTwo;
 
@@ -14,7 +14,7 @@ public class DebuggerCommand {
 
     public DebuggerCommand(){
         stepCount = INVALID;
-        command = Command.INVALID;
+        command = GenericCommand.INVALID;
         stateOne = INVALID;
         stateTwo = INVALID;
     }
@@ -23,7 +23,7 @@ public class DebuggerCommand {
         this.stepCount = stepCount;
     }
 
-    public void setCommand(Command command){
+    public void setCommand(GenericCommand command){
         this.command = command;
     }
 
@@ -35,7 +35,7 @@ public class DebuggerCommand {
         this.stateTwo = stateTwo;
     }
 
-    public Command getCommand(){
+    public GenericCommand getCommand(){
         return command;
     }
 
