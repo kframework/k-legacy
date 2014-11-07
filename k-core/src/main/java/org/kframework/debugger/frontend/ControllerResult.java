@@ -51,4 +51,8 @@ public class ControllerResult {
     public DebuggerCommand getCommand() {
         return command;
     }
+
+    public Attributes getAttributes(){
+        return a;
+    }
 }

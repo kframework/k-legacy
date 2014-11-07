@@ -35,7 +35,7 @@ public class DebuggerCommand {
         this.stateTwo = stateTwo;
     }
 
-    public GenericCommand getCommand(){
+    public GenericCommand getGenericCommand(){
         return command;
     }
 

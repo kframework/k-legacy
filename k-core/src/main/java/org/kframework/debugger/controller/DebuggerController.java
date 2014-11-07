@@ -109,7 +109,7 @@ public class DebuggerController {
                 do {
                     DebuggerCommand command = frontend.getCommand();
                     KRunState currentState = backend.getState(backend.getCurrentState());
-                    switch(command.getCommand()){
+                    switch(command.getGenericCommand()){
                         case STEP:
                             if(command.getStepCount() > 0){
                                 backend.step(command.getStepCount());
@@ -118,7 +118,8 @@ public class DebuggerController {
                                 result.setOriginalState(currentState);
                                 result.setNewState(backend.getState(backend.getCurrentState()));
                                 result.setTransformation(statePrinter);
-
+                                frontend.publishResult(result);
+                                break;
                             }
 
                     }
@@ -133,7 +134,7 @@ public class DebuggerController {
 
         @Override
         public String getName() {
-
+            return "--debugger";
         }
     }
 }

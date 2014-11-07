@@ -112,6 +112,11 @@ public class TextualDebuggerFrontend implements DebuggerFrontend{
 
     @Override
     public FrontendStatus publishResult(ControllerResult result) {
-        switch(result.getCommand().getCommand())
+        switch(result.getCommand().getGenericCommand()){
+            case STEP:
+                System.out.println(result.getTransformation().run(result.getNewState(), result.getAttributes()));
+                return FrontendStatus.SUCCESS;
+        }
+        return FrontendStatus.FAILURE;
     }
 }
