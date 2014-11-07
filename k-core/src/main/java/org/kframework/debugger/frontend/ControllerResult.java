@@ -13,15 +13,14 @@ import org.kframework.transformation.Transformation;
  *  ControllerResult(Attributes, originalState, SteppedState, originalCommand, null, Status.VALID)
  */
 public class ControllerResult {
-    enum Status{
-        VALID, INVALID
-    }
+
     Transformation transformation;                  //will be set depending on the kind of transformation
     private KRunState originalState;
     private KRunState newState;
     private DebuggerCommand command;                //represents the command issued by the frontend
     private Attributes a;
     private SearchResults searchResults;
+    private Status status;
     public SearchResults getSearchResults() {
         return searchResults;
     }
@@ -30,8 +29,22 @@ public class ControllerResult {
         this.searchResults = searchResults;
     }
 
-    public ControllerResult(Attributes a, originalState, newState, command, searchResults, Status){
+    public ControllerResult(
+            Attributes a,
+            KRunState originalState,
+            KRunState newState,
+            DebuggerCommand command,
+            SearchResults searchResults,
+            Transformation transformation,
+            Status status){
+
         this.a = a;
+        this.originalState = originalState;
+        this.newState = newState;
+        this.command = command;
+        this.searchResults = searchResults;
+        this.transformation = transformation;
+        this.status = status;
     }
 
     public void setTransformation(Transformation transformation) {
@@ -67,5 +80,8 @@ public class ControllerResult {
 
     public Attributes getAttributes(){
         return a;
+    }
+    public enum Status{
+        VALID, INVALID
     }
 }

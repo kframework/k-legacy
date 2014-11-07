@@ -111,20 +111,36 @@ public class DebuggerController {
                         case STEP:
                             if(command.getStepCount() > 0){
                                 backend.step(command.getStepCount());
-                                ControllerResult  result =
-                                ControllerResult result = new ControllerResult(a);
-                                result.setCommand(command);
-                                result.setOriginalState(currentState);
-                                result.setNewState(backend.getState(backend.getCurrentState()));
-                                result.setTransformation(statePrinter);
+                                ControllerResult result = new ControllerResult(
+                                        a,
+                                        currentState,
+                                        backend.getState(backend.getCurrentState()),
+                                        command,
+                                        null,
+                                        statePrinter,
+                                        ControllerResult.Status.VALID
+                                );
                                 frontend.publishResult(result);
                                 break;
+                            }
+                            else{
+                               break;
                             }
                         case SET_STATE:
                             backend.setCurrentState(command.getStateOne());
                             break;
                         case GET_STATE:
                             KRunState state = backend.getState(command.getStateOne());
+                            ControllerResult result = new ControllerResult(
+                                    a,
+                                    currentState,
+                                    state,
+                                    command,
+                                    null,
+                                    statePrinter,
+                                    ControllerResult.Status.VALID
+                            );
+
                             ControllerResult result = new ControllerResult(a);
                             result.setCommand(command);
                             result.setNewState(state);
