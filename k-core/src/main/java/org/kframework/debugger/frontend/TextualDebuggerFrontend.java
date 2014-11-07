@@ -149,7 +149,7 @@ public class TextualDebuggerFrontend implements DebuggerFrontend{
             case GET_STATE:
                 System.out.println(result.getTransformation().run(result.getNewState(), result.getAttributes()));
             case GET_TRANSITION:
-                System.out.println(result.getTransformation().run(res));
+                System.out.println(result.getTransformation().run(result.getTransition(), result.getAttributes()));
 
         }
         return FrontendStatus.FAILURE;

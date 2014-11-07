@@ -4,6 +4,7 @@ import org.kframework.kil.Attributes;
 import org.kframework.krun.api.KRunGraph;
 import org.kframework.krun.api.KRunState;
 import org.kframework.krun.api.SearchResults;
+import org.kframework.krun.api.Transition;
 import org.kframework.transformation.Transformation;
 
 /**
@@ -21,6 +22,7 @@ public class ControllerResult {
     private Attributes a;
     private SearchResults searchResults;
     private Status status;
+    private Transition transition;
     public SearchResults getSearchResults() {
         return searchResults;
     }
@@ -36,6 +38,7 @@ public class ControllerResult {
             DebuggerCommand command,
             SearchResults searchResults,
             Transformation transformation,
+            Transition transition,
             Status status){
 
         this.a = a;
@@ -44,6 +47,7 @@ public class ControllerResult {
         this.command = command;
         this.searchResults = searchResults;
         this.transformation = transformation;
+        this.transition = transition;
         this.status = status;
     }
 
@@ -77,11 +81,14 @@ public class ControllerResult {
     public DebuggerCommand getCommand() {
         return command;
     }
-
+    public Transition getTransition(){
+        return transition;
+    }
     public Attributes getAttributes(){
         return a;
     }
     public enum Status{
         VALID, INVALID
     }
+
 }

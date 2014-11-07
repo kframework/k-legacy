@@ -1,5 +1,6 @@
 package org.kframework.debugger.controller;
 
+import org.kframework.backend.unparser.PrintTransition;
 import org.kframework.debugger.backend.Debugger;
 import org.kframework.debugger.frontend.*;
 import com.google.inject.Inject;
@@ -105,6 +106,7 @@ public class DebuggerController {
                 ControllerResult result;
                 KRunState state;
                 //wait for the command
+                boolean exitCondition = false;
                 do {
                     DebuggerCommand command = frontend.getCommand();
                     KRunState currentState = backend.getState(backend.getCurrentState());
@@ -119,6 +121,7 @@ public class DebuggerController {
                                         command,
                                         null,
                                         statePrinter,
+                                        null,
                                         ControllerResult.Status.VALID
                                 );
                                 frontend.publishResult(result);
@@ -137,6 +140,7 @@ public class DebuggerController {
                                     command,
                                     null,
                                     statePrinter,
+                                    null,
                                     ControllerResult.Status.VALID
                             );
                             frontend.publishResult(result);
@@ -150,6 +154,7 @@ public class DebuggerController {
                                     command,
                                     null,
                                     statePrinter,
+                                    null,
                                     ControllerResult.Status.VALID
                             );
                             frontend.publishResult(result);
@@ -163,6 +168,7 @@ public class DebuggerController {
                                     command,
                                     searchResults,
                                     searchPrinter,
+                                    null,
                                     ControllerResult.Status.VALID
                             );
                             frontend.publishResult(result);
@@ -176,13 +182,33 @@ public class DebuggerController {
                                     command,
                                     null,
                                     statePrinter,
+                                    null,
                                     ControllerResult.Status.VALID
                             );
                             frontend.publishResult(result);
-
+                        case GET_TRANSITION:
+                            a.add(KRunGraph.class, backend.getGraph());
+                            a.add(Boolean.class, PrintTransition.PRINT_VERBOSE_GRAPH, true);
+                            result = new ControllerResult(
+                                    a,
+                                    currentState,
+                                    null,
+                                    command,
+                                    null,
+                                    transitionPrinter,
+                                    backend.getEdge(command.getStateOne(), command.getStateTwo()),
+                                    ControllerResult.Status.VALID
+                            );
+                            frontend.publishResult(result);
+                            break;
+                        case EXIT:
+                            exitCondition = true;
+                            break;
+                        default:
+                            continue;
                     }
 
-                }while(true);
+                }while(!exitCondition);
             }
             catch(Exception e){
                 System.out.println(e.getMessage());
