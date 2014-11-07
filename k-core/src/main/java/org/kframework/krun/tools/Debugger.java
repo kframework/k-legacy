@@ -169,9 +169,9 @@ public interface Debugger {
             this.transitionPrinter = transitionPrinter;
         }
 
-        private static Object command(JCommander jc) {
-            return jc.getCommands().get(jc.getParsedCommand()).getObjects().get(0);
-        }
+            private static Object command(JCommander jc) {
+                return jc.getCommands().get(jc.getParsedCommand()).getObjects().get(0);
+            }
 
         @Override
         public Void run(Void v, Attributes a) {

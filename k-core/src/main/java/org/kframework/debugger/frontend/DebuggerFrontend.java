@@ -4,7 +4,7 @@ package org.kframework.debugger.frontend;
  *  The Interface for every frontend. The Instance is
  *  dependency injected into the Controller.
  *  It must be kept in mind that the frontend is stateless, all the state
- *  is maintained by the backend/controller. 
+ *  is maintained by the backend/controller.
  */
 public interface DebuggerFrontend {
 

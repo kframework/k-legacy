@@ -112,7 +112,7 @@ public class DebuggerController {
             catch(Exception e){
 
             }
-
+            return null;
         }
 
         @Override
