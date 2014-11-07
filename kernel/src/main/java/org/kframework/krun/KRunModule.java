@@ -17,6 +17,9 @@ import org.kframework.backend.unparser.PrintSearchResults;
 import org.kframework.backend.unparser.PrintTerm;
 import org.kframework.backend.unparser.PrintTransition;
 import org.kframework.backend.unparser.RawOutputMode;
+import org.kframework.debugger.controller.DebuggerController;
+import org.kframework.debugger.frontend.DebuggerFrontend;
+import org.kframework.debugger.frontend.TextualDebuggerFrontend;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Configuration;
 import org.kframework.kil.Term;
@@ -32,7 +35,7 @@ import org.kframework.krun.api.SearchResults;
 import org.kframework.krun.api.Transition;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
-import org.kframework.krun.tools.Debugger;
+import org.kframework.debugger.backend.Debugger;
 import org.kframework.krun.tools.Executor;
 import org.kframework.krun.tools.LtlModelChecker;
 import org.kframework.krun.tools.Prover;
@@ -149,7 +152,7 @@ public class KRunModule extends AbstractModule {
                 binder(), TypeLiteral.get(ToolActivation.class), new TypeLiteral<Transformation<Void, Void>>() {});
         MapBinder<ToolActivation, Transformation<Void, KRunResult<?>>> krunResultTools = MapBinder.newMapBinder(
                 binder(), TypeLiteral.get(ToolActivation.class), new TypeLiteral<Transformation<Void, KRunResult<?>>>() {});
-        mainTools.addBinding(new ToolActivation.OptionActivation("--debugger")).to(Debugger.Tool.class);
+        mainTools.addBinding(new ToolActivation.OptionActivation("--debugger")).to(DebuggerController.Controller.class);
         krunResultTools.addBinding(new ToolActivation.OptionActivation("--ltlmc")).to(LtlModelChecker.Tool.class);
         krunResultTools.addBinding(new ToolActivation.OptionActivation("--ltlmc-file")).to(LtlModelChecker.Tool.class);
         krunResultTools.addBinding(new ToolActivation.OptionActivation("--prove")).to(Prover.Tool.class);
@@ -197,6 +200,9 @@ public class KRunModule extends AbstractModule {
                     binder(), String.class, Prover.class);
 
             bind(Debugger.class).to(ExecutorDebugger.class);
+
+            //please verify, to be changed later to get implementation from filesystem
+            bind(DebuggerFrontend.class).to(TextualDebuggerFrontend.class);
 
             bind(Term.class).toProvider(InitialConfigurationProvider.class);
 
