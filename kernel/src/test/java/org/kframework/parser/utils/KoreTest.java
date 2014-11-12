@@ -35,6 +35,7 @@ public class KoreTest extends BaseTestCase {
 
     @Test
     public void testKore() throws Exception {
+        System.out.println(new File("src/test/resources/kast/quote-unquote.kore").getAbsolutePath());
         String quq = FileUtils.readFileToString(new File("src/test/resources/kast/quote-unquote.kore"));
         String kore = FileUtils.readFileToString(new File("src/test/resources/kast/kore.k"));
         Definition def = new Definition();
