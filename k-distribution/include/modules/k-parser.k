@@ -110,9 +110,4 @@ module K-PARSER
   rule parseSKExpInjectedString(S1:String, 0, I:Int, S2:String)
     => parseSKExps(ltrim(substrString(S1, findString(S1, ")", I +Int 1) +Int 1, lengthString(S1))), #parseToken("String", substrString(S1, 1, I -Int 1)))
     when S2 =/=String "\\"
-
-  syntax KItem ::= #parseInModule(String, // input
-                                  String, // start symbol
-                                  String) // module name
-                                  [function, hook(#K-PARSER:#parseInModule)]
 endmodule
