@@ -305,14 +305,12 @@ public class SymbolicUnifier extends AbstractUnifier {
         Multiset<Variable> remainingVariables = Multisets.difference(variables, commonVariables);
         Multiset<Variable> otherRemainingVariables = Multisets.difference(otherVariables, commonVariables);
 
-        if (remainingElements.isEmpty()
-                && remainingPatterns.isEmpty()
+        if (remainingPatterns.isEmpty()
                 && remainingVariables.isEmpty()
                 && !otherRemainingElements.isEmpty()) {
             fail(set, otherSet);
         }
-        if (otherRemainingElements.isEmpty()
-                && otherRemainingPatterns.isEmpty()
+        if (otherRemainingPatterns.isEmpty()
                 && otherRemainingVariables.isEmpty()
                 && !remainingElements.isEmpty()) {
             fail(set, otherSet);
