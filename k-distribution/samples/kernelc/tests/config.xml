@@ -8,7 +8,6 @@
             results="./execution/tests"
             extension="c"
             >
-        <kompile-option name="--backend" value="java" />
         <all-programs>
             <krun-option name="--pattern-matching" />
             <krun-option name="--output" value="none" />

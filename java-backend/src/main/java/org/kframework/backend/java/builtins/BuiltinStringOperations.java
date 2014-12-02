@@ -96,7 +96,11 @@ public class BuiltinStringOperations {
     }
 
     public static IntToken string2int(StringToken term, TermContext context) {
-        return IntToken.of(term.stringValue());
+        try {
+            return IntToken.of(term.stringValue());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     public static IntToken string2base(StringToken term, IntToken base, TermContext context) {

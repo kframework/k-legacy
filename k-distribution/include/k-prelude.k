@@ -20,8 +20,8 @@ module K-LISTK-EXTRAS
   syntax Bool ::= K "#inKList" KList [function]
   rule K:K inKList L:KList => K #inKList L ==K true
   rule K #inKList (_,,K:K,,_) => true
-  rule isKResult(_:KResult,,K:K,,KL:KList) => isKResult(K,,KL)
   rule isKResult(.KList) => true
+
 endmodule
 
 module K-RESULT
@@ -74,16 +74,8 @@ endmodule
 module K-FREZERS
   imports K-TECHNIQUE
   syntax KLabel ::= "#freezer" K
-  syntax KLabel ::= "heat" | "heated" | "redex" | "cool"
 
-  rule heat(heated(K:K)) => K
-  rule heat(heated(_,,K:K,,_)) => K
-     [heat-choice]
-
-  rule heat((redex(_:K,, K:K,, KL:KList) => K,,KL),,_)
-    [owise]
-  rule heat((redex(K:K) => .KList),,_,,heated(_,,(.KList => K)))
-    [owise]
+  syntax K ::= cool(K) [function, klabel(cool)]
 
   rule cool(K:K) => K [owise]
 endmodule

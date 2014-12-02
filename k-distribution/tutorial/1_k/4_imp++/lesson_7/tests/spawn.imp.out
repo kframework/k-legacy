@@ -48,10 +48,10 @@ Solution 1:
         4 |-> 5
     </store>
     <in>
-        ListItem(#buffer ( "" ))
+        ListItem ( #buffer ( "" ) )
     </in>
     <out>
-        ListItem(#buffer ( "x = 11\n" ))
+        ListItem ( #buffer ( "x = 11\n" ) )
     </out>
 </T>
 
@@ -103,10 +103,10 @@ Solution 2:
         4 |-> 5
     </store>
     <in>
-        ListItem(#buffer ( "" ))
+        ListItem ( #buffer ( "" ) )
     </in>
     <out>
-        ListItem(#buffer ( "x = 16\n" ))
+        ListItem ( #buffer ( "x = 16\n" ) )
     </out>
 </T>
 
@@ -158,10 +158,10 @@ Solution 3:
         4 |-> 5
     </store>
     <in>
-        ListItem(#buffer ( "" ))
+        ListItem ( #buffer ( "" ) )
     </in>
     <out>
-        ListItem(#buffer ( "x = 21\n" ))
+        ListItem ( #buffer ( "x = 21\n" ) )
     </out>
 </T>
 
@@ -213,229 +213,9 @@ Solution 4:
         4 |-> 5
     </store>
     <in>
-        ListItem(#buffer ( "" ))
+        ListItem ( #buffer ( "" ) )
     </in>
     <out>
-        ListItem(#buffer ( "x = 33\n" ))
-    </out>
-</T>
-
-Solution 5:
-<T>
-    <threads>
-        <thread>
-            <k>
-                .K
-            </k>
-            <env>
-                t1 |-> 2
-                t2 |-> 6
-                x |-> 1
-            </env>
-            <id>
-                0
-            </id>
-        </thread>
-        <thread>
-            <k>
-                .K
-            </k>
-            <env>
-                t1 |-> 2
-                t2 |-> 6
-                x |-> 1
-            </env>
-            <id>
-                7
-            </id>
-        </thread>
-        <thread>
-            <k>
-                .K
-            </k>
-            <env>
-                t1 |-> 2
-                x |-> 1
-            </env>
-            <id>
-                3
-            </id>
-        </thread>
-    </threads>
-    <store>
-        1 |-> 11
-        2 |-> 3
-        6 |-> 7
-    </store>
-    <in>
-        ListItem(#buffer ( "" ))
-    </in>
-    <out>
-        ListItem(#buffer ( "x = 11\n" ))
-    </out>
-</T>
-
-Solution 6:
-<T>
-    <threads>
-        <thread>
-            <k>
-                .K
-            </k>
-            <env>
-                t1 |-> 2
-                t2 |-> 6
-                x |-> 1
-            </env>
-            <id>
-                0
-            </id>
-        </thread>
-        <thread>
-            <k>
-                .K
-            </k>
-            <env>
-                t1 |-> 2
-                t2 |-> 6
-                x |-> 1
-            </env>
-            <id>
-                7
-            </id>
-        </thread>
-        <thread>
-            <k>
-                .K
-            </k>
-            <env>
-                t1 |-> 2
-                x |-> 1
-            </env>
-            <id>
-                3
-            </id>
-        </thread>
-    </threads>
-    <store>
-        1 |-> 21
-        2 |-> 3
-        6 |-> 7
-    </store>
-    <in>
-        ListItem(#buffer ( "" ))
-    </in>
-    <out>
-        ListItem(#buffer ( "x = 21\n" ))
-    </out>
-</T>
-
-Solution 7:
-<T>
-    <threads>
-        <thread>
-            <k>
-                .K
-            </k>
-            <env>
-                t1 |-> 2
-                t2 |-> 6
-                x |-> 1
-            </env>
-            <id>
-                0
-            </id>
-        </thread>
-        <thread>
-            <k>
-                .K
-            </k>
-            <env>
-                t1 |-> 2
-                t2 |-> 6
-                x |-> 1
-            </env>
-            <id>
-                7
-            </id>
-        </thread>
-        <thread>
-            <k>
-                .K
-            </k>
-            <env>
-                t1 |-> 2
-                x |-> 1
-            </env>
-            <id>
-                3
-            </id>
-        </thread>
-    </threads>
-    <store>
-        1 |-> 33
-        2 |-> 3
-        6 |-> 7
-    </store>
-    <in>
-        ListItem(#buffer ( "" ))
-    </in>
-    <out>
-        ListItem(#buffer ( "x = 33\n" ))
-    </out>
-</T>
-
-Solution 8:
-<T>
-    <threads>
-        <thread>
-            <k>
-                .K
-            </k>
-            <env>
-                t1 |-> 2
-                t2 |-> 8
-                x |-> 1
-            </env>
-            <id>
-                0
-            </id>
-        </thread>
-        <thread>
-            <k>
-                .K
-            </k>
-            <env>
-                t1 |-> 2
-                t2 |-> 8
-                x |-> 1
-            </env>
-            <id>
-                9
-            </id>
-        </thread>
-        <thread>
-            <k>
-                .K
-            </k>
-            <env>
-                t1 |-> 2
-                x |-> 1
-            </env>
-            <id>
-                3
-            </id>
-        </thread>
-    </threads>
-    <store>
-        1 |-> 21
-        2 |-> 3
-        8 |-> 9
-    </store>
-    <in>
-        ListItem(#buffer ( "" ))
-    </in>
-    <out>
-        ListItem(#buffer ( "x = 21\n" ))
+        ListItem ( #buffer ( "x = 33\n" ) )
     </out>
 </T>

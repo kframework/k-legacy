@@ -13,6 +13,7 @@ import org.kframework.backend.java.kil.Sort;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.kil.Token;
+import org.kframework.utils.errorsystem.KExceptionManager;
 
 /**
  * Utility class for checking sort membership predicates.
@@ -35,9 +36,11 @@ public class SortMembership {
      */
     public static Term check(KItem kItem, Definition definition) {
         assert kItem.kLabel() instanceof KLabelConstant;
-        assert kItem.kList() instanceof KList
+        if (!(kItem.kList() instanceof KList
                 && ((KList) kItem.kList()).concreteSize() == 1
-                && ((KList) kItem.kList()).isConcreteCollection() : "unexpected argument: " + kItem.kList();
+                && ((KList) kItem.kList()).isConcreteCollection())) {
+            throw KExceptionManager.criticalError("unexpected argument: " + kItem.kList(), kItem);
+        }
 
         Sort predicateSort = ((KLabelConstant) kItem.kLabel()).getPredicateSort();
         if (!definition.allSorts().contains(predicateSort)) {

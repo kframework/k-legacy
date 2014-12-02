@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.kframework.backend.maude.MaudeFilter;
 import org.kframework.backend.unparser.IndentationOptions;
 import org.kframework.backend.unparser.KastFilter;
 import org.kframework.backend.unparser.KoreFilter;
@@ -90,11 +89,6 @@ public class KastFrontEnd extends FrontEnd {
             KastFilter kastFilter = new KastFilter(indentationOptions, options.experimental.nextLine, context);
             kastFilter.visitNode(out);
             kast = kastFilter.getResult();
-        } else if (context.kompileOptions.experimental.legacyKast) {
-            MaudeFilter maudeFilter = new MaudeFilter(context, kem);
-            maudeFilter.visitNode(out);
-            kast = maudeFilter.getResult();
-            kast.append("\n");
         } else {
             KoreFilter koreFilter = new KoreFilter(context);
             StringBuilder sb = new StringBuilder();

@@ -18,6 +18,7 @@ import org.kframework.kil.Term;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.BasicVisitor;
 import org.kframework.kil.visitors.CopyOnWriteTransformer;
+import org.kframework.utils.errorsystem.KExceptionManager;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -96,6 +97,9 @@ public class AddLocalRewritesUnderCells extends CopyOnWriteTransformer {
 
     @Override
     public ASTNode visit(Rule rule, Void _)  {
+        if (rule.getAttribute(JavaBackendRuleData.class) == null) {
+            throw KExceptionManager.internalError("null rule data: " + rule, rule);
+        }
         if (!rule.getAttribute(JavaBackendRuleData.class).isCompiledForFastRewriting()) {
             return setCellsToCopyForUncompiledRule(rule);
         }

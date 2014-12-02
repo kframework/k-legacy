@@ -652,7 +652,7 @@ language in the \K tutorial and many other languages provided with the
 way to achieve the benefits of tail recursion in \K.  */
 
   syntax KItem ::= env(Map)  // TODO: get rid of env
-  rule (env(_) => .) ~> env(_)  [anywhere]
+  rule (env(_) => .) ~> env(_) [anywhere]
   rule <k> _:Val ~> (env(Rho) => .) ...</k> <env> _ => Rho </env>
     [structural]
 
@@ -682,7 +682,7 @@ above. */
   syntax KItem ::= assignTo(Names,Exps)  [strict(2)]
 
   rule <k> assignTo(.Names,.Vals) => . ...</k>            [structural]
-  rule <k> assignTo((X:Name,Xs => Xs),(V:Val,Vs => Vs)) ...</k>
+  rule <k> assignTo((X:Name,Xs => Xs),(V:Val,Vs:Vals => Vs)) ...</k>
        <env>... X |-> L ...</env>
        <store>... .Map => L |-> V ...</store>             [structural]
 

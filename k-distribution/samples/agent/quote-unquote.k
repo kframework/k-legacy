@@ -85,7 +85,7 @@ and \texttt{eval} are defined using the \texttt{\#visited} wrapper: */
   when (N >Int 0)
 
   rule lift V:Val => #visited(V)
-  rule eval #visited(E) => E
+  rule eval #visited(E:K) => E
 
 /*@ Since we want code values to become actual values in our language, we also
 need to explicitly state it that \texttt{\#visited}-wrapped terms belong to

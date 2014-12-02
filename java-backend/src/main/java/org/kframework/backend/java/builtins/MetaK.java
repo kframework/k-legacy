@@ -122,6 +122,24 @@ public class MetaK {
     }
 
     /**
+     * Rename all the variables in the set to unique fresh names.
+     * @param set
+     * @param term
+     * @param context
+     * @return
+     */
+    public static Term freshVariables(BuiltinSet set, Term term, TermContext context) {
+       Set<Variable> variables = new HashSet<>();
+       for (Term element : set.elements()) {
+           if (!(element instanceof Variable)) {
+               return null;
+           }
+           variables.add((Variable) element);
+       }
+       return term.substitute(Variable.getFreshSubstitution(variables), context);
+    }
+
+    /**
      * Returns all {@link Variable}s inside a given {@link Term} as a
      * {@link BuiltinSet} of {@link MetaVariable}s.
      */

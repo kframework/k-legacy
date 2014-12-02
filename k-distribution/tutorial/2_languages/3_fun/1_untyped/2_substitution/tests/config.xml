@@ -11,6 +11,7 @@
       results="../../1_environment/tests ." >
       <all-programs>
         <krun-option name="--pattern" value="&lt;k&gt; V:K &lt;/k&gt;" />
+        <krun-option name="--pattern-matching" />
        </all-programs>
   </test>
 

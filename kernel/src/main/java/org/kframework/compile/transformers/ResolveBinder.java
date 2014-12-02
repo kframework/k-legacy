@@ -5,27 +5,15 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
 import org.kframework.compile.utils.SyntaxByTag;
-import org.kframework.compile.utils.MetaK;
 import org.kframework.kil.ASTNode;
-import org.kframework.kil.Attribute;
-import org.kframework.kil.BoolBuiltin;
-import org.kframework.kil.IntBuiltin;
-import org.kframework.kil.KApp;
-import org.kframework.kil.KInjectedLabel;
 import org.kframework.kil.KLabelConstant;
-import org.kframework.kil.KList;
 import org.kframework.kil.Module;
 import org.kframework.kil.ModuleItem;
 import org.kframework.kil.Production;
-import org.kframework.kil.Rule;
 import org.kframework.kil.Sort;
-import org.kframework.kil.Term;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.CopyOnWriteTransformer;
-import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
-import org.kframework.utils.errorsystem.KException.ExceptionType;
-import org.kframework.utils.errorsystem.KException.KExceptionGroup;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -100,39 +88,6 @@ public class ResolveBinder extends CopyOnWriteTransformer {
             }
 
             prod.setBinderMap(bndMap);
-
-            Rule rule = new Rule(
-                    KApp.of(BINDER_PREDICATE, MetaK.getTerm(prod, context)),
-                    BoolBuiltin.TRUE, context);
-            rule.addAttribute(Attribute.ANYWHERE);
-            items.add(rule);
-
-            Term klblK = KApp.of(new KInjectedLabel(KLabelConstant.of(prod.getKLabel())));
-
-            for (int bndIdx : bndMap.keySet()) {
-                KList list = new KList();
-                list.getContents().add(klblK);
-                list.getContents().add(IntBuiltin.kAppOf(bndIdx + 1));
-                rule = new Rule(new KApp(BOUNDED_PREDICATE, list), BoolBuiltin.TRUE, context);
-                rule.addAttribute(Attribute.ANYWHERE);
-                items.add(rule);
-                //String bndSort = prod.getChildSort(bndIdx - 1);
-                // (AndreiS): the bounded sort is no longer automatically
-                // considered to be subsorted to Variable; Variable must be
-                // manually declared.
-                //items.add(AddPredicates.getIsVariableRule(
-                //        new Variable(MetaK.Constants.anyVarSymbol, bndSort),
-                //        context));
-            }
-
-            for (int bodyIdx : bndMap.values()) {
-                KList list = new KList();
-                list.getContents().add(klblK);
-                list.getContents().add(IntBuiltin.kAppOf(bodyIdx + 1));
-                rule = new Rule(new KApp(BOUNDING_PREDICATE, list), BoolBuiltin.TRUE, context);
-                rule.addAttribute(Attribute.ANYWHERE);
-                items.add(rule);
-            }
         }
 
         return node;

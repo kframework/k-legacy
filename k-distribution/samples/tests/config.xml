@@ -5,8 +5,6 @@
   <!-- QUINE -->
   <include file="../quine/tests/config.xml" directory="quine" />
 
-  <include file="../java_rewrite_engine/tests/config.xml" directory="java_rewrite_engine" />
-
   <!-- BF -->
   <include file="../bf/tests/config.xml" directory="bf" />
 
@@ -20,16 +18,19 @@
     <all-programs>
       <krun-option name="--output" value="none" />
       <krun-option name="--color" value="off" />
+      <krun-option name="--pattern-matching" />
     </all-programs>
     <program name="p22.agent">
       <krun-option name="--output" value="pretty" />
       <krun-option name="--search" />
       <krun-option name="--pattern" value="&lt;out&gt; L:List &lt;/out&gt;" />
+      <krun-option name="--pattern-matching" />
     </program>
     <program name="p23.agent">
       <krun-option name="--output" value="pretty" />
       <krun-option name="--search" />
       <krun-option name="--pattern" value="&lt;out&gt; L:List &lt;/out&gt;" />
+      <krun-option name="--pattern-matching" />
     </program>
   </test>
 

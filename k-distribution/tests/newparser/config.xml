@@ -83,6 +83,7 @@
         <kompile-option name="--java-parser" />
 		<all-programs>
 			<krun-option name="--parser" value="kast --parser newprogram" />
+                        <krun-option name="--output" value="kast" />
 		</all-programs>
 	</test>
 

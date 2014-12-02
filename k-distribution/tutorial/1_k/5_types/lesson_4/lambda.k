@@ -1,10 +1,8 @@
 // Copyright (c) 2012-2014 K Team. All Rights Reserved.
 require "modules/substitution.k"
-require "modules/unification.k"
 
 module LAMBDA
   imports SUBSTITUTION
-  imports UNIFICATION
 
   syntax Exp ::= Int | Bool | Id
                | "(" Exp ")"                      [bracket]

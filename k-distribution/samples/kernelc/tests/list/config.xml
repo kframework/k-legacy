@@ -8,7 +8,6 @@
             results="."
             extension="c"
             >
-        <kompile-option name="--backend" value="java" />
         <program name="head.c">
           <krun-option name="--prove" value="tests/list/head_spec.k" />
           <krun-option name="--smt_prelude" value="../../include/z3/list.smt2" />

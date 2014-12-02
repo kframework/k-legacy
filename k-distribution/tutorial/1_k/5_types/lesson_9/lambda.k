@@ -28,7 +28,7 @@ module LAMBDA
 
   configuration <k color="green"> $PGM:Exp </k>
                 <tenv color="red"> .Map </tenv>
-                <mgu color="blue"> .Mgu </mgu>
+                <mgu color="blue"> .K </mgu>
 
   rule I:Int => int
   rule B:Bool => bool

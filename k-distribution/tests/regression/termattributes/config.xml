@@ -7,10 +7,8 @@
         extension="test"
 	    skip="pdf"
         results="." >
-        <kompile-option name="--backend" value="java" />
         <all-programs>
           <krun-option name="--parser" value="kast --parser rules" />
-          <krun-option name="--term" />
         </all-programs>
   </test>
 

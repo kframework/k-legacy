@@ -4,7 +4,6 @@
 <tests>
 
   <include file="tests/config.xml" />
-  <include file="regression-maude/tests/config.xml" directory="regression-maude" />
 
   <include file="java-rewrite-engine/config.xml" directory="java-rewrite-engine" />
 

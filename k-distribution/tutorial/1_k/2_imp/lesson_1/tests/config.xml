@@ -8,6 +8,9 @@
       results="."
       extension="imp"
       >
+    <all-programs>
+      <krun-option name="--pattern-matching"/>
+    </all-programs>
   </test>
 </tests>
 
