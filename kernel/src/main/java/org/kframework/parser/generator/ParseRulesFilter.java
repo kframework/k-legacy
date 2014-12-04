@@ -100,7 +100,7 @@ public class ParseRulesFilter extends ParseForestTransformer {
                 assert false : "Only context and rules have been implemented. Found: " + ss.getType();
             }
 
-            String key = localModule + ss.getContent();
+            String key = localModule + ss.getContent() + ss.getAttributes().toString();
             if (cachedDef.containsKey(key)) {
                 Source source= ss.getSource();
                 Location location = ss.getLocation();

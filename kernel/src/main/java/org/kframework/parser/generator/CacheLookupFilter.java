@@ -42,7 +42,7 @@ public class CacheLookupFilter extends ParseForestTransformer {
 
             int startLine = XmlLoader.getLocNumber(ss.getContentLocation(), 0);
             int startColumn = XmlLoader.getLocNumber(ss.getContentLocation(), 1);
-            String key = localModule + ss.getContent();
+            String key = localModule + ss.getContent() + ss.getAttributes().toString();
 
             if (cachedDef.containsKey(key)) {
                 // load from cache
