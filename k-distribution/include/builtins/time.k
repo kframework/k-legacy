@@ -1,10 +1,8 @@
-// Copyright (c) 2012-2014 K Team. All Rights Reserved.
-require "long.k"
+// Copyright (c) 2014 K Team. All Rights Reserved.
 
 module TIME-HOOKS
   imports #TIME-INTERFACE
-  imports LONG-HOOKS
 
-  syntax Long ::= "time" "(" ")" [function, klabel(randomRandom), hook(#TIME:time)]
+  syntax Int ::= "time" "(" ")" [function, impure, klabel(time), hook(#TIME:time)]
 
 endmodule
