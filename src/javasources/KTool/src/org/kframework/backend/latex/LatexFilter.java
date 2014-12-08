@@ -154,6 +154,7 @@ public class LatexFilter extends BackendFilter {
         if (!(p.getItems().get(0) instanceof UserList) && p.containsAttribute(Constants.CONS_cons_ATTR)
                 && patternsVisitor.getPatterns().containsKey(p.getAttribute(Constants.CONS_cons_ATTR))) {
             String pattern = patternsVisitor.getPatterns().get(p.getAttribute(Constants.CONS_cons_ATTR));
+            pattern = pattern.replace(",", "\\kcomma");
             int n = 1;
             LatexFilter termFilter = new LatexFilter(context, indent);
             for (ProductionItem pi : p.getItems()) {
@@ -186,7 +187,8 @@ public class LatexFilter extends BackendFilter {
             result.append(StringUtil.latexify(terminal));
         } else {
             if (terminalBefore) {
-                result.append("{}");
+                //result.append("{}"); //todo code before line break support.
+                result.append(" \\ ");
             }
             result.append("\\terminal{" + StringUtil.latexify(terminal) + "}");
         }
@@ -287,7 +289,7 @@ public class LatexFilter extends BackendFilter {
         return false;
     }
 
-    private void printList(List<Term> contents, String str, boolean addNewLine) {
+    private void printList(List<Term> contents, String separator, boolean addNewLine) {
         boolean first = true;
         for (Term trm : contents) {
             if (first) {
@@ -296,7 +298,7 @@ public class LatexFilter extends BackendFilter {
                 if (addNewLine && !isOnNewLine()) {
                     newLine();
                 }
-                result.append(str);
+                result.append(separator);
             }
             this.visitNode(trm);
         }
@@ -468,12 +470,16 @@ public class LatexFilter extends BackendFilter {
             patternsVisitor.visitNode(pr);
             pattern = patternsVisitor.getPatterns().get(trm.getCons());
         }
+        pattern = pattern.replace(",", "\\kcomma");
         int n = 1;
         LatexFilter termFilter = new LatexFilter(context, indent);
         for (Term t : trm.getContents()) {
             termFilter.setResult(new StringBuilder());
             termFilter.visitNode(t);
+            //fixme old code for now. There is a bug to be investigated: module METHOD-INVOKE pdflatex error.
+            // If we maintain "{}" here, automatic line breaking won't work.
             pattern = pattern.replace("{#" + n++ + "}", "{" + termFilter.getResult() + "}");
+            //pattern = pattern.replace("{#" + n++ + "}", termFilter.getResult());
         }
         result.append(pattern);
         return null;

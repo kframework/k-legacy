@@ -9,6 +9,9 @@
 % \RequirePackage{etextools} % for xifstrequal
 % \RequirePackage{stringstrings} % for \stringlength
 
+% for comment env
+\RequirePackage{verbatim}
+
 \SetupKeyvalOptions{family=k,prefix=k@} 
 
 
@@ -445,33 +448,60 @@
 
 % Syntax rules.
 \newlength{\syntaxlength}  % The amount of indention for continued rules.
+\newlength{\savedParIndent} % Used as hspace in \syntax and \syntaxCont
 
-\newcommand{\syntax}[3][\defSort]{\rulebox{%
-\syntaxKeyword$#1\mathrel{::=}{#2}$ \ifthenelse{\equal{#3}{}}{}{[#3]}%
-}\k@markPosition%
+%Removed paragraph tags, added flushleft.
+%Using \sloppy or \emergencystretch does not produce the desired result 
+% - there are still big overfull hbox-es.
+%\par\indent\ has no effect in combination with either flushleft or FlushLeft.
+%Hacks on the net designet to restore indent work with raggedright macro,
+%  but not with the env equivalent - flushleft. Same for ragged2e package.
+% http://tex.stackexchange.com/questions/185970/raggedright-removes-paragraph-indentation
+\newenvironment{syntaxBlock}[1]
+	{
+		\newcommand{\defSort}{#1} 
+		\setlength{\savedParIndent}{\parindent}
+		\begin{flushleft}	
+	}
+	{
+		\end{flushleft}
+	}
+
+%Removed grouping and rulebox from init version, added hangindent, hspace.
+\newcommand{\syntax}[3][\defSort]{
+	\setlength{\hangindent}
+		{\widthof{%
+			\hspace{\savedParIndent}%
+			\syntaxKeyword$#1 \mathrel{::=} \ \ $%
+			\hspace{\savedParIndent}}%for an extra indent after ::=
+		}
+	%
+	\hspace{\savedParIndent}
+	\syntaxKeyword$#1 \mathrel{::=} #2$ \ifthenelse{\equal{#3}{}}{}{[#3]}%
+	\k@markPosition%
 }
-\newcommand{\syntaxCont}[3][\defSort]{\par\indent\rulebox{%
+
+\newcommand{\syntaxCont}[3][\defSort]{
+	\par
+	\hspace{\savedParIndent}
   $\setlength{\syntaxlength}{\widthof{$\mathrel{::=}$}}%
   \setlength{\syntaxlength}{.5\syntaxlength}%
   \addtolength{\syntaxlength}{\widthof{\syntaxKeyword$#1$}}%
   \hspace{\syntaxlength}%
-  \;\;\!\mid\;{#2}$ \ifthenelse{\equal{#3}{}}{}{[#3]}%
-  }\k@markPosition%
+  \;\;\!\mid\;#2$ \ifthenelse{\equal{#3}{}}{}{[#3]}%
+  \k@markPosition%
 }
+
 \newcommand{\syntaxContL}[3]{{\small%\par\indent%
 $\mid\;{#2}$ \ifthenelse{\equal{#3}{}}{}{[#3]\;}%
 }}
-
-
-\newenvironment{syntaxBlock}[1]{\newcommand{\defSort}{#1}\par\indent\ }{\par\ \par}
-
 
 % Non-terminals.
 \newcommand{\nonTerminal}[1]{\text{\itshape #1}\/}
 
 % Terminals.
-\newcommand{\terminal}[1]{\ensuremath\mathrel{\text{\ttfamily #1}}}
-\newcommand{\terminalNoSpace}[1]{\ensuremath\mathord{\text{\ttfamily #1}}}
+\newcommand{\terminal}[1]{\ensuremath{\allowbreak \mathrel{\text{\ttfamily #1}}}}
+\newcommand{\terminalNoSpace}[1]{\ensuremath{\mathord{\text{\ttfamily #1}} \allowbreak}}
 
 % Tags.
 \newcommand{\kassoc}{assoc}
@@ -624,8 +654,8 @@ $\mid\;{#2}$ \ifthenelse{\equal{#3}{}}{}{[#3]\;}%
                                     in (\x1,\y3) -- (\x2,\y3);
   \end{tikzpicture}%
 }}
-\newcommand{\kra}{\curvearrowright}
-\newcommand{\kcomma}{\mathpunct{\textbf{,}}}
+\newcommand{\kra}{\allowbreak \curvearrowright}
+\newcommand{\kcomma}{\ensuremath{\mathpunct{\textbf{,}} \allowbreak}}
 \newcommand{\kvalue}[1]{{\color{red}#1}}
 \newcommand{\constant}[2][none]{%
   \k@withTooltip{\text{\sffamily #2}}{syntax #1 ::= "#2"}%
