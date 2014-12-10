@@ -187,7 +187,6 @@ public class LatexFilter extends BackendFilter {
             result.append(StringUtil.latexify(terminal));
         } else {
             if (terminalBefore) {
-                //result.append("{}"); //todo code before line break support.
                 result.append(" \\ ");
             }
             result.append("\\terminal{" + StringUtil.latexify(terminal) + "}");
@@ -359,29 +358,29 @@ public class LatexFilter extends BackendFilter {
         // termComment = false;
         result.append("\\krule");
         if (!"".equals(rule.getLabel())) {
-            result.append("[" + rule.getLabel() + "]");
+            result.append("[" + rule.getLabel() + "]"); //arg 1
         }
         result.append("{");
         increaseIndent();
         increaseIndent();
         newLine();
-        this.visitNode(rule.getBody());
+        this.visitNode(rule.getBody()); //arg 2
         decreaseIndentAndNewLineIfNeeded();
         result.append("}");
         newLine();
         result.append("{");
         if (rule.getRequires() != null) {
-            this.visitNode(rule.getRequires());
+            this.visitNode(rule.getRequires()); //arg 3
         }
         result.append("}{");
         if (rule.getEnsures() != null) {
-            this.visitNode(rule.getEnsures());
+            this.visitNode(rule.getEnsures());  //arg 4
         }
         result.append("}{");
-        this.visitNode(rule.getAttributes());
+        this.visitNode(rule.getAttributes());  //arg 5
         result.append("}");
         result.append("{");
-        // if (termComment) result.append("large");
+        // if (termComment) result.append("large"); //arg 6
         result.append("}");
         decreaseIndent();
         newLine();
@@ -476,11 +475,14 @@ public class LatexFilter extends BackendFilter {
         for (Term t : trm.getContents()) {
             termFilter.setResult(new StringBuilder());
             termFilter.visitNode(t);
-            //fixme old code for now. There is a bug to be investigated: module METHOD-INVOKE pdflatex error.
-            // If we maintain "{}" here, automatic line breaking won't work.
-            pattern = pattern.replace("{#" + n++ + "}", "{" + termFilter.getResult() + "}");
-            //pattern = pattern.replace("{#" + n++ + "}", termFilter.getResult());
+            // If we maintain "{}" after replace, automatic line breaking won't work.
+            pattern = pattern.replace("{#" + n++ + "}", termFilter.getResult());
         }
+
+        //delete empty lines that might result from the previous replacement
+        //should work for both types of endl
+        pattern = pattern.replaceAll("^" + endl + "\\s*", "");
+
         result.append(pattern);
         return null;
     }
