@@ -12,7 +12,7 @@
 % for comment env
 \RequirePackage{verbatim}
 
-\SetupKeyvalOptions{family=k,prefix=k@} 
+\SetupKeyvalOptions{family=k,prefix=k@}
 
 
 \DeclareStringOption[bubble]{style}  % the default style for cells & stuff
@@ -22,7 +22,7 @@
 \ProcessKeyvalOptions*
 
 % Usage Examples %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Next command uses the default style (bubble) with tight edges for cells. 
+% Next command uses the default style (bubble) with tight edges for cells.
 % \usepackage[tight]{k}
 %
 % Next command changes the default style to mathematic cells.
@@ -44,26 +44,26 @@
 % If the default was set to math, use bubble instead of math above.
 
 % Some exported commands (useful for manually writing K):
-% \kall, \kprefix, \ksuffix, and \kmiddle are used to specify cells which are 
+% \kall, \kprefix, \ksuffix, and \kmiddle are used to specify cells which are
 % either complete, open to the right, open to the left, and open both ways,
 % respectively .
 
 \ifthenelse{\equal{\k@style}{bubble}}{
-\newcommand{\kall}[3][white]{\ball{#1}{#2}{#3}}
-\newcommand{\kallLarge}[3][white]{\ballLarge{#1}{#2}{#3}}
-\newcommand{\kprefix}[3][white]{\bprefix{#1}{#2}{#3}}
-\newcommand{\ksuffix}[3][white]{\bsuffix{#1}{#2}{#3}}
-\newcommand{\kmiddle}[3][white]{\bmiddle{#1}{#2}{#3}}
-\newcommand{\kdot}{\bdot}
-\newcommand{\AnyVar}[1][]{\bAnyVar{#1}}
+  \newcommand{\kall}[3][white]{\ball{#1}{#2}{#3}}
+  \newcommand{\kallLarge}[3][white]{\ballLarge{#1}{#2}{#3}}
+  \newcommand{\kprefix}[3][white]{\bprefix{#1}{#2}{#3}}
+  \newcommand{\ksuffix}[3][white]{\bsuffix{#1}{#2}{#3}}
+  \newcommand{\kmiddle}[3][white]{\bmiddle{#1}{#2}{#3}}
+  \newcommand{\kdot}{\bdot}
+  \newcommand{\AnyVar}[1][]{\bAnyVar{#1}}
 }{% else, assume default style is math
-\newcommand{\kall}[3][white]{\mall{#1}{#2}{#3}}
-\newcommand{\kallLarge}[3][white]{\mallLarge{#1}{#2}{#3}}
-\newcommand{\kprefix}[3][white]{\mprefix{#1}{#2}{#3}}
-\newcommand{\ksuffix}[3][white]{\msuffix{#1}{#2}{#3}}
-\newcommand{\kmiddle}[3][white]{\mmiddle{#1}{#2}{#3}}
-\newcommand{\kdot}{\mdot}
-\newcommand{\AnyVar}[1][]{\mAnyVar{#1}}
+  \newcommand{\kall}[3][white]{\mall{#1}{#2}{#3}}
+  \newcommand{\kallLarge}[3][white]{\mallLarge{#1}{#2}{#3}}
+  \newcommand{\kprefix}[3][white]{\mprefix{#1}{#2}{#3}}
+  \newcommand{\ksuffix}[3][white]{\msuffix{#1}{#2}{#3}}
+  \newcommand{\kmiddle}[3][white]{\mmiddle{#1}{#2}{#3}}
+  \newcommand{\kdot}{\mdot}
+  \newcommand{\AnyVar}[1][]{\mAnyVar{#1}}
 }
 
 
@@ -74,45 +74,46 @@
 
 \ifk@beamer
 \else
-\RequirePackage{hyperref}
-\RequirePackage{xcolor}
+  \RequirePackage{hyperref}
+  \RequirePackage{xcolor}
 \fi
 
 \ifk@poster
-%%% PDF functionality.
-\RequirePackage{pdfcomment}
-%%% Layout and design.
+  %%% PDF functionality.
+  \RequirePackage{pdfcomment}
+  %%% Layout and design.
 
-% microtype is nice, but seems to create strange problems
-% \RequirePackage{microtype}
+  % microtype is nice, but seems to create strange problems
+  % \RequirePackage{microtype}
 
-\RequirePackage{times}
-\RequirePackage[scaled]{berasans}
-\RequirePackage[scaled]{beramono}
+  \RequirePackage{times}
+  \RequirePackage[scaled]{berasans}
+  \RequirePackage[scaled]{beramono}
 
-\RequirePackage[small,compact]{titlesec}
-%\titleformat{command}[shape]{format}{label}{sep}{before}[after]
-% shape ::= hang | block | display | runin | leftmargin | rightmargin 
-%         | drop | wrap | frame
-% sep is mandatory to be a length.
-% more on http://www.ctex.org/documents/packages/layout/titlesec.pdf
-\titleformat{\subsubsection}[runin]{\bfseries}{}{0pt}{}[.\hspace*{1ex}]
+  \RequirePackage[small,compact]{titlesec}
 
-% PDF link colors
-% The color values and names come from the Tango Icon Scheme
-\definecolor{SkyBlue2}{rgb}{.204, .396, .643}
-\definecolor{ScarletRed3}{rgb}{.643, 0, 0}
-\definecolor{Chocolate3}{rgb}{.561, .349, .008}
+  %\titleformat{command}[shape]{format}{label}{sep}{before}[after]
+  % shape ::= hang | block | display | runin | leftmargin | rightmargin
+  %         | drop | wrap | frame
+  % sep is mandatory to be a length.
+  % more on http://www.ctex.org/documents/packages/layout/titlesec.pdf
+  \titleformat{\subsubsection}[runin]{\bfseries}{}{0pt}{}[.\hspace*{1ex}]
 
-\hypersetup{%
-  % Color the text of links instead of framing them.
-  colorlinks=true,
-  linkcolor=SkyBlue2,
-  urlcolor=ScarletRed3,
-  filecolor=Chocolate3
-}
-\else
-\newcommand{\organization}{\date}
+  % PDF link colors
+  % The color values and names come from the Tango Icon Scheme
+  \definecolor{SkyBlue2}{rgb}{.204, .396, .643}
+  \definecolor{ScarletRed3}{rgb}{.643, 0, 0}
+  \definecolor{Chocolate3}{rgb}{.561, .349, .008}
+
+  \hypersetup{%
+    % Color the text of links instead of framing them.
+    colorlinks=true,
+    linkcolor=SkyBlue2,
+    urlcolor=ScarletRed3,
+    filecolor=Chocolate3
+  }
+\else% not poster
+  \newcommand{\organization}{\date}
 \fi
 
 %%% Additional symbols and notation.
@@ -159,18 +160,18 @@
 % [1] (At least) two runs are necessary anyway: cross-referencing and indexing
 %     require them, and so do PDF annotations.
 \ifk@poster
-\pagestyle{empty}
+  \pagestyle{empty}
 
-%%% PDF default view
+  %%% PDF default view
 
-% Most PDF viewers seem to default to the "fit whole page" view mode.  A single,
-% long page badly fits this behavior, so we request "fit page width" instead.
-\hypersetup{pdfstartview=FitH}
+  % Most PDF viewers seem to default to the "fit whole page" view mode.  A single,
+  % long page badly fits this behavior, so we request "fit page width" instead.
+  \hypersetup{pdfstartview=FitH}
 
-%%% Use the 'preview' package to typeset everything onto a single page.
+  %%% Use the 'preview' package to typeset everything onto a single page.
 
-\usepackage[active,tightpage,pdftex]{preview}
-\setlength\PreviewBorder{5pt}
+  \usepackage[active,tightpage,pdftex]{preview}
+  \setlength\PreviewBorder{5pt}
 \fi
 
 % Everything within an environment that is marked as \PreviewEnvironment
@@ -181,121 +182,120 @@
 \newenvironment{kdefinition}{}{}
 
 \ifk@poster
-\PreviewEnvironment{kdefinition}
+  \PreviewEnvironment{kdefinition}
 
-%%% Determine the text width from markers put at the lower right end of
-%   each content block.
+  %%% Determine the text width from markers put at the lower right end of
+  %   each content block.
 
-% The system layer of the 'PGF' package hides the gory details.
-% (See "Position Tracking Commands" in Part XIII of the PGF manual.)
-\usepackage{pgfsys}
+  % The system layer of the 'PGF' package hides the gory details.
+  % (See "Position Tracking Commands" in Part XIII of the PGF manual.)
+  \usepackage{pgfsys}
 
-% Try to load the marker positions from the previous run.
-\newcounter{k@prevMarkerCount}%
-\InputIfFileExists{\jobname.mrk}{}{}%
+  % Try to load the marker positions from the previous run.
+  \newcounter{k@prevMarkerCount}%
+  \InputIfFileExists{\jobname.mrk}{}{}%
 
-% Set the text width to the maximum of the X coordinates.
-\newlength{\k@maxX}%
-\newlength{\k@currentMarkerX}%
+  % Set the text width to the maximum of the X coordinates.
+  \newlength{\k@maxX}%
+  \newlength{\k@currentMarkerX}%
 
-\whiledo{\value{k@prevMarkerCount} > 0}{%
-  \addtocounter{k@prevMarkerCount}{-1}%
-  \pgfsys@getposition{k@marker@\the\c@k@prevMarkerCount}{\k@currentMarker}%
-  \pgfextractx{\k@currentMarkerX}{\k@currentMarker}%
-    \ifthenelse{\lengthtest{\k@currentMarkerX > \k@maxX}}{%
-      \setlength{\k@maxX}{\k@currentMarkerX}%
+  \whiledo{\value{k@prevMarkerCount} > 0}{%
+    \addtocounter{k@prevMarkerCount}{-1}%
+    \pgfsys@getposition{k@marker@\the\c@k@prevMarkerCount}{\k@currentMarker}%
+    \pgfextractx{\k@currentMarkerX}{\k@currentMarker}%
+      \ifthenelse{\lengthtest{\k@currentMarkerX > \k@maxX}}{%
+        \setlength{\k@maxX}{\k@currentMarkerX}%
+      }{}%
+  }%
+  \ifthenelse
+    {\lengthtest{\k@maxX > 0pt}}
+    {\setlength{\textwidth}{\k@maxX}}
+    {\setlength{\textwidth}{16in}}%
+
+
+  % To mark the position, we use the PGF system layer macro \pgfsys@markposition.
+  % However, this macro usually writes to the main auxiliary file '\jobname.aux'.
+  % This will not work in our setting because the marker positions would then
+  % only be available just before the document starts, which is too late to set
+  % the text width.  Thus we use our own auxiliary file.
+
+  % Open the marker file for writing.
+  \newwrite\k@markerOut
+  \immediate\openout\k@markerOut=\jobname.mrk
+
+  \newcounter{k@marker}
+  % The marker macro generates the marker names and briefly swaps the output
+  % stream that \pgfsys@markposition uses before calling it.
+  \newcommand{\k@markPosition}{%
+    \let\k@tmpAuxOut=\pgfutil@auxout%
+    \let\pgfutil@auxout=\k@markerOut%
+    \pgfsys@markposition{k@marker@\the\c@k@marker}%
+    \let\pgfutil@auxout=\k@tmpAuxOut%
+    \addtocounter{k@marker}{1}%
+  }
+
+  % Also store the number of set markers for the next run (for easier looping).
+  \AtEndDocument{%
+    \immediate\write\k@markerOut{%
+      \string\setcounter{k@prevMarkerCount}{\the\c@k@marker}%
     }{}%
-}%
-\ifthenelse{\lengthtest{\k@maxX > 0pt}}{%
-  \setlength{\textwidth}{\k@maxX}%
-}{%
-  \setlength{\textwidth}{16in}%
-}%
+  }
 
+  % Title %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% To mark the position, we use the PGF system layer macro \pgfsys@markposition.
-% However, this macro usually writes to the main auxiliary file '\jobname.aux'.
-% This will not work in our setting because the marker positions would then
-% only be available just before the document starts, which is too late to set
-% the text width.  Thus we use our own auxiliary file.
+  \renewcommand{\@maketitle}{
+   \null
+   \vspace*{3ex}
+   {\Huge \@title}
+   \par\vspace*{2ex}
+   {\Large \@author}
+   \par\vspace*{1ex}
+   {\large \@organization}
+   \par\vspace*{3ex}
+  }
 
-% Open the marker file for writing.
-\newwrite\k@markerOut
-\immediate\openout\k@markerOut=\jobname.mrk
+  % Also add respective PDF meta information
+  \hypersetup{
+    pdftitle={\@title},
+    pdfauthor={\@author}
+  }
 
-\newcounter{k@marker}
-% The marker macro generates the marker names and briefly swaps the output
-% stream that \pgfsys@markposition uses before calling it.
-\newcommand{\k@markPosition}{%
-  \let\k@tmpAuxOut=\pgfutil@auxout%
-  \let\pgfutil@auxout=\k@markerOut%
-  \pgfsys@markposition{k@marker@\the\c@k@marker}%
-  \let\pgfutil@auxout=\k@tmpAuxOut%
-  \addtocounter{k@marker}{1}%
-}
+  \let\k@oldTitle=\title
+  \renewcommand{\title}[1]{%
+    \k@oldTitle{#1}%
+    \hypersetup{pdftitle={#1}}%
+  }
+  \let\k@oldAuthor=\author
+  \renewcommand{\author}[1]{%
+    \k@oldAuthor{#1}%
+    \hypersetup{pdfauthor={#1}}%
+  }
+  \let\@organization=\@empty
+  \newcommand{\organization}[1]{%
+    \def\@organization{#1}%
+  }
 
-% Also store the number of set markers for the next run (for easier looping).
-\AtEndDocument{%
-  \immediate\write\k@markerOut{%
-    \string\setcounter{k@prevMarkerCount}{\the\c@k@marker}%
-  }{}%
-}
+  % Source Comments %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Title %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\renewcommand{\@maketitle}{
- \null
- \vspace*{3ex}
- {\Huge \@title}
- \par\vspace*{2ex}
- {\Large \@author}
- \par\vspace*{1ex}
- {\large \@organization}
- \par\vspace*{3ex}
-}
-
-% Also add respective PDF meta information
-\hypersetup{
-  pdftitle={\@title},
-  pdfauthor={\@author}
-}
-
-\let\k@oldTitle=\title
-\renewcommand{\title}[1]{%
-  \k@oldTitle{#1}%
-  \hypersetup{pdftitle={#1}}%
-}
-\let\k@oldAuthor=\author
-\renewcommand{\author}[1]{%
-  \k@oldAuthor{#1}%
-  \hypersetup{pdfauthor={#1}}%
-}
-\let\@organization=\@empty
-\newcommand{\organization}[1]{%
-  \def\@organization{#1}%
-}
-
-% Source Comments %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Turn off section numbering: all headings will look like they were starred.
-% However, they will still appear in the table of contents (and the bookmarks
-% that hyperref generates for the PDF).
-%
-% Note that hyperref seems to rely on the "secnumdepth" counter for bookmark
-% generation.  Thus, the "traditional" approach \setcounter{secnumdepth}{0}
-% leads to (rather) arbitrary bookmark nestings.
-%
-% Simply remove the labeling number from all titles.
-\titlelabel{}
-% Create TOC entries down to subsections.
-\setcounter{tocdepth}{4}
-% Show the TOC by default.
-\hypersetup{%
-  bookmarksopen=true,
-  bookmarksopenlevel=2
-}
+  % Turn off section numbering: all headings will look like they were starred.
+  % However, they will still appear in the table of contents (and the bookmarks
+  % that hyperref generates for the PDF).
+  %
+  % Note that hyperref seems to rely on the "secnumdepth" counter for bookmark
+  % generation.  Thus, the "traditional" approach \setcounter{secnumdepth}{0}
+  % leads to (rather) arbitrary bookmark nestings.
+  %
+  % Simply remove the labeling number from all titles.
+  \titlelabel{}
+  % Create TOC entries down to subsections.
+  \setcounter{tocdepth}{4}
+  % Show the TOC by default.
+  \hypersetup{%
+    bookmarksopen=true,
+    bookmarksopenlevel=2
+  }
 \else
-\newcommand{\k@markPosition}{}
+  \newcommand{\k@markPosition}{}
 \fi
 
 \usepackage{fancyvrb}
@@ -308,8 +308,6 @@
     inner sep=.75em
   }
 }
-
-
 
 \tikzset{comment/.style={basic comment, fill=black!5 } }
 
@@ -362,54 +360,60 @@
 \setlength{\commentIndent}{1em}
 
 \newlength{\kblock@indent}
+
 \newenvironment{kblock}[1][\k@style]{%
-\ifk@tight%
-\small%
-\fi%
-\newcommand{\kblock@arg}{#1}%
-\setlength{\kblock@indent}{\parindent}%
-\ifthenelse{\equal{#1}{bubble}}{%
-\renewcommand{\kall}{\ball}%
-\renewcommand{\kallLarge}{\ballLarge}%
-\renewcommand{\kprefix}{\bprefix}%
-\renewcommand{\ksuffix}{\bsuffix}%
-\renewcommand{\kmiddle}{\bmiddle}%
-\renewcommand{\kdot}{\bdot}%
-\renewcommand{\AnyVar}{\bAnyVar}%
-}{\ifthenelse{\equal{#1}{math}}{%
-\renewcommand{\kall}{\mall}%
-\renewcommand{\kallLarge}{\mallLarge}%
-\renewcommand{\kprefix}{\mprefix}%
-\renewcommand{\ksuffix}{\msuffix}%
-\renewcommand{\kmiddle}{\mmiddle}%
-\renewcommand{\kdot}{\mdot}%
-\renewcommand{\AnyVar}{\mAnyVar}%
-}%
-{\ifthenelse{\equal{#1}{text}}{%
-\ifk@poster%
-  \setlength{\parindent}{\commentIndent}%
-  \indent%
-  \begin{Sbox}%
-    \begin{minipage}{50em}%
-      \addtolength{\parskip}{.5\baselineskip}%
-\else%
-\fi%
-}{%
-}}}%
-}{%
+  \ifk@tight%
+    \small%
+  \fi%
+  \newcommand{\kblock@arg}{#1}%
+  \setlength{\kblock@indent}{\parindent}%
+  \ifthenelse
+    {\equal{#1}{bubble}}
+    {%
+      \renewcommand{\kall}{\ball}%
+      \renewcommand{\kallLarge}{\ballLarge}%
+      \renewcommand{\kprefix}{\bprefix}%
+      \renewcommand{\ksuffix}{\bsuffix}%
+      \renewcommand{\kmiddle}{\bmiddle}%
+      \renewcommand{\kdot}{\bdot}%
+      \renewcommand{\AnyVar}{\bAnyVar}%
+    }
+    {\ifthenelse{\equal{#1}{math}}
+    {%
+      \renewcommand{\kall}{\mall}%
+      \renewcommand{\kallLarge}{\mallLarge}%
+      \renewcommand{\kprefix}{\mprefix}%
+      \renewcommand{\ksuffix}{\msuffix}%
+      \renewcommand{\kmiddle}{\mmiddle}%
+      \renewcommand{\kdot}{\mdot}%
+      \renewcommand{\AnyVar}{\mAnyVar}%
+    }
+    {\ifthenelse{\equal{#1}{text}}
+    {%
+      \ifk@poster%
+        \setlength{\parindent}{\commentIndent}%
+        \indent%
+        \begin{Sbox}%
+          \begin{minipage}{50em}%
+            \addtolength{\parskip}{.5\baselineskip}%
+      \else%
+      \fi%
+    }{}}}%
+}
+{% end of \newenvironment{kblock}
 \ifthenelse{\equal{\kblock@arg}{text}}{%
-\ifk@poster%
-    \ \end{minipage}%
-  \end{Sbox}%
-  \begin{tikzpicture}
-    \node[comment]{\TheSbox};
-  \end{tikzpicture}%
-  \k@markPosition%
-\fi%
-}{%
-}%
-\setlength{\parindent}{\kblock@indent}%
-\par\ \par%
+  \ifk@poster%
+      \ \end{minipage}%
+    \end{Sbox}%
+    \begin{tikzpicture}
+      \node[comment]{\TheSbox};
+    \end{tikzpicture}%
+    \k@markPosition%
+  \fi%
+  }{%
+  }%
+  \setlength{\parindent}{\kblock@indent}%
+  \par\ \par%
 }
 
 % Modules %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -444,46 +448,47 @@
 \newcommand{\sort}[1]{\text{\itshape #1}}
 \newcommand{\kind}[1]{\text{\itshape #1}}
 
-\newcommand{\syntaxKeyword}{\mbox{\scshape syntax}\hspace{1em}}
+\newcommand{\syntaxKeyword}{\mbox{\scshape {\color{blue} syntax}}\hspace{1em}}
 
 % Syntax rules.
 \newlength{\syntaxlength}  % The amount of indention for continued rules.
 \newlength{\savedParIndent} % Used as hspace in \syntax and \syntaxCont
 
 %Removed paragraph tags, added flushleft.
-%Using \sloppy or \emergencystretch does not produce the desired result 
+%Using \sloppy or \emergencystretch does not produce the desired result
 % - there are still big overfull hbox-es.
 %\par\indent\ has no effect in combination with either flushleft or FlushLeft.
 %Hacks on the net designet to restore indent work with raggedright macro,
 %  but not with the env equivalent - flushleft. Same for ragged2e package.
 % http://tex.stackexchange.com/questions/185970/raggedright-removes-paragraph-indentation
 \newenvironment{syntaxBlock}[1]
-	{
-		\newcommand{\defSort}{#1} 
-		\setlength{\savedParIndent}{\parindent}
-		\begin{flushleft}	
-	}
-	{
-		\end{flushleft}
-	}
+{
+  \newcommand{\defSort}{#1}
+  \setlength{\savedParIndent}{\parindent}
+  \begin{flushleft}
+}
+{
+  \end{flushleft}
+}
 
 %Removed grouping and rulebox from init version, added hangindent, hspace.
 \newcommand{\syntax}[3][\defSort]{
-	\setlength{\hangindent}
-		{\widthof{%
-			\hspace{\savedParIndent}%
-			\syntaxKeyword$#1 \mathrel{::=} \ \ $%
-			\hspace{\savedParIndent}}%for an extra indent after ::=
-		}
-	%
-	\hspace{\savedParIndent}
-	\syntaxKeyword$#1 \mathrel{::=} #2$ \ifthenelse{\equal{#3}{}}{}{[#3]}%
-	\k@markPosition%
+  \setlength{\hangindent}
+    {\widthof{%
+      \hspace{\savedParIndent}%
+      \syntaxKeyword$#1 \mathrel{::=} \ \ $%
+      \hspace{\savedParIndent}}%for an extra indent after ::=
+    }
+  %
+  \hspace{\savedParIndent}
+  \syntaxKeyword$#1 \mathrel{::=} #2$ \ifthenelse{\equal{#3}{}}{}{[#3]}%
+  \k@markPosition%
 }
 
+%Additional production in the same big syntax definition started with \syntax
 \newcommand{\syntaxCont}[3][\defSort]{
-	\par
-	\hspace{\savedParIndent}
+  \par
+  \hspace{\savedParIndent}
   $\setlength{\syntaxlength}{\widthof{$\mathrel{::=}$}}%
   \setlength{\syntaxlength}{.5\syntaxlength}%
   \addtolength{\syntaxlength}{\widthof{\syntaxKeyword$#1$}}%
@@ -492,61 +497,26 @@
   \k@markPosition%
 }
 
-\newcommand{\syntaxContL}[3]{{\small%\par\indent%
-$\mid\;{#2}$ \ifthenelse{\equal{#3}{}}{}{[#3]\;}%
-}}
-
 % Non-terminals.
 \newcommand{\nonTerminal}[1]{\text{\itshape #1}\/}
 
 % Terminals.
 \newcommand{\terminal}[1]{\ensuremath{\allowbreak \mathrel{\text{\ttfamily #1}}}}
-\newcommand{\terminalNoSpace}[1]{\ensuremath{\mathord{\text{\ttfamily #1}} \allowbreak}}
+\newcommand{\terminalNoSpace}[1]
+  {\ensuremath{\mathord{\text{\ttfamily #1}} \allowbreak}}
 
-% Tags.
-\newcommand{\kassoc}{assoc}
-\newcommand{\kcomm}{comm}
-\newcommand{\khybrid}{{\color{blue}hybrid}}
-%\newcommand{\klabel}[1]{}
-% \newcommand{\ignoreThisLabel}{} % this is used to figure out whether we should ignore an attribute (like the name)
-%\newcommand{\kattribute}[1]{\xifstrequal{#1}{\ignoreThisLabel}{}{{\color{blue}#1}}}
-\newcommand{\kattribute}[1]{{\color{blue}#1}}
-\newcommand{\kid}[1]{id: {#1}}
-\newcommand{\kditto}{ditto}
-\newcommand{\karity}[1]{{\color{blue}arity(#1)}}
-\newcommand{\kstrict}[2]{{%
-  \color{blue}strict%
-  \ifx&#1&%
-  \else%
-    (#1)%
-  \fi%
-  \ifx&#2&%
-  \else%
-    in (#2)%
-  \fi%
-}}
-\newcommand{\kseqstrict}[2]{{%
-  \color{blue}seqstrict%
-  \ifx&#1&%
-  \else%
-    (#1)%
-  \fi%
-  \ifx&#2&%
-  \else%
-    in (#2)%
-  \fi%
-}}
+% Tags
+\newcommand{\kattribute}[1]{{\color{Aquamarine}#1}}
 
 
 % Configuration %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\newcommand{\kconfig}[1]{\par%
+\newcommand{\kconfig}[1]{%
+  \par%
   {\sc configuration:}\par%
     \ensuremath{#1}\k@markPosition%
   \par\ \par%
 }
-
-\newcommand{\kconfigb}[1]{\begin{kblock}\kconfig{#1}\end{kblock}}
 
 % Cells %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -604,18 +574,13 @@ $\mid\;{#2}$ \ifthenelse{\equal{#3}{}}{}{[#3]\;}%
   \addtocounter{k@tooltipCounter}{1}%
 }
 
-% Buttons are form elements and require a surrounding Form environment.
-% \AtBeginDocument{\begin{Form}}
-% \AtEndDocument{\end{Form}}
-\else
-\newcommand{\k@withTooltip}[2]{#1}
+\else %ifk@poster
+  \newcommand{\k@withTooltip}[2]{#1}
 \fi
 
-%%% Cell contents.
-
-\newcommand{\reduceTop}[2]{{#1}\Rightarrow{#2}}
-\newcommand{\reduceTopS}[2]{{#1}\rightharpoonup{#2}}
-\newcommand{\reduce}[2]{\hbox{%
+%%% Rewrite.
+\newcommand{\reduce}[2]{%
+  \hbox{%
   \begin{tikzpicture}[baseline=(top.base),
                       inner xsep=0pt,
                       inner ysep=.3333ex,
@@ -639,68 +604,73 @@ $\mid\;{#2}$ \ifthenelse{\equal{#3}{}}{}{[#3]\;}%
     % Solid arrow (augmenting the solid line).
     \path[fill] (top.south) ++(2pt,0) -- ++(-4pt,0) -- ++(2pt,-1.5pt) -- cycle;
   \end{tikzpicture}%
-}}
-\newcommand{\reduceS}[2]{\hbox{%
-  \begin{tikzpicture}[baseline=(top.base),
-                      inner xsep=0pt,
-                      inner ysep=.3333ex,
-                      minimum width=2em]
-    \path node (top) {$#1$\strut}
-          (top.south)
-          node (bottom) [anchor=north] {$#2$\strut};
-    \path[draw,thin,densely dashed] let \p1 = (current bounding box.west),
-                                        \p2 = (current bounding box.east),
-                                        \p3 = (top.south)
-                                    in (\x1,\y3) -- (\x2,\y3);
-  \end{tikzpicture}%
-}}
+  }%
+}
+
+%%% K Term contents.
+
 \newcommand{\kra}{\allowbreak \curvearrowright}
 \newcommand{\kcomma}{\ensuremath{\mathpunct{\textbf{,}} \allowbreak}}
 \newcommand{\kvalue}[1]{{\color{red}#1}}
 \newcommand{\constant}[2][none]{%
-  \k@withTooltip{\text{\sffamily #2}}{syntax #1 ::= "#2"}%
+  \k@withTooltip{\text{\sffamily #2}}{{\color{blue}syntax} #1 ::= "#2"}%
 }
 
 \newcommand{\typedTo}[1]{{\it :}#1}
 
 \newcommand{\variable}[3][none]{%
-\k@withTooltip{\text{\ensuremath{\it #2\ifthenelse{\equal{#3}{user}}{\typedTo{#1}}{}}}\/}{Variable #2:#1}%
+  \k@withTooltip{\text{\ensuremath{%
+    \it #2\ifthenelse{\equal{#3}{user}}{\typedTo{#1}}{}%
+  }}\/}{Variable #2:#1}%
 }
 
-\newcommand{\displayGreek}[1]{%
-  \text{\Large\ensuremath{\displaystyle #1}}%
-}
-
-\newcommand{\prefixOp}{\terminalNoSpace}
 \newcommand{\dotCt}[1]{%
-\ensuremath{{\raise.3ex\hbox{\ensuremath{\kdot}}}_{\color{black!60}\scriptstyle\it \!#1}}
-%  \k@withTooltip{\raise.3ex\hbox{\ensuremath{\kdot}}}{Constant Sort: #1}%
+  \ensuremath{%
+    {\raise.3ex\hbox{$\kdot$}}_{\color{black!60}\scriptstyle\it \!#1}}%
 }
 
 %%% Mathematical notation.
 
-\newcommand{\mcell}[3]{{\ifthenelse{\equal{#1}{}}{\color{white!50!black}}{\color{#1!50!black}}\left\langle{#3}\ifthenelse{\equal{#1}{}}{\color{white!50!black}}{\color{#1!50!black}}\right\rangle_{\sf #2}}}
-\newcommand{\ellipses}{\mathrel{\cdot\!\!\cdot\!\!\cdot}}
 \newcommand{\mallLarge}{\mall}
 \newcommand{\mall}[3]{\mcell{#1}{#2}{{#3}}}
-\newcommand{\mprefix}[3]{\mcell{#1}{#2}{{#3}\ {\color{#1!50!black}\ellipses}}}
-\newcommand{\msuffix}[3]{\mcell{#1}{#2}{{\color{#1!50!black}\ellipses}\ {#3}}}
-\newcommand{\mmiddle}[3]{\mcell{#1}{#2}{{\color{#1!50!black}\ellipses}\ {#3}\ {\color{#1!50!black}\ellipses}}}
+
+\newcommand{\mprefix}[3]{
+  \mcell{#1}{#2}{{#3}\ {\color{#1!50!black}\ellipses}}
+}
+
+\newcommand{\msuffix}[3]{
+  \mcell{#1}{#2}{{\color{#1!50!black}\ellipses}\ {#3}}
+}
+
+\newcommand{\mmiddle}[3]{
+  \mcell{#1}{#2}{{\color{#1!50!black}\ellipses}\ {#3}\ {\color{#1!50!black}\ellipses}}
+}
+
+%Arguments: color (default gray), cell name, content.
+\newcommand{\mcell}[3]{
+  \ifthenelse{\equal{#1}{}}
+    {\color{white!50!black}}
+    {\color{#1!50!black}}
+  \left\langle
+  #3
+  \ifthenelse{\equal{#1}{}}
+    {\color{white!50!black}}
+    {\color{#1!50!black}}
+  \right\rangle
+  _{\sf #2}
+}
+
+% Triple dot
+\newcommand{\ellipses}{\mathrel{\cdot\!\!\cdot\!\!\cdot}}
+
 \newcommand{\mdot}{\cdot}
 \newcommand{\mAnyVar}[2]{\_\ifthenelse{\equal{#2}{user}}{\typedTo{#1}}{}}
 
 %%% Bubble notation.
 
 \newcommand{\ball}[3]{\kcell{#1}{#2}{#3}{convex}{convex}}
-\newcommand{\ballLarge}[3]{%
-  \kcell{#1}%
-        {#2}%
-        {%
-            #3%
-         }%
-        {convex}%
-        {convex}%
-}
+\newcommand{\ballLarge}{\ball}
+
 \newcommand{\bprefix}[3]{\kcell{#1}{#2}{#3}{convex}{none}}
 \newcommand{\bsuffix}[3]{\kcell{#1}{#2}{#3}{none}{convex}}
 \newcommand{\bmiddle}[3]{\kcell{#1}{#2}{#3}{none}{none}}
@@ -775,7 +745,7 @@ $\mid\;{#2}$ \ifthenelse{\equal{#3}{}}{}{[#3]\;}%
                                         {\pgfpointanchor{current bounding box}{north east}}}
     \pgfextractx{\k@cellContentWidth}{\k@cellContentBBox}%
     \pgfextracty{\k@cellContentHeight}{\k@cellContentBBox}%
-    
+
     \begin{pgfonlayer}{background}
       \ifdraft{%
         \path (cell content.center)
@@ -856,7 +826,7 @@ rectangle,rectangle
                       \setlength{\k@ruptureStepSize}{\n3}%
                       \setlength{\k@ruptureStepSize}{.25\k@ruptureStepSize}%
                      }%
-                     
+
                     % Draw counter-clock-wise, starting from the
                     % lower right corner.
                     (cell body.south east)
@@ -879,7 +849,7 @@ rectangle,rectangle
                     % Bottom (just close the path)
                     -- cycle;
     \end{pgfonlayer}
-    
+
     % Add extra space above and below the cell.
     \path[use as bounding box] (current bounding box.south west) ++(0,-.3333em)
                                rectangle (current bounding box.north east) ++(0,.3333em);
@@ -887,19 +857,21 @@ rectangle,rectangle
   \endgroup
 }}
 
-
 % Rules and Equations %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newcommand{\when}[1]{%
   \hspace{2em} when \ensuremath{#1}%
   \k@markPosition%
 }
+
 \newcommand{\whenEns}[1]{%
   \hspace{2em} ensures \ensuremath{#1}%
   \k@markPosition%
 }
+
 \newcommand{\whenReq}[1]{%
-  \hspace{2em} requires \ensuremath{#1}%
+  \hspace{2em} \mbox{\scshape {\color{blue}requires}} \ensuremath{#1}%
+%  \hspace{2em} requires \ensuremath{#1}%
   \k@markPosition%
 }
 
@@ -907,54 +879,27 @@ rectangle,rectangle
 
 % Context.
 \newcommand{\kcontext}[5][]{
-\ksentence{context}{#1}{#2}{#3}{#4}{#5}
+  \ksentence{context}{#1}{#2}{#3}{#4}{#5}
 }
-
-\newcommand{\kcontextb}[4]{\begin{kblock}\kcontext{#1}{#2}{#3}{#4}\end{kblock}}
-
 
 \newcommand{\khole}{\Box}
 
-%%% Equations and structural rules.
-
-\newcommand{\k@ruleLabel}[2]{%
-  \ifthenelse{\equal{#1}{}}{\mbox{\scshape #2}}{\k@withTooltip{\mbox{\scshape #2}}{Rule Label: #1}}%
+%Arguments: name, body, side condition, postconditions (for ML), attributes, {}
+\newcommand{\krule}[6][]{%
+\ksentence[#6]{rule}{#1}{#2}{#3}{#4}{#5}
 }
 
-\newcommand{\rulebox}[1]{\hbox{#1}}
-
-\newcommand{\mequation}[3]{%
-  \wrapRules{%
-  \rulebox{%
-    \k@ruleLabel{#1}{macro}\hspace{1em}$#2 = #3$%
-  }%
-  \k@markPosition%
-  }%
-}
-\newcommand{\cmequation}[4]{%
-  \wrapRules{%
-  \rulebox{%
-    \k@ruleLabel{#1}{macro}\hspace{1em}$#2 = #3$%
-    \when{#4}%
-  }%
-  \k@markPosition%
-  }%
-}
-
-\newcommand{\wrapRules}[1]{\par\indent#1\par\ \par}
-%%% Rules.
-\newcommand{\ruleAttributes}[1]{\hfill[#1]}
-
+%Arguments: {}, rule, name, body, preconditions, postconditions (for ML), attributes
 \newcommand{\ksentence}[7][]{%
 \wrapRules{%
   \rulebox{%
   \k@ruleLabel{#3}{#2}\hspace{1em}$%
-  \ifthenelse{\equal{#1}{}}{}{%  
-   \left(% 
+  \ifthenelse{\equal{#1}{}}{}{%
+   \left(%
   }%
   #4%
-  \ifthenelse{\equal{#1}{}}{}{%  
-   \right)% 
+  \ifthenelse{\equal{#1}{}}{}{%
+   \right)%
   }%
     $%
   }%
@@ -965,35 +910,52 @@ rectangle,rectangle
     \whenEns{#6}%
   }%
   \k@markPosition%
-  \ifthenelse{\equal{#7}{}}{}{%  
-   \ruleAttributes{#7}% 
+  \ifthenelse{\equal{#7}{}}{}{%
+   \ruleAttributes{#7}%
   }%
 }%
 }
 
-\newcommand{\krule}[6][]{%
-\ksentence[#6]{rule}{#1}{#2}{#3}{#4}{#5}
+%Arguments: label, keyword
+\newcommand{\k@ruleLabel}[2]{%
+  \ifthenelse
+    {\equal{#1}{}}%
+    {\mbox{\scshape {\color{blue}#2}}}%
+    {\k@withTooltip{\mbox{\scshape {\color{blue}#2}}}{Rule Label: #1}}%
 }
 
-\newcommand{\kruleb}[4]{\begin{kblock}\krule[#1]{#2}{#3}{#4}\end{kblock}}
+\newcommand{\rulebox}[1]{\hbox{#1}}
 
+\newcommand{\wrapRules}[1]{\par\indent#1\par\ \par}
 
+%%% Rules.
+\newcommand{\ruleAttributes}[1]{\hfill[#1]}
+
+%%% Rules - Poster mode
 \ifk@poster
-\newcommand{\myskip}{\bigskip}
+  \newcommand{\myskip}{\bigskip}
 \else
-\renewcommand{\when}[1]{\par{}\hspace{2em} when \ensuremath{#1}}
-\renewcommand{\ruleAttributes}[1]{\par{}\hspace{2em} [#1]}
-\renewcommand{\rulebox}[1]{\parbox[b]{\columnwidth}{#1}}
-\renewcommand{\wrapRules}[1]{\par{\parbox[b]{\columnwidth}{#1}}\par\ \par}
-\renewcommand{\k@ruleLabel}[2]{%
-  \ifthenelse{\equal{#1}{\textbackslash !}}{\mbox{\scshape #2}}{\k@withTooltip{\mbox{\scshape #2 \kattribute{#1}}}{Rule Label: #1}}\\%
-% \global\def\ignoreThisLabel{#1}%
-}
-\newcommand{\myskip}{\smallskip}
+  \renewcommand{\when}[1]{\par{}\hspace{2em} when \ensuremath{#1}}
+  \renewcommand{\ruleAttributes}[1]{\par{}\hspace{2em} [#1]}
+  \renewcommand{\rulebox}[1]{\parbox[b]{\columnwidth}{#1}}
+  \renewcommand{\wrapRules}[1]{\par{\parbox[b]{\columnwidth}{#1}}\par\ \par}
+
+  %Arguments: label, keyword
+  \renewcommand{\k@ruleLabel}[2]{%
+    \ifthenelse
+      {\equal{#1}{\textbackslash !}}%
+      {\mbox{\scshape {\color{blue}#2}}}%
+      {\k@withTooltip{\mbox{\scshape {\color{blue}#2} {\color{Aquamarine}#1}}}{Rule Label: #1}}\\%
+  % \global\def\ignoreThisLabel{#1}%
+  }
+  \newcommand{\myskip}{\smallskip}
 \fi
 
 
 \makeatother
+
+% K listing format for package {listings}
+%=================================================================
 
 \usepackage{listings}
 
@@ -1006,39 +968,137 @@ rectangle,rectangle
                %frame=tb,
                columns=flexible,
                mathescape=false,
-			   upquote=true,
+         upquote=true,
 % 				literate=
 % 	   			{"}{\textquotedbl}1
        }
 }{}
 \lstdefinelanguage{k}{
-		upquote=true,
+    upquote=true,
        morekeywords={kompile, kast, krun, require, HOLE, configuration, module, end, imports, rule, macro, op, ops, syntax, sort, sorts, subsort, subsorts, context, HOLE, hybrid, strict, seqstrict, binder, color, latex, kvar, structural, transition, superheat, supercool, search, rewrite, prec, gather, stream, multiplicity, when},
         emph={[3]Map, Set, Bag, List, K, KLabel, KResult, KProper, CellLabel, SetItem, BagItem, ListItem, MapItem, Int, Bool, String, Id},
        emphstyle={[3]\textit},
        literate=
        {LT}{$<$}3
-       {LEQ}{$<=$}4 
-%       {.K}{$\kdot{\it K}$}2 
-%       {.List}{$\kdot{\it List}$}4 
+       {LEQ}{$<=$}4
+%       {.K}{$\kdot{\it K}$}2
+%       {.List}{$\kdot{\it List}$}4
        {PROMPT}{\$}1
        {...<}{${\ellipses}\langle$}2
-       {>}{$\rangle$}1 
+       {>}{$\rangle$}1
        {>...}{$\rangle{\ellipses}$}2
-       {+Int}{$+{\rm\scriptstyle Int}$}4 
-       {*Int}{$*{\rm\scriptstyle Int}$}4 
-       {/Int}{$/{\rm\scriptstyle Int}$}4 
-       {LeqInt}{${<}{=}{\rm\scriptstyle Int}$}9 
-       {!=Int}{${!}{=}{\rm\scriptstyle Int}$}5 
-       {==Bool}{${=}{=}{\rm\scriptstyle Bool}$}7 
-       {=/=Bool}{${=}{/}{=}{\rm\scriptstyle Bool}$}9 
-       {notBool}{${\tt not}{\rm\scriptstyle Bool}$}5 
-       {<}{$\langle$}1 
-       {_}{$\_$}1 {~}{$\_$}1 
-       {=>}{$\;=\!>$}5 
-       {->}{{$->$}}3 
-       {~>}{{$\sim\!\!>$}}3  
-       {|->}{$\;|-\!\!>$}5 
+       {+Int}{$+{\rm\scriptstyle Int}$}4
+       {*Int}{$*{\rm\scriptstyle Int}$}4
+       {/Int}{$/{\rm\scriptstyle Int}$}4
+       {LeqInt}{${<}{=}{\rm\scriptstyle Int}$}9
+       {!=Int}{${!}{=}{\rm\scriptstyle Int}$}5
+       {==Bool}{${=}{=}{\rm\scriptstyle Bool}$}7
+       {=/=Bool}{${=}{/}{=}{\rm\scriptstyle Bool}$}9
+       {notBool}{${\tt not}{\rm\scriptstyle Bool}$}5
+       {<}{$\langle$}1
+       {_}{$\_$}1 {~}{$\_$}1
+       {=>}{$\;=\!>$}5
+       {->}{{$->$}}3
+       {~>}{{$\sim\!\!>$}}3
+       {|->}{$\;|-\!\!>$}5
 }
 \newcommand{\ka}[1]{\mbox{\lstinline[language=k]{#1}}}
+
+
+% Macros unused by Latex backend (non-exclusive list)
+%=================================================================
+
+\newcommand{\syntaxContL}[3]{{\small%\par\indent%
+$\mid\;{#2}$ \ifthenelse{\equal{#3}{}}{}{[#3]\;}%
+}}
+
+% Tags.
+\newcommand{\kassoc}{assoc}
+\newcommand{\kcomm}{comm}
+\newcommand{\khybrid}{{\color{Aquamarine}hybrid}}
+\newcommand{\kid}[1]{id: {#1}}
+\newcommand{\kditto}{ditto}
+\newcommand{\karity}[1]{{\color{Aquamarine}arity(#1)}}
+\newcommand{\kstrict}[2]{{%
+  \color{Aquamarine}strict%
+  \ifx&#1&%
+  \else%
+    (#1)%
+  \fi%
+  \ifx&#2&%
+  \else%
+    in (#2)%
+  \fi%
+}}
+
+\newcommand{\kseqstrict}[2]{{%
+  \color{Aquamarine}seqstrict%
+  \ifx&#1&%
+  \else%
+    (#1)%
+  \fi%
+  \ifx&#2&%
+  \else%
+    in (#2)%
+  \fi%
+}}
+
+% Configuration
+\newcommand{\kconfigb}[1]{\begin{kblock}\kconfig{#1}\end{kblock}}
+
+%%% Rewrite.
+
+\newcommand{\reduceTop}[2]{{#1}\Rightarrow{#2}}
+\newcommand{\reduceTopS}[2]{{#1}\rightharpoonup{#2}}
+
+\newcommand{\reduceS}[2]{%
+  \hbox{%
+  \begin{tikzpicture}[baseline=(top.base),
+                      inner xsep=0pt,
+                      inner ysep=.3333ex,
+                      minimum width=2em]
+    \path node (top) {$#1$\strut}
+          (top.south)
+          node (bottom) [anchor=north] {$#2$\strut};
+    \path[draw,thin,densely dashed] let \p1 = (current bounding box.west),
+                                        \p2 = (current bounding box.east),
+                                        \p3 = (top.south)
+                                    in (\x1,\y3) -- (\x2,\y3);
+  \end{tikzpicture}%
+  }
+}
+
+%%% K Term contents.
+\newcommand{\displayGreek}[1]{%
+  \text{\Large\ensuremath{\displaystyle #1}}%
+}
+
+\newcommand{\prefixOp}{\terminalNoSpace}
+
+% Rules and Equations %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\kcontextb}[4]{\begin{kblock}\kcontext{#1}{#2}{#3}{#4}\end{kblock}}
+
+%%% Equations and structural rules.
+
+\newcommand{\mequation}[3]{%
+  \wrapRules{%
+  \rulebox{%
+    \k@ruleLabel{#1}{macro}\hspace{1em}$#2 = #3$%
+  }%
+  \k@markPosition%
+  }%
+}
+
+\newcommand{\cmequation}[4]{%
+  \wrapRules{%
+  \rulebox{%
+    \k@ruleLabel{#1}{macro}\hspace{1em}$#2 = #3$%
+    \when{#4}%
+  }%
+  \k@markPosition%
+  }%
+}
+
+\newcommand{\kruleb}[4]{\begin{kblock}\krule[#1]{#2}{#3}{#4}\end{kblock}}
 
