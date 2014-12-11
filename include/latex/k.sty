@@ -130,7 +130,9 @@
 
 %%% Auxiliary packages.
 
+%For widthof
 \RequirePackage{calc}
+
 \RequirePackage{ifthen}
 \RequirePackage{ifdraft}
 \RequirePackage{ucs}
@@ -353,6 +355,19 @@
 \newcommand{\builtinIntDiv}[2]{{#1}\mathrel{\div_{\scriptstyle\it Int}}{#2}}
 \newcommand{\builtinIntMod}[2]{{#1}\mathrel{\%_{\scriptstyle\it Int}}{#2}}
 
+% Rule formatting settings
+%\colorlet{KeywordColor}{Blue}
+%\colorlet{RuleNameColor}{Indigo}%Indigo, DarkBlue, DarkViolet, DarkCyan
+\colorlet{KeywordColor}{Blue}
+\colorlet{RuleNameColor}{Blue}%Indigo, DarkBlue, DarkViolet,
+\colorlet{AttribColor}{DarkCyan}
+
+\newcommand{\keyword}[1]{\mbox{\scshape{\color{KeywordColor}#1}}}
+\newcommand{\moduleName}[1]{\mbox{\scshape {\color{RuleNameColor} #1}}}
+\newcommand{\ruleName}[1]{\mbox{\scshape {\color{RuleNameColor} #1}}}
+%\newcommand{\ruleName}[1]{\mbox{\color{RuleNameColor} #1}}
+
+\newcommand{\syntaxKeyword}{\keyword{syntax}\hspace{1em}}
 
 % K Blocks %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -421,11 +436,11 @@
 \newenvironment{module}[1]{%
   \tikzset{comment/.style={basic comment,fill=black!10}}%
   \par\noindent%
-  \text{\scshape module #1}%
+  \keyword{module} #1%
   \setlength{\parindent}{1em}%
   \par\ \par%
 }{%
-  \par\noindent\text{\scshape end module}%
+  \par\noindent\keyword{end module}
   \par\ \par%
 }
 
@@ -436,8 +451,7 @@
   \par\ \par%
 }
 
-\newcommand{\moduleName}[1]{#1}
-\newcommand{\including}[1]{\par\text{\scshape imports}\ #1\par\ \par}
+\newcommand{\including}[1]{\par\keyword{imports}\ #1\par\ \par}
 \newcommand{\modulePlus}{$+$}
 
 
@@ -447,8 +461,6 @@
 \newcommand{\sorts}[1]{}
 \newcommand{\sort}[1]{\text{\itshape #1}}
 \newcommand{\kind}[1]{\text{\itshape #1}}
-
-\newcommand{\syntaxKeyword}{\mbox{\scshape {\color{blue} syntax}}\hspace{1em}}
 
 % Syntax rules.
 \newlength{\syntaxlength}  % The amount of indention for continued rules.
@@ -506,7 +518,7 @@
   {\ensuremath{\mathord{\text{\ttfamily #1}} \allowbreak}}
 
 % Tags
-\newcommand{\kattribute}[1]{{\color{Aquamarine}#1}}
+\newcommand{\kattribute}[1]{{\color{AttribColor}#1}}
 
 
 % Configuration %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -612,8 +624,9 @@
 \newcommand{\kra}{\allowbreak \curvearrowright}
 \newcommand{\kcomma}{\ensuremath{\mathpunct{\textbf{,}} \allowbreak}}
 \newcommand{\kvalue}[1]{{\color{red}#1}}
+
 \newcommand{\constant}[2][none]{%
-  \k@withTooltip{\text{\sffamily #2}}{{\color{blue}syntax} #1 ::= "#2"}%
+  \k@withTooltip{\text{\sffamily #2}}{\syntaxKeyword #1 ::= "#2"}%
 }
 
 \newcommand{\typedTo}[1]{{\it :}#1}
@@ -646,18 +659,49 @@
   \mcell{#1}{#2}{{\color{#1!50!black}\ellipses}\ {#3}\ {\color{#1!50!black}\ellipses}}
 }
 
+
+\colorlet{mcellColor}{White}
+\colorlet{mcellBodyColor}{White}
+
+%true = cell body colored in the cell color, false = black cell body
+\newcommand{\coloredCellBody}{false}
+
+\newlength{\k@angleHeight}
+
+% Surrounds the given argument with bold angular brackets, for better display of angle colors.
+% The argument itself is rendered in notmal text.
+% Source: http://tex.stackexchange.com/questions/47979/how-do-i-apply-both-mathbf-and-left-to-a-langle
+\newcommand{\boldangles}[1]{%
+  %Height must be captured for performance optimizations.
+  %If we use the unchanged solution from the link above, it is too slow.
+  \setlength{\k@angleHeight}{\heightof{\vphantom{$#1$}}}%
+  %\the\k@angleHeight %for debugging lenghts
+  \pmb{%
+    \left\langle%
+    \rule{0in}{\k@angleHeight}% a strut, \strut command gives errors
+    \right.%
+  }%
+  #1%
+  \pmb{%
+    \left.%
+    \rule{0in}{\k@angleHeight}%
+    \right\rangle%
+  }%
+}
+
 %Arguments: color (default gray), cell name, content.
 \newcommand{\mcell}[3]{
+  % setup
   \ifthenelse{\equal{#1}{}}
-    {\color{white!50!black}}
-    {\color{#1!50!black}}
-  \left\langle
-  #3
-  \ifthenelse{\equal{#1}{}}
-    {\color{white!50!black}}
-    {\color{#1!50!black}}
-  \right\rangle
-  _{\sf #2}
+    {\colorlet{mcellColor}{white!50!black}}
+    {\colorlet{mcellColor}{#1!50!black}}
+  \ifthenelse{\equal{\coloredCellBody}{true}}
+    {\colorlet{mcellBodyColor}{mcellColor}}
+    {\colorlet{mcellBodyColor}{Black}}
+  % rendering
+    \color{mcellColor}
+    \boldangles{{\color{mcellBodyColor} #3}}
+    _{\sf #2}
 }
 
 % Triple dot
@@ -870,8 +914,8 @@ rectangle,rectangle
 }
 
 \newcommand{\whenReq}[1]{%
-  \hspace{2em} \mbox{\scshape {\color{blue}requires}} \ensuremath{#1}%
-%  \hspace{2em} requires \ensuremath{#1}%
+  \hspace{5em}%has no effect
+  \keyword{requires} \ensuremath{#1}%
   \k@markPosition%
 }
 
@@ -893,7 +937,8 @@ rectangle,rectangle
 \newcommand{\ksentence}[7][]{%
 \wrapRules{%
   \rulebox{%
-  \k@ruleLabel{#3}{#2}\hspace{1em}$%
+  \k@ruleLabel{#3}{#2}\hspace{1em}%
+    $%
   \ifthenelse{\equal{#1}{}}{}{%
    \left(%
   }%
@@ -920,8 +965,8 @@ rectangle,rectangle
 \newcommand{\k@ruleLabel}[2]{%
   \ifthenelse
     {\equal{#1}{}}%
-    {\mbox{\scshape {\color{blue}#2}}}%
-    {\k@withTooltip{\mbox{\scshape {\color{blue}#2}}}{Rule Label: #1}}%
+    {\keyword{#2}}%
+    {\k@withTooltip{\keyword{#2}}{Rule Label: #1}}%
 }
 
 \newcommand{\rulebox}[1]{\hbox{#1}}
@@ -944,8 +989,8 @@ rectangle,rectangle
   \renewcommand{\k@ruleLabel}[2]{%
     \ifthenelse
       {\equal{#1}{\textbackslash !}}%
-      {\mbox{\scshape {\color{blue}#2}}}%
-      {\k@withTooltip{\mbox{\scshape {\color{blue}#2} {\color{Aquamarine}#1}}}{Rule Label: #1}}\\%
+      {\keyword{#2}}%
+      {\k@withTooltip{\keyword{#2} \ruleName{#1}}{Rule Label: #1}}\\%
   % \global\def\ignoreThisLabel{#1}%
   }
   \newcommand{\myskip}{\smallskip}
@@ -1015,12 +1060,12 @@ $\mid\;{#2}$ \ifthenelse{\equal{#3}{}}{}{[#3]\;}%
 % Tags.
 \newcommand{\kassoc}{assoc}
 \newcommand{\kcomm}{comm}
-\newcommand{\khybrid}{{\color{Aquamarine}hybrid}}
+\newcommand{\khybrid}{\kattribute{hybrid}}
 \newcommand{\kid}[1]{id: {#1}}
 \newcommand{\kditto}{ditto}
-\newcommand{\karity}[1]{{\color{Aquamarine}arity(#1)}}
+\newcommand{\karity}[1]{\kattribute{arity(#1)}}
 \newcommand{\kstrict}[2]{{%
-  \color{Aquamarine}strict%
+  \kattribute{strict}%
   \ifx&#1&%
   \else%
     (#1)%
@@ -1032,7 +1077,7 @@ $\mid\;{#2}$ \ifthenelse{\equal{#3}{}}{}{[#3]\;}%
 }}
 
 \newcommand{\kseqstrict}[2]{{%
-  \color{Aquamarine}seqstrict%
+  \kattribute{seqstrict}%
   \ifx&#1&%
   \else%
     (#1)%
