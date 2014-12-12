@@ -451,7 +451,7 @@ public class LatexFilter extends BackendFilter {
         if (trm.getContent() instanceof Rewrite) {
             super.visit(trm, _);
         } else {
-            String pattern = "\\left({#1}\\right)";
+            String pattern = "\\kbrackets{#1}";
             LatexFilter termFilter = new LatexFilter(context, indent);
             termFilter.getWantParens().push(Boolean.FALSE);
             termFilter.visitNode(trm.getContent());

@@ -5,6 +5,7 @@
 \RequirePackage{bookmark}
 \RequirePackage{kvoptions}
 \RequirePackage{ifthen}
+\RequirePackage{xifthen}%extension of ifthen
 % \RequirePackage{etoolbox}
 % \RequirePackage{etextools} % for xifstrequal
 % \RequirePackage{stringstrings} % for \stringlength
@@ -457,11 +458,6 @@
 
 % Syntax %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Sorts and kinds.
-\newcommand{\sorts}[1]{}
-\newcommand{\sort}[1]{\text{\itshape #1}}
-\newcommand{\kind}[1]{\text{\itshape #1}}
-
 % Syntax rules.
 \newlength{\syntaxlength}  % The amount of indention for continued rules.
 \newlength{\savedParIndent} % Used as hspace in \syntax and \syntaxCont
@@ -493,7 +489,7 @@
     }
   %
   \hspace{\savedParIndent}
-  \syntaxKeyword$#1 \mathrel{::=} #2$ \ifthenelse{\equal{#3}{}}{}{[#3]}%
+  \syntaxKeyword$#1 \mathrel{::=} #2$ \ifthenelse{\isempty{#3}}{}{[#3]}%
   \k@markPosition%
 }
 
@@ -505,12 +501,13 @@
   \setlength{\syntaxlength}{.5\syntaxlength}%
   \addtolength{\syntaxlength}{\widthof{\syntaxKeyword$#1$}}%
   \hspace{\syntaxlength}%
-  \;\;\!\mid\;#2$ \ifthenelse{\equal{#3}{}}{}{[#3]}%
+  \;\;\!\mid\;#2$ \ifthenelse{\isempty{#3}}{}{[#3]}%
   \k@markPosition%
 }
 
 % Non-terminals.
-\newcommand{\nonTerminal}[1]{\text{\itshape #1}\/}
+\newcommand{\nonTerminal}[1]{#1}%always wraps a \sort
+\newcommand{\sort}[1]{\sortName{#1}\/}
 
 % Terminals.
 \newcommand{\terminal}[1]{\ensuremath{\allowbreak \mathrel{\text{\ttfamily #1}}}}
@@ -629,17 +626,73 @@
   \k@withTooltip{\text{\sffamily #2}}{\syntaxKeyword #1 ::= "#2"}%
 }
 
-\newcommand{\typedTo}[1]{{\it :}#1}
+\colorlet{varColor}{Black}%Indigo (too dark, eye tiring), BlueViolet (good when sort is Maroon)
 
-\newcommand{\variable}[3][none]{%
-  \k@withTooltip{\text{\ensuremath{%
-    \it #2\ifthenelse{\equal{#3}{user}}{\typedTo{#1}}{}%
-  }}\/}{Variable #2:#1}%
+%Maroon - good for contrast with BueViolet var
+% surprisingly looks better than DarkMagenta when vars are bold black.
+%Indigo - too dark, tiring
+%BlueViolet - too light, catches attention
+%DarkMagenta - between Indigo and BlueViolet, closest to IDE settings, yet seems more tiring than BlueViolet.
+%Ideally we would like attention to be on variables, not sorts.
+%DimGray - good for emphasizing vars as bold, looks hard to see.
+%Black - not distinct enough. Other syntactic kinds are also black italic.
+
+%Brown - lighter version of Maroon. Looks surprisingly easier on the eyes.
+%RawSienna - lighter than Brown, too shit-like.
+%orange - too bright and hard to read
+%BrickRed - slightly lighter than brown, already too bright.
+% Brown is the best option so far, when combined with bold black var names.
+% Does not distract attention from var names, looks different enough from terms and vars,
+% and it's easy to concentrate on sorts when needed.
+\colorlet{sortColor}{DimGray}
+
+\newcommand{\varName}[1]{
+  %{\color{varColor}\it #1} %V1
+  {\color{varColor}\textbf{#1}} %V2
 }
+
+\newcommand{\varSort}[1]{\sortName{{:}#1}}
+
+%Display of a sort in any context - syntax or rule.
+\newcommand{\sortName}[1]{\text{\color{sortColor} \itshape #1}}
+
+%Arguments: Sort, name, either user or {}.
+%Sort is only rendered if arg3=user
+\newcommand{\variable}[3][none]{%
+  \k@withTooltip{%
+    \text{\ensuremath{%
+      \varName{#2}%
+      \ifthenelse{\equal{#3}{user}}%
+        {\varSort{#1}}%
+        {}%
+    }}\/%
+  }%
+  {Variable #2:#1}%
+}
+
+%original: black!60
+\colorlet{dotSortColor}{sortColor}
 
 \newcommand{\dotCt}[1]{%
   \ensuremath{%
-    {\raise.3ex\hbox{$\kdot$}}_{\color{black!60}\scriptstyle\it \!#1}}%
+    {\raise.3ex\hbox{$\kdot$}}_{\color{dotSortColor}\scriptstyle\it \!#1}}%
+}
+
+\newcommand{\kbrackets}[1]{
+  \setlength{\k@angleHeight}{\heightof{\vphantom{$#1$}}}%
+  \pmb{%
+    \color{AttribColor}
+    \left(%
+    \rule{0in}{\k@angleHeight}% a strut, \strut command gives errors
+    \right.%
+  }%
+  #1%
+  \pmb{%
+    \color{AttribColor}
+    \left.%
+    \rule{0in}{\k@angleHeight}%
+    \right)%
+  }%
 }
 
 %%% Mathematical notation.
@@ -648,23 +701,28 @@
 \newcommand{\mall}[3]{\mcell{#1}{#2}{{#3}}}
 
 \newcommand{\mprefix}[3]{
-  \mcell{#1}{#2}{{#3}\ {\color{#1!50!black}\ellipses}}
+  \mcell{#1}{#2}{{#3}\ {\ellipses}}
 }
 
 \newcommand{\msuffix}[3]{
-  \mcell{#1}{#2}{{\color{#1!50!black}\ellipses}\ {#3}}
+  \mcell{#1}{#2}{{\ellipses} \ {#3}}
 }
 
 \newcommand{\mmiddle}[3]{
-  \mcell{#1}{#2}{{\color{#1!50!black}\ellipses}\ {#3}\ {\color{#1!50!black}\ellipses}}
+  \mcell{#1}{#2}{{\ellipses}\ {#3}\ {\ellipses}}
 }
 
 
 \colorlet{mcellColor}{White}
 \colorlet{mcellBodyColor}{White}
+\colorlet{mcellBracketDefaultColor}{Maroon}
+\colorlet{mcellBracketColor}{White}
 
 %true = cell body colored in the cell color, false = black cell body
 \newcommand{\coloredCellBody}{false}
+
+%true = cell brackets colored in the cell color, false = black cell brackets (better if we decide to color components inside a cell into different colors)
+\newcommand{\coloredCellBrackets}{false}
 
 \newlength{\k@angleHeight}
 
@@ -692,23 +750,29 @@
 %Arguments: color (default gray), cell name, content.
 \newcommand{\mcell}[3]{
   % setup
-  \ifthenelse{\equal{#1}{}}
+  \ifthenelse{\isempty{#1}}
     {\colorlet{mcellColor}{white!50!black}}
     {\colorlet{mcellColor}{#1!50!black}}
+  \ifthenelse{\equal{\coloredCellBrackets}{true}}
+    {\colorlet{mcellBracketColor}{mcellColor}}
+    {\colorlet{mcellBracketColor}{mcellBracketDefaultColor}}
   \ifthenelse{\equal{\coloredCellBody}{true}}
     {\colorlet{mcellBodyColor}{mcellColor}}
     {\colorlet{mcellBodyColor}{Black}}
   % rendering
-    \color{mcellColor}
+    \color{mcellBracketColor}
     \boldangles{{\color{mcellBodyColor} #3}}
-    _{\sf #2}
+    %_{\sf #2} %original size
+    _{\text{\footnotesize\sf #2}}
 }
 
 % Triple dot
 \newcommand{\ellipses}{\mathrel{\cdot\!\!\cdot\!\!\cdot}}
 
 \newcommand{\mdot}{\cdot}
-\newcommand{\mAnyVar}[2]{\_\ifthenelse{\equal{#2}{user}}{\typedTo{#1}}{}}
+
+%Anonymous variable
+\newcommand{\mAnyVar}[2]{\_\ifthenelse{\equal{#2}{user}}{\varSort{#1}}{}}
 
 %%% Bubble notation.
 
@@ -720,7 +784,7 @@
 \newcommand{\bmiddle}[3]{\kcell{#1}{#2}{#3}{none}{none}}
 \newcommand{\bdot}{{\scriptscriptstyle\bullet}}
 \newcommand{\bAnyVar}[2]{%
-  \k@withTooltip{\mbox{---}\ifthenelse{\equal{#2}{user}}{\typedTo{#1}}{}}{Variable \_:#1}%
+  \k@withTooltip{\mbox{---}\ifthenelse{\equal{#2}{user}}{\varSort{#1}}{}}{Variable \_:#1}%
 }
 
 \tikzset{
@@ -939,23 +1003,23 @@ rectangle,rectangle
   \rulebox{%
   \k@ruleLabel{#3}{#2}\hspace{1em}%
     $%
-  \ifthenelse{\equal{#1}{}}{}{%
+  \ifthenelse{\isempty{#1}}{}{%
    \left(%
   }%
   #4%
-  \ifthenelse{\equal{#1}{}}{}{%
+  \ifthenelse{\isempty{#1}}{}{%
    \right)%
   }%
     $%
   }%
-  \ifthenelse{\equal{#5}{}}{}{%
+  \ifthenelse{\isempty{#5}}{}{%
     \whenReq{#5}%
   }%
-  \ifthenelse{\equal{#6}{}}{}{%
+  \ifthenelse{\isempty{#6}}{}{%
     \whenEns{#6}%
   }%
   \k@markPosition%
-  \ifthenelse{\equal{#7}{}}{}{%
+  \ifthenelse{\isempty{#7}}{}{%
    \ruleAttributes{#7}%
   }%
 }%
@@ -964,7 +1028,7 @@ rectangle,rectangle
 %Arguments: label, keyword
 \newcommand{\k@ruleLabel}[2]{%
   \ifthenelse
-    {\equal{#1}{}}%
+    {\isempty{#1}}%
     {\keyword{#2}}%
     {\k@withTooltip{\keyword{#2}}{Rule Label: #1}}%
 }
@@ -1054,7 +1118,7 @@ rectangle,rectangle
 %=================================================================
 
 \newcommand{\syntaxContL}[3]{{\small%\par\indent%
-$\mid\;{#2}$ \ifthenelse{\equal{#3}{}}{}{[#3]\;}%
+$\mid\;{#2}$ \ifthenelse{\isempty{#3}}{}{[#3]\;}%
 }}
 
 % Tags.
