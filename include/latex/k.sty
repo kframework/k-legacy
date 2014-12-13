@@ -20,6 +20,8 @@
 \DeclareBoolOption{tight}  % whether (bubble) cells should be tight or not
 \DeclareBoolOption{beamer}  % whether (bubble) cells should be tight or not
 \DeclareBoolOption{poster}  % to generate a poster from the definition
+
+\DeclareBoolOption{modulesAsSections} % To render modules as sections.
 \ProcessKeyvalOptions*
 
 % Usage Examples %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -434,16 +436,25 @@
 
 % Modules %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\newenvironment{module}[1]{%
-  \tikzset{comment/.style={basic comment,fill=black!10}}%
-  \par\noindent%
-  \keyword{module} #1%
-  \setlength{\parindent}{1em}%
-  \par\ \par%
-}{%
-  \par\noindent\keyword{end module}
-  \par\ \par%
-}
+\ifk@modulesAsSections
+  \newenvironment{module}[1]{%
+    \section{Module #1}%
+  }
+  {}
+
+\else
+  \newenvironment{module}[1]{%
+    \tikzset{comment/.style={basic comment,fill=black!10}}%
+    \par\noindent%
+    \keyword{module} \moduleName{#1}%
+    \setlength{\parindent}{1em}%
+    \par\ \par%
+  }{%
+    \par\noindent\keyword{end module}
+    \par\ \par%
+  }
+\fi
+
 
 \newenvironment{commentModule}{%
   \setlength{\parindent}{1em}%

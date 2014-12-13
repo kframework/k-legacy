@@ -112,7 +112,7 @@ public class LatexFilter extends BackendFilter {
         if (mod.isPredefined()) {
             return null;
         }
-        result.append("\\begin{module}{\\moduleName{" + StringUtil.latexify(mod.getName()) + "}}" + endl);
+        result.append("\\begin{module}{" + StringUtil.latexify(mod.getName()) + "}" + endl);
         super.visit(mod, _);
         result.append("\\end{module}" + endl);
         return null;

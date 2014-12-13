@@ -16,7 +16,7 @@ public class DocumentationFilter extends LatexFilter {
 
     @Override
     public Void visit(Module mod, Void _) {
-        result.append("\\begin{module}{\\moduleName{" + StringUtil.latexify(mod.getName()) + "}}" + endl);
+        result.append("\\begin{module}{" + StringUtil.latexify(mod.getName()) + "}" + endl);
         //insert section and label tags for link
         result.append("\\section{" + mod.getName() + "}" + endl);
         result.append("\\label{sec:" + mod.getName() + "}" + endl);
