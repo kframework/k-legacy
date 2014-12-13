@@ -481,7 +481,7 @@
 
 % Indent of a hanging long rules when automatically line breaking.
 \newlength{\ruleHangindent}
-\setlength{\ruleHangindent}{2\parindent}
+\setlength{\ruleHangindent}{\parindent}
 
 % The amount of indention for continued rules.
 \newlength{\syntaxlength}
@@ -1062,37 +1062,50 @@ rectangle,rectangle
 \else
 %%% Paged (non-poster) mode
 
+  \usepackage{boxedminipage}
+
   %Arguments: {}, rule, name, body, preconditions, postconditions (for ML), attributes
   \newcommand{\ksentence}[7][]{%
   \setlength{\savedParindent}{\parindent}
   \setlength{\savedHangindent}{\hangindent}
   \setlength{\parindent}{\kIndent}
-  \setlength{\hangindent}{\ruleHangindent}
   %
   \par{\parbox[b]{\columnwidth}{
-    \parbox[b]{\columnwidth}{%
+    %\begin{minipage}{\columnwidth}%
+    \begin{boxedminipage}{\columnwidth}%for debug purposes
+    \begin{flushleft}
+      \setlength{\hangindent}{\ruleHangindent}
       \k@ruleLabel{#3}{#2}%
-      \hspace{1em}%
+      \setlength{\parindent}{\ruleHangindent}
       \ifthenelse{\isempty{#1}}{%always the case
         $#4$%
       }{%
         $\left(#4\right)$%
       }%
-    }%
+    \end{flushleft}
+    \end{boxedminipage}%
+    %\end{minipage}%
     \ifthenelse{\isempty{#5}}{}{%
-      \hspace{2em}%has no effect
-      \keyword{requires} \ensuremath{#5}%
-      \k@markPosition%
+      \setlength{\hangindent}{\ruleHangindent}
+      \raggedright{%\begin{flushleft} produces extra vspace
+        \par
+        \keyword{requires} \ensuremath{#5}%
+        \k@markPosition%
+      }%
     }%
     \ifthenelse{\isempty{#6}}{}{%
-      \hspace{2em} \keyword{ensures} \ensuremath{#6}%
-      \k@markPosition%
+      \setlength{\hangindent}{\ruleHangindent}
+      \raggedright{
+        \par
+        \keyword{ensures} \ensuremath{#6}%
+        \k@markPosition%
+      }%
     }%
     \k@markPosition%
     \ifthenelse{\isempty{#7}}{}{%
       \ruleAttributes{#7}%
     }%
-  }}\par\ \par%
+  }}%
   \setlength{\parindent}{\savedParindent}
   \setlength{\hangindent}{\savedHangindent}
   }
