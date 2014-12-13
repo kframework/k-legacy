@@ -37,8 +37,8 @@ module FLOAT-HOOKS
 
   rule F1:Float =/=Float F2:Float => notBool(F1 ==Float F2)
 
-  syntax Float ::= "Int2Float" "(" Int ")"	[function, klabel(Int2Float), latex({\\it{}Int2Float}), hook(#CONVERSION:int2Float)]
-  syntax Int ::= "Float2Int" "(" Float ")"	[function, klabel(Float2Int), latex({\\it{}Float2Int}), hook(#CONVERSION:float2Int)]
+  syntax Float ::= "Int2Float" "(" Int ")"	[function, klabel(Int2Float), latex({\it Int2Float({#1})}), hook(#CONVERSION:int2Float)]
+  syntax Int ::= "Float2Int" "(" Float ")"	[function, klabel(Float2Int), latex({\it Float2Int({#1})}), hook(#CONVERSION:float2Int)]
 
 
 endmodule
