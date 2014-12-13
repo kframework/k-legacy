@@ -646,10 +646,11 @@
 % and it's easy to concentrate on sorts when needed.
 \colorlet{sortColor}{DimGray}
 
-\newcommand{\varName}[1]{
+%Limitation: greek letters are not bolded.
+\newcommand{\varName}[1]{\ensuremath{
   %{\color{varColor}\it #1} %V1
-  {\color{varColor}\textbf{#1}} %V2
-}
+  {\color{varColor}\mathbf{#1}} %V2
+}}
 
 \newcommand{\varSort}[1]{\sortName{{:}#1}}
 
@@ -678,7 +679,7 @@
     {\raise.3ex\hbox{$\kdot$}}_{\color{dotSortColor}\scriptstyle\it \!#1}}%
 }
 
-\newcommand{\kbrackets}[1]{
+\newcommand{\kbrackets}[1]{\ensuremath{
   \setlength{\k@angleHeight}{\heightof{\vphantom{$#1$}}}%
   \pmb{%
     \color{AttribColor}
@@ -693,7 +694,7 @@
     \rule{0in}{\k@angleHeight}%
     \right)%
   }%
-}
+}}
 
 %%% Mathematical notation.
 
