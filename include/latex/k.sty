@@ -1006,41 +1006,36 @@ rectangle,rectangle
 \ksentence[#6]{rule}{#1}{#2}{#3}{#4}{#5}
 }
 
-%Arguments: {}, rule, name, body, preconditions, postconditions (for ML), attributes
-\newcommand{\ksentence}[7][]{%
-\setlength{\savedParindent}{\parindent}
-\setlength{\savedHangindent}{\hangindent}
-\setlength{\parindent}{\kIndent}
-\setlength{\hangindent}{\ruleHangindent}
-\wrapRules{%
-  \rulebox{%
-    \k@ruleLabel{#3}{#2}\hspace{1em}%
-    \ifthenelse{\isempty{#1}}{
-      $#4$%
-    }{%
-      $\left(#4\right)$%
-    }%
-  }%
-  \ifthenelse{\isempty{#5}}{}{%
-    \hspace{2em}%has no effect
-    \keyword{requires} \ensuremath{#1}%
-    \k@markPosition%
-  }%
-  \ifthenelse{\isempty{#6}}{}{%
-    \hspace{2em} \keyword{ensures} \ensuremath{#1}%
-    \k@markPosition%
-  }%
-  \k@markPosition%
-  \ifthenelse{\isempty{#7}}{}{%
-    \ruleAttributes{#7}%
-  }%
-}%
-\setlength{\parindent}{\savedParindent}
-\setlength{\hangindent}{\savedHangindent}
-}
-
 \ifk@poster
 %%% Poster mode
+
+  %Arguments: {}, rule, name, body, preconditions, postconditions (for ML), attributes
+  \newcommand{\ksentence}[7][]{%
+  \wrapRules{%
+    \rulebox{%
+      \k@ruleLabel{#3}{#2}\hspace{1em}%
+      \ifthenelse{\isempty{#1}}{
+        $#4$%
+      }{%
+        $\left(#4\right)$%
+      }%
+    }%
+    \ifthenelse{\isempty{#5}}{}{%
+      \hspace{2em}%has no effect
+      \keyword{requires} \ensuremath{#5}%
+      \k@markPosition%
+    }%
+    \ifthenelse{\isempty{#6}}{}{%
+      \hspace{2em} \keyword{ensures} \ensuremath{#6}%
+      \k@markPosition%
+    }%
+    \k@markPosition%
+    \ifthenelse{\isempty{#7}}{}{%
+      \ruleAttributes{#7}%
+    }%
+  }%
+  }
+
   \newcommand{\wrapRules}[1]{%
     \par\indent#1\par\ \par%
   }
@@ -1066,12 +1061,40 @@ rectangle,rectangle
 
 \else
 %%% Paged (non-poster) mode
-  \newcommand{\wrapRules}[1]{%
-    \par{\parbox[b]{\columnwidth}{#1}}\par\ \par%
-  }
 
-  \newcommand{\rulebox}[1]{%
-    \parbox[b]{\columnwidth}{#1}%
+  %Arguments: {}, rule, name, body, preconditions, postconditions (for ML), attributes
+  \newcommand{\ksentence}[7][]{%
+  \setlength{\savedParindent}{\parindent}
+  \setlength{\savedHangindent}{\hangindent}
+  \setlength{\parindent}{\kIndent}
+  \setlength{\hangindent}{\ruleHangindent}
+  %
+  \par{\parbox[b]{\columnwidth}{
+    \parbox[b]{\columnwidth}{%
+      \k@ruleLabel{#3}{#2}%
+      \hspace{1em}%
+      \ifthenelse{\isempty{#1}}{%always the case
+        $#4$%
+      }{%
+        $\left(#4\right)$%
+      }%
+    }%
+    \ifthenelse{\isempty{#5}}{}{%
+      \hspace{2em}%has no effect
+      \keyword{requires} \ensuremath{#5}%
+      \k@markPosition%
+    }%
+    \ifthenelse{\isempty{#6}}{}{%
+      \hspace{2em} \keyword{ensures} \ensuremath{#6}%
+      \k@markPosition%
+    }%
+    \k@markPosition%
+    \ifthenelse{\isempty{#7}}{}{%
+      \ruleAttributes{#7}%
+    }%
+  }}\par\ \par%
+  \setlength{\parindent}{\savedParindent}
+  \setlength{\hangindent}{\savedHangindent}
   }
 
   \newcommand{\ruleAttributes}[1]{\par{}\hspace{2em} [#1]}
