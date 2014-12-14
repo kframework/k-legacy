@@ -125,6 +125,9 @@
 \RequirePackage{amssymb}
 \RequirePackage{stmaryrd}
 
+% Supports big (up to 5 lines) angular brackets. Default amsmath brackets are limited to 3 lines.
+\RequirePackage{yhmath}
+
 %%% Graphics.
 
 \RequirePackage{tikz}
@@ -473,7 +476,7 @@
 
 % Indent of a module item - syntax, rule or context.
 \newlength{\kIndent}
-\setlength{\kIndent}{0pt}
+\setlength{\kIndent}{2em}%TODO 0em
 
 % Indent of a hanging long syntax definition when automatically line breaking.
 \newlength{\syntaxHangindent}
@@ -489,6 +492,14 @@
 \newlength{\savedParindent} % Backup for \parindent
 \newlength{\savedHangindent} % Backup for \hangindent
 
+\newlength{\kStartVspace} %vertical space at the start of the rule
+\setlength{\kStartVspace}{0ex}%TODO 2ex
+\newlength{\kEndVspace} %vertical space at the end of the rule
+\setlength{\kEndVspace}{0ex}%TODO 2ex
+
+% Suppresses underfull hbox warnings, frequent and meaningless when flushleft env is used.
+\hbadness=10000
+
 %Removed paragraph tags, added flushleft.
 %Using \sloppy or \emergencystretch does not produce the desired result
 % - there are still big overfull hbox-es.
@@ -499,10 +510,21 @@
 \newenvironment{syntaxBlock}[1]
 {
   \newcommand{\defSort}{#1}
+  \setlength{\savedParindent}{\parindent}
+  \setlength{\savedHangindent}{\hangindent}
+  \par
+  %When we use minipages, extra vspace created by \begin{flushleft} disappears.
+  \begin{minipage}{\columnwidth}
+  \setlength{\parindent}{\kIndent}
   \begin{flushleft}
+  \vspace{\kStartVspace}
 }
 {
+  \vspace{\kEndVspace}
   \end{flushleft}
+  \end{minipage}
+  \setlength{\parindent}{\savedParindent}
+  \setlength{\hangindent}{\savedHangindent}
 }
 
 %Removed grouping and rulebox from init version, added hangindent, hspace.
@@ -514,7 +536,7 @@
       \hspace{\syntaxHangindent}}%for an extra indent after ::=
     }
   %
-  \hspace{\kIndent}
+  %\hspace{\kIndent}
   \syntaxKeyword$#1 \mathrel{::=} #2$ \ifthenelse{\isempty{#3}}{}{[#3]}%
   \k@markPosition%
 }
@@ -614,15 +636,16 @@
 \fi
 
 %%% Rewrite.
+
 \newcommand{\reduce}[2]{%
   \hbox{%
-  \begin{tikzpicture}[baseline=(top.base),
+  \begin{tikzpicture}[baseline=(top.south),
                       inner xsep=0pt,
                       inner ysep=.3333ex,
                       minimum width=2em]
-    \path node (top) {$#1$\strut}
+    \path node (top) [inner ysep=1ex]{$#1$ \mathstrut}
           (top.south)
-          node (bottom) [anchor=north, inner ysep=.5ex] {$#2$\strut};
+          node (bottom) [anchor=north, inner ysep=.5ex] {$#2$};
     %%% Draw the horizontal line:
     % Line with chevron.
     %\path[draw,thin,solid] let \p1 = (current bounding box.west),
@@ -640,6 +663,7 @@
     \path[fill] (top.south) ++(2pt,0) -- ++(-4pt,0) -- ++(2pt,-1.5pt) -- cycle;
   \end{tikzpicture}%
   }%
+  \allowbreak
 }
 
 %%% K Term contents.
@@ -799,7 +823,10 @@
 \newcommand{\mdot}{\cdot}
 
 %Anonymous variable
-\newcommand{\mAnyVar}[2]{\_\ifthenelse{\equal{#2}{user}}{\varSort{#1}}{}}
+\newcommand{\mAnyVar}[2]{%
+  \mbox{\textbf{---}}%
+  \ifthenelse{\equal{#2}{user}}{\varSort{#1}}{}%
+}
 
 %%% Bubble notation.
 
@@ -811,7 +838,10 @@
 \newcommand{\bmiddle}[3]{\kcell{#1}{#2}{#3}{none}{none}}
 \newcommand{\bdot}{{\scriptscriptstyle\bullet}}
 \newcommand{\bAnyVar}[2]{%
-  \k@withTooltip{\mbox{---}\ifthenelse{\equal{#2}{user}}{\varSort{#1}}{}}{Variable \_:#1}%
+  \k@withTooltip{%
+    \mbox{\textbf{---}}%
+    \ifthenelse{\equal{#2}{user}}{\varSort{#1}}{}%
+  }{Variable \_:#1}%
 }
 
 \tikzset{
@@ -1062,6 +1092,7 @@ rectangle,rectangle
 \else
 %%% Paged (non-poster) mode
 
+  %TODO remove when finished
   \usepackage{boxedminipage}
 
   %Arguments: {}, rule, name, body, preconditions, postconditions (for ML), attributes
@@ -1070,9 +1101,9 @@ rectangle,rectangle
   \setlength{\savedHangindent}{\hangindent}
   \setlength{\parindent}{\kIndent}
   %
-  \par{\parbox[b]{\columnwidth}{
-    %\begin{minipage}{\columnwidth}%
-    \begin{boxedminipage}{\columnwidth}%for debug purposes
+  \vspace{\kStartVspace}
+  \begin{minipage}{\columnwidth}
+    \begin{minipage}{\columnwidth}%for debug purposes
     \begin{flushleft}
       \setlength{\hangindent}{\ruleHangindent}
       \k@ruleLabel{#3}{#2}%
@@ -1083,8 +1114,7 @@ rectangle,rectangle
         $\left(#4\right)$%
       }%
     \end{flushleft}
-    \end{boxedminipage}%
-    %\end{minipage}%
+    \end{minipage}%
     \ifthenelse{\isempty{#5}}{}{%
       \setlength{\hangindent}{\ruleHangindent}
       \raggedright{%\begin{flushleft} produces extra vspace
@@ -1105,12 +1135,16 @@ rectangle,rectangle
     \ifthenelse{\isempty{#7}}{}{%
       \ruleAttributes{#7}%
     }%
-  }}%
+  \end{minipage}%
   \setlength{\parindent}{\savedParindent}
   \setlength{\hangindent}{\savedHangindent}
+  \vspace{\kEndVspace}
   }
 
-  \newcommand{\ruleAttributes}[1]{\par{}\hspace{2em} [#1]}
+  \newlength{\attribIndent}%Indentation of attributes
+  \setlength{\attribIndent}{4em}
+
+  \newcommand{\ruleAttributes}[1]{\par{}\hspace{\attribIndent} [#1]}
 
   %Arguments: label, keyword
   \newcommand{\k@ruleLabel}[2]{%
