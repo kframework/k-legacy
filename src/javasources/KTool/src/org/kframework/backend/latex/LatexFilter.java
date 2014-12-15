@@ -120,14 +120,13 @@ public class LatexFilter extends BackendFilter {
 
     @Override
     public Void visit(Syntax syn, Void _) {
-        result.append(endl + "\\begin{syntaxBlock}");
+        result.append("\\begin{syntaxBlock}");
         firstProduction = true;
         increaseIndent();
         super.visit(syn, _);
         result.append(endl + "\\end{syntaxBlock}");
         decreaseIndent();
         newLine();
-        result.append("%");
         newLine();
         return null;
     }
@@ -384,7 +383,6 @@ public class LatexFilter extends BackendFilter {
         result.append("}");
         decreaseIndent();
         newLine();
-        result.append("%");
         newLine();
         return null;
     }
@@ -413,7 +411,6 @@ public class LatexFilter extends BackendFilter {
         result.append("}");
         decreaseIndent();
         newLine();
-        result.append("%");
         newLine();
         return null;
     }
@@ -544,7 +541,6 @@ public class LatexFilter extends BackendFilter {
             result.append("\\begin{kblock}[text]" + endl);
             result.append(comment.getValue());
             result.append(endl + "\\end{kblock}" + endl);
-            result.append("%");
             newLine();
         } else if (comment.getType() == LiterateCommentType.PREAMBLE) {
             preamble.append(comment.getValue());
@@ -561,7 +557,6 @@ public class LatexFilter extends BackendFilter {
             result.append("\\begin{kblock}[text]" + endl);
             result.append(comment.getValue());
             result.append(endl + "\\end{kblock}" + endl);
-            result.append("%");
             newLine();
         } else if (comment.getType() == LiterateCommentType.PREAMBLE) {
             preamble.append(comment.getValue());
