@@ -434,7 +434,7 @@
   }{%
   }%
   \setlength{\parindent}{\kblock@indent}%
-  \par\ \par%
+  \par%
 }
 
 % Modules %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -476,7 +476,7 @@
 
 % Indent of a module item - syntax, rule or context.
 \newlength{\kIndent}
-\setlength{\kIndent}{2em}%TODO 0em
+\setlength{\kIndent}{0em}
 
 % Indent of a hanging long syntax definition when automatically line breaking.
 \newlength{\syntaxHangindent}
@@ -512,31 +512,31 @@
   \newcommand{\defSort}{#1}
   \setlength{\savedParindent}{\parindent}
   \setlength{\savedHangindent}{\hangindent}
-  \par
-  %When we use minipages, extra vspace created by \begin{flushleft} disappears.
-  \begin{minipage}{\columnwidth}
   \setlength{\parindent}{\kIndent}
-  \begin{flushleft}
+  \par
   \vspace{\kStartVspace}
+  %When we use minipages, extra vspace created by \begin{flushleft} disappears.
+  \begin{minipage}{\columnwidth-\parindent}
+  \begin{boxedminipage}{\columnwidth}%TODO debug
+  \begin{flushleft}
 }
 {
-  \vspace{\kEndVspace}
   \end{flushleft}
-  \end{minipage}
-  \setlength{\parindent}{\savedParindent}
-  \setlength{\hangindent}{\savedHangindent}
+  \end{boxedminipage}
+  \end{minipage}% after this minipage, all spaces have to be commented
+  \vspace{\kEndVspace}%
+  \setlength{\parindent}{\savedParindent}%
+  \setlength{\hangindent}{\savedHangindent}%
 }
 
 %Removed grouping and rulebox from init version, added hangindent, hspace.
 \newcommand{\syntax}[3][\defSort]{
   \setlength{\hangindent}
     {\widthof{%
-      \hspace{\kIndent}%
-      \syntaxKeyword$#1 \mathrel{::=} \ \ $%
-      \hspace{\syntaxHangindent}}%for an extra indent after ::=
-    }
+      \syntaxKeyword$#1 \mathrel{::=} \ $%
+      \hspace{\syntaxHangindent}%for an extra indent after ::=
+    }}
   %
-  %\hspace{\kIndent}
   \syntaxKeyword$#1 \mathrel{::=} #2$ \ifthenelse{\isempty{#3}}{}{[#3]}%
   \k@markPosition%
 }
@@ -544,7 +544,6 @@
 %Additional production in the same big syntax definition started with \syntax
 \newcommand{\syntaxCont}[3][\defSort]{
   \par
-  \hspace{\kIndent}
   $\setlength{\syntaxlength}{\widthof{$\mathrel{::=}$}}%
   \setlength{\syntaxlength}{.5\syntaxlength}%
   \addtolength{\syntaxlength}{\widthof{\syntaxKeyword$#1$}}%
@@ -1096,24 +1095,27 @@ rectangle,rectangle
   \usepackage{boxedminipage}
 
   %Arguments: {}, rule, name, body, preconditions, postconditions (for ML), attributes
-  \newcommand{\ksentence}[7][]{%
+  \newcommand{\ksentence}[7][]{
   \setlength{\savedParindent}{\parindent}
   \setlength{\savedHangindent}{\hangindent}
   \setlength{\parindent}{\kIndent}
   %
+  \par
   \vspace{\kStartVspace}
-  \begin{minipage}{\columnwidth}
-    \begin{minipage}{\columnwidth}%for debug purposes
-    \begin{flushleft}
-      \setlength{\hangindent}{\ruleHangindent}
-      \k@ruleLabel{#3}{#2}%
+  \begin{minipage}{\columnwidth-\parindent}
+  \begin{boxedminipage}{\columnwidth}%TODO debug
+    \begin{minipage}{\columnwidth}
+    %setting hangindent after raggedright will not work
+    \setlength{\hangindent}{\ruleHangindent}
+    \raggedright{%
+      \k@ruleLabel{#3}{#2}
       \setlength{\parindent}{\ruleHangindent}
       \ifthenelse{\isempty{#1}}{%always the case
         $#4$%
       }{%
         $\left(#4\right)$%
       }%
-    \end{flushleft}
+    }
     \end{minipage}%
     \ifthenelse{\isempty{#5}}{}{%
       \setlength{\hangindent}{\ruleHangindent}
@@ -1135,7 +1137,8 @@ rectangle,rectangle
     \ifthenelse{\isempty{#7}}{}{%
       \ruleAttributes{#7}%
     }%
-  \end{minipage}%
+  \end{boxedminipage}
+  \end{minipage}
   \setlength{\parindent}{\savedParindent}
   \setlength{\hangindent}{\savedHangindent}
   \vspace{\kEndVspace}
