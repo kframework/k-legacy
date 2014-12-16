@@ -27,7 +27,7 @@ public class LatexFilter extends BackendFilter {
     protected String endl = System.getProperty("line.separator");
     private StringBuilder preamble = new StringBuilder();
     private boolean firstProduction = false;
-    private boolean terminalBefore = false;
+    private boolean prevTerm = false;
     private Map<String, String> colors = new HashMap<String, String>();
     private LatexPatternsVisitor patternsVisitor = new LatexPatternsVisitor(context);
     private boolean firstAttribute;
@@ -86,6 +86,7 @@ public class LatexFilter extends BackendFilter {
 
     @Override
     public Void visit(Definition def, Void _) {
+        patternsVisitor.prevNonTerm = !prevTerm;
         patternsVisitor.visitNode(def);
         result.append("\\begin{kdefinition}" + endl + "\\maketitle" + endl);
         super.visit(def, _);
@@ -134,13 +135,14 @@ public class LatexFilter extends BackendFilter {
     @Override
     public Void visit(Sort sort, Void _) {
         result.append("{\\nonTerminal{\\sort{" + StringUtil.latexify(sort.getName()) + "}}}");
-        terminalBefore = false;
+        prevTerm = false;
         return null;
     }
 
     @Override
     public Void visit(Production p, Void _) {
         newLine();
+        prevTerm = false;
         if (firstProduction) {
             result.append("\\syntax");
             firstProduction = false;
@@ -185,12 +187,12 @@ public class LatexFilter extends BackendFilter {
         if (context.isSpecialTerminal(terminal)) {
             result.append(StringUtil.latexify(terminal));
         } else {
-            if (terminalBefore) {
+            if (prevTerm) {
                 result.append(" \\ ");
             }
             result.append("\\terminal{" + StringUtil.latexify(terminal) + "}");
         }
-        terminalBefore = true;
+        prevTerm = true;
         return null;
     }
 
@@ -199,7 +201,7 @@ public class LatexFilter extends BackendFilter {
         result.append("List\\{");
         this.visitNode(new Sort(ul.getSort()));
         result.append(", \\mbox{``}" + StringUtil.latexify(ul.getSeparator()) + "\\mbox{''}\\}");
-        terminalBefore = false;
+        prevTerm = false;
         return null;
     }
 
@@ -247,6 +249,7 @@ public class LatexFilter extends BackendFilter {
         result.append("{");
         increaseIndent();
         newLine();
+        prevTerm = false;
         super.visit(c, _);
         decreaseIndentAndNewLineIfNeeded();
         result.append("}");
@@ -269,7 +272,7 @@ public class LatexFilter extends BackendFilter {
             increaseIndent();
         }
         List<Term> contents = col.getContents();
-        printList(contents, "\\mathrel{}", true);
+        printList(contents, "\\cellSep", true);
         if (hasBR) {
             decreaseIndent();
             newLine();
@@ -430,10 +433,12 @@ public class LatexFilter extends BackendFilter {
         result.append("\\reduce");
         increaseIndent();
         newLine();
+        prevTerm = false;
         result.append("{");
         this.visitNode(rew.getLeft());
         result.append("}");
         newLine();
+        prevTerm = false;
         result.append("{");
         this.visitNode(rew.getRight());
         result.append("}");
@@ -463,10 +468,13 @@ public class LatexFilter extends BackendFilter {
         String pattern = patternsVisitor.getPatterns().get(trm.getCons());
         if (pattern == null) {
             Production pr = context.conses.get(trm.getCons());
+            patternsVisitor.prevNonTerm = !prevTerm;
             patternsVisitor.visitNode(pr);
             pattern = patternsVisitor.getPatterns().get(trm.getCons());
         }
         pattern = pattern.replace(",", "\\kcomma");
+        pattern = pattern.replace("(", "\\kOpenBr");
+        pattern = pattern.replace(")", "\\kClosedBr");
         int n = 1;
         LatexFilter termFilter = new LatexFilter(context, indent);
         for (Term t : trm.getContents()) {
@@ -479,6 +487,9 @@ public class LatexFilter extends BackendFilter {
         //delete empty lines that might result from the previous replacement
         //should work for both types of endl
         pattern = pattern.replaceAll("^" + endl + "\\s*", "");
+
+        //put a space between consecutive literals
+        pattern = pattern.replaceAll("(\\\\terminal\\{\\w+\\})(\\\\terminal\\{\\w+\\})", "$1 \\\\ $2");
 
         result.append(pattern);
         return null;

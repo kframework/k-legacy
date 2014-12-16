@@ -17,20 +17,20 @@ module FLOAT-HOOKS
   syntax Float ::= "--Float" Float          [function, hook(#FLOAT:-Float_)]
 				 > Float "^Float" Float		[function, left, latex({#1}^{#2}), hook(#FLOAT:_^Float_)]
                  > left:
-				   Float "*Float" Float		[function, left, latex({#1}\mathrel{\ast_{\scriptstyle\it Float}}{#2}), hook(#FLOAT:_*Float_)]
-				 | Float "/Float" Float		[function, left, latex({#1}\mathrel{\div_{\scriptstyle\it Float}}{#2}), hook(#FLOAT:_/Float_)]
-				 | Float "%Float" Float		[function, left, latex({#1}\mathrel{\%_{\scriptstyle\it Float}}{#2}), hook(#FLOAT:_%Float_)]
+				   Float "*Float" Float		[function, left, latex({#1}\kBuiltinOp{\ast}{Float}{#2}), hook(#FLOAT:_*Float_)]
+				 | Float "/Float" Float		[function, left, latex({#1}\kBuiltinOp{\div}{Float}{#2}), hook(#FLOAT:_/Float_)]
+				 | Float "%Float" Float		[function, left, latex({#1}\kBuiltinOp{\%}{Float}{#2}), hook(#FLOAT:_%Float_)]
 				 > left:
-				   Float "+Float" Float		[function, left, latex({#1}\mathrel{+_{\scriptstyle\it Float}}{#2}), hook(#FLOAT:_+Float_)]
-				 | Float "-Float" Float		[function, left, latex({#1}\mathrel{-_{\scriptstyle\it Float}}{#2}), hook(#FLOAT:_-Float_)]
+				   Float "+Float" Float		[function, left, latex({#1}\kBuiltinOp{+}{Float}{#2}), hook(#FLOAT:_+Float_)]
+				 | Float "-Float" Float		[function, left, latex({#1}\kBuiltinOp{-}{Float}{#2}), hook(#FLOAT:_-Float_)]
 
   syntax Bool ::= left:
-  				  Float "<=Float" Float		[function, left, latex({#1}\mathrel{\leq_{\scriptstyle\it Float}}{#2}), hook(#FLOAT:_<=Float_)]
-				| Float "<Float" Float		[function, left, latex({#1}\mathrel{<_{\scriptstyle\it Float}}{#2}), hook(#FLOAT:_<Float_)]
-				| Float ">=Float" Float		[function, left, latex({#1}\mathrel{\geq_{\scriptstyle\it Float}}{#2}), hook(#FLOAT:_>=Float_)]
-				| Float ">Float" Float		[function, left, latex({#1}\mathrel{>_{\scriptstyle\it Float}}{#2}), hook(#FLOAT:_>Float_)]
-				| Float "==Float" Float		[function, left, latex({#1}\mathrel{==_{\scriptstyle\it Float}}{#2}), hook(#FLOAT:_==Float_)]
-				| Float "=/=Float" Float	[function, left, latex({#1}\mathrel{\neq_{\scriptstyle\it Float}}{#2})]
+  				  Float "<=Float" Float		[function, left, latex({#1}\kBuiltinOp{\leq}{Float}{#2}), hook(#FLOAT:_<=Float_)]
+				| Float "<Float" Float		[function, left, latex({#1}\kBuiltinOp{<}{Float}{#2}), hook(#FLOAT:_<Float_)]
+				| Float ">=Float" Float		[function, left, latex({#1}\kBuiltinOp{\geq}{Float}{#2}), hook(#FLOAT:_>=Float_)]
+				| Float ">Float" Float		[function, left, latex({#1}\kBuiltinOp{>}{Float}{#2}), hook(#FLOAT:_>Float_)]
+				| Float "==Float" Float		[function, left, latex({#1}\kBuiltinOp{==}{Float}{#2}), hook(#FLOAT:_==Float_)]
+				| Float "=/=Float" Float	[function, left, latex({#1}\kBuiltinOp{\neq}{Float}{#2})]
 				> Float "<=Float" Float "<=Float" Float
 	                                        [function, latex({#2}\in[{#1},{#3}]), hook(#FLOAT:_<=Float_<=Float_)]
 

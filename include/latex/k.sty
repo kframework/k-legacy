@@ -517,12 +517,10 @@
   \vspace{\kStartVspace}
   %When we use minipages, extra vspace created by \begin{flushleft} disappears.
   \begin{minipage}{\columnwidth-\parindent}
-  \begin{boxedminipage}{\columnwidth}%TODO debug
   \begin{flushleft}
 }
 {
   \end{flushleft}
-  \end{boxedminipage}
   \end{minipage}% after this minipage, all spaces have to be commented
   \vspace{\kEndVspace}%
   \setlength{\parindent}{\savedParindent}%
@@ -557,7 +555,10 @@
 \newcommand{\sort}[1]{\sortName{#1}\/}
 
 % Terminals.
-\newcommand{\terminal}[1]{\ensuremath{\allowbreak \mathrel{\text{\ttfamily #1}}}}
+%mathord - binds to parentheses, separates from operators
+%mathrel - separates from parentheses on the outside, poorly separates from op
+%mathpunct - like mathrel, but with less separation from parentheses on outside, looks better.
+\newcommand{\terminal}[1]{\ensuremath{\allowbreak \mathpunct{\text{\ttfamily #1}}}}%mathrel
 \newcommand{\terminalNoSpace}[1]
   {\ensuremath{\mathord{\text{\ttfamily #1}} \allowbreak}}
 
@@ -636,15 +637,30 @@
 
 %%% Rewrite.
 
-\newcommand{\reduce}[2]{%
+\newlength{\k@reduceMaxBorders}%the maximal (supposed) width of some cell borders around a reduce, to be substracted from columnwidth when implementing a reduce with line breaking.
+
+\newlength{\k@termlen}{}%temp value used by line breaking alg
+\newlength{\k@maxReduceLen}
+
+%Arguments: #1: true = do line breaking, false = don't do line breaking.
+% #2 = LHS, #3 = RHS
+\newcommand{\reduce}[3][true]{%
+  \setlength{\k@reduceMaxBorders}{\widthof{\kall{cellName}{\rule{0in}{5\baselineskip}}}}%
+  \setlength{\k@maxReduceLen}{\columnwidth-\k@reduceMaxBorders}
   \hbox{%
   \begin{tikzpicture}[baseline=(top.south),
                       inner xsep=0pt,
                       inner ysep=.3333ex,
-                      minimum width=2em]
-    \path node (top) [inner ysep=1ex]{$#1$ \mathstrut}
-          (top.south)
-          node (bottom) [anchor=north, inner ysep=.5ex] {$#2$};
+                      minimum width=2em,
+                      align=left]%align changes the style a little
+    \path
+    node (top) [inner ysep=1ex]{%
+      \reduceSide[#1]{#2}%
+    }
+    (top.south)
+    node (bottom) [anchor=north, inner ysep=.5ex] {%
+      \reduceSide[#1]{#3}%
+    };
     %%% Draw the horizontal line:
     % Line with chevron.
     %\path[draw,thin,solid] let \p1 = (current bounding box.west),
@@ -662,13 +678,35 @@
     \path[fill] (top.south) ++(2pt,0) -- ++(-4pt,0) -- ++(2pt,-1.5pt) -- cycle;
   \end{tikzpicture}%
   }%
-  \allowbreak
+  %\rule{0pt}{2.5\baselineskip}
+  \allowbreak%
+  %\rule{0pt}{1.5\baselineskip}% If the allowbreak above activates,
+    %we want a larger separation between the \reduce and the next row.
+}
+
+%LHS or RHS of a \reduce
+\newcommand{\reduceSide}[2][true]{%
+  \setlength{\k@termlen}{\widthof{$#2$}}%
+  \ifthenelse{\equal{#1}{true} \AND \k@termlen > \k@maxReduceLen}
+    %line breaking required
+    {\begin{boxedminipage}{\k@maxReduceLen}% TODO minipage
+      \begin{center}$#2$\end{center}%
+     \end{boxedminipage}%
+    }%
+    %line breaking not required
+    {$#2$}%
+    \mathstrut%
 }
 
 %%% K Term contents.
 
-\newcommand{\kra}{\allowbreak \curvearrowright}
-\newcommand{\kcomma}{\ensuremath{\mathpunct{\textbf{,}} \allowbreak}}
+%Mathop produces the largest spaces around
+\newcommand{\kra}{\ \allowbreak \mathop{\curvearrowright}}
+\newcommand{\kcomma}{\ensuremath{\mathpunct{\textbf{,}} \ \allowbreak}}%mathpunct
+
+\newcommand{\kOpenBr}{(}
+\newcommand{\kClosedBr}{) \allowbreak}
+
 \newcommand{\kvalue}[1]{{\color{red}#1}}
 
 \newcommand{\constant}[2][none]{%
@@ -728,6 +766,22 @@
     {\raise.3ex\hbox{$\kdot$}}_{\color{dotSortColor}\scriptstyle\it \!#1}}%
 }
 
+\newcommand{\mdot}{\cdot}
+
+%Anonymous variable
+\newcommand{\mAnyVar}[2]{%
+  \mbox{\textbf{---}}%
+  \ifthenelse{\equal{#2}{user}}{\varSort{#1}}{}%
+}
+
+%Old builtin tag: +_{\scriptstyle\it Float}
+%Arguments: #1 = operator, above: +, #2 = sort, above: Float
+\newcommand{\kBuiltinOp}[2]{%
+  \ensuremath{%
+    \allowbreak \mathrel{#1_{\scriptstyle\it #2}}%
+  }
+}
+
 \newcommand{\kbrackets}[1]{\ensuremath{
   \setlength{\k@angleHeight}{\heightof{\vphantom{$#1$}}}%
   \pmb{%
@@ -784,6 +838,7 @@
   %If we use the unchanged solution from the link above, it is too slow.
   \setlength{\k@angleHeight}{\heightof{\vphantom{$#1$}}}%
   %\the\k@angleHeight %for debugging lenghts
+  %\fbox{$%for debugging cell borders
   \pmb{%
     \left\langle%
     \rule{0in}{\k@angleHeight}% a strut, \strut command gives errors
@@ -795,37 +850,38 @@
     \rule{0in}{\k@angleHeight}%
     \right\rangle%
   }%
+  %$}%\fbox
 }
 
 %Arguments: color (default gray), cell name, content.
-\newcommand{\mcell}[3]{
+\newcommand{\mcell}[3]{%
+  %Commented endl is very important here.
   % setup
   \ifthenelse{\isempty{#1}}
     {\colorlet{mcellColor}{white!50!black}}
-    {\colorlet{mcellColor}{#1!50!black}}
+    {\colorlet{mcellColor}{#1!50!black}}%
   \ifthenelse{\equal{\coloredCellBrackets}{true}}
     {\colorlet{mcellBracketColor}{mcellColor}}
-    {\colorlet{mcellBracketColor}{mcellBracketDefaultColor}}
+    {\colorlet{mcellBracketColor}{mcellBracketDefaultColor}}%
   \ifthenelse{\equal{\coloredCellBody}{true}}
     {\colorlet{mcellBodyColor}{mcellColor}}
-    {\colorlet{mcellBodyColor}{Black}}
+    {\colorlet{mcellBodyColor}{Black}}%
   % rendering
-    \color{mcellBracketColor}
-    \boldangles{{\color{mcellBodyColor} #3}}
-    %_{\sf #2} %original size
-    _{\text{\footnotesize\sf #2}}
+    \ensuremath{%
+      \color{mcellBracketColor}%
+      \boldangles{{\color{mcellBodyColor} #3}}%
+      %_{\sf #2} %original size
+      _{\text{\footnotesize\sf #2}}%
+    }%
 }
+
+%Cell separator, ensures proper spacing and line breaking
+%Originally was \mathrel{} that priduces an extra space when line breaking
+\newcommand{\cellSep}{\ \ \allowbreak}
 
 % Triple dot
 \newcommand{\ellipses}{\mathrel{\cdot\!\!\cdot\!\!\cdot}}
 
-\newcommand{\mdot}{\cdot}
-
-%Anonymous variable
-\newcommand{\mAnyVar}[2]{%
-  \mbox{\textbf{---}}%
-  \ifthenelse{\equal{#2}{user}}{\varSort{#1}}{}%
-}
 
 %%% Bubble notation.
 
@@ -1103,7 +1159,6 @@ rectangle,rectangle
   \par
   \vspace{\kStartVspace}
   \begin{minipage}{\columnwidth-\parindent}
-  \begin{boxedminipage}{\columnwidth}%TODO debug
     \begin{minipage}{\columnwidth}
     %setting hangindent after raggedright will not work
     \setlength{\hangindent}{\ruleHangindent}
@@ -1137,7 +1192,6 @@ rectangle,rectangle
     \ifthenelse{\isempty{#7}}{}{%
       \ruleAttributes{#7}%
     }%
-  \end{boxedminipage}
   \end{minipage}
   \setlength{\parindent}{\savedParindent}
   \setlength{\hangindent}{\savedHangindent}

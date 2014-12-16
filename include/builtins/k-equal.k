@@ -9,8 +9,8 @@ module K-EQUAL-HOOKS
 
 
   syntax Bool ::= left:
-  				  K "==K" K           [function, hook(#K-EQUAL:_==K_), latex({#1}\mathrel{=_K}{#2}), equalEqualK]
-				| K "=/=K" K          [function, hook(#K-EQUAL:_=/=K_), latex({#1}\mathrel{\neq_K}{#2}), notEqualEqualK]
+  				  K "==K" K           [function, hook(#K-EQUAL:_==K_), latex({#1}\kBuiltinOp{=}{K}{#2}), equalEqualK]
+				| K "=/=K" K          [function, hook(#K-EQUAL:_=/=K_), latex({#1}\kBuiltinOp{\neq}{K}{#2}), notEqualEqualK]
 
   syntax priorities equalEqualK notEqualEqualK > boolOperation
   rule K1:K =/=K K2:K => notBool(K1 ==K K2)
@@ -77,12 +77,12 @@ module K-EQUAL-HOOKS
 
   // equality over KLabel
   syntax Bool ::= KLabel "==KLabel" KLabel
-    [function, hook(KEqual:_==KLabel_), latex({#1}\mathrel{=_{\it KLabel}}{#2})]
+    [function, hook(KEqual:_==KLabel_), latex({#1}\kBuiltinOp{=}{KLabel}{#2})]
   rule '_==KLabel_(K1:K,,K2:K) => K1 ==K K2 [function, anywhere]
 
   // disequality over KLabel
   syntax Bool ::= KLabel "=/=KLabel" KLabel
-    [function, hook(KEqual:_=/=KLabel_), latex({#1}\mathrel{\neq_{\it KLabel}}{#2})]
+    [function, hook(KEqual:_=/=KLabel_), latex({#1}\kBuiltinOp{\neq}{KLabel}{#2})]
   rule Lbl1:KLabel =/=KLabel Lbl2:KLabel => notBool(Lbl1 ==KLabel Lbl2)
 
   // equality over lists
