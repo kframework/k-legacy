@@ -14,6 +14,7 @@ import org.kframework.backend.java.builtins.MetaK;
 import org.kframework.backend.java.indexing.RuleIndex;
 import org.kframework.backend.java.kil.CellCollection;
 import org.kframework.backend.java.kil.CellLabel;
+import org.kframework.backend.java.kil.ConstrainedDebugResult;
 import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.KSequence;
@@ -491,4 +492,17 @@ public class SymbolicRewriter {
         return proofResults;
     }
 
+    /**
+     *  Returns a Debug Step, in internal Java KIL representation
+     */
+    public ConstrainedDebugResult debugStep(ConstrainedTerm originalTerm) {
+        computeRewriteStep(originalTerm, 1);
+        ConstrainedTerm steppedState = getTransition(0);
+        Rule rule = appliedRules.get(0);
+        if(steppedState == null)
+            //final state has been reached, hence null returned;
+            return null;
+        Map<Variable, Term> substitutionMap = getSubstitutionMap(steppedState, rule);
+        return new ConstrainedDebugResult(steppedState, rule, substitutionMap);
+    }
 }

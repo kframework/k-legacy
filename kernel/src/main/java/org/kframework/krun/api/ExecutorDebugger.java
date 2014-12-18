@@ -1,6 +1,8 @@
 // Copyright (c) 2013-2014 K Team. All Rights Reserved.
 package org.kframework.krun.api;
 
+import edu.uci.ics.jung.graph.DirectedOrderedSparseMultigraph;
+import edu.uci.ics.jung.graph.Graph;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.kframework.compile.utils.CompilerStepDone;
@@ -14,6 +16,7 @@ import org.kframework.kil.Sentence;
 import org.kframework.kil.Sort;
 import org.kframework.kil.StringBuiltin;
 import org.kframework.kil.Term;
+import org.kframework.kil.Variable;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.CopyOnWriteTransformer;
 import org.kframework.krun.KRunExecutionException;
@@ -29,12 +32,14 @@ import com.google.inject.Inject;
 import edu.uci.ics.jung.graph.DirectedGraph;
 import edu.uci.ics.jung.graph.util.Pair;
 
+import java.util.Map;
 import java.util.Map.Entry;
 
 public class ExecutorDebugger implements Debugger {
     private Integer currentState;
     private KRunGraph graph;
     private BidiMap<Integer, KRunState> states;
+    private Graph<KRunState, Map<Variable, Term>> substGraph;
 
     private static Rule defaultPattern;
     private static RuleCompilerSteps defaultPatternInfo;
@@ -79,6 +84,7 @@ public class ExecutorDebugger implements Debugger {
         graph = new KRunGraph();
         graph.addVertex(initialState);
         states = new DualHashBidiMap<Integer, KRunState>();
+        substGraph = new DirectedOrderedSparseMultigraph<>();
         putState(initialState);
         KRunState reduced = executor.step(initialConfiguration, 0).getResult();
         //reduce may return same node as initial node
@@ -87,8 +93,10 @@ public class ExecutorDebugger implements Debugger {
             graph.addVertex(reduced);
             graph.addEdge(Transition.reduce(), initialState, reduced);
             currentState = reduced.getStateId();
+            substGraph.addVertex(reduced);
         }else {
             currentState = initialState.getStateId();
+            substGraph.addVertex(initialState);
         }
     }
 
@@ -135,7 +143,8 @@ public class ExecutorDebugger implements Debugger {
                     + "first select a solution with the select command before executing steps of rewrites!");
         }
         for (int i = 0; steps == null || i < steps; i++) {
-            KRunState nextStep = executor.step(getState(currentState).getRawResult(), 1).getResult();
+            KRunDebuggerResult debugStep = executor.debugStep(getState(currentState).getRawResult()).getResult();
+            KRunState nextStep = debugStep.getSteppedState();
             Entry<Integer, KRunState> prevValue = containsValue(nextStep);
             if (prevValue!=null) {
                 nextStep = prevValue.getValue();
@@ -153,7 +162,9 @@ public class ExecutorDebugger implements Debugger {
                 putState(nextStep);
             }
             graph.addVertex(nextStep);
-            graph.addEdge(Transition.unlabelled(), getState(currentState), nextStep);
+            substGraph.addVertex(nextStep);
+            substGraph.addEdge(debugStep.getSubstMap(), getState(currentState), nextStep);
+            graph.addEdge(debugStep.getRule(), getState(currentState), nextStep);
             currentState = nextStep.getStateId();
         }
     }

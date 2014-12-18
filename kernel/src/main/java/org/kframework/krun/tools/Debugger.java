@@ -49,8 +49,8 @@ public interface Debugger {
     public abstract KRunGraph getGraph();
 
     /**
-     * Reset the debugger's configuration to the graph specified by the parameter
-     */
+    * Reset the debugger's configuration to the graph specified by the parameter
+    */
     public abstract void setGraph(KRunGraph graph);
 
     /**
@@ -115,8 +115,8 @@ public interface Debugger {
     public abstract void readFromStdin(String s);
 
     /**
-     * Start debugging from a particular term
-     */
+    * Start debugging from a particular term
+    */
     public abstract void start(Term initialConfiguration) throws KRunExecutionException;
 
     public static class Tool implements Transformation<Void, Void> {

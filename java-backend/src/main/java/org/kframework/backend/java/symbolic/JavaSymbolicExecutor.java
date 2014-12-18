@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.kframework.backend.java.kil.ConstrainedDebugResult;
 import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.GlobalContext;
@@ -21,14 +22,17 @@ import org.kframework.kil.loader.Context;
 import org.kframework.krun.ColorSetting;
 import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.SubstitutionFilter;
+import org.kframework.krun.api.KRunDebuggerResult;
 import org.kframework.krun.api.KRunResult;
 import org.kframework.krun.api.KRunState;
 import org.kframework.krun.api.SearchResult;
 import org.kframework.krun.api.SearchResults;
 import org.kframework.krun.api.SearchType;
+import org.kframework.krun.api.Transition;
 import org.kframework.krun.tools.Executor;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import org.kframework.utils.errorsystem.KExceptionManager;
 
 public class JavaSymbolicExecutor implements Executor {
 
@@ -170,5 +174,49 @@ public class JavaSymbolicExecutor implements Executor {
 
     public SymbolicRewriter getSymbolicRewriter() {
         return symbolicRewriter.get();
+    }
+
+    private ConstrainedDebugResult javaKILDebugStep(org.kframework.kil.Term originalState) throws KRunExecutionException {
+        Term term = kilTransformer.transformAndEval(originalState);
+        TermContext termContext = TermContext.of(globalContext);
+        if (javaOptions.patternMatching) {
+            // not yet implemented
+            throw KExceptionManager.criticalError("Debugger with Pattern Matcher not yet implemented");
+        } else {
+            SymbolicConstraint constraint = new SymbolicConstraint(termContext);
+            ConstrainedTerm constrainedTerm = new ConstrainedTerm(term, constraint);
+            return getSymbolicRewriter().debugStep(constrainedTerm);
+        }
+
+    }
+
+
+    private KRunDebuggerResult transformDebugResult(ConstrainedDebugResult debugResult) {
+        org.kframework.kil.Term kilTerm = (org.kframework.kil.Term) debugResult.getSteppedState().term().accept(
+                new BackendJavaKILtoKILTransformer(context));
+        System.out.println("term transform successful");
+        KRunState kilState = new KRunState(kilTerm, counter);
+
+        org.kframework.kil.Rule kilRule = (org.kframework.kil.Rule) debugResult.getRule().accept(
+                new BackendJavaKILtoKILTransformer(context));
+        System.out.println("rule transfrom successful");
+        Transition kilTransition = Transition.rule(kilRule);
+
+        Map<org.kframework.kil.Variable, org.kframework.kil.Term> kilSubstMap = new HashMap<>();
+        for(Variable variable : debugResult.getSubstitutionMap().keySet()) {
+            org.kframework.kil.Variable kilVariable = (org.kframework.kil.Variable) variable.accept(
+                    new BackendJavaKILtoKILTransformer(context));
+            org.kframework.kil.Term kilMapTerm = (org.kframework.kil.Term) debugResult.getSubstitutionMap()
+                    .get(variable).accept(new BackendJavaKILtoKILTransformer(context));
+            kilSubstMap.put(kilVariable, kilMapTerm);
+        }
+        return new KRunDebuggerResult(kilState, kilTransition, kilSubstMap);
+    }
+
+    @Override
+    public KRunResult<KRunDebuggerResult> debugStep(org.kframework.kil.Term originalState) throws KRunExecutionException {
+        ConstrainedDebugResult debugResult = javaKILDebugStep(originalState);
+        KRunDebuggerResult kilResult = transformDebugResult(debugResult);
+        return new KRunResult<KRunDebuggerResult>(kilResult);
     }
 }

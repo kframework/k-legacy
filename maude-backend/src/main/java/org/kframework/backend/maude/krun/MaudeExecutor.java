@@ -48,6 +48,7 @@ import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.SubstitutionFilter;
 import org.kframework.krun.XmlUtil;
+import org.kframework.krun.api.KRunDebuggerResult;
 import org.kframework.krun.api.KRunGraph;
 import org.kframework.krun.api.KRunResult;
 import org.kframework.krun.api.KRunState;
@@ -197,6 +198,11 @@ public class MaudeExecutor implements Executor {
             result = run("rew[" + steps + "]", cfg);
         }
         return result;
+    }
+
+    @Override
+    public KRunResult<KRunDebuggerResult> debugStep(Term originalState) throws KRunExecutionException {
+        return null;
     }
 
 
@@ -657,4 +663,6 @@ public class MaudeExecutor implements Executor {
         parseCounter(nod);
         return results;
     }
+
+
 }
