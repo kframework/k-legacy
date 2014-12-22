@@ -642,10 +642,40 @@
 \newlength{\k@termlen}{}%temp value used by line breaking alg
 \newlength{\k@maxReduceLen}
 
+\newsavebox{\k@reduceBox}
+\newlength{\k@reduceBoxLen}
+
 %Arguments: #1: true = do line breaking, false = don't do line breaking.
 % #2 = LHS, #3 = RHS
 \newcommand{\reduce}[3][true]{%
   \computeMaxReduceLen%
+  \savebox{\k@reduceBox}{\reduceImpl[#1]{#2}{#3}}%
+  \allowbreak%
+  \usebox{\k@reduceBox}%
+  \allowbreak%
+}
+
+\newlength{\temp}
+\newcommand{\k@lastCellName}{}
+
+%Computes \k@maxReduceLen
+\newcommand{\computeMaxReduceLen}{%
+  %The borders around a reduce are cell wals of maximal height
+  %with cell name = name of innermost cell.
+  \ifthenelse{\equal{\k@lastCellName}{}}%\isempty doesn't work here
+    {\setlength{\k@reduceBorders}{0pt}}
+    {%
+      \setlength{\k@reduceBorders}{\widthof{\kprefix{\k@lastCellName}{\rule{0in}{5\baselineskip}}}}%
+    }%
+  %\the\k@reduceBorders%
+  \setlength{\k@maxReduceLen}{\columnwidth-\ruleHangindent-\k@reduceBorders}%
+  \setlength{\temp}{\widthof{\fbox{}}-2pt}%TODO debug
+  \setlength{\k@maxReduceLen}{\k@maxReduceLen-\temp}%Only when frames are used. Seems unncecessary now.
+  %Removing does not produce extra overfulls, but an extra new line
+  %if a multiline rewrite is at the beginning of the rule
+}
+
+\newcommand{\reduceImpl}[3][true]{%
   \hbox{%
   \begin{tikzpicture}[baseline=(top.south),
                       inner xsep=0pt,
@@ -677,28 +707,6 @@
     \path[fill] (top.south) ++(2pt,0) -- ++(-4pt,0) -- ++(2pt,-1.5pt) -- cycle;
   \end{tikzpicture}%
   }%
-  %\rule{0pt}{2.5\baselineskip}
-  \allowbreak%
-  %\rule{0pt}{1.5\baselineskip}% If the allowbreak above activates,
-    %we want a larger separation between the \reduce and the next row.
-}
-
-\newlength{\temp}
-\newcommand{\k@lastCellName}{}
-
-%Computes \k@maxReduceLen
-\newcommand{\computeMaxReduceLen}{%
-  %The borders around a reduce are cell wals of maximal height
-  %with cell name = name of innermost cell.
-  \ifthenelse{\equal{\k@lastCellName}{}}%\isempty doesn't work here
-    {\setlength{\k@reduceBorders}{0pt}}
-    {%
-      \setlength{\k@reduceBorders}{\widthof{\kprefix{\k@lastCellName}{\rule{0in}{5\baselineskip}}}}%
-    }%
-  %\the\k@reduceBorders%
-  \setlength{\k@maxReduceLen}{\columnwidth-\ruleHangindent-\k@reduceBorders}%
-  \setlength{\temp}{\widthof{\fbox{}}-2pt}%TODO debug
-  %\setlength{\k@maxReduceLen}{\k@maxReduceLen-\temp}%Only when frames are used. Seems unncecessary now.
 }
 
 %LHS or RHS of a \reduce
@@ -1179,14 +1187,17 @@ rectangle,rectangle
   \par
   \vspace{\kStartVspace}
   \begin{minipage}{\columnwidth-\parindent}
-    \begin{minipage}{\columnwidth}
+    \begin{minipage}{\columnwidth}%
     %setting hangindent after raggedright will not work
-    \setlength{\hangindent}{\ruleHangindent}
+    \setlength{\hangindent}{\ruleHangindent}%
     \raggedright{%
-      \k@ruleLabel{#3}{#2}
-      \setlength{\parindent}{\ruleHangindent}
+      \k@ruleLabel{#3}{#2}%
+      \setlength{\parindent}{\ruleHangindent}%
       \ifthenelse{\isempty{#1}}{%always the case
-        $#4$%
+        $
+          %\allowbreak % mostly for debugging widths
+          #4
+        $
       }{%
         $\left(#4\right)$%
       }%
