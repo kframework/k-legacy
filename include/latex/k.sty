@@ -892,15 +892,15 @@
     {\colorlet{mcellBodyColor}{mcellColor}}
     {\colorlet{mcellBodyColor}{Black}}%
   % rendering
-    \ensuremath{%
+    \ensuremath{{%
       \color{mcellBracketColor}%
       \boldangles{{%
         \renewcommand{\k@lastCellName}{#2}%
-        \color{mcellBodyColor} #3%
+        {\color{mcellBodyColor} #3}%
       }}%
       %_{\sf #2} %original size
       _{\text{\footnotesize\sf #2}}%
-    }%
+    }}%
 }
 
 %Cell separator, ensures proper spacing and line breaking
