@@ -637,7 +637,7 @@
 
 %%% Rewrite.
 
-\newlength{\k@reduceMaxBorders}%the maximal (supposed) width of some cell borders around a reduce, to be substracted from columnwidth when implementing a reduce with line breaking.
+\newlength{\k@reduceBorders}%the maximal (supposed) width of some cell borders around a reduce, to be substracted from columnwidth when implementing a reduce with line breaking.
 
 \newlength{\k@termlen}{}%temp value used by line breaking alg
 \newlength{\k@maxReduceLen}
@@ -645,8 +645,7 @@
 %Arguments: #1: true = do line breaking, false = don't do line breaking.
 % #2 = LHS, #3 = RHS
 \newcommand{\reduce}[3][true]{%
-  \setlength{\k@reduceMaxBorders}{\widthof{\kall{cellName}{\rule{0in}{5\baselineskip}}}}%
-  \setlength{\k@maxReduceLen}{\columnwidth-\k@reduceMaxBorders}
+  \computeMaxReduceLen%
   \hbox{%
   \begin{tikzpicture}[baseline=(top.south),
                       inner xsep=0pt,
@@ -684,12 +683,30 @@
     %we want a larger separation between the \reduce and the next row.
 }
 
+\newlength{\temp}
+\newcommand{\k@lastCellName}{}
+
+%Computes \k@maxReduceLen
+\newcommand{\computeMaxReduceLen}{%
+  %The borders around a reduce are cell wals of maximal height
+  %with cell name = name of innermost cell.
+  \ifthenelse{\equal{\k@lastCellName}{}}%\isempty doesn't work here
+    {\setlength{\k@reduceBorders}{0pt}}
+    {%
+      \setlength{\k@reduceBorders}{\widthof{\kprefix{\k@lastCellName}{\rule{0in}{5\baselineskip}}}}%
+    }%
+  %\the\k@reduceBorders%
+  \setlength{\k@maxReduceLen}{\columnwidth-\ruleHangindent-\k@reduceBorders}%
+  \setlength{\temp}{\widthof{\fbox{}}-2pt}%TODO debug
+  %\setlength{\k@maxReduceLen}{\k@maxReduceLen-\temp}%Only when frames are used. Seems unncecessary now.
+}
+
 %LHS or RHS of a \reduce
 \newcommand{\reduceSide}[2][true]{%
   \setlength{\k@termlen}{\widthof{$#2$}}%
   \ifthenelse{\equal{#1}{true} \AND \k@termlen > \k@maxReduceLen}
     %line breaking required
-    {\begin{boxedminipage}{\k@maxReduceLen}% TODO minipage
+    {\begin{boxedminipage}{\k@maxReduceLen}%TODO boxedminipage, minipage
       \begin{center}$#2$\end{center}%
      \end{boxedminipage}%
     }%
@@ -869,7 +886,10 @@
   % rendering
     \ensuremath{%
       \color{mcellBracketColor}%
-      \boldangles{{\color{mcellBodyColor} #3}}%
+      \boldangles{{%
+        \renewcommand{\k@lastCellName}{#2}%
+        \color{mcellBodyColor} #3%
+      }}%
       %_{\sf #2} %original size
       _{\text{\footnotesize\sf #2}}%
     }%
