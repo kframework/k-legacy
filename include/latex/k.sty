@@ -687,8 +687,8 @@
 %LHS or RHS of a \reduce
 \newcommand{\reduceSide}[2][true]{%
   \setlength{\k@termlen}{\widthof{$#2$}}%
-  \ifthenelse{\equal{#1}{true} \AND \k@termlen > \k@maxReduceLen}
-    {\begin{boxedminipage}{\k@maxReduceLen}%TODO boxedminipage, minipage
+  \ifthenelse{\equal{#1}{true} \AND \k@termlen > \kMaxReduceLen}
+    {\begin{boxedminipage}{\kMaxReduceLen}%TODO boxedminipage, minipage
       \begin{center}$#2$\end{center}%
      \end{boxedminipage}%
     }%
@@ -800,6 +800,8 @@
 %%% Mathematical notation.
 
 \newcommand{\mallLarge}{\mall}
+
+%TODO fix the following 4 rules, delete extra brackets
 \newcommand{\mall}[3]{\mcell{#1}{#2}{{#3}}}
 
 \newcommand{\mprefix}[4][]{
@@ -850,8 +852,8 @@
   }%
 }
 
-\newsavebox{\k@cellBox}
-\newlength{\k@cellLen}
+\newsavebox{\kCellBox}
+\newlength{\kCellLen}
 
 %Arguments:
 % #1 = [] (default) or "mock", indicating it is a mock cell,
@@ -875,23 +877,21 @@
       {
         \computeMaxReduceLen[#3]
         \saveCellBox{#3}{#4}
-        %\the\columnwidth \ \allowbreak %TODO debug
-        %\the\k@maxReduceLen \ \allowbreak
-        \setlength{\k@cellLen}{\widthof{\usebox{\k@cellBox}}}
-        \ifthenelse{\k@cellLen > \k@maxCellLen}
+        \setlength{\kCellLen}{\widthof{\usebox{\kCellBox}}}
+        \ifthenelse{\kCellLen > \kMaxCellLen}
           %{\saveCellBoxWithWrap{#3}{#4}}
           {\saveCellBox{#3}{#4}}%TODO debug
           {}
       }
       %mock cell with empty content
       {\saveCellBox{#3}{#4}}
-    \usebox{\k@cellBox}
+    \usebox{\kCellBox}
   }}%
 }
 
 % #1 = name, #2 = body
 \newcommand{\saveCellBox}[2]{%
-  \savebox{\k@cellBox}{{%
+  \savebox{\kCellBox}{{%
     $
     \color{mcellBracketColor}
     \boldangles{{
@@ -904,11 +904,11 @@
 
 % #1 = name, #2 = body
 \newcommand{\saveCellBoxWithWrap}[2]{%
-  \savebox{\k@cellBox}{{%
+  \savebox{\kCellBox}{{%
     $%
     \color{mcellBracketColor}
     \boldangles{{
-      \begin{boxedminipage}{\k@maxReduceLen}%TODO boxedminipage, minipage
+      \begin{boxedminipage}{\kMaxReduceLen}%TODO boxedminipage, minipage
         \begin{center}%
           $\color{mcellBodyColor} #2$%
         \end{center}%
@@ -921,11 +921,11 @@
 
 \newlength{\k@reduceBorders}%the maximal (supposed) width of some cell borders around a reduce, to be substracted from columnwidth when implementing a reduce with line breaking.
 
-\newlength{\k@maxReduceLen}
-\newlength{\k@maxCellLen}
+\newlength{\kMaxReduceLen}
+\newlength{\kMaxCellLen}
 \newlength{\k@frameLen}
 
-%Computes \k@maxReduceLen
+%Computes \kMaxReduceLen
 \newcommand{\computeMaxReduceLen}[1][]{%
   %The borders around a reduce are cell wals of maximal height
   %with cell name = name of innermost cell.
@@ -934,12 +934,12 @@
     {%
       \setlength{\k@reduceBorders}{\widthof{\mprefix[mock]{black}{#1}{\rule{0in}{5\baselineskip}}}}%
     }%
-  \setlength{\k@maxCellLen}{\columnwidth-\ruleHangindent}%
-  \setlength{\k@maxReduceLen}{\k@maxCellLen-\k@reduceBorders}%
+  \setlength{\kMaxCellLen}{\columnwidth-\ruleHangindent}%
+  \setlength{\kMaxReduceLen}{\kMaxCellLen-\k@reduceBorders}%
   %
   %TODO set to 0 when elliminating frames
   \setlength{\k@frameLen}{\widthof{\fbox{}}-2pt}%
-  \setlength{\k@maxReduceLen}{\k@maxReduceLen-\k@frameLen}%Only when frames are used. Seems unncecessary now.
+  \setlength{\kMaxReduceLen}{\kMaxReduceLen-\k@frameLen}%Only when frames are used. Seems unncecessary now.
   %Removing does not produce extra overfulls, but an extra new line
   %if a multiline rewrite is at the beginning of the rule
 }
