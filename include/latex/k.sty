@@ -801,19 +801,18 @@
 
 \newcommand{\mallLarge}{\mall}
 
-%TODO fix the following 4 rules, delete extra brackets
-\newcommand{\mall}[3]{\mcell{#1}{#2}{{#3}}}
+\newcommand{\mall}[3]{\mcell{#1}{#2}{#3}}
 
 \newcommand{\mprefix}[4][]{
-  \mcell[#1]{#2}{#3}{{#4}\ {\ellipses}}
+  \mcell[#1]{#2}{#3}{#4 \ {\ellipses}}
 }
 
 \newcommand{\msuffix}[3]{
-  \mcell{#1}{#2}{{\ellipses} \ {#3}}
+  \mcell{#1}{#2}{{\ellipses} \ #3}
 }
 
 \newcommand{\mmiddle}[3]{
-  \mcell{#1}{#2}{{\ellipses}\ {#3}\ {\ellipses}}
+  \mcell{#1}{#2}{{\ellipses}\ #3 \ {\ellipses}}
 }
 
 
@@ -879,8 +878,8 @@
         \saveCellBox{#3}{#4}
         \setlength{\kCellLen}{\widthof{\usebox{\kCellBox}}}
         \ifthenelse{\kCellLen > \kMaxCellLen}
-          %{\saveCellBoxWithWrap{#3}{#4}}
-          {\saveCellBox{#3}{#4}}%TODO debug
+          {\saveCellBoxWithWrap{#3}{#4}}
+          %{\saveCellBox{#3}{#4}}%TODO debug
           {}
       }
       %mock cell with empty content
@@ -925,17 +924,17 @@
 \newlength{\kMaxCellLen}
 \newlength{\k@frameLen}
 
-%Computes \kMaxReduceLen
+%Computes \kMaxCellLen, \kMaxReduceLen
 \newcommand{\computeMaxReduceLen}[1][]{%
+  \setlength{\kMaxCellLen}{\columnwidth-\ruleHangindent}%
   %The borders around a reduce are cell wals of maximal height
   %with cell name = name of innermost cell.
   \ifthenelse{\equal{#1}{}}%\isempty doesn't work here
-    {\setlength{\k@reduceBorders}{0pt}}
+    {\setlength{\kMaxReduceLen}{\kMaxCellLen}}
     {%
       \setlength{\k@reduceBorders}{\widthof{\mprefix[mock]{black}{#1}{\rule{0in}{5\baselineskip}}}}%
+      \setlength{\kMaxReduceLen}{\kMaxCellLen-\k@reduceBorders}%
     }%
-  \setlength{\kMaxCellLen}{\columnwidth-\ruleHangindent}%
-  \setlength{\kMaxReduceLen}{\kMaxCellLen-\k@reduceBorders}%
   %
   %TODO set to 0 when elliminating frames
   \setlength{\k@frameLen}{\widthof{\fbox{}}-2pt}%
