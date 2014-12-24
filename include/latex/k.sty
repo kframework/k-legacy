@@ -951,7 +951,7 @@
   %
   %Framebox-es are for debug purposes
   %Here we make sure they do not produce overfull warnings.
-  \setlength{\k@frameLen}{2\fboxrule}%
+  \setlength{\k@frameLen}{2\fboxrule+2\fboxsep}%
   \setlength{\kMaxCellBodyLen}{\kMaxCellBodyLen-\k@frameLen}%
   \setlength{\kMaxReduceLen}{\kMaxCellBodyLen-\k@frameLen}%
 }
@@ -1236,7 +1236,7 @@ rectangle,rectangle
   \setlength{\savedParindent}{\parindent}
   \setlength{\savedHangindent}{\hangindent}
   \setlength{\parindent}{\kIndent}
-  \setlength{\fboxsep}{0pt}%
+  %\setlength{\fboxsep}{0pt}%
   %\setlength{\fboxrule}{0pt}% uncomment to disable debug frameboxes
   %
   \par
