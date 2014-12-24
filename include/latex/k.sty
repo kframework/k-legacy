@@ -688,9 +688,12 @@
 \newcommand{\reduceSide}[2][true]{%
   \setlength{\k@termlen}{\widthof{$#2$}}%
   \ifthenelse{\equal{#1}{true} \AND \k@termlen > \kMaxReduceLen}
-    {\begin{boxedminipage}{\kMaxReduceLen}%TODO boxedminipage, minipage
+    {%
+     \framebox{% TODO debug
+     \begin{minipage}{\kMaxReduceLen}%
       \begin{center}$#2$\end{center}%
-     \end{boxedminipage}%
+     \end{minipage}%
+     }%
     }%
     {$#2$}%
   \mathstrut%
@@ -865,14 +868,22 @@
     {\colorlet{mcellBodyColor}{Black}}%
   % rendering
   {% to confine altered vars to this scope
-    \computeMaxReduceLen{#2}{#3}{#5}%
+    \computeAllowedLenghts{#2}{#3}{#5}%
     \saveCellBox{#2}{#3}{#4}{#5}%
     \setlength{\kCellLen}{\widthof{\usebox{\kCellBox}}}%
     \ifthenelse{\kCellLen > \kMaxCellLen}
       {\saveCellBoxWithWrap{#2}{#3}{#4}{#5}}
       {}%
     \usebox{\kCellBox}%
+    \ifthenelse{\kCellLen > \kMaxCellMinusSepLen}
+      {\global\def\needAllowbreak{true}}
+      {\global\def\needAllowbreak{false}}%
   }%
+  %\cellSep may add some spaces ath the end of the cell
+  %This is the most elegant solution, doesn't eat any space
+  \ifthenelse{\equal{\needAllowbreak}{true}}
+    {\allowbreak}
+    {}%
 }
 
 % #1 = name, #2 = prefix, #3 = content, #4 = suffix
@@ -895,12 +906,13 @@
     \color{mcellBracketColor}
     \boldangles{{
       #2
-      \begin{boxedminipage}{\kMaxCellBodyLen}%TODO boxedminipage, minipage
+      \framebox{% TODO debug
+      \begin{minipage}{\kMaxCellBodyLen}%
         \raggedright{%
-          %{\the\kMaxCellLen,\the\columnwidth,\the\ruleHangindent,\the\kMaxCellBodyLen} \linebreak %TODO debug
           $\color{mcellBodyColor} #3$%
         }%
-      \end{boxedminipage}%
+      \end{minipage}%
+      }%
       #4
     }}
     _{\text{\footnotesize\sf #1}}
@@ -913,18 +925,23 @@
 \newlength{\kMaxReduceLen}
 \newlength{\kMaxCellLen}
 \newlength{\kMaxCellBodyLen}
+\newlength{\kCellSepLen}
+\newlength{\kMaxCellMinusSepLen}
 \newlength{\k@frameLen}
 
 %Computes \kMaxCellLen, \kMaxCellBodyLen, \kMaxReduceLen
 % #1 = name of innermost cell, #2 = prefix, #3 = suffix
-\newcommand{\computeMaxReduceLen}[3]{%
+\newcommand{\computeAllowedLenghts}[3]{%
   \setlength{\kMaxCellLen}{\columnwidth-\ruleHangindent}%
+  \setlength{\kCellSepLen}{\widthof{\cellSep}}%
+  \setlength{\kMaxCellMinusSepLen}{\kMaxCellLen-\kCellSepLen}%
   \ifthenelse{\equal{#1}{}}%\no surrounding cell
     {\setlength{\kMaxCellBodyLen}{\kMaxCellLen}}
     {%
       % To avoid shrinking of nested cells
       % The borders around a reduce are cell wals of maximal height
       \setlength{\ruleHangindent}{0pt}%
+      %
       % Just for computing the width
       \saveCellBox{#1}{#2}{\rule{0in}{5\baselineskip}}{#3}%
       %
@@ -932,10 +949,11 @@
       \setlength{\kMaxCellBodyLen}{\kMaxCellLen-\k@reduceBorders}%
     }%
   %
-  %TODO set to 0 after elliminating boxedminipages
-  \setlength{\k@frameLen}{\widthof{\fbox{}}-2pt}%
+  %Framebox-es are for debug purposes
+  %Here we make sure they do not produce overfull warnings.
+  \setlength{\k@frameLen}{2\fboxrule}%
   \setlength{\kMaxCellBodyLen}{\kMaxCellBodyLen-\k@frameLen}%
-  \setlength{\kMaxReduceLen}{\kMaxCellBodyLen-\k@frameLen-2pt}%
+  \setlength{\kMaxReduceLen}{\kMaxCellBodyLen-\k@frameLen}%
 }
 
 %Cell separator, ensures proper spacing and line breaking
@@ -1218,17 +1236,20 @@ rectangle,rectangle
   \setlength{\savedParindent}{\parindent}
   \setlength{\savedHangindent}{\hangindent}
   \setlength{\parindent}{\kIndent}
+  \setlength{\fboxsep}{0pt}%
+  %\setlength{\fboxrule}{0pt}% uncomment to disable debug frameboxes
   %
   \par
   \vspace{\kStartVspace}
   \begin{minipage}{\columnwidth-\parindent}
+    %\fbox{%TODO debug
     \begin{minipage}{\columnwidth}%
     %setting hangindent after raggedright will not work
     \setlength{\hangindent}{\ruleHangindent}%
     \raggedright{%
       \k@ruleLabel{#3}{#2}%
       \setlength{\parindent}{\ruleHangindent}%
-      \computeMaxReduceLen{}{}{}%
+      \computeAllowedLenghts{}{}{}%
       \ifthenelse{\isempty{#1}}{%always the case
         $
           %\allowbreak % mostly for debugging widths
@@ -1239,6 +1260,7 @@ rectangle,rectangle
       }%
     }
     \end{minipage}%
+    %}
     \ifthenelse{\isempty{#5}}{}{%
       \setlength{\hangindent}{\ruleHangindent}
       \raggedright{%\begin{flushleft} produces extra vspace
