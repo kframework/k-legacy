@@ -864,11 +864,11 @@
     {\colorlet{mcellBodyColor}{mcellColor}}
     {\colorlet{mcellBodyColor}{Black}}%
   % rendering
-  \computeMaxReduceLen[#2]%
-  \saveCellBox{#2}{}{#3 #4 #5}{}%
+  \computeMaxReduceLen{#2}{#3}{#5}%
+  \saveCellBox{#2}{#3}{#4}{#5}%
   \setlength{\kCellLen}{\widthof{\usebox{\kCellBox}}}%
   \ifthenelse{\kCellLen > \kMaxCellLen}
-    {\saveCellBoxWithWrap{#2}{}{#3 #4 #5}{}}
+    {\saveCellBoxWithWrap{#2}{#3}{#4}{#5}}
     {}%
   \usebox{\kCellBox}%
 }
@@ -879,7 +879,7 @@
     $
     \color{mcellBracketColor}
     \boldangles{{
-      {\color{mcellBodyColor} #2 #3 #4}
+      #2 {\color{mcellBodyColor} #3} #4
     }}
     _{\text{\footnotesize\sf #1}}
     $%
@@ -889,14 +889,16 @@
 % #1 = name, #2 = prefix, #3 = content, #4 = suffix
 \newcommand{\saveCellBoxWithWrap}[4]{%
   \savebox{\kCellBox}{{%
-    $%
+    $
     \color{mcellBracketColor}
     \boldangles{{
-      \begin{boxedminipage}{\kMaxReduceLen}%TODO boxedminipage, minipage
-        \begin{center}%
-          $\color{mcellBodyColor} #2 #3 #4$%
-        \end{center}%
+      #2
+      \begin{boxedminipage}{\kMaxCellBodyLen}%TODO boxedminipage, minipage
+        \raggedright{%
+          $\color{mcellBodyColor} #3$%
+        }%
       \end{boxedminipage}%
+      #4
     }}
     _{\text{\footnotesize\sf #1}}
     $%
@@ -907,29 +909,29 @@
 
 \newlength{\kMaxReduceLen}
 \newlength{\kMaxCellLen}
+\newlength{\kMaxCellBodyLen}
 \newlength{\k@frameLen}
 
-%Computes \kMaxCellLen, \kMaxReduceLen
-% #1 = name
-\newcommand{\computeMaxReduceLen}[1][]{%
+%Computes \kMaxCellLen, \kMaxCellBodyLen, \kMaxReduceLen
+% #1 = name, #2 = prefix, #3 = suffix
+\newcommand{\computeMaxReduceLen}[3]{%
   \setlength{\kMaxCellLen}{\columnwidth-\ruleHangindent}%
   %The borders around a reduce are cell wals of maximal height
   %with cell name = name of innermost cell.
-  \ifthenelse{\equal{#1}{}}%\isempty doesn't work here
-    {\setlength{\kMaxReduceLen}{\kMaxCellLen}}
+  \ifthenelse{\equal{#1}{}}%\no surrounding cell
+    {\setlength{\kMaxCellBodyLen}{\kMaxCellLen}}
     {%
       %just for computing the width
-      \saveCellBox{#1}{}{\rule{0in}{5\baselineskip} \ \ellipses}{}%
+      \saveCellBox{#1}{#2}{\rule{0in}{5\baselineskip}}{#3}%
       %
       \setlength{\k@reduceBorders}{\widthof{\usebox{\kCellBox}}}%
-      \setlength{\kMaxReduceLen}{\kMaxCellLen-\k@reduceBorders}%
+      \setlength{\kMaxCellBodyLen}{\kMaxCellLen-\k@reduceBorders}%
     }%
   %
-  %TODO set to 0 when elliminating frames
+  %TODO set to 0 after elliminating boxedminipages
   \setlength{\k@frameLen}{\widthof{\fbox{}}-2pt}%
-  \setlength{\kMaxReduceLen}{\kMaxReduceLen-\k@frameLen}%Only when frames are used. Seems unncecessary now.
-  %Removing does not produce extra overfulls, but an extra new line
-  %if a multiline rewrite is at the beginning of the rule
+  \setlength{\kMaxCellBodyLen}{\kMaxCellBodyLen-\k@frameLen}%
+  \setlength{\kMaxReduceLen}{\kMaxCellBodyLen-\k@frameLen-2pt}%
 }
 
 %Cell separator, ensures proper spacing and line breaking
@@ -1222,7 +1224,7 @@ rectangle,rectangle
     \raggedright{%
       \k@ruleLabel{#3}{#2}%
       \setlength{\parindent}{\ruleHangindent}%
-      \computeMaxReduceLen[]%
+      \computeMaxReduceLen{}{}{}%
       \ifthenelse{\isempty{#1}}{%always the case
         $
           %\allowbreak % mostly for debugging widths
