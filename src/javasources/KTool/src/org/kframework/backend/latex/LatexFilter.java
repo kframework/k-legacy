@@ -33,6 +33,9 @@ public class LatexFilter extends BackendFilter {
     private boolean firstAttribute;
     private boolean hasTitle = false;
 
+    //true if the following rewrite is the sole content of a rule or cell
+    private boolean lonelyRewrite = false;
+
     //The indent for a new line at the current position.
     private String indent = "";
 
@@ -221,12 +224,12 @@ public class LatexFilter extends BackendFilter {
     }
 
     @Override
-    public Void visit(Cell c, Void _) {
+    public Void visit(Cell cell, Void _) {
         if (!isOnNewLine()) {
             newLine();
         }
         wantParens.push(Boolean.FALSE);
-        Ellipses ellipses = c.getEllipses();
+        Ellipses ellipses = cell.getEllipses();
         if (ellipses == Ellipses.LEFT) {
             result.append("\\ksuffix");
         } else if (ellipses == Ellipses.RIGHT) {
@@ -236,25 +239,33 @@ public class LatexFilter extends BackendFilter {
         } else {
             result.append("\\kall");
         }
-        if (c.getCellAttributes().containsKey("color")) {
-            colors.put(c.getLabel(), c.getCellAttributes().get("color"));
+        if (cell.getCellAttributes().containsKey("color")) {
+            colors.put(cell.getLabel(), cell.getCellAttributes().get("color"));
         }
-        if (colors.containsKey(c.getLabel())) {
-            result.append("[" + colors.get(c.getLabel()) + "]");
+        if (colors.containsKey(cell.getLabel())) {
+            result.append("[" + colors.get(cell.getLabel()) + "]");
         }
         result.append("{" + StringUtil.latexify(
-                c.getLabel() + StringUtil.emptyIfNull(c.getCellAttributes().get("multiplicity"))));
+                cell.getLabel() + StringUtil.emptyIfNull(cell.getCellAttributes().get("multiplicity"))));
         result.append("}");
 
         result.append("{");
         increaseIndent();
         newLine();
         prevTerm = false;
-        super.visit(c, _);
+        if (isLonelyRewrite(cell.getContents())) {
+            lonelyRewrite = true;
+        }
+        super.visit(cell, _);
         decreaseIndentAndNewLineIfNeeded();
         result.append("}");
         wantParens.pop();
         return null;
+    }
+
+    private boolean isLonelyRewrite(Term contents) {
+        return contents instanceof Rewrite ||
+                (contents instanceof Bracket && ((Bracket) contents).getContent() instanceof Rewrite);
     }
 
     public Void visit(Collection col, Void _) {
@@ -366,6 +377,9 @@ public class LatexFilter extends BackendFilter {
         increaseIndent();
         increaseIndent();
         newLine();
+        if (isLonelyRewrite(rule.getBody())) {
+            lonelyRewrite = true;
+        }
         this.visitNode(rule.getBody()); //arg 2
         decreaseIndentAndNewLineIfNeeded();
         result.append("}");
@@ -425,22 +439,27 @@ public class LatexFilter extends BackendFilter {
     }
 
     @Override
-    public Void visit(Rewrite rew, Void _) {
+    public Void visit(Rewrite rewrite, Void _) {
         wantParens.push(Boolean.TRUE);
         if (!isOnNewLine()) {
             newLine();
         }
-        result.append("\\reduce");
+        if (lonelyRewrite) {
+            result.append("\\reduce[lonely]");
+            lonelyRewrite = false;
+        } else {
+            result.append("\\reduce");
+        }
         increaseIndent();
         newLine();
         prevTerm = false;
         result.append("{");
-        this.visitNode(rew.getLeft());
+        this.visitNode(rewrite.getLeft());
         result.append("}");
         newLine();
         prevTerm = false;
         result.append("{");
-        this.visitNode(rew.getRight());
+        this.visitNode(rewrite.getRight());
         result.append("}");
         decreaseIndent();
         newLine();

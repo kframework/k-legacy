@@ -641,19 +641,32 @@
 %%% Rewrite.
 
 \newsavebox{\k@reduceBox}
+\newlength{\k@reduceLen}
 
-%Arguments: #1: true = do line breaking, false = don't do line breaking.
+\newboolean{ruleIndentEnabled}
+\setboolean{ruleIndentEnabled}{true}
+
+%TODO try a vspace after indented rewrite.
+
+%Arguments: #1: "lonely" = the only content of the parent object, empty otherwise.
 % #2 = LHS, #3 = RHS
-\newcommand{\reduce}[3][true]{%
-  \savebox{\k@reduceBox}{\reduceImpl[#1]{#2}{#3}}%
+\newcommand{\reduce}[3][]{%
+  \savebox{\k@reduceBox}{\reduceImpl{#1}{#2}{#3}}%
+  \setlength{\k@reduceLen}{\widthof{\usebox{\k@reduceBox}}}%
   \allowbreak%
+  \ifthenelse{\equal{#1}{lonely}
+              \OR \k@reduceLen < \kReduceIndentThreshold \OR \NOT \boolean{ruleIndentEnabled}}
+    {}
+    %without hbox some extra indent sometimes happens
+    {\hbox{\hspace*{\nonLonelyReduceIndent}}}% clean option
+    %{\hbox{\textcolor{red}{\rule{\nonLonelyReduceIndent}{1ex}}}}% debug option
   \usebox{\k@reduceBox}%
   \allowbreak%
 }
 
-\newcommand{\reduceImpl}[3][true]{%
+\newcommand{\reduceImpl}[3]{%
   \hbox{%
-  \computeMaxReduceLen%
+  \computeMaxReduceLen{#1}%
   \begin{tikzpicture}[baseline=(top.south),
                       inner xsep=0pt,
                       inner ysep=.3333ex,
@@ -661,11 +674,11 @@
                       align=left]%align changes the style a little
     \path
     node (top) [inner ysep=1ex]{%
-      \reduceSide[#1]{#2}%
+      \reduceSide{#2}%
     }
     (top.south)
     node (bottom) [anchor=north, inner ysep=.5ex] {%
-      \reduceSide[#1]{#3}%
+      \reduceSide{#3}%
     };
     %%% Draw the horizontal line:
     % Line with chevron.
@@ -688,9 +701,20 @@
 
 \newlength{\kMaxReduceLen}
 
+\newlength{\nonLonelyReduceIndent}
+\setlength{\nonLonelyReduceIndent}{2em}
+
+%The minimal width of a rule in order to be indented
+\newlength{\kReduceIndentThreshold}
+\setlength{\kReduceIndentThreshold}{200pt}
+
 %Computes \kMaxReduceLen
-\newcommand{\computeMaxReduceLen}{%
+\newcommand{\computeMaxReduceLen}[1]{%
   \setlength{\kMaxReduceLen}{\columnwidth-\ruleHangindent}%
+  %lonely rewrites occupy the whole hspace, non-lonely could be indented.
+  \ifthenelse{\equal{#1}{lonely}}
+    {}
+    {\addtolength{\kMaxReduceLen}{-\nonLonelyReduceIndent}}%
   % To avoid shrinking of top-level cells inside reduce
   % The borders around a reduce are cell wals of maximal height
   \setlength{\ruleHangindent}{0pt}%
@@ -700,18 +724,18 @@
 
 %TODO reduceSide
 %LHS or RHS of a \reduce
-\newcommand{\reduceSide}[2][true]{%
-  \setlength{\k@termlen}{\widthof{$#2$}}%
-  \ifthenelse{\equal{#1}{true} \AND \k@termlen > \kMaxReduceLen}
+\newcommand{\reduceSide}[1]{%
+  \setlength{\k@termlen}{\widthof{$#1$}}%
+  \ifthenelse{\k@termlen > \kMaxReduceLen}
     {%
      % otherwise an extra newline may be created at the beginning of a rule
      \addtolength{\kMaxReduceLen}{-0.5pt}%
      %
      \begin{boxedminipage}{\kMaxReduceLen}%
-      \begin{center}$#2$\end{center}%
+      \begin{center}$#1$\end{center}%
      \end{boxedminipage}%
     }%
-    {$#2$}%
+    {$#1$}%
   \mathstrut%
 }
 
@@ -1261,7 +1285,7 @@ rectangle,rectangle
   %
   \par
   \vspace{\kStartVspace}
-  \begin{minipage}{\columnwidth-\parindent}
+  \begin{minipage}{\columnwidth-\parindent}%
     \begin{minipage}{\columnwidth}%
     %setting hangindent after raggedright will not work
     \setlength{\hangindent}{\ruleHangindent}%
@@ -1269,9 +1293,7 @@ rectangle,rectangle
       \k@ruleLabel{#3}{#2}%
       \setlength{\parindent}{\ruleHangindent}%
       \ifthenelse{\isempty{#1}}{%always the case
-        $
-          #4
-        $
+        $#4$%
       }{%
         $\left(#4\right)$%
       }%
