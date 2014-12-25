@@ -144,6 +144,9 @@
 \RequirePackage{ucs}
 \RequirePackage{xspace}
 
+%for debugging minipages, every boxedminipage could be replaced with minipage
+\RequirePackage{boxedminipage}
+
 \makeatletter
 
 % Page Setup %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -650,6 +653,7 @@
 
 \newcommand{\reduceImpl}[3][true]{%
   \hbox{%
+  \computeMaxReduceLen%
   \begin{tikzpicture}[baseline=(top.south),
                       inner xsep=0pt,
                       inner ysep=.3333ex,
@@ -682,18 +686,30 @@
   }%
 }
 
+\newlength{\kMaxReduceLen}
+
+%Computes \kMaxReduceLen
+\newcommand{\computeMaxReduceLen}{%
+  \setlength{\kMaxReduceLen}{\columnwidth-\ruleHangindent}%
+  % To avoid shrinking of top-level cells inside reduce
+  % The borders around a reduce are cell wals of maximal height
+  \setlength{\ruleHangindent}{0pt}%
+}
+
 \newlength{\k@termlen}%temp value used by line breaking alg
 
+%TODO reduceSide
 %LHS or RHS of a \reduce
 \newcommand{\reduceSide}[2][true]{%
   \setlength{\k@termlen}{\widthof{$#2$}}%
   \ifthenelse{\equal{#1}{true} \AND \k@termlen > \kMaxReduceLen}
     {%
-     \framebox{% TODO debug
-     \begin{minipage}{\kMaxReduceLen}%
+     % otherwise an extra newline may be created at the beginning of a rule
+     \addtolength{\kMaxReduceLen}{-0.5pt}%
+     %
+     \begin{boxedminipage}{\kMaxReduceLen}%
       \begin{center}$#2$\end{center}%
-     \end{minipage}%
-     }%
+     \end{boxedminipage}%
     }%
     {$#2$}%
   \mathstrut%
@@ -872,7 +888,11 @@
     \saveCellBox{#2}{#3}{#4}{#5}%
     \setlength{\kCellLen}{\widthof{\usebox{\kCellBox}}}%
     \ifthenelse{\kCellLen > \kMaxCellLen}
-      {\saveCellBoxWithWrap{#2}{#3}{#4}{#5}}
+      {%
+        \saveCellBoxWithWrap{#2}{#3}{#4}{#5}%
+        \computeAllowedLenghtsPrecisely{#2}{#3}{#5}%
+        \saveCellBoxWithWrap{#2}{#3}{#4}{#5}%
+      }
       {}%
     \usebox{\kCellBox}%
     \ifthenelse{\kCellLen > \kMaxCellMinusSepLen}
@@ -906,13 +926,11 @@
     \color{mcellBracketColor}
     \boldangles{{
       #2
-      \framebox{% TODO debug
-      \begin{minipage}{\kMaxCellBodyLen}%
+      \begin{boxedminipage}{\kMaxCellBodyLen}%
         \raggedright{%
           $\color{mcellBodyColor} #3$%
         }%
-      \end{minipage}%
-      }%
+      \end{boxedminipage}%
       #4
     }}
     _{\text{\footnotesize\sf #1}}
@@ -920,40 +938,41 @@
   }}%
 }
 
-\newlength{\k@reduceBorders}%the maximal (supposed) width of some cell borders around a reduce, to be substracted from columnwidth when implementing a reduce with line breaking.
+\newlength{\k@cellBorders}%the maximal (supposed) width of some cell borders, to be substracted from columnwidth when implementing a cell with line breaking.
 
-\newlength{\kMaxReduceLen}
 \newlength{\kMaxCellLen}
 \newlength{\kMaxCellBodyLen}
 \newlength{\kCellSepLen}
 \newlength{\kMaxCellMinusSepLen}
-\newlength{\k@frameLen}
+\newlength{\kCellHeight}
 
-%Computes \kMaxCellLen, \kMaxCellBodyLen, \kMaxReduceLen
+%TODO computeAllowedLenghts
+%Computes \kMaxCellLen, \kMaxCellBodyLen
 % #1 = name of innermost cell, #2 = prefix, #3 = suffix
 \newcommand{\computeAllowedLenghts}[3]{%
   \setlength{\kMaxCellLen}{\columnwidth-\ruleHangindent}%
   \setlength{\kCellSepLen}{\widthof{\cellSep}}%
   \setlength{\kMaxCellMinusSepLen}{\kMaxCellLen-\kCellSepLen}%
-  \ifthenelse{\equal{#1}{}}%\no surrounding cell
-    {\setlength{\kMaxCellBodyLen}{\kMaxCellLen}}
-    {%
-      % To avoid shrinking of nested cells
-      % The borders around a reduce are cell wals of maximal height
-      \setlength{\ruleHangindent}{0pt}%
-      %
-      % Just for computing the width
-      \saveCellBox{#1}{#2}{\rule{0in}{5\baselineskip}}{#3}%
-      %
-      \setlength{\k@reduceBorders}{\widthof{\usebox{\kCellBox}}}%
-      \setlength{\kMaxCellBodyLen}{\kMaxCellLen-\k@reduceBorders}%
-    }%
   %
-  %Framebox-es are for debug purposes
-  %Here we make sure they do not produce overfull warnings.
-  \setlength{\k@frameLen}{2\fboxrule+2\fboxsep}%
-  \setlength{\kMaxCellBodyLen}{\kMaxCellBodyLen-\k@frameLen}%
-  \setlength{\kMaxReduceLen}{\kMaxCellBodyLen-\k@frameLen}%
+  % To avoid shrinking of nested cells
+  % The borders around a reduce are cell wals of maximal height
+  \setlength{\ruleHangindent}{0pt}%
+  %
+  % We assume the cell to always have the highest borders
+  \saveCellBox{#1}{#2}{\rule{0in}{5\baselineskip}}{#3}%
+  %
+  \setlength{\k@cellBorders}{\widthof{\usebox{\kCellBox}}}%
+  \setlength{\kMaxCellBodyLen}{\kMaxCellLen-\k@cellBorders}%
+}
+
+%compute again, this time adjusting braces size more precisely
+\newcommand{\computeAllowedLenghtsPrecisely}[3]{%
+  % We assume the cell borders with height equal to the previous rendering
+  \setlength{\kCellHeight}{\heightof{\usebox{\kCellBox}}}%
+  \saveCellBox{#1}{#2}{\rule{0in}{\kCellHeight}}{#3}%
+  %
+  \setlength{\k@cellBorders}{\widthof{\usebox{\kCellBox}}}%
+  \setlength{\kMaxCellBodyLen}{\kMaxCellLen-\k@cellBorders}%
 }
 
 %Cell separator, ensures proper spacing and line breaking
@@ -1228,31 +1247,29 @@ rectangle,rectangle
 \else
 %%% Paged (non-poster) mode
 
-  %TODO remove when finished
-  \usepackage{boxedminipage}
-
+%TODO ksentence
   %Arguments: {}, rule, name, body, preconditions, postconditions (for ML), attributes
   \newcommand{\ksentence}[7][]{
   \setlength{\savedParindent}{\parindent}
   \setlength{\savedHangindent}{\hangindent}
   \setlength{\parindent}{\kIndent}
-  %\setlength{\fboxsep}{0pt}%
+  %
+  %Framebox-es are for debug purposes
+  %Here we make sure they do not produce overfull warnings.
+  \setlength{\fboxsep}{1pt}%
   %\setlength{\fboxrule}{0pt}% uncomment to disable debug frameboxes
   %
   \par
   \vspace{\kStartVspace}
   \begin{minipage}{\columnwidth-\parindent}
-    %\fbox{%TODO debug
     \begin{minipage}{\columnwidth}%
     %setting hangindent after raggedright will not work
     \setlength{\hangindent}{\ruleHangindent}%
     \raggedright{%
       \k@ruleLabel{#3}{#2}%
       \setlength{\parindent}{\ruleHangindent}%
-      \computeAllowedLenghts{}{}{}%
       \ifthenelse{\isempty{#1}}{%always the case
         $
-          %\allowbreak % mostly for debugging widths
           #4
         $
       }{%
@@ -1260,7 +1277,6 @@ rectangle,rectangle
       }%
     }
     \end{minipage}%
-    %}
     \ifthenelse{\isempty{#5}}{}{%
       \setlength{\hangindent}{\ruleHangindent}
       \raggedright{%\begin{flushleft} produces extra vspace
