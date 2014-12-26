@@ -552,16 +552,20 @@ public class LatexFilter extends BackendFilter {
                     StringUtil.latexify(((Token) app.getLabel()).value()) + "}");
         } else {
             this.visitNode(app.getLabel());
-            result.append("(");
+            result.append("\\kOpenBr");
             this.visitNode(app.getChild());
-            result.append(")");
+            result.append("\\kClosedBr");
         }
         return null;
     }
 
     @Override
     public Void visit(KList list, Void _) {
-        printList(list.getContents(), "\\kcomma", false);
+        if (list.getContents().isEmpty()) {
+            printEmpty(KSort.KList.name());
+        } else {
+            printList(list.getContents(), "\\kcomma", false);
+        }
         return null;
     }
 
