@@ -593,7 +593,9 @@
 %mathpunct - like mathrel, but with less separation from parentheses on outside, looks better.
 %disabling allowbreak in terminal produces no overfull in fullpage mode, slightly better results.
 %Could be added if needed.
-\newcommand{\terminal}[1]{\ensuremath{\mathpunct{\text{\ttfamily #1}}}}
+%mathpunct doesn't allign well in syntax definitions
+%originally was mathrel
+\newcommand{\terminal}[1]{\ensuremath{\mathrel{\text{\ttfamily #1}}}}
 
 \newcommand{\userListSep}[1]
   {\ensuremath{\mathord{\text{\ttfamily #1}} \allowbreak}}
