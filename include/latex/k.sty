@@ -22,6 +22,16 @@
 \DeclareBoolOption{poster}  % to generate a poster from the definition
 
 \DeclareBoolOption{modulesAsSections} % To render modules as sections.
+
+% If true, in math mode cell wals are colored to their declared color.
+% If false, cell wals always have mcellBracketDefaultColor.
+%(better emphasizes the diverse styles inside a cell)
+%Only relevant for math mode. In bubble mode cells are always colored.
+\DeclareBoolOption{coloredCellBrackets}
+
+%true = cell body colored in the cell color, false = black cell body
+\DeclareBoolOption{coloredCellBody}
+
 \ProcessKeyvalOptions*
 
 % Usage Examples %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -859,12 +869,6 @@
 \colorlet{mcellBracketDefaultColor}{Maroon}
 \colorlet{mcellBracketColor}{White}
 
-%true = cell body colored in the cell color, false = black cell body
-\newcommand{\coloredCellBody}{false}
-
-%true = cell brackets colored in the cell color, false = black cell brackets (better if we decide to color components inside a cell into different colors)
-\newcommand{\coloredCellBrackets}{false}
-
 \newsavebox{\k@anglesBodyBox}
 \newlength{\k@angleHeight}
 
@@ -901,10 +905,10 @@
   \ifthenelse{\isempty{#1}}
     {\colorlet{mcellColor}{white!50!black}}
     {\colorlet{mcellColor}{#1!50!black}}%
-  \ifthenelse{\equal{\coloredCellBrackets}{true}}
+  \ifthenelse{\boolean{k@coloredCellBrackets}}
     {\colorlet{mcellBracketColor}{mcellColor}}
     {\colorlet{mcellBracketColor}{mcellBracketDefaultColor}}%
-  \ifthenelse{\equal{\coloredCellBody}{true}}
+  \ifthenelse{\boolean{k@coloredCellBody}}
     {\colorlet{mcellBodyColor}{mcellColor}}
     {\colorlet{mcellBodyColor}{Black}}%
   % rendering
@@ -1068,6 +1072,8 @@
 % 4) The cell outline is drawn and filled on the background layer, that is,
 %    behind the already placed cell content.
 % 5) Some vertical space is added around the whole drawing.
+% #1 = color, #2 = name, #3 = body
+% #4 = convex or none, #5 = convex or none
 \newcommand{\kcell}[5]{\hbox{%
   \begingroup
   \def\cellColor{#1}%
