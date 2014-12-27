@@ -561,8 +561,11 @@
 %mathord - binds to parentheses, separates from operators
 %mathrel - separates from parentheses on the outside, poorly separates from op
 %mathpunct - like mathrel, but with less separation from parentheses on outside, looks better.
-\newcommand{\terminal}[1]{\ensuremath{\allowbreak \mathpunct{\text{\ttfamily #1}}}}%mathrel
-\newcommand{\terminalNoSpace}[1]
+%disabling allowbreak in terminal produces no overfull in fullpage mode, slightly better results.
+%Could be added if needed.
+\newcommand{\terminal}[1]{\ensuremath{\mathpunct{\text{\ttfamily #1}}}}
+
+\newcommand{\userListSep}[1]
   {\ensuremath{\mathord{\text{\ttfamily #1}} \allowbreak}}
 
 % Tags
@@ -653,7 +656,7 @@
 \newcommand{\reduce}[3][]{%
   \savebox{\k@reduceBox}{\reduceImpl{#1}{#2}{#3}}%
   \setlength{\k@reduceLen}{\widthof{\usebox{\k@reduceBox}}}%
-  \allowbreak%
+  \allowbreak% Disabling this allowbreak may lead to ugly rendering in combination with rewrite indenting
   \ifthenelse{\equal{#1}{lonely}
               \OR \k@reduceLen < \kReduceIndentThreshold \OR \NOT \boolean{ruleIndentEnabled}}
     {}
@@ -923,7 +926,7 @@
       {\global\def\needAllowbreak{true}}
       {\global\def\needAllowbreak{false}}%
   }%
-  %\cellSep may add some spaces ath the end of the cell
+  %\cellSep may add some spaces at the end of the cell
   %This is the most elegant solution, doesn't eat any space
   \ifthenelse{\equal{\needAllowbreak}{true}}
     {\allowbreak}
@@ -1465,7 +1468,7 @@ $\mid\;{#2}$ \ifthenelse{\isempty{#3}}{}{[#3]\;}%
   \text{\Large\ensuremath{\displaystyle #1}}%
 }
 
-\newcommand{\prefixOp}{\terminalNoSpace}
+\newcommand{\prefixOp}{\userListSep}
 
 % Rules and Equations %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

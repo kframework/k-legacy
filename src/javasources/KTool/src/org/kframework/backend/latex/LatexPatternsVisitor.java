@@ -53,7 +53,7 @@ public class LatexPatternsVisitor extends BasicVisitor {
     public Void visit(UserList sort, Void _) {
         // Should be only nonterminal in a production, so prevNonTerm has no effect
         pattern += "{#" + nonTerm++ + "}";
-        pattern += "\\mathpunct{\\terminalNoSpace{" + StringUtil.latexify(sort.getSeparator()) + "}}";
+        pattern += "\\userListSep{" + StringUtil.latexify(sort.getSeparator()) + "}";
         pattern += "{#" + nonTerm++ + "}";
         return null;
     }
