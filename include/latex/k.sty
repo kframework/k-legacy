@@ -13,6 +13,8 @@
 % for comment env
 \RequirePackage{verbatim}
 
+%%% PACKAGE OPTIONS
+
 \SetupKeyvalOptions{family=k,prefix=k@}
 
 
@@ -23,6 +25,8 @@
 
 \DeclareBoolOption{modulesAsSections} % To render modules as sections.
 
+%%% Dynamically alterable options
+
 % If true, in math mode cell wals are colored to their declared color.
 % If false, cell wals always have mcellBracketDefaultColor.
 %(better emphasizes the diverse styles inside a cell)
@@ -31,6 +35,33 @@
 
 %true = cell body colored in the cell color, false = black cell body
 \DeclareBoolOption{coloredCellBody}
+
+%Various lengths governing syntax and rule style
+
+% Indent of a module item - syntax, rule or context.
+%\newlength{\k@indent}
+%\setlength{\k@indent}{0em}
+\DeclareStringOption[0em]{indent}
+
+% Indent of a hanging long syntax definition when automatically line breaking.
+\DeclareStringOption[15pt]{syntaxHangindent}
+
+% Indent of a hanging long rules when automatically line breaking.
+\DeclareStringOption[15pt]{ruleHangindent}
+
+% vspace at the beginning of a syntax/rule
+\DeclareStringOption[2ex]{StartVspace}
+
+% vspace at the end of a syntax/rule
+\DeclareStringOption[2ex]{EndVspace}
+
+
+%The amount of indent for non-lonely \reduce tags with length at least \kReduceIndentThreshold
+\DeclareStringOption[2em]{nonLonelyReduceIndent}
+
+%The minimal width of a \reduce in order to be indented
+%Set to 0 to disable this indentation
+\DeclareStringOption[200pt]{reduceIndentThreshold}
 
 \ProcessKeyvalOptions*
 
@@ -60,6 +91,11 @@
 % \kall, \kprefix, \ksuffix, and \kmiddle are used to specify cells which are
 % either complete, open to the right, open to the left, and open both ways,
 % respectively .
+
+% All options from coloredCellBrackets can be dynamically altered
+% in the middle of the document, using \setkeys.
+% For example:
+% \setkeys{k}{coloredCellBrackets=false,StartVspace=0pt,EndVspace=0pt}
 
 \ifthenelse{\equal{\k@style}{bubble}}{
   \newcommand{\kall}[3][white]{\ball{#1}{#2}{#3}}
@@ -487,28 +523,8 @@
 
 % Syntax rules.
 
-% Indent of a module item - syntax, rule or context.
-\newlength{\kIndent}
-\setlength{\kIndent}{0em}
-
-% Indent of a hanging long syntax definition when automatically line breaking.
-\newlength{\syntaxHangindent}
-\setlength{\syntaxHangindent}{\parindent}
-
-% Indent of a hanging long rules when automatically line breaking.
-\newlength{\ruleHangindent}
-\setlength{\ruleHangindent}{\parindent}
-
-% The amount of indention for continued rules.
-\newlength{\syntaxlength}
-
 \newlength{\savedParindent} % Backup for \parindent
 \newlength{\savedHangindent} % Backup for \hangindent
-
-\newlength{\kStartVspace} %vertical space at the start of the rule
-\setlength{\kStartVspace}{2ex}%
-\newlength{\kEndVspace} %vertical space at the end of the rule
-\setlength{\kEndVspace}{2ex}%
 
 % Suppresses underfull hbox warnings, frequent and meaningless when flushleft env is used.
 \hbadness=10000
@@ -525,9 +541,9 @@
   \newcommand{\defSort}{#1}
   \setlength{\savedParindent}{\parindent}
   \setlength{\savedHangindent}{\hangindent}
-  \setlength{\parindent}{\kIndent}
+  \setlength{\parindent}{\k@indent}
   \par
-  \vspace{\kStartVspace}
+  \vspace{\k@StartVspace}
   %When we use minipages, extra vspace created by \begin{flushleft} disappears.
   \begin{minipage}{\columnwidth-\parindent}
   \begin{flushleft}
@@ -535,7 +551,7 @@
 {
   \end{flushleft}
   \end{minipage}% after this minipage, all spaces have to be commented
-  \vspace{\kEndVspace}%
+  \vspace{\k@EndVspace}%
   \setlength{\parindent}{\savedParindent}%
   \setlength{\hangindent}{\savedHangindent}%
 }
@@ -545,12 +561,15 @@
   \setlength{\hangindent}
     {\widthof{%
       \syntaxKeyword$#1 \mathrel{::=} \ $%
-      \hspace{\syntaxHangindent}%for an extra indent after ::=
+      \hspace{\k@syntaxHangindent}%for an extra indent after ::=
     }}
   %
   \syntaxKeyword$#1 \mathrel{::=} #2$ \ifthenelse{\isempty{#3}}{}{[#3]}%
   \k@markPosition%
 }
+
+% The amount of indention for continued rules.
+\newlength{\syntaxlength}
 
 %Additional production in the same big syntax definition started with \syntax
 \newcommand{\syntaxCont}[3][\defSort]{
@@ -656,9 +675,6 @@
 \newsavebox{\k@reduceBox}
 \newlength{\k@reduceLen}
 
-\newboolean{ruleIndentEnabled}
-\setboolean{ruleIndentEnabled}{true}
-
 %Arguments: #1: "lonely" = the only content of the parent object, empty otherwise.
 % #2 = LHS, #3 = RHS
 \newcommand{\reduce}[3][]{%
@@ -666,11 +682,11 @@
   \setlength{\k@reduceLen}{\widthof{\usebox{\k@reduceBox}}}%
   \allowbreak% Disabling this allowbreak may lead to ugly rendering in combination with rewrite indenting
   \ifthenelse{\equal{#1}{lonely}
-              \OR \k@reduceLen < \kReduceIndentThreshold \OR \NOT \boolean{ruleIndentEnabled}}
+              \OR \k@reduceLen < \dimexpr\k@reduceIndentThreshold\relax}
     {}
     %without hbox some extra indent sometimes happens
-    {\hbox{\hspace*{\nonLonelyReduceIndent}}}% clean option
-    %{\hbox{\textcolor{red}{\rule{\nonLonelyReduceIndent}{1ex}}}}% debug option
+    {\hbox{\hspace*{\k@nonLonelyReduceIndent}}}% clean option
+    %{\hbox{\textcolor{red}{\rule{\k@nonLonelyReduceIndent}{1ex}}}}% debug option
   \usebox{\k@reduceBox}%
   \allowbreak%
 }
@@ -713,23 +729,16 @@
 
 \newlength{\kMaxReduceLen}
 
-\newlength{\nonLonelyReduceIndent}
-\setlength{\nonLonelyReduceIndent}{2em}
-
-%The minimal width of a rule in order to be indented
-\newlength{\kReduceIndentThreshold}
-\setlength{\kReduceIndentThreshold}{200pt}
-
 %Computes \kMaxReduceLen
 \newcommand{\computeMaxReduceLen}[1]{%
-  \setlength{\kMaxReduceLen}{\columnwidth-\ruleHangindent}%
+  \setlength{\kMaxReduceLen}{\columnwidth-\k@ruleHangindentAux}%
   %lonely rewrites occupy the whole hspace, non-lonely could be indented.
   \ifthenelse{\equal{#1}{lonely}}
     {}
-    {\addtolength{\kMaxReduceLen}{-\nonLonelyReduceIndent}}%
+    {\addtolength{\kMaxReduceLen}{-\k@nonLonelyReduceIndent}}%
   % To avoid shrinking of top-level cells inside reduce
   % The borders around a reduce are cell wals of maximal height
-  \setlength{\ruleHangindent}{0pt}%
+  \setlength{\k@ruleHangindentAux}{0pt}%
 }
 
 \newlength{\k@termlen}%temp value used by line breaking alg
@@ -978,13 +987,13 @@
 %Computes \kMaxCellLen, \kMaxCellBodyLen
 % #1 = name of innermost cell, #2 = prefix, #3 = suffix
 \newcommand{\computeAllowedLenghts}[3]{%
-  \setlength{\kMaxCellLen}{\columnwidth-\ruleHangindent}%
+  \setlength{\kMaxCellLen}{\columnwidth-\k@ruleHangindentAux}%
   \setlength{\kCellSepLen}{\widthof{\cellSep}}%
   \setlength{\kMaxCellMinusSepLen}{\kMaxCellLen-\kCellSepLen}%
   %
   % To avoid shrinking of nested cells
   % The borders around a reduce are cell wals of maximal height
-  \setlength{\ruleHangindent}{0pt}%
+  \setlength{\k@ruleHangindentAux}{0pt}%
   %
   % We assume the cell to always have the highest borders
   \saveCellBox{#1}{#2}{\rule{0in}{5\baselineskip}}{#3}%
@@ -1221,6 +1230,8 @@ rectangle,rectangle
 \ksentence[#6]{rule}{#1}{#2}{#3}{#4}{#5}
 }
 
+\newlength{\k@ruleHangindentAux}
+
 \ifk@poster
 %%% Poster mode
 
@@ -1281,7 +1292,8 @@ rectangle,rectangle
   \newcommand{\ksentence}[7][]{
   \setlength{\savedParindent}{\parindent}
   \setlength{\savedHangindent}{\hangindent}
-  \setlength{\parindent}{\kIndent}
+  \setlength{\parindent}{\k@indent}
+  \setlength{\k@ruleHangindentAux}{\k@ruleHangindent}
   %
   %Framebox-es are for debug purposes
   %Here we make sure they do not produce overfull warnings.
@@ -1289,14 +1301,14 @@ rectangle,rectangle
   \setlength{\fboxrule}{0pt}% debug: 0.4 pt
   %
   \par
-  \vspace{\kStartVspace}
+  \vspace{\k@StartVspace}
   \begin{minipage}{\columnwidth-\parindent}%
     \begin{minipage}{\columnwidth}%
     %setting hangindent after raggedright will not work
-    \setlength{\hangindent}{\ruleHangindent}%
+    \setlength{\hangindent}{\k@ruleHangindentAux}%
     \raggedright{%
       \k@ruleLabel{#3}{#2}%
-      \setlength{\parindent}{\ruleHangindent}%
+      \setlength{\parindent}{\k@ruleHangindentAux}%
       \ifthenelse{\isempty{#1}}{%always the case
         $#4$%
       }{%
@@ -1305,7 +1317,7 @@ rectangle,rectangle
     }
     \end{minipage}%
     \ifthenelse{\isempty{#5}}{}{%
-      \setlength{\hangindent}{\ruleHangindent}
+      \setlength{\hangindent}{\k@ruleHangindentAux}
       \raggedright{%\begin{flushleft} produces extra vspace
         \par
         \keyword{requires} \ensuremath{#5}%
@@ -1313,7 +1325,7 @@ rectangle,rectangle
       }%
     }%
     \ifthenelse{\isempty{#6}}{}{%
-      \setlength{\hangindent}{\ruleHangindent}
+      \setlength{\hangindent}{\k@ruleHangindentAux}
       \raggedright{
         \par
         \keyword{ensures} \ensuremath{#6}%
@@ -1327,7 +1339,7 @@ rectangle,rectangle
   \end{minipage}
   \setlength{\parindent}{\savedParindent}
   \setlength{\hangindent}{\savedHangindent}
-  \vspace{\kEndVspace}
+  \vspace{\k@EndVspace}
   }
 
   \newlength{\attribIndent}%Indentation of attributes
