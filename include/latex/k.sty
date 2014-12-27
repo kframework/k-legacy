@@ -496,9 +496,9 @@
 \newlength{\savedHangindent} % Backup for \hangindent
 
 \newlength{\kStartVspace} %vertical space at the start of the rule
-\setlength{\kStartVspace}{0ex}%TODO 2ex
+\setlength{\kStartVspace}{2ex}%
 \newlength{\kEndVspace} %vertical space at the end of the rule
-\setlength{\kEndVspace}{0ex}%TODO 2ex
+\setlength{\kEndVspace}{2ex}%
 
 % Suppresses underfull hbox warnings, frequent and meaningless when flushleft env is used.
 \hbadness=10000
@@ -649,8 +649,6 @@
 \newboolean{ruleIndentEnabled}
 \setboolean{ruleIndentEnabled}{true}
 
-%TODO try a vspace after indented rewrite.
-
 %Arguments: #1: "lonely" = the only content of the parent object, empty otherwise.
 % #2 = LHS, #3 = RHS
 \newcommand{\reduce}[3][]{%
@@ -666,6 +664,7 @@
   \usebox{\k@reduceBox}%
   \allowbreak%
 }
+%It would be ideal to have a vspace after indented rewrite, but I don't know how to do this.
 
 \newcommand{\reduceImpl}[3]{%
   \hbox{%
@@ -725,7 +724,6 @@
 
 \newlength{\k@termlen}%temp value used by line breaking alg
 
-%TODO reduceSide
 %LHS or RHS of a \reduce
 \newcommand{\reduceSide}[1]{%
   \setlength{\k@termlen}{\widthof{$#1$}}%
@@ -973,7 +971,6 @@
 \newlength{\kMaxCellMinusSepLen}
 \newlength{\kCellHeight}
 
-%TODO computeAllowedLenghts
 %Computes \kMaxCellLen, \kMaxCellBodyLen
 % #1 = name of innermost cell, #2 = prefix, #3 = suffix
 \newcommand{\computeAllowedLenghts}[3]{%
@@ -1274,7 +1271,6 @@ rectangle,rectangle
 \else
 %%% Paged (non-poster) mode
 
-%TODO ksentence
   %Arguments: {}, rule, name, body, preconditions, postconditions (for ML), attributes
   \newcommand{\ksentence}[7][]{
   \setlength{\savedParindent}{\parindent}
@@ -1283,8 +1279,8 @@ rectangle,rectangle
   %
   %Framebox-es are for debug purposes
   %Here we make sure they do not produce overfull warnings.
-  \setlength{\fboxsep}{1pt}%
-  %\setlength{\fboxrule}{0pt}% uncomment to disable debug frameboxes
+  \setlength{\fboxsep}{0pt}% debug: 1pt
+  \setlength{\fboxrule}{0pt}% debug: 0.4 pt
   %
   \par
   \vspace{\kStartVspace}
