@@ -2,8 +2,11 @@
 package org.kframework.krun.api;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import org.kframework.kil.ASTNode;
+import org.kframework.kil.Term;
+import org.kframework.kil.Variable;
 
 /**
 A transitition in the transition system of a semantics. Used to represent edges in the search graph
@@ -27,14 +30,27 @@ public class Transition implements Serializable{
     */
     private String readString;
 
+    private Map<Variable, Term> substitution;
+
     private TransitionType type;
 
+    //Todo: Refactor this function, probably not needed anymore (manasvi)
     protected Transition(TransitionType type, String label, ASTNode rule,
         String readString) {
         this.type = type;
         this.label = label;
         this.rule = rule;
         this.readString = readString;
+    }
+
+    public Transition(TransitionType type, String label, ASTNode rule,
+        String readString, Map<Variable, Term> substitution) {
+        this.type = type;
+        this.label = label;
+        this.rule = rule;
+        this.readString = readString;
+        this.substitution = substitution;
+
     }
 
     public static Transition rule(ASTNode rule) {

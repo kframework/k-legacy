@@ -14,6 +14,7 @@ import org.kframework.kil.Sort;
 import org.kframework.kil.Term;
 import org.kframework.kil.Variable;
 import org.kframework.kil.loader.Context;
+import org.kframework.krun.api.RewriteRelation;
 import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.KRunOptions;
@@ -36,12 +37,14 @@ public interface Executor {
     /**
     Execute a term in normal execution mode until it cannot rewrite any further
     @param cfg The term to rewrite
+    @param computeGraph if true, traceGraph is computed, and Rewrite Relation's optional Graph
+    parameter will contain the graph
     @return An object containing both metadata about krun's execution, and information about
     the exit state of the execution
     @exception KRunExecutionException Thrown if the backend fails to successfully execute the
     term
     */
-    public abstract KRunState run(Term cfg) throws KRunExecutionException;
+    public abstract RewriteRelation run(Term cfg, boolean computeGraph) throws KRunExecutionException;
 
     /**
     Perform a breadth-first search of the transition system starting at a particular term.
@@ -63,18 +66,20 @@ public interface Executor {
 
     /**
     Execute a term in normal-execution mode for a specified number of steps
-    @param cfg The K term to rewrite
-    @param steps The maximum number of transitions to execute for (zero if you want to rewrite
-    only until the first transition)
     @exception KRunExecutionException Thrown if the backend fails to successfully execute the
     term
     @exception UnsupportedOperationException The backend implementing this interface does not
     support bounded stepping
-    @return An object containing both metadata about krun's execution, and information about
+    @return An object containing both metadata about krun's execution, information about
     the resulting term after executing the specified number of steps (or fewer if no further
-    rewrites are possible)
-    */
-    public abstract KRunState step(Term cfg, int steps) throws KRunExecutionException;
+    rewrites are possible), and the graph with all states and transitions in the specified run
+    if the computeGraph option is specified
+    @param cfg The K term to rewrite
+    @param steps The maximum number of transitions to execute for (zero if you want to rewrite
+    @param computeGraph Computes the entire graph of the execution if specified as true.
+    only until the first transition)
+     */
+    public abstract RewriteRelation step(Term cfg, int steps, boolean computeGraph) throws KRunExecutionException;
 
     public static class Tool implements Transformation<Void, KRunResult> {
 
@@ -152,10 +157,10 @@ public interface Executor {
         public KRunResult execute() throws ParseFailedException, KRunExecutionException {
             KRunState result;
             if (options.depth != null) {
-                result = executor.step(initialConfiguration.get(), options.depth);
+                result = executor.step(initialConfiguration.get(), options.depth, false).getFinalState();
                 sw.printIntermediate("Bounded execution total");
             } else {
-                result = executor.run(initialConfiguration.get());
+                result = executor.run(initialConfiguration.get(), false).getFinalState();
                 sw.printIntermediate("Normal execution total");
             }
             ASTNode pattern = pattern();

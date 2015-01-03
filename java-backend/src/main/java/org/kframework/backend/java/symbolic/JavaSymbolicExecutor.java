@@ -7,18 +7,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.uci.ics.jung.graph.util.Pair;
+import org.kframework.backend.java.kil.ConstrainedExecutionGraph;
+import org.kframework.backend.java.kil.ConstrainedRewriteRelation;
 import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.Rule;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.Transition;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.compile.utils.RuleCompilerSteps;
 import org.kframework.kil.loader.Context;
 import org.kframework.krun.KRunExecutionException;
 import org.kframework.krun.SubstitutionFilter;
+import org.kframework.krun.api.KRunGraph;
 import org.kframework.krun.api.KRunState;
+import org.kframework.krun.api.RewriteRelation;
 import org.kframework.krun.api.SearchResult;
 import org.kframework.krun.api.SearchResults;
 import org.kframework.krun.api.SearchType;
@@ -36,6 +42,7 @@ public class JavaSymbolicExecutor implements Executor {
     private final KILtoBackendJavaKILTransformer transformer;
     private final Context context;
     private final KRunState.Counter counter;
+    private final static int unboundSteps = -1;
 
     @Inject
     JavaSymbolicExecutor(
@@ -60,30 +67,8 @@ public class JavaSymbolicExecutor implements Executor {
     }
 
     @Override
-    public KRunState run(org.kframework.kil.Term cfg) throws KRunExecutionException {
-        return internalRun(cfg, -1);
-    }
-
-    private KRunState internalRun(org.kframework.kil.Term cfg, int bound) throws KRunExecutionException {
-        ConstrainedTerm result = javaKILRun(cfg, bound);
-        org.kframework.kil.Term kilTerm = (org.kframework.kil.Term) result.term().accept(
-                new BackendJavaKILtoKILTransformer(context));
-        KRunState returnResult = new KRunState(kilTerm, counter);
-        return returnResult;
-    }
-
-    private ConstrainedTerm javaKILRun(org.kframework.kil.Term cfg, int bound) {
-        Term term = kilTransformer.transformAndEval(cfg);
-        TermContext termContext = TermContext.of(globalContext);
-
-        if (javaOptions.patternMatching) {
-            ConstrainedTerm rewriteResult = new ConstrainedTerm(getPatternMatchRewriter().rewrite(term, bound, termContext), termContext);
-            return rewriteResult;
-        } else {
-            SymbolicConstraint constraint = new SymbolicConstraint(termContext);
-            ConstrainedTerm constrainedTerm = new ConstrainedTerm(term, constraint);
-            return getSymbolicRewriter().rewrite(constrainedTerm, bound);
-        }
+    public RewriteRelation run(org.kframework.kil.Term cfg, boolean computeGraph) throws KRunExecutionException {
+        return step(cfg, unboundSteps, computeGraph);
     }
 
     @Override
@@ -153,11 +138,86 @@ public class JavaSymbolicExecutor implements Executor {
         return retval;
     }
 
-    @Override
-    public KRunState step(org.kframework.kil.Term cfg, int steps)
-            throws KRunExecutionException {
-        return internalRun(cfg, steps);
+
+    private KRunGraph genericGraphTransformer(ConstrainedExecutionGraph constrainedGraph) {
+        KRunGraph returnGraph = new KRunGraph();
+        for (Transition javaTransition : constrainedGraph.getEdges()) {
+            Map<org.kframework.kil.Variable, org.kframework.kil.Term> genericSubstitution = new HashMap<>();
+            Map<Variable, Term> javaSubstitution = javaTransition.getSubstitution();
+            /* Process Substitution */
+            for (Variable key : javaSubstitution.keySet()) {
+                org.kframework.kil.Variable genericKey = (org.kframework.kil.Variable) key.accept(
+                        new BackendJavaKILtoKILTransformer(context));
+                org.kframework.kil.Term genericValue = (org.kframework.kil.Term) javaSubstitution.get(key).accept(
+                        new BackendJavaKILtoKILTransformer(context));
+                genericSubstitution.put(genericKey, genericValue);
+            }
+            /* Process Rule */
+            //Todo: Transformer for rule has not yet been implemented, hence this line will fail
+            org.kframework.kil.Rule rule = (org.kframework.kil.Rule) javaTransition.getRule().accept(
+                    new BackendJavaKILtoKILTransformer(context));
+            org.kframework.krun.api.Transition genericTransition = new org.kframework.krun.api.Transition(
+                    org.kframework.krun.api.Transition.TransitionType.RULE, "", rule, "", genericSubstitution);
+
+            /* Process nodes connecting transition */
+            Pair<ConstrainedTerm> nodes = constrainedGraph.getEndpoints(javaTransition);
+            org.kframework.kil.Term node1 = (org.kframework.kil.Term) nodes.getFirst().term().accept(
+                    new BackendJavaKILtoKILTransformer(context)
+            );
+            KRunState state1 = new KRunState(node1, counter);
+
+
+            org.kframework.kil.Term node2 = (org.kframework.kil.Term) nodes.getSecond().term().accept(
+                    new BackendJavaKILtoKILTransformer(context)
+            );
+            KRunState state2 = new KRunState(node2, counter);
+            returnGraph.addVertex(state1);
+            returnGraph.addVertex(state2);
+            returnGraph.addEdge(genericTransition, state1, state2);
+
+        }
+        return returnGraph;
     }
+
+    private RewriteRelation genericKilTransformer(ConstrainedRewriteRelation constrainedRewriteRelation) {
+        /* processing the final Term */
+        org.kframework.kil.Term finalTerm = (org.kframework.kil.Term) constrainedRewriteRelation.getFinalTerm().term().accept(
+                new BackendJavaKILtoKILTransformer(context)
+        );
+        RewriteRelation returnRelation = new RewriteRelation(new KRunState(finalTerm, counter));
+        KRunGraph executionGraph = null;
+        /* Processing the execution trace, if existent */
+        if(constrainedRewriteRelation.getConstrainedExecutionGraph().isPresent()) {
+            executionGraph = genericGraphTransformer(constrainedRewriteRelation.
+                    getConstrainedExecutionGraph().get());
+        }
+        returnRelation.setExecutionGraph(executionGraph);
+        return returnRelation;
+    }
+
+    private ConstrainedRewriteRelation internalTraceStep(org.kframework.kil.Term cfg, int steps, boolean computeGraph)
+            throws KRunExecutionException{
+        Term term = kilTransformer.transformAndEval(cfg);
+        TermContext termContext = TermContext.of(globalContext);
+        if (javaOptions.patternMatching) {
+            if (computeGraph) {
+                throw new KRunExecutionException("compute Graph with pattern matching not yet implemented!");
+            }
+            ConstrainedTerm rewriteResult = new ConstrainedTerm(getPatternMatchRewriter().rewrite(term, steps, termContext), termContext);
+            return new ConstrainedRewriteRelation(rewriteResult, null);
+        }
+        SymbolicConstraint constraint = new SymbolicConstraint(termContext);
+        ConstrainedTerm constrainedTerm = new ConstrainedTerm(term, constraint);
+        return getSymbolicRewriter().traceRewrite(constrainedTerm, steps, computeGraph);
+
+    }
+
+    @Override
+    public RewriteRelation step(org.kframework.kil.Term cfg, int steps, boolean computeGraph) throws KRunExecutionException{
+        ConstrainedRewriteRelation traceResult = internalTraceStep(cfg, steps, computeGraph);
+        return genericKilTransformer(traceResult);
+    }
+
 
     public SymbolicRewriter getSymbolicRewriter() {
         return symbolicRewriter.get();

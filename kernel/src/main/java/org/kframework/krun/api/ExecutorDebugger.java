@@ -80,7 +80,7 @@ public class ExecutorDebugger implements Debugger {
         graph.addVertex(initialState);
         states = new DualHashBidiMap<Integer, KRunState>();
         putState(initialState);
-        KRunState reduced = executor.step(initialConfiguration, 0);
+        KRunState reduced = executor.step(initialConfiguration, 0, false).getFinalState();
         //reduce may return same node as initial node
         //so we add it just if it is different from the initial node
         if(putState(reduced)){
@@ -135,7 +135,7 @@ public class ExecutorDebugger implements Debugger {
                     + "first select a solution with the select command before executing steps of rewrites!");
         }
         for (int i = 0; steps == null || i < steps; i++) {
-            KRunState nextStep = executor.step(getState(currentState).getRawResult(), 1);
+            KRunState nextStep = executor.step(getState(currentState).getRawResult(), 1, false).getFinalState();
             Entry<Integer, KRunState> prevValue = containsValue(nextStep);
             if (prevValue!=null) {
                 nextStep = prevValue.getValue();
