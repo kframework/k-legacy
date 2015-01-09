@@ -64,6 +64,17 @@
 %Set to 0 to disable this indentation
 \DeclareStringOption[200pt]{reduceIndentThreshold}
 
+% inner ysep for the LHS node of a rewrite, alters compactness
+\DeclareStringOption[1ex]{rewriteLHSInnerYSep}
+
+% inner ysep for the LHS node of a rewrite, alters compactness
+\DeclareStringOption[0.5ex]{rewriteRHSInnerYSep}
+
+% One more option to control compactness of rewrites
+% Option: normal, maximal.
+% Maximal saves a little vspace when one side of a rewrite is just a dot, but looks uglier.
+\DeclareStringOption[normal]{rewriteCompactness}
+
 \ProcessKeyvalOptions*
 
 % Usage Examples %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -693,22 +704,30 @@
   \usebox{\k@reduceBox}%
   \allowbreak%
 }
+
+\newlength{\lhsInnerYSep}
+\newlength{\rhsInnerYSep}
+
 %It would be ideal to have a vspace after indented rewrite, but I don't know how to do this.
 
 \newcommand{\reduceImpl}[3]{%
   \hbox{%
   \computeMaxReduceLen{#1}%
+  \setlength{\lhsInnerYSep}{\dimexpr\k@rewriteLHSInnerYSep\relax}%
+  \setlength{\rhsInnerYSep}{\dimexpr\k@rewriteRHSInnerYSep\relax}%
   \begin{tikzpicture}[baseline=(top.south),
                       inner xsep=0pt,
                       inner ysep=.3333ex,
                       minimum width=2em,
                       align=left]%align changes the style a little
     \path
-    node (top) [inner ysep=1ex]{%
+    %\dimexpr\k@rewriteLHSInnerYSep\relax
+    %1ex
+    node (top) [inner ysep=\lhsInnerYSep]{%
       \reduceSide{#2}%
     }
     (top.south)
-    node (bottom) [anchor=north, inner ysep=.5ex] {%
+    node (bottom) [anchor=north, inner ysep=\rhsInnerYSep] {%
       \reduceSide{#3}%
     };
     %%% Draw the horizontal line:
@@ -759,7 +778,8 @@
      \end{boxedminipage}%
     }%
     {$#1$}%
-  \mathstrut%
+  %\mathstrut will add a vspace in some cases, will look better on overal
+  \ifthenelse{\equal{\k@rewriteCompactness}{normal}}{\mathstrut}{}%
 }
 
 %%% K Term contents.
