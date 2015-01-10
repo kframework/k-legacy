@@ -1312,7 +1312,7 @@ rectangle,rectangle
 %%% Paged (non-poster) mode
 
   %Arguments: {}, rule, name, body, preconditions, postconditions (for ML), attributes
-  \newcommand{\ksentence}[7][]{
+  \newcommand{\ksentence}[7][]{{
   \setlength{\savedParindent}{\parindent}
   \setlength{\savedHangindent}{\hangindent}
   \setlength{\parindent}{\k@indent}
@@ -1363,7 +1363,7 @@ rectangle,rectangle
   \setlength{\parindent}{\savedParindent}
   \setlength{\hangindent}{\savedHangindent}
   \vspace{\k@EndVspace}
-  }
+  }}
 
   \newlength{\attribIndent}%Indentation of attributes
   \setlength{\attribIndent}{4em}
