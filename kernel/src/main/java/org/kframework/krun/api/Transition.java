@@ -2,8 +2,10 @@
 package org.kframework.krun.api;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import org.kframework.kil.ASTNode;
+import org.kframework.kil.Rule;
 
 /**
 A transitition in the transition system of a semantics. Used to represent edges in the search graph
@@ -17,6 +19,13 @@ public class Transition implements Serializable{
     private ASTNode rule;
 
     /**
+    The rule container, to eventually replace the original rule.
+     */
+    private KilRuleContainer ruleContainer;
+
+    private Map<KilTermContainer, KilTermContainer> substitution;
+
+    /**
     The label of the rule transforming the origin state to the destination state, if the entire
     rule is unavailable
     */
@@ -28,6 +37,18 @@ public class Transition implements Serializable{
     private String readString;
 
     private TransitionType type;
+
+    public Transition(TransitionType type, String label, ASTNode rule, String readString,
+                      KilRuleContainer ruleContainer, Map<KilTermContainer,
+                        KilTermContainer> substitution) {
+
+        this.type = type;
+        this.label = label;
+        this.rule = rule;
+        this.readString = readString;
+        this.ruleContainer = ruleContainer;
+        this.substitution = substitution;
+    }
 
     protected Transition(TransitionType type, String label, ASTNode rule,
         String readString) {
@@ -77,6 +98,8 @@ public class Transition implements Serializable{
         this.label = label;
     }
 
+
+
     public enum TransitionType {
         /**
         A transition for which the rule transforming the origin to the destination is known
@@ -102,9 +125,8 @@ public class Transition implements Serializable{
         /**
         An action signifying that the user has entered data on the standard input stream.
         */
-        STDIN
+        STDIN;
     }
-
     public TransitionType getType() {
         return type;
     }
@@ -112,4 +134,14 @@ public class Transition implements Serializable{
     public String getReadString() {
         return readString;
     }
+
+    public Map<KilTermContainer, KilTermContainer> getSubstitution() {
+        return substitution;
+    }
+
+    public Rule getKilRule() {
+        return ruleContainer.getKilTerm();
+    }
+
+
 }

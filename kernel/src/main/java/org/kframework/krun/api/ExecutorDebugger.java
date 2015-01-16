@@ -74,13 +74,14 @@ public class ExecutorDebugger implements Debugger {
         } catch (CompilerStepDone e) {
             e.printStackTrace();
         }
-
-        KRunState initialState = new KRunState(initialConfiguration, counter);
+        KRunState initialState = new KRunState(
+                new GenericKilTermContainer(context, initialConfiguration),
+                counter);
         graph = new KRunGraph();
         graph.addVertex(initialState);
         states = new DualHashBidiMap<Integer, KRunState>();
         putState(initialState);
-        KRunState reduced = executor.step(initialConfiguration, 0);
+        KRunState reduced = executor.step(initialConfiguration, 0, false).getFinalState();
         //reduce may return same node as initial node
         //so we add it just if it is different from the initial node
         if(putState(reduced)){
@@ -135,7 +136,7 @@ public class ExecutorDebugger implements Debugger {
                     + "first select a solution with the select command before executing steps of rewrites!");
         }
         for (int i = 0; steps == null || i < steps; i++) {
-            KRunState nextStep = executor.step(getState(currentState).getRawResult(), 1);
+            KRunState nextStep = executor.step(getState(currentState).getRawResult(), 1, false).getFinalState();
             Entry<Integer, KRunState> prevValue = containsValue(nextStep);
             if (prevValue!=null) {
                 nextStep = prevValue.getValue();
@@ -250,7 +251,8 @@ public class ExecutorDebugger implements Debugger {
             throw new IllegalStateException("Cannot perform command: Configuration does not " +
                 "have an stdin buffer");
         }
-        KRunState newState = new KRunState(result, counter);
+        GenericKilTermContainer genWrappper = new GenericKilTermContainer(context, result);
+        KRunState newState = new KRunState(genWrappper, counter);
         Entry<Integer, KRunState> prevValue = containsValue(newState);
         if (prevValue!=null) {
             KRunState canonicalNewState = canonicalizeState(newState);

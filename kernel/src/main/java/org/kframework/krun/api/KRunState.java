@@ -10,14 +10,9 @@ import java.io.Serializable;
 public class KRunState implements Serializable, Comparable<KRunState>, KRunResult {
 
     /**
-    The pretty-printed term associated with this state, as suitable for display
+    The term container associated with this state, as suitable for further rewriting
     */
-    private Term result;
-
-    /**
-    The raw term associated with this state, as suitable for further rewriting
-    */
-    private Term rawResult;
+    private KilTermContainer rawResult;
 
     /**
      * A state ID corresponding to this state. The contract of a {@link KRun} object
@@ -33,15 +28,19 @@ public class KRunState implements Serializable, Comparable<KRunState>, KRunResul
         private int nextState;
     }
 
-    public KRunState(Term rawResult, Counter counter) {
+    public KRunState(KilTermContainer rawResult, Counter counter) {
         this.rawResult = rawResult;
         this.stateId = counter.nextState++;
     }
 
     public Term getRawResult() {
-        return rawResult;
+        return rawResult.getKilTerm();
     }
 
+    public KilTermContainer getTermContainer() {
+        return rawResult;
+    }
+    
     public Integer getStateId() {
         return stateId;
     }
@@ -57,7 +56,8 @@ public class KRunState implements Serializable, Comparable<KRunState>, KRunResul
         /*jung uses intensively equals while drawing graphs
           use SemanticEquals since it caches results
         */
-        return SemanticEqual.checkEquality(rawResult, s.rawResult);
+        //return SemanticEqual.checkEquality(rawResult, s.rawResult);
+        return rawResult.equals(s.getTermContainer());
     }
 
     @Override
