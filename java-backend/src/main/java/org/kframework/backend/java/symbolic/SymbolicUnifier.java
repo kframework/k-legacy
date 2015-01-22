@@ -111,7 +111,7 @@ public class SymbolicUnifier extends AbstractUnifier {
     private void unify(Term term, Term otherTerm) {
         if (term.isGround() && otherTerm.isGround()
                 && term.isNormal() && otherTerm.isNormal()) {
-            if (!term.equals(otherTerm)) {
+            if (term.hashCode() != otherTerm.hashCode() || !term.equals(otherTerm)) {
                 fail(term, otherTerm);
             }
             return;
