@@ -1,6 +1,7 @@
 // Copyright (c) 2014-2015 K Team. All Rights Reserved.
 package org.kframework.backend.unparser;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -42,9 +43,12 @@ public class BinaryOutputMode implements Transformation<KRunResult, InputStream>
         final Object o = toSerialize;
 
         Pair<PipedInputStream, PipedOutputStream> pipe = FileUtil.pipeOutputToInput();
-        new Thread(() ->
-        {
-            loader.saveOrDie(new Base64OutputStream(pipe.getRight()), o);
+        new Thread(() -> {
+            try (Base64OutputStream out = new Base64OutputStream(pipe.getRight())) {
+                loader.saveOrDie(out, o);
+            } catch (IOException e) {
+                throw KExceptionManager.criticalError("Error writing binary output to output stream.");
+            }
         }).start();
         return pipe.getLeft();
     }

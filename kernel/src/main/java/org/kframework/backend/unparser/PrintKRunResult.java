@@ -18,7 +18,7 @@ import com.google.inject.Inject;
 
 public class PrintKRunResult implements Transformation<KRunResult, InputStream> {
 
-    @InjectGeneric private Transformation<KRunState, String> statePrinter;
+    @InjectGeneric private Transformation<KRunState, InputStream> statePrinter;
     @InjectGeneric private Transformation<SearchResults, String> searchResultsPrinter;
     @InjectGeneric private Transformation<KRunGraph, String> graphPrinter;
 
@@ -26,7 +26,7 @@ public class PrintKRunResult implements Transformation<KRunResult, InputStream> 
     public PrintKRunResult() {}
 
     public PrintKRunResult(
-            Transformation<KRunState, String> statePrinter,
+            Transformation<KRunState, InputStream> statePrinter,
             Transformation<SearchResults, String> searchResultsPrinter,
             Transformation<KRunGraph, String> graphPrinter) {
         this.statePrinter = statePrinter;
@@ -39,17 +39,17 @@ public class PrintKRunResult implements Transformation<KRunResult, InputStream> 
         if (krunResult instanceof KRunProofResult && ((KRunProofResult<?>) krunResult).isProven()) {
             return new ByteArrayInputStream("true\n".getBytes());
         }
-        return new ByteArrayInputStream(print(krunResult, a).getBytes());
+        return print(krunResult, a);
     }
 
-    private String print(Object result, Attributes a) {
+    private InputStream print(Object result, Attributes a) {
         StringBuilder sb = new StringBuilder();
         if (result instanceof KRunState) {
             return statePrinter.run((KRunState)result, a);
         } else if (result instanceof SearchResults) {
-            return searchResultsPrinter.run((SearchResults)result, a);
+            return new ByteArrayInputStream(searchResultsPrinter.run((SearchResults)result, a).getBytes());
         } else if (result instanceof KRunGraph) {
-            return graphPrinter.run((KRunGraph)result, a);
+            return new ByteArrayInputStream(graphPrinter.run((KRunGraph)result, a).getBytes());
         } else if (result instanceof Set) {
             int i = 1;
             for (Object o : ((Set<?>)result)) {
@@ -63,7 +63,7 @@ public class PrintKRunResult implements Transformation<KRunResult, InputStream> 
         } else {
             assert false : "unexpected output type";
         }
-        return sb.toString();
+        return new ByteArrayInputStream(sb.toString().getBytes());
     }
 
     @Override

@@ -2,6 +2,8 @@
 package org.kframework.backend.unparser;
 
 import java.awt.Color;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashSet;
@@ -122,13 +124,13 @@ public class Unparser implements Comparator<ASTNode> {
             processStack(thisStack, thisString);
             processStack(thatStack, thatString);
             int lim = Math.min(thisString.length(), thatString.length());
-            String s1 = thisString.stringBuilder.substring(lastIdx, lim);
-            String s2 = thatString.stringBuilder.substring(lastIdx, lim);
+            String s1 = thisString.substring(lastIdx, lim);
+            String s2 = thatString.substring(lastIdx, lim);
             lastIdx = lim;
             int result = comparator.compare(s1, s2);
             if (result != 0) return result;
             if (thisStack.isEmpty() && thatStack.isEmpty()) {
-                return comparator.compare(thisString.stringBuilder.substring(lim), thatString.stringBuilder.substring(lim));
+                return comparator.compare(thisString.substring(lim), thatString.substring(lim));
             }
         }
     }
@@ -156,6 +158,18 @@ public class Unparser implements Comparator<ASTNode> {
             processStack(stack, string);
         }
         return string.toString();
+    }
+
+    public void print(OutputStream out, ASTNode node) {
+        Deque<Component> stack = new LinkedList<>();
+        Indenter string = new Indenter(new OutputStreamWriter(out));
+        if (!wrap) {
+            string.setWidth(-1);
+        }
+        stack.push(new TermComponent(node));
+        while(!stack.isEmpty()) {
+            processStack(stack, string);
+        }
     }
 
     /**
