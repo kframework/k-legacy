@@ -10,7 +10,7 @@ endmodule
 module BOOL-HOOKS
   imports BOOL-SYNTAX-HOOKS
 
-  syntax Bool ::= "notBool" Bool          [function, smtlib(not), boolOperation, latex(\kBuiltinOp{\wedge}{Bool}{#1}), hook(#BOOL:notBool_)]
+  syntax Bool ::= "notBool" Bool  [function, smtlib(not), boolOperation, latex(\kBuiltinOp{\neg}{Bool}{#1}), hook(#BOOL:notBool_)]
 				> Bool "andBool" Bool     [function, left, smtlib(and), boolOperation, latex({#1}\kBuiltinOp{\wedge}{Bool}{#2}), hook(#BOOL:_andBool_)]
 				| Bool "andThenBool" Bool [function, left, smtlib(and), boolOperation]
 				> Bool "xorBool" Bool	  [function, left, smtlib(xor), boolOperation, hook(#BOOL:_xorBool_)]
