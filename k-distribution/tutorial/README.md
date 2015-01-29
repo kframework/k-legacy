@@ -141,7 +141,7 @@ point of view, a language syntax is nothing but a finite set of `KLabel`
 constants.  The `kast` tool can be used to parse a program and see its
 KAST form.  By running
 
-    $ kompile simple-untyped.k
+    $ kompile simple-untyped.k --backend java
     $ kast tests/diverse/factorial.simple
 
 from the [tutorial/2_languages/1_simple/1_untyped](/tutorial/2_languages/1_simple/1_untyped)
@@ -169,10 +169,17 @@ behaviors.  What the `krun` tool basically does is:
 
 To run our sample program `factorial`, all we need to do is:
 
-    $ kompile simple-untyped.k
+    $ kompile simple-untyped.k --backend java
     $ krun tests/diverse/factorial.simple --output none
     Input a natural number: 5
     Factorial of 5 is: 120
+
+The `--backend java` option tells the `kompile` tool to compile
+the definition using the K backend written in Java. This is
+the backend for which the tutorial is written, so all tutorial
+lessons should be compiled with this argument. If you do
+not specify this argument, you use the default Maude backend,
+which is more mature and supports more features at this time.
 
 The `--output none` option tells `krun` to not display the
 configuration.  Instead, it only displays output produced by the

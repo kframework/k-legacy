@@ -32,6 +32,17 @@ recently changed!
 Type `--help` with any of these to see the new options, or see CHANGELOG.md
 for more details.
 
+**WARNING**: The K tutorial no longer compiles with the default, Maude backend.
+If you see an error similar to the following, please append `--backend java`
+to the command you pass to `kompile`:
+
+```
+[Error] Critical: Found two modules with the same name: SUBSTITUTION
+	Source: File:
+/home/dwightguth/k/k-distribution/target/release/k/include/modules/substitution.k
+	Location: (158,1,298,9)
+```
+
 New features
 ------------
 
