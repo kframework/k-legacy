@@ -117,7 +117,7 @@ public class DefinitionLoader {
             def.setModulesMap(bparser.getModulesMap());
             def.setItems(bparser.getModuleItems());
 
-            if (!context.kompileOptions.backend.documentation()) {
+            // if (!context.kompileOptions.backend.documentation()) {
                 if (!def.getModulesMap().containsKey(context.kompileOptions.syntaxModule())) {
                     String msg = "Could not find main syntax module used to generate a parser for programs (X-SYNTAX). Using: '" + mainModule + "' instead.";
                     GlobalSettings.kem.register(new KException(ExceptionType.HIDDENWARNING, KExceptionGroup.INNER_PARSER, msg, def.getMainFile(), "File system."));
@@ -130,7 +130,7 @@ public class DefinitionLoader {
                     String msg = "Could not find main module '" + mainModule + "'. Use --main-module option to specify another.";
                     GlobalSettings.kem.register(new KException(ExceptionType.ERROR, KExceptionGroup.COMPILER, msg, def.getMainFile(), "File system."));
                 }
-            }
+            // }
             Stopwatch.instance().printIntermediate("Basic Parsing");
 
             //This following line was commented out to make the latex backend 
@@ -164,7 +164,9 @@ public class DefinitionLoader {
             }
             // ------------------------------------- generate parser TBL
             // cache the TBL if the sdf file is the same
-            if (!context.kompileOptions.backend.documentation()) {
+
+            // Denis: I don't see any sense in this if, it just slows down kompile with Latex backend.
+            // if (!context.kompileOptions.backend.documentation()) {
                 String oldSdfPgm = "";
                 if (new File(context.kompiled, "Program.sdf").exists())
                     oldSdfPgm = FileUtil.getFileContent(context.kompiled.getAbsolutePath() + "/Program.sdf");
@@ -192,7 +194,7 @@ public class DefinitionLoader {
                     
                     Stopwatch.instance().printIntermediate("Generate TBLPgm");
                 }
-            }
+            // }
 
             new AddAutoIncludedModulesVisitor(context).visitNode(def);
             // new CheckModulesAndFilesImportsDecl(context).visitNode(def);
@@ -217,7 +219,7 @@ public class DefinitionLoader {
                     new File(cacheFile).delete();
                     // Sdf2Table.run_sdf2table(new File(context.dotk.getAbsoluteFile() + "/def"), "Concrete");
                     Thread t1 = Sdf2Table.run_sdf2table_parallel(new File(context.dotk.getAbsoluteFile() + "/def"), "Concrete");
-                    if (!context.kompileOptions.backend.documentation()) {
+                    // if (!context.kompileOptions.backend.documentation()) {
                         Thread t2 = Sdf2Table.run_sdf2table_parallel(new File(context.dotk.getAbsoluteFile() + "/ground"), "Concrete");
                         t2.join();
                         try {
@@ -230,7 +232,7 @@ public class DefinitionLoader {
                                     "IO error detected writing ground parser to file"));
                             return null; //unreachable
                         }
-                    }
+                    // }
                     t1.join();
                     try {
                         FileUtils.copyFileToDirectory(new File(context.dotk, "def/Integration.sdf"), context.kompiled);

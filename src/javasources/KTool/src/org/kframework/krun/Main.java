@@ -219,7 +219,8 @@ public class Main {
                 return null;
             }
         } else {
-            org.kframework.utils.Error.report("Currently supported backends are 'maude', 'java', and 'symbolic'");
+            org.kframework.utils.Error.report("The backend of current kompilation does not support krun. " +
+                    "Currently supported backends are 'maude', 'java', and 'symbolic'");
             return null;
         }
     }

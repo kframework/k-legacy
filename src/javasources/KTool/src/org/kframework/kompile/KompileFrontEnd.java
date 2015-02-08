@@ -85,8 +85,12 @@ public class KompileFrontEnd {
         context.dotk.mkdirs();
         
         // default for documentation backends is to store intermediate outputs in temp directory
-        context.kompiled = context.dotk;
-        
+        //context.kompiled = context.dotk;
+        //allows caching TBLDef on multiple kompile runs, even with mixed backends.
+        context.kompiled = new File(options.directory, FilenameUtils.removeExtension(options.mainDefinitionFile().getName()) + "-kompiled");
+        checkAnotherKompiled(context.kompiled);
+        context.kompiled.mkdirs();
+
         if (!options.global.debug) {
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
