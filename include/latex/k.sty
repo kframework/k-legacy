@@ -550,7 +550,7 @@
 % http://tex.stackexchange.com/questions/185970/raggedright-removes-paragraph-indentation
 \newenvironment{syntaxBlock}[1]
 {
-  \newcommand{\defSort}{#1}
+  \newcommand{\defSort}{#1}%The defined sort, default arg 1 of all \syntax, \syntaxCont
   \setlength{\savedParindent}{\parindent}
   \setlength{\savedHangindent}{\hangindent}
   \setlength{\parindent}{\k@indent}
@@ -569,14 +569,15 @@
 }
 
 %Removed grouping and rulebox from init version, added hangindent, hspace.
+%#1 = defined sort, #2 = production, #3 = attributes
 \newcommand{\syntax}[3][\defSort]{
   \setlength{\hangindent}
     {\widthof{%
-      \syntaxKeyword$#1 \mathrel{::=} \ $%
+      \syntaxKeyword$\syntaxLHS{#1} \mathrel{::=} \ $%
       \hspace{\k@syntaxHangindent}%for an extra indent after ::=
     }}
   %
-  \syntaxKeyword$#1 \mathrel{::=} #2$ \ifthenelse{\isempty{#3}}{}{[#3]}%
+  \syntaxKeyword$\syntaxLHS{#1} \mathrel{::=} #2$ \ifthenelse{\isempty{#3}}{}{[#3]}%
   \k@markPosition%
 }
 
@@ -584,19 +585,43 @@
 \newlength{\syntaxlength}
 
 %Additional production in the same big syntax definition started with \syntax
+%#1 = defined sort, #2 = production, #3 = attributes
 \newcommand{\syntaxCont}[3][\defSort]{
   \par
   $\setlength{\syntaxlength}{\widthof{$\mathrel{::=}$}}%
   \setlength{\syntaxlength}{.5\syntaxlength}%
-  \addtolength{\syntaxlength}{\widthof{\syntaxKeyword$#1$}}%
+  \addtolength{\syntaxlength}{\widthof{\syntaxKeyword$\syntaxLHS{#1}$}}%
   \hspace{\syntaxlength}%
   \;\;\!\mid\;#2$ \ifthenelse{\isempty{#3}}{}{[#3]}%
   \k@markPosition%
 }
 
+\newcommand{\syntaxLHS}[1]{\nonTerminal{\sortName{#1}}}%the defined sort
+
 % Non-terminals.
 \newcommand{\nonTerminal}[1]{#1}%always wraps a \sort
-\newcommand{\sort}[1]{\sortName{#1}\/}
+\newcommand{\sort}[1]{\sortName{#1} \ }
+
+%Maroon - good for contrast with BueViolet var
+% surprisingly looks better than DarkMagenta when vars are bold black.
+%Indigo - too dark, tiring
+%BlueViolet - too light, catches attention
+%DarkMagenta - between Indigo and BlueViolet, closest to IDE settings, yet seems more tiring than BlueViolet.
+%Ideally we would like attention to be on variables, not sorts.
+%DimGray - good for emphasizing vars as bold, looks hard to see.
+%Black - not distinct enough. Other syntactic kinds are also black italic.
+
+%Brown - lighter version of Maroon. Looks surprisingly easier on the eyes.
+%RawSienna - lighter than Brown, too shit-like.
+%orange - too bright and hard to read
+%BrickRed - slightly lighter than brown, already too bright.
+% Brown is the best option so far, when combined with bold black var names.
+% Does not distract attention from var names, looks different enough from terms and vars,
+% and it's easy to concentrate on sorts when needed.
+\colorlet{sortColor}{DimGray}
+
+%Display of a sort in any context - syntax or rule.
+\newcommand{\sortName}[1]{\text{\color{sortColor} \itshape #1}}
 
 % Terminals.
 %mathord - binds to parentheses, separates from operators
@@ -606,10 +631,39 @@
 %Could be added if needed.
 %mathpunct doesn't allign well in syntax definitions
 %originally was mathrel
-\newcommand{\terminal}[1]{\ensuremath{\mathrel{\text{\ttfamily #1}}}}
+\newcommand{\terminal}[1]{\ensuremath{\mathrel{\text{\ttfamily #1}} \ktspace}}
 
 \newcommand{\userListSep}[1]
-  {\ensuremath{\mathord{\text{\ttfamily #1}} \allowbreak}}
+  {\kcommaspacebefore \ensuremath{\mathord{\text{\ttfamily #1}} \kcommaspace \allowbreak}}
+
+\newcommand{\klabel}[1]{#1}
+
+%Additional space between 2 terminals. Produced by backend.
+\newcommand{\kttspace}{}
+
+%Space after a terminal, thin space
+\newcommand{\ktspace}{\,}%\,
+
+%space before \kra
+\newcommand{\kraspacebefore}{\ }
+
+%space before \kcomma - a negative thin space
+\newcommand{\kcommaspacebefore}{\hspace{-0.1em}}
+
+%space before \kcomma - a negative thin space
+\newcommand{\kbrspacebefore}{\hspace{-0.1em}}
+
+%space after \kOpenBr - a negative thin space
+\newcommand{\kbrspace}{\,}
+
+%space after \kcomma
+\newcommand{\kcommaspace}{\ }
+
+%space after \k variable
+\newcommand{\kvarspace}{\,}
+
+%space after reduce
+\newcommand{\kreducespace}{\kvarspace}
 
 % Tags
 \newcommand{\kattribute}[1]{{\color{AttribColor}#1}}
@@ -746,14 +800,19 @@
     % Solid arrow (augmenting the solid line).
     \path[fill] (top.south) ++(2pt,0) -- ++(-4pt,0) -- ++(2pt,-1.5pt) -- cycle;
   \end{tikzpicture}%
+  \hspace{\kReduceSpaceAfter}%
   }%
 }
+
+\newlength{\kReduceSpaceAfter}
+\setlength{\kReduceSpaceAfter}{0.1em}
 
 \newlength{\kMaxReduceLen}
 
 %Computes \kMaxReduceLen
 \newcommand{\computeMaxReduceLen}[1]{%
   \setlength{\kMaxReduceLen}{\columnwidth-\k@ruleHangindentAux}%
+  \addtolength{\kMaxReduceLen}{-\kReduceSpaceAfter}%
   %lonely rewrites occupy the whole hspace, non-lonely could be indented.
   \ifthenelse{\equal{#1}{lonely}}
     {}
@@ -785,37 +844,24 @@
 %%% K Term contents.
 
 %Mathop produces the largest spaces around
-\newcommand{\kra}{\ \allowbreak \mathop{\curvearrowright}}
-\newcommand{\kcomma}{\ensuremath{\mathpunct{\textbf{,}} \ \allowbreak}}%mathpunct
+\newcommand{\kra}{\kraspacebefore \allowbreak \mathop{\curvearrowright} \ktspace }
+\newcommand{\kcomma}{\kcommaspacebefore \ensuremath{\mathpunct{\textbf{,}} \kcommaspace \allowbreak}}%mathpunct
 
-\newcommand{\kOpenBr}{( \allowbreak}
-\newcommand{\kClosedBr}{) \allowbreak}
+%Open and closed parens as part of some syntax
+\newcommand{\kOpenBr}{\kbrspacebefore \mathtt{(} \kbrspace \allowbreak}
+\newcommand{\kClosedBr}{\mathtt{)} \ktspace \allowbreak}
+
+%Open and closed parens in a label-application expression (AST-based term)
+\newcommand{\kOpenLabelBr}{( \allowbreak}
+\newcommand{\kClosedLabelBr}{) \ktspace \allowbreak}
 
 \newcommand{\kvalue}[1]{{\color{red}#1}}
 
 \newcommand{\constant}[2][none]{%
-  \k@withTooltip{\text{\sffamily #2}}{\syntaxKeyword #1 ::= "#2"}%
+  \k@withTooltip{\text{\sffamily #2} \ }{\syntaxKeyword #1 ::= "#2"}%
 }
 
 \colorlet{varColor}{Black}%Indigo (too dark, eye tiring), BlueViolet (good when sort is Maroon)
-
-%Maroon - good for contrast with BueViolet var
-% surprisingly looks better than DarkMagenta when vars are bold black.
-%Indigo - too dark, tiring
-%BlueViolet - too light, catches attention
-%DarkMagenta - between Indigo and BlueViolet, closest to IDE settings, yet seems more tiring than BlueViolet.
-%Ideally we would like attention to be on variables, not sorts.
-%DimGray - good for emphasizing vars as bold, looks hard to see.
-%Black - not distinct enough. Other syntactic kinds are also black italic.
-
-%Brown - lighter version of Maroon. Looks surprisingly easier on the eyes.
-%RawSienna - lighter than Brown, too shit-like.
-%orange - too bright and hard to read
-%BrickRed - slightly lighter than brown, already too bright.
-% Brown is the best option so far, when combined with bold black var names.
-% Does not distract attention from var names, looks different enough from terms and vars,
-% and it's easy to concentrate on sorts when needed.
-\colorlet{sortColor}{DimGray}
 
 %Limitation: greek letters are not bolded.
 \newcommand{\varName}[1]{\ensuremath{
@@ -824,9 +870,6 @@
 }}
 
 \newcommand{\varSort}[1]{\sortName{{:}#1}}
-
-%Display of a sort in any context - syntax or rule.
-\newcommand{\sortName}[1]{\text{\color{sortColor} \itshape #1}}
 
 %Arguments: Sort, name, either user or {}.
 %Sort is only rendered if arg3=user
@@ -837,7 +880,8 @@
       \ifthenelse{\equal{#3}{user}}%
         {\varSort{#1}}%
         {}%
-    }}\/%
+      \kvarspace%
+    }}%
   }%
   {Variable #2:#1}%
 }
@@ -848,6 +892,7 @@
 \newcommand{\dotCt}[1]{%
   \ensuremath{%
     {\raise.3ex\hbox{$\kdot$}}_{\color{dotSortColor}\scriptstyle\it \!#1}}%
+  \kvarspace%
 }
 
 \newcommand{\mdot}{\cdot}
@@ -856,6 +901,7 @@
 \newcommand{\mAnyVar}[2]{%
   \mbox{\textbf{---}}%
   \ifthenelse{\equal{#2}{user}}{\varSort{#1}}{}%
+  \kvarspace%
 }
 
 %Old builtin tag: +_{\scriptstyle\it Float}
@@ -863,9 +909,11 @@
 \newcommand{\kBuiltinOp}[2]{%
   \ensuremath{%
     \allowbreak \mathrel{#1_{\scriptstyle\it #2}}%
-  }
+  }%
+  \ktspace%
 }
 
+%Parens () that are K separators, not part of any defined syntax.
 \newcommand{\kbrackets}[1]{\ensuremath{
   \setlength{\k@angleHeight}{\heightof{\vphantom{$#1$}}}%
   \pmb{%
@@ -874,12 +922,14 @@
     \rule{0in}{\k@angleHeight}% a strut, \strut command gives errors
     \right.%
   }%
+  \ktspace%
   #1%
   \pmb{%
     \color{AttribColor}
     \left.%
     \rule{0in}{\k@angleHeight}%
     \right)%
+    \ktspace%
   }%
 }}
 

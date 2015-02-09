@@ -62,10 +62,10 @@ public class LatexPatternsVisitor extends BasicVisitor {
         if (terminal.isEmpty())
             return null;
         if (context.isSpecialTerminal(terminal)) {
-            pattern += StringUtil.latexify(terminal);
+            pattern += LatexFilter.latexifySpecialTerminal(terminal);
         } else {
             if (!prevNonTerm) {
-                pattern += " \\ ";
+                pattern += "\\kttspace ";
             }
             pattern += "\\terminal{" + StringUtil.latexify(terminal) + "}";
         }

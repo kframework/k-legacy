@@ -124,9 +124,7 @@ public class LatexFilter extends BackendFilter {
 
     @Override
     public Void visit(Syntax syn, Void _) {
-        result.append("\\begin{syntaxBlock}{");
-        this.visitNode(syn.getSort());
-        result.append("}");
+        result.append("\\begin{syntaxBlock}{" + syn.getSort().getName() + "}");
         firstProduction = true;
         increaseIndent();
         for (PriorityBlock priorityBlock : syn.getPriorityBlocks()) {
@@ -164,7 +162,6 @@ public class LatexFilter extends BackendFilter {
                 && production.containsAttribute(Constants.CONS_cons_ATTR)
                 && patternsVisitor.getPatterns().containsKey(production.getAttribute(Constants.CONS_cons_ATTR))) {
             String pattern = patternsVisitor.getPatterns().get(production.getAttribute(Constants.CONS_cons_ATTR));
-            pattern = pattern.replace(",", "\\kcomma");
             int n = 1;
             LatexFilter termFilter = new LatexFilter(context, indent);
             for (ProductionItem productionItem : production.getItems()) {
@@ -194,15 +191,28 @@ public class LatexFilter extends BackendFilter {
             return null;
         }
         if (context.isSpecialTerminal(terminal)) {
-            result.append(StringUtil.latexify(terminal));
+            result.append(latexifySpecialTerminal(terminal));
         } else {
             if (prevTerm) {
-                result.append(" \\ ");
+                result.append("\\kttspace ");
             }
             result.append("\\terminal{" + StringUtil.latexify(terminal) + "}");
         }
         prevTerm = true;
         return null;
+    }
+
+    static String latexifySpecialTerminal(String specialTerminal) {
+        switch (specialTerminal) {
+            case "(":
+                return "\\kOpenBr";
+            case ")":
+                return "\\kClosedBr";
+            case ",":
+                return "\\kcomma";
+            default:
+                return "\\terminal{" + StringUtil.latexify(specialTerminal) + "}";
+        }
     }
 
     @Override
@@ -497,9 +507,6 @@ public class LatexFilter extends BackendFilter {
             patternsVisitor.visitNode(pr);
             pattern = patternsVisitor.getPatterns().get(trm.getCons());
         }
-        pattern = pattern.replace(",", "\\kcomma");
-        pattern = pattern.replace("(", "\\kOpenBr");
-        pattern = pattern.replace(")", "\\kClosedBr");
         int n = 1;
         LatexFilter termFilter = new LatexFilter(context, indent);
         for (Term t : trm.getContents()) {
@@ -513,8 +520,8 @@ public class LatexFilter extends BackendFilter {
         //should work for both types of endl
         pattern = pattern.replaceAll("^" + endl + "\\s*", "");
 
-        //put a space between consecutive literals
-        pattern = pattern.replaceAll("(\\\\terminal\\{\\w+\\})(\\\\terminal\\{\\w+\\})", "$1 \\\\ $2");
+        //put a space between consecutive terminals
+        pattern = pattern.replaceAll("(\\\\terminal\\{\\w+\\})(\\\\terminal\\{\\w+\\})", "$1 \\\\kttspace $2");
 
         result.append(pattern);
         return null;
@@ -522,7 +529,7 @@ public class LatexFilter extends BackendFilter {
 
     @Override
     public Void visit(KLabelConstant c, Void _) {
-        result.append(StringUtil.latexify(c.getLabel()));
+        result.append("\\klabel{" + StringUtil.latexify(c.getLabel()) + "}");
         return null;
     }
 
@@ -558,9 +565,9 @@ public class LatexFilter extends BackendFilter {
                     StringUtil.latexify(((Token) app.getLabel()).value()) + "}");
         } else {
             this.visitNode(app.getLabel());
-            result.append("\\kOpenBr");
+            result.append("\\kOpenLabelBr");
             this.visitNode(app.getChild());
-            result.append("\\kClosedBr");
+            result.append("\\kClosedLabelBr");
         }
         return null;
     }
