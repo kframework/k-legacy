@@ -193,9 +193,6 @@ public class LatexFilter extends BackendFilter {
         if (context.isSpecialTerminal(terminal)) {
             result.append(latexifySpecialTerminal(terminal));
         } else {
-            if (prevTerm) {
-                result.append("\\kttspace ");
-            }
             result.append("\\terminal{" + StringUtil.latexify(terminal) + "}");
         }
         prevTerm = true;
@@ -519,9 +516,6 @@ public class LatexFilter extends BackendFilter {
         //delete empty lines that might result from the previous replacement
         //should work for both types of endl
         pattern = pattern.replaceAll("^" + endl + "\\s*", "");
-
-        //put a space between consecutive terminals
-        pattern = pattern.replaceAll("(\\\\terminal\\{\\w+\\})(\\\\terminal\\{\\w+\\})", "$1 \\\\kttspace $2");
 
         result.append(pattern);
         return null;

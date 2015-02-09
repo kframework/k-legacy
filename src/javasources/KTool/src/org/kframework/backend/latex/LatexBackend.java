@@ -14,6 +14,7 @@ import org.kframework.utils.general.GlobalSettings;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 public class LatexBackend extends BasicBackend {
 
@@ -48,7 +49,7 @@ public class LatexBackend extends BasicBackend {
                 "\\PassOptionsToPackage{pdftex}{hyperref}"+ endl +
                 "\\documentclass{article}" + endl + "\\usepackage[" + options.docStyle() + "]{k}" + endl;
         String preamble = lf.getPreamble().toString();
-        latexified += preamble + "\\begin{document}" + endl + lf.getResult() + "\\end{document}" + endl;
+        latexified += preamble + "\\begin{document}" + endl + getPostprocessedResult(lf) + "\\end{document}" + endl;
 
         File canonicalFile = options.mainDefinitionFile();
         String latexFilePath;
@@ -58,6 +59,17 @@ public class LatexBackend extends BasicBackend {
         FileUtils.writeStringToFile(latexFile, latexified);
 
         sw.printIntermediate("Latex Generation");
+    }
+
+    private CharSequence getPostprocessedResult(LatexFilter latexFilter) {
+        String result = latexFilter.getResult().toString();
+
+        //put a space between consecutive terminals
+        Pattern pattern = Pattern.compile("(\\\\terminal\\{[^\\}]+\\})\\s*(\\\\terminal)");
+        result = pattern.matcher(result).replaceAll("$1 \\\\kttspace $2");
+        //execute 2-nd time, to catch cases when there are 3 or more terminals in a row.
+        result = pattern.matcher(result).replaceAll("$1 \\\\kttspace $2");
+        return result;
     }
 
     public void copyFiles() throws IOException {

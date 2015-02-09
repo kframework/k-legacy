@@ -64,9 +64,6 @@ public class LatexPatternsVisitor extends BasicVisitor {
         if (context.isSpecialTerminal(terminal)) {
             pattern += LatexFilter.latexifySpecialTerminal(terminal);
         } else {
-            if (!prevNonTerm) {
-                pattern += "\\kttspace ";
-            }
             pattern += "\\terminal{" + StringUtil.latexify(terminal) + "}";
         }
         prevNonTerm = false;
