@@ -124,12 +124,17 @@ public class LatexFilter extends BackendFilter {
 
     @Override
     public Void visit(Syntax syn, Void _) {
-        result.append("\\begin{syntaxBlock}");
+        result.append("\\begin{syntaxBlock}{");
+        this.visitNode(syn.getSort());
+        result.append("}");
         firstProduction = true;
         increaseIndent();
-        super.visit(syn, _);
-        result.append(endl + "\\end{syntaxBlock}");
+        for (PriorityBlock priorityBlock : syn.getPriorityBlocks()) {
+            this.visitNode(priorityBlock);
+        }
         decreaseIndent();
+        newLine();
+        result.append("\\end{syntaxBlock}");
         newLine();
         newLine();
         return null;
@@ -137,13 +142,13 @@ public class LatexFilter extends BackendFilter {
 
     @Override
     public Void visit(Sort sort, Void _) {
-        result.append("{\\nonTerminal{\\sort{" + StringUtil.latexify(sort.getName()) + "}}}");
+        result.append("\\nonTerminal{\\sort{" + StringUtil.latexify(sort.getName()) + "}}");
         prevTerm = false;
         return null;
     }
 
     @Override
-    public Void visit(Production p, Void _) {
+    public Void visit(Production production, Void _) {
         newLine();
         prevTerm = false;
         if (firstProduction) {
@@ -155,27 +160,28 @@ public class LatexFilter extends BackendFilter {
         increaseIndent();
         newLine();
         result.append("{");
-        if (!(p.getItems().get(0) instanceof UserList) && p.containsAttribute(Constants.CONS_cons_ATTR)
-                && patternsVisitor.getPatterns().containsKey(p.getAttribute(Constants.CONS_cons_ATTR))) {
-            String pattern = patternsVisitor.getPatterns().get(p.getAttribute(Constants.CONS_cons_ATTR));
+        if (!(production.getItems().get(0) instanceof UserList)
+                && production.containsAttribute(Constants.CONS_cons_ATTR)
+                && patternsVisitor.getPatterns().containsKey(production.getAttribute(Constants.CONS_cons_ATTR))) {
+            String pattern = patternsVisitor.getPatterns().get(production.getAttribute(Constants.CONS_cons_ATTR));
             pattern = pattern.replace(",", "\\kcomma");
             int n = 1;
             LatexFilter termFilter = new LatexFilter(context, indent);
-            for (ProductionItem pi : p.getItems()) {
-                if (!(pi instanceof Terminal)) {
+            for (ProductionItem productionItem : production.getItems()) {
+                if (!(productionItem instanceof Terminal)) {
                     termFilter.setResult(new StringBuilder());
-                    termFilter.visitNode(pi);
-                    pattern = pattern.replace("{#" + n++ + "}", "{" + termFilter.getResult() + "}");
+                    termFilter.visitNode(productionItem);
+                    pattern = pattern.replace("{#" + n++ + "}", termFilter.getResult());
                 }
             }
             result.append(pattern);
         } else {
-            super.visit(p, _);
+            super.visit(production, _);
         }
         result.append("}");
         newLine();
         result.append("{");
-        this.visitNode(p.getAttributes());
+        this.visitNode(production.getAttributes());
         result.append("}");
         decreaseIndent();
         return null;

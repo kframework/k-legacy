@@ -42,8 +42,6 @@ public class LatexPatternsVisitor extends BasicVisitor {
 
     @Override
     public Void visit(Sort sort, Void _) {
-        if (prevNonTerm)
-            pattern += "\\mathrel{}";
         pattern += "{#" + nonTerm++ + "}";
         prevNonTerm = true;
         return null;
