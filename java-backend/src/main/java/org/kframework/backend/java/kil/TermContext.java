@@ -13,7 +13,7 @@ import org.kframework.krun.api.io.FileSystem;
  */
 public class TermContext extends JavaSymbolicObject {
 
-    private BigInteger counter = BigInteger.ZERO;
+    private static BigInteger counter = BigInteger.ZERO;
 
     private final GlobalContext global;
 
