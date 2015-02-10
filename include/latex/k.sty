@@ -668,16 +668,6 @@
 % Tags
 \newcommand{\kattribute}[1]{{\color{AttribColor}#1}}
 
-
-% Configuration %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\newcommand{\kconfig}[1]{%
-  \par%
-  {\sc configuration:}\par%
-    \ensuremath{#1}\k@markPosition%
-  \par\ \par%
-}
-
 % Cells %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \ifk@poster
@@ -871,7 +861,7 @@
 
 \newcommand{\varSort}[1]{\sortName{{:}#1}}
 
-%Arguments: Sort, name, either user or {}.
+%Arguments: #1 = Sort, #2 = name, #3 = either user or {}.
 %Sort is only rendered if arg3=user
 \newcommand{\variable}[3][none]{%
   \k@withTooltip{%
@@ -945,6 +935,9 @@
 
 \newcommand{\mmiddle}[3]{ \mcell{#1}{#2}{\ellipses \ }{#3}{\ \ellipses} }
 
+% Triple dot
+\newcommand{\ellipses}{{\mathrel{\cdot\!\!\cdot\!\!\cdot}}}
+
 
 \colorlet{mcellColor}{White}
 \colorlet{mcellBodyColor}{White}
@@ -978,6 +971,8 @@
 \newsavebox{\kCellBox}
 \newlength{\kCellLen}
 
+\newboolean{cellWithWrap}
+
 %Arguments:
 % #1 = color (default gray), #2 = cell name,
 % #3 = prefix, #4 = content, #5 = suffix.
@@ -996,10 +991,12 @@
   % rendering
   {% to confine altered vars to this scope
     \computeAllowedLenghts{#2}{#3}{#5}%
+    \setboolean{cellWithWrap}{false}%
     \saveCellBox{#2}{#3}{#4}{#5}%
     \setlength{\kCellLen}{\widthof{\usebox{\kCellBox}}}%
     \ifthenelse{\kCellLen > \kMaxCellLen}
       {%
+        \setboolean{cellWithWrap}{true}%
         \saveCellBoxWithWrap{#2}{#3}{#4}{#5}%
         \computeAllowedLenghtsPrecisely{#2}{#3}{#5}%
         \saveCellBoxWithWrap{#2}{#3}{#4}{#5}%
@@ -1089,14 +1086,35 @@
 %Originally was \mathrel{}. That one produces an extra space when line breaking
 \newcommand{\cellSep}{\ \ \allowbreak}
 
-%LIne break inside a bag
-\newcommand{\cellBR}{\\}
+%%% Manual line breaking.
 
-%Alignment inside cell array. Default = c, other value: l, good for large configurations.
-\newcommand{\cellArrayAlign}{c}
+%A block of cells containing manual line breaks
+\newcommand{\manualBRBlock}[1]{%
+  \ifthenelse{\boolean{cellWithWrap}}
+    {%
+      \begin{array}{@{}l@{}}%
+        \begin{minipage}{\kMaxCellBodyLen}%
+          \raggedright%
+          $#1$
+        \end{minipage}%
+      \end{array}%
+    }
+    {\begin{array}{@{}l@{}}#1\end{array}}%
+}
 
-% Triple dot
-\newcommand{\ellipses}{{\mathrel{\cdot\!\!\cdot\!\!\cdot}}}
+%A manual line break
+\newcommand{\cellBR}{%
+  \ifthenelse{\boolean{cellWithWrap}}
+  {%
+    $%
+    \end{minipage}%end of the previous block
+    \\%
+    \begin{minipage}{\kMaxCellBodyLen}%begin of the new block
+    \raggedright%
+    $%
+  }
+  {\\}%
+}
 
 
 %%% Bubble notation.
@@ -1294,6 +1312,12 @@ rectangle,rectangle
   \end{tikzpicture}%
   \endgroup
 }}
+
+% Configuration %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\kconfig}[1]{%
+  \ksentence[]{configuration}{}{#1}{}{}{}%
+}
 
 % Rules and Equations %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

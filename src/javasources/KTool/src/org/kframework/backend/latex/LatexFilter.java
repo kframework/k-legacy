@@ -292,14 +292,14 @@ public class LatexFilter extends BackendFilter {
             if (!isOnNewLine()) {
                 newLine();
             }
-            result.append("\\begin{array}{@{}\\cellArrayAlign@{}}");
+            result.append("\\manualBRBlock{");
             increaseIndent();
         }
         printCollection(collectionTerm.getContents(), "\\cellSep", true);
         if (hasBR) {
             decreaseIndent();
             newLine();
-            result.append("\\end{array}");
+            result.append("}");
         }
         return null;
     }
@@ -313,6 +313,9 @@ public class LatexFilter extends BackendFilter {
         return false;
     }
 
+    /**
+     * This collection may contain line break terms - TermComment
+     */
     private void printCollection(List<Term> contents, String separator, boolean addNewLine) {
         boolean first = true;
         for (Term term : contents) {
