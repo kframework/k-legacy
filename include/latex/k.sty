@@ -194,7 +194,7 @@
 
 %%% Auxiliary packages.
 
-%For widthof
+%For widthof, heightof
 \RequirePackage{calc}
 
 \RequirePackage{ifthen}
@@ -944,8 +944,12 @@
 \colorlet{mcellBracketDefaultColor}{Maroon}
 \colorlet{mcellBracketColor}{White}
 
+\newlength{\angleMaxHeight}
+\setlength{\angleMaxHeight}{40pt}%manually determined
+
 \newsavebox{\k@anglesBodyBox}
 \newlength{\k@angleHeight}
+\newlength{\k@angleTotalHeight}
 
 % Surrounds the given argument with bold angular brackets, for better display of angle colors.
 % The argument itself is rendered in notmal text.
@@ -955,18 +959,31 @@
   %If we use the unchanged solution from the link above, it is too slow.
   \savebox{\k@anglesBodyBox}{{$#1$}}
   \setlength{\k@angleHeight}{\heightof{\usebox{\k@anglesBodyBox}}}%
+  \setlength{\k@angleTotalHeight}{\totalheightof{\usebox{\k@anglesBodyBox}}}%
   \pmb{%
     \left\langle%
     \rule{0in}{\k@angleHeight}% a strut, \strut command gives errors
     \right.%
   }%
-  \usebox{\k@anglesBodyBox}%
+  \ifthenelse{\k@angleHeight > \angleMaxHeight}
+    {%Draw vertical rules along the angles if the content is higher that highest possible angles.
+      \blackrule{0.5pt}%
+      \whiterule{2.75pt}%3pt gives spurious overfull in K-Java config
+      \usebox{\k@anglesBodyBox}%
+      \whiterule{2.75pt}%
+      \blackrule{0.5pt}%
+    }
+    {\usebox{\k@anglesBodyBox}}%
   \pmb{%
     \left.%
     \rule{0in}{\k@angleHeight}%
     \right\rangle%
   }%
 }
+
+\newcommand{\blackrule}[1]
+  {\rule[\k@angleHeight-\k@angleTotalHeight]{#1}{\k@angleTotalHeight}}
+\newcommand{\whiterule}[1]{\rule{#1}{0pt}}
 
 \newsavebox{\kCellBox}
 \newlength{\kCellLen}
@@ -1065,7 +1082,7 @@
   % The borders around a reduce are cell wals of maximal height
   \setlength{\k@ruleHangindentAux}{0pt}%
   %
-  % We assume the cell to always have the highest borders
+  % We assume that cell has highest possible borders
   \saveCellBox{#1}{#2}{\rule{0in}{5\baselineskip}}{#3}%
   %
   \setlength{\k@cellBorders}{\widthof{\usebox{\kCellBox}}}%
