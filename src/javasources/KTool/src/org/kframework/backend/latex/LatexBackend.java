@@ -69,6 +69,8 @@ public class LatexBackend extends BasicBackend {
         result = pattern.matcher(result).replaceAll("$1 \\\\kttspace $2");
         //execute 2-nd time, to catch cases when there are 3 or more terminals in a row.
         result = pattern.matcher(result).replaceAll("$1 \\\\kttspace $2");
+        //Case not covered by first pattern: \terminal{\}}\terminal
+        result = result.replaceAll("(\\\\terminal\\{\\\\\\}\\})\\s*(\\\\terminal)", "$1 \\\\kttspace $2");
         return result;
     }
 
