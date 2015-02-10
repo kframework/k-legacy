@@ -1086,8 +1086,14 @@
 }
 
 %Cell separator, ensures proper spacing and line breaking
-%Originally was \mathrel{} that priduces an extra space when line breaking
+%Originally was \mathrel{}. That one produces an extra space when line breaking
 \newcommand{\cellSep}{\ \ \allowbreak}
+
+%LIne break inside a bag
+\newcommand{\cellBR}{\\}
+
+%Alignment inside cell array. Default = c, other value: l, good for large configurations.
+\newcommand{\cellArrayAlign}{c}
 
 % Triple dot
 \newcommand{\ellipses}{{\mathrel{\cdot\!\!\cdot\!\!\cdot}}}

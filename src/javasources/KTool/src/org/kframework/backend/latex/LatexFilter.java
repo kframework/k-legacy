@@ -281,22 +281,21 @@ public class LatexFilter extends BackendFilter {
                 (contents instanceof Bracket && ((Bracket) contents).getContent() instanceof Rewrite);
     }
 
-    public Void visit(Collection col, Void _) {
+    public Void visit(Collection collectionTerm, Void _) {
         final boolean parens = wantParens.peek();
-        final boolean hasBR = containsBR(col);
-        if (col.isEmpty()) {
-            printEmpty(col.getSort());
+        final boolean hasBR = containsBR(collectionTerm);
+        if (collectionTerm.isEmpty()) {
+            printEmpty(collectionTerm.getSort());
             return null;
         }
         if (hasBR) {
             if (!isOnNewLine()) {
                 newLine();
             }
-            result.append("\\begin{array}{@{}c@{}}");
+            result.append("\\begin{array}{@{}\\cellArrayAlign@{}}");
             increaseIndent();
         }
-        List<Term> contents = col.getContents();
-        printList(contents, "\\cellSep", true);
+        printCollection(collectionTerm.getContents(), "\\cellSep", true);
         if (hasBR) {
             decreaseIndent();
             newLine();
@@ -314,9 +313,15 @@ public class LatexFilter extends BackendFilter {
         return false;
     }
 
-    private void printList(List<Term> contents, String separator, boolean addNewLine) {
+    private void printCollection(List<Term> contents, String separator, boolean addNewLine) {
         boolean first = true;
-        for (Term trm : contents) {
+        for (Term term : contents) {
+            if (term instanceof TermComment) {//only possible inside an {array}.
+                newLine();
+                result.append("\\cellBR");
+                first = true;//do no print the separator after.
+                continue;
+            }
             if (first) {
                 first = false;
             } else {
@@ -325,15 +330,23 @@ public class LatexFilter extends BackendFilter {
                 }
                 result.append(separator);
             }
-            this.visitNode(trm);
+            this.visitNode(term);
         }
     }
 
-    public Void visit(TermComment tc, Void _) {
-        // termComment = true;
-        result.append("\\\\");
-        super.visit(tc, _);
-        return null;
+    private void printList(List<Term> contents, String separator, boolean addNewLine) {
+        boolean first = true;
+        for (Term term : contents) {
+            if (first) {
+                first = false;
+            } else {
+                if (addNewLine && !isOnNewLine()) {
+                    newLine();
+                }
+                result.append(separator);
+            }
+            this.visitNode(term);
+        }
     }
 
     @Override
