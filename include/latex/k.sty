@@ -1009,14 +1009,22 @@
   {% to confine altered vars to this scope
     \computeAllowedLenghts{#2}{#3}{#5}%
     \setboolean{cellWithWrap}{false}%
-    \saveCellBox{#2}{#3}{#4}{#5}%
+    \saveCellBox{#2}{#3}{#4}{#5}{\kCellBox}%
     \setlength{\kCellLen}{\widthof{\usebox{\kCellBox}}}%
     \ifthenelse{\kCellLen > \kMaxCellLen}
       {%
         \setboolean{cellWithWrap}{true}%
         \saveCellBoxWithWrap{#2}{#3}{#4}{#5}%
         \computeAllowedLenghtsPrecisely{#2}{#3}{#5}%
-        \saveCellBoxWithWrap{#2}{#3}{#4}{#5}%
+        \ifthenelse{\kMaxCellBodyLen > \kOldMaxCellBodyLen}
+          {
+            \saveCellBoxWithWrap{#2}{#3}{#4}{#5}%
+            \computeAllowedLenghtsPrecisely{#2}{#3}{#5}%
+            \ifthenelse{\kMaxCellBodyLen > \kOldMaxCellBodyLen}
+              {\saveCellBoxWithWrap{#2}{#3}{#4}{#5}}
+              {}%
+          }
+          {}%
       }
       {}%
     \usebox{\kCellBox}%
@@ -1031,9 +1039,9 @@
     {}%
 }
 
-% #1 = name, #2 = prefix, #3 = content, #4 = suffix
-\newcommand{\saveCellBox}[4]{%
-  \savebox{\kCellBox}{{%
+% #1 = name, #2 = prefix, #3 = content, #4 = suffix, #5 = box name
+\newcommand{\saveCellBox}[5]{%
+  \savebox{#5}{{%
     $
     \color{mcellBracketColor}
     \boldangles{{
@@ -1070,6 +1078,7 @@
 \newlength{\kCellSepLen}
 \newlength{\kMaxCellMinusSepLen}
 \newlength{\kCellHeight}
+\newsavebox{\kPhantomBox}
 
 %Computes \kMaxCellLen, \kMaxCellBodyLen
 % #1 = name of innermost cell, #2 = prefix, #3 = suffix
@@ -1083,19 +1092,22 @@
   \setlength{\k@ruleHangindentAux}{0pt}%
   %
   % We assume that cell has highest possible borders
-  \saveCellBox{#1}{#2}{\rule{0in}{5\baselineskip}}{#3}%
+  \saveCellBox{#1}{#2}{\rule{0in}{5\baselineskip}}{#3}{\kPhantomBox}%
   %
-  \setlength{\k@cellBorders}{\widthof{\usebox{\kCellBox}}}%
+  \setlength{\k@cellBorders}{\widthof{\usebox{\kPhantomBox}}}%
   \setlength{\kMaxCellBodyLen}{\kMaxCellLen-\k@cellBorders}%
 }
+
+\newlength{\kOldMaxCellBodyLen}
 
 %compute again, this time adjusting braces size more precisely
 \newcommand{\computeAllowedLenghtsPrecisely}[3]{%
   % We assume the cell borders with height equal to the previous rendering
   \setlength{\kCellHeight}{\heightof{\usebox{\kCellBox}}}%
-  \saveCellBox{#1}{#2}{\rule{0in}{\kCellHeight}}{#3}%
+  \saveCellBox{#1}{#2}{\rule{0in}{\kCellHeight}}{#3}{\kPhantomBox}%
   %
-  \setlength{\k@cellBorders}{\widthof{\usebox{\kCellBox}}}%
+  \setlength{\k@cellBorders}{\widthof{\usebox{\kPhantomBox}}}%
+  \setlength{\kOldMaxCellBodyLen}{\kMaxCellBodyLen}%
   \setlength{\kMaxCellBodyLen}{\kMaxCellLen-\k@cellBorders}%
 }
 
