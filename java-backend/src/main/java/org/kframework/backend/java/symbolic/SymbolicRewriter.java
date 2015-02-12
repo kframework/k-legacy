@@ -260,9 +260,13 @@ public class SymbolicRewriter {
         /* rename rule variables in the rule RHS */
         Term term = rule.rightHandSide().substituteWithBinders(freshSubstitution, constraint.termContext());
         /* apply the constraints substitution on the rule RHS */
+        ConjunctiveFormula temp = constraint;
         constraint = constraint.orientSubstitution(rule.boundVariables().stream()
                 .map(freshSubstitution::get)
                 .collect(Collectors.toSet()));
+        if (constraint == null) {
+            constraint = temp;
+        }
         term = term.substituteAndEvaluate(constraint.substitution(), constraint.termContext());
         /* eliminate bindings of rule variables */
         constraint = constraint.removeBindings(freshSubstitution.values());
@@ -390,6 +394,7 @@ public class SymbolicRewriter {
 //                    }
 
                 if (results.isEmpty() && searchType == SearchType.FINAL) {
+                    System.out.println("Final(search): " + term);
                     if (addSearchResult(searchResults, term, pattern, bound)) {
                         break label;
                     }
