@@ -223,9 +223,17 @@ public class LatexFilter extends BackendFilter {
 
     @Override
     public Void visit(Lexical t, Void _) {
-        result.append("Token\\{");
-        result.append(StringUtil.latexify(t.getLexicalRule()) + "\\}");
+        result
+                .append("Token\\{")
+                .append(latexifyToken(t))
+                .append("\\}");
         return null;
+    }
+
+    private static String latexifyToken(Lexical t) {
+        return StringUtil.latexify(
+                t.getLexicalRule().replace("\\r", "\\\\r").replace("\\n", "\\\\n")
+                        .replaceAll("\\\\(.)", "$1")).replace("\\textbackslash", "\\backslash");
     }
 
     @Override
