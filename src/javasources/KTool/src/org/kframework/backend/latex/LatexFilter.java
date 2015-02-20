@@ -14,6 +14,7 @@ import org.kframework.kil.LiterateComment.LiterateCommentType;
 import org.kframework.kil.loader.*;
 import org.kframework.utils.StringUtil;
 
+@SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class LatexFilter extends BackendFilter {
     public LatexFilter(org.kframework.kil.loader.Context context) {
         super(context);
@@ -92,6 +93,7 @@ public class LatexFilter extends BackendFilter {
         patternsVisitor.prevNonTerm = !prevTerm;
         patternsVisitor.visitNode(def);
         result.append("\\begin{kdefinition}" + endl + "\\maketitle" + endl);
+        newLine();
         super.visit(def, _);
         result.append("\\end{kdefinition}" + endl);
         if (!hasTitle) {
@@ -117,8 +119,10 @@ public class LatexFilter extends BackendFilter {
             return null;
         }
         result.append("\\begin{module}{" + StringUtil.latexify(mod.getName()) + "}" + endl);
+        newLine();
         super.visit(mod, _);
         result.append("\\end{module}" + endl);
+        newLine();
         return null;
     }
 
@@ -240,7 +244,9 @@ public class LatexFilter extends BackendFilter {
     public Void visit(Configuration conf, Void _) {
         result.append("\\kconfig{");
         super.visit(conf, _);
-        result.append("}" + endl);
+        result.append("}");
+        newLine();
+        newLine();
         return null;
     }
 
