@@ -127,11 +127,14 @@ public class LatexFilter extends BackendFilter {
     }
 
     @Override
-    public Void visit(Syntax syn, Void _) {
-        result.append("\\begin{syntaxBlock}{" + syn.getSort().getName() + "}");
+    public Void visit(Syntax syntax, Void _) {
+        if (syntax.getPriorityBlocks().isEmpty()) {
+            return null;
+        }
+        result.append("\\begin{syntaxBlock}{" + syntax.getSort().getName() + "}");
         firstProduction = true;
         increaseIndent();
-        for (PriorityBlock priorityBlock : syn.getPriorityBlocks()) {
+        for (PriorityBlock priorityBlock : syntax.getPriorityBlocks()) {
             this.visitNode(priorityBlock);
         }
         decreaseIndent();
