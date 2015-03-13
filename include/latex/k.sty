@@ -1050,7 +1050,7 @@
     \boldangles{{
       #2 {\color{mcellBodyColor} #3} #4
     }}
-    _{\text{\footnotesize\sf #1}}
+    _{\text{\cellnamesize\sf #1}}
     $%
   }}%
 }
@@ -1069,10 +1069,13 @@
       \end{boxedminipage}%
       #4
     }}
-    _{\text{\footnotesize\sf #1}}
+    _{\text{\cellnamesize\sf #1}}
     $%
   }}%
 }
+
+%Allows easy customization
+\newcommand{\cellnamesize}{\footnotesize}
 
 \newlength{\k@cellBorders}%the maximal (supposed) width of some cell borders, to be substracted from columnwidth when implementing a cell with line breaking.
 
