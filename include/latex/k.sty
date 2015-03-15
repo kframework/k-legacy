@@ -2,7 +2,6 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{k}[2012/02/14 Package for typesetting K Framework definitions http://k-framework.org]
 
-\RequirePackage{bookmark}
 \RequirePackage{kvoptions}
 \RequirePackage{ifthen}
 \RequirePackage{xifthen}%extension of ifthen
@@ -137,7 +136,6 @@
 
 \ifk@beamer
 \else
-  \RequirePackage{hyperref}
   \RequirePackage{xcolor}
 \fi
 
@@ -207,6 +205,8 @@
 
 %for debugging minipages, every boxedminipage could be replaced with minipage
 \RequirePackage{boxedminipage}
+
+\RequirePackage{bookmark}%Properly loaded among the last
 
 \makeatletter
 
@@ -385,7 +385,7 @@
 
 
 % Macros for use in the comments.
-\newcommand{\K}{\mbox{$\mathbb{K}$}\xspace}
+\newcommand{\K}{\texorpdfstring{\mbox{$\mathbb{K}$}}{K}\xspace}
 \newcommand{\KLabel}{\textit{KLabel}\xspace}
 \newcommand{\KResult}{\textit{KResult}\xspace}
 
