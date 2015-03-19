@@ -1,6 +1,7 @@
 package org.kframework.tiny.matcher
 
 import org.kframework.attributes.Att
+import org.kframework.definition
 import org.kframework.tiny._
 
 trait Matcher extends KProduct with EmptyAtt {
@@ -18,8 +19,12 @@ trait Matcher extends KProduct with EmptyAtt {
   override def toString = left + ":=" + right
 }
 
+object MatcherModule extends definition.Module("MATCHER", Set(), Set()) {
+  def label = KLabel("MATCHER")
+}
+
 trait MatcherLabel extends KRegularAppLabel with EmptyAtt with KProduct2Label {
-  override def name: String = this.getClass.toString
+  override val delegateLabel = MatcherModule.label
 }
 
 trait KAppMatcher extends Matcher {

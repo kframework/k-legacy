@@ -4,51 +4,54 @@ import org.kframework.attributes._
 import org.kframework.builtin.Sorts
 import org.kframework.kore.{Constructors => basic, _}
 import org.kframework.meta.{Down, Up}
-import org.kframework.tiny.builtin.{BagLabel, KMapAppLabel, MapKeys, Tuple2Label}
+import org.kframework.tiny.builtin.{BagLabel, KMapAppLabel, MapKeys}
 import org.kframework.{definition, kore, tiny}
 
 import scala.collection.JavaConverters._
 
-class Constructors(module: definition.Module) extends kore.Constructors[K] with ScalaSugar[K] {
+class Constructors(val module: definition.Module) extends kore.Constructors[K] {
+  val sugar = new ScalaSugar(this)
 
   implicit val theory = new TheoryWithUpDown(new Up(this), new Down(Set()), module)
 
   // separate the hook mappings at some point
-  def hookMappings(hook: String, labelString: String) = hook match {
+  def hookMappings(hook: String, label: kore.KLabel): Label = hook match {
     case "#K-EQUAL:_==K_" => Equals
     case "#BOOL:notBool_" => Not //NativeUnaryOpLabel("notBool_", Att(), (x: Boolean) => !x, Sorts.Bool)
-    case "#INT:_+Int_" => NativeBinaryOpLabel(labelString, Att(), (x: Int, y: Int) => x + y, Sorts.Int)
-    case "#INT:_-Int_" => NativeBinaryOpLabel(labelString, Att(), (x: Int, y: Int) => x - y, Sorts.Int)
-    case "#INT:_*Int_" => NativeBinaryOpLabel(labelString, Att(), (x: Int, y: Int) => x * y, Sorts.Int)
-    case "#INT:_/Int_" => NativeBinaryOpLabel(labelString, Att(), (x: Int, y: Int) => x / y, Sorts.Int)
-    case "#INT:_<=Int_" => NativeBinaryOpLabel(labelString, Att(), (x: Int, y: Int) => x <= y, Sorts.Bool)
-    case "Map:.Map" => KMapAppLabel(labelString)
-    case "Map:__" => KMapAppLabel(labelString)
-    case "Map:_|->_" => Tuple2Label
+    case "#INT:_+_" => NativeBinaryOpLabel(label, Att(), (x: Int, y: Int) => x + y, Sorts.Int)
+    case "#INT:_-_" => NativeBinaryOpLabel(label, Att(), (x: Int, y: Int) => x - y, Sorts.Int)
+    case "#INT:_*_" => NativeBinaryOpLabel(label, Att(), (x: Int, y: Int) => x * y, Sorts.Int)
+    case "#INT:_/_" => NativeBinaryOpLabel(label, Att(), (x: Int, y: Int) => x / y, Sorts.Int)
+    case "#INT:_<=_" => NativeBinaryOpLabel(label, Att(), (x: Int, y: Int) => x <= y, Sorts.Bool)
+    case "Map:.Map" => KMapAppLabel(label)
+    case "Map:__" => KMapAppLabel(label)
+    case "Map:_|->_" => RegularKAppLabel(org.kframework.builtin.Tuple._2, Att())
     case "Map:keys" => MapKeys
-    case "Set:in" => RegularKAppLabel("???in???", Att())
-    case "#BOOL:_andBool_" => And //NativeBinaryOpLabel("_andBool_", Att(), (x: Boolean, y: Boolean) => x && y, Sorts
+    case "Set:in" => RegularKAppLabel(label, Att())
+    case "#BOOL:_&&_" => And //NativeBinaryOpLabel("_andBool_", Att(), (x: Boolean, y: Boolean) => x && y, Sorts
     // .Bool)
-    case "#BOOL:_orBool_" => Or //NativeBinaryOpLabel("_orBool_", Att(), (x: Boolean, y: Boolean) => x || y, Sorts.Int)
+    case "#BOOL:_||_" => Or //NativeBinaryOpLabel("_orBool_", Att(), (x: Boolean, y: Boolean) => x || y, Sorts.Int)
   }
 
   val uniqueLabelCache = collection.mutable.Map[String, Label]()
 
-  override def KLabel(name: String): Label = {
+  override def KLabel(name: String, module: definition.Module): Label = {
+
+    val koreLabel = module.KLabel(name)
 
     val res = if (name.startsWith("'<")) {
-      RegularKAppLabel(name, Att())
+      RegularKAppLabel(koreLabel, Att())
     } else if (name.startsWith("is")) {
       SortPredicateLabel(Sort(name.replace("is", "")))
     } else {
-      val att = module.attributesFor(KORE.KLabel(name))
+      val att = module.attributesFor(module.KLabel(name))
       if (att.contains("assoc"))
         if (att.contains("comm"))
-          BagLabel(name, att)
+          BagLabel(koreLabel, att)
         else
-          RegularKAssocAppLabel(name, att)
+          RegularKAssocAppLabel(koreLabel, att)
       else
-        att.get[String]("hook").map(hookMappings(_, name)).getOrElse { RegularKAppLabel(name, att) }
+        att.get[String]("hook").map(hookMappings(_, koreLabel)).getOrElse { RegularKAppLabel(koreLabel, att) }
     }
 
     uniqueLabelCache.getOrElseUpdate(res.name, res)
@@ -95,9 +98,9 @@ class Constructors(module: definition.Module) extends kore.Constructors[K] with 
 
   def convert(l: kore.KLabel): Label = l match {
     case l: Label => l
-    case Unapply.KLabel(name) => KLabel(name)
+    case Unapply.KLabel(name, module) => KLabel(name, module)
   }
-  def convert(k: kore.K): tiny.K = k match {
+  implicit def convert(k: kore.K): tiny.K = k match {
     case k: K => k
     case t@Unapply.KVariable(name) => KVariable(name, t.att)
     case t@Unapply.KToken(s, v) => KToken(s, v, t.att)
@@ -113,4 +116,5 @@ class Constructors(module: definition.Module) extends kore.Constructors[K] with 
   }
 
   implicit def Tuple2IsBinding(t: (K, K)) = Binding(t._1, t._2)
+
 }

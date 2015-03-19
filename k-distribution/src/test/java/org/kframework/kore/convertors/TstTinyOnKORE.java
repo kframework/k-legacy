@@ -7,10 +7,12 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.kframework.Collections;
 import org.kframework.definition.Module;
+import org.kframework.kore.K;
+import org.kframework.kore.KApply;
+import org.kframework.kore.ScalaSugar;
 import org.kframework.kore.Unparse;
 import org.kframework.tiny.Constructors;
 import org.kframework.tiny.FreeTheory;
-import org.kframework.tiny.K;
 import org.kframework.tiny.KApp;
 import org.kframework.tiny.KIndex$;
 import org.kframework.tiny.Rewriter;
@@ -42,38 +44,39 @@ public class TstTinyOnKORE extends BaseTest {
         ), Att());
 
         Constructors cons = new Constructors(module);
+        ScalaSugar sugar = new <org.kframework.kore.K>ScalaSugar(cons);
 
-        K program = cons.KLabel("<top>").apply(
-                cons.KLabel("<k>").apply(
-                        cons.KLabel("while__").apply(
-                                cons.KLabel("_<=_").apply((K) cons.intToToken(0),(K) cons.stringToId("n")),
-                                cons.KLabel("__").apply(
-                                        cons.KLabel("_=_;").apply(
-                                                (K) cons.stringToId("s"),
-                                                cons.KLabel("_+_").apply(
-                                                        (K) cons.stringToId("s"),
-                                                        (K) cons.stringToId("n"))),
-                                        cons.KLabel("_=_;").apply(
-                                                (K) cons.stringToId("n"),
-                                                cons.KLabel("_+_").apply(
-                                                        (K) cons.stringToId("n"),
-                                                        (K) cons.intToToken(-1)))
+        K program = KApply("<top>",
+                KApply("<k>",
+                        KApply("while__",
+                                KApply("_<=_", (K) sugar.intToToken(0), (K) sugar.stringToId("n")),
+                                KApply("__",
+                                        KApply("_=_;",
+                                                (K) sugar.stringToId("s"),
+                                                KApply("_+_",
+                                                        (K) sugar.stringToId("s"),
+                                                        (K) sugar.stringToId("n"))),
+                                        KApply("_=_;",
+                                                (K) sugar.stringToId("n"),
+                                                KApply("_+_",
+                                                        (K) sugar.stringToId("n"),
+                                                        (K) sugar.intToToken(-1)))
                                 ))),
-                cons.KLabel("<state>").apply(
-                        cons.KLabel("_Map_").apply(
-                                cons.KLabel("_|->_").apply((K) cons.stringToId("n"), (K) cons.intToToken(10)),
-                                cons.KLabel("_|->_").apply((K) cons.stringToId("s"), (K) cons.intToToken(0)))
+                KApply("<state>",
+                        KApply("_Map_",
+                                KApply("_|->_", (K) sugar.stringToId("n"), (K) sugar.intToToken(10)),
+                                KApply("_|->_", (K) sugar.stringToId("s"), (K) sugar.intToToken(0)))
                 )
         );
 
-//        KApp program = cons.KApply(cons.KLabel("'<top>"),
-//                cons.KApply(cons.KLabel("'<k>"),
-//                        cons.KApply(cons.KLabel("'_/_"), cons.stringToId("x"), cons.stringToId("y"))),
-//                        cons.KApply(cons.KLabel("'<state>"),
-//                                cons.KApply(cons.KLabel("'_Map_"),
-//                                        cons.KApply(cons.KLabel("'_|->_"), cons.stringToId("x"), cons.intToToken(10)),
-//                                        cons.KApply(cons.KLabel("'_|->_"), cons.stringToId("y"), cons.intToToken(2)))
-//                        ));
+//        program = KApply(KApply("'<top>"),
+//                KApply(KApply("'<k>"),
+//                        KApply("'_/_", sugar.stringToId("x"), sugar.stringToId("y"))),
+//                KApply(KLabel("'<state>"),
+//                        KApply(KLabel("'_Map_"),
+//                                KApply(KLabel("'_|->_"), sugar.stringToId("x"), sugar.intToToken(10)),
+//                                KApply(KLabel("'_|->_"), sugar.stringToId("y"), sugar.intToToken(2)))
+//                ));
 
 
         System.out.println("module = " + module);
@@ -87,7 +90,7 @@ public class TstTinyOnKORE extends BaseTest {
 //        return stream(results).map(r -> r.toString()).collect(Collections.toList()).mkString("\n");
 
         long l = System.nanoTime();
-        K result = rewriter.execute(program);
+        K result = rewriter.execute(cons.convert(program));
         System.out.println("time = " + (System.nanoTime() - l) / 1000000);
 
         return result.toString();

@@ -40,8 +40,8 @@ case class Configuration(body: K, ensures: K, att: Att = Att()) extends Sentence
   //  }
 }
 
-object Configuration {
-  val cellMarker = con.KApply(con.KLabel("cell"), con.KList(), Att());
+object Configuration extends Module("CONFIGURATION", Set(), Set()) {
+  val cellMarker = con.KApply(KLabel("cell"), con.KList(), Att());
 }
 
 case class Bubble(sentenceType: String, contents: String, att: Att = Att()) extends Sentence

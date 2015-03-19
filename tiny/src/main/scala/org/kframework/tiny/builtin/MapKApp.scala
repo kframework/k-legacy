@@ -2,15 +2,17 @@ package org.kframework.tiny.builtin
 
 import org.kframework.attributes.Att
 import org.kframework.kore.ADT.Sort
+import org.kframework.kore.KLabel
 import org.kframework.tiny._
-import org.kframework.tiny.matcher.{MatcherLabel, Matcher}
+import org.kframework.tiny.matcher.{Matcher, MatcherLabel}
+import org.kframework.{builtin => m, kore}
 
-import scala.collection.{immutable, mutable}
 import scala.collection.mutable.Builder
+import scala.collection.{immutable, mutable}
 
 final class KMapApp(val klabel: KMapAppLabel, val theMap: Map[K, K], val att: Att = Att())
   extends KApp with PlainNormalization {
-  val children: immutable.Iterable[K] = theMap map { case (k, v) => Tuple2Label(k, v) }
+  val children: immutable.Iterable[K] = theMap map {case (k, v) => Tup2(k, v) }
   override def matcher(right: K): Matcher = KMapAppMatcher(this, right)
 
   override def computeHashCode = klabel.hashCode * 19 + theMap.hashCode
@@ -24,9 +26,7 @@ final class KMapApp(val klabel: KMapAppLabel, val theMap: Map[K, K], val att: At
       })
 }
 
-object Tuple2Label extends RegularKAppLabel("Tuple2", Att())
-
-case class KMapAppLabel(name: String, att: Att = Att()) extends Label {
+case class KMapAppLabel(delegateLabel: kore.KLabel, att: Att = Att()) extends Label {
   def constructFromFlattened(l: Map[K, K], att: Att): KMapApp = new KMapApp(this, l, att)
 
   def construct(l: Iterable[K], att: Att): KMapApp = {
@@ -44,14 +44,16 @@ case class KMapAppLabel(name: String, att: Att = Att()) extends Label {
 
 object KVarMapValue extends RegularKTok(Sort("KVarMapValue"), "KVarMapValue")
 
+object Tup2 extends RegularKAppLabel(org.kframework.builtin.Tuple._2, Att())
+
 class KMapAppBuilder(val builder: mutable.MapBuilder[K, K, Map[K, K]], label: Label) extends Builder[K, Map[K, K]] {
   def +=(k: K): this.type = {
     k match {
       case KApp(`label`, list, att) => list map {
-        case KApp(Tuple2Label, Seq(a, b), _) => (a, b)
+        case KApp(`Tup2`, Seq(a, b), _) => (a, b)
       } foreach builder.+=
 
-      case KApp(Tuple2Label, Seq(a, b), _) => builder += (a -> b)
+      case KApp(`Tup2`, Seq(a, b), _) => builder += (a -> b)
       case v: KVar => builder += (v -> KVarMapValue)
     }
     this
@@ -70,7 +72,7 @@ case class MapKeys(k: K, att: Att = Att()) extends KProduct {
 }
 
 object MapKeys extends KProduct1Label with EmptyAtt {
-  val name: String = "keys"
+  override def delegateLabel: KLabel = ???
 }
 
 case class KMapAppMatcher(left: KMapApp, right: K) extends Matcher {
@@ -98,7 +100,7 @@ case class KMapAppMatcher(left: KMapApp, right: K) extends Matcher {
         if (leftSymbolicKeys.size == 0 && rightGroundKeys.size == leftGroundKeys.size)
           And(lookupStyleResults, Att())
         else if (leftSymbolicKeys.size == 1 && left.theMap(leftSymbolicKeys.head) == KVarMapValue) {
-          val leftoverMap = left.klabel((leftoverGround map { k => Tuple2Label(k, right.theMap(k)) }).toSeq: _*)
+          val leftoverMap = left.klabel((leftoverGround map {k => Tup2(k, right.theMap(k)) }).toSeq: _*)
           And(lookupStyleResults + Binding(leftSymbolicKeys.head, leftoverMap), Att())
         } else
           this

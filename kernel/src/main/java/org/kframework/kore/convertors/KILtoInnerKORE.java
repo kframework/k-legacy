@@ -56,7 +56,7 @@ public class KILtoInnerKORE extends KILTransformation<K> {
 
     public K apply(Bag body) {
         List<K> contents = body.getContents().stream().map(this).collect(Collectors.toList());
-        return KApply(labels.KBag(), (KList(contents)));
+        return KApply(org.kframework.builtin.Bag.Bag(), (KList(contents)));
     }
 
     // public K apply(TermComment c) {

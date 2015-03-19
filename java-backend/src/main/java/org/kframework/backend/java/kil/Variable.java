@@ -8,6 +8,8 @@ import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.MapCache;
 import org.kframework.backend.java.util.Utils;
+import org.kframework.definition.CrazyModule$;
+import org.kframework.definition.Module;
 import org.kframework.kil.ASTNode;
 
 import com.google.common.collect.BiMap;
@@ -43,6 +45,9 @@ public class Variable extends Term implements Immutable, org.kframework.kore.KVa
         return substitution;
     }
 
+    public Module module() {
+        return CrazyModule$.MODULE$;
+    }
     /**
      * Returns a fresh anonymous {@code Variable} of a given sort.
      *

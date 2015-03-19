@@ -24,6 +24,8 @@ trait AbstractTest {
     Production("MyBag", Sorts.K, Seq(), Att() + "assoc" + "comm")
   ), Att()))
 
+  val sugar = new ScalaSugar(cons)
+
   val X = KVar("X")
   val Y = KVar("Y")
   val Z = KVar("Z")

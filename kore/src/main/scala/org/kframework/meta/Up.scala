@@ -3,13 +3,16 @@ package org.kframework.meta
 import org.kframework.attributes._
 import org.kframework.builtin.Sorts
 import org.kframework.definition.Associativity
-import org.kframework.kore._
-import collection.JavaConverters._
 import org.kframework.kore
+import org.kframework.kore._
 
-class Up[K <: kore.K](cons: Constructors[K] with ScalaSugar[K]) extends (Any => K) {
+import scala.collection.JavaConverters._
 
-  import cons._
+class Up[K <: kore.K](cons: Constructors[K]) {
+
+  val scalaSugar = new ScalaSugar(cons)
+
+  import scalaSugar._
 
   //  implicit def symbolWithKApply(s: Symbol) = new {
   //    def apply(ks: K*): KApply = apply(ks.toList, Att())

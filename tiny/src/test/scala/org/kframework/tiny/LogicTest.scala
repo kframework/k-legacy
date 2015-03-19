@@ -4,7 +4,7 @@ import org.junit.Test
 
 class LogicTest extends AbstractTest {
 
-  import cons._
+  import sugar._
 
   @Test def nestingOfAndOr {
     implicit val theory = FreeTheory

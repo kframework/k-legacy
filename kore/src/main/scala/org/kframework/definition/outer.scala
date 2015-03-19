@@ -3,7 +3,7 @@
 package org.kframework.definition
 
 import org.kframework.POSet
-import org.kframework.attributes.Att
+import org.kframework.attributes.{AttModule, Att}
 import org.kframework.kore._
 
 trait OuterKORE
@@ -111,7 +111,18 @@ case class Module(name: String, imports: Set[Module], localSentences: Set[Senten
   if (!nonTerminalsWithUndefinedSort.isEmpty)
     throw new NonTerminalsWithUndefinedSortException(nonTerminalsWithUndefinedSort)
 
+  def KLabelOption(name: String): Option[KLabel] = {
+    Some(ADT.KLabel(name, this))
+    // TODO: this is not correct yet, implement true name resolution here
+  }
+
+
+  def KLabel(name: String): KLabel = KLabelOption(name).get
+
 }
+
+object CrazyModule extends Module("CRAZY", Set(), Set())
+object FreeModule extends Module("FREE-MODULE", Set(), Set())
 
 // hooked but different from core, Import is a sentence here
 
@@ -164,7 +175,7 @@ with SyntaxSortToString with OuterKORE {
 
 case class Production(sort: Sort, items: Seq[ProductionItem], att: Att)
   extends Sentence with ProductionToString {
-  def klabel: Option[KLabel] = att.get[String]("#klabel") map { org.kframework.kore.KORE.KLabel(_) }
+  def klabel: Option[KLabel] = att.get[String]("#klabel") map { AttModule.KLabel(_) }
 
 
   def isSyntacticSubsort: Boolean =

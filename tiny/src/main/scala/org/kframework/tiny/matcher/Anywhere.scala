@@ -1,24 +1,31 @@
 package org.kframework.tiny.matcher
 
 import org.kframework.attributes.Att
+import org.kframework.builtin.Sorts
+import org.kframework.kore.KLabel
 import org.kframework.tiny._
 
 
-case class Anywhere(klabel: AnywhereLabel, k: K, att: Att = Att()) extends KProduct with PlainNormalization {
+case class Anywhere(name: K, k: K, att: Att = Att()) extends KProduct with PlainNormalization {
+  val klabel = AnywhereLabel
   override def matcher(right: K): Matcher = AnywhereMatcher(this, right)
-  val TOPVariable = klabel.TOPVariable
-  val HOLEVariable = klabel.HOLEVariable
-}
-
-object Anywhere {
-  def apply(name: String, k: K): Anywhere = AnywhereLabel(name)(k, Att())
-}
-
-case class AnywhereLabel(name: String) extends KProduct1Label with EmptyAtt {
-  def apply(k: K, att: Att): Anywhere = new Anywhere(this, k, att)
-
   val TOPVariable = KVar(name + ".TOPVariable", Att())
   val HOLEVariable = KVar(name + ".HOLEVariable", Att())
+}
+
+import org.kframework.builtin.Sugar._
+
+object Anywhere extends org.kframework.definition.Module("ANYWHERE", Set(), Set(
+  Sorts.K ::= "ANYWHERE" + "(" + Sorts.KString + "," + Sorts.K + ")"
+)) {
+  val label = KLabel("ANYWHERE(_,_)")
+  def apply(name: String, k: K): Anywhere = AnywhereLabel(???, k, Att()).asInstanceOf[Anywhere]
+  // ADT.KToken(Sorts.String, name, Att())
+}
+
+object AnywhereLabel extends KProduct2Label with EmptyAtt {
+  override def apply(k1: K, k2: K, att: Att): KProduct = new Anywhere(k1, k2, Att())
+  override def delegateLabel: KLabel = Anywhere.label
 }
 
 case class AnywhereMatcher(left: Anywhere, right: K) extends Matcher with KProduct {

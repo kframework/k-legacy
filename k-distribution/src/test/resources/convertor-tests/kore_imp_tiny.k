@@ -5,7 +5,7 @@ module TEST
   syntax KResult
   syntax KItem ::= Id
 
-  syntax HOLE ::= "[]"   [klabel('HOLE)]
+  syntax HOLE ::= "[]"                     [klabel(HOLE)]
 //  syntax UserList ::= KItem "," KItem    [klabel('_,_), assoc]
 //  syntax UserList ::= KItem              [klabel('.EmptyUserList)]
 

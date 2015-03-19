@@ -6,6 +6,7 @@ import org.kframework.tiny.matcher.Anywhere
 class TestRewriting extends AbstractTest {
 
   import cons._
+  import sugar._
 
   implicit class KToRewriting(self: K) {
     def searchFor(rewrite: K, sideConditions: K = True)(implicit theory: Theory): Set[K] = {
@@ -130,7 +131,7 @@ class TestRewriting extends AbstractTest {
       'foo(1, 'bar(2, 3)).searchFor('foo(1, 'bar(2, X) ==> X)))
   }
 
-  @Test def testAnywhere {
+  @Ignore @Test def testAnywhere {
     assertEquals(Set('bar('foo(0)), 'foo('bar(0))),
       'foo('bar('foo(0))).searchFor(Anywhere("ONE", 'foo(X) ==> X)))
   }

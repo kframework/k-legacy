@@ -1,6 +1,6 @@
 package org.kframework.tiny
 
-import org.kframework.tiny.builtin.{Tuple2Label, KMapApp, KVarMapValue}
+import org.kframework.tiny.builtin.{Tup2, KMapApp, KVarMapValue}
 import org.kframework.tiny.matcher.Anywhere
 
 object Substitution {
@@ -21,14 +21,14 @@ class Substitution(self: K) {
   private def doSubstitution(substitution: Map[KVar, K]) =
     self match {
       case v: KVar => substitution.get(v) map { _.substitute(substitution) } getOrElse v
-      case Anywhere(l, p, _) => substitution(l.TOPVariable).substitute(substitution + (l.HOLEVariable -> p))
+      case a@Anywhere(name, p, _) => substitution(a.TOPVariable).substitute(substitution + (a.HOLEVariable -> p))
       case b: Binding => b.klabel(b.variable, b.value.substitute(substitution))
       case k: KMapApp =>
         val newChildren = k.children map {
-          case KApp(Tuple2Label, Seq(k: KVar, KVarMapValue), _) =>
-            substitution.get(k).getOrElse(Tuple2Label(k, KVarMapValue))
-          case KApp(Tuple2Label, Seq(k, v), _) =>
-            Tuple2Label(k.substitute(substitution), v.substitute(substitution))
+          case KApp(`Tup2`, Seq(k: KVar, KVarMapValue), _) =>
+            substitution.get(k).getOrElse(Tup2(k, KVarMapValue))
+          case KApp(`Tup2`, Seq(k, v), _) =>
+            Tup2(k.substitute(substitution), v.substitute(substitution))
         }
 
         k.klabel(newChildren.toSeq: _*)

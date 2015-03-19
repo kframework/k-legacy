@@ -471,13 +471,13 @@ public class KOREtoKIL implements Function<Definition, org.kframework.kil.Defini
             // KORE KApply, we need to figure out every one of them and handle
             // here
             return convertKApply(kApply);
-        } else if (k instanceof KApply && ((KApply) k).klabel().equals(labels.KBag())) {
+        } else if (k instanceof KApply && ((KApply) k).klabel() == org.kframework.builtin.Bag.Bag()) {
             KApply kBag = (KApply) k;
             List<K> bagItems = kBag.klist().items();
             org.kframework.kil.Bag kilBag = new org.kframework.kil.Bag();
             List<org.kframework.kil.Term> kilBagItems = new ArrayList<>();
             for (K bagItem : bagItems) {
-                if (k instanceof KApply && ((KApply) k).klabel().equals(labels.KBag())) {
+                if (k instanceof KApply && ((KApply) k).klabel() == org.kframework.builtin.Bag.Bag()) {
                     KApply item = (KApply) bagItem;
                     List<K> kbagItems = item.klist().items();
                     kilBagItems.addAll(kbagItems.stream().map(this::convertK)

@@ -4,6 +4,8 @@ package org.kframework.kore;
 
 import org.junit.Test;
 import org.kframework.builtin.Sorts;
+import org.kframework.definition.CrazyModule;
+import org.kframework.definition.CrazyModule$;
 
 import static org.junit.Assert.*;
 import static org.kframework.kore.KORE.*;
@@ -15,7 +17,7 @@ public class InterfaceTest {
         // Creating "A + 0 => A" programmatically
 
         KRewrite k = KRewrite(
-                KApply(KLabel("_+_"), KList(KVariable("A"), KToken(Sort("Int"), "0"))),
+                KApply(KLabel("_+_", CrazyModule$.MODULE$), KList(KVariable("A"), KToken(Sort("Int"), "0"))),
                 KVariable("A"));
 
         // Navigating it

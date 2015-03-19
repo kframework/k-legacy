@@ -14,6 +14,8 @@ import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.kil.Token;
 import org.kframework.backend.java.kil.Variable;
+import org.kframework.definition.CrazyModule$;
+import org.kframework.definition.Module;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KLabel;
@@ -41,6 +43,10 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
     @Override
     public Sort Sort(String name) {
         return Sort.of(name);
+    }
+
+    public Module module() {
+        return CrazyModule$.MODULE$;
     }
 
     @Override

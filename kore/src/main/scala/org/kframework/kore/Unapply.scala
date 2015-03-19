@@ -2,6 +2,7 @@ package org.kframework.kore
 
 import org.kframework.kore
 import collection.JavaConverters._
+import org.kframework.definition.Module
 
 /**
  * Scala deconstructors for inner KORE objects.
@@ -12,7 +13,7 @@ object Unapply {
   // objects for unapply -- we keep them in the same file as Scala requires this
 
   object KLabel {
-    def unapply(klabel: KLabel) = Some(klabel.name)
+    def unapply[K <: kore.K](klabel: KLabel): Option[(String, Module)] = Some((klabel.name, klabel.module))
   }
 
   object KToken {

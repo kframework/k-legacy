@@ -2,6 +2,7 @@ package org.kframework.kore
 
 import org.kframework.{AssocBuilder, CombinerFromBuilder, Collector, attributes}
 import org.kframework.attributes.Att
+import org.kframework.definition.{FreeModule, Module}
 
 import scala.collection.mutable.ListBuffer
 import collection.JavaConverters._
@@ -16,9 +17,10 @@ import collection.JavaConverters._
  * https://github.com/kframework/k/wiki/KORE-data-structures-guide
  *
  */
-object KORE extends Constructors[K] with ScalaSugar[K] {
+object KORE extends Constructors[K] {
 
   val constructor = this
+  val module = FreeModule
 
   def Attributes(ks: Set[K]) = attributes.Att(ks.toSeq: _*)
   @annotation.varargs def Attributes(ks: K*) = attributes.Att(ks: _*)
@@ -27,6 +29,8 @@ object KORE extends Constructors[K] with ScalaSugar[K] {
     startColumn, endLine, endColumn)
 
   def KApply(klabel: KLabel, klist: KList): KApply = KApply(klabel, klist, Attributes())
+
+  def KApply(klabelString: String, klist: KList): KApply = KApply(KLabel(klabelString), klist, Attributes())
 
   def KToken(sort: Sort, string: String): KToken = KToken(sort, string, Attributes())
 
@@ -40,7 +44,7 @@ object KORE extends Constructors[K] with ScalaSugar[K] {
   //  def toKSequence: Collector[K, KSequence] =
   //    Collector(() => new CombinerFromBuilder(KSequence.newBuilder()))
 
-  override def KLabel(name: String): KLabel = ADT.KLabel(name)
+  override def KLabel(name: String, module: Module): KLabel = ADT.KLabel(name, module)
 
   override def KApply(klabel: KLabel, klist: KList, att: Att): KApply = ADT.KApply(klabel, klist, att)
 
@@ -72,4 +76,5 @@ object KORE extends Constructors[K] with ScalaSugar[K] {
   @annotation.varargs def Att(ks: K*) = org.kframework.attributes.Att(ks: _*)
 
   def self = this
+
 }

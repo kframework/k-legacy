@@ -2,6 +2,7 @@
 package org.kframework.parser.concrete2kore.generator;
 
 import org.kframework.attributes.Att;
+import org.kframework.kore.KORE;
 import org.kframework.kore.Sort;
 import org.kframework.definition.Module;
 import org.kframework.definition.Sentence;

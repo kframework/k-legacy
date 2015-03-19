@@ -53,6 +53,7 @@ class POSet[T](directRelations: Set[(T, T)]) {
   val relations = transitiveClosure(directRelationsMap)
 
   def <(x: T, y: T): Boolean = relations.get(x).exists(_.contains(y))
+  def <=(x: T, y: T): Boolean = relations.get(x).exists(_.contains(y)) | x == y
   def >(x: T, y: T): Boolean = relations.get(y).exists(_.contains(x))
   def ~(x: T, y: T) = <(x, y) || <(y, x)
 

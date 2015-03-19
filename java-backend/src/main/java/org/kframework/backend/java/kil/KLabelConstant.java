@@ -14,9 +14,12 @@ import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Unifier;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.MapCache;
+import org.kframework.definition.CrazyModule$;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.Attributes;
+import org.kframework.definition.Module;
+import org.kframework.definition.Module$;
 
 
 /**
@@ -88,6 +91,10 @@ public class KLabelConstant extends KLabel implements MaximalSharing, org.kframe
         this.smtlib = smtlib;
     }
 
+
+    public Module module() {
+        return CrazyModule$.MODULE$;
+    }
     /**
      * Returns a {@code KLabelConstant} representation of label. The {@code KLabelConstant}
      * instances are cached to ensure uniqueness (subsequent invocations

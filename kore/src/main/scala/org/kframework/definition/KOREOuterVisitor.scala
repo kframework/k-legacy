@@ -2,8 +2,6 @@
 
 package org.kframework.definition
 
-import scala.collection.immutable.Nil
-
 trait KOREOuterTransformer[T] extends ((OuterKORE) => T) with java.util.function.Function[OuterKORE, T] {
 
   def apply(e: OuterKORE): T = e match {

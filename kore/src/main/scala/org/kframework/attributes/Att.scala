@@ -2,6 +2,7 @@ package org.kframework.attributes
 
 import org.kframework.Collections._
 import org.kframework.builtin.Sorts
+import org.kframework.definition.Module
 import org.kframework.kore.Unapply._
 import org.kframework.kore.{K, KORE}
 import org.kframework.meta.Down
@@ -9,9 +10,10 @@ import org.kframework.meta.Down
 import scala.collection.JavaConverters._
 
 case class Att(att: Set[K]) extends AttributesToString {
+
   def getK(key: String): Option[K] = {
     att.collectFirst({
-      case t@KApply(KLabel(`key`), List(v)) => v
+      case t@KApply(KLabel(`key`, `AttModule`), List(v)) => v
     })
   }
 
@@ -27,13 +29,13 @@ case class Att(att: Set[K]) extends AttributesToString {
 
   def contains(label: String): Boolean =
     att exists {
-      case KApply(KLabel(`label`), _) => true
+      case KApply(KLabel(`label`, `AttModule`), _) => true
       case z => false
     }
 
   def +(k: K): Att = new Att(att + k)
-  def +(k: String): Att = add(KORE.KApply(KORE.KLabel(k), KORE.KList(), Att()))
-  def +(kv: (String, String)): Att = add(KORE.KApply(KORE.KLabel(kv._1), KORE.KList(KORE.KToken(Sorts.KString, kv._2,
+  def +(k: String): Att = add(KORE.KApply(AttModule.KLabel(k), KORE.KList(), Att()))
+  def +(kv: (String, String)): Att = add(KORE.KApply(AttModule.KLabel(kv._1), KORE.KList(KORE.KToken(Sorts.KString, kv._2,
     Att())), Att()))
   def ++(that: Att) = new Att(att ++ that.att)
 
@@ -48,11 +50,13 @@ case class Att(att: Set[K]) extends AttributesToString {
 
 trait KeyWithType
 
+object AttModule extends Module("ATT", Set(), Set())
+
 object Att {
   @annotation.varargs def apply(atts: K*): Att = Att(atts.toSet)
 
   implicit def asK(key: String, value: String) =
-    KORE.KApply(KORE.KLabel(key), KORE.KList(mutable(List(KORE.KToken(Sorts.KString, value, Att())))), Att())
+    KORE.KApply(AttModule.KLabel(key), KORE.KList(mutable(List(KORE.KToken(Sorts.KString, value, Att())))), Att())
 }
 
 trait AttributesToString {
@@ -71,6 +75,6 @@ trait AttributesToString {
   }
 
   lazy val filteredAtt: List[K] =
-    (att filter { case KApply(KLabel("productionID"), _) => false; case _ => true }).toList sortBy { _.toString }
+    (att filter { case KApply(KLabel("productionID", `AttModule`), _) => false; case _ => true }).toList sortBy { _.toString }
   // TODO: remove along with KIL to KORE to KIL convertors
 }

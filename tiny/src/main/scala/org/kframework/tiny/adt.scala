@@ -5,7 +5,7 @@ import java.util.concurrent.Callable
 import com.google.common.cache.CacheBuilder
 import org.kframework._
 import org.kframework.attributes.Att
-import org.kframework.builtin.Sorts
+import org.kframework.builtin.{TheVarModule, Sorts}
 import org.kframework.kore.ADT
 import org.kframework.tiny.matcher._
 
@@ -146,6 +146,7 @@ trait EmptyAtt {
 ///////////////////
 
 case class KVar(name: String, att: Att = Att()) extends kore.KVariable with KLeaf {
+  val module = TheVarModule
   def copy(att: Att): KVar = KVar(name, att)
   override def matcher(right: K): Matcher = KVarMatcher(this, right)
   override def toString = name
@@ -225,6 +226,11 @@ object InjectedLabel {
 /////////////////////
 
 trait Label extends kore.KLabel {
+  def delegateLabel: kore.KLabel
+
+  final lazy val name = delegateLabel.name
+  final lazy val module = delegateLabel.module
+
   def apply(l: Seq[K], att: Att): K =
     construct(l, att)
 
@@ -274,33 +280,37 @@ trait KAssocAppLabel extends Label {
 //   LABELS
 ///////////////
 
+import org.kframework.{builtin => m}
+
 object KRewrite extends KRegularAppLabel {
+  val delegateLabel = m.KModule.KRewrite
   val att = Att()
-  val name = "=>"
   def construct(l: Iterable[K], att: Att): KRewrite =
     l match {
       case Seq(left, right) => new KRewrite(left, right, att)
     }
 }
 
-case class RegularKAppLabel(name: String, att: Att) extends KRegularAppLabel {
+case class RegularKAppLabel(delegateLabel: kore.KLabel, att: Att) extends KRegularAppLabel {
   override def construct(l: Iterable[K], att: Att): RegularKApp = new RegularKApp(this, l.toSeq, att)
 }
 
-case class NativeBinaryOpLabel[T, R](name: String, att: Att, f: (T, T) => R, resSort: Sort) extends KRegularAppLabel {
+case class NativeBinaryOpLabel[T, R](delegateLabel: kore.KLabel, att: Att, f: (T, T) => R, resSort: Sort) extends
+KRegularAppLabel {
   override def construct(l: Iterable[K], att: Att): NativeBinaryOp[T, R] = new NativeBinaryOp(this, l.toSeq, att)
 }
 
-case class NativeUnaryOpLabel[T, R](name: String, att: Att, f: T => R, resSort: Sort) extends KRegularAppLabel {
+case class NativeUnaryOpLabel[T, R](delegateLabel: kore.KLabel, att: Att, f: T => R, resSort: Sort) extends
+KRegularAppLabel {
   override def construct(l: Iterable[K], att: Att): NativeUnaryOp[T, R] = new NativeUnaryOp(this, l.toSeq, att)
 }
 
-case class RegularKAssocAppLabel(name: String, att: Att) extends KAssocAppLabel {
+case class RegularKAssocAppLabel(delegateLabel: kore.KLabel, att: Att) extends KAssocAppLabel {
   override def constructFromFlattened(l: Seq[K], att: Att): KAssocApp = new RegularKAssocApp(this, l, att)
 }
 
 object KSeq extends {
-  val name = "~>";
+  val delegateLabel = m.KSeq.KSeq
   val att = Att()
 } with KAssocAppLabel {
   /* required */

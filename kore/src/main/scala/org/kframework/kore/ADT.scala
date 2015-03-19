@@ -3,6 +3,7 @@ package org.kframework.kore
 import org.kframework.kore
 import org.kframework.attributes._
 import collection.JavaConverters._
+import org.kframework.definition.{CrazyModule, Module}
 
 /**
  * Abstract Data Types: basic implementations for the inner KORE interfaces.
@@ -13,9 +14,9 @@ import collection.JavaConverters._
 
 object ADT {
 
-  case class KLabel(name: String) extends kore.KLabel {
+  case class KLabel(name: String, module: Module) extends kore.KLabel {
     override def toString = name
-    def apply(ks: K*) = KApply(this, KList(ks.toList))
+//    def apply[KK <: K](ks: K*): K = KApply[KK](this, KList(ks.toList))
   }
 
   case class KApply[KK <: K](klabel: kore.KLabel, klist: kore.KList, att: Att = Att()) extends kore.KApply
@@ -38,6 +39,7 @@ object ADT {
   }
 
   case class KVariable(name: String, att: Att = Att()) extends kore.KVariable {
+    val module = CrazyModule
     def apply(ks: K*) = KApply(this, KList(ks.toList))
   }
 

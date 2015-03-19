@@ -1,12 +1,14 @@
 package org.kframework.tiny
 
 import org.kframework.attributes.Att
-import org.kframework.kore.Unapply
-import org.kframework.tiny.matcher.{MatcherLabel, EqualsMatcher, Matcher}
+import org.kframework.builtin.BoolModule
+import org.kframework.definition.CrazyModule
+import org.kframework.kore.{ADT, KLabel, Unapply}
+import org.kframework.tiny.matcher.{EqualsMatcher, Matcher, MatcherLabel}
 
 object Or extends KAssocAppLabel with EmptyAtt {
   override def constructFromFlattened(l: Seq[K], att: Att): KAssocApp = new Or(l.toSet, att)
-  override def name: String = "_orBool_"
+  override def delegateLabel = BoolModule.||
   override def apply(ks: K*): K = super.apply(ks: _*)
   def apply(ks: Set[K], att: Att = Att()): K =
     if (ks.size == 1)
@@ -66,7 +68,7 @@ object OrMatcher extends MatcherLabel {
 
 object And extends KAssocAppLabel with EmptyAtt {
   override def constructFromFlattened(l: Seq[K], att: Att): KAssocApp = new And(l.toSet, att)
-  override def name: String = "_andBool_"
+  override def delegateLabel = BoolModule.&&
 }
 
 case class And(children: Set[K], att: Att, normalBy: Option[Theory] = None)
@@ -177,7 +179,7 @@ case class Binding(variable: KVar, value: K, att: Att) extends KProduct with Pla
 }
 
 object Binding extends KProduct2Label with EmptyAtt {
-  val name: String = "Binding"
+  val delegateLabel = ADT.KLabel("Binding", CrazyModule)
   override def apply(k1: K, k2: K, att: Att): KProduct = Binding(k1.asInstanceOf[KVar], k2, att)
 }
 
@@ -189,7 +191,7 @@ case class Equals(a: K, b: K, att: Att) extends KProduct {
 }
 
 object Equals extends KProduct2Label with EmptyAtt {
-  val name: String = "Equals"
+  val delegateLabel = ADT.KLabel("Equals", CrazyModule)
 }
 
 case class Not(k: K, att: Att = Att()) extends KProduct {
@@ -204,35 +206,39 @@ case class Not(k: K, att: Att = Att()) extends KProduct {
 }
 
 object Not extends KProduct1Label with EmptyAtt {
-  val name: String = "!"
+  override def delegateLabel = BoolModule.!
 }
 
 case class SortPredicate(klabel: SortPredicateLabel, k: K, att: Att = Att())
   extends KProduct {
   override protected[this] def normalizeInner(implicit theory: Theory): K =
     if (!k.isInstanceOf[KVar]) {
-      val actualSort = k match {
-        case KApp(l, _, _) => theory.asInstanceOf[TheoryWithUpDown].module.sortFor(l)
-        case Unapply.KToken(s, _) => s
-      }
-      if (actualSort == klabel.sort ||
-        theory.asInstanceOf[TheoryWithUpDown].module.subsorts.<(actualSort, klabel.sort))
+      if (actualSort(k) == klabel.sort ||
+        theory.asInstanceOf[TheoryWithUpDown].module.subsorts.<=(actualSort(k), klabel.sort))
         True
       else
         False
     } else {
       this
     }
+
+  def actualSort(k: K)(implicit theory: Theory): Sort = {
+    k match {
+      case KApp(l, _, _) => theory.asInstanceOf[TheoryWithUpDown].module.sortFor(l)
+      case Unapply.KToken(s, _) => s
+    }
+  }
 }
 
-object SortPredicate {
+object SortPredicate extends org.kframework.definition.Module("SORT-PREDICATE", Set(), Set()) {
   def apply(s: Sort, k: K) = SortPredicateLabel(s)(k)
+  def KLabel(s: Sort): KLabel = KLabel("is" + s.name)
 }
 
 case class SortPredicateLabel(sort: Sort) extends KRegularAppLabel {
   assert(sort != null)
   override def att: Att = Att()
-  override def name: String = "is" + sort.name
+  override def delegateLabel = SortPredicate.KLabel(sort)
   override def construct(l: Iterable[K], att: Att): KApp = l match {
     case Seq(k) => SortPredicate(this, k, att)
   }

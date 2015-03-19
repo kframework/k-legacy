@@ -1,6 +1,7 @@
 package org.kframework.kore
 
 import org.kframework.attributes._
+import org.kframework.definition.Module
 
 /**
  * This file contains all inner KORE interfaces.
@@ -17,6 +18,7 @@ trait KItem extends K
 
 trait KLabel {
   def name: String
+  def module: Module
   override def equals(other: Any) = other match {
     case l: KLabel => name == l.name
     case _ => false
