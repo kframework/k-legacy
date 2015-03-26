@@ -560,7 +560,7 @@
   \par
   \vspace{\k@StartVspace}
   %When we use minipages, extra vspace created by \begin{flushleft} disappears.
-  \begin{minipage}{\columnwidth-\parindent}
+  \begin{minipage}{\linewidth-\parindent}
   \begin{flushleft}
 }
 {
@@ -804,7 +804,7 @@
 
 %Computes \kMaxReduceLen
 \newcommand{\computeMaxReduceLen}[1]{%
-  \setlength{\kMaxReduceLen}{\columnwidth-\k@ruleHangindentAux}%
+  \setlength{\kMaxReduceLen}{\linewidth-\k@ruleHangindentAux}%
   \addtolength{\kMaxReduceLen}{-\kReduceSpaceAfter}%
   %lonely rewrites occupy the whole hspace, non-lonely could be indented.
   \ifthenelse{\equal{#1}{lonely}}
@@ -1089,7 +1089,7 @@
 %Computes \kMaxCellLen, \kMaxCellBodyLen
 % #1 = name of innermost cell, #2 = prefix, #3 = suffix
 \newcommand{\computeAllowedLenghts}[3]{%
-  \setlength{\kMaxCellLen}{\columnwidth-\k@ruleHangindentAux}%
+  \setlength{\kMaxCellLen}{\linewidth-\k@ruleHangindentAux}%
   \setlength{\kCellSepLen}{\widthof{\cellSep}}%
   \setlength{\kMaxCellMinusSepLen}{\kMaxCellLen-\kCellSepLen}%
   %
@@ -1440,8 +1440,8 @@ rectangle,rectangle
   %
   \par
   \vspace{\k@StartVspace}
-  \begin{minipage}{\columnwidth-\parindent}%
-    \begin{minipage}{\columnwidth}%
+  \begin{minipage}{\linewidth-\parindent}%
+    \begin{minipage}{\linewidth}%
     %setting hangindent after raggedright will not work
     \setlength{\hangindent}{\k@ruleHangindentAux}%
     \raggedright{%
