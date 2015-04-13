@@ -203,8 +203,8 @@
 
 %\RequirePackage{ucs} Incompatible with biblatex and others. Not needed.
 
-%for debugging minipages, every boxedminipage could be replaced with minipage
-\RequirePackage{boxedminipage}
+% Provides {varwidth} - an analogue of minipage, but with content having a more conservative, thus natural width.
+\RequirePackage{varwidth}
 
 \RequirePackage{bookmark}%Properly loaded among the last
 
@@ -825,14 +825,21 @@
      % otherwise an extra newline may be created at the beginning of a rule
      \addtolength{\kMaxReduceLen}{-0.5pt}%
      %
-     \begin{boxedminipage}{\kMaxReduceLen}%
-      \begin{center}$#1$\end{center}%
-     \end{boxedminipage}%
+     \begin{varwidth}{\kMaxReduceLen}%
+       \begin{center}$#1$\end{center}%V1, default.
+       %\narrowcenter $#1$% V2, although v1 looks better.
+     \end{varwidth}%
     }%
     {$#1$}%
   %\mathstrut will add a vspace in some cases, will look better on overal
   \ifthenelse{\equal{\k@rewriteCompactness}{normal}}{\mathstrut}{}%
 }
+
+% Breaks a long line into multiple ones of close width, maintaining them narrow and centered.
+% Source: http://tex.stackexchange.com/questions/237267/combining-centering-with-narrowragged
+\newcommand\narrowcenter{\leftskip \z@ plus .20\hsize\rightskip \z@ plus .20\hsize
+  \@rightskip\rightskip \parfillskip\z@
+  \sloppy }
 
 %%% K Term contents.
 
@@ -948,7 +955,9 @@
 \colorlet{mcellBracketColor}{White}
 
 \newlength{\angleMaxHeight}
-\setlength{\angleMaxHeight}{40pt}%manually determined
+
+% 40pt is stricter, but 45 is enough to make high content clearly surrounded by brackets, while keeping vertical lines more conservative.
+\setlength{\angleMaxHeight}{45pt}%manually determined
 
 \newsavebox{\k@anglesBodyBox}
 \newlength{\k@angleHeight}
@@ -989,9 +998,9 @@
 \newcommand{\whiterule}[1]{\rule{#1}{0pt}}
 
 \newsavebox{\kCellBox}
+\newsavebox{\kCellBodyBox}
 \newlength{\kCellLen}
-
-\newboolean{cellWithWrap}
+\newlength{\kCellBodyLen}
 
 %Arguments:
 % #1 = color (default gray), #2 = cell name,
@@ -1011,35 +1020,21 @@
   % rendering
   {% to confine altered vars to this scope
     \computeAllowedLenghts{#2}{#3}{#5}%
-    \setboolean{cellWithWrap}{false}%
-    \saveCellBox{#2}{#3}{#4}{#5}{\kCellBox}%
-    \setlength{\kCellLen}{\widthof{\usebox{\kCellBox}}}%
-    \ifthenelse{\kCellLen > \kMaxCellLen}
+    \saveCellBoxWithWrap{#2}{#3}{#4}{#5}%
+    \ifthenelse{\kCellLen > \kMaxCellLen \AND \NOT \kCellBodyLen > \kMaxCellBodyLen}
       {%
-        \setboolean{cellWithWrap}{true}%
-        \saveCellBoxWithWrap{#2}{#3}{#4}{#5}%
         \computeAllowedLenghtsPrecisely{#2}{#3}{#5}%
-        \ifthenelse{\kMaxCellBodyLen > \kOldMaxCellBodyLen}
-          {
-            \saveCellBoxWithWrap{#2}{#3}{#4}{#5}%
+        \saveCellBoxWithWrap{#2}{#3}{#4}{#5}%
+        \ifthenelse{\kCellLen > \kMaxCellLen \AND \NOT \kCellBodyLen > \kMaxCellBodyLen}
+          {%
             \computeAllowedLenghtsPrecisely{#2}{#3}{#5}%
-            \ifthenelse{\kMaxCellBodyLen > \kOldMaxCellBodyLen}
-              {\saveCellBoxWithWrap{#2}{#3}{#4}{#5}}
-              {}%
+            \saveCellBoxWithWrap{#2}{#3}{#4}{#5}%
           }
           {}%
       }
       {}%
     \usebox{\kCellBox}%
-    \ifthenelse{\kCellLen > \kMaxCellMinusSepLen}
-      {\global\def\needAllowbreak{true}}
-      {\global\def\needAllowbreak{false}}%
   }%
-  %\cellSep may add some spaces at the end of the cell
-  %This is the most elegant solution, doesn't eat any space
-  \ifthenelse{\equal{\needAllowbreak}{true}}
-    {\allowbreak}
-    {}%
 }
 
 % #1 = name, #2 = prefix, #3 = content, #4 = suffix, #5 = box name
@@ -1057,21 +1052,22 @@
 
 % #1 = name, #2 = prefix, #3 = content, #4 = suffix
 \newcommand{\saveCellBoxWithWrap}[4]{%
+  \savebox{\kCellBodyBox}{{%
+    $ \manualBRBlock{\color{mcellBodyColor} #3} $%
+  }}%
   \savebox{\kCellBox}{{%
     $
     \color{mcellBracketColor}
     \boldangles{{
       #2
-      \begin{boxedminipage}{\kMaxCellBodyLen}%
-        \raggedright{%
-          $\color{mcellBodyColor} #3$%
-        }%
-      \end{boxedminipage}%
+      \usebox{\kCellBodyBox}
       #4
     }}
     _{\text{\cellnamesize\sf #1}}
     $%
   }}%
+  \setlength{\kCellBodyLen}{\widthof{\usebox{\kCellBodyBox}}}%
+  \setlength{\kCellLen}{\widthof{\usebox{\kCellBox}}}%
 }
 
 %Allows easy customization
@@ -1097,14 +1093,12 @@
   % The borders around a reduce are cell wals of maximal height
   \setlength{\k@ruleHangindentAux}{0pt}%
   %
-  % We assume that cell has highest possible borders
-  \saveCellBox{#1}{#2}{\rule{0in}{5\baselineskip}}{#3}{\kPhantomBox}%
+  % Initially we assume that the cell has the shortest possible borders
+  \saveCellBox{#1}{#2}{}{#3}{\kPhantomBox}%
   %
   \setlength{\k@cellBorders}{\widthof{\usebox{\kPhantomBox}}}%
   \setlength{\kMaxCellBodyLen}{\kMaxCellLen-\k@cellBorders}%
 }
-
-\newlength{\kOldMaxCellBodyLen}
 
 %compute again, this time adjusting braces size more precisely
 \newcommand{\computeAllowedLenghtsPrecisely}[3]{%
@@ -1113,42 +1107,35 @@
   \saveCellBox{#1}{#2}{\rule{0in}{\kCellHeight}}{#3}{\kPhantomBox}%
   %
   \setlength{\k@cellBorders}{\widthof{\usebox{\kPhantomBox}}}%
-  \setlength{\kOldMaxCellBodyLen}{\kMaxCellBodyLen}%
   \setlength{\kMaxCellBodyLen}{\kMaxCellLen-\k@cellBorders}%
 }
 
 %Cell separator, ensures proper spacing and line breaking
-%Originally was \mathrel{}. That one produces an extra space when line breaking
-\newcommand{\cellSep}{\ \ \allowbreak}
+% Originally was \mathrel{}. That one may produce an extra space at the beginning of the new line,
+% when line breaking.
+% This version may leave a space at the end of the line, but only when there is enough space to not cause an overflow.
+\newcommand{\cellSep}{\allowbreak \ \ \allowbreak}%
 
 %%% Manual line breaking.
 
 %A block of cells containing manual line breaks
 \newcommand{\manualBRBlock}[1]{%
-  \ifthenelse{\boolean{cellWithWrap}}
-    {%
-      \begin{array}{@{}l@{}}%
-        \begin{minipage}{\kMaxCellBodyLen}%
-          \raggedright%
-          $#1$
-        \end{minipage}%
-      \end{array}%
-    }
-    {\begin{array}{@{}l@{}}#1\end{array}}%
+  \begin{array}{@{}l@{}}%
+    \begin{varwidth}{\kMaxCellBodyLen}%
+      \narrowragged%
+      $#1$
+    \end{varwidth}%
+  \end{array}%
 }
 
 %A manual line break
 \newcommand{\cellBR}{%
-  \ifthenelse{\boolean{cellWithWrap}}
-  {%
-    $%
-    \end{minipage}%end of the previous block
-    \\%
-    \begin{minipage}{\kMaxCellBodyLen}%begin of the new block
-    \raggedright%
-    $%
-  }
-  {\\}%
+  $%
+  \end{varwidth}%end of the previous block
+  \\%
+  \begin{varwidth}{\kMaxCellBodyLen}%begin of the new block
+  \narrowragged%
+  $%
 }
 
 

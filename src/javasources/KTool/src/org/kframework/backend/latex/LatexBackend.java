@@ -71,6 +71,8 @@ public class LatexBackend extends BasicBackend {
         result = pattern.matcher(result).replaceAll("$1 \\\\kttspace $2");
         //Case not covered by first pattern: \terminal{\}}\terminal
         result = result.replaceAll("(\\\\terminal\\{\\\\\\}\\})\\s*(\\\\terminal)", "$1 \\\\kttspace $2");
+        //Remove trailing spaces
+        result = result.replaceAll("(?m) +($)", "$1");
         return result;
     }
 

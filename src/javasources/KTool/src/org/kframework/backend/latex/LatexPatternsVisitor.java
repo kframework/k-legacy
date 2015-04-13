@@ -51,7 +51,7 @@ public class LatexPatternsVisitor extends BasicVisitor {
     public Void visit(UserList sort, Void _) {
         // Should be only nonterminal in a production, so prevNonTerm has no effect
         pattern += "{#" + nonTerm++ + "}";
-        pattern += "\\userListSep{" + StringUtil.latexify(sort.getSeparator()) + "}";
+        pattern += "\\userListSep{" + StringUtil.latexify(sort.getSeparator()) + "} ";
         pattern += "{#" + nonTerm++ + "}";
         return null;
     }
@@ -64,7 +64,7 @@ public class LatexPatternsVisitor extends BasicVisitor {
         if (context.isSpecialTerminal(terminal)) {
             pattern += LatexFilter.latexifySpecialTerminal(terminal);
         } else {
-            pattern += "\\terminal{" + StringUtil.latexify(terminal) + "}";
+            pattern += "\\terminal{" + StringUtil.latexify(terminal) + "} ";
         }
         prevNonTerm = false;
         return null;

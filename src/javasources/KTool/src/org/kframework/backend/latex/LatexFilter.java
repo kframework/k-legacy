@@ -147,7 +147,7 @@ public class LatexFilter extends BackendFilter {
 
     @Override
     public Void visit(Sort sort, Void _) {
-        result.append("\\nonTerminal{\\sort{" + StringUtil.latexify(sort.getName()) + "}}");
+        result.append("\\nonTerminal{\\sort{" + StringUtil.latexify(sort.getName()) + "}} ");
         prevTerm = false;
         return null;
     }
@@ -200,7 +200,7 @@ public class LatexFilter extends BackendFilter {
         if (context.isSpecialTerminal(terminal)) {
             result.append(latexifySpecialTerminal(terminal));
         } else {
-            result.append("\\terminal{" + StringUtil.latexify(terminal) + "}");
+            result.append("\\terminal{" + StringUtil.latexify(terminal) + "} ");
         }
         prevTerm = true;
         return null;
@@ -209,13 +209,13 @@ public class LatexFilter extends BackendFilter {
     static String latexifySpecialTerminal(String specialTerminal) {
         switch (specialTerminal) {
             case "(":
-                return "\\kOpenBr";
+                return "\\kOpenBr ";
             case ")":
-                return "\\kClosedBr";
+                return "\\kClosedBr ";
             case ",":
-                return "\\kcomma";
+                return "\\kcomma ";
             default:
-                return "\\terminal{" + StringUtil.latexify(specialTerminal) + "}";
+                return "\\terminal{" + StringUtil.latexify(specialTerminal) + "} ";
         }
     }
 
@@ -223,7 +223,7 @@ public class LatexFilter extends BackendFilter {
     public Void visit(UserList ul, Void _) {
         result.append("List\\{");
         this.visitNode(new Sort(ul.getSort()));
-        result.append(", \\mbox{``}" + StringUtil.latexify(ul.getSeparator()) + "\\mbox{''}\\}");
+        result.append(", \\mbox{``}" + StringUtil.latexify(ul.getSeparator()) + "\\mbox{''}\\} ");
         prevTerm = false;
         return null;
     }
@@ -233,7 +233,7 @@ public class LatexFilter extends BackendFilter {
         result
                 .append("Token\\{")
                 .append(latexifyToken(t))
-                .append("\\}");
+                .append("\\} ");
         return null;
     }
 
@@ -300,24 +300,11 @@ public class LatexFilter extends BackendFilter {
 
     public Void visit(Collection collectionTerm, Void _) {
         final boolean parens = wantParens.peek();
-        final boolean hasBR = containsBR(collectionTerm);
         if (collectionTerm.isEmpty()) {
             printEmpty(collectionTerm.getSort());
             return null;
         }
-        if (hasBR) {
-            if (!isOnNewLine()) {
-                newLine();
-            }
-            result.append("\\manualBRBlock{");
-            increaseIndent();
-        }
         printCollection(collectionTerm.getContents(), "\\cellSep", true);
-        if (hasBR) {
-            decreaseIndent();
-            newLine();
-            result.append("}");
-        }
         return null;
     }
 
@@ -386,7 +373,7 @@ public class LatexFilter extends BackendFilter {
         if (var.isUserTyped()) {
             result.append("user");
         }
-        result.append("}");
+        result.append("} ");
         return null;
     }
 
@@ -409,7 +396,7 @@ public class LatexFilter extends BackendFilter {
     }
 
     private void printEmpty(String sort) {
-        result.append("\\dotCt{" + sort + "}");
+        result.append("\\dotCt{" + sort + "} ");
     }
 
     @Override
@@ -480,7 +467,7 @@ public class LatexFilter extends BackendFilter {
 
     @Override
     public Void visit(Hole hole, Void _) {
-        result.append("\\khole{}");
+        result.append("\\khole{} ");
         return null;
     }
 
@@ -518,7 +505,7 @@ public class LatexFilter extends BackendFilter {
         if (trm.getContent() instanceof Rewrite) {
             super.visit(trm, _);
         } else {
-            String pattern = "\\kbrackets{#1}";
+            String pattern = "\\kbrackets{#1} ";
             LatexFilter termFilter = new LatexFilter(context, indent);
             termFilter.getWantParens().push(Boolean.FALSE);
             termFilter.visitNode(trm.getContent());
@@ -556,20 +543,20 @@ public class LatexFilter extends BackendFilter {
 
     @Override
     public Void visit(KLabelConstant c, Void _) {
-        result.append("\\klabel{" + StringUtil.latexify(c.getLabel()) + "}");
+        result.append("\\klabel{" + StringUtil.latexify(c.getLabel()) + "} ");
         return null;
     }
 
     @Override
     public Void visit(Token t, Void _) {
-        result.append("\\constant[" + StringUtil.latexify(t.tokenSort()) + "]{" + StringUtil.latexify(t.value()) + "}");
+        result.append("\\constant[" + StringUtil.latexify(t.tokenSort()) + "]{" + StringUtil.latexify(t.value()) + "} ");
         return null;
     }
 
     @Override
     public Void visit(MapItem mi, Void _) {
         this.visitNode(mi.getKey());
-        result.append("\\mapsto");
+        result.append("\\mapsto ");
         this.visitNode(mi.getItem());
         return null;
     }
@@ -579,7 +566,7 @@ public class LatexFilter extends BackendFilter {
         if (k.getContents().isEmpty()) {
             printEmpty(KSort.K.name());
         } else {
-            printList(k.getContents(), "\\kra", false);
+            printList(k.getContents(), "\\kra ", false);
         }
         return null;
 
@@ -589,12 +576,12 @@ public class LatexFilter extends BackendFilter {
     public Void visit(KApp app, Void _) {
         if (app.getLabel() instanceof Token) {
             result.append("\\constant[" + StringUtil.latexify(((Token) app.getLabel()).tokenSort()) + "]{" +
-                    StringUtil.latexify(((Token) app.getLabel()).value()) + "}");
+                    StringUtil.latexify(((Token) app.getLabel()).value()) + "} ");
         } else {
             this.visitNode(app.getLabel());
-            result.append("\\kOpenLabelBr");
+            result.append("\\kOpenLabelBr ");
             this.visitNode(app.getChild());
-            result.append("\\kClosedLabelBr");
+            result.append("\\kClosedLabelBr ");
         }
         return null;
     }
@@ -604,7 +591,7 @@ public class LatexFilter extends BackendFilter {
         if (list.getContents().isEmpty()) {
             printEmpty(KSort.KList.name());
         } else {
-            printList(list.getContents(), "\\kcomma", false);
+            printList(list.getContents(), "\\kcomma ", false);
         }
         return null;
     }

@@ -11,30 +11,30 @@ module INT-HOOKS
   imports BOOL-HOOKS
   imports K-EQUAL-HOOKS
 
-  syntax Int ::= "~Int" Int                     [function, latex(\kBuiltinOp{\sim}{Int}{#1}), hook(#INT:~Int_)]
+  syntax Int ::= "~Int" Int                     [function, latex(\kBuiltinOp{\sim}{Int} {#1}), hook(#INT:~Int_)]
                > left:
-                 Int "^Int" Int                 [function, left, latex({#1}\kBuiltinOp{{\char`\^}}{Int}{#2}), hook(#INT:_^Int_)]
+                 Int "^Int" Int                 [function, left, latex({#1}\kBuiltinOp{{\char`\^}}{Int} {#2}), hook(#INT:_^Int_)]
                > left:
-                 Int "*Int" Int                 [function, left, smtlib(*), latex({#1}\kBuiltinOp{\ast}{Int}{#2}), hook(#INT:_*Int_)]
+                 Int "*Int" Int                 [function, left, smtlib(*), latex({#1}\kBuiltinOp{\ast}{Int} {#2}), hook(#INT:_*Int_)]
                /* FIXME: translate /Int and %Int into smtlib */
                /* /Int and %Int implement t-division */
-               | Int "/Int" Int                 [function, left, latex({#1}\kBuiltinOp{\div}{Int}{#2}), hook(#INT:_/Int_)]
-               | Int "%Int" Int                 [function, left, latex({#1}\kBuiltinOp{\%}{Int}{#2}), hook(#INT:_%Int_)]
+               | Int "/Int" Int                 [function, left, latex({#1}\kBuiltinOp{\div}{Int} {#2}), hook(#INT:_/Int_)]
+               | Int "%Int" Int                 [function, left, latex({#1}\kBuiltinOp{\%}{Int} {#2}), hook(#INT:_%Int_)]
                /* divInt and modInt implement e-division */
                | Int "divInt" Int               [function, left, smtlib(div), hook(#INT:_divInt_)]
                | Int "modInt" Int               [function, left, smtlib(mod), hook(#INT:_modInt_)]
                > left:
-                 Int "+Int" Int                 [function, left, smtlib(+), latex({#1}\kBuiltinOp{+}{Int}{#2}), hook(#INT:_+Int_), cons(Int1PlusSyn)]
-               | Int "-Int" Int                 [function, left, smtlib(-), latex({#1}\kBuiltinOp{-}{Int}{#2}), hook(#INT:_-Int_)]
+                 Int "+Int" Int                 [function, left, smtlib(+), latex({#1}\kBuiltinOp{+}{Int} {#2}), hook(#INT:_+Int_), cons(Int1PlusSyn)]
+               | Int "-Int" Int                 [function, left, smtlib(-), latex({#1}\kBuiltinOp{-}{Int} {#2}), hook(#INT:_-Int_)]
                > left:
-                 Int ">>Int" Int                [function, left, latex({#1}\kBuiltinOp{\gg}{Int}{#2}), hook(#INT:_>>Int_)]
-               | Int "<<Int" Int                [function, left, latex({#1}\kBuiltinOp{\ll}{Int}{#2}), hook(#INT:_<<Int_)]
+                 Int ">>Int" Int                [function, left, latex({#1}\kBuiltinOp{\gg}{Int} {#2}), hook(#INT:_>>Int_)]
+               | Int "<<Int" Int                [function, left, latex({#1}\kBuiltinOp{\ll}{Int} {#2}), hook(#INT:_<<Int_)]
                > left:
-                 Int "&Int" Int                 [function, left, latex({#1}\kBuiltinOp{\&}{Int}{#2}), hook(#INT:_&Int_)]
+                 Int "&Int" Int                 [function, left, latex({#1}\kBuiltinOp{\&}{Int} {#2}), hook(#INT:_&Int_)]
                > left:
-                 Int "xorInt" Int               [function, left, latex({#1}\kBuiltinOp{\oplus}{Int}{#2}), hook(#INT:_xorInt_)]
+                 Int "xorInt" Int               [function, left, latex({#1}\kBuiltinOp{\oplus}{Int} {#2}), hook(#INT:_xorInt_)]
                > left:
-                 Int "|Int" Int                 [function, left, latex({#1}\kBuiltinOp{|}{Int}{#2}), hook(#INT:_|Int_)]
+                 Int "|Int" Int                 [function, left, latex({#1}\kBuiltinOp{|}{Int} {#2}), hook(#INT:_|Int_)]
                > "minInt" "(" Int "," Int ")"   [function]
                | "maxInt" "(" Int "," Int ")"   [function]
                | "absInt" "(" Int ")"           [function, smtlib(abs), klabel(absInt), hook(#INT:absInt)]
@@ -54,12 +54,12 @@ module INT-HOOKS
   // rule absInt(I:Int) => I when I >=Int 0
   // rule absInt(I:Int) => 0 -Int I when I <Int 0
 
-  syntax Bool ::= Int "<=Int" Int         [function, left, smtlib(<=), latex({#1}\kBuiltinOp{\leq}{Int}{#2}), hook(#INT:_<=Int_)]
-                | Int "<Int" Int          [function, left, smtlib(<), latex({#1}\kBuiltinOp{<}{Int}{#2}), hook(#INT:_<Int_)]
-                | Int ">=Int" Int         [function, left, smtlib(>=), latex({#1}\kBuiltinOp{\geq}{Int}{#2}), hook(#INT:_>=Int_)]
-                | Int ">Int" Int          [function, left, smtlib(>), latex({#1}\kBuiltinOp{>}{Int}{#2}), hook(#INT:_>Int_)]
-                | Int "==Int" Int         [function, left, smtlib(=), latex({#1}\kBuiltinOp{{=}{=}}{Int}{#2}), hook(#INT:_==Int_)]
-                | Int "=/=Int" Int        [function, left, smtlib(distinct), latex({#1}\kBuiltinOp{{=}{/}{=}}{Int}{#2}), hook(#INT:_=/=Int_)]
+  syntax Bool ::= Int "<=Int" Int         [function, left, smtlib(<=), latex({#1}\kBuiltinOp{\leq}{Int} {#2}), hook(#INT:_<=Int_)]
+                | Int "<Int" Int          [function, left, smtlib(<), latex({#1}\kBuiltinOp{<}{Int} {#2}), hook(#INT:_<Int_)]
+                | Int ">=Int" Int         [function, left, smtlib(>=), latex({#1}\kBuiltinOp{\geq}{Int} {#2}), hook(#INT:_>=Int_)]
+                | Int ">Int" Int          [function, left, smtlib(>), latex({#1}\kBuiltinOp{>}{Int} {#2}), hook(#INT:_>Int_)]
+                | Int "==Int" Int         [function, left, smtlib(=), latex({#1}\kBuiltinOp{{=}{=} }{Int}{#2}), hook(#INT:_==Int_)]
+                | Int "=/=Int" Int        [function, left, smtlib(distinct), latex({#1}\kBuiltinOp{{=}{/} {=}}{Int}{#2}), hook(#INT:_=/=Int_)]
                 | Int "=Int" Int          [equality, function, hook(#INT:_==Int_)]
                 | Int "dividesInt" Int    [function]
 

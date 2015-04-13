@@ -24,7 +24,7 @@ module STRING-HOOKS
   imports FLOAT-HOOKS
 
 
-  syntax String ::= String "+String" String	[function, left, latex({#1}\kBuiltinOp{+}{String}{#2}), hook(#STRING:_+String_)]
+  syntax String ::= String "+String" String	[function, left, latex({#1}\kBuiltinOp{+}{String} {#2}), hook(#STRING:_+String_)]
 
   syntax Bool ::= String "==String" String [function, left, hook(#STRING:_==String_)]
 
