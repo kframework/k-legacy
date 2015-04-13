@@ -819,18 +819,13 @@
 
 %LHS or RHS of a \reduce
 \newcommand{\reduceSide}[1]{%
-  \setlength{\k@termlen}{\widthof{$#1$}}%
-  \ifthenelse{\k@termlen > \kMaxReduceLen}
-    {%
-     % otherwise an extra newline may be created at the beginning of a rule
-     \addtolength{\kMaxReduceLen}{-0.5pt}%
-     %
-     \begin{varwidth}{\kMaxReduceLen}%
-       \begin{center}$#1$\end{center}%V1, default.
-       %\narrowcenter $#1$% V2, although v1 looks better.
-     \end{varwidth}%
-    }%
-    {$#1$}%
+  % otherwise an extra newline may be created at the beginning of a rule
+  \addtolength{\kMaxReduceLen}{-0.5pt}%
+  %
+  \setlength{\varwidthLen}{\kMaxReduceLen}%
+  \setboolean{insideCell}{false}%
+  $ \manualBRBlock{#1} $%
+  %
   %\mathstrut will add a vspace in some cases, will look better on overal
   \ifthenelse{\equal{\k@rewriteCompactness}{normal}}{\mathstrut}{}%
 }
@@ -1053,6 +1048,8 @@
 % #1 = name, #2 = prefix, #3 = content, #4 = suffix
 \newcommand{\saveCellBoxWithWrap}[4]{%
   \savebox{\kCellBodyBox}{{%
+    \setlength{\varwidthLen}{\kMaxCellBodyLen}%
+    \setboolean{insideCell}{true}%
     $ \manualBRBlock{\color{mcellBodyColor} #3} $%
   }}%
   \savebox{\kCellBox}{{%
@@ -1118,24 +1115,51 @@
 
 %%% Manual line breaking.
 
-%A block of cells containing manual line breaks
+%width of {varwidth} blocks
+\newlength{\varwidthLen}
+
+% true = inside cell, false = inside rewrite
+\newboolean{insideCell}
+
+% A block of cells containing manual line breaks
 \newcommand{\manualBRBlock}[1]{%
-  \begin{array}{@{}l@{}}%
-    \begin{varwidth}{\kMaxCellBodyLen}%
-      \narrowragged%
-      $#1$
-    \end{varwidth}%
-  \end{array}%
+  \ifthenelse{\boolean{insideCell}}{%inside cell
+    \begin{array}{@{}l@{}}%
+      \begin{varwidth}{\varwidthLen}%
+        \narrowragged%
+        $#1$
+      \end{varwidth}%
+    \end{array}%
+  }
+  {%inside rewrite
+    \begin{array}{@{}c@{}}%
+       \begin{varwidth}{\varwidthLen}%
+         \begin{center}$#1$\end{center}%V1, default.
+         %\narrowcenter $#1$% V2, although v1 looks better.
+       \end{varwidth}%
+    \end{array}%
+  }
 }
 
-%A manual line break
+% A manual line break
 \newcommand{\cellBR}{%
-  $%
-  \end{varwidth}%end of the previous block
-  \\%
-  \begin{varwidth}{\kMaxCellBodyLen}%begin of the new block
-  \narrowragged%
-  $%
+  \ifthenelse{\boolean{insideCell}}{%inside cell
+    $%
+    \end{varwidth}%end of the previous block
+    \\%
+    \begin{varwidth}{\varwidthLen}%begin of the new block
+    \narrowragged%
+    $%
+  }
+  {%inside rewrite
+    $%
+    \end{center}%
+    \end{varwidth}%
+    \\%
+    \begin{varwidth}{\varwidthLen}%
+    \begin{center}%
+    $%
+  }
 }
 
 
