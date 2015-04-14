@@ -64,6 +64,8 @@
 \DeclareStringOption[200pt]{reduceIndentThreshold}
 
 % inner ysep for the LHS node of a rewrite, alters compactness
+% Too little => hard to distinguish between a rewrite and a term before it.
+% Too much   => too much space between "RULE" and a lonely rewrite.
 \DeclareStringOption[1ex]{rewriteLHSInnerYSep}
 
 % inner ysep for the LHS node of a rewrite, alters compactness
@@ -202,6 +204,9 @@
 \RequirePackage{xspace}
 
 %\RequirePackage{ucs} Incompatible with biblatex and others. Not needed.
+
+% For debuging of minipages
+\RequirePackage{boxedminipage}
 
 % Provides {varwidth} - an analogue of minipage, but with content having a more conservative, thus natural width.
 \RequirePackage{varwidth}
@@ -804,15 +809,12 @@
 
 %Computes \kMaxReduceLen
 \newcommand{\computeMaxReduceLen}[1]{%
-  \setlength{\kMaxReduceLen}{\linewidth-\k@ruleHangindentAux}%
+  \setlength{\kMaxReduceLen}{\linewidth}%
   \addtolength{\kMaxReduceLen}{-\kReduceSpaceAfter}%
   %lonely rewrites occupy the whole hspace, non-lonely could be indented.
   \ifthenelse{\equal{#1}{lonely}}
     {}
     {\addtolength{\kMaxReduceLen}{-\k@nonLonelyReduceIndent}}%
-  % To avoid shrinking of top-level cells inside reduce
-  % The borders around a reduce are cell wals of maximal height
-  \setlength{\k@ruleHangindentAux}{0pt}%
 }
 
 \newlength{\k@termlen}%temp value used by line breaking alg
@@ -958,6 +960,10 @@
 \newlength{\k@angleHeight}
 \newlength{\k@angleTotalHeight}
 
+% Is added to the heigth of content, to get the braces heigth
+\newlength{\kBracesHeigthAdjust}
+\setlength{\kBracesHeigthAdjust}{-1pt}%Otherwise braces are too high
+
 % Surrounds the given argument with bold angular brackets, for better display of angle colors.
 % The argument itself is rendered in notmal text.
 % Source: http://tex.stackexchange.com/questions/47979/how-do-i-apply-both-mathbf-and-left-to-a-langle
@@ -966,6 +972,7 @@
   %If we use the unchanged solution from the link above, it is too slow.
   \savebox{\k@anglesBodyBox}{{$#1$}}
   \setlength{\k@angleHeight}{\heightof{\usebox{\k@anglesBodyBox}}}%
+  \addtolength{\k@angleHeight}{\kBracesHeigthAdjust}%
   \setlength{\k@angleTotalHeight}{\totalheightof{\usebox{\k@anglesBodyBox}}}%
   \pmb{%
     \left\langle%
@@ -1014,15 +1021,19 @@
     {\colorlet{mcellBodyColor}{Black}}%
   % rendering
   {% to confine altered vars to this scope
+    %
+    % Initially the previous rendering has height 0.
+    \savebox{\kCellBox}{\rule{0pt}{0pt}}%
     \computeAllowedLenghts{#2}{#3}{#5}%
     \saveCellBoxWithWrap{#2}{#3}{#4}{#5}%
-    \ifthenelse{\kCellLen > \kMaxCellLen \AND \NOT \kCellBodyLen > \kMaxCellBodyLen}
+    %Re-draw the cell if it is longer than admissible.
+    \ifthenelse{\kCellLen > \kMaxCellLen}%
       {%
-        \computeAllowedLenghtsPrecisely{#2}{#3}{#5}%
+        \computeAllowedLenghts{#2}{#3}{#5}%
         \saveCellBoxWithWrap{#2}{#3}{#4}{#5}%
-        \ifthenelse{\kCellLen > \kMaxCellLen \AND \NOT \kCellBodyLen > \kMaxCellBodyLen}
+        \ifthenelse{\kCellLen > \kMaxCellLen}%
           {%
-            \computeAllowedLenghtsPrecisely{#2}{#3}{#5}%
+            \computeAllowedLenghts{#2}{#3}{#5}%
             \saveCellBoxWithWrap{#2}{#3}{#4}{#5}%
           }
           {}%
@@ -1082,24 +1093,12 @@
 %Computes \kMaxCellLen, \kMaxCellBodyLen
 % #1 = name of innermost cell, #2 = prefix, #3 = suffix
 \newcommand{\computeAllowedLenghts}[3]{%
-  \setlength{\kMaxCellLen}{\linewidth-\k@ruleHangindentAux}%
+  \setlength{\kMaxCellLen}{\linewidth}%
   \setlength{\kCellSepLen}{\widthof{\cellSep}}%
   \setlength{\kMaxCellMinusSepLen}{\kMaxCellLen-\kCellSepLen}%
   %
-  % To avoid shrinking of nested cells
-  % The borders around a reduce are cell wals of maximal height
-  \setlength{\k@ruleHangindentAux}{0pt}%
-  %
-  % Initially we assume that the cell has the shortest possible borders
-  \saveCellBox{#1}{#2}{}{#3}{\kPhantomBox}%
-  %
-  \setlength{\k@cellBorders}{\widthof{\usebox{\kPhantomBox}}}%
-  \setlength{\kMaxCellBodyLen}{\kMaxCellLen-\k@cellBorders}%
-}
-
-%compute again, this time adjusting braces size more precisely
-\newcommand{\computeAllowedLenghtsPrecisely}[3]{%
   % We assume the cell borders with height equal to the previous rendering
+  % For the first rendering this will be 0.
   \setlength{\kCellHeight}{\heightof{\usebox{\kCellBox}}}%
   \saveCellBox{#1}{#2}{\rule{0in}{\kCellHeight}}{#3}{\kPhantomBox}%
   %
@@ -1124,6 +1123,8 @@
 % A block of cells containing manual line breaks
 \newcommand{\manualBRBlock}[1]{%
   \ifthenelse{\boolean{insideCell}}{%inside cell
+    % A tabular here instead of array may cause overfull, even without importing {tabularx} package.
+    % Cause: tabular probably interacts incorrectly with \allowbreak
     \begin{array}{@{}l@{}}%
       \begin{varwidth}{\varwidthLen}%
         \narrowragged%
@@ -1133,12 +1134,15 @@
   }
   {%inside rewrite
     \begin{array}{@{}c@{}}%
+       %\vspace{-1pt}% Used here will apply after varwidth
        \begin{varwidth}{\varwidthLen}%
+         %\vspace{-10pt}% no effect here
          \begin{center}$#1$\end{center}%V1, default.
          %\narrowcenter $#1$% V2, although v1 looks better.
        \end{varwidth}%
+       \vspace{-1pt}% only here has effect
     \end{array}%
-  }
+  }%
 }
 
 % A manual line break
@@ -1159,7 +1163,7 @@
     \begin{varwidth}{\varwidthLen}%
     \begin{center}%
     $%
-  }
+  }%
 }
 
 
@@ -1379,8 +1383,6 @@ rectangle,rectangle
 \ksentence[#6]{rule}{#1}{#2}{#3}{#4}{#5}
 }
 
-\newlength{\k@ruleHangindentAux}
-
 \ifk@poster
 %%% Poster mode
 
@@ -1439,10 +1441,7 @@ rectangle,rectangle
 
   %Arguments: {}, rule, name, body, preconditions, postconditions (for ML), attributes
   \newcommand{\ksentence}[7][]{{
-  \setlength{\savedParindent}{\parindent}
-  \setlength{\savedHangindent}{\hangindent}
   \setlength{\parindent}{\k@indent}
-  \setlength{\k@ruleHangindentAux}{\k@ruleHangindent}
   %
   %Framebox-es are for debug purposes
   %Here we make sure they do not produce overfull warnings.
@@ -1450,31 +1449,30 @@ rectangle,rectangle
   \setlength{\fboxrule}{0pt}% debug: 0.4 pt
   %
   \par
-  \vspace{\k@StartVspace}
+  \vspace{\k@StartVspace}%
   \begin{minipage}{\linewidth-\parindent}%
-    \begin{minipage}{\linewidth}%
-    %setting hangindent after raggedright will not work
-    \setlength{\hangindent}{\k@ruleHangindentAux}%
-    \raggedright{%
-      \k@ruleLabel{#3}{#2}%
-      \setlength{\parindent}{\k@ruleHangindentAux}%
-      \ifthenelse{\isempty{#1}}{%always the case
-        $#4$%
-      }{%
-        $\left(#4\right)$%
-      }%
-    }
+    \raggedright%
+    \k@ruleLabel{#3}{#2}\\[2pt]%
+    \rule{\k@ruleHangindent}{0pt}%
+    \begin{minipage}{\linewidth-\k@ruleHangindent}%
+    \raggedright%
+    \ifthenelse{\isempty{#1}}{%always the case
+      $#4$%
+    }{%
+      $\left(#4\right)$%
+    }%
     \end{minipage}%
     \ifthenelse{\isempty{#5}}{}{%
-      \setlength{\hangindent}{\k@ruleHangindentAux}
+      \setlength{\hangindent}{\k@ruleHangindent}
       \raggedright{%\begin{flushleft} produces extra vspace
         \par
+        \vspace{3pt}%
         \keyword{requires} \ensuremath{#5}%
         \k@markPosition%
       }%
     }%
     \ifthenelse{\isempty{#6}}{}{%
-      \setlength{\hangindent}{\k@ruleHangindentAux}
+      \setlength{\hangindent}{\k@ruleHangindent}
       \raggedright{
         \par
         \keyword{ensures} \ensuremath{#6}%
@@ -1486,8 +1484,6 @@ rectangle,rectangle
       \ruleAttributes{#7}%
     }%
   \end{minipage}
-  \setlength{\parindent}{\savedParindent}
-  \setlength{\hangindent}{\savedHangindent}
   \vspace{\k@EndVspace}
   }}
 
@@ -1501,7 +1497,7 @@ rectangle,rectangle
     \ifthenelse
       {\equal{#1}{\textbackslash !}}%
       {\keyword{#2}}%
-      {\k@withTooltip{\keyword{#2} \ruleName{#1}}{Rule Label: #1}}\\%
+      {\k@withTooltip{\keyword{#2} \ruleName{#1}}{Rule Label: #1}}%
   % \global\def\ignoreThisLabel{#1}%
   }
   \newcommand{\when}[1]{\par{}\hspace{2em} when \ensuremath{#1}}
