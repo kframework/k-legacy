@@ -66,6 +66,7 @@ import org.kframework.krun.ColorSetting;
 import org.kframework.utils.ColorUtil;
 
 import com.davekoelle.AlphanumComparator;
+import org.kframework.utils.StringUtil;
 
 /**
  * Unparses (ie converts an AST to text) a term written in concrete syntax.
@@ -421,11 +422,11 @@ public class Unparser implements Comparator<ASTNode> {
             for (int i = 0; i < termList.size(); ++i) {
                 term(termList.get(i));
                 if (i != termList.size() - 1) {
-                    string(",, ");
+                    string(", ");
                 }
             }
             if (termList.size() == 0) {
-                string(".KList");
+                string(".::KList");
             }
             return null;
         }
@@ -561,9 +562,11 @@ public class Unparser implements Comparator<ASTNode> {
         @Override
         public Void visit(KApp kapp, Void _void) {
             term(kapp.getLabel());
-            string("(");
+            if(!(kapp.getLabel() instanceof Token) && !(kapp.getLabel() instanceof KInjectedLabel)){
+            string("`(");
             term(kapp.getChild());
             string(")");
+            }
             return null;
         }
 
@@ -665,6 +668,7 @@ public class Unparser implements Comparator<ASTNode> {
 
         @Override
         public Void visit(KLabelConstant kLabelConstant, Void _void) {
+            string("`");
             string(kLabelConstant.getLabel().replaceAll("`", "``").replaceAll("\\(", "`(").replaceAll("\\)", "`)").replaceAll(",", "`,"));
             return null;
         }
@@ -714,8 +718,8 @@ public class Unparser implements Comparator<ASTNode> {
         public Void visit(KInjectedLabel kInjectedLabel, Void _void) {
             Term term = kInjectedLabel.getTerm();
             if (term.getSort().isKSort()) {
-                string(KInjectedLabel.getInjectedSort(term.getSort()).getName());
-                string("2KLabel ");
+                //string(KInjectedLabel.getInjectedSort(term.getSort()).getName());
+                //string("2KLabel ");
             } else {
                 string("# ");
             }
@@ -829,7 +833,7 @@ public class Unparser implements Comparator<ASTNode> {
 
         @Override
         public Void visit(Token t, Void _void) {
-            string("#token(\"" + t.tokenSort() + "\", \"" + t.value() + "\")");
+            string("#token(" + StringUtil.enquoteKString(t.value()) + ",\"" + t.tokenSort() + "\")");
             return null;
         }
 
