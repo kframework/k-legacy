@@ -3,7 +3,6 @@
 package org.kframework.kore.convertors;
 
 import org.junit.Test;
-
 import org.kframework.backend.java.builtins.IntToken;
 import org.kframework.backend.java.builtins.UninterpretedToken;
 import org.kframework.backend.java.indexing.IndexingTable;

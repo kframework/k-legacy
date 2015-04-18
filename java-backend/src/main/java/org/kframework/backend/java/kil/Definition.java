@@ -3,7 +3,6 @@ package org.kframework.backend.java.kil;
 
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.indexing.IndexingTable;
-import org.kframework.backend.java.indexing.RuleIndex;
 import org.kframework.backend.java.symbolic.ConjunctiveFormula;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
@@ -45,6 +44,7 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.name.Names;
 import com.google.inject.Inject;
+
 import scala.collection.JavaConversions;
 
 
@@ -113,7 +113,7 @@ public class Definition extends JavaSymbolicObject {
 
     private transient KExceptionManager kem;
 
-    private RuleIndex index;
+    private IndexingTable index;
     public final IndexingTable.Data indexingData;
 
     private final Map<KItem.CacheTableColKey, KItem.CacheTableValue> sortCacheTable = new HashMap<>();
@@ -402,11 +402,11 @@ public class Definition extends JavaSymbolicObject {
         throw new UnsupportedOperationException();
     }
 
-    public void setIndex(RuleIndex index) {
+    public void setIndex(IndexingTable index) {
         this.index = index;
     }
 
-    public RuleIndex getIndex() {
+    public IndexingTable getIndex() {
         return index;
     }
 

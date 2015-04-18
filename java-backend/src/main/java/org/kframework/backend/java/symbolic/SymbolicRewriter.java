@@ -7,10 +7,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.FreshOperations;
 import org.kframework.backend.java.builtins.MetaK;
-import org.kframework.backend.java.indexing.RuleIndex;
+import org.kframework.backend.java.indexing.IndexingTable;
 import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.strategies.TransitionCompositeStrategy;
 import org.kframework.backend.java.util.Coverage;
@@ -45,7 +46,7 @@ public class SymbolicRewriter {
     private final List<Map<Variable, Term>> substitutions = Lists.newArrayList();
     private KRunGraph executionGraph = null;
     private boolean transition;
-    private RuleIndex ruleIndex;
+    private IndexingTable ruleIndex;
     private KRunState.Counter counter;
 
     @Inject
