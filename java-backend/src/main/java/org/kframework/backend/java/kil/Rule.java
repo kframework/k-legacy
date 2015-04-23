@@ -3,7 +3,6 @@
 package org.kframework.backend.java.kil;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +30,8 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 
@@ -51,6 +52,7 @@ public class Rule extends JavaSymbolicObject {
     private final ImmutableSet<Variable> freshVariables;
     private final ConjunctiveFormula lookups;
     private final IndexingPair indexingPair;
+    private final Map<CellLabel, IndexingPair> indexingPairs;
     private final boolean containsKCell;
 
     /**
@@ -148,18 +150,24 @@ public class Rule extends JavaSymbolicObject {
             this.indexingPair = oldRule.containsAttribute(Constants.STDIN) ?
                     IndexingPair.getInstreamIndexingPair(streamList, termContext.definition()) :
                     IndexingPair.getOutstreamIndexingPair(streamList, termContext.definition());
+            this.indexingPairs = null;
         } else {
-            Collection<IndexingPair> indexingPairs = leftHandSide.getKCellIndexingPairs(termContext.definition());
+            ListMultimap<CellLabel, IndexingPair> indexingPairs = leftHandSide.getCellIndexingPairs(termContext.definition());
 
             /*
              * Compute indexing information only if the left-hand side of this rule has precisely one
              * k cell; set indexing to top otherwise (this rule could rewrite any term).
              */
-            if (indexingPairs.size() == 1) {
-                this.indexingPair = indexingPairs.iterator().next();
-            } else {
-                this.indexingPair = termContext.definition().indexingData.TOP_INDEXING_PAIR;
+            ImmutableMap.Builder<CellLabel, IndexingPair> builder = ImmutableMap.builder();
+            for (Map.Entry<CellLabel, List<IndexingPair>> entry : Multimaps.asMap(indexingPairs).entrySet()) {
+                if (entry.getValue().size() == 1) {
+                    builder.put(entry.getKey(), entry.getValue().get(0));
+                } else {
+                    builder.put(entry.getKey(), termContext.definition().indexingData.TOP_INDEXING_PAIR);
+                }
             }
+            this.indexingPairs = builder.build();
+            this.indexingPair = null;
         }
 
         containsKCell = !leftHandSide.getCellContentsByName(CellLabel.K).isEmpty();
@@ -389,6 +397,10 @@ public class Rule extends JavaSymbolicObject {
 
     public IndexingPair indexingPair() {
         return indexingPair;
+    }
+
+    public Map<CellLabel, IndexingPair> indexingPairs() {
+        return indexingPairs;
     }
 
     public Term leftHandSide() {

@@ -1,11 +1,17 @@
 // Copyright (c) 2014-2015 K Team. All Rights Reserved.
 package org.kframework.backend.java.indexing;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableTable;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Table;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+
 import org.kframework.backend.java.kil.BuiltinList;
 import org.kframework.backend.java.kil.CellCollection;
 import org.kframework.backend.java.kil.CellLabel;
@@ -19,7 +25,12 @@ import org.kframework.kil.Attribute;
 import org.kframework.kil.loader.Constants;
 import org.kframework.utils.inject.RequestScoped;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.List;
@@ -29,16 +40,16 @@ import java.util.Set;
 /**
  * The indexing scheme currently used in the Java Backend
  */
-public class IndexingTable implements Serializable, RuleIndex {
+public class IndexingTable implements Serializable {
 
-    private Map<Index, ImmutableSet<Rule>> ruleTable;
+    private transient Table<CellLabel, Index, ImmutableSet<Rule>> ruleTable;
     private Map<Index, ImmutableSet<Rule>> heatingRuleTable;
     private Map<Index, ImmutableSet<Rule>> coolingRuleTable;
     private Map<Index, ImmutableSet<Rule>> instreamRuleTable;
     private Map<Index, ImmutableSet<Rule>> outstreamRuleTable;
     private ImmutableSet<Rule> unindexedRules;
-    private final Definition definition;
 
+    private final Definition definition;
     private final Data data;
 
     @RequestScoped
@@ -47,6 +58,7 @@ public class IndexingTable implements Serializable, RuleIndex {
         public final IndexingPair TOP_INDEXING_PAIR = new IndexingPair(TOP_INDEX, TOP_INDEX);
         public final BottomIndex BOTTOM_INDEX = new BottomIndex();
         public final IndexingPair BOTTOM_INDEXING_PAIR = new IndexingPair(BOTTOM_INDEX, BOTTOM_INDEX);
+        public final List<CellLabel> indexedCells = Collections.singletonList(CellLabel.K);
     }
 
     @Inject
@@ -56,15 +68,21 @@ public class IndexingTable implements Serializable, RuleIndex {
         buildIndex();
     }
 
-    @Override
     public void buildIndex() {
         /* populate the table of rules rewriting the top configuration */
         Set<Index> indices = new HashSet<Index>();
         indices.add(data.TOP_INDEX);
         indices.add(data.BOTTOM_INDEX);
         for (Rule rule : definition.rules()) {
-            addFreezerIndices(indices, rule.indexingPair().first);
-            addFreezerIndices(indices, rule.indexingPair().second);
+            if (rule.indexingPair() != null) {
+                addFreezerIndices(indices, rule.indexingPair().first);
+                addFreezerIndices(indices, rule.indexingPair().second);
+            } else {
+                for (IndexingPair pair : rule.indexingPairs().values()) {
+                    addFreezerIndices(indices, pair.first);
+                    addFreezerIndices(indices, pair.second);
+                }
+            }
         }
         for (KLabelConstant kLabel : definition.kLabels()) {
             indices.add(new KLabelIndex(kLabel));
@@ -81,14 +99,14 @@ public class IndexingTable implements Serializable, RuleIndex {
         /* Map each index to a list of rules unifiable with that index */
         /* Heating rules and regular rules have their first index checked */
         /* Cooling rules have their second index checked */
-        ImmutableMap.Builder<Index, ImmutableSet<Rule>> mapBuilder = ImmutableMap.builder();
+        ImmutableTable.Builder<CellLabel, Index, ImmutableSet<Rule>> tableBuilder = ImmutableTable.builder();
         ImmutableMap.Builder<Index, ImmutableSet<Rule>> heatingMapBuilder = ImmutableMap.builder();
         ImmutableMap.Builder<Index, ImmutableSet<Rule>> coolingMapBuilder = ImmutableMap.builder();
         ImmutableMap.Builder<Index, ImmutableSet<Rule>> instreamMapBuilder = ImmutableMap.builder();
         ImmutableMap.Builder<Index, ImmutableSet<Rule>> outstreamMapBuilder = ImmutableMap.builder();
 
         for (Index index : indices) {
-            ImmutableSet.Builder<Rule> rulesBuilder = ImmutableSet.builder();
+            Map<CellLabel, ImmutableSet.Builder<Rule>> rulesBuilders = new HashMap<>();
             ImmutableSet.Builder<Rule> heatingRulesBuilder = ImmutableSet.builder();
             ImmutableSet.Builder<Rule> coolingRulesBuilder = ImmutableSet.builder();
             ImmutableSet.Builder<Rule> instreamRulesBuilder = ImmutableSet.builder();
@@ -96,11 +114,11 @@ public class IndexingTable implements Serializable, RuleIndex {
 
             for (Rule rule : definition.rules()) {
                 if (rule.containsAttribute("heat")) {
-                    if (index.isUnifiable(rule.indexingPair().first)) {
+                    if (index.isUnifiable(rule.indexingPairs().get(CellLabel.K).first)) {
                         heatingRulesBuilder.add(rule);
                     }
                 } else if (rule.containsAttribute("cool")) {
-                    if (index.isUnifiable(rule.indexingPair().second)) {
+                    if (index.isUnifiable(rule.indexingPairs().get(CellLabel.K).second)) {
                         coolingRulesBuilder.add(rule);
                     }
                 } else if (rule.containsAttribute(Constants.STDIN)) {
@@ -112,16 +130,25 @@ public class IndexingTable implements Serializable, RuleIndex {
                         outstreamRulesBuilder.add(rule);
                     }
                 } else {
-                    if (index.isUnifiable(rule.indexingPair().first)) {
-                        rulesBuilder.add(rule);
+                    for (Map.Entry<CellLabel, IndexingPair> pair : rule.indexingPairs().entrySet()) {
+                        ImmutableSet.Builder<Rule> rulesBuilder = rulesBuilders.get(pair.getKey());
+                        if (rulesBuilder == null) {
+                            rulesBuilder = ImmutableSet.builder();
+                            rulesBuilders.put(pair.getKey(), rulesBuilder);
+                        }
+                        if (index.isUnifiable(pair.getValue().first)) {
+                            rulesBuilder.add(rule);
+                        }
                     }
                 }
             }
-            ImmutableSet<Rule> rules = rulesBuilder.build();
-            if (!rules.isEmpty()) {
-                mapBuilder.put(index, rules);
+            for (Map.Entry<CellLabel, ImmutableSet.Builder<Rule>> entry : rulesBuilders.entrySet()) {
+                ImmutableSet<Rule> rules = entry.getValue().build();
+                if (!rules.isEmpty()) {
+                    tableBuilder.put(entry.getKey(), index, rules);
+                }
             }
-            rules = heatingRulesBuilder.build();
+            ImmutableSet<Rule> rules = heatingRulesBuilder.build();
             if (!rules.isEmpty()) {
                 heatingMapBuilder.put(index, rules);
             }
@@ -142,7 +169,7 @@ public class IndexingTable implements Serializable, RuleIndex {
         coolingRuleTable = coolingMapBuilder.build();
         instreamRuleTable = instreamMapBuilder.build();
         outstreamRuleTable = outstreamMapBuilder.build();
-        ruleTable = mapBuilder.build();
+        ruleTable = tableBuilder.build();
 
         ImmutableSet.Builder<Rule> unindexedRulesBuilder = ImmutableSet.builder();
         for (Rule rule : definition.rules()) {
@@ -168,12 +195,10 @@ public class IndexingTable implements Serializable, RuleIndex {
      * @param term  The term being re-written
      * @return  A list of rules that may apply
      */
-    @Override
     public List<Rule> getRules(Term term) {
         return getRulesFromCfgTermIdx(getConfigurationTermIndex(term));
     }
 
-    @Override
     public List<Rule> getRules(List<CellCollection.Cell> indexingCells) {
         return getRulesFromCfgTermIdx(getConfigurationTermIndex(indexingCells));
     }
@@ -202,15 +227,19 @@ public class IndexingTable implements Serializable, RuleIndex {
             }
         }
 
-        for (IndexingPair pair : cfgTermIdx.getKCellIndexingPairs()) {
-            if (ruleTable.get(pair.first) != null) {
-                rules.addAll(ruleTable.get(pair.first));
-            }
-            if (heatingRuleTable.get(pair.first) != null) {
-                rules.addAll(heatingRuleTable.get(pair.first));
-            }
-            if (coolingRuleTable.get(pair.second) != null) {
-                rules.addAll(coolingRuleTable.get(pair.second));
+        for (CellLabel cell : data.indexedCells) {
+            for (IndexingPair pair : cfgTermIdx.getCellIndexingPairs().get(cell)) {
+                if (ruleTable.get(cell, pair.first) != null) {
+                    rules.addAll(ruleTable.get(cell, pair.first));
+                }
+                if (cell.equals(CellLabel.K)) {
+                    if (heatingRuleTable.get(pair.first) != null) {
+                        rules.addAll(heatingRuleTable.get(pair.first));
+                    }
+                    if (coolingRuleTable.get(pair.second) != null) {
+                        rules.addAll(coolingRuleTable.get(pair.second));
+                    }
+                }
             }
         }
 
@@ -230,10 +259,12 @@ public class IndexingTable implements Serializable, RuleIndex {
                 message.append(pair);
                 message.append("\n");
             }
-            for (IndexingPair pair : cfgTermIdx.getKCellIndexingPairs()) {
-                message.append("Could not find rule matching K cell index ");
-                message.append(pair);
-                message.append("\n");
+            for (CellLabel cell : cfgTermIdx.getCellIndexingPairs().keySet()) {
+                for (IndexingPair pair : cfgTermIdx.getCellIndexingPairs().get(cell)) {
+                    message.append("Could not find rule matching " + cell.name() + " cell index ");
+                    message.append(pair);
+                    message.append("\n");
+                }
             }
             throw RuleAuditing.fail(message.toString());
         }
@@ -242,7 +273,7 @@ public class IndexingTable implements Serializable, RuleIndex {
     }
 
     private ConfigurationTermIndex getConfigurationTermIndex(List<CellCollection.Cell> indexingCells) {
-        List<IndexingPair> kCellIndexingPairs = new ArrayList<>();
+        ListMultimap<CellLabel, IndexingPair> cellIndexingPairs = ArrayListMultimap.create();
         List<IndexingPair> instreamIndexingPairs = new ArrayList<>();
         List<IndexingPair> outstreamIndexingPairs = new ArrayList<>();
         int maxInputBufLen = 0;
@@ -253,8 +284,8 @@ public class IndexingTable implements Serializable, RuleIndex {
             String streamCellAttr = definition.getConfigurationStructureMap()
                     .get(cellLabel.name()).cell.getCellAttribute(Attribute.STREAM_KEY);
 
-            if (cellLabel.equals(CellLabel.K)) {
-                kCellIndexingPairs.add(IndexingPair.getKCellIndexingPair(cell.content(), definition));
+            if (data.indexedCells.contains(cellLabel)) {
+                cellIndexingPairs.put(cellLabel, IndexingPair.getCellIndexingPair(cell.content(), definition));
             } else if (Constants.STDIN.equals(streamCellAttr)) {
                 Term instream = cell.content();
                 instreamIndexingPairs.add(IndexingPair.getInstreamIndexingPair(instream, definition));
@@ -272,13 +303,31 @@ public class IndexingTable implements Serializable, RuleIndex {
             }
         }
 
-        return new ConfigurationTermIndex(kCellIndexingPairs,
+        return new ConfigurationTermIndex(cellIndexingPairs,
                 instreamIndexingPairs, outstreamIndexingPairs,
                 maxInputBufLen, maxOutputBufLen);
     }
 
     private ConfigurationTermIndex getConfigurationTermIndex(Term term) {
-        return getConfigurationTermIndex(IndexingCellsCollector.getIndexingCells(term, definition));
+        return getConfigurationTermIndex(IndexingCellsCollector.getIndexingCells(
+                term, definition, data.indexedCells));
     }
 
+    /**
+     * we serialize as a HashBasedTable because for some reason Google never got around to making
+     * ImmutableTable implement Serializable.
+     * @param stream
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    @SuppressWarnings("unchecked")
+    private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        ruleTable = ImmutableTable.copyOf((Table<CellLabel, Index, ImmutableSet<Rule>>) stream.readObject());
+    }
+
+    private void writeObject(ObjectOutputStream stream) throws IOException {
+        stream.defaultWriteObject();
+        stream.writeObject(HashBasedTable.create(ruleTable));
+    }
 }

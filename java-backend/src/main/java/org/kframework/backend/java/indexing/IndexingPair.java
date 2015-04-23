@@ -34,7 +34,7 @@ public class IndexingPair implements Serializable {
         return definition.indexingData.TOP_INDEX;
     }
 
-    public static IndexingPair getKCellIndexingPair(Term term, Definition definition) {
+    public static IndexingPair getCellIndexingPair(Term term, Definition definition) {
         if (term instanceof KSequence) {
             KSequence kSequence = (KSequence) term;
 

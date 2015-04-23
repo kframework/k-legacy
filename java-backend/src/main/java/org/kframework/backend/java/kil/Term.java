@@ -14,6 +14,9 @@ import org.kframework.backend.java.symbolic.Transformable;
 import org.kframework.backend.java.symbolic.Unifiable;
 import org.kframework.backend.java.util.Utils;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,10 +51,12 @@ public abstract class Term extends JavaSymbolicObject implements Transformable, 
      * Returns a {@link List} view of the indexing pairs from the {@code k}
      * cells of this {@code Term}.
      */
-    public List<IndexingPair> getKCellIndexingPairs(final Definition definition) {
-        final List<IndexingPair> indexingPairs = new ArrayList<>();
-        for (Term content : getCellContentsByName(CellLabel.K)) {
-            indexingPairs.add(IndexingPair.getKCellIndexingPair(content, definition));
+    public ListMultimap<CellLabel, IndexingPair> getCellIndexingPairs(final Definition definition) {
+        final ListMultimap<CellLabel, IndexingPair> indexingPairs = ArrayListMultimap.create();
+        for (CellLabel label : definition.indexingData.indexedCells) {
+            for (Term content : getCellContentsByName(label)) {
+                indexingPairs.put(label, IndexingPair.getCellIndexingPair(content, definition));
+            }
         }
         return indexingPairs;
     }
