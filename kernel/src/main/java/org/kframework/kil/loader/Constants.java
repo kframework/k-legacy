@@ -79,6 +79,10 @@ public class Constants {
     public static final String ANYWHERE = "anywhere";
     public static final String REGEX = "regex";
     public static final String SOURCE_ATTR = "source";
+    public static final String NOT_IN_RULES = "notInRules";
+    public static final String NOT_IN_GROUND = "notInGround";
+    public static final String NOT_IN_PROGRAMS = "notInPrograms";
+    public static final String ONLY_LABEL = "onlyLabel";
 
     // Streams
     public static final String STDIN = "stdin";

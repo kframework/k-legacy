@@ -39,8 +39,8 @@ public class CollectSubsortsVisitor extends BasicVisitor {
         if (!prd.getSort().isBaseSort())
             context.addSyntacticSubsort(Sort.KITEM, prd.getSort());
         if (prd.isSyntacticSubsort()) {
-            if (!prd.containsAttribute("onlyLabel")
-                    && !prd.containsAttribute("notInRules")) {
+            if (!prd.containsAttribute(Constants.ONLY_LABEL)
+                    && !prd.containsAttribute(Constants.NOT_IN_RULES)) {
                 Sort sort = ((NonTerminal) prd.getItems().get(0)).getSort();
                 context.addSyntacticSubsort(prd.getSort(), sort);
             }

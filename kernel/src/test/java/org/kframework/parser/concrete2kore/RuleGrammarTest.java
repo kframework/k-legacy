@@ -297,9 +297,21 @@ public class RuleGrammarTest {
     // test the new regex engine
     @Test
     public void test17() {
-        Automaton a = new RegExp("[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]").toAutomaton();
+        Automaton a = new RegExp("[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][u][0-9a-fA-F]{8}))*[\\\"]").toAutomaton();
         RunAutomaton ra = new RunAutomaton(a, false);
-        System.out.println(ra.run("\"n\\\\\\\"\""));
+        System.out.println(ra.run("\"\u202F\""));
+    }
+
+    // test list desuggaring
+    @Test
+    public void test19() {
+        String def = "" +
+                "module TEST " +
+                "syntax Exps ::= List{Exp,\",\"} [klabel('Exps)] " +
+                "syntax Exp ::= \"a\" [klabel('a)] " +
+                "syntax K " +
+                "endmodule";
+        parseRule("A:Exps, B:Exps", def, 0, false);
     }
 
     // test unicode chars

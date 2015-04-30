@@ -134,11 +134,11 @@ public class CheckSyntaxDecl extends BasicVisitor {
         if (eTerminals > 0 && (neTerminals == 0 || sorts < 2)) {
             // if it is an epsilon transition, it must contain a klabel and one of:
             // onlyLabel or (notInRules, notInGround)
-            if (!((node.containsAttribute("onlyLabel") ||
-                    (node.containsAttribute("notInRules") && node.containsAttribute("notInGround")))
+            if (!((node.containsAttribute(Constants.ONLY_LABEL) ||
+                    (node.containsAttribute(Constants.NOT_IN_RULES) && node.containsAttribute(Constants.NOT_IN_GROUND)))
                     && node.containsAttribute("klabel"))) {
                 String msg = "Cannot declare empty terminals in the definition.\n";
-                msg += "        Use attribute 'onlyLabel', or both 'notInRules' and 'notInGround'\n";
+                msg += "        Use attribute '" + Constants.ONLY_LABEL + "', or both '" + Constants.NOT_IN_RULES + "' and '" + Constants.NOT_IN_GROUND + "'\n";
                 msg += "        paired with 'klabel(...)' to limit the use to programs.";
                 throw KExceptionManager.compilerError(msg, this, node);
             }

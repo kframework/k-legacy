@@ -53,7 +53,7 @@ public class Attribute<T> extends ASTNode {
     public static final Attribute<String> MACRO = Attribute.of(MACRO_KEY, "");
     public static final Attribute<String> ANYWHERE = Attribute.of("anywhere", "");
     public static final Attribute<String> TRANSITION = Attribute.of("transition", "");
-    public static final Attribute<String> NOT_IN_RULES = Attribute.of("notInRules", "");
+    public static final Attribute<String> NOT_IN_RULES = Attribute.of(Constants.NOT_IN_RULES, "");
     public static final Attribute<String> VARIABLE = Attribute.of("variable", "");
     public static final Attribute<String> SUPERCOOL = Attribute.of("supercool", "");
     public static final Attribute<String> SUPERHEAT = Attribute.of("superheat", "");

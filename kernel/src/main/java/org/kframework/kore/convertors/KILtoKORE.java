@@ -13,6 +13,7 @@ import org.kframework.definition.RegexTerminal;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Tag;
 import org.kframework.kil.*;
+import org.kframework.kil.loader.Constants;
 import org.kframework.kore.AbstractKORETransformer;
 import org.kframework.kore.InjectedKLabel;
 import org.kframework.kore.K;
@@ -294,7 +295,7 @@ public class KILtoKORE extends KILTransformation<Object> {
                 // Handle a special case first: List productions have only
                 // one item.
                 if (p.getItems().size() == 1 && p.getItems().get(0) instanceof UserList) {
-                    applyUserList(res, sort, p, (UserList) p.getItems().get(0), syntactic);
+                    applyUserList(res, sort, p, (UserList) p.getItems().get(0));
                 } else {
                     List<ProductionItem> items = new ArrayList<>();
                     for (org.kframework.kil.ProductionItem it : p.getItems()) {
@@ -379,8 +380,7 @@ public class KILtoKORE extends KILTransformation<Object> {
     }
 
     public void applyUserList(Set<org.kframework.definition.Sentence> res,
-                              org.kframework.kore.Sort sort, Production p, UserList userList,
-                              boolean forPrograms) {
+                              org.kframework.kore.Sort sort, Production p, UserList userList) {
         boolean nonEmpty = userList.getListType().equals(UserList.ONE_OR_MORE);
 
         org.kframework.kore.Sort elementSort = apply(userList.getSort());
@@ -396,55 +396,53 @@ public class KILtoKORE extends KILTransformation<Object> {
         Att attrsWithKilProductionId = attrs.add(KILtoInnerKORE.PRODUCTION_ID, kilProductionId);
         org.kframework.definition.Production prod1, prod2, prod3;
 
-        if (forPrograms) {
-            org.kframework.definition.Production prod4, prod5;
+        org.kframework.definition.Production prod4, prod5;
+        Att progAttrs = attrsWithKilProductionId.add(Constants.NOT_IN_GROUND).add(Constants.NOT_IN_RULES);
 
-            // IdsTerminator ::= "" [klabel('.Ids)]
-            prod1 = Production(dropQuote(p.getTerminatorKLabel()), Sort(sort.name() + "Terminator"), Seq(Terminal("")),
-                    attrsWithKilProductionId.add("#klabel", dropQuote(p.getTerminatorKLabel())));
-            // NeIds ::= Id "," NeIds [klabel('_,_)]
-            prod2 = Production(dropQuote(p.getKLabel()), Sort("Ne" + sort.name()),
-                    Seq(NonTerminal(elementSort), Terminal(userList.getSeparator()), NonTerminal(Sort("Ne" + sort.name()))),
-                    attrsWithKilProductionId.add("#klabel", dropQuote(p.getKLabel())));
-            // NeIds ::= Id IdsTerminator [klabel('_,_)]
-            prod3 = Production(dropQuote(p.getKLabel()), Sort("Ne" + sort.name()),
-                    Seq(NonTerminal(elementSort), NonTerminal(Sort(sort.name() + "Terminator"))),
-                    attrsWithKilProductionId.add("#klabel", p.getKLabel()));
-            // Ids ::= NeIds
-            prod4 = Production(sort, Seq(NonTerminal(Sort("Ne" + sort.name()))),
-                    attrsWithKilProductionId);
-            // Ids ::= IdsTerminator // if the list is *
-            prod5 = Production(sort, Seq(NonTerminal(Sort(sort.name() + "Terminator"))),
-                    attrsWithKilProductionId);
+        // IdsTerminator ::= "" [klabel('.Ids)]
+        prod1 = Production(dropQuote(p.getTerminatorKLabel()), Sort(sort.name() + "Terminator"), Seq(Terminal("")),
+                progAttrs.add("#klabel", dropQuote(p.getTerminatorKLabel())));
+        // NeIds ::= Id "," NeIds [klabel('_,_)]
+        prod2 = Production(dropQuote(p.getKLabel()), Sort("Ne" + sort.name()),
+                Seq(NonTerminal(elementSort), Terminal(userList.getSeparator()), NonTerminal(Sort("Ne" + sort.name()))),
+                progAttrs.add("#klabel", dropQuote(p.getKLabel())));
+        // NeIds ::= Id IdsTerminator [klabel('_,_)]
+        prod3 = Production(dropQuote(p.getKLabel()), Sort("Ne" + sort.name()),
+                Seq(NonTerminal(elementSort), NonTerminal(Sort(sort.name() + "Terminator"))),
+                progAttrs.add("#klabel", p.getKLabel()));
+        // Ids ::= NeIds
+        prod4 = Production(sort, Seq(NonTerminal(Sort("Ne" + sort.name()))),
+                progAttrs);
+        // Ids ::= IdsTerminator // if the list is *
+        prod5 = Production(sort, Seq(NonTerminal(Sort(sort.name() + "Terminator"))),
+                progAttrs);
 
-            res.add(prod1);
-            res.add(prod2);
-            res.add(prod3);
-            res.add(prod4);
-            res.add(SyntaxSort(Sort(sort.name() + "Terminator")));
-            res.add(SyntaxSort(Sort("Ne" + sort.name())));
-            if (!nonEmpty) {
-                res.add(prod5);
-            }
-        } else {
-            // lst ::= lst sep lst
-            prod1 = Production(sort,
-                    Seq(NonTerminal(sort), Terminal(userList.getSeparator()), NonTerminal(sort)),
-                    attrsWithKilProductionId.add("#klabel", dropQuote(p.getKLabel())));
-
-            // lst ::= elem
-            prod2 = Production(sort, Seq(NonTerminal(elementSort)), attrsWithKilProductionId.remove("strict"));
-
-            // lst ::= .UserList
-            prod3 = Production(sort, Seq(Terminal("." + sort.toString())),
-                    attrsWithKilProductionId.remove("strict").add("#klabel", dropQuote(p.getTerminatorKLabel())));
-
-            res.add(prod1);
-            res.add(prod2);
-            if (!nonEmpty) {
-                res.add(prod3);
-            }
+        res.add(prod1);
+        res.add(prod2);
+        res.add(prod3);
+        res.add(prod4);
+        res.add(SyntaxSort(Sort(sort.name() + "Terminator"), progAttrs));
+        res.add(SyntaxSort(Sort("Ne" + sort.name()), progAttrs));
+        if (!nonEmpty) {
+            res.add(prod5);
         }
+
+        Att rulesAttrs = attrsWithKilProductionId.add(Constants.NOT_IN_PROGRAMS);
+        // lst ::= lst sep lst
+        prod1 = Production(sort,
+                Seq(NonTerminal(sort), Terminal(userList.getSeparator()), NonTerminal(sort)),
+                rulesAttrs.add("#klabel", dropQuote(p.getKLabel())));
+
+        // lst ::= elem
+        prod2 = Production(sort, Seq(NonTerminal(elementSort)), rulesAttrs.remove("strict"));
+
+        // lst ::= .UserList
+        prod3 = Production(sort, Seq(Terminal("." + sort.toString())),
+                rulesAttrs.remove("strict").add("#klabel", dropQuote(p.getTerminatorKLabel())));
+
+        res.add(prod1);
+        res.add(prod2);
+        res.add(prod3);
     }
 
     public String dropQuote(String s) {

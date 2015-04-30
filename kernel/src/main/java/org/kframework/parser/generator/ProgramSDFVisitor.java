@@ -19,6 +19,7 @@ import org.kframework.kil.Sort;
 import org.kframework.kil.Syntax;
 import org.kframework.kil.Terminal;
 import org.kframework.kil.UserList;
+import org.kframework.kil.loader.Constants;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.BasicVisitor;
 import org.kframework.utils.StringUtil;
@@ -111,7 +112,7 @@ public class ProgramSDFVisitor extends BasicVisitor {
             for (Production prd : prt.getProductions()) {
                 startSorts.add(prd.getSort());
 
-                if (prd.containsAttribute("notInPrograms")) {
+                if (prd.containsAttribute(Constants.NOT_IN_PROGRAMS)) {
                     // if a production has this attribute, don't add it to the list
                 } else if (prd.isLexical()) {
                     lexical.add(prd);

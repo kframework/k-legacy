@@ -10,7 +10,9 @@ import org.kframework.definition.Production;
 import org.kframework.definition.ProductionItem;
 import org.kframework.definition.RegexTerminal;
 import org.kframework.definition.Sentence;
+import org.kframework.definition.SyntaxSort;
 import org.kframework.definition.Terminal;
+import org.kframework.kil.loader.Constants;
 import org.kframework.kore.Sort;
 import org.kframework.utils.StringUtil;
 import scala.collection.immutable.List;
@@ -72,13 +74,43 @@ public class RuleGrammarGenerator {
     }
 
     public Module getRuleGrammar(Module mod) {
-        Module newM = new Module(mod.name() + "-" + RULE_CELLS, Set(mod, baseK.getModule(K).get(), baseK.getModule(RULE_CELLS).get()), Set(), null);
-        return getCombinedGrammar(newM);
+        Module newM = new Module(mod.name() + "-" + RULE_CELLS,
+                Set(baseK.getModule(K).get(), baseK.getModule(RULE_CELLS).get()),
+                stream(mod.sentences()).filter(p -> !((p instanceof Production || p instanceof SyntaxSort) && p.att().contains(Constants.NOT_IN_RULES))).collect(Collections.toSet()),
+                null);
+        Module ret = getCombinedGrammar(newM);
+        return ret;
     }
 
     public Module getConfigGrammar(Module mod) {
-        Module newM = new Module(mod.name() + "-" + CONFIG_CELLS, Set(mod, baseK.getModule(K).get(), baseK.getModule(CONFIG_CELLS).get()), Set(), null);
-        return getCombinedGrammar(newM);
+        Module newM = new Module(mod.name() + "-" + CONFIG_CELLS,
+                Set(baseK.getModule(K).get(), baseK.getModule(CONFIG_CELLS).get()),
+                stream(mod.sentences()).filter(p -> !((p instanceof Production || p instanceof SyntaxSort) && p.att().contains(Constants.NOT_IN_GROUND))).collect(Collections.toSet()),
+                null);
+        Module ret = getCombinedGrammar(newM);
+        return ret;
+    }
+
+    // TODO(radumereuta): split K-SORT-LATTICE into K-TOP-SORT and K-BOTTOM-SORT, and replace this function with
+    // K-TOP-SORT
+    public Module getProgramsGrammar(Module mod) {
+        Set<Sentence> prods = new HashSet<>();
+
+        // if no start symbol has been defined in the configuration, then use K
+        for (Sort srt : iterable(mod.definedSorts())) {
+            if (!kSorts.contains(srt) && !mod.listSorts().contains(srt)) {
+                // K ::= Sort
+                prods.add(Production(KTop, Seq(NonTerminal(srt)), Att()));
+            }
+        }
+
+        Module filteredMod = new Module(mod.name() + "-FILTERED-FOR-PROGRAMS",
+                Set(mod),
+                stream(mod.sentences()).filter(p -> !((p instanceof Production || p instanceof SyntaxSort) && p.att().contains(Constants.NOT_IN_PROGRAMS))).collect(Collections.toSet()),
+                null);
+        Module newM = new Module(mod.name() + "-FOR-PROGRAMS", Set(filteredMod), immutable(prods), null);
+        Module ret = getCombinedGrammar(newM);
+        return ret;
     }
 
     /**
@@ -147,6 +179,7 @@ public class RuleGrammarGenerator {
                     List<ProductionItem> items = stream(p.items()).map(pi -> {
                         if (pi instanceof Terminal) {
                             Terminal t = (Terminal) pi;
+                            if (t.value().equals("")) return pi;
                             Set<String> follow = new HashSet<>();
                             for (String biggerString : terminals.prefixMap(t.value()).keySet()) {
                                 if (!t.value().equals(biggerString)) {
@@ -184,22 +217,5 @@ public class RuleGrammarGenerator {
         prods.add(Production("#InnerCast",     outerSort, Seq(NonTerminal(castSort), Terminal("<:" + castSort.name())), attrs1));
         prods.add(Production("#OuterCast",     castSort, Seq(NonTerminal(innerSort), Terminal(":>" + castSort.name())), attrs1));
         return prods;
-    }
-
-    // TODO(radumereuta): split K-SORT-LATTICE into K-TOP-SORT and K-BOTTOM-SORT, and replace this function with
-    // K-TOP-SORT
-    public Module getProgramsGrammar(Module mod) {
-        Set<Sentence> prods = new HashSet<>();
-
-        // if no start symbol has been defined in the configuration, then use K
-        for (Sort srt : iterable(mod.definedSorts())) {
-            if (!kSorts.contains(srt) && !mod.listSorts().contains(srt)) {
-                // K ::= Sort
-                prods.add(Production(KTop, Seq(NonTerminal(srt)), Att()));
-            }
-        }
-
-        Module newM = new Module(mod.name() + "-FOR-PROGRAMS", Set(mod), immutable(prods), null);
-        return getCombinedGrammar(newM);
     }
 }

@@ -19,6 +19,7 @@ import org.kframework.kil.Sort;
 import org.kframework.kil.Syntax;
 import org.kframework.kil.Terminal;
 import org.kframework.kil.UserList;
+import org.kframework.kil.loader.Constants;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.loader.Subsort;
 import org.kframework.kil.visitors.BasicVisitor;
@@ -106,11 +107,11 @@ public class DefinitionSDFVisitor extends BasicVisitor {
 
             // filter the productions according to their form
             for (Production prd : prt.getProductions()) {
-                if (prd.containsAttribute("onlyLabel")) {
+                if (prd.containsAttribute(Constants.ONLY_LABEL)) {
                     // if a production has this attribute, don't add it to the list
-                } else if (prd.containsAttribute("notInRules") && !ground) {
+                } else if (prd.containsAttribute(Constants.NOT_IN_RULES) && !ground) {
                     // if a production has this attribute, don't add it to the list
-                } else if (prd.containsAttribute("notInGround") && ground) {
+                } else if (prd.containsAttribute(Constants.NOT_IN_GROUND) && ground) {
                     // if a production has this attribute, don't add it to the list
                 } else if (prd.isLexical()) {
                     lexical.add(prd);
