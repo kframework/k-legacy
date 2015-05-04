@@ -11,7 +11,7 @@ import org.kframework.backend.java.compile.DataStructureToLookupUpdate;
 import org.kframework.backend.java.compile.GenerateKRewriteMachineInstructions;
 import org.kframework.backend.java.compile.JavaBackendCell2DataStructure;
 import org.kframework.backend.java.compile.KORECompilationSteps;
-import org.kframework.backend.java.indexing.RuleIndex;
+import org.kframework.backend.java.indexing.IndexingTable;
 import org.kframework.compile.FlattenModules;
 import org.kframework.compile.ResolveConfigurationAbstraction;
 import org.kframework.compile.checks.CheckConfigurationCells;
@@ -48,7 +48,7 @@ public class JavaSymbolicBackend extends BasicBackend {
     public static final String DEFINITION_FILENAME = "java_symbolic_definition.bin";
 
     private final BinaryLoader loader;
-    private final Provider<RuleIndex> index;
+    private final Provider<IndexingTable> index;
     private final Provider<KILtoBackendJavaKILTransformer> transformer;
     private final FileUtil files;
     private final KExceptionManager kem;
@@ -59,7 +59,7 @@ public class JavaSymbolicBackend extends BasicBackend {
             Context context,
             KompileOptions options,
             BinaryLoader loader,
-            Provider<RuleIndex> index,
+            Provider<IndexingTable> index,
             Provider<KILtoBackendJavaKILTransformer> transformer,
             FileUtil files,
             KExceptionManager kem) {

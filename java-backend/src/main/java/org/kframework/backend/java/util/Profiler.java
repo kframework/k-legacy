@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections4.comparators.ReverseComparator;
 import org.kframework.backend.java.kil.KLabelConstant;
+import org.kframework.backend.java.kil.Rule;
 
 import com.google.common.base.Stopwatch;
 
@@ -45,6 +46,7 @@ public class Profiler {
     public static final ReentrantStopwatch DEEP_CLONE_TIMER                 =   new ReentrantStopwatch("Deep clone");
 
     private static final Map<KLabelConstant, ReentrantStopwatch> FUNCTION_PROFILING_TIMERS = new HashMap<>();
+    private static final Map<Rule, ReentrantStopwatch> RULE_PROFILING_TIMERS = new HashMap<>();
 
     public static ReentrantStopwatch getTimerForFunction(KLabelConstant klabel) {
         if (enableProfilingMode.get()) {
@@ -53,6 +55,21 @@ public class Profiler {
                 if (stopwatch == null) {
                    stopwatch = new ReentrantStopwatch(klabel.label());
                    FUNCTION_PROFILING_TIMERS.put(klabel, stopwatch);
+                }
+                return stopwatch;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public static ReentrantStopwatch getTimerForRule(Rule rule) {
+        if (enableProfilingMode.get()) {
+            synchronized(RULE_PROFILING_TIMERS) {
+                ReentrantStopwatch stopwatch = RULE_PROFILING_TIMERS.get(rule);
+                if (stopwatch == null) {
+                   stopwatch = new ReentrantStopwatch(rule.getSource().toString() + rule.getLocation());
+                   RULE_PROFILING_TIMERS.put(rule, stopwatch);
                 }
                 return stopwatch;
             }
@@ -94,6 +111,14 @@ public class Profiler {
             sorted.addAll(FUNCTION_PROFILING_TIMERS.values());
             Iterator<ReentrantStopwatch> iter = sorted.iterator();
             for (int i = 0; i < 10 && iter.hasNext(); i++) {
+                ReentrantStopwatch stopwatch = iter.next();
+                System.err.printf("%s = %s%n", stopwatch.name, stopwatch.toString());
+            }
+            System.err.println("Top 20 most expensive rules:");
+            sorted = new TreeSet<>(new ReverseComparator<>());
+            sorted.addAll(RULE_PROFILING_TIMERS.values());
+            iter = sorted.iterator();
+            for (int i = 0; i < 20 && iter.hasNext(); i++) {
                 ReentrantStopwatch stopwatch = iter.next();
                 System.err.printf("%s = %s%n", stopwatch.name, stopwatch.toString());
             }
