@@ -238,9 +238,6 @@ public class PatternMatcher extends AbstractUnifier {
         }
 
         // TODO(AndreiS): implement AC matching/unification
-        /* stash the existing substitution */
-        ConjunctiveFormula stashedSubstitution = fSubstitution;
-
         Set<PartialSubstitution> partialSubstitutions = new HashSet<>();
         partialSubstitutions.add(new PartialSubstitution(
                 ImmutableSet.<Term>of(),
@@ -250,15 +247,14 @@ public class PatternMatcher extends AbstractUnifier {
         for (Map.Entry<Term, Term> patternEntry : patternBuiltinMap.getEntries().entrySet()) {
             List<PartialSubstitution> stepSubstitutions = new ArrayList<>();
             for (Map.Entry<Term, Term> entry : builtinMap.getEntries().entrySet()) {
-                fSubstitution = ConjunctiveFormula.of(termContext);
-                if (patternMatch(entry.getKey(), patternEntry.getKey())
-                        && patternMatch(entry.getValue(), patternEntry.getValue())) {
-                    assert fSubstitution.isSubstitution();
+                PatternMatcher matcher = new PatternMatcher(matchOnFunctionSymbol, termContext);
+                matcher.addUnificationTask(entry.getKey(), patternEntry.getKey());
+                matcher.addUnificationTask(entry.getValue(), patternEntry.getValue());
+                if (matcher.unify()) {
                     stepSubstitutions.add(new PartialSubstitution(
                             ImmutableSet.of(entry.getKey()),
-                            fSubstitution.substitution()));
+                            matcher.substitution()));
                 }
-                fSubstitution = null;
             }
             partialSubstitutions = getCrossProduct(partialSubstitutions, stepSubstitutions);
         }
@@ -267,22 +263,17 @@ public class PatternMatcher extends AbstractUnifier {
         for (KItem patternKItem : patternBuiltinMap.collectionPatterns()) {
             List<PartialSubstitution> stepSubstitutions = new ArrayList<>();
             for (KItem kItem : builtinMap.collectionPatterns()) {
-                fSubstitution = ConjunctiveFormula.of(termContext);
                 if (kItem.kLabel().equals(patternKItem.kLabel())) {
-                    if (patternMatch(kItem.kList(), patternKItem.kList())) {
-                        assert fSubstitution.isSubstitution();
+                    PatternMatcher matcher = new PatternMatcher(matchOnFunctionSymbol, termContext);
+                    if (matcher.patternMatch(kItem.kList(), patternKItem.kList())) {
                         stepSubstitutions.add(new PartialSubstitution(
                                 ImmutableSet.<Term>of(kItem),
-                                fSubstitution.substitution()));
+                                matcher.substitution()));
                     }
                 }
-                fSubstitution = null;
             }
             partialSubstitutions = getCrossProduct(partialSubstitutions, stepSubstitutions);
         }
-
-        /* restore the main substitution */
-        fSubstitution = stashedSubstitution;
 
         if (partialSubstitutions.isEmpty()) {
             fail(builtinMap, patternBuiltinMap);
