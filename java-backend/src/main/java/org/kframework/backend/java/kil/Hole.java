@@ -57,11 +57,6 @@ public final class Hole extends Term implements MaximalSharing {
     }
 
     @Override
-    public void accept(Unifier unifier, Term patten) {
-        unifier.unify(this, patten);
-    }
-
-    @Override
     public void accept(Matcher matcher, Term pattern) {
         matcher.match(this, pattern);
     }

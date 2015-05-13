@@ -173,11 +173,6 @@ public class KSequence extends KCollection implements org.kframework.kore.KSeque
     }
 
     @Override
-    public void accept(Unifier unifier, Term pattern) {
-        unifier.unify(this, pattern);
-    }
-
-    @Override
     public void accept(Matcher matcher, Term pattern) {
         matcher.match(this, pattern);
     }

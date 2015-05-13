@@ -93,11 +93,6 @@ public class KItemProjection extends Term {
     }
 
     @Override
-    public void accept(Unifier unifier, Term pattern) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void accept(Matcher matcher, Term pattern) {
         throw new UnsupportedOperationException();
     }

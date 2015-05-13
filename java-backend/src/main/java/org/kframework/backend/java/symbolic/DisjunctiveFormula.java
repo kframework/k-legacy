@@ -118,9 +118,4 @@ public class DisjunctiveFormula extends Term implements CollectionInternalRepres
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public void accept(Unifier unifier, Term pattern) {
-        throw new UnsupportedOperationException();
-    }
-
 }

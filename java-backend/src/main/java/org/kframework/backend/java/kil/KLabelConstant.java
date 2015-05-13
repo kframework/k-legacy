@@ -191,11 +191,6 @@ public class KLabelConstant extends KLabel implements MaximalSharing, org.kframe
     }
 
     @Override
-    public void accept(Unifier unifier, Term pattern) {
-        unifier.unify(this, pattern);
-    }
-
-    @Override
     public void accept(Matcher matcher, Term pattern) {
         matcher.match(this, pattern);
     }

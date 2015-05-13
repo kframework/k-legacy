@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 /**
  * @author YilongL
  */
-public class PatternMatcher extends AbstractMatcher {
+public class PatternMatcher extends AbstractUnifier {
 
     /**
      * Represents the substitution after the pattern matching.
@@ -53,12 +53,6 @@ public class PatternMatcher extends AbstractMatcher {
      * </pre>
      */
     private ConjunctiveFormula fSubstitution;
-
-    /**
-     * Records whether the pattern matcher is currently traversing under a
-     * starred cell.
-     */
-    private boolean isStarNested;
 
     private final boolean matchOnFunctionSymbol;
 
@@ -90,13 +84,7 @@ public class PatternMatcher extends AbstractMatcher {
      *         {@code false}
      */
     public static boolean matchable(Term subject, Term pattern, TermContext context) {
-        PatternMatcher matcher = new PatternMatcher(false, context);
-        try {
-            matcher.match(subject, pattern);
-        } catch (PatternMatchingFailure e) {
-            return false;
-        }
-        return true;
+        return new PatternMatcher(false, context).patternMatch(subject, pattern);
     }
 
     /**
@@ -143,45 +131,18 @@ public class PatternMatcher extends AbstractMatcher {
      * @return {@code true} if the matching succeeds; otherwise, {@code false}
      */
     public boolean patternMatch(Term subject, Term pattern) {
-        try {
-            isStarNested = false;
-            match(subject, pattern);
-            return true;
-        } catch (PatternMatchingFailure e) {
-            return false;
-        }
+        addUnificationTask(subject, pattern);
+        return unify();
     }
 
-    /**
-     * Performs generic operations for the matching between the subject term and
-     * the pattern term. Term-specific operations are then delegated to the
-     * specific {@code match} method by overloading. That is to say, in general,
-     * the safe way to match any two terms is to invoke this generic
-     * {@code match} method; do not invoke the specialized ones directly unless
-     * you know exactly what you are doing.
-     */
     @Override
-    public void match(Term subject, Term pattern) {
+    boolean stop(Term subject, Term pattern) {
         /*
          * We make no assumption about whether the subject will be ground in the
          * matching algorithm. As for the pattern, all symbolic terms inside it
          * must be variables (no function KLabels, KItem projections, or
          * data-structure lookup/update).
          */
-
-        if (subject.kind().isComputational()) {
-            if (!pattern.kind().isComputational()) {
-                fail(subject, pattern);
-            }
-
-            subject = KCollection.upKind(subject, pattern.kind());
-            pattern = KCollection.upKind(pattern, subject.kind());
-        }
-
-        if (subject.kind() != pattern.kind()) {
-            fail(subject, pattern);
-        }
-
         if (pattern instanceof Variable) {
             Variable variable = (Variable) pattern;
 
@@ -189,18 +150,20 @@ public class PatternMatcher extends AbstractMatcher {
             if (variable instanceof ConcreteCollectionVariable
                     && !((ConcreteCollectionVariable) variable).match(subject)) {
                 fail(variable, subject);
+                return true;
             }
 
             /* add substitution */
             addSubstitution(variable, subject);
-        } else if (subject.isSymbolic() && (!(subject instanceof KItem) || !matchOnFunctionSymbol)) {
-            fail(subject, pattern);
-        } else {
-            /* match */
-            if (subject.hashCode() != pattern.hashCode() || !subject.equals(pattern)) {
-                subject.accept(this, pattern);
-            }
+            return true;
         }
+
+        if (subject.isSymbolic() && (!(subject instanceof KItem) || !matchOnFunctionSymbol)) {
+            fail(subject, pattern);
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -237,45 +200,36 @@ public class PatternMatcher extends AbstractMatcher {
     }
 
     @Override
-    public void match(Bottom bottom, Term pattern) {
+    public void unify(Bottom bottom, Bottom pattern) {
         fail(bottom, pattern);
     }
 
     @Override
-    public void match(BuiltinList builtinList, Term pattern) {
-        if (!(pattern instanceof BuiltinList)) {
-            this.fail(builtinList, pattern);
-        }
-
+    public void unify(BuiltinList builtinList, BuiltinList patternList) {
         if (matchOnFunctionSymbol) {
-            ((BuiltinList) BuiltinList.concatenate(termContext, builtinList)).toKore().accept(
-                    this,
-                    ((BuiltinList) BuiltinList.concatenate(termContext, ((BuiltinList) pattern))).toKore());
+            addUnificationTask(
+                    ((BuiltinList) BuiltinList.concatenate(termContext, builtinList)).toKore(),
+                    ((BuiltinList) BuiltinList.concatenate(termContext, patternList)).toKore());
             return;
         }
 
-        BuiltinList patternList = (BuiltinList) pattern;
         if (!patternList.isConcreteCollection()) {
             throw new UnsupportedOperationException(
                     "list matching is only supported when one of the lists is a variable.");
         }
 
         if (patternList.concreteSize() != builtinList.concreteSize()) {
-            this.fail(builtinList, pattern);
+            fail(builtinList, patternList);
+            return;
         }
 
         for (int i = 0; i < builtinList.concreteSize(); i++) {
-            match(builtinList.get(i), patternList.get(i));
+            addUnificationTask(builtinList.get(i), patternList.get(i));
         }
     }
 
     @Override
-    public void match(BuiltinMap builtinMap, Term pattern) {
-        if (!(pattern instanceof BuiltinMap)) {
-            this.fail(builtinMap, pattern);
-        }
-        BuiltinMap patternBuiltinMap = (BuiltinMap) pattern;
-
+    public void unify(BuiltinMap builtinMap, BuiltinMap patternBuiltinMap) {
         if (!patternBuiltinMap.isUnifiableByCurrentAlgorithm()) {
             throw new UnsupportedOperationException(
                     "map matching is only supported when one of the maps is a variable.");
@@ -284,7 +238,8 @@ public class PatternMatcher extends AbstractMatcher {
         if (patternBuiltinMap.collectionVariables().isEmpty()
                 && (builtinMap.concreteSize() != patternBuiltinMap.concreteSize()
                 || builtinMap.collectionPatterns().size() != patternBuiltinMap.collectionPatterns().size())) {
-            this.fail(builtinMap, pattern);
+            fail(builtinMap, patternBuiltinMap);
+            return;
         }
 
         // TODO(AndreiS): implement AC matching/unification
@@ -335,7 +290,8 @@ public class PatternMatcher extends AbstractMatcher {
         fSubstitution = stashedSubstitution;
 
         if (partialSubstitutions.isEmpty()) {
-            this.fail(builtinMap, patternBuiltinMap);
+            fail(builtinMap, patternBuiltinMap);
+            return;
         }
 
         List<Substitution<Variable, Term>> substitutions = Lists.newArrayList();
@@ -359,6 +315,7 @@ public class PatternMatcher extends AbstractMatcher {
             fSubstitution = fSubstitution.addAndSimplify(substitutions.get(0));
             if (fSubstitution.isFalse()) {
                 fail(builtinMap, patternBuiltinMap);
+                return;
             }
         }
     }
@@ -427,33 +384,26 @@ public class PatternMatcher extends AbstractMatcher {
     }
 
     @Override
-    public void match(BuiltinSet builtinSet, Term pattern) {
-        if (!(pattern instanceof BuiltinSet)) {
-            this.fail(builtinSet, pattern);
-        }
-
-        BuiltinSet patternSet = (BuiltinSet) pattern;
+    public void unify(BuiltinSet builtinSet, BuiltinSet patternSet) {
         if (!patternSet.isConcreteCollection() || patternSet.concreteSize() > 1) {
             throw new UnsupportedOperationException(
                     "set matching is only supported when one of the sets is a variable.");
         }
 
         if (builtinSet.concreteSize() != patternSet.concreteSize()) {
-            this.fail(builtinSet, pattern);
+            fail(builtinSet, patternSet);
+            return;
         }
 
         if (builtinSet.concreteSize() > 0) {
-            match(builtinSet.elements().iterator().next(), patternSet.elements().iterator().next());
+            addUnificationTask(
+                    builtinSet.elements().iterator().next(),
+                    patternSet.elements().iterator().next());
         }
     }
 
     @Override
-    public void match(CellCollection cellCollection, Term pattern) {
-        if (!(pattern instanceof CellCollection)) {
-            fail(cellCollection, pattern);
-        }
-        CellCollection otherCellCollection = (CellCollection) pattern;
-
+    public void unify(CellCollection cellCollection, CellCollection otherCellCollection) {
         if (cellCollection.hasFrame()) {
         // TODO(dwightguth): put this assertion back in once this class is constructed by
         // the injector
@@ -461,6 +411,7 @@ public class PatternMatcher extends AbstractMatcher {
 //                "the subject term should be ground in concrete execution";*/
             if (!otherCellCollection.hasFrame()) {
                 fail(cellCollection, otherCellCollection);
+                return;
             }
         }
 
@@ -478,7 +429,7 @@ public class PatternMatcher extends AbstractMatcher {
             for (CellLabel label : unifiableCellLabels) {
                 assert cellCollection.get(label).size() == 1
                         && otherCellCollection.get(label).size() == 1;
-                match(cellCollection.get(label).iterator().next().content(),
+                addUnificationTask(cellCollection.get(label).iterator().next().content(),
                         otherCellCollection.get(label).iterator().next().content());
             }
 
@@ -490,31 +441,38 @@ public class PatternMatcher extends AbstractMatcher {
                     addSubstitution(
                             otherFrame,
                             cellCollection.removeAll(unifiableCellLabels, termContext.definition()));
+                    if (failed) {
+                        return;
+                    }
                 } else {
                     fail(cellCollection, otherCellCollection);
+                    return;
                 }
             } else {
                 if (numOfOtherDiffCellLabels > 0) {
                     fail(cellCollection, otherCellCollection);
+                    return;
                 }
                 if (otherFrame == null) {
                     if (numOfDiffCellLabels > 0) {
                         fail(cellCollection, otherCellCollection);
+                        return;
                     }
                 } else {
                     addSubstitution(
                             otherFrame,
                             cellCollection.removeAll(unifiableCellLabels, termContext.definition()));
+                    if (failed) {
+                        return;
+                    }
                 }
             }
         }
         /* Case 2: both cell collections have explicitly specified starred-cells */
         else {
-            assert !isStarNested : "nested cells with multiplicity='*' not supported";
-            // TODO(AndreiS): fix this assertions
-
             if (numOfOtherDiffCellLabels > 0) {
                 fail(cellCollection, otherCellCollection);
+                return;
             }
 
             ListMultimap<CellLabel, CellCollection.Cell> remainingCellMap = getRemainingCellMap(cellCollection, unifiableCellLabels);
@@ -524,7 +482,7 @@ public class PatternMatcher extends AbstractMatcher {
                 if (!termContext.definition().getConfigurationStructureMap().get(cellLabel.name()).isStarOrPlus()) {
                     assert cellCollection.get(cellLabel).size() == 1
                             && otherCellCollection.get(cellLabel).size() == 1;
-                    match(cellCollection.get(cellLabel).iterator().next().content(),
+                    addUnificationTask(cellCollection.get(cellLabel).iterator().next().content(),
                             otherCellCollection.get(cellLabel).iterator().next().content());
                 } else {
                     assert starredCellLabel == null;
@@ -535,6 +493,7 @@ public class PatternMatcher extends AbstractMatcher {
             if (starredCellLabel == null) {
                 // now we have different starred-cells in subject and pattern
                 fail(cellCollection, otherCellCollection);
+                return;
             }
 
             CellCollection.Cell[] cells = cellCollection.get(starredCellLabel)
@@ -544,6 +503,7 @@ public class PatternMatcher extends AbstractMatcher {
             if (otherCellCollection.hasFrame()) {
                 if (cells.length < otherCells.length) {
                     fail(cellCollection, otherCellCollection);
+                    return;
                 }
             } else {
                 // now we know otherCellMap.isEmpty() && otherCellCollection is free of frame
@@ -551,68 +511,66 @@ public class PatternMatcher extends AbstractMatcher {
                         || numOfDiffCellLabels > 0
                         || cells.length != otherCells.length) {
                     fail(cellCollection, otherCellCollection);
+                    return;
                 }
             }
 
             Variable frame = cellCollection.hasFrame() ? cellCollection.frame() : null;
             Variable otherFrame = otherCellCollection.hasFrame() ? otherCellCollection.frame() : null;
 
-            // TODO(YilongL): maybe extract the code below that performs searching to a single method
-            // temporarily store the current substitution at a safe place before
-            // starting to search for multiple substitutions
-            ConjunctiveFormula mainSubstitution = fSubstitution;
             // {@code substitutions} represents all possible substitutions by
             // matching these two cell collections
             List<ConjunctiveFormula> substitutions = Lists.newArrayList();
-            isStarNested = true;
 
             SelectionGenerator generator = new SelectionGenerator(otherCells.length, cells.length);
             // start searching for all possible unifiers
+        label:
             do {
-                // clear the substitution before each attempt of matching
-                fSubstitution = ConjunctiveFormula.of(termContext);
+                ConjunctiveFormula nestedSubstitution = ConjunctiveFormula.of(termContext);
 
-                try {
-                    for (int i = 0; i < otherCells.length; ++i) {
-                        match(cells[generator.getSelection(i)].content(), otherCells[i].content());
+                for (int i = 0; i < otherCells.length; ++i) {
+                    PatternMatcher matcher = new PatternMatcher(matchOnFunctionSymbol, termContext);
+                    matcher.addUnificationTask(
+                            cells[generator.getSelection(i)].content(),
+                            otherCells[i].content());
+                    if (matcher.unify()) {
+                        nestedSubstitution = nestedSubstitution.addAndSimplify(matcher.fSubstitution);
+                        if (nestedSubstitution.isFalse()) {
+                            continue label;
+                        }
+                    } else {
+                        continue label;
                     }
-                } catch (PatternMatchingFailure e) {
-                    continue;
                 }
-
-                CellCollection.Builder builder = CellCollection.builder(termContext.definition());
-                for (int i = 0; i < cells.length; ++i) {
-                    if (!generator.isSelected(i)) {
-                        builder.add(cells[i]);
-                    }
-                }
-                builder.putAll(remainingCellMap);
-                if (frame != null) {
-                    builder.concatenate(frame);
-                }
-                Term cellcoll = builder.build();
 
                 if (otherFrame != null) {
-                    addSubstitution(otherFrame, cellcoll);
-                } else {
-                    // we should've guaranteed that
-                    //   cellMap.isEmpty() && cells.length == otherCells.length
-                    // when otherFrame == null
-                    assert cellcoll.equals(CellCollection.EMPTY);
+                    CellCollection.Builder builder = CellCollection.builder(termContext.definition());
+                    for (int i = 0; i < cells.length; ++i) {
+                        if (!generator.isSelected(i)) {
+                            builder.add(cells[i]);
+                        }
+                    }
+                    builder.putAll(remainingCellMap);
+                    if (frame != null) {
+                        builder.concatenate(frame);
+                    }
+                    nestedSubstitution = nestedSubstitution.add(builder.build(), otherFrame).simplify();
+                    if (nestedSubstitution.isFalse()) {
+                        continue label;
+                    }
                 }
-                substitutions.add(fSubstitution);
-            } while (generator.generate());
 
-            // restore the current constraint after searching
-            fSubstitution = mainSubstitution;
-            isStarNested = false;
+                substitutions.add(nestedSubstitution);
+            } while (generator.generate());
 
             if (substitutions.isEmpty()) {
                 fail(cellCollection, otherCellCollection);
+                return;
             } else if (substitutions.size() == 1) {
                 fSubstitution = fSubstitution.addAndSimplify(substitutions.get(0));
                 if (fSubstitution.isFalse()) {
                     fail(cellCollection, otherCellCollection);
+                    return;
                 }
             } else {
                 fSubstitution = fSubstitution.add(new DisjunctiveFormula(
@@ -635,49 +593,34 @@ public class PatternMatcher extends AbstractMatcher {
     }
 
     @Override
-    public void match(KLabelConstant kLabelConstant, Term pattern) {
+    public void unify(KLabelConstant kLabelConstant, KLabelConstant pattern) {
         if (!kLabelConstant.equals(pattern)) {
             fail(kLabelConstant, pattern);
         }
     }
 
     @Override
-    public void match(KLabelInjection kLabelInjection, Term pattern) {
-        if(!(pattern instanceof KLabelInjection)) {
-            fail(kLabelInjection, pattern);
-        }
-
-        KLabelInjection otherKLabelInjection = (KLabelInjection) pattern;
-        match(kLabelInjection.term(), otherKLabelInjection.term());
+    public void unify(KLabelInjection kLabelInjection, KLabelInjection otherKLabelInjection) {
+        addUnificationTask(kLabelInjection.term(), otherKLabelInjection.term());
     }
 
     @Override
-    public void match(InjectedKLabel injectedKLabel, Term pattern) {
-        if(!(pattern instanceof InjectedKLabel)) {
-            fail(injectedKLabel, pattern);
-        }
-
-        InjectedKLabel otherInjectedKLabel = (InjectedKLabel) pattern;
-        match(injectedKLabel.injectedKLabel(), otherInjectedKLabel.injectedKLabel());
+    public void unify(InjectedKLabel injectedKLabel, InjectedKLabel otherInjectedKLabel) {
+        addUnificationTask(injectedKLabel.injectedKLabel(), otherInjectedKLabel.injectedKLabel());
     }
 
     @Override
-    public void match(Hole hole, Term pattern) {
+    public void unify(Hole hole, Hole pattern) {
         if (!hole.equals(pattern)) {
             fail(hole, pattern);
         }
     }
 
     @Override
-    public void match(KItem kItem, Term pattern) {
-        if (!(pattern instanceof KItem)) {
-            fail(kItem, pattern);
-        }
-
-        KItem patternKItem = (KItem) pattern;
+    public void unify(KItem kItem, KItem patternKItem) {
         Term kLabel = kItem.kLabel();
         Term kList = kItem.kList();
-        match(kLabel, patternKItem.kLabel());
+        addUnificationTask(kLabel, patternKItem.kLabel());
         // TODO(AndreiS): deal with KLabel variables
         if (kLabel instanceof KLabelConstant) {
             KLabelConstant kLabelConstant = (KLabelConstant) kLabel;
@@ -701,33 +644,23 @@ public class PatternMatcher extends AbstractMatcher {
                 kList = KList.concatenate(terms);
             }
         }
-        match(kList, patternKItem.kList());
+        addUnificationTask(kList, patternKItem.kList());
     }
 
     @Override
-    public void match(Token token, Term pattern) {
+    public void unify(Token token, Token pattern) {
         if (!token.equals(pattern)) {
             fail(token, pattern);
         }
     }
 
     @Override
-    public void match(KList kList, Term pattern) {
-        if(!(pattern instanceof KList)) {
-            fail(kList, pattern);
-        }
-
-        KList otherKList = (KList) pattern;
+    public void unify(KList kList, KList otherKList) {
         matchKCollection(kList, otherKList);
     }
 
     @Override
-    public void match(KSequence kSequence, Term pattern) {
-        if (!(pattern instanceof KSequence)) {
-            this.fail(kSequence, pattern);
-        }
-
-        KSequence otherKSequence = (KSequence) pattern;
+    public void unify(KSequence kSequence, KSequence otherKSequence) {
         matchKCollection(kSequence, otherKSequence);
     }
 
@@ -738,16 +671,21 @@ public class PatternMatcher extends AbstractMatcher {
         if (kCollection.concreteSize() >= length) {
             if (pattern.hasFrame()) {
                 addSubstitution(pattern.frame(), kCollection.fragment(length));
+                if (failed) {
+                    return;
+                }
             } else if (kCollection.hasFrame() || kCollection.concreteSize() > length) {
                 fail(kCollection, pattern);
+                return;
             }
 
             // kCollection.size() == length
             for (int index = 0; index < length; ++index) {
-                match(kCollection.get(index), pattern.get(index));
+                addUnificationTask(kCollection.get(index), pattern.get(index));
             }
         } else {
             fail(kCollection, pattern);
+            return;
         }
     }
 

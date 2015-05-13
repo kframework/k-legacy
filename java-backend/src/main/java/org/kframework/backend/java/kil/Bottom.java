@@ -70,10 +70,5 @@ public class Bottom extends Term implements MaximalSharing {
     }
 
     @Override
-    public void accept(Unifier unifier, Term pattern) {
-        unifier.unify(this, pattern);
-    }
-
-    @Override
     public void accept(Visitor visitor) { }
 }
