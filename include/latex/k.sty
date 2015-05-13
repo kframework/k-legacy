@@ -1439,17 +1439,21 @@ rectangle,rectangle
 \else
 %%% Paged (non-poster) mode
 
+  \newlength{\kVspaceTempLen}
+
   %Arguments: {}, rule, name, body, preconditions, postconditions (for ML), attributes
-  \newcommand{\ksentence}[7][]{{
-  \setlength{\parindent}{\k@indent}
+  \newcommand{\ksentence}[7][]{{%
+  \setlength{\parindent}{\k@indent}%
   %
   %Framebox-es are for debug purposes
   %Here we make sure they do not produce overfull warnings.
   \setlength{\fboxsep}{0pt}% debug: 1pt
   \setlength{\fboxrule}{0pt}% debug: 0.4 pt
   %
-  \par
-  \vspace{\k@StartVspace}%
+  \setlength{\kVspaceTempLen}{\k@StartVspace}%
+  \par%
+  %An latex bug is causing \vspace{0pt} to still insert vertical space
+  \ifthenelse{\kVspaceTempLen > 0}{\vspace{\kVspaceTempLen}}{}%
   \begin{minipage}{\linewidth-\parindent}%
     \raggedright%
     \k@ruleLabel{#3}{#2}\\[2pt]%
@@ -1483,8 +1487,10 @@ rectangle,rectangle
     \ifthenelse{\isempty{#7}}{}{%
       \ruleAttributes{#7}%
     }%
-  \end{minipage}
-  \vspace{\k@EndVspace}
+  \end{minipage}%
+  \ignorespaces
+  \setlength{\kVspaceTempLen}{\k@EndVspace}%
+  \ifthenelse{\kVspaceTempLen > 0}{\vspace{\kVspaceTempLen}}{}%
   }}
 
   \newlength{\attribIndent}%Indentation of attributes
@@ -1551,7 +1557,7 @@ rectangle,rectangle
        {notBool}{${\tt not}{\rm\scriptstyle Bool}$}5
        {<}{$\langle$}1
        {_}{$\_$}1 {~}{$\_$}1
-       {=>}{$\;=\!>$}5
+       {=>}{$\;=\!`$}5
        {->}{{$->$}}3
        {~>}{{$\sim\!\!>$}}3
        {|->}{$\;|-\!\!>$}5
