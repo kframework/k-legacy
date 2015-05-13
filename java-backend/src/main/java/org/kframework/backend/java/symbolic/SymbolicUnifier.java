@@ -39,8 +39,6 @@ public final class SymbolicUnifier extends AbstractUnifier {
 
     private final boolean partialSimpl;
 
-    private final TermContext termContext;
-
     public SymbolicUnifier(TermContext context) {
         this(false, false, context);
     }
@@ -430,11 +428,6 @@ public final class SymbolicUnifier extends AbstractUnifier {
     }
 
     @Override
-    public void unify(Bottom bottom, Bottom term) {
-        fail(bottom, term);
-    }
-
-    @Override
     public void unify(BuiltinList builtinList, BuiltinList term) {
         throw new UnsupportedOperationException(
                 "list matching is only supported when one of the lists is a variable.");
@@ -622,68 +615,6 @@ public final class SymbolicUnifier extends AbstractUnifier {
         };
 
         return Multimaps.filterKeys(cellCollection.cells(), notRemoved);
-    }
-
-    @Override
-    public void unify(KLabelConstant kLabelConstant, KLabelConstant term) {
-        if (!kLabelConstant.equals(term)) {
-            fail(kLabelConstant, term);
-        }
-    }
-
-    @Override
-    public void unify(KLabelInjection kLabelInjection, KLabelInjection otherKLabelInjection) {
-        addUnificationTask(kLabelInjection.term(), otherKLabelInjection.term());
-    }
-
-    @Override
-    public void unify(InjectedKLabel injectedKLabel, InjectedKLabel otherInjectedKLabel) {
-        addUnificationTask(injectedKLabel.injectedKLabel(), otherInjectedKLabel.injectedKLabel());
-    }
-
-    @Override
-    public void unify(Hole hole, Hole term) {
-        if (!hole.equals(term)) {
-            fail(hole, term);
-        }
-    }
-
-    @Override
-    public void unify(KItem kItem, KItem patternKItem) {
-        Term kLabel = kItem.kLabel();
-        Term kList = kItem.kList();
-        addUnificationTask(kLabel, patternKItem.kLabel());
-        // TODO(AndreiS): deal with KLabel variables
-        if (kLabel instanceof KLabelConstant) {
-            KLabelConstant kLabelConstant = (KLabelConstant) kLabel;
-            if (kLabelConstant.isMetaBinder()) {
-                // TODO(AndreiS): deal with non-concrete KLists
-                assert kList instanceof KList;
-                Multimap<Integer, Integer> binderMap = kLabelConstant.getMetaBinderMap();
-                List<Term> terms = new ArrayList<>(((KList) kList).getContents());
-                for (Integer boundVarPosition : binderMap.keySet()) {
-                    Term boundVars = terms.get(boundVarPosition);
-                    Set<Variable> variables = boundVars.variableSet();
-                    Map<Variable,Variable> freshSubstitution = Variable.getFreshSubstitution(variables);
-                    Term freshBoundVars = boundVars.substituteWithBinders(freshSubstitution, termContext);
-                    terms.set(boundVarPosition, freshBoundVars);
-                    for (Integer bindingExpPosition : binderMap.get(boundVarPosition)) {
-                        Term bindingExp = terms.get(bindingExpPosition-1);
-                        Term freshbindingExp = bindingExp.substituteWithBinders(freshSubstitution, termContext);
-                        terms.set(bindingExpPosition-1, freshbindingExp);
-                    }
-                }
-                kList = KList.concatenate(terms);
-            }
-        }
-        addUnificationTask(kList, patternKItem.kList());
-    }
-
-    @Override
-    public void unify(Token token, Token term) {
-        if (!token.equals(term)) {
-            fail(token, term);
-        }
     }
 
     @Override

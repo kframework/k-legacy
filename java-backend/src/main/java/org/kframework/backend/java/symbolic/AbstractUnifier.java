@@ -2,6 +2,7 @@
 package org.kframework.backend.java.symbolic;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.backend.java.kil.Bottom;
 import org.kframework.backend.java.kil.BuiltinList;
@@ -20,11 +21,15 @@ import org.kframework.backend.java.kil.KSequence;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.kil.Token;
+import org.kframework.backend.java.kil.Variable;
 import org.kframework.utils.errorsystem.KEMException;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -68,7 +73,7 @@ public abstract class AbstractUnifier implements Unifier {
 
     //private boolean matchOnFunctionSymbol;
     //
-    //private TermContext termContext;
+    protected TermContext termContext;
 
     void addUnificationTask(Term term, Term otherTerm) {
         tasks.addFirst(Pair.of(term, otherTerm));
@@ -159,29 +164,75 @@ public abstract class AbstractUnifier implements Unifier {
     abstract boolean stop(Term term, Term otherTerm);
 
     @Override
-    public abstract void unify(Bottom bottom, Bottom term);
+    public void unify(Bottom bottom, Bottom term) {
+        fail(bottom, term);
+    }
+
     @Override
-    public abstract void unify(BuiltinList builtinList, BuiltinList term);
+    public void unify(Hole hole, Hole term) {
+        if (!hole.equals(term)) {
+            fail(hole, term);
+        }
+    }
+
     @Override
-    public abstract void unify(BuiltinMap builtinMap, BuiltinMap term);
+    public void unify(InjectedKLabel injectedKLabel, InjectedKLabel otherInjectedKLabel) {
+        addUnificationTask(injectedKLabel.injectedKLabel(), otherInjectedKLabel.injectedKLabel());
+    }
+
     @Override
-    public abstract void unify(BuiltinSet builtinSet, BuiltinSet term);
+    public void unify(KItem kItem, KItem patternKItem) {
+        Term kLabel = kItem.kLabel();
+        Term kList = kItem.kList();
+        addUnificationTask(kLabel, patternKItem.kLabel());
+        // TODO(AndreiS): deal with KLabel variables
+        if (kLabel instanceof KLabelConstant) {
+            KLabelConstant kLabelConstant = (KLabelConstant) kLabel;
+            if (kLabelConstant.isMetaBinder()) {
+                // TODO(AndreiS): deal with non-concrete KLists
+                assert kList instanceof KList;
+                Multimap<Integer, Integer> binderMap = kLabelConstant.getMetaBinderMap();
+                List<Term> terms = new ArrayList<>(((KList) kList).getContents());
+                for (Integer boundVarPosition : binderMap.keySet()) {
+                    Term boundVars = terms.get(boundVarPosition);
+                    Set<Variable> variables = boundVars.variableSet();
+                    Map<Variable,Variable> freshSubstitution = Variable.getFreshSubstitution(variables);
+                    Term freshBoundVars = boundVars.substituteWithBinders(freshSubstitution, termContext);
+                    terms.set(boundVarPosition, freshBoundVars);
+                    for (Integer bindingExpPosition : binderMap.get(boundVarPosition)) {
+                        Term bindingExp = terms.get(bindingExpPosition-1);
+                        Term freshbindingExp = bindingExp.substituteWithBinders(freshSubstitution, termContext);
+                        terms.set(bindingExpPosition-1, freshbindingExp);
+                    }
+                }
+                kList = KList.concatenate(terms);
+            }
+        }
+        addUnificationTask(kList, patternKItem.kList());
+    }
+
     @Override
-    public abstract void unify(CellCollection cellCollection, CellCollection term);
+    public void unify(KLabelConstant kLabelConstant, KLabelConstant term) {
+        if (!kLabelConstant.equals(term)) {
+            fail(kLabelConstant, term);
+        }
+    }
+
     @Override
-    public abstract void unify(Hole hole, Hole term);
-    @Override
-    public abstract void unify(KItem kItem, KItem term);
-    @Override
-    public abstract void unify(KLabelConstant kLabelConstant, KLabelConstant term);
-    @Override
-    public abstract void unify(KLabelInjection kLabelInjection, KLabelInjection term);
+    public void unify(KLabelInjection kLabelInjection, KLabelInjection otherKLabelInjection) {
+        addUnificationTask(kLabelInjection.term(), otherKLabelInjection.term());
+    }
+
     @Override
     public abstract void unify(KList kList, KList term);
     @Override
     public abstract void unify(KSequence kSequence, KSequence term);
+
     @Override
-    public abstract void unify(Token token, Token term);
-    @Override
-    public abstract void unify(InjectedKLabel injectedKLabel, InjectedKLabel term);
+    public void unify(Token token, Token term) {
+        if (!token.equals(term)) {
+            fail(token, term);
+        }
+    }
+
 }
