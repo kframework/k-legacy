@@ -558,7 +558,7 @@ public class ParserTest {
         PrimitiveState minus = new RegExState("Minus-State", expNt, regex("\\-"));
         RuleState deleteToken = new RuleState("Minus-Delete", expNt, new DeleteRule(1));
         NonTerminalState expExp = new NonTerminalState("Exp-nts(Exp)", expNt, expNt, false);
-        Production p1 = Production(EXP_SORT, Seq(Terminal("-"), NonTerminal(EXP_SORT)), Attributes().add("#klabel", "'-_"));
+        Production p1 = Production(EXP_SORT, Seq(Terminal("-"), NonTerminal(EXP_SORT)), Attributes().add("klabel", "'-_"));
         RuleState rs1 = new RuleState("Exps-wrapMinus", expNt, new WrapLabelRule(p1));
         expNt.entryState.next.add(minus);
         minus.next.add(deleteToken);
@@ -574,7 +574,7 @@ public class ParserTest {
          */
         NonTerminal expsNt = new NonTerminal("Exps");
         NonTerminalState expExps = new NonTerminalState("Exp-nts(Exps)", expsNt, expNt, false);
-        Production p2 = Production(Sort("Exps"), Seq(NonTerminal(EXP_SORT)), Attributes().add("#klabel", "'_,_"));
+        Production p2 = Production(Sort("Exps"), Seq(NonTerminal(EXP_SORT)), Attributes().add("klabel", "'_,_"));
         PrimitiveState separator = new RegExState("Sep-State", expsNt, regex("\\,"));
         RuleState deleteToken2 = new RuleState("Separator-Delete", expsNt, new DeleteRule(1));
         RuleState labelList = new RuleState("RuleStateExps", expsNt, new WrapLabelRule(p2));
