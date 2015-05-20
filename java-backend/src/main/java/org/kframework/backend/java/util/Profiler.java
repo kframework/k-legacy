@@ -44,6 +44,8 @@ public class Profiler {
 
     public static final ReentrantStopwatch DEEP_CLONE_TIMER                 =   new ReentrantStopwatch("Deep clone");
 
+    public static final ReentrantStopwatch SUBSTITUTION_UPDATE_TIMER            =   new ReentrantStopwatch("Substitution update");
+
     private static final Map<KLabelConstant, ReentrantStopwatch> FUNCTION_PROFILING_TIMERS = new HashMap<>();
 
     public static ReentrantStopwatch getTimerForFunction(KLabelConstant klabel) {
@@ -89,6 +91,7 @@ public class Profiler {
                     REWRITE_WITH_UNKOMPILED_RULES_TIMER);
             System.err.println(QUERY_RULE_INDEXING_TIMER);
             System.err.println(DEEP_CLONE_TIMER);
+            System.err.println(SUBSTITUTION_UPDATE_TIMER);
             System.err.println("Top 10 most expensive functions:");
             SortedSet<ReentrantStopwatch> sorted = new TreeSet<>(new ReverseComparator<>());
             sorted.addAll(FUNCTION_PROFILING_TIMERS.values());

@@ -163,6 +163,23 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
                 context);
     }
 
+    public ConjunctiveFormula unsafeAddVariableBinding(Variable variable, Term term) {
+        assert term.substituteAndEvaluate(substitution, context) == term && !term.variableSet().contains(variable);
+        Term previousTerm = substitution.get(variable);
+        if (previousTerm == null) {
+            return new ConjunctiveFormula(
+                    substitution.plus(variable, term),
+                    equalities,
+                    disjunctions,
+                    truthValue,
+                    context);
+        } else if (previousTerm.equals(term)) {
+            return this;
+        } else {
+            return falsify(substitution, equalities, disjunctions, new Equality(previousTerm, term, context));
+        }
+    }
+
     public ConjunctiveFormula add(Term leftHandSide, Term rightHandSide) {
         return add(new Equality(leftHandSide, rightHandSide, context));
     }

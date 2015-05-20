@@ -7,10 +7,10 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
 import org.kframework.backend.java.kil.*;
+import org.kframework.backend.java.util.Profiler;
 import org.kframework.backend.java.util.RewriteEngineUtils;
 
 import java.util.ArrayList;
@@ -131,6 +131,7 @@ public class PatternMatcher extends AbstractUnifier {
      * @return {@code true} if the matching succeeds; otherwise, {@code false}
      */
     public boolean patternMatch(Term subject, Term pattern) {
+        fSubstitution = ConjunctiveFormula.of(termContext);
         addUnificationTask(subject, pattern);
         return unify();
     }
@@ -181,22 +182,16 @@ public class PatternMatcher extends AbstractUnifier {
             term = KCollection.downKind(term);
         }
 
+        Profiler.startTimer(Profiler.SUBSTITUTION_UPDATE_TIMER);
         if (!termContext.definition().subsorts().isSubsortedEq(variable.sort(), term.sort())) {
             fail(variable, term);
         }
 
-        // TODO(AndreiS): the check below is not sufficient, as the substitution may not be normalized
-        /* occurs check */
-        if (term.variableSet().contains(variable)) {
+        fSubstitution = fSubstitution.unsafeAddVariableBinding(variable, term);
+        if (fSubstitution.isFalse()) {
             fail(variable, term);
         }
-
-        ConjunctiveFormula newSubstitution = fSubstitution.add(variable, term).simplify();
-        if (newSubstitution.isFalse()) {
-            fail(fSubstitution.substitution().get(variable), term);
-        }
-
-        fSubstitution = newSubstitution;
+        Profiler.stopTimer(Profiler.SUBSTITUTION_UPDATE_TIMER);
     }
 
     @Override
