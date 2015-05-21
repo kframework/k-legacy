@@ -6,7 +6,6 @@ import com.google.common.reflect.TypeToken;
 import com.google.inject.name.Names;
 import org.apache.commons.collections4.trie.PatriciaTrie;
 import org.apache.commons.lang3.tuple.Pair;
-import org.kframework.backend.java.symbolic.Matcher;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.MapCache;
