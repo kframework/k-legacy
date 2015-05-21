@@ -579,16 +579,7 @@ public class PatternMatcher extends AbstractUnifier {
     }
 
     @Override
-    public void unify(KList kList, KList otherKList) {
-        matchKCollection(kList, otherKList);
-    }
-
-    @Override
-    public void unify(KSequence kSequence, KSequence otherKSequence) {
-        matchKCollection(kSequence, otherKSequence);
-    }
-
-    private void matchKCollection(KCollection kCollection, KCollection pattern) {
+    public void unify(KCollection kCollection, KCollection pattern) {
         assert kCollection.getClass().equals(pattern.getClass());
 
         int length = pattern.concreteSize();

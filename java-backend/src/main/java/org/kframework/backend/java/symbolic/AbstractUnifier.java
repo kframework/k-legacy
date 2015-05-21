@@ -219,9 +219,14 @@ public abstract class AbstractUnifier implements Unifier {
     }
 
     @Override
-    public abstract void unify(KList kList, KList term);
+    public void unify(KList kList, KList otherKList) {
+        unify((KCollection) kList, (KCollection) otherKList);
+    }
+
     @Override
-    public abstract void unify(KSequence kSequence, KSequence term);
+    public void unify(KSequence kSequence, KSequence otherKSequence) {
+        unify((KCollection) kSequence, (KCollection) otherKSequence);
+    }
 
     @Override
     public void unify(Token token, Token term) {
@@ -229,5 +234,7 @@ public abstract class AbstractUnifier implements Unifier {
             fail(token, term);
         }
     }
+
+    public abstract void unify(KCollection kCollection, KCollection otherKCollection);
 
 }

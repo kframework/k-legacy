@@ -618,16 +618,7 @@ public final class SymbolicUnifier extends AbstractUnifier {
     }
 
     @Override
-    public void unify(KList kList, KList otherKList) {
-        unifyKCollection(kList, otherKList);
-    }
-
-    @Override
-    public void unify(KSequence kSequence, KSequence otherKSequence) {
-        unifyKCollection(kSequence, otherKSequence);
-    }
-
-    private void unifyKCollection(KCollection kCollection, KCollection otherKCollection) {
+    public void unify(KCollection kCollection, KCollection otherKCollection) {
         assert kCollection.getClass().equals(otherKCollection.getClass());
 
         int length = Math.min(kCollection.concreteSize(), otherKCollection.concreteSize());
