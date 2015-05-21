@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.kframework.backend.java.symbolic.Matcher;
 import org.kframework.backend.java.symbolic.Transformer;
-import org.kframework.backend.java.symbolic.Unifier;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.kil.ASTNode;
 
@@ -170,11 +169,6 @@ public class KSequence extends KCollection implements org.kframework.kore.KSeque
         return (frame == null ? kSequence.frame == null : frame
                 .equals(kSequence.frame))
                 && contents.equals(kSequence.contents);
-    }
-
-    @Override
-    public void accept(Matcher matcher, Term pattern) {
-        matcher.match(this, pattern);
     }
 
     @Override

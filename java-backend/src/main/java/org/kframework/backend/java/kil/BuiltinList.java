@@ -3,7 +3,6 @@ package org.kframework.backend.java.kil;
 
 import org.kframework.backend.java.symbolic.Matcher;
 import org.kframework.backend.java.symbolic.Transformer;
-import org.kframework.backend.java.symbolic.Unifier;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Utils;
 import org.kframework.kil.ASTNode;
@@ -68,11 +67,11 @@ public class BuiltinList extends Collection {
 
     private BuiltinList(ImmutableList<Term> elementsLeft, TermContext context) {
         this(elementsLeft,
-             ImmutableList.<Term>of(),
-             ImmutableList.<Term>of(),
-             ImmutableList.<BaseTermType>of(),
-             ImmutableList.<Variable>of(),
-             context);
+                ImmutableList.<Term>of(),
+                ImmutableList.<Term>of(),
+                ImmutableList.<BaseTermType>of(),
+                ImmutableList.<Variable>of(),
+                context);
     }
 
     public static Term concatenate(TermContext context, Term... lists) {
@@ -184,11 +183,6 @@ public class BuiltinList extends Collection {
             }
         }
         return false;
-    }
-
-    @Override
-    public void accept(Matcher matcher, Term pattern) {
-        matcher.match(this, pattern);
     }
 
     @Override

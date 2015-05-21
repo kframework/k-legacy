@@ -8,7 +8,6 @@ import org.apache.commons.collections4.trie.PatriciaTrie;
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.backend.java.symbolic.Matcher;
 import org.kframework.backend.java.symbolic.Transformer;
-import org.kframework.backend.java.symbolic.Unifier;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.MapCache;
 import org.kframework.kil.ASTNode;
@@ -188,11 +187,6 @@ public class KLabelConstant extends KLabel implements MaximalSharing, org.kframe
     @Override
     public String toString() {
         return label;
-    }
-
-    @Override
-    public void accept(Matcher matcher, Term pattern) {
-        matcher.match(this, pattern);
     }
 
     @Override

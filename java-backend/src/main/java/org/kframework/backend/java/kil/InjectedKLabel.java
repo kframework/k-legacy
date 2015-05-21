@@ -3,7 +3,6 @@ package org.kframework.backend.java.kil;
 
 import org.kframework.backend.java.symbolic.Matcher;
 import org.kframework.backend.java.symbolic.Transformer;
-import org.kframework.backend.java.symbolic.Unifier;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.kil.ASTNode;
 import org.kframework.kore.KLabel;
@@ -63,11 +62,6 @@ public class InjectedKLabel extends Term implements org.kframework.kore.Injected
 
         return injectedKLabel.equals(that.injectedKLabel);
 
-    }
-
-    @Override
-    public void accept(Matcher matcher, Term pattern) {
-        matcher.match(this, pattern);
     }
 
     @Override

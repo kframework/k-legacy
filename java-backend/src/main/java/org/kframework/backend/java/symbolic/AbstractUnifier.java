@@ -1,15 +1,11 @@
 // Copyright (c) 2013-2015 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.backend.java.kil.Bottom;
 import org.kframework.backend.java.kil.BuiltinList;
 import org.kframework.backend.java.kil.BuiltinMap;
 import org.kframework.backend.java.kil.BuiltinSet;
 import org.kframework.backend.java.kil.CellCollection;
-import org.kframework.backend.java.kil.ConcreteCollectionVariable;
 import org.kframework.backend.java.kil.Hole;
 import org.kframework.backend.java.kil.InjectedKLabel;
 import org.kframework.backend.java.kil.KCollection;
@@ -30,6 +26,9 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.lang3.tuple.Pair;
+import com.google.common.collect.Multimap;
 
 
 /**
@@ -93,14 +92,6 @@ public abstract class AbstractUnifier implements Unifier {
             Term term = task.getLeft();
             Term otherTerm = task.getRight();
 
-            if (term.isGround() && otherTerm.isGround()
-                    && term.isNormal() && otherTerm.isNormal()) {
-                if (!term.equals(otherTerm)) {
-                    fail(term, otherTerm);
-                    break;
-                }
-            }
-
             if (term.kind().isComputational()) {
                 assert otherTerm.kind().isComputational() : otherTerm;
 
@@ -110,11 +101,15 @@ public abstract class AbstractUnifier implements Unifier {
 
             assert term.kind() == otherTerm.kind();
 
-            if (stop(term, otherTerm)) {
+            if (term.hashCode() == otherTerm.hashCode() && term.equals(otherTerm)) {
                 continue;
+            } else if (term.isGround() && otherTerm.isGround()
+                    && term.isNormal() && otherTerm.isNormal()) {
+                fail(term, otherTerm);
+                break;
             }
 
-            if (term.hashCode() == otherTerm.hashCode() && term.equals(otherTerm)) {
+            if (stop(term, otherTerm)) {
                 continue;
             }
 

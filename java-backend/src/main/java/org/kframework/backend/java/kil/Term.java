@@ -8,7 +8,6 @@ import org.kframework.backend.java.indexing.IndexingPair;
 import org.kframework.backend.java.symbolic.BottomUpVisitor;
 import org.kframework.backend.java.symbolic.CopyOnShareSubstAndEvalTransformer;
 import org.kframework.backend.java.symbolic.Evaluator;
-import org.kframework.backend.java.symbolic.Matchable;
 import org.kframework.backend.java.symbolic.SubstituteAndEvaluateTransformer;
 import org.kframework.backend.java.symbolic.Transformable;
 import org.kframework.backend.java.util.Utils;
@@ -25,7 +24,7 @@ import java.util.Set;
  *
  * @author AndreiS
  */
-public abstract class Term extends JavaSymbolicObject implements Transformable, Matchable, Comparable<Term>,
+public abstract class Term extends JavaSymbolicObject implements Transformable, Comparable<Term>,
         org.kframework.kore.K {
 
     protected final Kind kind;

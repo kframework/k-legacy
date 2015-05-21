@@ -2,7 +2,6 @@
 package org.kframework.backend.java.kil;
 
 import org.kframework.backend.java.symbolic.Matcher;
-import org.kframework.backend.java.symbolic.Unifier;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Utils;
@@ -117,11 +116,6 @@ public class BuiltinSet extends AssociativeCommutativeCollection {
             }
         }
         return false;
-    }
-
-    @Override
-    public void accept(Matcher matcher, Term pattern) {
-        matcher.match(this, pattern);
     }
 
     @Override

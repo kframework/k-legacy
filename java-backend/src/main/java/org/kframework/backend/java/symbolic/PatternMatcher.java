@@ -111,12 +111,11 @@ public class PatternMatcher extends AbstractUnifier {
             return Collections.emptyList();
         }
 
-        List<Substitution<Variable, Term>> substitutions = matcher.substitutions();
-        return RewriteEngineUtils.evaluateConditions(rule, substitutions, context);
+        return RewriteEngineUtils.evaluateConditions(rule, matcher.substitutions(), context);
     }
 
-    public PatternMatcher(boolean isLemma, TermContext context) {
-        this.matchOnFunctionSymbol = isLemma;
+    public PatternMatcher(boolean matchOnFunctionSymbol, TermContext context) {
+        this.matchOnFunctionSymbol = matchOnFunctionSymbol;
         this.termContext = context;
         this.fSubstitution = ConjunctiveFormula.of(context);
     }
@@ -182,16 +181,22 @@ public class PatternMatcher extends AbstractUnifier {
             term = KCollection.downKind(term);
         }
 
-        Profiler.startTimer(Profiler.SUBSTITUTION_UPDATE_TIMER);
         if (!termContext.definition().subsorts().isSubsortedEq(variable.sort(), term.sort())) {
             fail(variable, term);
         }
 
-        fSubstitution = fSubstitution.unsafeAddVariableBinding(variable, term);
+        //Profiler.stopTimer(Profiler.PATTERN_MATCH_TIMER);
+        Profiler.startTimer(Profiler.SUBSTITUTION_UPDATE_TIMER);
+        //if (disjointVariables) {
+            fSubstitution = fSubstitution.unsafeAddVariableBinding(variable, term);
+        //} else {
+        //    fSubstitution = fSubstitution.add(variable, term).simplify();
+        //}
         if (fSubstitution.isFalse()) {
             fail(variable, term);
         }
         Profiler.stopTimer(Profiler.SUBSTITUTION_UPDATE_TIMER);
+        //Profiler.startTimer(Profiler.PATTERN_MATCH_TIMER);
     }
 
     @Override

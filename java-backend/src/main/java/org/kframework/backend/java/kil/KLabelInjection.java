@@ -2,7 +2,6 @@
 package org.kframework.backend.java.kil;
 
 import org.kframework.backend.java.symbolic.Matcher;
-import org.kframework.backend.java.symbolic.Unifier;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.kil.ASTNode;
@@ -85,11 +84,6 @@ public class KLabelInjection extends KLabel {
     @Override
     public String toString() {
         return "(# " + term + ")";
-    }
-
-    @Override
-    public void accept(Matcher matcher, Term pattern) {
-        matcher.match(this, pattern);
     }
 
     @Override

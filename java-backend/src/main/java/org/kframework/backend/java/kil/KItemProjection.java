@@ -3,7 +3,6 @@ package org.kframework.backend.java.kil;
 
 import org.kframework.backend.java.symbolic.Matcher;
 import org.kframework.backend.java.symbolic.Transformer;
-import org.kframework.backend.java.symbolic.Unifier;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.kil.ASTNode;
 
@@ -90,11 +89,6 @@ public class KItemProjection extends Term {
     @Override
     public String toString() {
         return "projection(" + term + ")";
-    }
-
-    @Override
-    public void accept(Matcher matcher, Term pattern) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

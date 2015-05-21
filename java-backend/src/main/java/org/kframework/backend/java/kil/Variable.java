@@ -3,7 +3,6 @@ package org.kframework.backend.java.kil;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.backend.java.symbolic.Matcher;
-import org.kframework.backend.java.symbolic.Unifier;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.MapCache;
@@ -144,11 +143,6 @@ public class Variable extends Term implements Immutable, org.kframework.kore.KVa
     @Override
     public String toString() {
         return name + ":" + sort;
-    }
-
-    @Override
-    public void accept(Matcher matcher, Term pattern) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

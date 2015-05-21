@@ -642,6 +642,7 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
         int hashCode = 1;
         hashCode = hashCode * Utils.HASH_PRIME + substitution.hashCode();
         hashCode = hashCode * Utils.HASH_PRIME + equalities.hashCode();
+        hashCode = hashCode * Utils.HASH_PRIME + disjunctions.hashCode();
         return hashCode;
     }
 
@@ -674,11 +675,6 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
     @Override
     public ASTNode accept(Transformer transformer) {
         return transformer.transform(this);
-    }
-
-    @Override
-    public void accept(Matcher matcher, Term pattern) {
-        throw new UnsupportedOperationException();
     }
 
 }
