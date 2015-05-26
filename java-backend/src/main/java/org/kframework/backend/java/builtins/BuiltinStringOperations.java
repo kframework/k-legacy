@@ -1,14 +1,14 @@
 // Copyright (c) 2013-2015 K Team. All Rights Reserved.
 package org.kframework.backend.java.builtins;
 
-import java.math.BigInteger;
-
 import org.apache.commons.lang3.StringUtils;
 import org.kframework.backend.java.kil.Sort;
 import org.kframework.backend.java.kil.TermContext;
-import org.kframework.kil.FloatBuiltin;
 import org.kframework.backend.java.kil.Token;
+import org.kframework.kil.FloatBuiltin;
 import org.kframework.utils.StringUtil;
+
+import java.math.BigInteger;
 
 /**
  * Table of {@code public static} methods on builtin strings.
@@ -131,6 +131,10 @@ public class BuiltinStringOperations {
         return StringToken.of(FloatBuiltin.printKFloat(term.bigFloatValue(), term.bigFloatValue()::toString));
     }
 
+    public static StringToken javaFloat2string(FloatToken term, TermContext context) {
+        return StringToken.of(FloatBuiltin.printKFloat(term.bigFloatValue(), () -> String.valueOf(term.bigFloatValue().doubleValue())));
+    }
+
     public static StringToken floatFormat(FloatToken term, StringToken format, TermContext context) {
         return StringToken.of(FloatBuiltin.printKFloat(term.bigFloatValue(), () -> term.bigFloatValue().toString(format.stringValue())));
     }
@@ -181,7 +185,7 @@ public class BuiltinStringOperations {
      *
      * @param text
      *            the string to search and replace in
-     * @param search
+     * @param searchString
      *            the string to search for
      * @param replacement
      *            the string to replace it with
@@ -202,7 +206,7 @@ public class BuiltinStringOperations {
      *
      * @param text
      *            the string to search and replace in
-     * @param search
+     * @param searchString
      *            the string to search for
      * @param replacement
      *            the string to replace it with
@@ -225,7 +229,7 @@ public class BuiltinStringOperations {
      *
      * @param text
      *            the string to search and replace in
-     * @param search
+     * @param searchString
      *            the string to search for
      * @param replacement
      *            the string to replace it with
