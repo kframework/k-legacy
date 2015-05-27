@@ -392,6 +392,35 @@ public class PatternMatcher extends AbstractMatcher {
         }
     }
 
+    private static Substitution<Variable, Term> addFrameMatching(
+            BuiltinSet builtinSet,
+            BuiltinSet patternBuiltinSet,
+            PartialSubstitution ps,
+            TermContext context) {
+        if (!patternBuiltinSet.collectionVariables().isEmpty()) {
+            Variable frame = patternBuiltinSet.collectionVariables().iterator().next();
+            if (ps.substitution.containsKey(frame)) {
+                return null;
+            }
+
+            BuiltinSet.Builder builder = BuiltinSet.builder(context);
+            for (Term entry : builtinSet.elements()) {
+                if (!ps.matched.contains(entry)) {
+                    builder.add(entry);
+                }
+            }
+            for (Term term : builtinSet.baseTerms()) {
+                if (!ps.matched.contains(term)) {
+                    builder.concatenate(term);
+                }
+            }
+
+            return ps.substitution.plus(frame, builder.build());
+        } else {
+            return ps.substitution;
+        }
+    }
+
     private static class PartialSubstitution {
         public final ImmutableSet<Term> matched;
         public final Substitution<Variable, Term> substitution;
@@ -432,18 +461,91 @@ public class PatternMatcher extends AbstractMatcher {
             this.fail(builtinSet, pattern);
         }
 
-        BuiltinSet patternSet = (BuiltinSet) pattern;
-        if (!patternSet.isConcreteCollection() || patternSet.concreteSize() > 1) {
+        BuiltinSet patternBuiltinSet = (BuiltinSet) pattern;
+
+        if (!patternBuiltinSet.isUnifiableByCurrentAlgorithm()) {
             throw new UnsupportedOperationException(
-                    "set matching is only supported when one of the sets is a variable.");
+                    "map matching is only supported when one of the maps is a variable.");
         }
 
-        if (builtinSet.concreteSize() != patternSet.concreteSize()) {
+        if (patternBuiltinSet.collectionVariables().isEmpty()
+                && (builtinSet.concreteSize() != patternBuiltinSet.concreteSize()
+                || builtinSet.collectionPatterns().size() != patternBuiltinSet.collectionPatterns().size())) {
             this.fail(builtinSet, pattern);
         }
 
-        if (builtinSet.concreteSize() > 0) {
-            match(builtinSet.elements().iterator().next(), patternSet.elements().iterator().next());
+        // TODO(AndreiS): implement AC matching/unification
+        /* stash the existing substitution */
+        ConjunctiveFormula stashedSubstitution = fSubstitution;
+
+        Set<PartialSubstitution> partialSubstitutions = new HashSet<>();
+        partialSubstitutions.add(new PartialSubstitution(
+                ImmutableSet.<Term>of(),
+                Substitution.empty()));
+
+        /* match each entry from the pattern */
+        for (Term patternEntry : patternBuiltinSet.elements()) {
+            List<PartialSubstitution> stepSubstitutions = new ArrayList<>();
+            for (Term entry : builtinSet.elements()) {
+                fSubstitution = ConjunctiveFormula.of(termContext);
+                if (patternMatch(entry, patternEntry)) {
+                    assert fSubstitution.isSubstitution();
+                    stepSubstitutions.add(new PartialSubstitution(
+                            ImmutableSet.of(entry),
+                            fSubstitution.substitution()));
+                }
+                fSubstitution = null;
+            }
+            partialSubstitutions = getCrossProduct(partialSubstitutions, stepSubstitutions);
+        }
+
+        /* match each collection abstraction predicate from the pattern */
+        for (KItem patternKItem : patternBuiltinSet.collectionPatterns()) {
+            List<PartialSubstitution> stepSubstitutions = new ArrayList<>();
+            for (KItem kItem : builtinSet.collectionPatterns()) {
+                fSubstitution = ConjunctiveFormula.of(termContext);
+                if (kItem.kLabel().equals(patternKItem.kLabel())) {
+                    if (patternMatch(kItem.kList(), patternKItem.kList())) {
+                        assert fSubstitution.isSubstitution();
+                        stepSubstitutions.add(new PartialSubstitution(
+                                ImmutableSet.<Term>of(kItem),
+                                fSubstitution.substitution()));
+                    }
+                }
+                fSubstitution = null;
+            }
+            partialSubstitutions = getCrossProduct(partialSubstitutions, stepSubstitutions);
+        }
+
+        /* restore the main substitution */
+        fSubstitution = stashedSubstitution;
+
+        if (partialSubstitutions.isEmpty()) {
+            this.fail(builtinSet, patternBuiltinSet);
+        }
+
+        List<Substitution<Variable, Term>> substitutions = Lists.newArrayList();
+        for (PartialSubstitution ps : partialSubstitutions) {
+            Substitution<Variable, Term> substitution = addFrameMatching(
+                    builtinSet,
+                    patternBuiltinSet,
+                    ps,
+                    termContext);
+            if (substitution != null) {
+                substitutions.add(substitution);
+            }
+        }
+
+        if (substitutions.size() != 1) {
+            List<ConjunctiveFormula> conjunctions = substitutions.stream()
+                    .map(s -> ConjunctiveFormula.of(s, termContext))
+                    .collect(Collectors.toList());
+            fSubstitution = fSubstitution.add(new DisjunctiveFormula(conjunctions, termContext));
+        } else {
+            fSubstitution = fSubstitution.addAndSimplify(substitutions.get(0));
+            if (fSubstitution.isFalse()) {
+                fail(builtinSet, patternBuiltinSet);
+            }
         }
     }
 

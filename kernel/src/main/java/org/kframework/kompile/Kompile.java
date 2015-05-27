@@ -16,6 +16,7 @@ import org.kframework.definition.Bubble;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
 import org.kframework.definition.Module;
+import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
@@ -55,6 +56,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.kframework.Collections.*;
+import static org.kframework.definition.Constructors.Att;
 import static org.kframework.definition.Constructors.*;
 import static org.kframework.kore.KORE.*;
 import static scala.compat.java8.JFunction.*;
@@ -155,6 +157,13 @@ public class Kompile {
         ).apply(input);
     }
 
+    private Sentence concretizeSentence(Sentence s, Definition input) {
+        ConfigurationInfoFromModule configInfo = new ConfigurationInfoFromModule(input.mainModule());
+        LabelInfo labelInfo = new LabelInfoFromModule(input.mainModule());
+        SortInfo sortInfo = SortInfo.fromModule(input.mainModule());
+        return new ConcretizeCells(configInfo, labelInfo, sortInfo, kem).concretize(s);
+    }
+
     public Definition parseDefinition(File definitionFile, String mainModuleName, String mainProgramsModule, boolean dropQuote) {
         Definition definition = parser.loadDefinition(
                 mainModuleName,
@@ -182,7 +191,6 @@ public class Kompile {
             definitionWithConfigBubble = definition;
         }
 
-        errors = java.util.Collections.synchronizedSet(Sets.newHashSet());
         caches = new HashMap<>();
 
         if (cacheParses) {
@@ -210,7 +218,7 @@ public class Kompile {
     }
 
     Map<String, ParseCache> caches;
-    java.util.Set<ParseFailedException> errors;
+    java.util.Set<ParseFailedException> errors = java.util.Collections.synchronizedSet(Sets.newHashSet());
     RuleGrammarGenerator gen;
 
     private Module resolveConfig(Module module, Definition def) {
@@ -266,26 +274,43 @@ public class Kompile {
                 .map(b -> (Bubble) b)
                 .filter(b -> !b.sentenceType().equals("config"))
                 .flatMap(b -> performParse(cache.getCache(), parser, b))
-                .map(contents -> {
-                    KApply ruleContents = (KApply) contents;
-                    List<org.kframework.kore.K> items = ruleContents.klist().items();
-                    switch (ruleContents.klabel().name()) {
-                    case "#ruleNoConditions":
-                        return Rule(items.get(0), BooleanUtils.TRUE, BooleanUtils.TRUE, ruleContents.att());
-                    case "#ruleRequires":
-                        return Rule(items.get(0), items.get(1), BooleanUtils.TRUE, ruleContents.att());
-                    case "#ruleEnsures":
-                        return Rule(items.get(0), BooleanUtils.TRUE, items.get(1), ruleContents.att());
-                    case "#ruleRequiresEnsures":
-                        return Rule(items.get(0), items.get(1), items.get(2), ruleContents.att());
-                    default:
-                        throw new AssertionError("Wrong KLabel for rule content");
-                    }
-                })
+                .map(this::upRule)
                 .collect(Collections.toSet());
 
         return Module(module.name(), module.imports(),
                 stream((Set<Sentence>) module.localSentences().$bar(ruleSet)).filter(b -> !(b instanceof Bubble)).collect(Collections.toSet()), module.att());
+    }
+
+    public Rule compileRule(CompiledDefinition compiledDef, String contents, Source source) {
+        gen = new RuleGrammarGenerator(compiledDef.kompiledDefinition);
+        java.util.Set<K> res = performParse(new HashMap<>(), new ParseInModule(gen.getRuleGrammar(compiledDef.executionModule())),
+                new Bubble("rule", contents, Att().add("contentStartLine", 1).add("contentStartColumn", 1).add("Source", source.source())))
+                .collect(Collectors.toSet());
+        if (!errors.isEmpty()) {
+            throw errors.iterator().next();
+        }
+        Rule parsed = upRule(res.iterator().next());
+        return (Rule) func(new ResolveAnonVar()::resolve)
+                .andThen(func(new ResolveSemanticCasts()::resolve))
+                .andThen(func(s -> concretizeSentence(s, compiledDef.kompiledDefinition)))
+                .apply(parsed);
+    }
+
+    private Rule upRule(K contents) {
+        KApply ruleContents = (KApply) contents;
+        List<K> items = ruleContents.klist().items();
+        switch (ruleContents.klabel().name()) {
+        case "#ruleNoConditions":
+            return Rule(items.get(0), BooleanUtils.TRUE, BooleanUtils.TRUE, ruleContents.att());
+        case "#ruleRequires":
+            return Rule(items.get(0), items.get(1), BooleanUtils.TRUE, ruleContents.att());
+        case "#ruleEnsures":
+            return Rule(items.get(0), BooleanUtils.TRUE, items.get(1), ruleContents.att());
+        case "#ruleRequiresEnsures":
+            return Rule(items.get(0), items.get(1), items.get(2), ruleContents.att());
+        default:
+            throw new AssertionError("Wrong KLabel for rule content");
+        }
     }
 
     private ParseCache loadCache(Module parser) {

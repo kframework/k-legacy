@@ -1,17 +1,16 @@
 // Copyright (c) 2014-2015 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
+import com.google.common.collect.Iterables;
+import org.kframework.backend.java.kil.Definition;
+import org.kframework.backend.java.kil.Rule;
+import org.kframework.utils.errorsystem.KEMException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.kframework.backend.java.kil.Definition;
-import org.kframework.backend.java.kil.Rule;
-import org.kframework.utils.errorsystem.KEMException;
-
-import com.google.common.collect.Iterables;
 
 public class RuleAuditing {
 
@@ -82,7 +81,7 @@ public class RuleAuditing {
         }
     }
 
-    private static void setAuditingRule(Rule rule) {
+    public static void setAuditingRule(Rule rule) {
         System.err.println("Auditing " + rule + "...");
         auditState.set(new AuditState(rule));
     }

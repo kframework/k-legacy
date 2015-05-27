@@ -332,12 +332,12 @@ public class CopyOnWriteTransformer implements Transformer {
     public ASTNode transform(Rule rule) {
         Term processedLeftHandSide = (Term) rule.leftHandSide().accept(this);
         Term processedRightHandSide = (Term) rule.rightHandSide().accept(this);
-        List<Term> processedRequires = new ArrayList<Term>(rule.requires().size());
-        for (Term conditionItem : rule.requires()) {
+        List<Term> processedRequires = new ArrayList<Term>(rule.requiresInternal().size());
+        for (Term conditionItem : rule.requiresInternal()) {
             processedRequires.add((Term) conditionItem.accept(this));
         }
-        List<Term> processedEnsures = new ArrayList<Term>(rule.ensures().size());
-        for (Term conditionItem : rule.ensures()) {
+        List<Term> processedEnsures = new ArrayList<Term>(rule.ensuresInternal().size());
+        for (Term conditionItem : rule.ensuresInternal()) {
             processedEnsures.add((Term) conditionItem.accept(this));
         }
         Set<Variable> processedFreshConstants = new HashSet<>(rule.freshConstants().size());
@@ -385,7 +385,8 @@ public class CopyOnWriteTransformer implements Transformer {
                     rule.cellsToCopy(),
                     rule.matchingInstructions(),
                     rule,
-                    context);
+                    context,
+                    rule.att());
         } else {
             return rule;
         }

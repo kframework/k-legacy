@@ -38,11 +38,11 @@ object StrictToHeatingCooling extends ModuleTransformer({m: Module =>
       .filter { strictIn.contains(_) }
       .flatMap {i: Int =>
       Set(
-        Rule(
+        RuleImpl(
           KSequence(KRewrite(cooled, heated(i))),
           KLabel("notBool_")(isKResult(i)),
           True, Att() + "heat"),
-        Rule(
+        RuleImpl(
           KSequence(KRewrite(heated(i), cooled)),
           isKResult(i),
           True, Att() + "cool")

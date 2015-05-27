@@ -1,9 +1,14 @@
 // Copyright (c) 2013-2015 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMultiset;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.kframework.backend.java.symbolic.Matcher;
-import org.kframework.backend.java.symbolic.Unifier;
 import org.kframework.backend.java.symbolic.Transformer;
+import org.kframework.backend.java.symbolic.Unifier;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Utils;
 import org.kframework.kil.ASTNode;
@@ -15,12 +20,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMultiset;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 
 /**
@@ -48,11 +47,8 @@ public class BuiltinSet extends AssociativeCommutativeCollection {
         return builder.build();
     }
 
-    /**
-     * TODO(YilongL): implement it properly!
-     */
     public boolean isUnifiableByCurrentAlgorithm() {
-        return true;
+        return collectionFunctions.isEmpty();
     }
 
     public static boolean isSetUnifiableByCurrentAlgorithm(Term term, Term otherTerm) {

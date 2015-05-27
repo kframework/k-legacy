@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.kframework.kore.KORE.*;
+import static org.kframework.definition.Constructors.*;
 
 public class ResolveAnonVar {
     private Set<KVariable> vars = new HashSet<>();
@@ -25,7 +26,7 @@ public class ResolveAnonVar {
         gatherVars(rule.body());
         gatherVars(rule.requires());
         gatherVars(rule.ensures());
-        return new Rule(
+        return Rule(
                 transform(rule.body()),
                 transform(rule.requires()),
                 transform(rule.ensures()),

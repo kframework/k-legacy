@@ -1,10 +1,7 @@
 // Copyright (c) 2013-2015 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Lists;
 import org.kframework.backend.java.kil.CellLabel;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.JavaSymbolicObject;
@@ -15,7 +12,9 @@ import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.utils.errorsystem.KExceptionManager;
 
-import com.google.common.collect.Lists;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -62,12 +61,12 @@ public class MacroExpander extends CopyOnWriteTransformer {
     public Rule processRule(Rule rule) {
         Term processedLeftHandSide = processTerm(rule.leftHandSide());
         Term processedRightHandSide = processTerm(rule.rightHandSide());
-        List<Term> processedRequires = Lists.newArrayListWithCapacity(rule.requires().size());
-        for (Term conditionItem : rule.requires()) {
+        List<Term> processedRequires = Lists.newArrayListWithCapacity(rule.requiresInternal().size());
+        for (Term conditionItem : rule.requiresInternal()) {
             processedRequires.add(processTerm(conditionItem));
         }
-        List<Term> processedEnsures = Lists.newArrayListWithCapacity(rule.ensures().size());
-        for (Term conditionItem : rule.ensures()) {
+        List<Term> processedEnsures = Lists.newArrayListWithCapacity(rule.ensuresInternal().size());
+        for (Term conditionItem : rule.ensuresInternal()) {
             processedEnsures.add(processTerm(conditionItem));
         }
         ConjunctiveFormula processedLookups
@@ -101,7 +100,8 @@ public class MacroExpander extends CopyOnWriteTransformer {
                 rule.cellsToCopy(),
                 rule.matchingInstructions(),
                 rule,
-                context);
+                context,
+                rule.att());
     }
 
     public Term processTerm(Term term) {

@@ -250,10 +250,10 @@ public class PrePostVisitor implements Visitor {
         rule.leftHandSide().accept(this);
         rule.rightHandSide().accept(this);
         rule.lookups().accept(this);
-        for (Term term : rule.requires()) {
+        for (Term term : rule.requiresInternal()) {
             term.accept(this);
         }
-        for (Term term : rule.ensures()) {
+        for (Term term : rule.ensuresInternal()) {
             term.accept(this);
         }
         for (Variable variable : rule.freshConstants()) {

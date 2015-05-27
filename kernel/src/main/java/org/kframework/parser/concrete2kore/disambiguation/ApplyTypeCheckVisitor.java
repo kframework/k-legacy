@@ -86,8 +86,12 @@ public class ApplyTypeCheckVisitor extends SetsTransformerWithErrors<ParseFailed
                 // skip variables since they will always have a different sort at this stage.
                 return Right.apply(pr);
             }
-            if ((!strict && !subsorts.lessThanEq(pr.production().sort(), sort)) || (strict && !pr.production().sort().equals(sort))) {
+            if ((!strict && !subsorts.lessThanEq(pr.production().sort(), sort))) {
                 String msg = "Unexpected sort " + pr.production().sort() + " for term " + pr.toString() + ". Expected " + sort + ".";
+                KException kex = new KException(KException.ExceptionType.ERROR, KException.KExceptionGroup.CRITICAL, msg, pr.source().get(), pr.location().get());
+                return Left.apply(Sets.newHashSet(new VariableTypeClashException(kex)));
+            } else if (strict && !pr.production().sort().equals(sort)) {
+                String msg = "Unexpected sort " + pr.production().sort() + " for term " + pr.toString() + " subject to strict cast. Expected exactly " + sort + ".";
                 KException kex = new KException(KException.ExceptionType.ERROR, KException.KExceptionGroup.CRITICAL, msg, pr.source().get(), pr.location().get());
                 return Left.apply(Sets.newHashSet(new VariableTypeClashException(kex)));
             }

@@ -100,7 +100,11 @@ public abstract class Term extends JavaSymbolicObject implements Transformable, 
      * pending functions and predicates. <br>
      */
     public Term evaluate(TermContext context) {
-        return Evaluator.evaluate(this, context);
+        return evaluate(context, null);
+    }
+
+    public Term evaluate(TermContext context, KLabel exception) {
+        return Evaluator.evaluate(this, context, exception);
     }
 
     /**

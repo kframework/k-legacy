@@ -161,7 +161,13 @@ trait Sentence {
 // deprecated
 case class Context(body: K, requires: K, att: Att = Att()) extends Sentence with OuterKORE with ContextToString
 
-case class Rule(body: K, requires: K, ensures: K, att: Att = Att()) extends Sentence with RuleToString with OuterKORE
+trait Rule extends Sentence {
+  val body: K
+  val requires: K
+  val ensures: K
+}
+
+case class RuleImpl(body: K, requires: K, ensures: K, att: Att = Att()) extends Rule with RuleToString with OuterKORE
 
 case class ModuleComment(comment: String, att: Att = Att()) extends Sentence with OuterKORE
 

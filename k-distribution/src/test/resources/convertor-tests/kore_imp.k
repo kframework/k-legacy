@@ -36,6 +36,7 @@ module IMP
   imports IMP-CORE-SYNTAX
   imports MAP
   imports INT
+  imports STRING
   syntax KResult ::= Int | Bool
 
   configuration <T color="yellow">

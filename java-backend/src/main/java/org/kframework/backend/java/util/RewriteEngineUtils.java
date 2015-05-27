@@ -1,15 +1,8 @@
 // Copyright (c) 2014-2015 K Team. All Rights Reserved.
 package org.kframework.backend.java.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.FreshOperations;
 import org.kframework.backend.java.kil.Bottom;
@@ -22,11 +15,17 @@ import org.kframework.backend.java.rewritemachine.KAbstractRewriteMachine;
 import org.kframework.backend.java.rewritemachine.RHSInstruction;
 import org.kframework.backend.java.symbolic.Equality;
 import org.kframework.backend.java.symbolic.PatternMatcher;
-import org.kframework.backend.java.symbolic.Substitution;
 import org.kframework.backend.java.symbolic.RuleAuditing;
+import org.kframework.backend.java.symbolic.Substitution;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Utilities for the Java rewrite engine.
@@ -135,7 +134,7 @@ public class RewriteEngineUtils {
         Profiler.startTimer(Profiler.EVALUATE_REQUIRES_TIMER);
         if (crntSubst != null) {
             i = 0;
-            for (Term require : rule.requires()) {
+            for (Term require : rule.requiresInternal()) {
                 // TODO(YilongL): in the future, we may have to accumulate
                 // the substitution obtained from evaluating the side
                 // condition

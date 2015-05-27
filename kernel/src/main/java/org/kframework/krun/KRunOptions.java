@@ -113,7 +113,7 @@ public final class KRunOptions {
         public Map<String, Pair<String, String>> configVars(String mainModuleName) {
             Map<String, Pair<String, String>> result = new HashMap<>();
             for (Map.Entry<String, String> entry : configVars.entrySet()) {
-                String cfgParser = "kast --kore -e -m " + mainModuleName;
+                String cfgParser = "kast --kore -m " + mainModuleName + " -e";
                 if (configVarParsers.get(entry.getKey()) != null) {
                     cfgParser = configVarParsers.get(entry.getKey());
                 }
@@ -186,6 +186,9 @@ public final class KRunOptions {
             return OutputModes.class;
         }
     }
+
+    @Parameter(names="--output-file", description="Store output in the file instead of displaying it.")
+    public String outputFile;
 
     @Parameter(names="--search", description="In conjunction with it you can specify 3 options that are optional: pattern (the pattern used for search), bound (the number of desired solutions) and depth (the maximum depth of the search).")
     private boolean search = false;
@@ -293,9 +296,6 @@ public final class KRunOptions {
 
         @ParametersDelegate
         public SMTOptions smt = new SMTOptions();
-
-        @Parameter(names="--output-file", description="Store output in the file instead of displaying it.")
-        public String outputFile;
 
         @Parameter(names="--trace", description="Print a trace of every rule applied.")
         public boolean trace = false;

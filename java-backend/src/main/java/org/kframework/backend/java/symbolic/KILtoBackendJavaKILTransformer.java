@@ -1,39 +1,17 @@
 // Copyright (c) 2013-2015 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import static org.kframework.kil.KLabelConstant.ANDBOOL_KLABEL;
-import static org.kframework.kil.KLabelConstant.BOOL_ANDBOOL_KLABEL;
-
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.FloatToken;
 import org.kframework.backend.java.builtins.IntToken;
 import org.kframework.backend.java.builtins.StringToken;
 import org.kframework.backend.java.builtins.UninterpretedToken;
 import org.kframework.backend.java.indexing.IndexingTable;
-import org.kframework.backend.java.kil.BuiltinList;
-import org.kframework.backend.java.kil.BuiltinMap;
-import org.kframework.backend.java.kil.BuiltinSet;
-import org.kframework.backend.java.kil.CellCollection;
-import org.kframework.backend.java.kil.CellLabel;
-import org.kframework.backend.java.kil.ConcreteCollectionVariable;
-import org.kframework.backend.java.kil.DataStructures;
-import org.kframework.backend.java.kil.Definition;
-import org.kframework.backend.java.kil.GlobalContext;
-import org.kframework.backend.java.kil.Hole;
-import org.kframework.backend.java.kil.JavaBackendRuleData;
-import org.kframework.backend.java.kil.KItem;
-import org.kframework.backend.java.kil.KItemProjection;
-import org.kframework.backend.java.kil.KLabelConstant;
-import org.kframework.backend.java.kil.KLabelFreezer;
-import org.kframework.backend.java.kil.KLabelInjection;
-import org.kframework.backend.java.kil.KList;
-import org.kframework.backend.java.kil.KSequence;
-import org.kframework.backend.java.kil.Kind;
-import org.kframework.backend.java.kil.Rule;
-import org.kframework.backend.java.kil.Sort;
-import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
-import org.kframework.backend.java.kil.Variable;
+import org.kframework.backend.java.kil.*;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.BackendTerm;
@@ -47,8 +25,8 @@ import org.kframework.kil.StringBuiltin;
 import org.kframework.kil.TermComment;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.CopyOnWriteTransformer;
-import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.errorsystem.KEMException;
+import org.kframework.utils.errorsystem.KExceptionManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,10 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
+import static org.kframework.kil.KLabelConstant.*;
 
 
 /**
@@ -120,11 +95,12 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
     }
 
     public Rule transformAndEval(org.kframework.kil.Rule node) {
-        Rule rule = null;
-        rule = new MacroExpander(TermContext.of(globalContext), kem).processRule((Rule) this.visitNode(node));
-        rule = evaluateRule(rule, globalContext);
+        return expandAndEvaluate(globalContext, kem, (Rule) this.visitNode(node));
+    }
 
-        return rule;
+    public static Rule expandAndEvaluate(GlobalContext globalContext, KExceptionManager kem, Rule rule) {
+        rule = new MacroExpander(TermContext.of(globalContext), kem).processRule(rule);
+        return evaluateRule(rule, globalContext);
     }
 
     public Term transformAndEval(org.kframework.kil.Term node) {
@@ -136,8 +112,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
 
     public static Term expandAndEvaluate(GlobalContext globalContext, KExceptionManager kem, Term term) {
         term = new MacroExpander(TermContext.of(globalContext), kem).processTerm((Term) term);
-        term = term.evaluate(TermContext.of(globalContext));
-        return term;
+        return term.evaluate(TermContext.of(globalContext));
     }
 
     @Override
@@ -629,16 +604,21 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
             // TODO(AndreiS): some evaluation is required in the LHS as well
             // TODO(YilongL): cannot simply uncomment the following code because it
             // may evaluate the LHS using the rule itself
-            //Term leftHandSide = rule.leftHandSide().evaluate(termContext);
+            Term leftHandSide;
+            if (rule.isFunction() || rule.isPattern() || rule.isAnywhere()) {
+                leftHandSide = rule.leftHandSide().evaluate(termContext, rule.definedKLabel());
+            } else {
+                leftHandSide = rule.leftHandSide().evaluate(termContext);
+            }
 
             Rule origRule = rule;
             Term rightHandSide = rule.rightHandSide().evaluate(termContext);
             List<Term> requires = new ArrayList<>();
-            for (Term term : rule.requires()) {
+            for (Term term : rule.requiresInternal()) {
                 requires.add(term.evaluate(termContext));
             }
             List<Term> ensures = new ArrayList<>();
-            for (Term term : rule.ensures()) {
+            for (Term term : rule.ensuresInternal()) {
                 ensures.add(term.evaluate(termContext));
             }
             ConjunctiveFormula lookups = ConjunctiveFormula.of(termContext);
@@ -658,7 +638,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
 
             Rule newRule = new Rule(
                     rule.label(),
-                    rule.leftHandSide(),
+                    leftHandSide,
                     rightHandSide,
                     requires,
                     ensures,
@@ -671,7 +651,8 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
                     rule.cellsToCopy(),
                     rule.matchingInstructions(),
                     rule,
-                    termContext);
+                    termContext,
+                    rule.att());
             return newRule.equals(rule) ? origRule : newRule;
         } catch (KEMException e) {
             e.exception.addTraceFrame("while compiling rule at location " + rule.getSource() + rule.getLocation());

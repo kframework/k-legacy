@@ -14,6 +14,8 @@ import org.kframework.kore.KRewrite;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.kframework.definition.Constructors.*;
+
 /**
  * This pass adds the implicit top and k cells to
  * the bodies of rules and contexts.
@@ -85,7 +87,7 @@ public class AddImplicitCells {
         if (rule.att().contains("anywhere")) {
             return rule;
         }
-        return new Rule(
+        return Rule(
                 addImplicitCells(rule.body()),
                 rule.requires(),
                 rule.ensures(),

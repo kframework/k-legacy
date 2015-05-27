@@ -68,7 +68,7 @@ public class PatternExpander extends CopyOnWriteTransformer {
             if (narrowing) {
                 ConjunctiveFormula globalConstraint = unificationConstraint
                         .addAll(constraint.equalities())
-                        .addAll(rule.requires())
+                        .addAll(rule.requiresInternal())
                         .simplify();
                 if (globalConstraint.isFalse() || globalConstraint.checkUnsat()) {
                     continue;
@@ -81,7 +81,7 @@ public class PatternExpander extends CopyOnWriteTransformer {
                 }
 
                 ConjunctiveFormula requires = unificationConstraint
-                        .addAll(rule.requires())
+                        .addAll(rule.requiresInternal())
                         .simplify();
                 // this should be guaranteed by the above unificationConstraint.isMatching
                 assert requires.substitution().keySet().containsAll(existVariables);
@@ -92,7 +92,7 @@ public class PatternExpander extends CopyOnWriteTransformer {
 
             unificationConstraint = unificationConstraint
                     .add(outputKList, ruleOutputKList)
-                    .addAll(rule.ensures())
+                    .addAll(rule.ensuresInternal())
                     .simplify();
             if (!unificationConstraint.isFalse() && !unificationConstraint.checkUnsat()) {
                 results.add(SymbolicRewriter.buildResult(rule, unificationConstraint));

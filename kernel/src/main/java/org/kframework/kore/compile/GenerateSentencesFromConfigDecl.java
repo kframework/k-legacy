@@ -238,11 +238,29 @@ public class GenerateSentencesFromConfigDecl {
             // syntax CellBag ::= Cell
             // syntax CellBag ::= ".CellBag"
             // syntax CellBag  ::= CellBag CellBag [assoc, unit(.CellBag)]
-            Sort bagSort = Sort(sortName + "Bag");
+            String type = cellProperties.<String>getOptional("type").orElse("Bag");
+            Sort bagSort = Sort(sortName + type);
+            Att bagAtt = Att()
+                    .add(Attribute.ASSOCIATIVE_KEY, "")
+                    .add("element", "<" + cellName + ">")
+                    .add(Attribute.UNIT_KEY, "." + bagSort.name())
+                    .add(Attribute.HOOK_KEY, type + ":__");
+            String unitHook = type + ":." + type, elementHook = type + ":" + type + "Item";
+            switch(type) {
+            case "Set":
+                bagAtt = bagAtt.add(Attribute.IDEMPOTENT_KEY, "");
+            case "Bag":
+                bagAtt = bagAtt.add(Attribute.COMMUTATIVE_KEY, "");
+            case "List":
+                break;
+            default:
+                throw KEMException.compilerError("Unexpected type for multiplicity * cell: " + cellName + ". Should be one of: Set, Bag, List");
+            }
             Sentence bagSubsort = Production(bagSort, Seq(NonTerminal(sort)), Att());
-            Sentence bagUnit = Production("." + bagSort.name(), bagSort, Seq(Terminal("." + bagSort.name())));
+            Sentence bagUnit = Production("." + bagSort.name(), bagSort, Seq(Terminal("." + bagSort.name())), Att().add(Attribute.HOOK_KEY, unitHook));
+            cellProduction = Production(cellProduction.sort(), cellProduction.items(), cellProduction.att().add(Attribute.HOOK_KEY, elementHook));
             Sentence bag = Production("_" + bagSort + "_", bagSort, Seq(NonTerminal(bagSort), NonTerminal(bagSort)),
-                    Att().add(Attribute.ASSOCIATIVE_KEY, "").add(Attribute.COMMUTATIVE_KEY, "").add(Attribute.UNIT_KEY, "." + bagSort.name()));
+                    bagAtt);
             // rule initCell => .CellBag
             // -or-
             // rule initCell(Init) => <cell> Context[$var] </cell>

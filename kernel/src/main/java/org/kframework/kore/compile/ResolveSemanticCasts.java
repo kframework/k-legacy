@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.kframework.kore.KORE.*;
+import static org.kframework.definition.Constructors.*;
 
 /**
  * Created by dwightguth on 4/17/15.
@@ -36,7 +37,7 @@ public class ResolveSemanticCasts {
         gatherCasts(rule.body());
         gatherCasts(rule.requires());
         gatherCasts(rule.ensures());
-        return new Rule(
+        return Rule(
                 transform(rule.body()),
                 addSideCondition(transform(rule.requires())),
                 transform(rule.ensures()),

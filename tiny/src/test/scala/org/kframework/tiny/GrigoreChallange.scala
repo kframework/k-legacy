@@ -54,10 +54,10 @@ class GrigoreChallange {
   val argsAreInts = And('isInt(X), 'isInt(Y))
 
   val completeModule = Module("T", Set(syntaxModule, logicModule), Set(
-    Rule(X ~ Y ~ R ==> (X + Y) ~ R, argsAreInts, False),
-    Rule(X ~ Y ~ R ==> (X - Y) ~ R, argsAreInts, False),
-    Rule(X ~ Y ~ R ==> (X / Y) ~ R, argsAreInts, False),
-    Rule(X ~ Y ~ R ==> (X * Y) ~ R, argsAreInts, False)
+    RuleImpl(X ~ Y ~ R ==> (X + Y) ~ R, argsAreInts, False),
+    RuleImpl(X ~ Y ~ R ==> (X - Y) ~ R, argsAreInts, False),
+    RuleImpl(X ~ Y ~ R ==> (X / Y) ~ R, argsAreInts, False),
+    RuleImpl(X ~ Y ~ R ==> (X * Y) ~ R, argsAreInts, False)
   ))
 
   val rewriter = new Rewriter(completeModule, SimpleIndex)
@@ -75,10 +75,10 @@ class GrigoreChallange {
   }
 
   val completeModuleWithAnywhere = Module("T-ANYWHERE", Set(syntaxModule, logicModule), Set(
-    Rule(X ~ Y ==> (X + Y), argsAreInts, False, cons.Att() + "anywhere"),
-    Rule(X ~ Y ==> (X - Y), argsAreInts, False, cons.Att() + "anywhere"),
-    Rule(X ~ Y ==> (X / Y), argsAreInts, False, cons.Att() + "anywhere"),
-    Rule(X ~ Y ==> (X * Y), argsAreInts, False, cons.Att() + "anywhere")
+    RuleImpl(X ~ Y ==> (X + Y), argsAreInts, False, cons.Att() + "anywhere"),
+    RuleImpl(X ~ Y ==> (X - Y), argsAreInts, False, cons.Att() + "anywhere"),
+    RuleImpl(X ~ Y ==> (X / Y), argsAreInts, False, cons.Att() + "anywhere"),
+    RuleImpl(X ~ Y ==> (X * Y), argsAreInts, False, cons.Att() + "anywhere")
   ))
 
   val rewriterWithAnywhere = new Rewriter(completeModuleWithAnywhere, SimpleIndex)

@@ -3,19 +3,26 @@ package org.kframework.krun;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.Rewriter;
+import org.kframework.Strategy;
 import org.kframework.attributes.Source;
+import org.kframework.backend.unparser.OutputModes;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.Module;
+import org.kframework.definition.Rule;
 import org.kframework.kil.Attributes;
 import org.kframework.kompile.CompiledDefinition;
+import org.kframework.kompile.Kompile;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KToken;
+import org.kframework.kore.KVariable;
 import org.kframework.kore.Sort;
+import org.kframework.kore.ToKast;
 import org.kframework.parser.ProductionReference;
 import org.kframework.transformation.Transformation;
 import org.kframework.unparser.AddBrackets;
 import org.kframework.unparser.KOREToTreeNodes;
+import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.errorsystem.ParseFailedException;
@@ -24,13 +31,17 @@ import org.kframework.utils.file.FileUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.kframework.Collections.*;
-import static org.kframework.kore.KORE.*;
+import static org.kframework.definition.Constructors.Att;
 import static org.kframework.definition.Constructors.*;
+import static org.kframework.kore.KORE.*;
 
 /**
  * The KORE-based KRun
@@ -45,7 +56,7 @@ public class KRun implements Transformation<Void, Void> {
         this.files = files;
     }
 
-    public int run(CompiledDefinition compiledDef, KRunOptions options, Function<Module, Rewriter> rewriterGenerator) {
+    public int run(CompiledDefinition compiledDef, KRunOptions options, Function<Module, Rewriter> backend, Strategy strategy) {
         String pgmFileName = options.configurationCreation.pgm();
         K program;
         if (options.configurationCreation.term()) {
@@ -55,14 +66,77 @@ public class KRun implements Transformation<Void, Void> {
             program = parseConfigVars(options, compiledDef);
         }
 
-        Rewriter rewriter = rewriterGenerator.apply(compiledDef.executionModule());
+        Rewriter rewriter = backend.apply(compiledDef.executionModule());
 
-        K result = rewriter.execute(program);
+        Object result = strategy.execute(program, rewriter);
 
-        Module unparsingModule = compiledDef.getParserModule(Module("UNPARSING", Set(compiledDef.executionModule(), compiledDef.syntaxModule(), compiledDef.getParsedDefinition().getModule("K-SORT-LATTICE").get()), Set(), Att()));
+        if (result instanceof K) {
+            prettyPrint(compiledDef, options.output, s -> outputFile(s, options), (K) result);
 
-        System.out.println(unparseTerm(result, unparsingModule));
+            if (options.exitCodePattern != null) {
+                Rule exitCodePattern = pattern(options.exitCodePattern, options, compiledDef, Source.apply("<command line: --exit-code>"));
+                List<? extends Map<? extends KVariable, ? extends K>> res = rewriter.match((K) result, false, exitCodePattern);
+                if (res.size() != 1) {
+                    kem.registerCriticalWarning("Found " + res.size() + " solutions to exit code pattern. Returning 112.");
+                    return 112;
+                }
+                Map<? extends KVariable, ? extends K> solution = res.get(0);
+                Set<Integer> vars = new HashSet<>();
+                for (K t : solution.values()) {
+                    // TODO(andreistefanescu): fix Token.sort() to return a kore.Sort that obeys kore.Sort's equality contract.
+                    if (t instanceof KToken && Sorts.Int().equals(((KToken) t).sort())) {
+                        try {
+                            vars.add(Integer.valueOf(((KToken) t).s()));
+                        } catch (NumberFormatException e) {
+                            throw KEMException.criticalError("Exit code found was not in the range of an integer. Found: " + ((KToken) t).s(), e);
+                        }
+                    }
+                }
+                if (vars.size() != 1) {
+                    kem.registerCriticalWarning("Found " + vars.size() + " integer variables in exit code pattern. Returning 111.");
+                    return 111;
+                }
+                return vars.iterator().next();
+            }
+        } else if (result == null) {
+        } else {
+            throw KEMException.internalError("Unexpected output type of execution strategy.");
+        }
+
         return 0;
+    }
+
+    //TODO(dwightguth): use Writer
+    public void outputFile(String output, KRunOptions options) {
+        if (options.outputFile == null) {
+            System.out.print(output);
+        } else {
+            files.saveToWorkingDirectory(options.outputFile, output);
+        }
+    }
+
+    public static void prettyPrint(CompiledDefinition compiledDef, OutputModes output, Consumer<String> print, K result) {
+        switch (output) {
+        case KAST:
+            print.accept(ToKast.apply(result) + "\n");
+            break;
+        case NONE:
+            print.accept("");
+            break;
+        case PRETTY:
+            Module unparsingModule = compiledDef.getParserModule(Module("UNPARSING", Set(compiledDef.executionModule(), compiledDef.syntaxModule(), compiledDef.getParsedDefinition().getModule("K-SORT-LATTICE").get()), Set(), Att()));
+            print.accept(unparseTerm(result, unparsingModule) + "\n");
+            break;
+        default:
+            throw KEMException.criticalError("Unsupported output mode: " + output);
+        }
+    }
+
+    public Rule pattern(String pattern, KRunOptions options, CompiledDefinition compiledDef, Source source) {
+        if (pattern != null && (options.experimental.prove != null || options.experimental.ltlmc())) {
+            throw KEMException.criticalError("Pattern matching is not supported by model checking or proving");
+        }
+        return new Kompile(compiledDef.kompileOptions, files, kem).compileRule(compiledDef, pattern, source);
     }
 
     private K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef) {
@@ -84,7 +158,7 @@ public class KRun implements Transformation<Void, Void> {
         return KApply(compiledDef.topCellInitializer, output.entrySet().stream().map(e -> KApply(KLabel("_|->_"), e.getKey(), e.getValue())).reduce(KApply(KLabel(".Map")), (a, b) -> KApply(KLabel("_Map_"), a, b)));
     }
 
-    private String unparseTerm(K input, Module test) {
+    private static String unparseTerm(K input, Module test) {
         return KOREToTreeNodes.toString(
                 new AddBrackets(test).addBrackets((ProductionReference)
                         KOREToTreeNodes.apply(KOREToTreeNodes.up(input), test)));

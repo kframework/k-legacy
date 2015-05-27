@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.kframework.kore.KORE.*;
+import static org.kframework.definition.Constructors.*;
 
 /**
  * Add omitted parent cells to a term written using configuration abstraction.
@@ -307,7 +308,7 @@ public class AddParentCells {
     public Sentence concretize(Sentence m) {
         if (m instanceof Rule) {
             Rule r = (Rule) m;
-            return new Rule(concretize(r.body()), r.requires(), r.ensures(), r.att());
+            return Rule(concretize(r.body()), r.requires(), r.ensures(), r.att());
         } else if (m instanceof Context) {
             Context c = (Context) m;
             return new Context(c.body(), c.requires(), c.att());

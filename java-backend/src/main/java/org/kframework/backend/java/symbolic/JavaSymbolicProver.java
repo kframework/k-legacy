@@ -1,12 +1,7 @@
 // Copyright (c) 2014-2015 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.inject.Inject;
 import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.Rule;
@@ -24,7 +19,11 @@ import org.kframework.krun.api.KRunProofResult;
 import org.kframework.krun.tools.Prover;
 import org.kframework.utils.errorsystem.KExceptionManager;
 
-import com.google.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class JavaSymbolicProver implements Prover {
 
@@ -73,10 +72,10 @@ public class JavaSymbolicProver implements Prover {
             Rule rule = transformer.transformAndEval((org.kframework.kil.Rule) moduleItem);
             ConstrainedTerm initialTerm = new ConstrainedTerm(
                     rule.leftHandSide(),
-                    ConjunctiveFormula.of(termContext).addAll(rule.requires()));
+                    ConjunctiveFormula.of(termContext).addAll(rule.requiresInternal()));
             ConstrainedTerm targetTerm = new ConstrainedTerm(
                     rule.rightHandSide(),
-                    ConjunctiveFormula.of(termContext).addAll(rule.ensures()));
+                    ConjunctiveFormula.of(termContext).addAll(rule.ensuresInternal()));
             proofResults.addAll(symbolicRewriter.proveRule(initialTerm, targetTerm, rules));
         }
 

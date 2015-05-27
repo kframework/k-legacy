@@ -254,11 +254,14 @@ public class KItem extends Term implements KItemRepresentation {
     }
 
     public Term evaluateFunction(boolean copyOnShareSubstAndEval, TermContext context) {
-        return context.global().kItemOps.evaluateFunction(this, copyOnShareSubstAndEval, context);
+        return context.global().kItemOps.evaluateFunction(this, copyOnShareSubstAndEval, context, null);
+    }
+    public Term resolveFunctionAndAnywhere(boolean copyOnShareSubstAndEval, TermContext context) {
+        return resolveFunctionAndAnywhere(copyOnShareSubstAndEval, context, null);
     }
 
-    public Term resolveFunctionAndAnywhere(boolean copyOnShareSubstAndEval, TermContext context) {
-        return context.global().kItemOps.resolveFunctionAndAnywhere(this, copyOnShareSubstAndEval, context);
+    public Term resolveFunctionAndAnywhere(boolean copyOnShareSubstAndEval, TermContext context, KLabel exception) {
+        return context.global().kItemOps.resolveFunctionAndAnywhere(this, copyOnShareSubstAndEval, context, exception);
     }
 
     @Override
@@ -303,11 +306,11 @@ public class KItem extends Term implements KItemRepresentation {
          *
          * @return the reduced result on success, or this {@code KItem} otherwise
          */
-        public Term resolveFunctionAndAnywhere(KItem kItem, boolean copyOnShareSubstAndEval, TermContext context) {
+        public Term resolveFunctionAndAnywhere(KItem kItem, boolean copyOnShareSubstAndEval, TermContext context, KLabel exception) {
             try {
                 Term result = kItem.isEvaluable(context) ?
-                        evaluateFunction(kItem, copyOnShareSubstAndEval, context) :
-                            kItem.applyAnywhereRules(copyOnShareSubstAndEval, context);
+                        evaluateFunction(kItem, copyOnShareSubstAndEval, context, exception) :
+                            kItem.applyAnywhereRules(copyOnShareSubstAndEval, context, exception);
                 if (result instanceof KItem && ((KItem) result).isEvaluable(context) && result.isGround()) {
                     // we do this check because this warning message can be very large and cause OOM
                     if (options.warnings.includesExceptionType(ExceptionType.HIDDENWARNING) && stage == Stage.REWRITING) {
@@ -374,13 +377,17 @@ public class KItem extends Term implements KItemRepresentation {
          *
          * @return the evaluated result on success, or this {@code KItem} otherwise
          */
-        public Term evaluateFunction(KItem kItem, boolean copyOnShareSubstAndEval, TermContext context) {
+        public Term evaluateFunction(KItem kItem, boolean copyOnShareSubstAndEval, TermContext context, KLabel exception) {
             if (!kItem.isEvaluable(context)) {
                 return kItem;
             }
 
             Definition definition = context.definition();
             KLabelConstant kLabelConstant = (KLabelConstant) kItem.kLabel;
+
+            if (kLabelConstant.equals(exception)) {
+                return kItem;
+            }
 
             Profiler.startTimer(Profiler.getTimerForFunction(kLabelConstant));
 
@@ -561,13 +568,17 @@ public class KItem extends Term implements KItemRepresentation {
      *
      * @return the result on success, or this {@code KItem} otherwise
      */
-    private Term applyAnywhereRules(boolean copyOnShareSubstAndEval, TermContext context) {
+    private Term applyAnywhereRules(boolean copyOnShareSubstAndEval, TermContext context, KLabel exception) {
         if (!isAnywhereApplicable(context)) {
             return this;
         }
 
         Definition definition = context.definition();
         KLabelConstant kLabelConstant = (KLabelConstant) kLabel;
+
+        if (kLabelConstant.equals(exception)) {
+            return this;
+        }
 
         /* apply [anywhere] rules */
         /* TODO(YilongL): make KLabelConstant dependent on Definition and store

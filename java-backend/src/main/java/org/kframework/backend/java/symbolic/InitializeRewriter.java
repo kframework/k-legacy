@@ -12,10 +12,14 @@ import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.KLabelConstant;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.util.JavaKRunState;
 import org.kframework.definition.Module;
+import org.kframework.definition.Rule;
+import org.kframework.kil.Attribute;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.K;
+import org.kframework.kore.KVariable;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.KRunState;
 import org.kframework.krun.api.io.FileSystem;
@@ -30,7 +34,10 @@ import scala.collection.JavaConversions;
 
 import java.lang.invoke.MethodHandle;
 import java.math.BigInteger;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -82,7 +89,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
         Definition evaluatedDef = initializeDefinition.invoke(module, kem, initializingContext);
         rewritingContext.setDefinition(evaluatedDef);
 
-        return new SymbolicRewriterGlue(evaluatedDef, kompileOptions, javaOptions, rewritingContext, kem);
+        return new SymbolicRewriterGlue(evaluatedDef, kompileOptions, javaOptions, rewritingContext, kem, module);
     }
 
     public static class SymbolicRewriterGlue implements Rewriter {
@@ -90,19 +97,84 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
         private final SymbolicRewriter rewriter;
         private final GlobalContext rewritingContext;
         private final KExceptionManager kem;
+        private final Module module;
 
-        public SymbolicRewriterGlue(Definition definition, KompileOptions kompileOptions, JavaExecutionOptions javaOptions, GlobalContext rewritingContext, KExceptionManager kem) {
+        public SymbolicRewriterGlue(Definition definition, KompileOptions kompileOptions, JavaExecutionOptions javaOptions, GlobalContext rewritingContext, KExceptionManager kem, Module module) {
+            this.module = module;
             this.rewriter = new SymbolicRewriter(definition,  kompileOptions, javaOptions, new KRunState.Counter());
             this.rewritingContext = rewritingContext;
             this.kem = kem;
         }
 
         @Override
+        public K convert(K k) {
+            TermContext tc = TermContext.of(rewritingContext);
+            KOREtoBackendKIL converter = new KOREtoBackendKIL(tc);
+            return converter.convert(k, tc, kem);
+        }
+
+        @Override
+        public List<? extends Map<? extends KVariable, ? extends K>> match(K k, boolean trace, Rule rule) {
+            TermContext tc = TermContext.of(rewritingContext);
+            KOREtoBackendKIL converter = new KOREtoBackendKIL(tc);
+            Term backendKil = converter.convert(k, tc, kem);
+            tc = TermContext.of(rewritingContext, backendKil, BigInteger.ZERO);
+            org.kframework.backend.java.kil.Rule backendRule = converter.convert(module, tc, rule, kem);
+            if (trace) {
+                RuleAuditing.setAuditingRule(backendRule);
+                RuleAuditing.beginAudit();
+            }
+            try {
+                List<? extends Map<? extends KVariable, ? extends K>> res;
+                if (rule.att().contains(Attribute.COMMUTATIVE_KEY) || rule.att().contains(Attribute.ASSOCIATIVE_KEY)) {
+                    res = PatternMatcher.match(
+                            backendKil,
+                            backendRule,
+                            tc);
+                } else {
+                    Map<Variable, Term> res2 = NonACPatternMatcher.match(backendKil, backendRule, tc);
+                    if (res2 == null)
+                        res = Collections.emptyList();
+                    else {
+                        res = Collections.singletonList(res2);
+                    }
+                }
+                if (res.size() > 0) {
+                    RuleAuditing.succeed(backendRule);
+                } else if (RuleAuditing.isAudit()) {
+                    RuleAuditing.fail();
+                }
+                return res;
+            } finally {
+                RuleAuditing.endAudit();
+                RuleAuditing.clearAuditingRule();
+            }
+        }
+
+        @Override
+        public K substitute(Map<? extends KVariable, ? extends K> substitution, Rule rule) {
+            Map<Variable, Term> backendSubst = new HashMap<>();
+            TermContext tc = TermContext.of(rewritingContext);
+            KOREtoBackendKIL converter = new KOREtoBackendKIL(tc);
+            for (Map.Entry<? extends KVariable, ? extends K> entry : substitution.entrySet()) {
+                backendSubst.put((Variable)converter.convert(entry.getKey(), tc, kem), converter.convert(entry.getValue(), tc, kem));
+            }
+            org.kframework.backend.java.kil.Rule backendRule = converter.convert(module, tc, rule, kem);
+            return backendRule.rightHandSide().substituteAndEvaluate(backendSubst, tc);
+        }
+
+        @Override
         public K execute(K k) {
-            KOREtoBackendKIL converter = new KOREtoBackendKIL(TermContext.of(rewritingContext));
-            Term backendKil = KILtoBackendJavaKILTransformer.expandAndEvaluate(rewritingContext, kem, converter.convert(k));
+            TermContext tc = TermContext.of(rewritingContext);
+            KOREtoBackendKIL converter = new KOREtoBackendKIL(tc);
+            Term backendKil = converter.convert(k, tc, kem);
             JavaKRunState result = (JavaKRunState) rewriter.rewrite(new ConstrainedTerm(backendKil, TermContext.of(rewritingContext, backendKil, BigInteger.ZERO)), rewritingContext.getDefinition().context(), -1, false);
             return result.getJavaKilTerm();
+        }
+
+        @Override
+        public List<? extends Rule> rules() {
+            return rewritingContext.getDefinition().rules();
         }
     }
 

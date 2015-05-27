@@ -1,10 +1,10 @@
 // Copyright (c) 2014-2015 K Team. All Rights Reserved.
 package org.kframework.krun;
 
-import java.util.List;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import java.util.List;
 
 public final class KRunDebuggerOptions {
 
@@ -20,6 +20,7 @@ public final class KRunDebuggerOptions {
     public final CommandSave save = new CommandSave();
     public final CommandLoad load = new CommandLoad();
     public final CommandRead read = new CommandRead();
+    public final CommandMatch match = new CommandMatch();
 
     @Parameters(commandNames="help", commandDescription="Display help on the available commands")
     public static final class CommandHelp {
@@ -99,5 +100,15 @@ public final class KRunDebuggerOptions {
 
         @Parameter(names="-s", description="String to read")
         public String string;
+    }
+
+    @Parameters(commandNames="match", commandDescription="Try to match a rule")
+    public static final class CommandMatch {
+
+        @Parameter(names="-f", description="File", required=true)
+        public String file;
+
+        @Parameter(names="-l", description="Line", required=true)
+        public int line;
     }
 }

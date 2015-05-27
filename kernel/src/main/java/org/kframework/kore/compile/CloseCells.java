@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.kframework.kore.KORE.*;
+import static org.kframework.definition.Constructors.*;
 
 /**
  * Remove any use of dots in cells, by replacing them with variables and appropriate connectives.
@@ -58,7 +59,7 @@ public class CloseCells {
         gatherVars(rule.body());
         gatherVars(rule.requires());
         gatherVars(rule.ensures());
-        return new Rule(
+        return Rule(
                 transform(rule.body()),
                 transform(rule.requires()),
                 transform(rule.ensures()),

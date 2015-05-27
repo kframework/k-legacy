@@ -45,8 +45,8 @@ object Constructors {
   def Context(content: K, requires: K) = definition.Context(content, requires)
   def Context(content: K, requires: K, att: attributes.Att) = definition.Context(content, requires, att)
 
-  def Rule(body: K, requires: K, ensures: K, att: attributes.Att) = definition.Rule(body, requires, ensures, att)
-  def Rule(body: K, requires: K, ensures: K) = definition.Rule(body, requires, ensures, Att())
+  def Rule(body: K, requires: K, ensures: K, att: attributes.Att) = definition.RuleImpl(body, requires, ensures, att)
+  def Rule(body: K, requires: K, ensures: K) = definition.RuleImpl(body, requires, ensures, Att())
 
   def Bubble(sentenceType: String, content: String, att: attributes.Att) =
     definition.Bubble(sentenceType, content, att)

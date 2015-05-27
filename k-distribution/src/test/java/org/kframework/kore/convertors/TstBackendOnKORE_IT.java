@@ -19,7 +19,9 @@ import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.K;
+import org.kframework.kore.strategies.Execute;
 import org.kframework.krun.KRun;
+import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import org.kframework.main.GlobalOptions;
@@ -40,8 +42,9 @@ import java.util.Collections;
 import java.util.function.BiFunction;
 
 import static org.kframework.Collections.*;
-import static org.kframework.kore.KORE.*;
+import static org.kframework.definition.Constructors.Att;
 import static org.kframework.definition.Constructors.*;
+import static org.kframework.kore.KORE.*;
 
 public class TstBackendOnKORE_IT {
 
@@ -86,7 +89,9 @@ public class TstBackendOnKORE_IT {
             requestScope.enter();
             try {
                 InitializeRewriter init = injector.getInstance(InitializeRewriter.class);
-                K kResult = init.apply(compiledDef.executionModule()).execute(krun.plugConfigVars(compiledDef, Collections.singletonMap(KToken("$PGM", Sorts.KConfigVar()), program)));
+                K kResult = new Execute(new KRunOptions()).execute(
+                        krun.plugConfigVars(compiledDef, Collections.singletonMap(KToken("$PGM", Sorts.KConfigVar()), program)),
+                        init.apply(compiledDef.executionModule()));
                 Module unparsingModule = compiledDef.getParserModule(Module("UNPARSING", Set(compiledDef.executionModule(), compiledDef.syntaxModule(), compiledDef.getParsedDefinition().getModule("K-SORT-LATTICE").get()), Set(), Att()));
                 System.err.println(KOREToTreeNodes.toString(new AddBrackets(unparsingModule).addBrackets((ProductionReference) KOREToTreeNodes.apply(KOREToTreeNodes.up(kResult), unparsingModule))));
             } finally {

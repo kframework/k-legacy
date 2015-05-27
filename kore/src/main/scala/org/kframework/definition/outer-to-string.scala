@@ -21,7 +21,7 @@ trait DefinitionToString {
 }
 
 trait RuleToString {
-  self: Rule =>
+  self: RuleImpl =>
   override def toString = Seq("rule", body, "requires", requires, "ensures", ensures, att).mkString(" ")
 }
 

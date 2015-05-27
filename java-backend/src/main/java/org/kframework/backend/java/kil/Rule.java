@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections15.list.UnmodifiableList;
+import org.kframework.attributes.Att;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.indexing.IndexingPair;
 import org.kframework.backend.java.rewritemachine.GenerateRHSInstructions;
@@ -21,9 +22,11 @@ import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.VariableOccurrencesCounter;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Utils;
+import org.kframework.builtin.BooleanUtils;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.loader.Constants;
+import org.kframework.kore.K;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,13 +36,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.kframework.kore.KORE.*;
+
 
 /**
  * A K rule in the format of the Java Rewrite Engine.
  *
  * @author AndreiS
  */
-public class Rule extends JavaSymbolicObject {
+public class Rule extends JavaSymbolicObject implements org.kframework.definition.Rule {
 
     private final String label;
     private final Term leftHandSide;
@@ -102,6 +107,8 @@ public class Rule extends JavaSymbolicObject {
     private final Sort predSort;
     private final KItem sortPredArg;
 
+    private final Att att;
+
     public Rule(
             String label,
             Term leftHandSide,
@@ -118,6 +125,26 @@ public class Rule extends JavaSymbolicObject {
             List<MatchingInstruction> instructions,
             ASTNode oldRule,
             TermContext termContext) {
+        this(label, leftHandSide, rightHandSide, requires, ensures, freshConstants, freshVariables, lookups, compiledForFastRewriting, lhsOfReadCells, rhsOfWriteCells, cellsToCopy, instructions, oldRule, termContext, null);
+    }
+
+    public Rule(
+            String label,
+            Term leftHandSide,
+            Term rightHandSide,
+            List<Term> requires,
+            List<Term> ensures,
+            Set<Variable> freshConstants,
+            Set<Variable> freshVariables,
+            ConjunctiveFormula lookups,
+            boolean compiledForFastRewriting,
+            Map<CellLabel, Term> lhsOfReadCells,
+            Map<CellLabel, Term> rhsOfWriteCells,
+            Set<CellLabel> cellsToCopy,
+            List<MatchingInstruction> instructions,
+            ASTNode oldRule,
+            TermContext termContext,
+            Att att) {
         this.label = label;
         this.leftHandSide = leftHandSide;
         this.rightHandSide = rightHandSide;
@@ -126,6 +153,7 @@ public class Rule extends JavaSymbolicObject {
         this.freshConstants = ImmutableSet.copyOf(freshConstants);
         this.freshVariables = ImmutableSet.copyOf(freshVariables);
         this.lookups = lookups;
+        this.att = att;
 
         copyAttributesFrom(oldRule);
         setLocation(oldRule.getLocation());
@@ -299,11 +327,11 @@ public class Rule extends JavaSymbolicObject {
         return label;
     }
 
-    public ImmutableList<Term> requires() {
+    public ImmutableList<Term> requiresInternal() {
         return requires;
     }
 
-    public ImmutableList<Term> ensures() {
+    public ImmutableList<Term> ensuresInternal() {
         return ensures;
     }
 
@@ -368,13 +396,7 @@ public class Rule extends JavaSymbolicObject {
      * Returns the KLabel constant defined by this rule (either a function or a pattern).
      */
     public KLabelConstant definedKLabel() {
-        assert isFunction() || isPattern();
-
-        return (KLabelConstant) ((KItem) leftHandSide).kLabel();
-    }
-
-    public KLabelConstant anywhereKLabel() {
-        assert isAnywhere();
+        assert isFunction() || isPattern() || isAnywhere();
 
         return (KLabelConstant) ((KItem) leftHandSide).kLabel();
     }
@@ -537,5 +559,25 @@ public class Rule extends JavaSymbolicObject {
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public K body() {
+        return KRewrite(leftHandSide, rightHandSide);
+    }
+
+    @Override
+    public Att att() {
+        return att;
+    }
+
+    @Override
+    public K requires() {
+        return requires.stream().map(t -> (K) t).reduce(BooleanUtils.TRUE, BooleanUtils::and);
+    }
+
+    @Override
+    public K ensures() {
+        return ensures.stream().map(t -> (K) t).reduce(BooleanUtils.TRUE, BooleanUtils::and);
     }
 }

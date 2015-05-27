@@ -13,12 +13,9 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.name.Names;
-import org.kframework.attributes.Location;
-import org.kframework.attributes.Source;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.indexing.IndexingTable;
 import org.kframework.backend.java.indexing.RuleIndex;
-import org.kframework.backend.java.symbolic.ConjunctiveFormula;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Subsorts;
@@ -32,7 +29,6 @@ import org.kframework.kil.DataStructureSort;
 import org.kframework.kil.Production;
 import org.kframework.kil.loader.Context;
 import org.kframework.kore.K;
-import org.kframework.kore.KApply;
 import org.kframework.kore.compile.RewriteToTop;
 import org.kframework.kore.convertors.KOREtoKIL;
 import org.kframework.utils.errorsystem.KEMException;
@@ -243,8 +239,6 @@ public class Definition extends JavaSymbolicObject {
                 type = org.kframework.kil.Sort.SET;
             } else if (assoc.isPresent() && comm.isPresent() && !idem.isPresent()) {
                 //TODO(dwightguth): distinguish between Bag and Map
-                if (!prod.att().contains(Attribute.HOOK_KEY))
-                    continue;
                 type = org.kframework.kil.Sort.MAP;
             } else if (!assoc.isPresent() && !comm.isPresent() && !idem.isPresent()) {
                 continue;
@@ -268,31 +262,8 @@ public class Definition extends JavaSymbolicObject {
             if (s instanceof org.kframework.definition.Rule) {
                 org.kframework.definition.Rule rule = (org.kframework.definition.Rule) s;
                 K leftHandSide = RewriteToTop.toLeft(rule.body());
-                org.kframework.kil.Rule oldRule = new org.kframework.kil.Rule();
-                oldRule.setAttributes(new KOREtoKIL().convertAttributes(rule.att()));
-                Location loc = rule.att().getOptional(Location.class).orElse(null);
-                Source source = rule.att().getOptional(Source.class).orElse(null);
-                oldRule.setLocation(loc);
-                oldRule.setSource(source);
-                if (leftHandSide instanceof KApply && module.attributesFor().apply(((KApply)leftHandSide).klabel()).contains(Attribute.FUNCTION_KEY)) {
-                    oldRule.putAttribute(Attribute.FUNCTION_KEY, "");
-                }
-                addRule(new Rule(
-                        "",
-                        transformer.convert(leftHandSide),
-                        transformer.convert(RewriteToTop.toRight(rule.body())),
-                        Collections.singletonList(transformer.convert(rule.requires())),
-                        Collections.singletonList(transformer.convert(rule.ensures())),
-                        Collections.emptySet(),
-                        Collections.emptySet(),
-                        ConjunctiveFormula.of(termContext),
-                        false,
-                        null,
-                        null,
-                        null,
-                        null,
-                        oldRule,
-                        termContext));
+                Rule r = transformer.convertInternal(module, termContext, rule);
+                addRule(r);
             }
         });
     }
@@ -337,7 +308,7 @@ public class Definition extends JavaSymbolicObject {
                 return;
             }
 
-            anywhereRules.put(rule.anywhereKLabel(), rule);
+            anywhereRules.put(rule.definedKLabel(), rule);
         } else {
             rules.add(rule);
         }

@@ -3,6 +3,7 @@ package org.kframework.backend.java.symbolic;
 
 import org.kframework.backend.java.kil.KItem;
 import org.kframework.backend.java.kil.KItemProjection;
+import org.kframework.backend.java.kil.KLabel;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
 import org.kframework.kil.ASTNode;
@@ -13,18 +14,21 @@ import org.kframework.kil.ASTNode;
  */
 public class Evaluator extends CopyOnWriteTransformer {
 
-    public Evaluator(TermContext context) {
+    private KLabel exception;
+
+    public Evaluator(TermContext context, KLabel exception) {
         super(context);
+        this.exception = exception;
     }
 
-    public static Term evaluate(Term term, TermContext context) {
-        Evaluator evaluator = new Evaluator(context);
+    public static Term evaluate(Term term, TermContext context, KLabel exception) {
+        Evaluator evaluator = new Evaluator(context, exception);
         return (Term) term.accept(evaluator);
     }
 
     @Override
     public ASTNode transform(KItem kItem) {
-        return ((KItem) super.transform(kItem)).resolveFunctionAndAnywhere(false, context);
+        return ((KItem) super.transform(kItem)).resolveFunctionAndAnywhere(false, context, exception);
     }
 
     @Override

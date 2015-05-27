@@ -173,6 +173,7 @@ public class JavaSymbolicExecutor implements Executor {
         c.setLabel("generatedTop");
         c.setContents(new org.kframework.kil.Bag());
         pattern.setBody(new org.kframework.kil.Rewrite(pattern.getBody(), c, context));
+        pattern.removeAttribute("anywhere");
         Rule patternRule = transformer.transformAndEval(pattern);
 
         List<SearchResult> searchResults = new ArrayList<SearchResult>();

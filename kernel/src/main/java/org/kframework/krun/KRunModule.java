@@ -1,6 +1,7 @@
 // Copyright (c) 2014-2015 K Team. All Rights Reserved.
 package org.kframework.krun;
 
+import com.beust.jcommander.JCommander;
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.AbstractModule;
@@ -16,6 +17,7 @@ import com.google.inject.spi.TypeEncounter;
 import com.google.inject.spi.TypeListener;
 import com.google.inject.throwingproviders.ThrowingProviderBinder;
 import org.kframework.Rewriter;
+import org.kframework.Strategy;
 import org.kframework.backend.unparser.BinaryOutputMode;
 import org.kframework.backend.unparser.ConcretizeTerm;
 import org.kframework.backend.unparser.KASTOutputMode;
@@ -33,6 +35,8 @@ import org.kframework.kil.Configuration;
 import org.kframework.kil.Term;
 import org.kframework.kil.loader.Context;
 import org.kframework.kompile.KompileOptions;
+import org.kframework.kore.strategies.Debug;
+import org.kframework.kore.strategies.Execute;
 import org.kframework.krun.KRunOptions.ConfigurationCreationOptions;
 import org.kframework.krun.api.ExecutorDebugger;
 import org.kframework.krun.api.KRunGraph;
@@ -199,7 +203,6 @@ public class KRunModule extends AbstractModule {
             MapBinder<String, Function<org.kframework.definition.Module, Rewriter>> rewriterBinder = MapBinder.newMapBinder(
                     binder(), TypeLiteral.get(String.class), new TypeLiteral<Function<org.kframework.definition.Module, Rewriter>>() {
             });
-
             MapBinder.newMapBinder(
                     binder(), String.class, LtlModelChecker.class);
 
@@ -219,6 +222,11 @@ public class KRunModule extends AbstractModule {
 
             bind(FileSystem.class).to(PortableFileSystem.class);
 
+            MapBinder<ToolActivation, Strategy> strategyBinder = MapBinder.newMapBinder(
+                    binder(), ToolActivation.class, Strategy.class);
+
+            strategyBinder.addBinding(new ToolActivation.OptionActivation("--debugger")).to(Debug.class);
+
         }
 
         @Provides
@@ -237,13 +245,31 @@ public class KRunModule extends AbstractModule {
         }
 
         @Provides
-        Function<org.kframework.definition.Module, Rewriter> getRewriter(KompileOptions options, Map<String, Provider<Function<org.kframework.definition.Module, Rewriter>>> map, KExceptionManager kem) {
+        Function<org.kframework.definition.Module, Rewriter> getRewriter(KompileOptions options, Map<String, Provider<Function<org.kframework.definition.Module, Rewriter>>> map) {
             Provider<Function<org.kframework.definition.Module, Rewriter>> provider = map.get(options.backend);
             if (provider == null) {
                 throw KEMException.criticalError("Backend " + options.backend + " does not support execution. Supported backends are: "
                         + map.keySet());
             }
             return provider.get();
+        }
+
+        @Provides
+        Strategy getStrategy(JCommander jc, Map<ToolActivation, Provider<Strategy>> map, KRunOptions krunOptions)  {
+            Strategy res = null;
+            ToolActivation previous = null;
+            for (Map.Entry<ToolActivation, Provider<Strategy>> entry : map.entrySet()) {
+                if (entry.getKey().isActive(jc)) {
+                    if (res != null) {
+                        throw KEMException.criticalError("Multiple tool activations found: " + entry.getKey() + " and " + previous);
+                    }
+                    res = entry.getValue().get();
+                    previous = entry.getKey();
+                }
+            }
+            if (res == null)
+                res = new Execute(krunOptions);
+            return res;
         }
 
         @Provides

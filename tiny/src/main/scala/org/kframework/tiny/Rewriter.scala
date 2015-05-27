@@ -6,6 +6,7 @@ import org.kframework.kore.Unapply.KLabel
 import org.kframework.kore
 
 import scala.collection.parallel.ParIterable
+import scala.collection.JavaConverters._
 
 object KIndex extends (K => Option[String]) {
   def apply(k: K): Option[String] = k match {
@@ -37,6 +38,8 @@ class Rewriter(module: definition.Module, index: K => Option[String] = KIndex) e
 
   import cons._
 
+  override def convert(k: kore.K): K = cons.convert(k)
+
   def createRule(r: definition.Rule): Rule = {
     if (r.att.contains("anywhere"))
       AnywhereRule(convert(r.body), convert(r.requires))
@@ -44,8 +47,8 @@ class Rewriter(module: definition.Module, index: K => Option[String] = KIndex) e
       RegularRule(convert(r.body), convert(r.requires))
   }
 
-  val rules = module.rules map createRule
-
+  val internalRules = module.rules map createRule
+  
   val indexedRules: Map[String, ParIterable[Rule]] = {
     module.rules
       .groupBy { r => index(convert(r.body)).getOrElse("NOINDEX") }
@@ -76,7 +79,7 @@ class Rewriter(module: definition.Module, index: K => Option[String] = KIndex) e
 
     val prioritized = indexedRules.get(i).getOrElse({
       indexFailures += 1;
-      rules
+      internalRules
     })
 
     val res = prioritized
@@ -116,7 +119,10 @@ class Rewriter(module: definition.Module, index: K => Option[String] = KIndex) e
   }
 
   def execute(k: kore.K): kore.K = execute(cons.convert(k))
-
+  lazy val rules: java.util.List[_ <: definition.Rule] = throw new UnsupportedOperationException
+  def `match`(k: kore.K, trace: Boolean, rule: definition.Rule) = throw new UnsupportedOperationException
+  def substitute(substitution: java.util.Map[_ <: kore.KVariable, _ <: kore.K], rule: definition.Rule) = throw new UnsupportedOperationException
+  
   def execute(k: K): K = {
     var steps = 0
     var time = System.nanoTime()
