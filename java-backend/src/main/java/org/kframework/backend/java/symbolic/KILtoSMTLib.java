@@ -358,7 +358,7 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
 
     private static Sort renameSort(Sort sort) {
         if (sort == Sort.LIST) {
-            return Sort.of("IntSeq");
+            return Sort.of("StringSeq");
         } else if (sort.toString().equals("Oid") || sort.toString().equals("NullType")) {
             return Sort.of("NullableObject");
         } else {
