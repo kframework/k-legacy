@@ -80,8 +80,10 @@ public class JavaSymbolicProver implements Prover {
             proofResults.addAll(symbolicRewriter.proveRule(initialTerm, targetTerm, rules));
         }
 
-        System.err.println(proofResults.isEmpty());
-        System.err.println(proofResults);
+        if (context.globalOptions.debug) {
+            System.err.println(proofResults.isEmpty());
+            System.err.println(proofResults);
+        }
 
         return new KRunProofResult<>(proofResults.isEmpty(), Collections.<org.kframework.kil.Term>emptySet());
     }
