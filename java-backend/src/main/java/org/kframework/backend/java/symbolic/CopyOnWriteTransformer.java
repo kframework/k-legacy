@@ -290,7 +290,7 @@ public class CopyOnWriteTransformer implements Transformer {
             builder.concatenate(transformedTerm);
         }
 
-        return changed ? builder.build() : builtinMap;
+        return changed ? builder.build2() : builtinMap;
     }
 
     @Override

@@ -296,5 +296,19 @@ public class BuiltinMap extends AssociativeCommutativeCollection {
             return builtinMap.baseTerms().size() == 1 && builtinMap.concreteSize() == 0 ?
                     builtinMap.baseTerms().iterator().next() : builtinMap;
         }
+
+        public Term build2() {
+            // YilongL: Guava's ImmutableMap.copyOf(entries) is not smart enough
+            // to avoid actually copying the entries, because entries is not an
+            // ImmutableMap yet; using Apache's decorate method because it would
+            // avoid creating nesting wrappers
+            BuiltinMap builtinMap = new BuiltinMap(
+                    (UnmodifiableMap<Term, Term>) UnmodifiableMap.unmodifiableMap(entries),
+                    patternsBuilder.build(),
+                    functionsBuilder.build(),
+                    variablesBuilder.build());
+            return builtinMap.baseTerms().size() == 1 && builtinMap.collectionVariables().size() == 1 && builtinMap.concreteSize() == 0 ?
+                    builtinMap.collectionVariables().iterator().next() : builtinMap;
+        }
     }
 }

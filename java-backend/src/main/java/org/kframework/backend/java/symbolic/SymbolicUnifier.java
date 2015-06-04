@@ -451,13 +451,13 @@ public class SymbolicUnifier extends AbstractUnifier {
         builder.putAll(remainingEntries);
         builder.concatenate(remainingPatterns.toArray(new Term[remainingPatterns.size()]));
         builder.concatenate(remainingVariables.toArray(new Term[remainingVariables.size()]));
-        Term remainingMap = builder.build();
+        Term remainingMap = builder.build2();
 
         BuiltinMap.Builder otherBuilder = BuiltinMap.builder();
         otherBuilder.putAll(otherRemainingEntries);
         otherBuilder.concatenate(otherRemainingPatterns.toArray(new Term[otherRemainingPatterns.size()]));
         otherBuilder.concatenate(otherRemainingVariables.toArray(new Term[otherRemainingVariables.size()]));
-        Term otherRemainingMap = otherBuilder.build();
+        Term otherRemainingMap = otherBuilder.build2();
 
         if (!remainingMap.equals(BuiltinMap.EMPTY_MAP) || !otherRemainingMap.equals(BuiltinMap.EMPTY_MAP)) {
             if (remainingMap instanceof Variable || otherRemainingMap instanceof Variable || partialSimpl) {
