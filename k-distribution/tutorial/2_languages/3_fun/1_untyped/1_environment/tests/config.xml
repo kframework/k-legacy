@@ -12,11 +12,13 @@
      <all-programs>
         <krun-option name="--pattern" value="&lt;k&gt; V:K &lt;/k&gt;" />
         <krun-option name="--symbolic-execution" />
+        <krun-option name="--smt" value="none" />
       </all-programs>
       <program name="references-5.fun">
         <krun-option name="--search" />
         <krun-option name="--pattern" value="&lt;k&gt; V:K &lt;/k&gt;" />
         <krun-option name="--symbolic-execution" />
+        <krun-option name="--smt" value="none" />
       </program>
   </test>
 

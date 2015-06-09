@@ -30,6 +30,10 @@ public class ConfigurationStructure implements Serializable {
         return multiplicity == Cell.Multiplicity.ANY || multiplicity == Cell.Multiplicity.SOME;
     }
 
+    public boolean isStarOrPlusWrapper() {
+        return sons.size() == 1 && sons.values().iterator().next().isStarOrPlus();
+    }
+
     public boolean hasChildren() {
         return !sons.isEmpty();
     }

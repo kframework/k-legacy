@@ -1,21 +1,25 @@
 // Copyright (c) 2013-2015 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
+import com.google.common.collect.ImmutableList;
 import org.kframework.attributes.Att;
 import org.kframework.attributes.Source;
 import org.kframework.attributes.Location;
 import org.kframework.backend.java.indexing.IndexingPair;
+import org.kframework.backend.java.rewritemachine.GenerateRHSInstructions;
+import org.kframework.backend.java.rewritemachine.RHSInstruction;
 import org.kframework.backend.java.symbolic.BottomUpVisitor;
 import org.kframework.backend.java.symbolic.CopyOnShareSubstAndEvalTransformer;
 import org.kframework.backend.java.symbolic.Evaluator;
-import org.kframework.backend.java.symbolic.Matchable;
 import org.kframework.backend.java.symbolic.SubstituteAndEvaluateTransformer;
 import org.kframework.backend.java.symbolic.Transformable;
-import org.kframework.backend.java.symbolic.Unifiable;
+import org.kframework.backend.java.util.Profiler;
 import org.kframework.backend.java.util.Utils;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,13 +30,15 @@ import java.util.Set;
  *
  * @author AndreiS
  */
-public abstract class Term extends JavaSymbolicObject implements Transformable, Matchable, Unifiable, Comparable<Term>,
+public abstract class Term extends JavaSymbolicObject implements Transformable, Comparable<Term>,
         org.kframework.kore.K {
 
     protected final Kind kind;
     // protected final boolean normalized;
 
     private Boolean mutable = null;
+
+    volatile transient ImmutableList<RHSInstruction> instructions = null;
 
     protected Term(Kind kind) {
         super();
@@ -121,17 +127,136 @@ public abstract class Term extends JavaSymbolicObject implements Transformable, 
 
     /**
      * Returns a new {@code Term} instance obtained from this term by applying
-     * substitution.
-     * <p>
-     * Note: for efficiency reason, this method will only evaluate functions
-     * that become concrete due to the substitution. That is to say, concrete
-     * pending functions are omitted by this method. In this case, use the
-     * {@code evaluate} method instead.
+     * substitution and evaluating functions.
      */
     public Term substituteAndEvaluate(Map<Variable, ? extends Term> substitution, TermContext context) {
-        return canSubstituteAndEvaluate(substitution) ?
-               (Term) this.accept(new SubstituteAndEvaluateTransformer(substitution, context)) :
-               this;
+        Profiler.startTimer(Profiler.INSTRUCTIONS_UPDATE_TIMER);
+        /*
+        if (instructions == null) {
+            Profiler.startTimer(Profiler.INSTRUCTIONS_UPDATE_TIMER);
+            GenerateRHSInstructions visitor = new GenerateRHSInstructions(context);
+            this.accept(visitor);
+            instructions = visitor.getInstructions();
+            Profiler.stopTimer(Profiler.INSTRUCTIONS_UPDATE_TIMER);
+        }
+
+        Deque<Term> stack = new ArrayDeque<>();
+        for (RHSInstruction instruction : instructions) {
+            switch (instruction.type()) {
+            case PUSH:
+                Term t = instruction.term();
+                stack.push(t);
+                break;
+            case CONSTRUCT:
+                RHSInstruction.Constructor constructor = instruction.constructor();
+                switch (constructor.type()) {
+                case BUILTIN_LIST:
+                    BuiltinList.Builder builder = BuiltinList.builder(context);
+                    for (int i = 0; i < constructor.size1(); i++) {
+                        builder.addItem(stack.pop());
+                    }
+                    for (int i = 0; i < constructor.size2(); i++) {
+                        builder.concatenate(stack.pop());
+                    }
+                    for (int i = 0; i < constructor.size3(); i++) {
+                        builder.addItem(stack.pop());
+                    }
+                    stack.push(builder.build());
+                    break;
+                case BUILTIN_MAP:
+                    BuiltinMap.Builder builder1 = BuiltinMap.builder(context);
+                    for (int i = 0; i < constructor.size1(); i++) {
+                        Term key = stack.pop();
+                        Term value = stack.pop();
+                        builder1.put(key, value);
+                    }
+                    for (int i = 0; i < constructor.size2(); i++) {
+                        builder1.concatenate(stack.pop());
+                    }
+                    stack.push(builder1.build());
+                    break;
+                case BUILTIN_SET:
+                    BuiltinSet.Builder builder2 = BuiltinSet.builder(context);
+                    for (int i = 0; i < constructor.size1(); i++) {
+                        builder2.add(stack.pop());
+                    }
+                    for (int i = 0; i < constructor.size2(); i++) {
+                        builder2.concatenate(stack.pop());
+                    }
+                    stack.push(builder2.build());
+                    break;
+                case KITEM:
+                    Term kLabel = stack.pop();
+                    Term kList = stack.pop();
+                    stack.push(KItem.of(kLabel, kList, context, constructor.getSource(), constructor.getLocation()));
+                    break;
+                case KITEM_PROJECTION:
+                    stack.push(new KItemProjection(constructor.kind(), stack.pop()));
+                    break;
+                case KLABEL_FREEZER:
+                    stack.push(new KLabelFreezer(stack.pop()));
+                    break;
+                case KLABEL_INJECTION:
+                    stack.push(new KLabelInjection(stack.pop()));
+                    break;
+                case INJECTED_KLABEL:
+                    stack.push(new InjectedKLabel(stack.pop()));
+                    break;
+                case KLIST:
+                    KList.Builder builder3 = KList.builder();
+                    for (int i = 0; i < constructor.size1(); i++) {
+                        builder3.concatenate(stack.pop());
+                    }
+                    stack.push(builder3.build());
+                    break;
+                case KSEQUENCE:
+                    KSequence.Builder builder4 = KSequence.builder();
+                    for (int i = 0; i < constructor.size1(); i++) {
+                        builder4.concatenate(stack.pop());
+                    }
+                    stack.push(builder4.build());
+                    break;
+                case CELL_COLLECTION:
+                    CellCollection.Builder builder5 = CellCollection.builder(context.definition());
+                    for (CellLabel cellLabel : constructor.cellLabels()) {
+                        builder5.add(new CellCollection.Cell(cellLabel, stack.pop()));
+                    }
+                    for (int i = 0; i < constructor.size1(); i++) {
+                        builder5.concatenate(stack.pop());
+                    }
+                    stack.push(builder5.build());
+                    break;
+                default:
+                    throw new AssertionError("unreachable");
+                }
+                break;
+            case SUBST:
+                Variable variable = (Variable) instruction.term();
+                Term term = substitution.get(variable);
+                if (term == null) {
+                    term = variable;
+                }
+                stack.push(term);
+                break;
+            case EVAL:
+                KItem kItem = (KItem) stack.pop();
+                stack.push(kItem.resolveFunctionAndAnywhere(true, context));
+                break;
+            case PROJECT:
+                KItemProjection projection = (KItemProjection) stack.pop();
+                stack.push(projection.evaluateProjection());
+                break;
+            }
+        }
+        assert stack.size() == 1;
+        return stack.pop();
+        */
+
+        Term term = canSubstituteAndEvaluate(substitution) ?
+                (Term) this.accept(new SubstituteAndEvaluateTransformer(substitution, context)) :
+                this;
+        Profiler.stopTimer(Profiler.INSTRUCTIONS_UPDATE_TIMER);
+        return term;
     }
 
     /**

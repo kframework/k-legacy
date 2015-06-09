@@ -44,6 +44,11 @@ public class Profiler {
 
     public static final ReentrantStopwatch DEEP_CLONE_TIMER                 =   new ReentrantStopwatch("Deep clone");
 
+    public static final ReentrantStopwatch SUBSTITUTION_UPDATE_TIMER            =   new ReentrantStopwatch("Substitution update");
+    public static final ReentrantStopwatch VARIABLES_UPDATE_TIMER               =   new ReentrantStopwatch("Variables update");
+    public static final ReentrantStopwatch INSTRUCTIONS_UPDATE_TIMER            =   new ReentrantStopwatch("Instructions update");
+    public static final ReentrantStopwatch GROUND_UPDATE_TIMER                  =   new ReentrantStopwatch("isGround update");
+
     private static final Map<KLabelConstant, ReentrantStopwatch> FUNCTION_PROFILING_TIMERS = new HashMap<>();
 
     public static ReentrantStopwatch getTimerForFunction(KLabelConstant klabel) {
@@ -79,6 +84,10 @@ public class Profiler {
         }
     }
 
+    public static boolean isRunning(ReentrantStopwatch timer) {
+        return enableProfilingMode.get() && timer.stopwatch.get().isRunning();
+    }
+
     public static void printResult() {
         if (enableProfilingMode.get()) {
             System.err.printf("%s(mc=%s, eval=%s[%s, %s], rew=%s) + %s%n",
@@ -89,6 +98,10 @@ public class Profiler {
                     REWRITE_WITH_UNKOMPILED_RULES_TIMER);
             System.err.println(QUERY_RULE_INDEXING_TIMER);
             System.err.println(DEEP_CLONE_TIMER);
+            System.err.println(SUBSTITUTION_UPDATE_TIMER);
+            System.err.println(VARIABLES_UPDATE_TIMER);
+            System.err.println(INSTRUCTIONS_UPDATE_TIMER);
+            System.err.println(GROUND_UPDATE_TIMER);
             System.err.println("Top 10 most expensive functions:");
             SortedSet<ReentrantStopwatch> sorted = new TreeSet<>(new ReverseComparator<>());
             sorted.addAll(FUNCTION_PROFILING_TIMERS.values());
@@ -104,7 +117,7 @@ public class Profiler {
 
         private final String name;
 
-        private final ThreadLocal<Stopwatch> stopwatch = new ThreadLocal<Stopwatch>() {
+        public final ThreadLocal<Stopwatch> stopwatch = new ThreadLocal<Stopwatch>() {
             @Override
             protected Stopwatch initialValue() {
                 return Stopwatch.createUnstarted();

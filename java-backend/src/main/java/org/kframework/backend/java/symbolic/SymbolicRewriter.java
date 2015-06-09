@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.FreshOperations;
 import org.kframework.backend.java.builtins.MetaK;
@@ -16,8 +17,10 @@ import org.kframework.backend.java.strategies.TransitionCompositeStrategy;
 import org.kframework.backend.java.util.Coverage;
 import org.kframework.backend.java.util.JavaKRunState;
 import org.kframework.backend.java.util.JavaTransition;
+import org.kframework.backend.java.util.Profiler;
 import org.kframework.kil.loader.Context;
 import org.kframework.kompile.KompileOptions;
+import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.KRunGraph;
 import org.kframework.krun.api.KRunState;
 import org.kframework.krun.api.SearchType;
@@ -49,13 +52,18 @@ public class SymbolicRewriter {
     private KRunState.Counter counter;
 
     @Inject
-    public SymbolicRewriter(Definition definition, KompileOptions kompileOptions, JavaExecutionOptions javaOptions,
-                            KRunState.Counter counter) {
+    public SymbolicRewriter(
+            Definition definition,
+            KompileOptions kompileOptions,
+            KRunOptions krunOptions,
+            JavaExecutionOptions javaOptions,
+            KRunState.Counter counter) {
         this.definition = definition;
         this.javaOptions = javaOptions;
         ruleIndex = definition.getIndex();
         this.counter = counter;
         this.strategy = new TransitionCompositeStrategy(kompileOptions.transition);
+        Profiler.enableProfilingMode.set(krunOptions.experimental.statistics);
     }
 
     public KRunGraph getExecutionGraph() {
@@ -92,6 +100,7 @@ public class SymbolicRewriter {
         stopwatch.stop();
         if (constrainedTerm.termContext().global().krunOptions.experimental.statistics) {
             System.err.println("[" + step + ", " + stopwatch + "]");
+            Profiler.printResult();
         }
 
         if (initialState == null) {
@@ -150,11 +159,18 @@ public class SymbolicRewriter {
                 transition = strategy.nextIsTransition();
                 ArrayList<Rule> rules = Lists.newArrayList(strategy.next());
     //            System.out.println("rules.size: " + rules.size());
+                subject.isGround();
+                subject.isNormal();
                 for (Rule rule : rules) {
                     try {
                         ruleStopwatch.reset();
                         ruleStopwatch.start();
 
+                        if (rule.isCompiledForFastRewriting()) {
+                            Profiler.startTimer(Profiler.REWRITE_WITH_KOMPILED_RULES_TIMER);
+                        } else {
+                            Profiler.startTimer(Profiler.REWRITE_WITH_UNKOMPILED_RULES_TIMER);
+                        }
                         if (rule == RuleAuditing.getAuditingRule()) {
                             RuleAuditing.beginAudit();
                         } else if (RuleAuditing.isAuditBegun() && RuleAuditing.getAuditingRule() == null) {
@@ -163,10 +179,23 @@ public class SymbolicRewriter {
 
                         ConstrainedTerm pattern = buildPattern(rule, subject.termContext());
 
-                        for (ConjunctiveFormula unificationConstraint : subject.unify(pattern)) {
+                        for (Pair<ConjunctiveFormula, Boolean> solution : subject.unify(pattern, rule.matchingInstructions(), rule.lhsOfReadCell(), rule.matchingVariables())) {
+                            ConjunctiveFormula unificationConstraint = solution.getLeft();
+                            boolean isMatching = solution.getRight();
+
                             RuleAuditing.succeed(rule);
                             /* compute all results */
-                            ConstrainedTerm result = buildResult(rule, unificationConstraint);
+                            if (rule.isCompiledForFastRewriting()) {
+                                Profiler.startTimer(Profiler.LOCAL_REWRITE_BUILD_RHS_TIMER);
+                            }
+                            ConstrainedTerm result = buildResult(rule, unificationConstraint, subject.term(), !isMatching);
+
+                            if (rule.isCompiledForFastRewriting()) {
+                                Profiler.stopTimer(Profiler.LOCAL_REWRITE_BUILD_RHS_TIMER);
+                            }
+                            if (result == null) {
+                                continue;
+                            }
                             results.add(result);
                             appliedRules.add(rule);
                             substitutions.add(unificationConstraint.substitution());
@@ -180,6 +209,11 @@ public class SymbolicRewriter {
                         e.exception.addTraceFrame("while evaluating rule at " + rule.getSource() + rule.getLocation());
                         throw e;
                     } finally {
+                        if (rule.isCompiledForFastRewriting()) {
+                            Profiler.stopTimer(Profiler.REWRITE_WITH_KOMPILED_RULES_TIMER);
+                        } else {
+                            Profiler.stopTimer(Profiler.REWRITE_WITH_UNKOMPILED_RULES_TIMER);
+                        }
                         if (RuleAuditing.isAuditBegun()) {
                             if (RuleAuditing.getAuditingRule() == rule) {
                                 RuleAuditing.endAudit();
@@ -216,20 +250,15 @@ public class SymbolicRewriter {
     /**
      * Builds the result of rewrite by applying the resulting symbolic
      * constraint of unification to the right-hand side of the rewrite rule.
-     *
-     * @param rule
-     *            the rewrite rule
-     * @param constraint
-     *            the resulting symbolic constraint of unification
-     * @return the new subject term
      */
-    public static ConstrainedTerm buildResult(Rule rule, ConjunctiveFormula constraint) {
-        return buildResult(rule, constraint, false);
+    public static ConstrainedTerm buildResult(Rule rule, ConjunctiveFormula constraint, Term subject) {
+        return buildResult(rule, constraint, subject, false);
     }
 
     private static ConstrainedTerm buildResult(
             Rule rule,
             ConjunctiveFormula constraint,
+            Term subject,
             boolean expandPattern) {
         for (Variable variable : rule.freshConstants()) {
             constraint = constraint.add(
@@ -238,26 +267,51 @@ public class SymbolicRewriter {
         }
         constraint = constraint.addAll(rule.ensures()).simplify();
 
-        /* get fresh substitutions of rule variables */
-        BiMap<Variable, Variable> freshSubstitution = Variable.getFreshSubstitution(rule.variableSet());
+        Term term;
+        if (rule.isCompiledForFastRewriting()) {
+            constraint = constraint.orientSubstitution(rule.matchingVariables());
 
-        /* rename rule variables in the constraints */
-        constraint = ((ConjunctiveFormula) constraint.substituteWithBinders(freshSubstitution, constraint.termContext())).simplify();
+            /* apply the constraints substitution on the rule RHS */
+            term = AbstractKMachine.apply((CellCollection) subject, constraint.substitution(), rule, constraint.termContext());
 
-        /* rename rule variables in the rule RHS */
-        Term term = rule.rightHandSide().substituteWithBinders(freshSubstitution, constraint.termContext());
-        /* apply the constraints substitution on the rule RHS */
-        constraint = constraint.orientSubstitution(rule.boundVariables().stream()
-                .map(freshSubstitution::get)
-                .collect(Collectors.toSet()));
-        term = term.substituteAndEvaluate(constraint.substitution(), constraint.termContext());
-        /* eliminate bindings of rule variables */
-        constraint = constraint.removeBindings(freshSubstitution.values());
+            /* eliminate bindings of rule variables */
+            constraint = constraint.removeBindings(rule.matchingVariables());
+
+            /* get fresh substitutions of rule variables */
+            BiMap<Variable, Variable> freshSubstitution = Variable.getFreshSubstitution(Sets.union(rule.variableSet(), rule.matchingVariables()));
+
+            /* rename rule variables in the rule RHS */
+            term = term.substituteWithBinders(freshSubstitution, constraint.termContext());
+            /* rename rule variables in the constraints */
+            constraint = ((ConjunctiveFormula) constraint.substituteWithBinders(freshSubstitution, constraint.termContext())).simplify();
+        } else {
+            /* get fresh substitutions of rule variables */
+            BiMap<Variable, Variable> freshSubstitution = Variable.getFreshSubstitution(rule.variableSet());
+
+            /* rename rule variables in the rule RHS */
+            term = rule.rightHandSide().substituteWithBinders(freshSubstitution, constraint.termContext());
+
+            /* rename rule variables in the constraints */
+            constraint = ((ConjunctiveFormula) constraint.substituteWithBinders(freshSubstitution, constraint.termContext())).simplify();
+            constraint = constraint.orientSubstitution(rule.boundVariables().stream()
+                    .map(freshSubstitution::get)
+                    .collect(Collectors.toSet()));
+
+            /* apply the constraints substitution on the rule RHS */
+            term = term.substituteAndEvaluate(constraint.substitution(), constraint.termContext());
+
+            /* eliminate bindings of rule variables */
+            constraint = constraint.removeBindings(freshSubstitution.values());
+        }
 
         ConstrainedTerm result = new ConstrainedTerm(term, constraint);
         if (expandPattern) {
+            result = new ConstrainedTerm(term.substituteAndEvaluate(constraint.substitution(), constraint.termContext()), constraint);
             // TODO(AndreiS): move these some other place
             result = result.expandPatterns(true);
+            if (result.constraint().isFalse() || result.constraint().checkUnsat()) {
+                result = null;
+            }
         }
 
         return result;
@@ -277,7 +331,7 @@ public class SymbolicRewriter {
                 continue;
             }
 
-            return buildResult(rule, constraint, true);
+            return buildResult(rule, constraint, null, true);
         }
 
         return null;

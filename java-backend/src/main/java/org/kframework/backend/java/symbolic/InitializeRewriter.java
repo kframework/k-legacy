@@ -82,7 +82,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
         Definition evaluatedDef = initializeDefinition.invoke(module, kem, initializingContext);
         rewritingContext.setDefinition(evaluatedDef);
 
-        return new SymbolicRewriterGlue(evaluatedDef, kompileOptions, javaOptions, rewritingContext, kem);
+        return new SymbolicRewriterGlue(evaluatedDef, kompileOptions, krunOptions, javaOptions, rewritingContext, kem);
     }
 
     public static class SymbolicRewriterGlue implements Rewriter {
@@ -91,8 +91,8 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
         private final GlobalContext rewritingContext;
         private final KExceptionManager kem;
 
-        public SymbolicRewriterGlue(Definition definition, KompileOptions kompileOptions, JavaExecutionOptions javaOptions, GlobalContext rewritingContext, KExceptionManager kem) {
-            this.rewriter = new SymbolicRewriter(definition,  kompileOptions, javaOptions, new KRunState.Counter());
+        public SymbolicRewriterGlue(Definition definition, KompileOptions kompileOptions, KRunOptions krunOptions, JavaExecutionOptions javaOptions, GlobalContext rewritingContext, KExceptionManager kem) {
+            this.rewriter = new SymbolicRewriter(definition, kompileOptions, krunOptions, javaOptions, new KRunState.Counter());
             this.rewritingContext = rewritingContext;
             this.kem = kem;
         }

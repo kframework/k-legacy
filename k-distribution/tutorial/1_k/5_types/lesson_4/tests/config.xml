@@ -12,7 +12,7 @@
       <krun-option name="--symbolic-execution" />
       <krun-option name="--search" />
       <krun-option name="--pattern" value="&lt;k&gt; V:K &lt;/k&gt;" />
-      <krun-option name="--z3-executable" />
+      <krun-option name="--smt" value="none" />
     </all-programs>
   </test>
 

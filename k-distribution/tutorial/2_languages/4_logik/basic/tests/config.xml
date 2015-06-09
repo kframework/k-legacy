@@ -14,6 +14,7 @@
         <krun-option name="--search" />
         <krun-option name="--output" value="no-wrap" />
         <krun-option name="--pattern" value="&lt;solution&gt; Solution:Map &lt;/solution&gt;" />
+        <krun-option name="--smt" value="none" />
       </all-programs>
       <program name="append-4.logik">
         <krun-option name="--symbolic-execution" />
@@ -21,6 +22,7 @@
         <krun-option name="--output" value="no-wrap" />
         <krun-option name="--bound" value="5" />
         <krun-option name="--pattern" value="&lt;solution&gt; Solution:Map &lt;/solution&gt;" />
+        <krun-option name="--smt" value="none" />
       </program> 
       <program name="reverse-slow-palindromes-1.logik">
         <krun-option name="--symbolic-execution" />
@@ -28,6 +30,7 @@
         <krun-option name="--output" value="no-wrap" />
         <krun-option name="--bound" value="5" />
         <krun-option name="--pattern" value="&lt;solution&gt; Solution:Map &lt;/solution&gt;" />
+        <krun-option name="--smt" value="none" />
       </program> 
       <program name="reverse-fast-palindromes-1.logik">
         <krun-option name="--symbolic-execution" />
@@ -35,6 +38,7 @@
         <krun-option name="--output" value="no-wrap" />
         <krun-option name="--bound" value="5" />
         <krun-option name="--pattern" value="&lt;solution&gt; Solution:Map &lt;/solution&gt;" />
+        <krun-option name="--smt" value="none" />
       </program> 
       <program name="reverse-slow-2.logik">
         <krun-option name="--symbolic-execution" />
@@ -42,6 +46,7 @@
         <krun-option name="--output" value="no-wrap" />
         <krun-option name="--bound" value="1" />
         <krun-option name="--pattern" value="&lt;solution&gt; Solution:Map &lt;/solution&gt;" />
+        <krun-option name="--smt" value="none" />
       </program> 
       <program name="reverse-fast-2.logik">
         <krun-option name="--symbolic-execution" />
@@ -49,6 +54,7 @@
         <krun-option name="--output" value="no-wrap" />
         <krun-option name="--bound" value="1" />
         <krun-option name="--pattern" value="&lt;solution&gt; Solution:Map &lt;/solution&gt;" />
+        <krun-option name="--smt" value="none" />
       </program> 
  </test>
 

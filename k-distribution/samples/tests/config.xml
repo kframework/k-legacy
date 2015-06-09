@@ -13,6 +13,8 @@
 
   <include file="../wcet/tests/config.xml" directory="wcet" />
 
+  <!--
   <include file="../kernelc/tests/config.xml" directory="kernelc" />
+  -->
 
 </tests>
