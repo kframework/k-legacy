@@ -1,9 +1,8 @@
 // Copyright (c) 2013-2015 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
-import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultiset;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multiset;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
@@ -14,8 +13,11 @@ import org.kframework.kil.DataStructureSort.Label;
 import org.kframework.utils.errorsystem.KEMException;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -78,7 +80,7 @@ public class CellCollection extends Collection {
     }
 
     public static final CellCollection EMPTY = new CellCollection(
-            ImmutableListMultimap.of(),
+            ImmutableMap.of(),
             ImmutableMultiset.of(),
             false);
 
@@ -86,7 +88,7 @@ public class CellCollection extends Collection {
      * Choose {@code ListMultimap} over {@code SetMultimap} because we need to
      * be able to store identical cells.
      */
-    private final ListMultimap<CellLabel, Cell> cells;
+    private final ImmutableMap<CellLabel, ImmutableMultiset<Cell>> cells;
 
     private final Multiset<Variable> collectionVariables;
 
@@ -105,7 +107,7 @@ public class CellCollection extends Collection {
      * Static helper method which creates canonicalized cell collection
      * according to the given contents.
      */
-    public static Term of(ListMultimap<CellLabel, Cell> cells, Variable frame, Definition definition) {
+    public static Term of(Map<CellLabel, Multiset<Cell>> cells, Variable frame, Definition definition) {
         Builder builder = builder(definition);
         builder.putAll(cells);
         if (frame != null) {
@@ -115,14 +117,14 @@ public class CellCollection extends Collection {
     }
 
     private CellCollection(
-            ListMultimap<CellLabel, Cell> cells,
+            ImmutableMap<CellLabel, ImmutableMultiset<Cell>> cells,
             Multiset<Variable> collectionVariables,
             Definition definition) {
         this(cells, collectionVariables, numOfMultiplicityCellLabels(cells, definition) > 0);
     }
 
     private CellCollection(
-            ListMultimap<CellLabel, Cell> cells,
+            ImmutableMap<CellLabel, ImmutableMultiset<Cell>> cells,
             Multiset<Variable> collectionVariables,
             boolean hasMultiplicityCell) {
         super(computeFrame(collectionVariables), Kind.CELL_COLLECTION, null);
@@ -135,7 +137,7 @@ public class CellCollection extends Collection {
         return collectionVariables.size() == 1 ? collectionVariables.iterator().next() : null;
     }
 
-    private static int numOfMultiplicityCellLabels(ListMultimap<CellLabel, Cell> cells, Definition definition) {
+    private static int numOfMultiplicityCellLabels(Map<CellLabel, ImmutableMultiset<Cell>> cells, Definition definition) {
         int count = 0;
         for (CellLabel cellLabel : cells.keySet()) {
             if (definition.getConfigurationStructureMap().containsKey(cellLabel.name())) {
@@ -156,8 +158,12 @@ public class CellCollection extends Collection {
         return count;
     }
 
-    public ListMultimap<CellLabel, Cell> cells() {
+    public ImmutableMap<CellLabel, ImmutableMultiset<Cell>> cells() {
         return cells;
+    }
+
+    public java.util.Collection<Cell> values() {
+        return cells.values().stream().flatMap(java.util.Collection::stream).collect(Collectors.toList());
     }
 
     public Multiset<Term> baseTerms() {
@@ -173,7 +179,7 @@ public class CellCollection extends Collection {
     }
 
     public java.util.Collection<Cell> get(CellLabel label) {
-        return cells.get(label);
+        return cells.getOrDefault(label, ImmutableMultiset.of());
     }
 
     /**
@@ -197,7 +203,7 @@ public class CellCollection extends Collection {
         Builder builder = builder(definition);
         cells.keySet().stream()
                 .filter(label -> !removeLabels.contains(label))
-                .forEach(label -> builder.addAll(cells.get(label)));
+                .forEach(label -> builder.addAll(get(label)));
         builder.concatenate(collectionVariables);
         return builder.build();
     }
@@ -239,14 +245,14 @@ public class CellCollection extends Collection {
 
         CellCollection collection = (CellCollection) object;
         return collectionVariables.equals(collection.collectionVariables)
-                && ImmutableMultiset.copyOf(cells.values()).equals(ImmutableMultiset.copyOf(collection.cells.values()));
+                && cells.equals(collection.cells);
     }
 
     @Override
     protected int computeHash() {
         int hashCode = 1;
         hashCode = hashCode * Utils.HASH_PRIME + collectionVariables.hashCode();
-        hashCode = hashCode * Utils.HASH_PRIME + ImmutableMultiset.copyOf(cells.values()).hashCode();
+        hashCode = hashCode * Utils.HASH_PRIME + cells.hashCode();
         return hashCode;
     }
 
@@ -261,7 +267,7 @@ public class CellCollection extends Collection {
             return DataStructureSort.LABELS.get(org.kframework.kil.Sort.BAG).get(Label.UNIT);
         } else {
             StringBuilder stringBuilder = new StringBuilder();
-            for (Cell cell : cells.values()) {
+            for (Cell cell : values()) {
                 stringBuilder
                         .append("<").append(cell.cellLabel()).append(">")
                         .append(cell.content())
@@ -293,18 +299,18 @@ public class CellCollection extends Collection {
     }
 
     public static class Builder {
-        private final ImmutableListMultimap.Builder<CellLabel, Cell> cellsBuilder;
+        private final Map<CellLabel, ImmutableMultiset.Builder<Cell>> cellsBuilder;
         private final ImmutableMultiset.Builder<Variable> collectionVariablesBuilder;
         private final Definition definition;
 
         private Builder(Definition definition) {
             this.definition = definition;
-            cellsBuilder = ImmutableListMultimap.builder();
+            cellsBuilder = new HashMap<>();
             collectionVariablesBuilder = ImmutableMultiset.builder();
         }
 
         public Builder add(Cell cell) {
-            cellsBuilder.put(cell.cellLabel(), cell);
+            put(cell.cellLabel(), cell.content);
             return this;
         }
 
@@ -316,19 +322,28 @@ public class CellCollection extends Collection {
         }
 
         public Builder put(CellLabel cellLabel, Term content) {
-            cellsBuilder.put(cellLabel, new Cell(cellLabel, content));
+            ImmutableMultiset.Builder<Cell> multiset = cellsBuilder.get(cellLabel);
+            if (multiset == null) {
+                multiset = ImmutableMultiset.builder();
+                cellsBuilder.put(cellLabel, multiset);
+            }
+            multiset.add(new Cell(cellLabel, content));
             return this;
         }
 
-        public Builder putAll(ListMultimap<CellLabel, Cell> cellMap) {
-            cellsBuilder.putAll(cellMap);
+        public Builder putAll(Map<CellLabel, ? extends Multiset<Cell>> cellMap) {
+            for (Map.Entry<CellLabel, ? extends Multiset<Cell>> entry : cellMap.entrySet()) {
+                for (Cell cell : entry.getValue()) {
+                    put(entry.getKey(), cell.content);
+                }
+            }
             return this;
         }
 
         public Builder concatenate(Term term) {
             if (term instanceof CellCollection) {
                 CellCollection cellCollection = (CellCollection) term;
-                cellsBuilder.putAll(cellCollection.cells);
+                putAll(cellCollection.cells);
                 collectionVariablesBuilder.addAll(cellCollection.collectionVariables);
             } else if (term instanceof Variable && term.kind == Kind.CELL_COLLECTION) {
                 collectionVariablesBuilder.add((Variable) term);
@@ -353,7 +368,11 @@ public class CellCollection extends Collection {
         }
 
         public Term build() {
-            ImmutableListMultimap<CellLabel, Cell> cells = cellsBuilder.build();
+            ImmutableMap.Builder<CellLabel, ImmutableMultiset<Cell>> intermediateCellsBuilder = ImmutableMap.builder();
+            for (Map.Entry<CellLabel, ImmutableMultiset.Builder<Cell>> entry : cellsBuilder.entrySet()) {
+                intermediateCellsBuilder.put(entry.getKey(), entry.getValue().build());
+            }
+            ImmutableMap<CellLabel, ImmutableMultiset<Cell>> cells = intermediateCellsBuilder.build();
             ImmutableMultiset<Variable> collectionVariables = collectionVariablesBuilder.build();
             if (cells.isEmpty()) {
                 switch (collectionVariables.size()) {

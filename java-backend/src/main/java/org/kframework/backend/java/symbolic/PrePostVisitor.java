@@ -90,7 +90,7 @@ public class PrePostVisitor implements Visitor {
         preVisitor.resetProceed();
         cellCollection.accept(preVisitor);
         if (!preVisitor.isProceed()) return;
-        for (CellCollection.Cell cell : cellCollection.cells().values()) {
+        for (CellCollection.Cell cell : cellCollection.values()) {
             cell.content().accept(this);
         }
         for (Term term : cellCollection.baseTerms()) {

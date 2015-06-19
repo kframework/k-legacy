@@ -113,7 +113,7 @@ public class BasicVisitor implements Visitor {
 
     @Override
     public void visit(CellCollection cellCollection) {
-        cellCollection.cells().values().stream().forEach(c -> visitNode(c.content()));
+        cellCollection.values().stream().forEach(c -> visitNode(c.content()));
         cellCollection.baseTerms().stream().forEach(this::visitNode);
         visit((Collection) cellCollection);
     }

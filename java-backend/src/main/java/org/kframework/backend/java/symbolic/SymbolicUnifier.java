@@ -1,11 +1,26 @@
 // Copyright (c) 2013-2015 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import org.kframework.backend.java.kil.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Multisets;
+import com.google.common.collect.Sets;
+import org.kframework.backend.java.kil.BuiltinList;
+import org.kframework.backend.java.kil.BuiltinMap;
+import org.kframework.backend.java.kil.BuiltinSet;
+import org.kframework.backend.java.kil.CellCollection;
+import org.kframework.backend.java.kil.CellLabel;
+import org.kframework.backend.java.kil.ConcreteCollectionVariable;
+import org.kframework.backend.java.kil.Definition;
+import org.kframework.backend.java.kil.KCollection;
+import org.kframework.backend.java.kil.KItem;
+import org.kframework.backend.java.kil.Rule;
+import org.kframework.backend.java.kil.Sort;
+import org.kframework.backend.java.kil.Term;
+import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.Variable;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -14,13 +29,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.Multisets;
-import com.google.common.collect.Sets;
 
 
 /**
@@ -72,14 +80,6 @@ public class SymbolicUnifier extends AbstractUnifier {
 
     @Override
     boolean stop(Term term, Term otherTerm) {
-        if (term.hashCode() == otherTerm.hashCode() && term.equals(otherTerm)) {
-            return true;
-        } else if (term.isGround() && otherTerm.isGround()
-                && term.isNormal() && otherTerm.isNormal()) {
-            fail(term, otherTerm);
-            return true;
-        }
-
         // TODO(AndreiS): treat Map unification less adhoc
         if (BuiltinMap.isMapUnifiableByCurrentAlgorithm(term, otherTerm)) {
             unifyMapModuloPatternFolding((BuiltinMap) term, (BuiltinMap) otherTerm);
@@ -549,7 +549,7 @@ public class SymbolicUnifier extends AbstractUnifier {
             }
 
             // from now on, we assume that cellCollection is free of frame
-            ListMultimap<CellLabel, CellCollection.Cell> cellMap = getRemainingCellMap(cellCollection, unifiableCellLabels);
+            Map<CellLabel, Multiset<CellCollection.Cell>> cellMap = getRemainingCellMap(cellCollection, unifiableCellLabels);
 
             if (numOfOtherDiffCellLabels > 0) {
                 fail(cellCollection, otherCellCollection);
@@ -637,18 +637,6 @@ public class SymbolicUnifier extends AbstractUnifier {
                         termContext));
             }
         }
-    }
-
-    private ListMultimap<CellLabel, CellCollection.Cell> getRemainingCellMap(
-            CellCollection cellCollection,
-            Set<CellLabel> labelsToRemove) {
-        ImmutableListMultimap.Builder<CellLabel, CellCollection.Cell> builder = ImmutableListMultimap.builder();
-        cellCollection.cells().asMap().entrySet().stream().forEach(e -> {
-            if (!labelsToRemove.contains(e.getKey())) {
-                builder.putAll(e.getKey(), e.getValue());
-            }
-        });
-        return builder.build();
     }
 
     @Override

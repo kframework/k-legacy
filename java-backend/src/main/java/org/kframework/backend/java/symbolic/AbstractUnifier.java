@@ -1,26 +1,12 @@
 // Copyright (c) 2013-2015 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import org.kframework.backend.java.kil.Bottom;
-import org.kframework.backend.java.kil.BuiltinList;
-import org.kframework.backend.java.kil.BuiltinMap;
-import org.kframework.backend.java.kil.BuiltinSet;
-import org.kframework.backend.java.kil.CellCollection;
-import org.kframework.backend.java.kil.Hole;
-import org.kframework.backend.java.kil.InjectedKLabel;
-import org.kframework.backend.java.kil.KCollection;
-import org.kframework.backend.java.kil.KItem;
-import org.kframework.backend.java.kil.KLabelConstant;
-import org.kframework.backend.java.kil.KLabelInjection;
-import org.kframework.backend.java.kil.KList;
-import org.kframework.backend.java.kil.KSequence;
-import org.kframework.backend.java.kil.Kind;
-import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
-import org.kframework.backend.java.kil.Token;
-import org.kframework.backend.java.kil.Variable;
-import org.kframework.backend.java.util.Profiler;
-import org.kframework.utils.errorsystem.KEMException;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMultiset;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import org.apache.commons.lang3.tuple.Pair;
+import org.kframework.backend.java.kil.*;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -28,9 +14,6 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.lang3.tuple.Pair;
-import com.google.common.collect.Multimap;
 
 
 /**
@@ -154,13 +137,13 @@ public abstract class AbstractUnifier implements Unifier {
             assert term.kind() == otherTerm.kind();
 
             // the code below is commented out due to hashCode not being updated for mutable cells
-            //if (term.hashCode() == otherTerm.hashCode() && term.equals(otherTerm)) {
-            //    continue;
-            //} else if (term.isGround() && otherTerm.isGround()
-            //        && term.isNormal() && otherTerm.isNormal()) {
-            //    fail(term, otherTerm);
-            //    break;
-            //}
+            if (term.hashCode() == otherTerm.hashCode() && term.equals(otherTerm)) {
+                continue;
+            } else if (term.isGround() && otherTerm.isGround()
+                    && term.isNormal() && otherTerm.isNormal()) {
+                fail(term, otherTerm);
+                break;
+            }
 
             if (stop(term, otherTerm)) {
                 flushTaskBuffer();
@@ -216,6 +199,13 @@ public abstract class AbstractUnifier implements Unifier {
         while (!taskBuffer.isEmpty()) {
             tasks.push(taskBuffer.pop());
         }
+    }
+
+    Map<CellLabel, ImmutableMultiset<CellCollection.Cell>> getRemainingCellMap(
+            CellCollection cellCollection, Set<CellLabel> labelsToRemove) {
+        Predicate<CellLabel> notRemoved = cellLabel -> !labelsToRemove.contains(cellLabel);
+
+        return Maps.filterKeys(cellCollection.cells(), notRemoved);
     }
 
     abstract void add(Term left, Term right);

@@ -1,9 +1,7 @@
 // Copyright (c) 2014-2015 K Team. All Rights Reserved.
 package org.kframework.backend.java.indexing;
 
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Lists;
 import org.kframework.backend.java.kil.CellCollection;
 import org.kframework.backend.java.kil.CellLabel;
 import org.kframework.backend.java.kil.Definition;
@@ -12,7 +10,7 @@ import org.kframework.backend.java.symbolic.BottomUpVisitor;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.loader.Constants;
 
-import com.google.common.collect.Lists;
+import java.util.List;
 
 /**
  * Collects indexing cells used in {@link IndexingTable}.
@@ -38,7 +36,7 @@ public class IndexingCellsCollector extends BottomUpVisitor {
 
     @Override
     public void visit(CellCollection cellCollection) {
-        for (CellCollection.Cell cell : cellCollection.cells().values()) {
+        for (CellCollection.Cell cell : cellCollection.values()) {
             CellLabel cellLabel = cell.cellLabel();
             String streamCellAttr = definition.getConfigurationStructureMap()
                     .get(cellLabel.name()).cell.getCellAttribute(Attribute.STREAM_KEY);

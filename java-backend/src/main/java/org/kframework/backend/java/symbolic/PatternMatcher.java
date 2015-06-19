@@ -1,15 +1,25 @@
 // Copyright (c) 2014-2015 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimaps;
+import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
-import org.kframework.backend.java.kil.*;
+import org.kframework.backend.java.kil.BuiltinList;
+import org.kframework.backend.java.kil.BuiltinMap;
+import org.kframework.backend.java.kil.BuiltinSet;
+import org.kframework.backend.java.kil.CellCollection;
+import org.kframework.backend.java.kil.CellLabel;
+import org.kframework.backend.java.kil.ConcreteCollectionVariable;
+import org.kframework.backend.java.kil.KCollection;
+import org.kframework.backend.java.kil.KItem;
+import org.kframework.backend.java.kil.Kind;
+import org.kframework.backend.java.kil.Rule;
+import org.kframework.backend.java.kil.Term;
+import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.util.RewriteEngineUtils;
 
 import java.util.ArrayList;
@@ -459,7 +469,7 @@ public class PatternMatcher extends AbstractUnifier {
                 return;
             }
 
-            ListMultimap<CellLabel, CellCollection.Cell> remainingCellMap = getRemainingCellMap(cellCollection, unifiableCellLabels);
+            Map<CellLabel, Multiset<CellCollection.Cell>> remainingCellMap = getRemainingCellMap(cellCollection, unifiableCellLabels);
 
             CellLabel starredCellLabel = null;
             for (CellLabel cellLabel : unifiableCellLabels) {
@@ -562,18 +572,6 @@ public class PatternMatcher extends AbstractUnifier {
                         termContext));
             }
         }
-    }
-
-    private ListMultimap<CellLabel, CellCollection.Cell> getRemainingCellMap(
-            CellCollection cellCollection, final ImmutableSet<CellLabel> labelsToRemove) {
-        Predicate<CellLabel> notRemoved = new Predicate<CellLabel>() {
-            @Override
-            public boolean apply(CellLabel cellLabel) {
-                return !labelsToRemove.contains(cellLabel);
-            }
-        };
-
-        return Multimaps.filterKeys(cellCollection.cells(), notRemoved);
     }
 
     @Override

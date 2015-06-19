@@ -362,7 +362,7 @@ public class KAbstractRewriteMachine {
 
     private static Collection<CellCollection.Cell> getSubCellsByLabel(Term content, CellLabel label) {
         if (content instanceof CellCollection) {
-            return ((CellCollection) content).cells().get(label);
+            return ((CellCollection) content).get(label);
         } else {
             assert false : "expected contents of cell with label " + label + " to be a cell but found " + content.getClass().getSimpleName();
             return null;

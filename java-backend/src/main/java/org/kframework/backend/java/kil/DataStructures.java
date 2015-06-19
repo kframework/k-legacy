@@ -171,7 +171,7 @@ public interface DataStructures {
         assert term instanceof CellCollection
                && ((CellCollection) term).isConcreteCollection()
                && ((CellCollection) term).concreteSize() == 1;
-        return ((CellCollection) term).cells().entries().iterator().next().getValue();
+        return ((CellCollection) term).values().iterator().next();
     }
 
 }

@@ -2,7 +2,7 @@
 package org.kframework.backend.java.rewritemachine;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimaps;
+import com.google.common.collect.ImmutableMultiset;
 import org.kframework.backend.java.builtins.UninterpretedToken;
 import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.rewritemachine.RHSInstruction.Constructor;
@@ -103,9 +103,9 @@ public class GenerateRHSInstructions extends BottomUpVisitor {
                 sizeBase++;
             }
             List<CellLabel> cellLabels = new ArrayList<>();
-            for (Map.Entry<CellLabel, List<CellCollection.Cell>> entry : Multimaps.asMap(node.cells()).entrySet()) {
-                for (int i = entry.getValue().size() - 1; i >= 0; i--) {
-                    entry.getValue().get(i).content().accept(this);
+            for (Map.Entry<CellLabel, ImmutableMultiset<CellCollection.Cell>> entry : node.cells().entrySet()) {
+                for (CellCollection.Cell cell : entry.getValue()) {
+                    cell.content().accept(this);
                     cellLabels.add(entry.getKey());
                 }
             }

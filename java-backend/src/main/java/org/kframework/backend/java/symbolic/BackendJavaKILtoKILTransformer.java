@@ -81,7 +81,7 @@ public class BackendJavaKILtoKILTransformer implements Transformer {
 
         List<org.kframework.kil.Term> contents = new ArrayList<>();
         for (CellLabel cellLabel : cellLabels) {
-            for (CellCollection.Cell cell : cellCollection.cells().get(cellLabel)) {
+            for (CellCollection.Cell cell : cellCollection.get(cellLabel)) {
                 contents.add(transformCell(cell));
             }
         }

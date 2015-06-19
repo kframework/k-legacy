@@ -184,7 +184,7 @@ public abstract class Term extends JavaSymbolicObject implements Transformable, 
                 for (CellCollection.Cell cell : cellCollection.get(cellLabel)) {
                     contents.add(cell.content());
                 }
-                for (CellCollection.Cell cell : cellCollection.cells().values()) {
+                for (CellCollection.Cell cell : cellCollection.values()) {
                     if (cell.content() instanceof CellCollection) {
                         visit((CellCollection) cell.content());
                     }
@@ -230,7 +230,8 @@ public abstract class Term extends JavaSymbolicObject implements Transformable, 
         if (h == Utils.NO_HASHCODE) {
             h = computeHash();
             h = h == 0 ? 1 : h;
-            hashCode = h;
+            if (!isMutable())
+                hashCode = h;
         }
         return h;
     }
