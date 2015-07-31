@@ -37,7 +37,7 @@ module INT-LIST
   //rule sorted(L1 @ L2)
   //  => intseq2intset(L1) <=IntSet intseq2intset(L2) andBool sorted(L1) andBool sorted(L2)
   //  [smt-lemma]
-  rule sorted(ListItem(I)) => true    [smt-lemma]
-  rule sorted(.List) => true          [smt-lemma]
+  rule sorted(ListItem(I)) => true    [lemma, smt-lemma]
+  rule sorted(.List) => true          [lemma, smt-lemma]
 endmodule
 
