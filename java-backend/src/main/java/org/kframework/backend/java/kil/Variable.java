@@ -161,11 +161,13 @@ public class Variable extends Term implements Immutable, org.kframework.kore.KVa
     Object readResolve() {
         if (anonymous) {
             int id = Integer.parseInt(name.substring(VARIABLE_PREFIX.length()));
-            if (id < counter) {
-                return deserializationAnonymousVariableMap.get(Pair.of(id, sort), this::getFreshCopy);
-            } else {
-                counter = id + 1;
-                return this;
+            synchronized (Variable.class) {
+                if (id < counter) {
+                    return deserializationAnonymousVariableMap.get(Pair.of(id, sort), this::getFreshCopy);
+                } else {
+                    counter = id + 1;
+                    return this;
+                }
             }
         } else {
             return this;
