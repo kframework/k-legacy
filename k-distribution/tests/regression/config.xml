@@ -76,5 +76,10 @@
            programs="smt-sort-flattening"
            results="smt-sort-flattening" />
 
+  <include file="wasm/tests/config.xml"
+           directory="wasm"
+           programs="wasm/tests"
+           results="wasm/tests" />
+
 </tests>
 
