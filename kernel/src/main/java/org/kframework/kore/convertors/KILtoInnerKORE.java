@@ -189,7 +189,7 @@ public class KILtoInnerKORE extends KILTransformation<K> {
     }
 
     public org.kframework.attributes.Att convertAttributes(ASTNode t) {
-        Attributes attributes = t.getAttributes();
+        org.kframework.kil.Attributes attributes = t.getAttributes();
 
         Set<K> attributesSet = attributes
                 .keySet()

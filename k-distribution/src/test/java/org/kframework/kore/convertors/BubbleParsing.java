@@ -14,12 +14,12 @@ import org.kframework.kore.K;
 import org.kframework.parser.Ambiguity;
 import org.kframework.parser.Term;
 import org.kframework.parser.TreeNodesToKORE;
-import org.kframework.parser.concrete2kore.disambiguation.RemoveBracketVisitor;
-import org.kframework.parser.concrete2kore.disambiguation.TreeCleanerVisitor;
-import org.kframework.parser.concrete2kore.kernel.Grammar;
-import org.kframework.parser.concrete2kore.kernel.KSyntax2GrammarStatesFilter;
-import org.kframework.parser.concrete2kore.kernel.Parser;
-import org.kframework.parser.concrete2kore.kernel.Parser.ParseError;
+import org.kframework.parser.inner.disambiguation.RemoveBracketVisitor;
+import org.kframework.parser.inner.disambiguation.TreeCleanerVisitor;
+import org.kframework.parser.inner.kernel.Grammar;
+import org.kframework.parser.inner.kernel.KSyntax2GrammarStatesFilter;
+import org.kframework.parser.inner.kernel.Parser;
+import org.kframework.parser.inner.kernel.Parser.ParseError;
 import org.kframework.parser.outer.Outer;
 
 import java.io.IOException;

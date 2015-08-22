@@ -25,7 +25,7 @@ import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KLabel;
 import org.kframework.kore.KVariable;
-import org.kframework.kore.compile.RewriteToTop;
+import org.kframework.compile.RewriteToTop;
 import org.kframework.kore.convertors.KOREtoKIL;
 
 import java.util.Collections;

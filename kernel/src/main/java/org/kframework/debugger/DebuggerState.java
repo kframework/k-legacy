@@ -2,7 +2,6 @@
 package org.kframework.debugger;
 
 import org.kframework.kore.K;
-import org.kframework.krun.tools.Debugger;
 
 import java.util.NavigableMap;
 import java.util.TreeMap;

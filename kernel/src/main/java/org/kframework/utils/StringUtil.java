@@ -5,9 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.beust.jcommander.JCommander;
 
-import org.kframework.kil.NonTerminal;
-import org.kframework.kil.Sort;
-
 public class StringUtil {
     /**
      * Unescape the textual representation of a string specific to SDF and Maude.
@@ -58,10 +55,6 @@ public class StringUtil {
         }
 
         return sb.toString();
-    }
-
-    public static String makeProper(String str) {
-        return Character.toUpperCase(str.charAt(0)) + str.substring(1);
     }
 
     /**
@@ -374,24 +367,6 @@ public class StringUtil {
 
     /**
      * Creates an SDF safe representation of a Sort name.
-     * @param nonTerminal String representation of the sort.
-     * @return textual representation of the Sort name.
-     */
-    public static String escapeSort(NonTerminal nonTerminal) {
-        return escapeSort(nonTerminal.getSort());
-    }
-
-    /**
-     * Creates an SDF safe representation of a Sort name.
-     * @param sort String representation of the sort.
-     * @return textual representation of the Sort name.
-     */
-    public static String escapeSort(Sort sort) {
-        return escapeSort(sort.toString());
-    }
-
-    /**
-     * Creates an SDF safe representation of a Sort name.
      * @param str String representation of the sort.
      * @return textual representation of the Sort name.
      */
@@ -399,22 +374,6 @@ public class StringUtil {
         str = str.replace("D", "Dd");
         str = str.replace("#", "Dz");
         return str;
-    }
-
-    public static String unEscapeSortName(String str) {
-        str = str.replace("Dz", "#");
-        str = str.replace("Dd", "D");
-        return str;
-    }
-
-    public static String getSortNameFromCons(String str) {
-        String ret = "";
-        int idx = str.lastIndexOf("1");
-
-        if (idx > 0) {
-            ret = str.substring(0, idx);
-        }
-        return StringUtil.unEscapeSortName(ret);
     }
 
     /**
@@ -480,16 +439,6 @@ public class StringUtil {
         if (string == null)
             return "";
         return string;
-    }
-
-    public static int getStartLineFromLocation(String location) {
-        String[] str = location.split("[\\(,\\)]");
-        return Integer.parseInt(str[0 + 1]);
-    }
-
-    public static int getStartColFromLocation(String location) {
-        String[] str = location.split("[\\(,\\)]");
-        return Integer.parseInt(str[1 + 1]);
     }
 
     /**

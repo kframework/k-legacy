@@ -15,7 +15,6 @@
     <module>java-backend</module>
     <module>coq-backend</module>
     <module>ocaml-backend</module>
-    <module>sdf-parser</module>
     <module>tiny</module>
   </modules>
 
@@ -195,7 +194,7 @@
               <configLocation>src/main/config/checkstyle-copyright.xml</configLocation>
               <failsOnError>true</failsOnError>
               <consoleOutput>true</consoleOutput>
-              <excludes>.idea/**,**/com/davekoelle/**,**/src/main/sdf/syntax/Integration.sdf</excludes>
+              <excludes>.idea/**,**/com/davekoelle/**</excludes>
             </configuration>
           </execution>
           <execution>

@@ -72,42 +72,8 @@ public class ModuleContext implements Serializable {
         }
     }
 
-    public void removeProduction(Production p) {
-        productions.remove(p);
-        if (p.getKLabel() != null) {
-            klabels.remove(p.getKLabel(), p);
-            tags.remove(p.getKLabel(), p);
-            if (p.isListDecl()) {
-                listKLabels.remove(p.getTerminatorKLabel(), p);
-            }
-        }
-        if (p.isListDecl()) {
-            // AndreiS: this code assumes each list sort has only one production
-            listProductions.remove(p.getSort());
-        }
-        for (Attribute<?> a : p.getAttributes().values()) {
-            tags.remove(a.getKey().toString(), p);
-        }
-    }
-
-    public void addImportedModule(Module mod) {
-        importedModules.add(mod);
-    }
-
-    public Set<Module> getImportedModules() {
-        return java.util.Collections.unmodifiableSet(importedModules);
-    }
-
-    public void addDeclaredSort(Sort sort) {
-        declaredSorts.add(sort);
-    }
-
     public Set<Sort> getDeclaredSorts() {
         return java.util.Collections.unmodifiableSet(declaredSorts);
-    }
-
-    public void addSyntacticSubsort(Sort bigSort, Sort smallSort) {
-        syntacticSubsorts.addRelation(bigSort, smallSort);
     }
 
 }

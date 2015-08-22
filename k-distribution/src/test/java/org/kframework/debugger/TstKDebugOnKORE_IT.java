@@ -5,7 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.kframework.attributes.Source;
 import org.kframework.kore.K;
-import org.kframework.kore.compile.KtoKORE;
+import org.kframework.compile.KtoKORE;
 import org.kframework.utils.KoreUtils;
 
 import java.io.IOException;

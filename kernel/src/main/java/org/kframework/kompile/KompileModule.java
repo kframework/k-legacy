@@ -7,7 +7,6 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import org.apache.commons.io.FilenameUtils;
-import org.kframework.backend.Backend;
 import org.kframework.main.FrontEnd;
 import org.kframework.main.GlobalOptions;
 import org.kframework.main.Tool;
@@ -41,9 +40,6 @@ public class KompileModule extends AbstractModule {
         experimentalOptionsBinder.addBinding().toInstance(SMTOptions.class);
 
         MapBinder.newMapBinder(
-                binder(), String.class, Backend.class);
-
-        MapBinder.newMapBinder(
                 binder(), TypeLiteral.get(String.class), new TypeLiteral<Consumer<CompiledDefinition>>() {});
     }
 
@@ -70,26 +66,6 @@ public class KompileModule extends AbstractModule {
     @Provides @KompiledDir
     File kompiledDir(@DefinitionDir File defDir, KompileOptions options, @TempDir File tempDir) {
         return new File(defDir, FilenameUtils.removeExtension(options.mainDefinitionFile().getName()) + "-kompiled");
-    }
-
-    @Provides @Backend.Autoinclude
-    boolean autoinclude(Backend backend) {
-        return backend.autoinclude();
-    }
-
-    @Provides @Backend.AutoincludedFile
-    String autoincludedFile(Backend backend) {
-        return backend.autoincludedFile();
-    }
-
-    @Provides
-    Backend getBackend(KompileOptions options, Map<String, Backend> map, KExceptionManager kem) {
-        Backend backend = map.get(options.backend);
-        if (backend == null) {
-            throw KEMException.criticalError("Invalid backend: " + options.backend
-                    + ". It should be one of " + map.keySet());
-        }
-        return backend;
     }
 
     @Provides

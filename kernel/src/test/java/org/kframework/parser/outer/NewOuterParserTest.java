@@ -10,7 +10,7 @@ import org.kframework.definition.Definition;
 import org.kframework.kore.K;
 import org.kframework.kore.Sort;
 import org.kframework.main.GlobalOptions;
-import org.kframework.parser.concrete2kore.ParserUtils;
+import org.kframework.parser.inner.ParserUtils;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
