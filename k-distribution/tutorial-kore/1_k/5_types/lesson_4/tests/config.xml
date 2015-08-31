@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2013-2015 K Team. All Rights Reserved. -->
+<tests>
+
+  <test
+    definition="lambda.k"
+    programs="."
+    extension="lambda"
+    results="." >
+    <kompile-option name="--backend" value="java" />
+    <all-programs>
+      <krun-option name="--symbolic-execution" />
+      <krun-option name="--search" />
+      <krun-option name="--pattern" value="&lt;k&gt; V:K &lt;/k&gt;" />
+      <krun-option name="--z3-executable" />
+    </all-programs>
+  </test>
+
+</tests>

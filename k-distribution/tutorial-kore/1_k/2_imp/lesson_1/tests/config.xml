@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2013-2014 K Team. All Rights Reserved. -->
+
+<tests>
+  <test
+      definition="imp.k"
+      programs="."
+      results="."
+      extension="imp"
+      >
+    <kompile-option name="--kore" />
+    <all-programs>
+      <krun-option name="--kore" />
+      <krun-option name="--parser" value="kast --kore --sort Pgm" />
+    </all-programs>
+  </test>
+</tests>
+
