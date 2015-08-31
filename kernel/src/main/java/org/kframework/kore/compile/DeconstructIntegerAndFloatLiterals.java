@@ -6,16 +6,19 @@ import org.kframework.builtin.Sorts;
 import org.kframework.definition.Context;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
+import org.kframework.kil.Attribute;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KRewrite;
 import org.kframework.kore.KToken;
 import org.kframework.kore.KVariable;
+import org.kframework.kore.Sort;
 
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.kframework.definition.Constructors.Att;
 import static org.kframework.definition.Constructors.*;
 import static org.kframework.kore.KORE.*;
 
@@ -51,6 +54,9 @@ public class DeconstructIntegerAndFloatLiterals {
     }
 
     public Sentence convert(Sentence s) {
+        if (s.att().contains(Attribute.MACRO_KEY)) {
+            return s;
+        }
         if (s instanceof Rule) {
             return convert((Rule) s);
         } else if (s instanceof Context) {
@@ -85,10 +91,10 @@ public class DeconstructIntegerAndFloatLiterals {
     }
 
     private int counter = 0;
-    KVariable newDotVariable() {
+    KVariable newDotVariable(Sort sort) {
         KVariable newLabel;
         do {
-            newLabel = KVariable("_" + (counter++));
+            newLabel = KVariable("_" + (counter++), Att().add("sort", sort.name()));
         } while (vars.contains(newLabel));
         vars.add(newLabel);
         return newLabel;
@@ -113,8 +119,8 @@ public class DeconstructIntegerAndFloatLiterals {
                 if (rhsOf == null) {
                     //lhs
                     if (k.sort().equals(Sorts.Int()) || k.sort().equals(Sorts.Float())) {
-                        KVariable var = newDotVariable();
-                        state.add(KApply(KLabel("_==K_"), var, k));
+                        KVariable var = newDotVariable(k.sort());
+                        state.add(KApply(KLabel("_==" + k.sort().name() + "_"), var, k));
                         return var;
                     }
                 }

@@ -348,6 +348,7 @@ public class GenerateSentencesFromConfigDecl {
                 bagAtt = bagAtt.add(Attribute.IDEMPOTENT_KEY, "");
             case "Bag":
                 bagAtt = bagAtt.add(Attribute.COMMUTATIVE_KEY, "");
+                bagAtt = bagAtt.add(Attribute.CELL_BAG, "");
             case "List":
                 break;
             default:
@@ -372,9 +373,10 @@ public class GenerateSentencesFromConfigDecl {
         } else if (multiplicity == Multiplicity.OPTIONAL) {
             // syntax Cell ::= ".Cell"
             Production cellUnit = Production("." + sortName, sort, Seq(Terminal("." + sortName)));
-            // add UNIT_KEY attribute to cell production.
-            cellProduction = Production(cellProduction.sort(), cellProduction.items(), cellProduction.att().add(Attribute.UNIT_KEY, cellUnit.klabel().get().name()));
             sentences.add(cellUnit);
+            // add UNIT_KEY attribute to cell production.
+            sentences.remove(cellProduction);
+            cellProduction = Production(cellProduction.sort(), cellProduction.items(), cellProduction.att().add(Attribute.UNIT_KEY, cellUnit.klabel().get().name()));
             sentences.add(cellProduction);
             // rule initCell => .CellBag
             // -or-
@@ -478,14 +480,9 @@ public class GenerateSentencesFromConfigDecl {
     private static Multiplicity convertStringMultiplicity(Option<String> multiplicity, K body) {
         if (multiplicity.isEmpty())
             return Multiplicity.ONE;
-        switch(multiplicity.get()) {
-        case "1":
-            return Multiplicity.ONE;
-        case "*":
-            return Multiplicity.STAR;
-        case "?":
-            return Multiplicity.OPTIONAL;
-        default:
+        try {
+            return Multiplicity.of(multiplicity.get());
+        } catch (IllegalArgumentException _) {
             throw KEMException.compilerError("Invalid multiplicity found in cell: " + multiplicity.get(), body);
         }
     }

@@ -3,6 +3,7 @@ package org.kframework.backend.ocaml;
 
 import com.google.inject.Inject;
 import org.kframework.Rewriter;
+import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
@@ -10,6 +11,7 @@ import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.K;
 import org.kframework.kore.KVariable;
+import org.kframework.krun.KRunOptions;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.errorsystem.KEMException;
@@ -22,11 +24,14 @@ import scala.Tuple2;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.kframework.kore.KORE.*;
 
@@ -36,13 +41,22 @@ public class OcamlRewriter implements Function<Module, Rewriter> {
     private final FileUtil files;
     private final CompiledDefinition def;
     private final DefinitionToOcaml converter;
+    private final KRunOptions options;
 
     @Inject
-    public OcamlRewriter(KExceptionManager kem, FileUtil files, GlobalOptions globalOptions, KompileOptions kompileOptions, CompiledDefinition def, InitializeDefinition init) {
+    public OcamlRewriter(
+            KExceptionManager kem,
+            FileUtil files,
+            GlobalOptions globalOptions,
+            KompileOptions kompileOptions,
+            CompiledDefinition def,
+            InitializeDefinition init,
+            KRunOptions options) {
         this.files = files;
         this.def = def;
-        this.converter = new DefinitionToOcaml(kem, files, globalOptions, kompileOptions);
+        this.converter = new DefinitionToOcaml(kem, files, globalOptions, kompileOptions, null);
         converter.initialize(init.serialized, def);
+        this.options = options;
     }
 
     @Override
@@ -53,11 +67,11 @@ public class OcamlRewriter implements Function<Module, Rewriter> {
         }
         return new Rewriter() {
             @Override
-            public K execute(K k, Optional<Integer> depth) {
+            public RewriterResult execute(K k, Optional<Integer> depth) {
                 String ocaml = converter.execute(k, depth.orElse(-1), files.resolveTemp("run.out").getAbsolutePath());
                 files.saveToTemp("pgm.ml", ocaml);
                 String output = compileAndExecOcaml("pgm.ml");
-                return parseOcamlOutput(output);
+                return new RewriterResult(Optional.<Integer>empty(), parseOcamlOutput(output));
             }
 
             @Override
@@ -75,6 +89,11 @@ public class OcamlRewriter implements Function<Module, Rewriter> {
                 String output = compileAndExecOcaml("pgm.ml");
                 String subst = files.loadFromTemp("run.subst");
                 return Tuple2.apply(parseOcamlOutput(output), parseOcamlSearchOutput(subst));
+            }
+
+            @Override
+            public List<? extends Map<? extends KVariable, ? extends K>> search(K initialConfiguration, Optional<Integer> depth, Optional<Integer> bound, Rule pattern) {
+                throw new UnsupportedOperationException();
             }
         };
     }
@@ -107,18 +126,37 @@ public class OcamlRewriter implements Function<Module, Rewriter> {
     private String compileAndExecOcaml(String name) {
         try {
             ProcessBuilder pb = files.getProcessBuilder();
-            if (DefinitionToOcaml.ocamlopt) {
-                pb = pb.command("ocamlopt.opt", "-g", "-o", "a.out", "gmp.cmxa", "str.cmxa", "unix.cmxa", "-safe-string",
-                        files.resolveKompiled("constants.cmx").getAbsolutePath(), files.resolveKompiled("prelude.cmx").getAbsolutePath(),
-                        files.resolveKompiled("def.cmx").getAbsolutePath(),
-                        "-I", "+gmp", "-I", files.resolveKompiled(".").getAbsolutePath(),
-                        name);
+            List<String> args = new ArrayList<>(Arrays.asList("-g", "-o", "a.out", "-package", "gmp", "-package", "zarith",
+                    "-package", "str", "-package", "unix", "-linkpkg", "-safe-string"));
+            args.addAll(0, converter.options.packages.stream().flatMap(p -> Stream.of("-package", p)).collect(Collectors.toList()));
+            args.addAll(options.experimental.nativeLibraries.stream().flatMap(lib -> Stream.of("-cclib", "-l" + lib)).collect(Collectors.toList()));
+            if (converter.options.ocamlopt) {
+                args.add(0, "ocamlfind");
+                args.add(1, "ocamlopt");
+                if (!converter.options.noLinkPrelude) {
+                    args.add(files.resolveKompiled("constants.cmx").getAbsolutePath());
+                    args.add(files.resolveKompiled("prelude.cmx").getAbsolutePath());
+                }
+                args.addAll(Arrays.asList(files.resolveKompiled("def.cmx").getAbsolutePath(), "-I", files.resolveKompiled(".").getAbsolutePath(),
+                        files.resolveKompiled("parser.cmx").getAbsolutePath(), files.resolveKompiled("lexer.cmx").getAbsolutePath(),
+                        name));
+                args.add("-inline");
+                args.add("20");
+                args.add("-nodynlink");
+                pb = pb.command(args);
+                pb.environment().put("OCAMLFIND_COMMANDS", "ocamlopt=ocamlopt.opt");
             } else {
-                pb = pb.command("ocamlc.opt", "-g", "-o", "a.out", "gmp.cma", "str.cma", "unix.cma", "-safe-string",
-                        files.resolveKompiled("constants.cmo").getAbsolutePath(), files.resolveKompiled("prelude.cmo").getAbsolutePath(),
-                        files.resolveKompiled("def.cmo").getAbsolutePath(),
-                        "-I", "+gmp", "-I", files.resolveKompiled(".").getAbsolutePath(),
-                        name);
+                args.add(0, "ocamlfind");
+                args.add(1, "ocamlc");
+                if (!converter.options.noLinkPrelude) {
+                    args.add(files.resolveKompiled("constants.cmo").getAbsolutePath());
+                    args.add(files.resolveKompiled("prelude.cmo").getAbsolutePath());
+                }
+                args.addAll(Arrays.asList(files.resolveKompiled("def.cmo").getAbsolutePath(), "-I", files.resolveKompiled(".").getAbsolutePath(),
+                        files.resolveKompiled("parser.cmo").getAbsolutePath(), files.resolveKompiled("lexer.cmo").getAbsolutePath(),
+                        name));
+                pb = pb.command(args);
+                pb.environment().put("OCAMLFIND_COMMANDS", "ocamlc=ocamlc.opt");
             }
             Process p = pb.directory(files.resolveTemp("."))
                     .redirectError(files.resolveTemp("compile.err"))
@@ -154,14 +192,12 @@ public class OcamlRewriter implements Function<Module, Rewriter> {
                 byte[] buffer = new byte[8192];
                 try {
                     while (true) {
-                        if (p2.getInputStream().available() > 0) {
-                            count = p2.getInputStream().read(buffer);
-                            if (count < 0)
-                                break;
-                            System.out.write(buffer, 0, count);
-                        } else {
+                        count = p2.getInputStream().read(buffer);
+                        if (count < 0)
+                            break;
+                        System.out.write(buffer, 0, count);
+                        if (p2.getInputStream().available() == 0)
                             Thread.sleep(100);
-                        }
                     }
                 } catch (IOException | InterruptedException e) {}
             });
@@ -170,14 +206,12 @@ public class OcamlRewriter implements Function<Module, Rewriter> {
                 byte[] buffer = new byte[8192];
                 try {
                     while (true) {
-                        if (p2.getErrorStream().available() > 0) {
-                            count = p2.getErrorStream().read(buffer);
-                            if (count < 0)
-                                break;
-                            System.err.write(buffer, 0, count);
-                        } else {
+                        count = p2.getErrorStream().read(buffer);
+                        if (count < 0)
+                            break;
+                        System.err.write(buffer, 0, count);
+                        if (p2.getErrorStream().available() == 0)
                             Thread.sleep(100);
-                        }
                     }
                 } catch (IOException | InterruptedException e) {}
             });
@@ -187,8 +221,6 @@ public class OcamlRewriter implements Function<Module, Rewriter> {
 
             exit = p2.waitFor();
             in.interrupt();
-            out.interrupt();
-            err.interrupt();
             in.join();
             out.join();
             err.join();

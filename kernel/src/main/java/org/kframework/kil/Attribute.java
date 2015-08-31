@@ -42,6 +42,7 @@ public class Attribute<T> extends ASTNode {
     public static final String SIGNIFICAND_KEY = "significand";
     public static final String SMTLIB_KEY = "smtlib";
     public static final String SMT_LEMMA_KEY = "smt-lemma";
+    public static final String SMT_SORT_FLATTEN = "smt-sort-flatten";
     // Used to direct configuration abstraction,
     // generated when translating configuration declaration to productions.
     public static final String CELL_KEY = "cell";
@@ -53,6 +54,7 @@ public class Attribute<T> extends ASTNode {
     public static final String IMPURE_KEY = "impure";
     public static final String STRICT_KEY = "strict";
     public static final String SEQSTRICT_KEY = "seqstrict";
+    public static final String CELL_BAG = "cell-bag";
 
     public static final Attribute<String> BRACKET = Attribute.of("bracket", "");
     public static final Attribute<String> FUNCTION = Attribute.of(FUNCTION_KEY, "");

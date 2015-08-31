@@ -206,6 +206,8 @@ public class RuleGrammarGenerator {
                     List<ProductionItem> items = stream(p.items()).map(pi -> {
                         if (pi instanceof Terminal) {
                             Terminal t = (Terminal) pi;
+                            if (t.value().trim().equals(""))
+                                return pi;
                             Set<String> follow = new HashSet<>();
                             terminals.prefixMap(t.value()).keySet().stream().filter(biggerString -> !t.value().equals(biggerString))
                                     .forEach(biggerString -> {
@@ -214,8 +216,7 @@ public class RuleGrammarGenerator {
                                     });
                             // add follow restrictions for the characters that might produce ambiguities
                             if (!follow.isEmpty()) {
-                                String restriction = follow.stream().map(StringUtil::escapeAutomatonRegex).reduce((s1, s2) -> "(" + s1 + ")|(" + s2 + ")").get();
-                                return Terminal.apply(t.value(), restriction);
+                                return Terminal.apply(t.value(), follow.stream().collect(toList()));
                             }
                         }
                         return pi;

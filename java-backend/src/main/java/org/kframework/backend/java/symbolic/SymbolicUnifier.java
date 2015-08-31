@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Multisets;
 import com.google.common.collect.Sets;
+import org.kframework.compile.ConfigurationInfo;
 
 
 /**
@@ -388,7 +389,8 @@ public class SymbolicUnifier extends AbstractUnifier {
         List<KItem> otherRemainingPatterns = new ArrayList<>();
         for (KItem pattern : patterns) {
             for (KItem otherPattern : otherPatterns) {
-                if (pattern.getPatternInput().equals(otherPattern.getPatternInput())) {
+                if (pattern.kLabel().equals(otherPattern.kLabel())
+                        && pattern.getPatternInput().equals(otherPattern.getPatternInput())) {
                     List<Term> patternOutput = pattern.getPatternOutput();
                     List<Term> otherPatternOutput = otherPattern.getPatternOutput();
                     for (int i = 0; i < patternOutput.size(); ++i) {
@@ -558,7 +560,7 @@ public class SymbolicUnifier extends AbstractUnifier {
 
             CellLabel starredCellLabel = null;
             for (CellLabel cellLabel : unifiableCellLabels) {
-                if (!definition.getConfigurationStructureMap().get(cellLabel.name()).isStarOrPlus()) {
+                if (definition.cellMultiplicity(cellLabel) != ConfigurationInfo.Multiplicity.STAR) {
                     assert cellCollection.get(cellLabel).size() == 1
                             && otherCellCollection.get(cellLabel).size() == 1;
                     addUnificationTask(cellCollection.get(cellLabel).iterator().next().content(),
