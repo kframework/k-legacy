@@ -358,7 +358,7 @@ with the block holding the explicit empty sequence.  That's because in
 the semantics all empty lists become explicit corresponding dots
 (to avoid parsing ambiguities) */
 
-  rule while (B) S => if (B) {`__`(S,while (B) S)} else {.Stmts}  [structural]
+  rule while (B) S => if (B) `{_}`(`__`(S,`__`(while (B) S,.Stmts))) else {.Stmts}  [structural]
 
 /*@ \subsection{The new IMP++ constructs}
 We next discuss the semantics of the new IMP++ constructs. */
@@ -514,7 +514,7 @@ recovery.  Its role is to discard the current environment in the
 This rule is structural: we do not want them to count as computational
 steps in the transition system of a program. */
 
-  rule <k> Rho => .K ...</k> <env> _ => Rho </env>    [structural]
+  rule <k> Rho:Map => .K ...</k> <env> _ => Rho </env>    [structural]
 
 /*@ If you want to avoid useless environment recovery steps and keep the size
 of the computation structure smaller, then you can also add the rule
