@@ -1,7 +1,7 @@
 package org.kframework.backend.kore.html;
 
 import com.google.inject.Inject;
-import org.kframework.definition.Definition;
+import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kore.kdoc.PosterBackend;
 
 /**
@@ -12,8 +12,9 @@ public class HtmlBackend extends PosterBackend {
     HtmlBackend() {}
 
     @Override
-    public void run(Definition definition) {
+    public void run(CompiledDefinition definition) {
         // TODO
+        System.out.println("HTML backend.");
     }
 
 }

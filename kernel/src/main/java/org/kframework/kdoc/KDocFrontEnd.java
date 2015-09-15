@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.kframework.backend.PosterBackend;
 import org.kframework.kil.Definition;
+import org.kframework.kompile.CompiledDefinition;
 import org.kframework.main.FrontEnd;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -38,6 +39,7 @@ public class KDocFrontEnd extends FrontEnd {
     private final Provider<PosterBackend> backend;
     private final Provider<org.kframework.kore.kdoc.PosterBackend> koreBackend;
     private final Provider<Definition> def;
+    private final Provider<CompiledDefinition> koreDef;
     private final DefinitionScope scope;
     private final Provider<File> kompiledDir;
 
@@ -51,6 +53,7 @@ public class KDocFrontEnd extends FrontEnd {
             Provider<PosterBackend> backend,
             Provider<org.kframework.kore.kdoc.PosterBackend> koreBackend,
             @Concrete Provider<Definition> def,
+            Provider<CompiledDefinition> koreDef,
             FileUtil files,
             DefinitionScope scope,
             @KompiledDir Provider<File> kompiledDir) {
@@ -59,6 +62,7 @@ public class KDocFrontEnd extends FrontEnd {
         this.backend = backend;
         this.koreBackend = koreBackend;
         this.def = def;
+        this.koreDef = koreDef;
         this.scope = scope;
         this.kompiledDir = kompiledDir;
     }
@@ -68,8 +72,8 @@ public class KDocFrontEnd extends FrontEnd {
         scope.enter(kompiledDir.get());
         try {
             if(options.kore) {
-                //TODO
-                //koreBackend.get().run(def.get());
+                System.out.println("In the KORE pipeline.");
+                koreBackend.get().run(koreDef.get());
             } else {
                 backend.get().run(def.get());
             }

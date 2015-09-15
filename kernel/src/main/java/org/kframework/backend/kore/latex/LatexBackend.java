@@ -1,7 +1,7 @@
 package org.kframework.backend.kore.latex;
 
 import com.google.inject.Inject;
-import org.kframework.definition.Definition;
+import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kore.kdoc.PosterBackend;
 
 /**
@@ -12,7 +12,8 @@ public class LatexBackend extends PosterBackend {
     LatexBackend() {}
 
     @Override
-    public void run(Definition definition) {
+    public void run(CompiledDefinition definition) {
         // TODO
+        System.out.println("Latex backend");
     }
 }
