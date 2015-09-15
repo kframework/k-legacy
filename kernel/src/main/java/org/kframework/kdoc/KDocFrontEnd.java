@@ -34,7 +34,9 @@ public class KDocFrontEnd extends FrontEnd {
         return modules;
     }
 
+    private final KDocOptions options;
     private final Provider<PosterBackend> backend;
+    private final Provider<org.kframework.kore.kdoc.PosterBackend> koreBackend;
     private final Provider<Definition> def;
     private final DefinitionScope scope;
     private final Provider<File> kompiledDir;
@@ -42,17 +44,20 @@ public class KDocFrontEnd extends FrontEnd {
     @Inject
     public KDocFrontEnd(
             KExceptionManager kem,
-            GlobalOptions globalOptions,
+            KDocOptions options,
             @Usage String usage,
             @ExperimentalUsage String experimentalUsage,
             JarInfo jarInfo,
             Provider<PosterBackend> backend,
+            Provider<org.kframework.kore.kdoc.PosterBackend> koreBackend,
             @Concrete Provider<Definition> def,
             FileUtil files,
             DefinitionScope scope,
             @KompiledDir Provider<File> kompiledDir) {
-        super(kem, globalOptions, usage, experimentalUsage, jarInfo, files);
+        super(kem, options.global, usage, experimentalUsage, jarInfo, files);
+        this.options = options;
         this.backend = backend;
+        this.koreBackend = koreBackend;
         this.def = def;
         this.scope = scope;
         this.kompiledDir = kompiledDir;
@@ -62,7 +67,12 @@ public class KDocFrontEnd extends FrontEnd {
     protected int run() {
         scope.enter(kompiledDir.get());
         try {
-            backend.get().run(def.get());
+            if(options.kore) {
+                //TODO
+                //koreBackend.get().run(def.get());
+            } else {
+                backend.get().run(def.get());
+            }
             return 0;
         } finally {
             scope.exit();
