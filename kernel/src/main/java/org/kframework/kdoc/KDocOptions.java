@@ -18,7 +18,8 @@ public class KDocOptions {
     @ParametersDelegate
     public DefinitionLoadingOptions definitionLoading = new DefinitionLoadingOptions();
 
-    @Parameter(names="--format", description="Choose a format. <format> is one of [pdf|latex|html|unparse|doc|unflatten]. Each generates a document from the given K definition.")
+    //@Parameter(names="--format", description="Choose a format. <format> is one of [pdf|latex|html|unparse|doc|unflatten]. Each generates a document from the given K definition.")
+    @Parameter(names="--format", description="Choose a format. <format> is one of [pdf|latex|html]. Each generates a document from the given K definition.")
     public String format = Backends.PDF;
 
     @Parameter(names="--kore", description="Parse with the new pipeline.")

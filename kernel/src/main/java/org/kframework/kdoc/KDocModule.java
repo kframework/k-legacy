@@ -57,6 +57,7 @@ public class KDocModule extends AbstractModule {
                 binder(), String.class, org.kframework.kore.kdoc.PosterBackend.class);
         korePosterBinder.addBinding(Backends.HTML).to(org.kframework.backend.kore.html.HtmlBackend.class);
         korePosterBinder.addBinding(Backends.LATEX).to(org.kframework.backend.kore.latex.LatexBackend.class);
+        korePosterBinder.addBinding(Backends.PDF).to(org.kframework.backend.kore.latex.PdfBackend.class);
     }
 
     @Provides
