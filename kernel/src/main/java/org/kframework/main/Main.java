@@ -19,6 +19,7 @@ import org.kframework.kompile.KompileFrontEnd;
 import org.kframework.krun.KRunFrontEnd;
 import org.kframework.kserver.KServerFrontEnd;
 import org.kframework.ktest.KTestFrontEnd;
+import org.kframework.utils.OS;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.Environment;
@@ -63,6 +64,9 @@ public class Main {
     }
 
     public static void nailMain(NGContext context) {
+        if (OS.current() == OS.WINDOWS) {
+            context.assertLoopbackClient();
+        }
         isNailgun = true;
         if (context.getArgs().length >= 1) {
             String[] args2 = Arrays.copyOfRange(context.getArgs(), 1, context.getArgs().length);
