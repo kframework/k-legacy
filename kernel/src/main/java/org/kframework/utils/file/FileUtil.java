@@ -73,7 +73,11 @@ public class FileUtil {
 
     public void deleteTempDir() {
         if (!options.debug) {
-            tempDir.deleteOnExit();
+            try {
+                FileUtils.deleteDirectory(tempDir);
+            } catch (IOException e) {
+                throw KEMException.criticalError("Failed to delete temporary directory", e);
+            }
         }
     }
 
