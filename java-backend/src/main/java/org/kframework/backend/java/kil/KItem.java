@@ -67,12 +67,8 @@ public class KItem extends Term implements KItemRepresentation {
     }
 
     public static KItem of(Term kLabel, Term kList, TermContext termContext, Source source, Location location) {
-        /* YilongL: since KList.Builder always canonicalizes its result, the
-         * following conversion is necessary */
-        kList = KCollection.upKind(kList, Kind.KLIST);
-
-        // TODO(yilongli): break the dependency on the Tool object
-        return new KItem(kLabel, kList, termContext, termContext.global().stage, source, location);
+        return new KItem(kLabel, KCollection.upKind(kList, Kind.KLIST), termContext,
+                termContext.global().stage, source, location);
     }
 
     public KItem(Term kLabel, Term kList, Sort sort, boolean isExactSort) {
@@ -98,6 +94,7 @@ public class KItem extends Term implements KItemRepresentation {
         super(Kind.KITEM, source, location);
         this.kLabel = kLabel;
         this.kList = kList;
+        this.termContext = termContext;
 
         Definition definition = termContext.definition();
 
@@ -112,7 +109,6 @@ public class KItem extends Term implements KItemRepresentation {
             sort = null;
             isExactSort = false;
             possibleSorts = null;
-            this.termContext = termContext;
         } else {
             /* not a KLabelConstant or the kList contains a frame variable */
             if (kLabel instanceof KLabelInjection) {
@@ -124,26 +120,21 @@ public class KItem extends Term implements KItemRepresentation {
 
             sort = kind.asSort();
             possibleSorts = Collections.singleton(sort);
-            this.termContext = null;
             enableCache = false;
         }
     }
 
     private void computeSort() {
         if (sort != null) {
-            //computed already
             return;
         }
         if (enableCache) {
-            CacheTableColKey cacheTabColKey = null;
-            CacheTableValue cacheTabVal = null;
-            cacheTabColKey = new CacheTableColKey((KLabelConstant) kLabel, (KList) kList);
-            cacheTabVal = termContext.definition().getSortCacheValue(cacheTabColKey);
+            CacheTableColKey cacheTabColKey = new CacheTableColKey((KLabelConstant) kLabel, (KList) kList);
+            CacheTableValue cacheTabVal = termContext.definition().getSortCacheValue(cacheTabColKey);
             if (cacheTabVal != null) {
                 sort = cacheTabVal.sort;
                 isExactSort = cacheTabVal.isExactSort;
                 possibleSorts = cacheTabVal.possibleSorts;
-                this.termContext = null;
                 return;
             }
         }
