@@ -1,7 +1,7 @@
 // Copyright (c) 2013-2015 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
-import java.math.BigInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.kframework.backend.java.symbolic.ConjunctiveFormula;
 import org.kframework.backend.java.symbolic.Transformer;
@@ -14,39 +14,28 @@ import org.kframework.krun.api.io.FileSystem;
  */
 public class TermContext extends JavaSymbolicObject {
 
-    private BigInteger counter = BigInteger.ZERO;
+    private final AtomicLong counter;
 
     private final GlobalContext global;
 
     private Term topTerm;
     private ConjunctiveFormula topConstraint;
 
-    private TermContext(GlobalContext global) {
+    private TermContext(GlobalContext global, AtomicLong counter) {
         this.global = global;
-    }
-
-    public static TermContext of(GlobalContext global) {
-        return new TermContext(global);
-    }
-
-    public static TermContext of(GlobalContext global, Term topTerm, BigInteger counter) {
-        TermContext termContext = new TermContext(global);
-        termContext.topTerm = topTerm;
-        termContext.counter = counter;
-        return termContext;
-    }
-
-    public BigInteger getCounter() {
-        return counter;
-    }
-
-    public void setCounter(BigInteger counter) {
         this.counter = counter;
     }
 
-    public BigInteger incrementCounter() {
-        counter = this.counter.add(BigInteger.ONE);
+    public static TermContext of(GlobalContext global) {
+        return new TermContext(global, new AtomicLong(0));
+    }
+
+    public AtomicLong getCounter() {
         return counter;
+    }
+
+    public long incrementAndGetCounter() {
+        return counter.incrementAndGet();
     }
 
     public Definition definition() {

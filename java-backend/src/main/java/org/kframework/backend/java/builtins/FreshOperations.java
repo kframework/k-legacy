@@ -31,7 +31,7 @@ public class FreshOperations {
 
         KItem freshFunction = KItem.of(
                 KLabelConstant.of(name, context.definition()),
-                KList.singleton(IntToken.of(context.incrementCounter())),
+                KList.singleton(IntToken.of(context.incrementAndGetCounter())),
                 context);
         return freshFunction.evaluateFunction(false, context);
     }
