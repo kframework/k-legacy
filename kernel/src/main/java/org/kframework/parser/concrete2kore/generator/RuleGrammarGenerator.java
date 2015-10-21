@@ -297,11 +297,26 @@ public class RuleGrammarGenerator {
 
         if (baseK.getModule(RULE_LISTS).isDefined() && mod.importedModules().contains(baseK.getModule(RULE_LISTS).get())) {
             java.util.Set<Sentence> res = new HashSet<>();
-            for (UserList ul : UserList.getLists(parseProds)) {
+            java.util.List<UserList> userLists = UserList.getLists(parseProds);
+            for (UserList ul : userLists) {
                 org.kframework.definition.Production prod1;
                 // Es ::= E
                 prod1 = Production(Sort(ul.sort), Seq(NonTerminal(Sort(ul.childSort))));
                 res.add(prod1);
+            }
+
+            /*
+             * Add list of Sort2 for a separator if there is some syntactic list of Sort1 with the
+             * same separator such that Sort2 is a subsort of Sort1
+             * (i.e. List{Sort2, separator} if List{Sort1, separator} and Sort2 < Sort1)
+             */
+            for (UserList ul1 : userLists) {
+                for (UserList ul2 : userLists) {
+                    if (ul1 != ul2 && ul1.klabel.equals(ul2.klabel)
+                            && mod.subsorts().$greater(Sort(ul1.childSort), Sort(ul2.childSort))) {
+                        res.add(Production(Sort(ul1.sort), Seq(NonTerminal(Sort(ul2.sort)))));
+                    }
+                }
             }
 
             parseProds.addAll(res);

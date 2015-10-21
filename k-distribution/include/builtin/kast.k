@@ -174,6 +174,13 @@ module RULE-LISTS
   // adds the subsort production to the parsing module only:
   // Es ::= E        [userList("*")]
 
+  // automatically add subsorts between related lists
+  // Exp ::= Int
+  // Exps ::= List{Exp,","}
+  // Ints ::= List{Int,","}
+  // because the elements of the two lists are subsorted,
+  // the lists will automatically be subsorted also by adding the production:
+  // Exps ::= Ints
 endmodule
 
 module DEFAULT-CONFIGURATION

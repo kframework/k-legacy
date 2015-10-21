@@ -393,4 +393,21 @@ public class RuleGrammarTest {
                 "endmodule";
         parseRule("a .Stmts", def, 0, false);
     }
+
+    // automatic subsort overloaded lists
+    // regression test for issue #1705
+    @Test
+    public void test24() {
+        String def = "" +
+                "module TEST " +
+                "syntax Id " +
+                "syntax Int " +
+                "syntax Exp ::= Int | Id " +
+                "" +
+                "syntax Ids  ::= List{Id, \",\"} " +
+                "syntax Ints ::= List{Int,\",\"} " +
+                "syntax Exps ::= List{Exp,\",\"} " +
+                "endmodule";
+        parseRule("A, B", def, 2, false);
+    }
 }
