@@ -38,7 +38,9 @@ public class MacroExpander extends CopyOnWriteTransformer {
         Definition processedDefinition = new Definition(
                 definition.definitionData(),
                 kem,
-                definition.indexingData);
+                definition.indexingData,
+                definition.ruleTable,
+                definition.automaton);
         processedDefinition.addKLabelCollection(definition.kLabels());
         for (Rule rule : definition.rules()) {
             processedDefinition.addRule(processRule(rule));
@@ -118,7 +120,7 @@ public class MacroExpander extends CopyOnWriteTransformer {
      */
     private JavaSymbolicObject expandMacro(JavaSymbolicObject node) {
         JavaSymbolicObject expandedNode = (JavaSymbolicObject) node.accept(this);
-        while (node != expandedNode) {
+        while (!node.equals(expandedNode)) {
             node = expandedNode;
             expandedNode = (JavaSymbolicObject) node.accept(this);
         }

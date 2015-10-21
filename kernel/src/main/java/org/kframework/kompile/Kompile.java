@@ -7,7 +7,9 @@ import com.google.inject.Inject;
 import org.kframework.Collections;
 import org.kframework.attributes.Source;
 import org.kframework.builtin.BooleanUtils;
+import org.kframework.builtin.KLabels;
 import org.kframework.builtin.Sorts;
+import org.kframework.compile.CleanKSeq;
 import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.compile.LabelInfo;
 import org.kframework.compile.LabelInfoFromModule;
@@ -16,23 +18,19 @@ import org.kframework.definition.Context;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
 import org.kframework.definition.Module;
+import org.kframework.definition.ModuleTransformer;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
+import org.kframework.kore.ADT;
+import org.kframework.kore.Assoc;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
+import org.kframework.kore.KORE;
+import org.kframework.kore.KSequence;
+import org.kframework.kore.KVariable;
 import org.kframework.kore.Sort;
-import org.kframework.kore.compile.AddImplicitComputationCell;
-import org.kframework.kore.compile.ConcretizeCells;
-import org.kframework.kore.compile.GenerateSentencesFromConfigDecl;
-import org.kframework.kore.compile.GenerateSortPredicateSyntax;
-import org.kframework.kore.compile.ResolveAnonVar;
-import org.kframework.kore.compile.ResolveContexts;
-import org.kframework.kore.compile.ResolveFreshConstants;
-import org.kframework.kore.compile.ResolveHeatCoolAttribute;
-import org.kframework.kore.compile.ResolveIOStreams;
-import org.kframework.kore.compile.ResolveSemanticCasts;
-import org.kframework.kore.compile.ResolveStrict;
-import org.kframework.kore.compile.SortInfo;
+import org.kframework.kore.SortedADT;
+import org.kframework.kore.compile.*;
 import org.kframework.main.GlobalOptions;
 import org.kframework.parser.TreeNodesToKORE;
 import org.kframework.parser.concrete2kore.ParseCache;
@@ -49,6 +47,7 @@ import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
 import scala.Tuple2;
+import scala.collection.immutable.Seq;
 import scala.collection.immutable.Set;
 import scala.util.Either;
 
@@ -82,12 +81,13 @@ public class Kompile {
     private static final String REQUIRE_KAST_K = "requires \"kast.k\"\n";
     public static final Sort START_SYMBOL = Sort("RuleContent");
 
+    public final KompileOptions kompileOptions;
+
     private final FileUtil files;
     private final KExceptionManager kem;
     private final ParserUtils parser;
     private final boolean cacheParses;
     private final BinaryLoader loader;
-    private final KompileOptions kompileOptions;
     private final Stopwatch sw;
 
     private final AtomicInteger parsedBubbles = new AtomicInteger(0);
@@ -111,9 +111,9 @@ public class Kompile {
     }
 
     public Kompile(KompileOptions kompileOptions, GlobalOptions global, FileUtil files, KExceptionManager kem, Stopwatch sw, boolean cacheParses) {
+        this.kompileOptions = kompileOptions;
         this.files = files;
         this.kem = kem;
-        this.kompileOptions = kompileOptions;
         this.parser = new ParserUtils(files, kem, global);
         this.cacheParses = cacheParses;
         this.loader = new BinaryLoader(kem);
@@ -322,7 +322,7 @@ public class Kompile {
         gen = new RuleGrammarGenerator(defWithConfig, kompileOptions.strict());
         Definition parsedDef = DefinitionTransformer.from(this::resolveBubbles, "parsing rules").apply(defWithConfig);
 
-        if(cacheParses) {
+        if (cacheParses) {
             loader.saveOrDie(files.resolveKompiled("cache.bin"), caches);
         }
         if (!errors.isEmpty()) {
@@ -373,7 +373,7 @@ public class Kompile {
         if (def.getModule("MAP").isDefined()) {
             mapModule = def.getModule("MAP").get();
         } else {
-            throw KEMException.compilerError("Module Map must be visible at the configuration declaration, in module "+module.name());
+            throw KEMException.compilerError("Module Map must be visible at the configuration declaration, in module " + module.name());
         }
         return Module(module.name(), (Set<Module>) module.imports().$bar(Set(mapModule)), (Set<Sentence>) module.localSentences().$bar(configDeclProductions), module.att());
     }
@@ -497,7 +497,7 @@ public class Kompile {
             parsedBubbles.getAndIncrement();
             kem.addAllKException(result._2().stream().map(e -> e.getKException()).collect(Collectors.toList()));
             if (result._1().isRight()) {
-                KApply k = (KApply)TreeNodesToKORE.down(result._1().right().get());
+                KApply k = (KApply) TreeNodesToKORE.down(result._1().right().get());
                 k = KApply(k.klabel(), k.klist(), k.att().addAll(b.att().remove("contentStartLine").remove("contentStartColumn").remove("Source").remove("Location")));
                 cache.put(b.contents(), new ParsedSentence(k, new HashSet<>(result._2())));
                 return Stream.of(k);
