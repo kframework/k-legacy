@@ -13,9 +13,9 @@ import org.kframework.kil.Attribute;
 import org.kframework.kil.Attributes;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -26,10 +26,18 @@ import java.util.concurrent.ConcurrentHashMap;
 public class KLabelConstant extends KLabel implements MaximalSharing, org.kframework.kore.KLabel {
 
     /* KLabelConstant cache */
-    private static final Map<Pair<Set<SortSignature>, Attributes>, Map<String, KLabelConstant>> cache = new ConcurrentHashMap<>();
+    private static final Map<Pair<Set<SortSignature>, Attributes>, Map<String, KLabelConstant>> cache = new HashMap<>();
+
+    public static int cacheSize() {
+        synchronized (cache) {
+            return cache.values().stream().mapToInt(Map::size).sum();
+        }
+    }
 
     /* un-escaped label */
     private final String label;
+
+    private final int ordinal;
 
     /* the sort signatures of the productions generating this {@code KLabelConstant} */
     private final Set<SortSignature> signatures;
@@ -52,16 +60,18 @@ public class KLabelConstant extends KLabel implements MaximalSharing, org.kframe
 
     private final boolean isSortPredicate;
 
-    private final String smtlib;
-
     private final Sort predicateSort;
+
+    private final String smtlib;
 
     private KLabelConstant(
             String label,
+            int ordinal,
             Set<SortSignature> signatures,
             Set<Sort> allSorts,
             Attributes productionAttributes) {
         this.label = label;
+        this.ordinal = ordinal;
         this.signatures = signatures;
         this.productionAttributes = productionAttributes;
 
@@ -97,12 +107,15 @@ public class KLabelConstant extends KLabel implements MaximalSharing, org.kframe
      * @return AST term representation the the KLabel;
      */
     public static KLabelConstant of(String label, Definition definition) {
-        return cache.computeIfAbsent(Pair.of(definition.signaturesOf(label), definition.kLabelAttributesOf(label)), p -> Collections.synchronizedMap(new PatriciaTrie<>()))
-                .computeIfAbsent(label, l -> new KLabelConstant(
-                        l,
-                        definition.signaturesOf(l),
-                        definition.allSorts(),
-                        definition.kLabelAttributesOf(l)));
+        synchronized (cache) {
+            return cache.computeIfAbsent(Pair.of(definition.signaturesOf(label), definition.kLabelAttributesOf(label)), p -> Collections.synchronizedMap(new PatriciaTrie<>()))
+                    .computeIfAbsent(label, l -> new KLabelConstant(
+                            l,
+                            cacheSize(),
+                            definition.signaturesOf(l),
+                            definition.allSorts(),
+                            definition.kLabelAttributesOf(l)));
+        }
     }
 
     /**
@@ -132,10 +145,6 @@ public class KLabelConstant extends KLabel implements MaximalSharing, org.kframe
         return isPattern;
     }
 
-    public String smtlib() {
-        return smtlib;
-    }
-
     /**
      * Returns true if this {@code KLabelConstant} is a sort membership
      * predicate; otherwise, false.
@@ -157,11 +166,19 @@ public class KLabelConstant extends KLabel implements MaximalSharing, org.kframe
         return label;
     }
 
+    public int ordinal() {
+        return ordinal;
+    }
+
     /**
      * Returns a list of productions generating this {@code KLabelConstant}.
      */
     public Set<SortSignature> signatures() {
         return signatures;
+    }
+
+    public String smtlib() {
+        return smtlib;
     }
 
     @Override
@@ -205,9 +222,11 @@ public class KLabelConstant extends KLabel implements MaximalSharing, org.kframe
      * instance.
      */
     private Object readResolve() {
-        Map<String, KLabelConstant> trie = cache.computeIfAbsent(Pair.of(signatures, productionAttributes),
-                p -> Collections.synchronizedMap(new PatriciaTrie<>()));
-        return trie.computeIfAbsent(label, l -> this);
+        synchronized (cache) {
+            Map<String, KLabelConstant> trie = cache.computeIfAbsent(Pair.of(signatures, productionAttributes),
+                    p -> Collections.synchronizedMap(new PatriciaTrie<>()));
+            return trie.computeIfAbsent(label, l -> this);
+        }
     }
 
     public String getAttr(String attribute) {

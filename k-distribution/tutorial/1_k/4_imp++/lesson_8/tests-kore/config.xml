@@ -4,6 +4,7 @@
 
   <include file="../../lesson_7/tests/config.xml"
            skip="pdf"
+           exclude="spawn"
            more-results="." >
     <kompile-option name="--kore" />
     <kompile-option name="--transition"
@@ -13,11 +14,13 @@
       <krun-option name="--parser" value="kast --kore --sort Stmts" />
       <krun-option name="--output" value="none" />
     </all-programs>
+    <!--
     <program name="spawn.imp" >
-      <krun-option name="--kore" />
-      <krun-option name="--parser" value="kast --kore --sort Stmts" />
-      <krun-option name="--search" />
+      <krun-option name="-/-kore" />
+      <krun-option name="-/-parser" value="kast -/-kore -/-sort Stmts" />
+      <krun-option name="-/-search" />
     </program>
+    -->
   </include>
 
 </tests>

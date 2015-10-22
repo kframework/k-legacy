@@ -12,6 +12,7 @@ import org.kframework.backend.java.symbolic.AbstractKMachine;
 import org.kframework.backend.java.symbolic.ConjunctiveFormula;
 import org.kframework.backend.java.symbolic.DisjunctiveFormula;
 import org.kframework.backend.java.symbolic.PatternExpander;
+import org.kframework.backend.java.symbolic.SymbolicRewriter;
 import org.kframework.backend.java.symbolic.SymbolicUnifier;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
@@ -77,8 +78,7 @@ public class ConstrainedTerm extends JavaSymbolicObject {
     public ConstrainedTerm(Term term, ConjunctiveFormula constraint) {
         Data data = new Data(term, constraint);
         this.data = data;
-        this.context = TermContext.of(data.constraint.termContext().global(),
-                term, data.constraint.termContext().getCounter());
+        this.context = data.constraint.termContext();
     }
 
     public ConstrainedTerm(Term term, TermContext context) {
