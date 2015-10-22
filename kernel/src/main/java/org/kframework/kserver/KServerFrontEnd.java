@@ -1,17 +1,18 @@
 // Copyright (c) 2015 K Team. All Rights Reserved.
 package org.kframework.kserver;
-import java.io.File;
-import java.io.PrintStream;
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.martiansoftware.nailgun.NGContext;
+import com.martiansoftware.nailgun.NGListeningAddress;
+import com.martiansoftware.nailgun.NGServer;
+import com.martiansoftware.nailgun.ThreadLocalPrintStream;
 import org.fusesource.jansi.AnsiConsole;
 import org.fusesource.jansi.AnsiOutputStream;
 import org.kframework.main.FrontEnd;
 import org.kframework.main.Main;
+import org.kframework.utils.OS;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
@@ -22,13 +23,13 @@ import org.kframework.utils.inject.JCommanderModule.ExperimentalUsage;
 import org.kframework.utils.inject.JCommanderModule.Usage;
 import org.kframework.utils.inject.SimpleScope;
 
-import com.google.common.collect.ImmutableList;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.martiansoftware.nailgun.NGContext;
-import com.martiansoftware.nailgun.NGServer;
-import com.martiansoftware.nailgun.ThreadLocalPrintStream;
+import java.io.File;
+import java.io.PrintStream;
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class KServerFrontEnd extends FrontEnd {
@@ -65,20 +66,46 @@ public class KServerFrontEnd extends FrontEnd {
         for (String tool : tools) {
             injectors.put(tool, Main.getInjector(tool));
         }
-        NGServer server = new NGServer(InetAddress.getLoopbackAddress(), options.port);
+        NGServer server;
+        File dir = null;
+        if (isLocal()) {
+            // can use more secure unix domain sockets
+            dir = new File(System.getProperty("user.home"), ".kserver");
+            dir.mkdirs();
+            dir.setReadable(false, false);
+            dir.setReadable(true, true);
+            dir.setWritable(false, false);
+            dir.setWritable(true, true);
+            dir.setExecutable(false, false);
+            dir.setExecutable(true, true);
+            File socket = new File(dir, "socket");
+            socket.deleteOnExit();
+            if (socket.exists()) {
+                System.out.println("Warning: K server already started.");
+                socket.delete();
+            }
+            server = new NGServer(new NGListeningAddress(socket.getAbsolutePath()), 10, 10000);
+        } else {
+            server = new NGServer(InetAddress.getLoopbackAddress(), options.port);
+        }
         Thread t = new Thread(server);
         instance = this;
         threadInstance = t;
         t.start();
 
-        int runningPort = server.getPort();
-        while (runningPort == 0) {
-            try {
-                Thread.sleep(50L);
-            } catch (InterruptedException e) {}
-            runningPort = server.getPort();
+        if (isLocal()) {
+            System.out.println("K server started using IPC at " + dir.getAbsolutePath());
+        } else {
+            int runningPort = server.getPort();
+            while (runningPort == 0) {
+                try {
+                    Thread.sleep(50L);
+                } catch (InterruptedException e) {
+                }
+                runningPort = server.getPort();
+            }
+            System.out.println("K server started on 127.0.0.1:" + options.port);
         }
-        System.out.println("K server started on 127.0.0.1:" + options.port);
 
         try {
             t.join();
@@ -126,7 +153,15 @@ public class KServerFrontEnd extends FrontEnd {
     }
 
     public static void nailMain(NGContext context) {
+        KServerFrontEnd kserver = KServerFrontEnd.instance();
+        if (!kserver.isLocal()) {
+            context.assertLoopbackClient();
+        }
         System.setSecurityManager(null);
         context.getNGServer().shutdown(true);
+    }
+
+    public boolean isLocal() {
+        return OS.current() != OS.WINDOWS;
     }
 }
