@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.kframework.backend.PosterBackend;
 import org.kframework.kil.Definition;
+import org.kframework.kompile.CompiledDefinition;
 import org.kframework.main.FrontEnd;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -34,26 +35,34 @@ public class KDocFrontEnd extends FrontEnd {
         return modules;
     }
 
+    private final KDocOptions options;
     private final Provider<PosterBackend> backend;
+    private final Provider<org.kframework.kore.kdoc.PosterBackend> koreBackend;
     private final Provider<Definition> def;
+    private final Provider<CompiledDefinition> koreDef;
     private final DefinitionScope scope;
     private final Provider<File> kompiledDir;
 
     @Inject
     public KDocFrontEnd(
             KExceptionManager kem,
-            GlobalOptions globalOptions,
+            KDocOptions options,
             @Usage String usage,
             @ExperimentalUsage String experimentalUsage,
             JarInfo jarInfo,
             Provider<PosterBackend> backend,
+            Provider<org.kframework.kore.kdoc.PosterBackend> koreBackend,
             @Concrete Provider<Definition> def,
+            Provider<CompiledDefinition> koreDef,
             FileUtil files,
             DefinitionScope scope,
             @KompiledDir Provider<File> kompiledDir) {
-        super(kem, globalOptions, usage, experimentalUsage, jarInfo, files);
+        super(kem, options.global, usage, experimentalUsage, jarInfo, files);
+        this.options = options;
         this.backend = backend;
+        this.koreBackend = koreBackend;
         this.def = def;
+        this.koreDef = koreDef;
         this.scope = scope;
         this.kompiledDir = kompiledDir;
     }
@@ -62,7 +71,12 @@ public class KDocFrontEnd extends FrontEnd {
     protected int run() {
         scope.enter(kompiledDir.get());
         try {
-            backend.get().run(def.get());
+            if(options.kore) {
+                System.out.println("In the KORE pipeline.");
+                koreBackend.get().run(koreDef.get());
+            } else {
+                backend.get().run(def.get());
+            }
             return 0;
         } finally {
             scope.exit();
