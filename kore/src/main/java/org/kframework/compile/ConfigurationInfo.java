@@ -18,50 +18,117 @@ import java.util.Set;
  * with variables or functions of cell sort).
  */
 public interface ConfigurationInfo {
-    /** Number of proper ancestors of cell k */
+    /**
+     * Number of proper ancestors of cell k
+     */
     int getLevel(Sort k);
 
-    /** Parent of cell k, or null */
+    /**
+     * Parent of cell k, or null
+     */
     Sort getParent(Sort k);
 
-    /** Children of cell k */
+    /**
+     * Children of cell k
+     */
     List<Sort> getChildren(Sort k);
 
-    /** Declared multiplicity of a cell */
+    /**
+     * Declared multiplicity of a cell
+     */
     Multiplicity getMultiplicity(Sort k);
 
-    /** True if sort k is actually a cell sort */
+    /**
+     * True if sort k is actually a cell sort
+     */
     boolean isCell(Sort k);
 
-    /** True if sort s is the collection sort for a multiplicity star cell. */
+    /**
+     * True if sort s is the collection sort for a multiplicity star cell.
+     */
     boolean isCellCollection(Sort s);
 
-    /** True if kLabel is the KLabel of a cell */
+    /**
+     * True if sort s is the optional version (for fragments) of a multiplicity one cell.
+     */
+    boolean isCellOpt(Sort s);
+
+    /**
+     * Return the corresponding cell sort if {@code s} is
+     * the supersort of a multiplicity one cell which makes the
+     * cell optional, which is used to define the parent cell's fragment.
+     */
+    Sort getCellOfOpt(Sort s);
+    /**
+     * Given the sort of a multiplicity one cell, return the
+     * supersort which makes the cell optional, which is used
+     * as an argument sort in the parent cell's fragment.
+     */
+    Sort getCellOptOfCell(Sort s);
+
+    /**
+     * Return the corresponding cell sort, if the argument sort is
+     * a cell or cell fragment sort.
+     * Returns null otherwise.
+     */
+    Sort getCellOfFragment(Sort s);
+
+    /**
+     * Return the corresponding cell fragment sort, if the argument
+     * is a parent cell's sort, or already a cell fragment sort.
+     */
+    Sort getFragmentOfCell(Sort s);
+
+    /**
+     * Return the corresponding cell sort, if the argument sort is
+     * a collection or optional sort used in cell fragment, or already a cell sort.
+     * Returns null otherwise.
+     */
+    Sort getCellOfFragmentMember(Sort s);
+
+    /**
+     * True if kLabel is the KLabel of a cell
+     */
     boolean isCellLabel(KLabel kLabel);
 
-    /** True for cells which contain a term rather than other cells */
+    /**
+     * True for cells which contain a term rather than other cells
+     */
     boolean isLeafCell(Sort k);
 
-    /** True for cells which contain other cells */
+    /**
+     * True for cells which contain other cells
+     */
     boolean isParentCell(Sort k);
 
-    /** Set of cell bag sorts (e.g. ThreadCellBag) associated with a multiplicity * cell (e.g. ThreadCell).
-     *  Should not in most cases return more than one sort, but a user can write productions that would cause
-     *  this method to return multiple sorts, e.g. if a particular * cell appears in multiple bags in different
-     *  parts of a configuration.
+    /**
+     * True for cell fragment sorts
      */
-    scala.collection.Set<Sort> getCellBagSortsOfCell(Sort k);
+    boolean isCellFragment(Sort k);
 
-    /** The declared sort of the contents of a leaf cell */
+    /**
+     * The cell bag sort (e.g. ThreadCellBag) associated with a multiplicity * cell (e.g. ThreadCell).
+     */
+    Sort getCellBagSortOfCell(Sort k);
+
+    /**
+     * The declared sort of the contents of a leaf cell
+     */
     Sort leafCellType(Sort k);
 
-    /** The label for a cell */
+    /**
+     * The label for a cell
+     */
     KLabel getCellLabel(Sort k);
 
-    /** The cell for a label */
+    /**
+     * The cell for a label
+     */
     Sort getCellSort(KLabel kLabel);
 
-    /** The label for a fragment of a cell, only defined for parent cells. */
+    /**
+     * The label for a fragment of a cell, only defined for parent cells.
+     */
     KLabel getCellFragmentLabel(Sort k);
 
     /**
@@ -71,42 +138,84 @@ public interface ConfigurationInfo {
      */
     KLabel getCellAbsentLabel(Sort cellSort);
 
-    /** Returns a term which is the default cell of sort k,
-     * probably an initializer macro */
+    /**
+     * Returns a term which is the default cell of sort k,
+     * probably an initializer macro
+     */
     K getDefaultCell(Sort k);
 
+    /**
+     * True if the initializer for cell sort k does not
+     * depend on any configuration variables
+     */
     boolean isConstantInitializer(Sort k);
 
-    /** Return the root cell of the configuration . */
+    /**
+     * Return the root cell of the configuration .
+     */
     Sort getRootCell();
-    /** Return the declared computation cell, by default the k cell */
+
+    /**
+     * Return the declared computation cell, by default the k cell
+     */
     Sort getComputationCell();
-    /** Returns the set of cell sorts in this configuration */
+
+    /**
+     * Returns the set of cell sorts in this configuration
+     */
     Set<Sort> getCellSorts();
 
-    /** Returns the unit of a * or ? cell. */
+    /**
+     * Returns the unit of a * or ? cell.
+     */
     KApply getUnit(Sort k);
 
-    /** Returns the concatenation operation of a multiplicity * cell. */
+    /**
+     * Returns the concatenation operation of a multiplicity * cell.
+     */
     KLabel getConcat(Sort k);
 
-    /** Returns the cell associated with this concatenation label */
+    /**
+     * Returns the cell associated with this concatenation label
+     */
     Option<Sort> getCellForConcat(KLabel concat);
 
-    /** Returns the cell associated with this unit */
+    /**
+     * Returns the cell associated with this unit
+     */
     Option<Sort> getCellForUnit(KLabel unit);
 
-    /** Declared mulitplicitly of a cell */
+    /**
+     * If {@code label} is a label making a cell collection, return the
+     * Sort of the cells in that collection.
+     */
+    default public Sort getCellCollectionCell(KLabel label) {
+        Option<Sort> result = getCellForConcat(label);
+        if (result.isEmpty()) {
+            result = getCellForUnit(label);
+        }
+        return result.isDefined() ? result.get() : null;
+    }
+
+    /**
+     * Declared mulitplicitly of a cell
+     */
     enum Multiplicity {
-        /** Exactly one instance of this cell is required */
+        /**
+         * Exactly one instance of this cell is required
+         */
         ONE,
-        /** This cell is optional but may not be repeated */
+        /**
+         * This cell is optional but may not be repeated
+         */
         OPTIONAL,
-        /** This cell may occur any number of times, zero or more */
+        /**
+         * This cell may occur any number of times, zero or more
+         */
         STAR;
 
         public static Multiplicity of(String multiplicity) {
-            switch(multiplicity) {
+            switch (multiplicity) {
             case "1":
                 return ConfigurationInfo.Multiplicity.ONE;
             case "*":

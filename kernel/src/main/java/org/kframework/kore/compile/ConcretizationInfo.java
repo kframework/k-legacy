@@ -16,7 +16,11 @@ import java.util.List;
 import static org.kframework.kore.KORE.*;
 
 /**
- * Created by brandon on 3/31/15.
+ * This class combines {@link ConfigurationInfo} and {@link LabelInfo}
+ * for the {@link AddParentCells} and {@link CloseCells} passes which
+ * often need to get information about the cell corresponding to a label.
+ * Methods are generally equivalent to those of {@link ConfigurationInfo},
+ * except they take or return a {@link KLabel} instead of a {@link Sort}.
  */
 public class ConcretizationInfo {
     public final ConfigurationInfo cfg;
@@ -26,7 +30,6 @@ public class ConcretizationInfo {
         this.cfg = cfg;
         this.labels = labels;
     }
-
 
     public Sort getCellSort(K k) {
         if (k instanceof KApply) {
@@ -38,9 +41,6 @@ public class ConcretizationInfo {
         }
     }
 
-    public ConfigurationInfo.Multiplicity getMultiplicity(KLabel label) {
-        return cfg.getMultiplicity(labels.getCodomain(label));
-    }
     public ConfigurationInfo.Multiplicity getMultiplicity(Sort sort) {
         return cfg.getMultiplicity(sort);
     }
@@ -57,43 +57,15 @@ public class ConcretizationInfo {
         return cfg.getCellLabel(cfg.getParent(sort));
     }
 
-    public Sort getCellSort(KLabel cellLabel) {
-        Sort s = labels.getCodomain(cellLabel);
-        return cfg.isCell(s) ? s : null;
-    }
-
-    /** If {@code label} is a label making a cell collection, return the
-     * Sort of the cells in that collection.
-     */
-    public Sort getCellCollectionCell(KLabel label) {
-        Option<Sort> result = cfg.getCellForConcat(label);
-        if (result.isEmpty()) {
-            result = cfg.getCellForUnit(label);
-        }
-        return result.isDefined() ? result.get() : null;
-    }
-    public KLabel getCellFragmentLabel(KLabel cellLabel) {
-        Sort s = labels.getCodomain(cellLabel);
-        return cfg.getCellFragmentLabel(s);
-    }
-
-    public K getCellAbsentTerm(Sort cellSort) {
-        KLabel l = cfg.getCellAbsentLabel(cellSort);
-        return l == null ? null : KApply(l);
-    }
-
-    public boolean isCellCollection(KLabel klabel) {
-        Sort s = labels.getCodomain(klabel);
-        return cfg.isCellCollection(s);
-    }
-
     public boolean isCell(KLabel klabel) {
         Sort s = labels.getCodomain(klabel);
         return cfg.isCell(s) && cfg.getCellLabel(s).equals(klabel);
     }
+
     public boolean isLeafCell(KLabel klabel) {
         return cfg.isLeafCell(labels.getCodomain(klabel));
     }
+
     public boolean isParentCell(KLabel klabel) {
         return isCell(klabel) && cfg.isParentCell(labels.getCodomain(klabel));
     }
@@ -101,6 +73,7 @@ public class ConcretizationInfo {
     public Sort leafCellType(KLabel label) {
         return cfg.leafCellType(labels.getCodomain(label));
     }
+
     public List<Sort> getChildren(KLabel label) {
         return cfg.getChildren(labels.getCodomain(label));
     }

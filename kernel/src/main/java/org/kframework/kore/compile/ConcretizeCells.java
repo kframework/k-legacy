@@ -8,6 +8,7 @@ import org.kframework.compile.LabelInfoFromModule;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
 import org.kframework.definition.Sentence;
+import org.kframework.utils.errorsystem.KExceptionManager;
 
 /**
  * Apply the configuration concretization process.
@@ -34,30 +35,21 @@ public class ConcretizeCells {
     final SortCells sortCells;
     private final AddTopCellToRules addRootCell;
 
-    public static Definition transformDefinition(Definition input) {
-        ConfigurationInfoFromModule configInfo = new ConfigurationInfoFromModule(input.mainModule());
-        LabelInfo labelInfo = new LabelInfoFromModule(input.mainModule());
-        SortInfo sortInfo = SortInfo.fromModule(input.mainModule());
-        return DefinitionTransformer.fromSentenceTransformer(
-                new ConcretizeCells(configInfo, labelInfo, sortInfo)::concretize,
-                "concretizing configuration"
-        ).apply(input);
-    }
-
-    public ConcretizeCells(ConfigurationInfo configurationInfo, LabelInfo labelInfo, SortInfo sortInfo) {
+    public ConcretizeCells(ConfigurationInfo configurationInfo, LabelInfo labelInfo, SortInfo sortInfo, KExceptionManager kem) {
         this.configurationInfo = configurationInfo;
         this.labelInfo = labelInfo;
         this.sortInfo = sortInfo;
         addRootCell = new AddTopCellToRules(configurationInfo, labelInfo);
         addParentCells = new AddParentCells(configurationInfo, labelInfo);
         closeCells = new CloseCells(configurationInfo, sortInfo, labelInfo);
-        sortCells = new SortCells(configurationInfo, labelInfo);
+        sortCells = new SortCells(configurationInfo, labelInfo, kem);
     }
 
     public Sentence concretize(Sentence s) {
-        return sortCells.sortCells(
-                closeCells.close(
-                        addParentCells.concretize(
-                                addRootCell.addImplicitCells(s))));
+        s = addRootCell.addImplicitCells(s);
+        s = addParentCells.concretize(s);
+        s = closeCells.close(s);
+        s = sortCells.sortCells(s);
+        return s;
     }
 }
