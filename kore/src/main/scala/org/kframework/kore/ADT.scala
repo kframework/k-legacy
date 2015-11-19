@@ -7,10 +7,10 @@ import collection.JavaConverters._
 import org.kframework.definition.Module
 
 /**
- * Abstract Data Types: basic implementations for the inner KORE interfaces.
- *
- * Tools using inner KORE data structures can either use these classes directly or have their own implementations.
- */
+  * Abstract Data Types: basic implementations for the inner KORE interfaces.
+  *
+  * Tools using inner KORE data structures can either use these classes directly or have their own implementations.
+  */
 
 
 object ADT {
@@ -21,13 +21,19 @@ object ADT {
     def apply(ks: K*) = KApply(this, KList(ks.toList))
   }
 
+  case class KLabel(module: Module, localName: String) extends kore.KLabel {
+    override def toString = module + "@" + name
+
+    def apply(ks: K*) = KApply(this, KList(ks.toList))
+  }
+
   case class KApply[KK <: K](klabel: kore.KLabel, klist: kore.KList, att: Att = Att()) extends kore.KApply {
     def items = klist.items
   }
 
   class KSequence private(val elements: List[K], val att: Att = Att()) extends kore.KSequence {
     val items: java.util.List[K] = elements.asJava
-    val kApply: kore.KApply = items.asScala reduceRightOption { (a, b) => KLabelLookup(KLabels.KSEQ)(a, b) } getOrElse { KLabelLookup(KLabels.DOTK)() } match {
+    val kApply: kore.KApply = items.asScala reduceRightOption { (a, b) => KLabelLookup(KLabels.KSEQ)(a, b) } getOrElse {KLabelLookup(KLabels.DOTK)()} match {
       case k: kore.KApply => k
       case x => KLabelLookup(KLabels.KSEQ)(x, KLabelLookup(KLabels.DOTK)())
     }
@@ -64,7 +70,9 @@ object ADT {
 
   case class KList(elements: List[K]) extends kore.KList {
     elements foreach { e => assert(e.isInstanceOf[K]) }
+
     def items: java.util.List[K] = elements.asJava
+
     def iterator: Iterator[K] = elements.iterator
   }
 
@@ -83,7 +91,7 @@ object SortedADT {
 
     override def equals(other: Any) = other match {
       case v: SortedKVariable => name == v.name && sort == v.sort
-//      case v: KVariable => throw new UnsupportedOperationException(s"should not mix SortedKVariables with KVariables for variable $this and $v")
+      //      case v: KVariable => throw new UnsupportedOperationException(s"should not mix SortedKVariables with KVariables for variable $this and $v")
       case _ => false
     }
   }
