@@ -44,7 +44,7 @@ case class Definition(
   assert(modules.contains(mainModule))
   assert(modules.contains(mainSyntaxModule))
 
-  def getModule(name: String): Option[Module] = modules find { case Module(`name`, _, _, _, _) => true; case _ => false }
+  def getModule(name: String): Option[Module] = modules find { case m: Module => name == m.name; case _ => false }
 }
 
 object Module {
@@ -54,15 +54,15 @@ object Module {
             @(Nonnull@param) att: Att = Att()): Module = {
     val syntaxSentences = localSentences.collect({ case s: SyntaxSentence => s })
     val semanticSentences = localSentences.collect({ case s: SemanticSentence => s })
-    Module(name, imports, syntaxSentences, semanticSentences, att)
+    new Module(name, imports, syntaxSentences, semanticSentences, att)
   }
 }
 
-case class Module(name: String,
-                  imports: Set[Module],
-                  localSyntaxSentences: Set[SyntaxSentence],
-                  localSemanticSentences: Set[SemanticSentence],
-                  att: Att)
+class Module(val name: String,
+             val imports: Set[Module],
+             val localSyntaxSentences: Set[SyntaxSentence],
+             val localSemanticSentences: Set[SemanticSentence],
+             val att: Att)
   extends ModuleToString with KLabelMappings with OuterKORE {
   assert(att != null)
 
@@ -231,7 +231,7 @@ case class Module(name: String,
   if (!nonTerminalsWithUndefinedSort.isEmpty)
     throw new NonTerminalsWithUndefinedSortException(nonTerminalsWithUndefinedSort)
 
-  override lazy val hashCode: Int = scala.runtime.ScalaRunTime._hashCode(Module.this);
+  override lazy val hashCode: Int = name.hashCode
 }
 
 // hooked but different from core, Import is a sentence here
