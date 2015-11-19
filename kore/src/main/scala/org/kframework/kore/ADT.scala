@@ -4,6 +4,7 @@ import org.kframework.builtin.KLabels
 import org.kframework.kore
 import org.kframework.attributes._
 import collection.JavaConverters._
+import org.kframework.definition.Module
 
 /**
  * Abstract Data Types: basic implementations for the inner KORE interfaces.
@@ -51,11 +52,11 @@ object ADT {
     def apply(ks: K*) = KApply(this, KList(ks.toList))
   }
 
-  case class Sort(name: String) extends kore.Sort {
+  case class SortLookup(name: String) extends kore.Sort {
     override def toString = name
   }
 
-  case class QualifiedSort(name: String) extends kore.Sort {
+  case class QualifiedSort(module: Module, name: String) extends kore.Sort {
     override def toString = name
   }
 
@@ -78,7 +79,7 @@ object SortedADT {
   case class SortedKVariable(name: String, att: Att = Att()) extends kore.KVariable {
     def apply(ks: K*) = ADT.KApply(this, ADT.KList(ks.toList))
 
-    val sort: Sort = ADT.Sort(att.getOptional[String]("sort").orElse("K"))
+    val sort: Sort = ADT.SortLookup(att.getOptional[String]("sort").orElse("K"))
 
     override def equals(other: Any) = other match {
       case v: SortedKVariable => name == v.name && sort == v.sort

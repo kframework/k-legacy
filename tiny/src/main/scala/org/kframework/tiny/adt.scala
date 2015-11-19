@@ -258,7 +258,7 @@ case class InjectedLabel(klabel: Label, att: Att) extends kore.InjectedKLabel wi
 }
 
 object InjectedLabel {
-  val sort = ADT.Sort("InjectedKLabel")
+  val sort = ADT.SortLookup("InjectedKLabel")
 }
 
 /////////////////////

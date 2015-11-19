@@ -1,7 +1,7 @@
 package org.kframework.tiny.builtin
 
 import org.kframework.attributes.Att
-import org.kframework.kore.ADT.Sort
+import org.kframework.kore.ADT.SortLookup
 import org.kframework.tiny._
 import org.kframework.tiny.matcher.{MatcherLabel, Matcher}
 
@@ -42,7 +42,7 @@ case class KMapAppLabel(name: String, att: Att = Att()) extends Label {
     }
 }
 
-object KVarMapValue extends RegularKTok(Sort("KVarMapValue"), "KVarMapValue")
+object KVarMapValue extends RegularKTok(SortLookup("KVarMapValue"), "KVarMapValue")
 
 class KMapAppBuilder(val builder: mutable.MapBuilder[K, K, Map[K, K]], label: Label) extends Builder[K, Map[K, K]] {
   def +=(k: K): this.type = {

@@ -324,5 +324,5 @@ with TerminalToString {
 
 /* Helper constructors */
 object NonTerminal {
-  def apply(sort: String): NonTerminal = NonTerminal(ADT.Sort(sort))
+  def apply(sort: String): NonTerminal = NonTerminal(ADT.SortLookup(sort))
 }

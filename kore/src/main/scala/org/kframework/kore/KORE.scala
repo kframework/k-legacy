@@ -53,7 +53,7 @@ object KORE extends Constructors[K] with ScalaSugared[K] {
 
   override def KVariable(name: String, att: Att): KVariable = ADT.KVariable(name, att)
 
-  override def Sort(name: String): Sort = ADT.Sort(name)
+  override def Sort(name: String): Sort = ADT.SortLookup(name)
 
   override def KToken(s: String, sort: Sort, att: Att): KToken = ADT.KToken(s, sort, att)
 
