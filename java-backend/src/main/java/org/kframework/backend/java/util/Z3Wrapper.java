@@ -58,6 +58,8 @@ public class Z3Wrapper {
     }
 
     private boolean checkQueryWithLibrary(String query, int timeout) {
+        Profiler.poplTimeZ3.start();
+        Profiler.poplZ3Inc();
         boolean result = false;
         try {
             com.microsoft.z3.Context context = new com.microsoft.z3.Context();
@@ -75,10 +77,13 @@ public class Z3Wrapper {
             System.err.println(System.getProperty("java.library.path"));
             throw e;
         }
+        Profiler.poplTimeZ3.stop();
         return result;
     }
 
     private boolean checkQueryWithExternalProcess(String query, int timeout) {
+        Profiler.poplTimeZ3.start();
+        Profiler.poplZ3Inc();
         String result = "";
         try {
             for (int i = 0; i < Z3_RESTART_LIMIT; i++) {
@@ -114,6 +119,7 @@ public class Z3Wrapper {
         } else if (globalOptions.debug && !Z3_QUERY_RESULTS.contains(result)) {
             System.err.println("Unexpected Z3 query result:\n" + result);
         }
+        Profiler.poplTimeZ3.stop();
         return result.equals("unsat");
     }
 }

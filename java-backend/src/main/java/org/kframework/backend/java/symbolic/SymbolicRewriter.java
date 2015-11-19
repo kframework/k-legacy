@@ -15,6 +15,7 @@ import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.strategies.TransitionCompositeStrategy;
 import org.kframework.backend.java.util.Coverage;
 import org.kframework.backend.java.util.JavaKRunState;
+import org.kframework.backend.java.util.Profiler;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.krun.api.KRunState;
 import org.kframework.utils.errorsystem.KEMException;
@@ -22,6 +23,7 @@ import org.kframework.rewriter.SearchType;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -38,6 +40,24 @@ public class SymbolicRewriter {
     private final RuleIndex ruleIndex;
     private final KRunState.Counter counter;
     private final Map<ConstrainedTerm, Set<Rule>> subject2DisabledRules = new IdentityHashMap<>();
+
+    private Stopwatch poplTimeTotal                 = Stopwatch.createUnstarted();
+    private Stopwatch poplTimeImplies               = Stopwatch.createUnstarted();
+    private Stopwatch poplTimeApplyRules            = Stopwatch.createUnstarted();
+    private Stopwatch poplTimeComputeRewriteStep    = Stopwatch.createUnstarted();
+
+    private Stopwatch poplTimeZ3Implies               = Stopwatch.createUnstarted();
+    private Stopwatch poplTimeZ3ApplyRules            = Stopwatch.createUnstarted();
+    private Stopwatch poplTimeZ3ComputeRewriteStep    = Stopwatch.createUnstarted();
+    private Stopwatch poplTimeZ3Etc                   = Stopwatch.createUnstarted();
+
+    private int poplStepTotal = 0;
+    private int poplStepTerms = 0;
+    private int poplStepPeakTerms = 0;
+
+    private long poplRuleTotal = 0;
+    private long poplRuleStepTotal = 0;
+    private long poplRulePeak = 0;
 
     @Inject
     public SymbolicRewriter(Definition definition, KompileOptions kompileOptions, JavaExecutionOptions javaOptions,
@@ -91,6 +111,9 @@ public class SymbolicRewriter {
                 transition = strategy.nextIsTransition();
                 Set<Rule> rules = new LinkedHashSet<>(strategy.next());
                 rules.removeAll(failedRules);
+                poplRuleTotal += rules.size();
+                poplRuleStepTotal++;
+                poplRulePeak = Math.max(poplRulePeak, rules.size());
 
                 Map<Rule, List<ConstrainedTerm>> rule2Results;
                 if (computeOne || !transition) {
@@ -377,6 +400,9 @@ public class SymbolicRewriter {
             ConstrainedTerm initialTerm,
             ConstrainedTerm targetTerm,
             List<Rule> specRules) {
+        poplTimeTotal.start();
+        Profiler.poplTimeZ3 = poplTimeZ3Etc;
+        Profiler.poplZ3Mode = Profiler.POPLZ3MODE.Z3_ETC;
         List<ConstrainedTerm> proofResults = new ArrayList<>();
         Set<ConstrainedTerm> visited = new HashSet<>();
         List<ConstrainedTerm> queue = new ArrayList<>();
@@ -389,11 +415,23 @@ public class SymbolicRewriter {
         boolean guarded = false;
         int step = 0;
         while (!queue.isEmpty()) {
+            poplStepTotal++;
+            poplStepTerms += queue.size();
+            poplStepPeakTerms = Math.max(poplStepPeakTerms, queue.size());
             step++;
             for (ConstrainedTerm term : queue) {
+                poplTimeImplies.start();
+                Profiler.poplTimeZ3 = poplTimeZ3Implies;
+                Profiler.poplZ3Mode = Profiler.POPLZ3MODE.Z3_IMPLIES;
                 if (term.implies(targetTerm)) {
+                    poplTimeImplies.stop();
+                    Profiler.poplTimeZ3 = poplTimeZ3Etc;
+                    Profiler.poplZ3Mode = Profiler.POPLZ3MODE.Z3_ETC;
                     continue;
                 }
+                poplTimeImplies.stop();
+                Profiler.poplTimeZ3 = poplTimeZ3Etc;
+                Profiler.poplZ3Mode = Profiler.POPLZ3MODE.Z3_ETC;
 
                 List<Term> leftKContents = term.term().getCellContentsByName(CellLabel.K);
                 List<Term> rightKContents = targetTerm.term().getCellContentsByName(CellLabel.K);
@@ -415,7 +453,13 @@ public class SymbolicRewriter {
                 }
 
                 if (guarded) {
+                    poplTimeApplyRules.start();
+                    Profiler.poplTimeZ3 = poplTimeZ3ApplyRules;
+                    Profiler.poplZ3Mode = Profiler.POPLZ3MODE.Z3_APPLY_RULES;
                     ConstrainedTerm result = applySpecRules(term, specRules);
+                    poplTimeApplyRules.stop();
+                    Profiler.poplTimeZ3 = poplTimeZ3Etc;
+                    Profiler.poplZ3Mode = Profiler.POPLZ3MODE.Z3_ETC;
                     if (result != null) {
                         if (visited.add(result))
                             nextQueue.add(result);
@@ -423,7 +467,13 @@ public class SymbolicRewriter {
                     }
                 }
 
+                poplTimeComputeRewriteStep.start();
+                Profiler.poplTimeZ3 = poplTimeZ3ComputeRewriteStep;
+                Profiler.poplZ3Mode = Profiler.POPLZ3MODE.Z3_COMPUTE_REWRITE_STEP;
                 List<ConstrainedTerm> results = computeRewriteStep(term, step, false);
+                poplTimeComputeRewriteStep.stop();
+                Profiler.poplTimeZ3 = poplTimeZ3Etc;
+                Profiler.poplZ3Mode = Profiler.POPLZ3MODE.Z3_ETC;
                 if (results.isEmpty()) {
                     /* final term */
                     proofResults.add(term);
@@ -469,6 +519,40 @@ public class SymbolicRewriter {
             nextQueue.clear();
             guarded = true;
         }
+
+        poplTimeTotal.stop();
+        Profiler.poplZ3Mode = Profiler.POPLZ3MODE.Z3_NULL;
+
+        System.err.println("## TIME TOTAL "          + poplTimeTotal.elapsed(TimeUnit.MILLISECONDS));
+        System.err.println("## TIME IMPLIES "        + poplTimeImplies.elapsed(TimeUnit.MILLISECONDS));
+        System.err.println("## TIME APPLY_RULES "    + poplTimeApplyRules.elapsed(TimeUnit.MILLISECONDS));
+        System.err.println("## TIME REWRITE_STEPS "  + poplTimeComputeRewriteStep.elapsed(TimeUnit.MILLISECONDS));
+
+        System.err.println("## STEP TOTAL "         + poplStepTotal);
+        System.err.println("## STEP TERMS "         + poplStepTerms);
+        System.err.println("## STEP PEAK_TERMS "    + poplStepPeakTerms);
+        System.err.println("## STEP AVERAGE_TERMS " + ((double) poplStepTerms) / poplStepTotal);
+
+        System.err.println("## RULE TOTAL "         + poplRuleTotal);
+        System.err.println("## RULE STEP_TOTAL "    + poplRuleStepTotal);
+        System.err.println("## RULE PEAK "          + poplRulePeak);
+        System.err.println("## RULE AVERAGE "       + ((double) poplRuleTotal) / poplRuleStepTotal);
+
+        System.err.println("## TIME Z3_TOTAL "          + ( poplTimeZ3Etc.elapsed(TimeUnit.MILLISECONDS)
+                                                          + poplTimeZ3Implies.elapsed(TimeUnit.MILLISECONDS)
+                                                          + poplTimeZ3ApplyRules.elapsed(TimeUnit.MILLISECONDS)
+                                                          + poplTimeZ3ComputeRewriteStep.elapsed(TimeUnit.MILLISECONDS)));
+        System.err.println("## TIME Z3_IMPLIES "        + poplTimeZ3Implies.elapsed(TimeUnit.MILLISECONDS));
+        System.err.println("## TIME Z3_APPLY_RULES "    + poplTimeZ3ApplyRules.elapsed(TimeUnit.MILLISECONDS));
+        System.err.println("## TIME Z3_REWRITE_STEPS "  + poplTimeZ3ComputeRewriteStep.elapsed(TimeUnit.MILLISECONDS));
+
+        System.err.println("## CNT Z3_TOTAL "          + ( Profiler.poplZ3Etc
+                                                         + Profiler.poplZ3Implies
+                                                         + Profiler.poplZ3ApplyRules
+                                                         + Profiler.poplZ3ComputeRewriteStep));
+        System.err.println("## CNT Z3_IMPLIES "        + Profiler.poplZ3Implies);
+        System.err.println("## CNT Z3_APPLY_RULES "    + Profiler.poplZ3ApplyRules);
+        System.err.println("## CNT Z3_REWRITE_STEPS "  + Profiler.poplZ3ComputeRewriteStep);
 
         return proofResults;
     }

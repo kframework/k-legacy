@@ -24,6 +24,33 @@ import com.google.common.base.Stopwatch;
  */
 public class Profiler {
 
+    public static Stopwatch poplTimeZ3 = Stopwatch.createUnstarted();
+
+    public static long poplZ3Implies               = 0;
+    public static long poplZ3ApplyRules            = 0;
+    public static long poplZ3ComputeRewriteStep    = 0;
+    public static long poplZ3Etc                   = 0;
+    public static enum POPLZ3MODE { Z3_IMPLIES, Z3_APPLY_RULES, Z3_COMPUTE_REWRITE_STEP, Z3_ETC, Z3_NULL }
+    public static POPLZ3MODE poplZ3Mode = POPLZ3MODE.Z3_NULL;
+    public static void poplZ3Inc() {
+        switch (poplZ3Mode) {
+            case Z3_IMPLIES:
+                poplZ3Implies++;
+                break;
+            case Z3_APPLY_RULES:
+                poplZ3ApplyRules++;
+                break;
+            case Z3_COMPUTE_REWRITE_STEP:
+                poplZ3ComputeRewriteStep++;
+                break;
+            case Z3_ETC:
+                poplZ3Etc++;
+                break;
+            case Z3_NULL:
+                break;
+        }
+    }
+
     public static final InheritableThreadLocal<Boolean> enableProfilingMode = new InheritableThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
