@@ -116,7 +116,7 @@ public class SymbolicRewriter {
                 poplRulePeak = Math.max(poplRulePeak, rules.size());
 
                 Map<Rule, List<ConstrainedTerm>> rule2Results;
-                if (computeOne || !transition) {
+                if (computeOne /* || !transition */) {
                     rule2Results = Collections.emptyMap();
                     for (Rule rule : rules) {
                         List<ConstrainedTerm> terms = computeRewriteStepByRule(subject, rule);
