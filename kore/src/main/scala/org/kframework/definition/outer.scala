@@ -63,7 +63,7 @@ class Module(val name: String,
              val localSyntaxSentences: Set[SyntaxSentence],
              val localSemanticSentences: Set[SemanticSentence],
              val att: Att)
-  extends ModuleToString with KLabelMappings with OuterKORE {
+  extends ModuleToString with KLabelMappings with OuterKORE with Serializable {
   assert(att != null)
 
   val localSentences = localSyntaxSentences ++ localSemanticSentences
