@@ -95,7 +95,7 @@ public class RuleGrammarGenerator {
      */
     public Module getRuleGrammar(Module mod) {
         // import RULE-CELLS in order to parse cells specific to rules
-        Module newM = new Module(mod.name() + "-" + RULE_CELLS, Set(mod, baseK.getModule(K).get(), baseK.getModule(RULE_CELLS).get()), Set(), Att());
+        Module newM = Module.apply(mod.name() + "-" + RULE_CELLS, Set(mod, baseK.getModule(K).get(), baseK.getModule(RULE_CELLS).get()), Set(), Att());
         return newM;
     }
 
@@ -107,7 +107,7 @@ public class RuleGrammarGenerator {
      */
     public Module getConfigGrammar(Module mod) {
         // import CONFIG-CELLS in order to parse cells specific to configurations
-        Module newM = new Module(mod.name() + "-" + CONFIG_CELLS, Set(mod, baseK.getModule(K).get(), baseK.getModule(CONFIG_CELLS).get()), Set(), Att());
+        Module newM = Module.apply(mod.name() + "-" + CONFIG_CELLS, Set(mod, baseK.getModule(K).get(), baseK.getModule(CONFIG_CELLS).get()), Set(), Att());
         return newM;
     }
 
@@ -119,7 +119,7 @@ public class RuleGrammarGenerator {
      */
     public Module getProgramsGrammar(Module mod) {
         // import PROGRAM-LISTS so user lists are modified to parse programs
-        Module newM = new Module(mod.name() + "-PROGRAM-LISTS", Set(mod, baseK.getModule(PROGRAM_LISTS).get()), Set(), Att());
+        Module newM = Module.apply(mod.name() + "-PROGRAM-LISTS", Set(mod, baseK.getModule(PROGRAM_LISTS).get()), Set(), Att());
         return newM;
     }
 
@@ -310,9 +310,9 @@ public class RuleGrammarGenerator {
             parseProds.addAll(res);
             disambProds.addAll(res);
         }
-        Module extensionM = new Module(mod.name() + "-EXTENSION", Set(mod), immutable(extensionProds), mod.att());
-        Module disambM = new Module(mod.name() + "-DISAMB", Set(), immutable(disambProds), mod.att());
-        Module parseM = new Module(mod.name() + "-PARSER", Set(), immutable(parseProds), mod.att());
+        Module extensionM = Module.apply(mod.name() + "-EXTENSION", Set(mod), immutable(extensionProds), mod.att());
+        Module disambM = Module.apply(mod.name() + "-DISAMB", Set(), immutable(disambProds), mod.att());
+        Module parseM = Module.apply(mod.name() + "-PARSER", Set(), immutable(parseProds), mod.att());
         return new ParseInModule(mod, extensionM, disambM, parseM, this.strict);
     }
 
