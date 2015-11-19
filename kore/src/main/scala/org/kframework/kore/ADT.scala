@@ -62,7 +62,7 @@ object ADT {
     override def toString = name
   }
 
-  case class QualifiedSort(module: Module, name: String) extends kore.Sort {
+  case class Sort(module: Module, name: String) extends kore.Sort {
     override def toString = name
   }
 
