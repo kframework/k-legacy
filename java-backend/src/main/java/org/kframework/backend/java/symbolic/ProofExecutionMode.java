@@ -71,7 +71,7 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
             @Override
             public Map<String, K> apply(KApply k) {
                 Map<String, K> substitution = processChildren(k.klist());
-                if (configurationInfo.isCellLabel(new ADT.KLabel(k.klabel().name())) && k.klist().size() == 1) {
+                if (configurationInfo.isCellLabel(new ADT.KLabelLookup(k.klabel().name())) && k.klist().size() == 1) {
                     substitution = mergeSubstitutions(Stream.of(
                             substitution,
                             Collections.singletonMap(k.klabel().name().substring(1, k.klabel().name().length() - 1).toUpperCase().replace("-", ""), k.klist().items().get(0))));

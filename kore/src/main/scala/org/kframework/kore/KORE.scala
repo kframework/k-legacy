@@ -44,7 +44,7 @@ object KORE extends Constructors[K] with ScalaSugared[K] {
   //  def toKSequence: Collector[K, KSequence] =
   //    Collector(() => new CombinerFromBuilder(KSequence.newBuilder()))
 
-  override def KLabel(name: String): KLabel = ADT.KLabel(name)
+  override def KLabel(name: String): KLabel = ADT.KLabelLookup(name)
 
   override def KApply(klabel: KLabel, klist: KList, att: Att): KApply = ADT.KApply(klabel, klist, att)
 
