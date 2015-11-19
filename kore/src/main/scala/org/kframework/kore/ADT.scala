@@ -22,7 +22,8 @@ object ADT {
   }
 
   case class KLabel(module: Module, localName: String) extends kore.KLabel {
-    override def toString = module + "@" + name
+    val name = module + "@" + localName
+    override def toString = name
 
     def apply(ks: K*) = KApply(this, KList(ks.toList))
   }
