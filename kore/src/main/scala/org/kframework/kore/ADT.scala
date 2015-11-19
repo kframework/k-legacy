@@ -55,6 +55,10 @@ object ADT {
     override def toString = name
   }
 
+  case class QualifiedSort(name: String) extends kore.Sort {
+    override def toString = name
+  }
+
   case class KToken(s: String, sort: kore.Sort, att: Att = Att()) extends kore.KToken
 
   case class KList(elements: List[K]) extends kore.KList {
