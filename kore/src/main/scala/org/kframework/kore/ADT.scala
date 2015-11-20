@@ -22,7 +22,9 @@ object ADT {
   }
 
   case class KLabel(module: Module, localName: String) extends kore.KLabel {
-    val name = module + "@" + localName
+    val name = localName + "@" + module.name
+
+    assert(name.count(_ == '@') == 1)
 
     override def toString = name
 
@@ -65,8 +67,11 @@ object ADT {
   }
 
   case class Sort(module: Module, localName: String) extends kore.Sort {
-    val name = module.name + "@" + localName
-    override val toString = name
+    override def name = localName + "@" + module.name
+
+    assert(name.count(_ == '@') == 1)
+
+    override def toString = name
   }
 
   case class KToken(s: String, sort: kore.Sort, att: Att = Att()) extends kore.KToken

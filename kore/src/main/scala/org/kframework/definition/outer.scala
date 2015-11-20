@@ -60,20 +60,20 @@ object Module {
 
 class Module(val name: String,
              val imports: Set[Module],
-             val localSyntaxSentences: Set[SyntaxSentence],
-             val localSemanticSentences: Set[SemanticSentence],
+             val unresolvedLocalSyntaxSentences: Set[SyntaxSentence],
+             val unresolvedLocalSemanticSentences: Set[SemanticSentence],
              val att: Att)
   extends ModuleToString with KLabelMappings with OuterKORE with Serializable {
   assert(att != null)
 
 
-  val localSorts: Set[ADT.Sort] = localSyntaxSentences
+  val localSorts: Set[ADT.Sort] = unresolvedLocalSyntaxSentences
     .collect {
       case Production(s, _, _) => s
       case SyntaxSort(s, _) => s
     }
     .map {
-      case s: ADT.Sort => (s.name, Some(s.module.name))
+      case s: ADT.Sort => (s.localName, Some(s.module.name))
       case s: ADT.SortLookup => splitAtModule(s.name)
     }
     .collect {
@@ -81,7 +81,7 @@ class Module(val name: String,
         if (moduleName == this.name) {
           ADT.Sort(this, localName)
         } else {
-          imports flatMap {_.Sort(moduleName, localName)} match {
+          imports flatMap {_.lookupSort(moduleName, localName)} match {
             case sortSet if sortSet.isEmpty => throw KEMException.compilerError("Trying to override undefined sort: " + localName + "@" + moduleName)
             case sortSet if sortSet.size == 1 => sortSet.head
             case _ => throw KEMException.compilerError("Found too many sorts named: " + localName + "@" + moduleName)
@@ -92,24 +92,50 @@ class Module(val name: String,
 
   val sorts: Set[ADT.Sort] = localSorts ++ (imports flatMap {_.sorts})
 
-  def splitAtModule(s: String): (String, Option[String]) = name.split("@") match {
+  def splitAtModule(name: String): (String, Option[String]) = name.split("@") match {
     case Array(localName, moduleName) => (localName, Some(moduleName))
     case Array(localName) => (localName, None)
     case _ => throw KEMException.compilerError("Sort name contains multiple @ symbols: " + name)
   }
 
-  def Sort(name: String): Option[ADT.Sort] = splitAtModule(name) match {
-    case (localName, Some(moduleName)) => Sort(moduleName, localName)
-    case (localName, None) =>
-      sorts.filter({ s: ADT.Sort => s.name == localName }) match {
-        case s if s.size == 0 => None
-        case s if s.size == 1 => Some(s.head)
-        case _ => throw KEMException.compilerError("Found too many sorts named: " + localName)
-      }
+  def SortOption(name: String): Option[ADT.Sort] = lookupSort(name) match {
+    case s if s.size == 0 => None
+    case s if s.size == 1 => Some(s.head)
+    case s => throw KEMException.compilerError("Found too many sorts named: " + name + ". Possible sorts: " + s.mkString(", "))
   }
 
-  def Sort(moduleName: String, localName: String): Option[ADT.Sort] = {
-    sorts.find(s => s.module.name == moduleName && s.name == name)
+  def Sort(name: String): ADT.Sort = SortOption(name) match {
+    case Some(s) => s
+    case None => throw KEMException.compilerError("Could not find sort named: " + name)
+  }
+
+  def lookupSort(name: String): Set[ADT.Sort] = splitAtModule(name) match {
+    case (localName, Some(moduleName)) => lookupSort(moduleName, localName)
+    case (localName, None) => sorts.filter({ s: ADT.Sort => s.localName == localName })
+  }
+
+  def lookupSort(moduleName: String, localName: String): Set[ADT.Sort] = {
+    sorts.filter(s => s.module.name == moduleName && s.localName == localName)
+  }
+
+  val localSyntaxSentences: Set[SyntaxSentence] = unresolvedLocalSyntaxSentences map {
+    case p: Production => p.copy(sort = this.Sort(p.sort.name), p.items map {
+      case t: NonTerminal => t.copy(sort = this.Sort(t.sort.name))
+      case other => other
+    })
+    case s: SyntaxSort => s.copy(sort = this.Sort(s.sort.name))
+    case other => other
+  }
+
+  def resolveSorts(k: K): K = ???
+//    k match {
+//    case app: KApply => app.copy(list map resolveSorts, app.att)
+//  }
+
+  val localSemanticSentences = unresolvedLocalSemanticSentences map {
+    case c: Configuration => Configuration(resolveSorts(c.body), resolveSorts(c.ensures), c.att)
+    case c: Context => Context(resolveSorts(c.body), resolveSorts(c.requires), c.att)
+    case r: Rule => Rule(resolveSorts(r.body), resolveSorts(r.requires), resolveSorts(r.ensures), r.att)
   }
 
   val localSentences = localSyntaxSentences ++ localSemanticSentences

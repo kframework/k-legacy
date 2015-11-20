@@ -3,7 +3,7 @@ package org.kframework.tiny
 import org.junit.{Before, Assert}
 import org.kframework.attributes.Att
 import org.kframework.builtin.Sorts
-import org.kframework.definition.{NonTerminal, Module, Production}
+import org.kframework.definition.{SyntaxSort, NonTerminal, Module, Production}
 
 
 trait AbstractTest {
@@ -13,6 +13,9 @@ trait AbstractTest {
   import org.kframework.{kore, tiny}
 
   val module = Module("TEST", Set(), Set(
+    SyntaxSort(String),
+    SyntaxSort(Bool),
+    SyntaxSort(Int),
     Production("_andBool_", Sorts.Bool,
       Seq(NonTerminal(Sorts.Bool), NonTerminal(Sorts.Bool)), Att() + ("hook" -> "#BOOL:_andBool_")),
     Production("_orBool_", Sorts.Bool,

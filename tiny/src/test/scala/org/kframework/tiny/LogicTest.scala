@@ -1,6 +1,6 @@
 package org.kframework.tiny
 
-import org.junit.Test
+import org.junit.{Ignore, Test}
 
 class LogicTest extends AbstractTest {
 
