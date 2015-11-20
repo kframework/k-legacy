@@ -66,6 +66,54 @@ class Module(val name: String,
   extends ModuleToString with KLabelMappings with OuterKORE with Serializable {
   assert(att != null)
 
+
+  val importedSorts: Set[ADT.Sort] = imports flatMap {_.sorts}
+
+  val localSorts: Set[ADT.Sort] = localSyntaxSentences
+    .collect {
+      case Production(s, _, _) => s
+      case SyntaxSort(s, _) => s
+    }
+    .map {
+      case s: ADT.Sort => (s.name, Some(s.module.name))
+      case s: ADT.SortLookup => splitAtModule(s.name)
+    }
+    .collect {
+      case (localName, Some(moduleName)) =>
+        if (moduleName == this.name) {
+          ADT.Sort(this, localName)
+        } else {
+          imports flatMap {_.Sort(moduleName, localName)} match {
+            case sortSet if sortSet.isEmpty => throw KEMException.compilerError("Trying to override undefined sort: " + localName + "@" + moduleName)
+            case sortSet if sortSet.size == 1 => sortSet.head
+            case _ => throw KEMException.compilerError("Found too many sorts named: " + localName + "@" + moduleName)
+          }
+        }
+      case (localName, None) => ADT.Sort(this, localName)
+    }
+
+  val sorts: Set[ADT.Sort] = importedSorts ++ localSorts
+
+  def splitAtModule(s: String): (String, Option[String]) = name.split("@") match {
+    case Array(localName, moduleName) => (localName, Some(moduleName))
+    case Array(localName) => (localName, None)
+    case _ => throw KEMException.compilerError("Sort name contains multiple @ symbols: " + name)
+  }
+
+  def Sort(name: String): Option[ADT.Sort] = splitAtModule(name) match {
+    case (localName, Some(moduleName)) => Sort(moduleName, localName)
+    case (localName, None) =>
+      sorts.filter({ s: ADT.Sort => s.name == localName }) match {
+        case s if s.size == 0 => None
+        case s if s.size == 1 => Some(s.head)
+        case _ => throw KEMException.compilerError("Found too many sorts named: " + localName)
+      }
+  }
+
+  def Sort(moduleName: String, localName: String): Option[ADT.Sort] = {
+    sorts.find(s => s.module.name == moduleName && s.name == name)
+  }
+
   val localSentences = localSyntaxSentences ++ localSemanticSentences
 
   val sentences: Set[Sentence] = localSentences | (imports flatMap {
