@@ -52,20 +52,19 @@ object Module {
             imports: Set[Module],
             localSentences: Set[Sentence],
             @(Nonnull@param) att: Att = Att()): Module = {
-    val syntaxSentences = localSentences.collect({ case s: SyntaxSentence => s })
-    val semanticSentences = localSentences.collect({ case s: SemanticSentence => s })
-    new Module(name, imports, syntaxSentences, semanticSentences, att)
+    new Module(name, imports, localSentences, att)
   }
 }
 
 class Module(val name: String,
              val imports: Set[Module],
-             val unresolvedLocalSyntaxSentences: Set[SyntaxSentence],
-             val unresolvedLocalSemanticSentences: Set[SemanticSentence],
+             val unresolvedLocalSentences: Set[Sentence],
              val att: Att)
   extends ModuleToString with KLabelMappings with OuterKORE with Serializable {
   assert(att != null)
 
+  val unresolvedLocalSyntaxSentences: Set[SyntaxSentence] = unresolvedLocalSentences.collect({ case s: SyntaxSentence => s })
+  val unresolvedLocalSemanticSentences: Set[SemanticSentence] = unresolvedLocalSentences.collect({ case s: SemanticSentence => s })
 
   val localSorts: Set[ADT.Sort] = unresolvedLocalSyntaxSentences
     .collect {
@@ -76,18 +75,23 @@ class Module(val name: String,
       case s: ADT.Sort => (s.localName, Some(s.module.name))
       case s: ADT.SortLookup => splitAtModule(s.name)
     }
-    .collect {
+    .flatMap {
       case (localName, Some(moduleName)) =>
         if (moduleName == this.name) {
-          ADT.Sort(this, localName)
+          Some(ADT.Sort(this, localName))
         } else {
           imports flatMap {_.lookupSort(moduleName, localName)} match {
             case sortSet if sortSet.isEmpty => throw KEMException.compilerError("Trying to override undefined sort: " + localName + "@" + moduleName)
-            case sortSet if sortSet.size == 1 => sortSet.head
-            case _ => throw KEMException.compilerError("Found too many sorts named: " + localName + "@" + moduleName)
+            case sortSet if sortSet.size == 1 => None
+            case sortSet => throw KEMException.compilerError("Found too many sorts named: " + localName + "@" + moduleName + ". Possible sorts: " + sortSet.mkString(", "))
           }
         }
-      case (localName, None) => ADT.Sort(this, localName)
+      case (localName, None) =>
+        imports flatMap {_.lookupSort(localName)} match {
+          case sortSet if sortSet.isEmpty => Some(ADT.Sort(this, localName))
+          case sortSet if sortSet.size == 1 => None
+          case sortSet => throw KEMException.compilerError("Found too many sorts named: " + localName + ". Possible sorts: " + sortSet.mkString(", "))
+        }
     }
 
   val sorts: Set[ADT.Sort] = localSorts ++ (imports flatMap {_.sorts})
@@ -128,9 +132,10 @@ class Module(val name: String,
   }
 
   def resolveSorts(k: K): K = ???
-//    k match {
-//    case app: KApply => app.copy(list map resolveSorts, app.att)
-//  }
+
+  //    k match {
+  //    case app: KApply => app.copy(list map resolveSorts, app.att)
+  //  }
 
   val localSemanticSentences = unresolvedLocalSemanticSentences map {
     case c: Configuration => Configuration(resolveSorts(c.body), resolveSorts(c.ensures), c.att)
