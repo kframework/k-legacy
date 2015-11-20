@@ -90,7 +90,7 @@ public class AddEmptyListsTest {
                     "syntax As ::= List{A,\",\"}\n" +
                     "syntax Bs ::= List{B,\",\"}\n" +
                     "syntax As ::= Bs\n" +
-                    "syntax K ::= f(As) | g(A) | h(Bs)" +
+                    "syntax Func ::= f(As) | g(A) | h(Bs)" +
                     "endmodule\n";
 
     public static final KApply NIL = KApply(KLabel(".List{\"'_,_\"}"));
@@ -128,95 +128,95 @@ public class AddEmptyListsTest {
 
     @Test
     public void testConcreteArgument() {
-        parseTerm("f(.As)", "K", KApply(F, NIL));
-        parseTerm("f(a)", "K", KApply(F, KApply(CONS, A, NIL)));
-        parseTerm("f(a,a)", "K", KApply(F, KApply(CONS, A, KApply(CONS, A, NIL))));
-        parseTerm("f(a,.As)", "K", KApply(F, KApply(CONS, A, NIL)));
-        parseTerm("f(a,b)", "K", KApply(F, KApply(CONS, A, KApply(CONS, B, NIL))));
-        parseTerm("f(b,.Bs)", "K", KApply(F, KApply(CONS, B, NIL)));
-        parseTerm("f(b,b)", "K", KApply(F, KApply(CONS, B, KApply(CONS, B, NIL))));
+        parseTerm("f(.As)", "Func", KApply(F, NIL));
+        parseTerm("f(a)", "Func", KApply(F, KApply(CONS, A, NIL)));
+        parseTerm("f(a,a)", "Func", KApply(F, KApply(CONS, A, KApply(CONS, A, NIL))));
+        parseTerm("f(a,.As)", "Func", KApply(F, KApply(CONS, A, NIL)));
+        parseTerm("f(a,b)", "Func", KApply(F, KApply(CONS, A, KApply(CONS, B, NIL))));
+        parseTerm("f(b,.Bs)", "Func", KApply(F, KApply(CONS, B, NIL)));
+        parseTerm("f(b,b)", "Func", KApply(F, KApply(CONS, B, KApply(CONS, B, NIL))));
     }
 
     @Ignore("BUG: need to also propagate correct sorts to arguments of labeled application")
     @Test
     public void testLabeledFunSingleItem() {
-        parseTerm("`f`(a)", "K", KApply(F, KApply(CONS, A, NIL)));
+        parseTerm("`f`(a)", "Func", KApply(F, KApply(CONS, A, NIL)));
     }
 
     @Test
     public void testLabedFunConcreteArgument() {
-        parseTerm("`f`(.As)", "K", KApply(F, NIL));
-        parseTerm("`f`(`a,a`)", "K", KApply(F, KApply(CONS, A, KApply(CONS, A, NIL))));
-        parseTerm("`f`(`a,.As`)", "K", KApply(F, KApply(CONS, A, NIL)));
-        parseTerm("`f`(`a,b`)", "K", KApply(F, KApply(CONS, A, KApply(CONS, B, NIL))));
-        parseTerm("`f`(`b,.Bs`)", "K", KApply(F, KApply(CONS, B, NIL)));
-        parseTerm("`f`(`b,b`)", "K", KApply(F, KApply(CONS, B, KApply(CONS, B, NIL))));
+        parseTerm("`f`(.As)", "Func", KApply(F, NIL));
+        parseTerm("`f`(`a,a`)", "Func", KApply(F, KApply(CONS, A, KApply(CONS, A, NIL))));
+        parseTerm("`f`(`a,.As`)", "Func", KApply(F, KApply(CONS, A, NIL)));
+        parseTerm("`f`(`a,b`)", "Func", KApply(F, KApply(CONS, A, KApply(CONS, B, NIL))));
+        parseTerm("`f`(`b,.Bs`)", "Func", KApply(F, KApply(CONS, B, NIL)));
+        parseTerm("`f`(`b,b`)", "Func", KApply(F, KApply(CONS, B, KApply(CONS, B, NIL))));
     }
 
     @Test
     public void testAnnVar() {
-        parseTerm("V:As", "K", KApply(CAST_AS, KVariable("V")));
+        parseTerm("V:As", "Func", KApply(CAST_AS, KVariable("V")));
     }
 
     @Test
     public void testArgumentLabeledCons() {
-        parseTerm("f(`_,_`(a,.As))", "K", KApply(F, KApply(CONS, A, NIL)));
+        parseTerm("f(`_,_`(a,.As))", "Func", KApply(F, KApply(CONS, A, NIL)));
     }
 
     @Test
     public void testArgumentLabeledNil() {
-        parseTerm("f(`.List{\"'_,_\"}`(.KList))", "K", KApply(F, NIL));
+        parseTerm("f(`.List{\"'_,_\"KList))", "Func", KApply(F, NIL));
     }
 
     @Test
     public void testArgumentLabeledConsSub1() {
-        parseTerm("h(`_,_`(b,.Bs))", "K", KApply(H, KApply(CONS, B, NIL)));
+        parseTerm("h(`_,_`(b,.Bs))", "Func", KApply(H, KApply(CONS, B, NIL)));
     }
 
     @Test
     public void testArgumentLabeledConsSub2() {
         // gets a warning because the argument of sort As does not fit.n
-        parseTerm("h(`_,_`(a,.As))", "K", KApply(H, KApply(CONS, A, NIL)), 1);
+        parseTerm("h(`_,_`(a,.As))", "Func", KApply(H, KApply(CONS, A, NIL)), 1);
     }
 
     @Test
     public void testArgumentLabeledNilSub1() {
-        parseTerm("h(`.List{\"'_,_\"}`(.KList))", "K", KApply(H, NIL));
+        parseTerm("h(`.List{\"'_,_\"}`(.KList))", "Func", KApply(H, NIL));
     }
 
     @Test
     public void testArgumentInferredListVar() {
         // 1 warning from inference
-        parseTerm("f(V)", "K", KApply(F, KApply(CAST_AS, KVariable("V"))), 1);
+        parseTerm("f(V)", "Func", KApply(F, KApply(CAST_AS, KVariable("V"))), 1);
     }
 
     @Test
     public void testArgumentAnnListVar() {
-        parseTerm("f(V:As)", "K", KApply(F, KApply(CAST_AS, KVariable("V"))));
+        parseTerm("f(V:As)", "Func", KApply(F, KApply(CAST_AS, KVariable("V"))));
     }
 
     @Test
     public void testArgumentAnnSubListVar() {
-        parseTerm("f(V:Bs)", "K", KApply(F, KApply(CAST_BS, KVariable("V"))));
+        parseTerm("f(V:Bs)", "Func", KApply(F, KApply(CAST_BS, KVariable("V"))));
     }
 
     @Test
     public void testArgumentInferredItemVar() {
         // 1 warning from inference
-        parseTerm("f(V)~>g(V)", "K",
+        parseTerm("f(V)~>g(V)", "Func",
                 KSequence(KApply(F, KApply(CONS, KApply(CAST_A, KVariable("V")), NIL)),
                         KApply(G, KApply(CAST_A, KVariable("V")))), 1);
     }
 
     @Test
     public void testArgumentAnnItemVar() {
-        parseTerm("f(V:A)", "K",
+        parseTerm("f(V:A)", "Func",
                 KApply(F, KApply(CONS, KApply(CAST_A, KVariable("V")), NIL)));
     }
 
     @Test
     public void testArgumentAnnSubItemVar() {
-        parseTerm("f(V:B)", "K",
+        parseTerm("f(V:B)", "Func",
                 KApply(F, KApply(CONS, KApply(CAST_B, KVariable("V")), NIL)));
     }
 }
