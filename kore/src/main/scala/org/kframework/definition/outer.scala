@@ -67,8 +67,6 @@ class Module(val name: String,
   assert(att != null)
 
 
-  val importedSorts: Set[ADT.Sort] = imports flatMap {_.sorts}
-
   val localSorts: Set[ADT.Sort] = localSyntaxSentences
     .collect {
       case Production(s, _, _) => s
@@ -92,7 +90,7 @@ class Module(val name: String,
       case (localName, None) => ADT.Sort(this, localName)
     }
 
-  val sorts: Set[ADT.Sort] = importedSorts ++ localSorts
+  val sorts: Set[ADT.Sort] = localSorts ++ (imports flatMap {_.sorts})
 
   def splitAtModule(s: String): (String, Option[String]) = name.split("@") match {
     case Array(localName, moduleName) => (localName, Some(moduleName))

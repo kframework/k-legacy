@@ -23,6 +23,7 @@ object ADT {
 
   case class KLabel(module: Module, localName: String) extends kore.KLabel {
     val name = module + "@" + localName
+
     override def toString = name
 
     def apply(ks: K*) = KApply(this, KList(ks.toList))
@@ -63,8 +64,9 @@ object ADT {
     override def toString = name
   }
 
-  case class Sort(module: Module, name: String) extends kore.Sort {
-    override def toString = name
+  case class Sort(module: Module, localName: String) extends kore.Sort {
+    val name = module.name + "@" + localName
+    override val toString = name
   }
 
   case class KToken(s: String, sort: kore.Sort, att: Att = Att()) extends kore.KToken
