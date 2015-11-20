@@ -83,16 +83,20 @@ class Module(val name: String,
           imports flatMap {_.lookupSort(moduleName, localName)} match {
             case sortSet if sortSet.isEmpty => throw KEMException.compilerError("Trying to override undefined sort: " + localName + "@" + moduleName)
             case sortSet if sortSet.size == 1 => None
-            case sortSet => throw KEMException.compilerError("Found too many sorts named: " + localName + "@" + moduleName + ". Possible sorts: " + sortSet.mkString(", "))
+            case sortSet => throw KEMException.compilerError(makeTooManySortsErrorMessage(localName + "@" + moduleName , sortSet))
           }
         }
       case (localName, None) =>
         imports flatMap {_.lookupSort(localName)} match {
           case sortSet if sortSet.isEmpty => Some(ADT.Sort(this, localName))
           case sortSet if sortSet.size == 1 => None
-          case sortSet => throw KEMException.compilerError("Found too many sorts named: " + localName + ". Possible sorts: " + sortSet.mkString(", "))
+          case sortSet => throw KEMException.compilerError(makeTooManySortsErrorMessage(localName, sortSet))
         }
     }
+
+  def makeTooManySortsErrorMessage(name: String, sortSet: Set[ADT.Sort]): String = {
+    "Found too many sorts named: " + name + ". Possible sorts: " + sortSet.mkString(", ")
+  }
 
   val sorts: Set[ADT.Sort] = localSorts ++ (imports flatMap {_.sorts})
 
@@ -105,7 +109,7 @@ class Module(val name: String,
   def SortOption(name: String): Option[ADT.Sort] = lookupSort(name) match {
     case s if s.size == 0 => None
     case s if s.size == 1 => Some(s.head)
-    case s => throw KEMException.compilerError("Found too many sorts named: " + name + ". Possible sorts: " + s.mkString(", "))
+    case s => throw KEMException.compilerError(makeTooManySortsErrorMessage(name, s))
   }
 
   def Sort(name: String): ADT.Sort = SortOption(name) match {
@@ -141,6 +145,7 @@ class Module(val name: String,
     case c: Configuration => Configuration(resolveSorts(c.body), resolveSorts(c.ensures), c.att)
     case c: Context => Context(resolveSorts(c.body), resolveSorts(c.requires), c.att)
     case r: Rule => Rule(resolveSorts(r.body), resolveSorts(r.requires), resolveSorts(r.ensures), r.att)
+    case b: Bubble => b
   }
 
   val localSentences = localSyntaxSentences ++ localSemanticSentences
