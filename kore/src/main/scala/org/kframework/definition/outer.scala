@@ -4,7 +4,7 @@ package org.kframework.definition
 
 import dk.brics.automaton.{BasicAutomata, RegExp, RunAutomaton, SpecialOperations}
 import org.kframework.POSet
-import org.kframework.attributes.Att
+import org.kframework.attributes.{Source, Location, Att}
 import org.kframework.kore.Unapply.{KApply, KLabel}
 import org.kframework.kore._
 import org.kframework.utils.errorsystem.KEMException
@@ -66,43 +66,87 @@ class Module(val name: String,
   val unresolvedLocalSyntaxSentences: Set[SyntaxSentence] = unresolvedLocalSentences.collect({ case s: SyntaxSentence => s })
   val unresolvedLocalSemanticSentences: Set[SemanticSentence] = unresolvedLocalSentences.collect({ case s: SemanticSentence => s })
 
-  val localSorts: Set[ADT.Sort] = unresolvedLocalSyntaxSentences
-    .collect {
-      case Production(s, _, _) => s
-      case SyntaxSort(s, _) => s
+  private val importedSorts = imports flatMap {
+    //noinspection ForwardReference
+    _.sorts
+  }
+
+  object DeclaresSort {
+    def unapply(s: SyntaxSentence): Option[Sort] = s match {
+      case Production(s, _, _) => Some(s)
+      case SyntaxSort(s, _) => Some(s)
+      case _ => None
     }
-    .map {
-      case s: ADT.Sort => (s.localName, Some(s.module.name))
-      case s: ADT.SortLookup => splitAtModule(s.name)
-    }
-    .flatMap {
-      case (localName, Some(moduleName)) =>
-        if (moduleName == this.name) {
-          Some(ADT.Sort(this, localName))
-        } else {
-          imports flatMap {_.lookupSort(moduleName, localName)} match {
-            case sortSet if sortSet.isEmpty => throw KEMException.compilerError("Trying to override undefined sort: " + localName + "@" + moduleName)
-            case sortSet if sortSet.size == 1 => None
-            case sortSet => throw KEMException.compilerError(makeTooManySortsErrorMessage(localName + "@" + moduleName , sortSet))
+  }
+
+  case class OuterException(m: String) extends Throwable {
+    override def getMessage() = "While constructing module " + name + ": " + m
+  }
+
+  def tryToDefineSortForProduction(sentence: SyntaxSentence): Option[ADT.Sort] = try
+    sentence match {
+      case DeclaresSort(s) => (s match {
+        case s: ADT.Sort => (s.localName, s.module.name)
+        case s: ADT.SortLookup => splitAtModule(s.name)
+      }) match {
+        case (localName, moduleName) =>
+          if (moduleName == this.name) {
+            imports flatMap {
+              _.lookupSort(localName)
+            } match {
+              case sortSet if sortSet.isEmpty => Some(ADT.Sort(this, localName))
+              case sortSet if sortSet.size == 1 => None
+              case sortSet => throw OuterException(makeTooManySortsErrorMessage(localName + "@" + moduleName, sortSet))
+            }
+          } else {
+            imports flatMap {
+              _.lookupSort(moduleName, localName)
+            } match {
+              case sortSet if sortSet.isEmpty =>
+                throw OuterException("Trying to override undefined sort: " + localName + "@" + moduleName)
+              case sortSet if sortSet.size == 1 => None
+              case sortSet => throw KEMException.compilerError(makeTooManySortsErrorMessage(localName + "@" + moduleName, sortSet))
+            }
           }
-        }
-      case (localName, None) =>
-        imports flatMap {_.lookupSort(localName)} match {
-          case sortSet if sortSet.isEmpty => Some(ADT.Sort(this, localName))
-          case sortSet if sortSet.size == 1 => None
-          case sortSet => throw KEMException.compilerError(makeTooManySortsErrorMessage(localName, sortSet))
-        }
+      }
+      case _ => None
+    } catch {
+    case m: OuterException => throw KEMException.compilerError(m.getMessage(), sentence)
+  }
+
+  val localSorts: Set[ADT.Sort] = unresolvedLocalSyntaxSentences flatMap tryToDefineSortForProduction
+
+  def lookupSort(name: String): Set[ADT.Sort] = splitAtModule(name) match {
+    case (localName, moduleName) => lookupSort(localName, moduleName)
+  }
+
+  def lookupSort(localName: String, moduleName: String): Set[ADT.Sort] = {
+    if (moduleName == this.name) {
+      val localRes = localSorts.filter(_.localName == localName)
+      if (localRes.nonEmpty) {
+        localRes
+      } else {
+        imports flatMap {_.lookupSort(localName)}
+      }
+    } else {
+      imports flatMap {_.lookupSort(moduleName, localName)}
     }
+  }
 
   def makeTooManySortsErrorMessage(name: String, sortSet: Set[ADT.Sort]): String = {
+    "While defining module " + this.name + ": "
     "Found too many sorts named: " + name + ". Possible sorts: " + sortSet.mkString(", ")
   }
 
-  val sorts: Set[ADT.Sort] = localSorts ++ (imports flatMap {_.sorts})
+  val sorts: Set[ADT.Sort] = localSorts ++ importedSorts
 
-  def splitAtModule(name: String): (String, Option[String]) = name.split("@") match {
-    case Array(localName, moduleName) => (localName, Some(moduleName))
-    case Array(localName) => (localName, None)
+  /**
+    * "a@A" -> ("a", "A")
+    * "a" -> ("a", this.name) for the local module
+    */
+  private def splitAtModule(name: String): (String, String) = name.split("@") match {
+    case Array(localName, moduleName) => (localName, moduleName)
+    case Array(localName) => (localName, this.name)
     case _ => throw KEMException.compilerError("Sort name contains multiple @ symbols: " + name)
   }
 
@@ -115,15 +159,6 @@ class Module(val name: String,
   def Sort(name: String): ADT.Sort = SortOption(name) match {
     case Some(s) => s
     case None => throw KEMException.compilerError("Could not find sort named: " + name)
-  }
-
-  def lookupSort(name: String): Set[ADT.Sort] = splitAtModule(name) match {
-    case (localName, Some(moduleName)) => lookupSort(moduleName, localName)
-    case (localName, None) => sorts.filter({ s: ADT.Sort => s.localName == localName })
-  }
-
-  def lookupSort(moduleName: String, localName: String): Set[ADT.Sort] = {
-    sorts.filter(s => s.module.name == moduleName && s.localName == localName)
   }
 
   val localSyntaxSentences: Set[SyntaxSentence] = unresolvedLocalSyntaxSentences map {

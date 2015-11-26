@@ -16,9 +16,9 @@ class DefinitionTest {
   val IMP = Module("IMP", Set(INT), Set(
     Production(Exp, Seq[ProductionItem](NonTerminal(Int)), Att())))
 
-  @Test def createNewModuleWithSortLookups(): Unit = {
-    assertEquals(IMP.Sort("Int"), Sort(INT, "Int"))
-    assertEquals(IMP.Sort("Exp"), Sort(IMP, "Exp"))
+  @Test def simpleLookups(): Unit = {
+    assertEquals(Sort(INT, "Int"), IMP.Sort("Int"))
+    assertEquals(Sort(IMP, "Exp"), IMP.Sort("Exp"))
   }
 
   @Test def redefineSort(): Unit = {
@@ -26,7 +26,13 @@ class DefinitionTest {
       Production(Exp, Seq[ProductionItem](NonTerminal(Int)), Att()),
       SyntaxSort(Int)
     ))
-    assertEquals(IMP.Sort("Int"), Sort(INT, "Int"))
+    assertEquals(Sort(INT, "Int"), IMP.Sort("Int"))
+  }
+
+  @Test def transitiveLookup(): Unit = {
+    assertEquals(Set(Sort(INT, "Int")), INT.lookupSort("Int", "INT"))
+    assertEquals(Set(Sort(INT, "Int")), IMP.lookupSort("Int", "IMP"))
+    assertEquals(Sort(INT, "Int"), IMP.Sort("Int@IMP"))
   }
 
   @Test(expected = classOf[KEMException])
