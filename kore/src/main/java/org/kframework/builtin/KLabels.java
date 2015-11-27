@@ -18,6 +18,9 @@ public class KLabels {
 
     public static final String CELLS = "#cells";
 
+    public static final String DOTS = "#dots";
+    public static final String NO_DOTS = "#noDots";
+
     public static final String KREWRITE = "#KRewrite";
 
     public static final String GENERATED_TOP_CELL = "generatedTop";

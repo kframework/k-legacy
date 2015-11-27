@@ -7,15 +7,19 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import org.apache.commons.lang3.tuple.Pair;
+import org.kframework.attributes.Att;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.FreshOperations;
 import org.kframework.backend.java.builtins.MetaK;
+import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.indexing.RuleIndex;
 import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.strategies.TransitionCompositeStrategy;
 import org.kframework.backend.java.util.Coverage;
 import org.kframework.backend.java.util.JavaKRunState;
 import org.kframework.kompile.KompileOptions;
+import org.kframework.kore.K;
+import org.kframework.kore.KApply;
 import org.kframework.krun.api.KRunState;
 import org.kframework.utils.BitSet;
 import org.kframework.utils.errorsystem.KEMException;
@@ -27,6 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,6 +46,7 @@ public class SymbolicRewriter {
     private final JavaExecutionOptions javaOptions;
     private final TransitionCompositeStrategy strategy;
     private final Stopwatch stopwatch = Stopwatch.createUnstarted();
+    private final KOREtoBackendKIL constructor;
     private boolean transition;
     private final RuleIndex ruleIndex;
     private final KRunState.Counter counter;
@@ -53,7 +59,8 @@ public class SymbolicRewriter {
 
     @Inject
     public SymbolicRewriter(GlobalContext global, KompileOptions kompileOptions, JavaExecutionOptions javaOptions,
-                            KRunState.Counter counter) {
+                            KRunState.Counter counter, KOREtoBackendKIL constructor) {
+        this.constructor = constructor;
         this.definition = global.getDefinition();
         this.allRuleBits = BitSet.apply(definition.ruleTable.size());
         this.allRuleBits.makeOnes(definition.ruleTable.size());
@@ -156,6 +163,51 @@ public class SymbolicRewriter {
         } finally {
             RuleAuditing.clearAuditingRule();
         }
+    }
+
+    /**
+     * This method adds a #STUCK item on the top of the strategy cell of the stuck configuration and adds
+     * the resulting configuration to this.results, allowing the rewriting to continue.
+     */
+    private Optional<ConstrainedTerm> getUnstuck(ConstrainedTerm subject) {
+        Optional<K> theStrategy = ((KApply) subject.term()).klist().stream()
+                .filter(t -> t instanceof KApply && ((KApply) t).klabel().name().contains("<s>"))
+                .findFirst();
+
+        KApply topOfStrategyCell = (KApply) ((KApply) theStrategy.get()).klist().items().get(0);
+        if (topOfStrategyCell.klabel().name().equals("#sseq")) {
+            topOfStrategyCell = (KApply) topOfStrategyCell.klist().items().get(0);
+        }
+
+        boolean isStuck = topOfStrategyCell.klabel().name().equals(Att.stuck());
+
+        // if we are stuck (i.e., in this method) and the #STUCK marker is not on the top of the strategy cell,
+        // add it
+        if (theStrategy.isPresent() && !isStuck) {
+            Att emptyAtt = Att.apply();
+
+            K stuck = constructor.KApply1(constructor.KLabel(Att.stuck()), constructor.KList(), emptyAtt);
+            List<K> items = new LinkedList<K>(((KApply) theStrategy.get()).klist().items());
+            items.add(0, stuck);
+            K sContent = constructor.KApply1(constructor.KLabel("#sseq"), constructor.KList(items), emptyAtt);
+            K s = constructor.KApply1(((KApply) theStrategy.get()).klabel(), constructor.KList(sContent), emptyAtt);
+            K entireConf = constructor.KApply1(((KApply) subject.term()).klabel(),
+                    constructor.KList(((KApply) subject.term()).klist().stream().map(k ->
+                            k instanceof KApply && ((KApply) k).klabel().name().contains("<s>") ? s : k).collect(Collectors.toList())), emptyAtt);
+            return Optional.of(new ConstrainedTerm((Term) entireConf, subject.termContext()));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    private boolean strategyIsRestore(ConstrainedTerm subject) {
+//        throw new UnsupportedOperationException();
+        return false;
+    }
+
+    private boolean strategyIsSave(ConstrainedTerm subject) {
+//        throw new UnsupportedOperationException();
+        return false;
     }
 
 

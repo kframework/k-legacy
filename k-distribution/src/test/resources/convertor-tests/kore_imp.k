@@ -8,7 +8,7 @@ module IMP-CORE-SYNTAX
 
   syntax AExp  ::= Int | Id
                  | AExp "/" AExp              [left, strict]
-                 > AExp "+" AExp              [left, strict]
+                 > AExp "+" AExp              [left, strict, transition]
                  | "(" AExp ")"               [bracket]
   syntax BExp  ::= Bool
                  | AExp "<=" AExp             [seqstrict, latex({#1}\leq{#2})]
@@ -32,13 +32,26 @@ module IMP-SYNTAX
   imports IMP-CORE-SYNTAX
 endmodule
 
+module STRATEGY
+  syntax SExp ::= "heat" | "regular" | "cool"
+  syntax SExp ::= "#STUCK"
+  syntax SExp ::= SExp "~~>" SExp    [klabel(#sseq)]
+
+  rule `<s>`(`#noDots`(.KList), `#STUCK ~~> heat` => regular, `#noDots`(.KList))
+  rule `<s>`(`#noDots`(.KList), `#STUCK ~~> cool` => heat, `#noDots`(.KList))
+endmodule
+
 module IMP
   imports IMP-CORE-SYNTAX
   imports MAP
   imports INT
+  imports STRATEGY
+
   syntax KResult ::= Int | Bool
 
-  configuration <k color="green"> $PGM:Pgm:K </k> <state color="red"> .Map </state>
+  configuration <k color="green"> $PGM:Pgm:K </k>
+                <state color="red"> .Map </state>
+                <s color="red"> heat </s>
 
 // AExp
   rule <k> X:Id => I ...</k> <state>... X |-> I ...</state>
