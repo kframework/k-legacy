@@ -6,8 +6,11 @@ import org.kframework.kil.visitors.Visitor;
 import java.util.ArrayList;
 import java.util.List;
 
-/** A group within a {@code syntax priorities} declaration.
- * @see PriorityExtended */
+/**
+ * A group within a {@code syntax priorities} declaration.
+ *
+ * @see PriorityExtended
+ */
 public class PriorityBlockExtended extends ASTNode implements Interfaces.MutableList<KLabelConstant, Enum<?>> {
 
     java.util.List<KLabelConstant> productions = new ArrayList<KLabelConstant>();

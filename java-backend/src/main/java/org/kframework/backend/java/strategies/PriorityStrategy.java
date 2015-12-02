@@ -17,7 +17,6 @@ import java.util.TreeSet;
  * priority order, begginning with the highest priority class.
  *
  * @author ericmikida
- *
  */
 
 public class PriorityStrategy implements Strategy {

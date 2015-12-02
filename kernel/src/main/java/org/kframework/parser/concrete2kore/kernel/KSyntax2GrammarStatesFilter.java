@@ -55,11 +55,13 @@ public class KSyntax2GrammarStatesFilter {
         return grammar;
     }
 
-    static public <E> String mkString(Iterable<E> list, Function<E,String> stringify, String delimiter) {
+    static public <E> String mkString(Iterable<E> list, Function<E, String> stringify, String delimiter) {
         int i = 0;
         StringBuilder s = new StringBuilder();
         for (E e : list) {
-            if (i != 0) { s.append(delimiter); }
+            if (i != 0) {
+                s.append(delimiter);
+            }
             s.append(stringify.apply(e));
             i++;
         }
@@ -125,7 +127,7 @@ public class KSyntax2GrammarStatesFilter {
             }
             h.i++;
             Iterator<Production> iter = productionsRemaining.keySet().iterator();
-            while(iter.hasNext()) {
+            while (iter.hasNext()) {
                 Production prd = iter.next();
                 NextableState previous = productionsRemaining.get(prd);
                 if (prd.items().size() == h.i) {

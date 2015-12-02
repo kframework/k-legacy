@@ -4,6 +4,7 @@ package org.kframework.builtin
 import org.kframework.kore.{Constructors, K}
 
 class Labels[KK <: K](cons: Constructors[KK]) {
+
   import cons._
 
   lazy val Hole = KLabel(KLabels.HOLE)

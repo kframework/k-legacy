@@ -16,7 +16,6 @@ import com.rits.cloning.Cloner;
  * Deep cloning utility class.
  *
  * @author YilongL
- *
  */
 public class DeepCloner {
 

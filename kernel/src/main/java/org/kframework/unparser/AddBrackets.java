@@ -32,6 +32,7 @@ import static org.kframework.Collections.*;
 public class AddBrackets {
 
     private final Module m;
+
     public AddBrackets(Module m) {
         this.m = m;
     }
@@ -44,7 +45,7 @@ public class AddBrackets {
         if (t instanceof Constant) {
             return t;
         }
-        TermCons outer = (TermCons)t;
+        TermCons outer = (TermCons) t;
         List<Term> newItems = new ArrayList<>();
         for (Term t2 : outer.items()) {
             ProductionReference inner = (ProductionReference) t2;
@@ -62,7 +63,7 @@ public class AddBrackets {
     public ProductionReference addBrackets(ProductionReference inner, TermCons outer, ProductionReference leftCapture, ProductionReference rightCapture) {
         if (requiresBracketWithSimpleAlgorithm(outer, leftCapture, rightCapture, inner)) {
             int position = getPosition(inner, outer);
-            Sort outerSort = ((NonTerminal)outer.production().items().apply(position)).sort();
+            Sort outerSort = ((NonTerminal) outer.production().items().apply(position)).sort();
             Sort innerSort = inner.production().sort();
             for (Tuple2<Sort, Set<Production>> sort : iterable(m.bracketProductionsFor())) {
                 boolean isCorrectOuterSort = m.subsorts().lessThanEq(sort._1(), outerSort);
@@ -91,8 +92,8 @@ public class AddBrackets {
         EnumSet<Fixity> fixity = getFixity(inner, outer);
         EnumSet<Fixity> innerFixity = getFixity(inner);
         if (inner.production().klabel().equals(outer.production().klabel()) &&
-            inner.production().klabel().isDefined() &&
-            m.attributesFor().apply(inner.production().klabel().get()).contains(Attribute.ASSOCIATIVE_KEY))
+                inner.production().klabel().isDefined() &&
+                m.attributesFor().apply(inner.production().klabel().get()).contains(Attribute.ASSOCIATIVE_KEY))
             return false;
         if (inner instanceof Constant)
             return false;
@@ -208,7 +209,7 @@ public class AddBrackets {
 
     private EnumSet<Fixity> getFixity(ProductionReference inner, ProductionReference outer) {
         assert outer instanceof TermCons;
-        TermCons tc = (TermCons)outer;
+        TermCons tc = (TermCons) outer;
         int i;
         for (i = 0; i < tc.items().size(); i++) {
             if (tc.get(i) == inner)
@@ -217,10 +218,10 @@ public class AddBrackets {
         Production p = tc.production();
         EnumSet<Fixity> set = EnumSet.noneOf(Fixity.class);
         int position = getPosition(inner, outer);
-        if (!hasTerminalAtIdx(p, position+1)) {
+        if (!hasTerminalAtIdx(p, position + 1)) {
             set.add(Fixity.BARE_RIGHT);
         }
-        if (!hasTerminalAtIdx(p, position-1)) {
+        if (!hasTerminalAtIdx(p, position - 1)) {
             set.add(Fixity.BARE_LEFT);
         }
         return set;
@@ -236,7 +237,7 @@ public class AddBrackets {
     private int getPosition(ProductionReference inner, ProductionReference outer) {
         EnumSet<Fixity> set = EnumSet.noneOf(Fixity.class);
         assert outer instanceof TermCons;
-        TermCons tc = (TermCons)outer;
+        TermCons tc = (TermCons) outer;
         Production p = tc.production();
         for (int i = 0, j = 0; i < p.items().size(); i++) {
             if (p.items().apply(i) instanceof NonTerminal) {

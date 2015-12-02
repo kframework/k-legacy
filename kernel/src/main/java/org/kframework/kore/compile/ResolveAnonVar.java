@@ -77,6 +77,7 @@ public class ResolveAnonVar {
     }
 
     private int counter = 0;
+
     KVariable newDotVariable() {
         KVariable newLabel;
         do {

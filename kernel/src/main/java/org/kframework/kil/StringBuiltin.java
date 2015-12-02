@@ -12,16 +12,16 @@ import org.w3c.dom.Element;
 
 /**
  * Class representing a builtin string token.
- *
+ * <p>
  * Factory method {@link #of(String) StringBuiltin.of} expects a string representing the value
  * (an un-escaped string without the leading and trailing '"'). Method {@link #stringValue()
  * stringValue} returns the string value of the {@link StringBuiltin} token,
  * while method {@link #value() value} (declared in the superclass) returns the string
  * representation of the {@link StringBuiltin} token. For example,
  * the assertions in the following code are satisfied:
- *     StringBuiltin stringBuiltin = StringBuiltin.of("\"");
- *     assert stringBuiltin.stringValue().equals("\"");
- *     assert stringBuiltin.value().equals("\"\\\"\"") : stringBuiltin.value();
+ * StringBuiltin stringBuiltin = StringBuiltin.of("\"");
+ * assert stringBuiltin.stringValue().equals("\"");
+ * assert stringBuiltin.value().equals("\"\\\"\"") : stringBuiltin.value();
  */
 public class StringBuiltin extends Token {
 
@@ -70,6 +70,7 @@ public class StringBuiltin extends Token {
     /**
      * Returns a {@link StringBuiltin} representing the value of a string textually represented by
      * the given {@link String} value.
+     *
      * @param value An escaped {@link String} value with the leading and trailing '"'.
      */
     public static StringBuiltin valueOf(String value) {

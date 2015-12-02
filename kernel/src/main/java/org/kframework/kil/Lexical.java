@@ -3,7 +3,9 @@ package org.kframework.kil;
 
 import org.kframework.kil.visitors.Visitor;
 
-/** A terminal in a {@link Production}. */
+/**
+ * A terminal in a {@link Production}.
+ */
 public class Lexical extends ProductionItem {
 
     private String lexicalRule;

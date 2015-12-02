@@ -35,7 +35,7 @@ public class RuleGrammarTest {
     private RuleGrammarGenerator gen;
 
     @Before
-    public void setUp() throws  Exception{
+    public void setUp() throws Exception {
         gen = makeRuleGrammarGenerator();
     }
 
@@ -412,10 +412,10 @@ public class RuleGrammarTest {
                 "syntax A ::= f(A) [klabel(l)]\n" +
                 "endmodule";
         parseRule("l(_) => .K", def, 0,
-                KApply(KLabel("#ruleNoConditions"),KApply(KLabel("#KRewrite"),
+                KApply(KLabel("#ruleNoConditions"), KApply(KLabel("#KRewrite"),
                         KApply(KLabel("#KApply"),
-                            KToken("l",Sort("KLabel")), KToken("_",Sort("#KVariable"))),
-                KApply(KLabel("#EmptyK"))
+                                KToken("l", Sort("KLabel")), KToken("_", Sort("#KVariable"))),
+                        KApply(KLabel("#EmptyK"))
                 )));
     }
 }

@@ -4,8 +4,8 @@ import org.kframework.kore
 import collection.JavaConverters._
 
 /**
- * Scala deconstructors for inner KORE objects.
- */
+  * Scala deconstructors for inner KORE objects.
+  */
 
 object Unapply {
 

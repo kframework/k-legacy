@@ -16,7 +16,9 @@ import java.util.List;
  */
 public class Syntax extends ModuleItem implements Interfaces.MutableParent<NonTerminal, Enum<?>>,
         Interfaces.MutableList<PriorityBlock, Enum<?>> {
-    /** The sort being declared. */
+    /**
+     * The sort being declared.
+     */
     NonTerminal sort;
     java.util.List<PriorityBlock> priorityBlocks;
 

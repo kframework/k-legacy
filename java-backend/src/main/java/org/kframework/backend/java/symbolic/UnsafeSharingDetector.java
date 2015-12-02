@@ -14,7 +14,6 @@ import org.kframework.backend.java.kil.Term;
  * Used for debugging the new rewrite engine which allows mutable terms.
  *
  * @author YilongL
- *
  */
 public class UnsafeSharingDetector extends PrePostVisitor {
 

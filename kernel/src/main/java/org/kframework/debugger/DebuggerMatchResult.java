@@ -33,7 +33,7 @@ public class DebuggerMatchResult {
         return parsedRule;
     }
 
-    public List<? extends Map<? extends KVariable, ?extends K>> getSubstitutions() {
+    public List<? extends Map<? extends KVariable, ? extends K>> getSubstitutions() {
         return substitutions;
     }
 

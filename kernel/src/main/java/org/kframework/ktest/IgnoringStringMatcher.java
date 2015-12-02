@@ -17,13 +17,13 @@ public class IgnoringStringMatcher implements StringMatcher {
         String pattern1 = pattern;
         String actual1 = actual;
         if (ignoreWS) {
-            pattern1 = pattern1.replaceAll("\\r|\\s|\\n","");
-            actual1 = actual1.replaceAll("\\r|\\s|\\n","");
+            pattern1 = pattern1.replaceAll("\\r|\\s|\\n", "");
+            actual1 = actual1.replaceAll("\\r|\\s|\\n", "");
             pattern1 = pattern1.replaceAll("\u001B\\[[;\\d]*m", "");
             actual1 = actual1.replaceAll("\u001B\\[[;\\d]*m", "");
         } else {
-            pattern1 = pattern1.replaceAll("\\r","");
-            actual1 = actual1.replaceAll("\\r","");
+            pattern1 = pattern1.replaceAll("\\r", "");
+            actual1 = actual1.replaceAll("\\r", "");
         }
         if (ignoreBalancedParens) {
             pattern1 = removeAllBalanced(pattern1);

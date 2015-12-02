@@ -16,8 +16,8 @@ case class BagLabel(name: String, att: Att = Att()) extends KAssocAppLabel {
 
 case class BagMatcher(left: Bag, right: K) extends KAppMatcher with AssocMatchContents {
   override def matchContents(ksL: Seq[K], ksR: Seq[K])(implicit theory: Theory): K = {
-    val groundLeft = ksL filter { _.isGround }
-    val groundRight = ksR filter { _.isGround }
+    val groundLeft = ksL filter {_.isGround}
+    val groundRight = ksR filter {_.isGround}
 
     if ((groundLeft diff groundRight).size > 0)
       False
@@ -31,10 +31,12 @@ case class BagMatcher(left: Bag, right: K) extends KAppMatcher with AssocMatchCo
       }).flatten.toSeq: _*)
     }
   }
+
   override val klabel: MatcherLabel = BagMatcher
   override val leftKLabel: Label = left.klabel
   override val rightAtt: Att = right.att
 }
+
 object BagMatcher extends MatcherLabel {
   override def apply(k1: K, k2: K, att: Att): KProduct = BagMatcher(k1.asInstanceOf[Bag], k2)
 }

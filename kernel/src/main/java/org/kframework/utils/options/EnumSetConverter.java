@@ -7,7 +7,7 @@ import java.util.Set;
 
 import com.beust.jcommander.converters.BaseConverter;
 
-public abstract class EnumSetConverter<T extends Enum<T>, C extends BaseEnumConverter<T>> extends BaseConverter<Set<T>>{
+public abstract class EnumSetConverter<T extends Enum<T>, C extends BaseEnumConverter<T>> extends BaseConverter<Set<T>> {
 
     public EnumSetConverter(String optionName) {
         super(optionName);

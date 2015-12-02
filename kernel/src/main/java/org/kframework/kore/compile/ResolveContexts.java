@@ -75,13 +75,15 @@ public class ResolveContexts {
         K heated = new VisitKORE() {
             K heated;
             KVariable holeVar;
+
             public K process(K k) {
                 apply(k);
-                if(heated != null)
+                if (heated != null)
                     return heated;
                 else
                     return holeVar;
             }
+
             @Override
             public Void apply(KRewrite k) {
                 if (heated != null) {

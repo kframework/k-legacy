@@ -9,8 +9,6 @@ import java.util.Collections;
 import java.util.Comparator;
 
 /**
- *
- *
  * @author AndreiS
  */
 public abstract class CollectionBuiltin extends DataStructureBuiltin {
@@ -67,10 +65,10 @@ public abstract class CollectionBuiltin extends DataStructureBuiltin {
     public Collection<Term> getChildren(
             DataStructureBuiltin.ListChildren type) {
         switch (type) {
-            case ELEMENTS:
-                return elements;
-            default:
-                return super.getChildren(type);
+        case ELEMENTS:
+            return elements;
+        default:
+            return super.getChildren(type);
         }
     }
 

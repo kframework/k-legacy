@@ -37,13 +37,13 @@ public class DocumentationFilter extends LatexFilter {
     public Void visit(Rule rule, Void _void) {
         // termComment = false;
         boolean process = false;
-        for(String tag : options.experimental.documentation) {
-            if(rule.containsAttribute(tag)) {
+        for (String tag : options.experimental.documentation) {
+            if (rule.containsAttribute(tag)) {
                 process = true;
                 break;
             }
         }
-        if(process) super.visit(rule, _void);
+        if (process) super.visit(rule, _void);
         return null;
     }
 }

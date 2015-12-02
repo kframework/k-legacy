@@ -13,7 +13,7 @@ public class ColorOptions {
     @Inject
     public ColorOptions(Void v) {}
 
-    @Parameter(names="--color", description="Use colors in output. Default is on.")
+    @Parameter(names = "--color", description = "Use colors in output. Default is on.")
     private ColorSetting color;
 
     public ColorSetting color() {
@@ -35,7 +35,7 @@ public class ColorOptions {
         }
     }
 
-    @Parameter(names="--terminal-color", description="Background color of the terminal. Cells won't be colored in this color.")
+    @Parameter(names = "--terminal-color", description = "Background color of the terminal. Cells won't be colored in this color.")
     private String terminalColor = "black";
 
     public String terminalColor() {

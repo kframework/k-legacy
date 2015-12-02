@@ -50,7 +50,7 @@ class GrigoreChallange {
 
   val R = KVar("R")
 
-  val argsAreInts = And(LiftBoolToMLLabel('isInt(X)), LiftBoolToMLLabel('isInt(Y)))
+  val argsAreInts = And(LiftBoolToMLLabel('isInt (X)), LiftBoolToMLLabel('isInt (Y)))
 
   val completeModule = Module("T", Set(syntaxModule), Set(
     Rule(X ~ Y ~ R ==> (X + Y) ~ R, argsAreInts, False),
@@ -61,14 +61,16 @@ class GrigoreChallange {
 
   val rewriter = new Rewriter(completeModule, SimpleIndex, new TheoryWithFunctions(completeModule))
 
-  @Test @Ignore
+  @Test
+  @Ignore
   def shortTest {
     val res = rewriter.rewrite((5: K) ~ 5 ~ 7)
     println(res.mkString("\n"))
     println(res.size + " states.")
   }
 
-  @Test @Ignore
+  @Test
+  @Ignore
   def shortTestWithSearch {
     assertEquals(Right(0: K), rewriter.search((5: K) ~ 5 ~ 7, 0))
   }
@@ -82,14 +84,16 @@ class GrigoreChallange {
 
   val rewriterWithAnywhere = new Rewriter(completeModuleWithAnywhere, SimpleIndex, new TheoryWithFunctions(completeModuleWithAnywhere))
 
-  @Test @Ignore
+  @Test
+  @Ignore
   def shortTestWithAnywhere {
     val res = rewriterWithAnywhere.rewrite((5: K) ~ 5 ~ 7)
     println(res.mkString("\n"))
     println(res.size + " states.")
   }
 
-  @Test @Ignore
+  @Test
+  @Ignore
   def shortTestWithSearchAnywhere {
     assertEquals(Right(0: K), rewriterWithAnywhere.search((5: K) ~ 5 ~ 7, 0))
   }

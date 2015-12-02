@@ -3,8 +3,10 @@ package org.kframework.kil;
 
 import org.kframework.kil.visitors.Visitor;
 
-/** A frozen term. Contains a {@link FreezerHole}. */
-public class Freezer extends Term implements Interfaces.MutableParent<Term, Enum<?>>{
+/**
+ * A frozen term. Contains a {@link FreezerHole}.
+ */
+public class Freezer extends Term implements Interfaces.MutableParent<Term, Enum<?>> {
 
     private Term term;
 
@@ -40,18 +42,18 @@ public class Freezer extends Term implements Interfaces.MutableParent<Term, Enum
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Freezer)) return false;
-        Freezer f = (Freezer)o;
+        Freezer f = (Freezer) o;
         return term.equals(f.term);
     }
 
     @Override
     public boolean contains(Object o) {
         if (o instanceof Bracket)
-            return contains(((Bracket)o).getContent());
+            return contains(((Bracket) o).getContent());
         if (o instanceof Cast)
-            return contains(((Cast)o).getContent());
+            return contains(((Cast) o).getContent());
         if (!(o instanceof Freezer)) return false;
-        Freezer f = (Freezer)o;
+        Freezer f = (Freezer) o;
         return term.contains(f.term);
     }
 

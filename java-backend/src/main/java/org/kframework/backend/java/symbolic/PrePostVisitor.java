@@ -70,7 +70,8 @@ public class PrePostVisitor implements Visitor {
         builtinSet.accept(postVisitor);
     }
 
-    @Override public void visit(Term term) {
+    @Override
+    public void visit(Term term) {
         preVisitor.resetProceed();
         term.accept(preVisitor);
         if (!preVisitor.isProceed()) return;

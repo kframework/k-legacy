@@ -7,7 +7,7 @@ import scala.reflect.ClassTag
 
 trait Associative[With]
 
-class AssocBuilder[A, R, AssocIn <: { def iterator: Iterator[A] }: ClassTag](val builder: Builder[A, R]) extends Builder[A, R] {
+class AssocBuilder[A, R, AssocIn <: {def iterator : Iterator[A]} : ClassTag](val builder: Builder[A, R]) extends Builder[A, R] {
   def +=(elem: A): this.type = {
     val elementClass = elem.getClass()
     val collectionClass = implicitly[ClassTag[AssocIn]].runtimeClass

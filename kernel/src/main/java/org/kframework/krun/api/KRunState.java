@@ -10,13 +10,13 @@ import java.util.Optional;
 public abstract class KRunState implements Serializable, Comparable<KRunState>, KRunResult {
 
     /**
-    The pretty-printed term associated with this state, as suitable for display
-    */
+     * The pretty-printed term associated with this state, as suitable for display
+     */
     private Term result;
 
     /**
-    The raw term associated with this state, as suitable for further rewriting
-    */
+     * The raw term associated with this state, as suitable for further rewriting
+     */
     protected Term rawResult;
 
     /**

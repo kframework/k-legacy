@@ -20,7 +20,6 @@ import com.google.common.base.Stopwatch;
  * will need to refactor it later to make it general.
  *
  * @author YilongL
- *
  */
 public class Profiler {
 
@@ -31,28 +30,28 @@ public class Profiler {
         }
     };
 
-    public static final ReentrantStopwatch QUERY_RULE_INDEXING_TIMER            =   new ReentrantStopwatch("Query rule indexing");
-    public static final ReentrantStopwatch REWRITE_WITH_KOMPILED_RULES_TIMER    =   new ReentrantStopwatch("Rewrite with kompiled rules");
-    public static final ReentrantStopwatch REWRITE_WITH_UNKOMPILED_RULES_TIMER  =   new ReentrantStopwatch("Rewrite with unkompiled rules");
+    public static final ReentrantStopwatch QUERY_RULE_INDEXING_TIMER = new ReentrantStopwatch("Query rule indexing");
+    public static final ReentrantStopwatch REWRITE_WITH_KOMPILED_RULES_TIMER = new ReentrantStopwatch("Rewrite with kompiled rules");
+    public static final ReentrantStopwatch REWRITE_WITH_UNKOMPILED_RULES_TIMER = new ReentrantStopwatch("Rewrite with unkompiled rules");
 
-    public static final ReentrantStopwatch PATTERN_MATCH_TIMER              =   new ReentrantStopwatch("Pattern match");
-    public static final ReentrantStopwatch EVALUATE_SIDE_CONDITIONS_TIMER   =   new ReentrantStopwatch("Evaluate side conditions");
-    public static final ReentrantStopwatch LOCAL_REWRITE_BUILD_RHS_TIMER    =   new ReentrantStopwatch("Build right-hand sides of local rewrites");
+    public static final ReentrantStopwatch PATTERN_MATCH_TIMER = new ReentrantStopwatch("Pattern match");
+    public static final ReentrantStopwatch EVALUATE_SIDE_CONDITIONS_TIMER = new ReentrantStopwatch("Evaluate side conditions");
+    public static final ReentrantStopwatch LOCAL_REWRITE_BUILD_RHS_TIMER = new ReentrantStopwatch("Build right-hand sides of local rewrites");
 
-    public static final ReentrantStopwatch EVALUATE_LOOKUP_CHOICE_TIMER     =   new ReentrantStopwatch("Evaluate data-structure lookup & choice operations");
-    public static final ReentrantStopwatch EVALUATE_REQUIRES_TIMER          =   new ReentrantStopwatch("Evaluate requires");
+    public static final ReentrantStopwatch EVALUATE_LOOKUP_CHOICE_TIMER = new ReentrantStopwatch("Evaluate data-structure lookup & choice operations");
+    public static final ReentrantStopwatch EVALUATE_REQUIRES_TIMER = new ReentrantStopwatch("Evaluate requires");
 
-    public static final ReentrantStopwatch DEEP_CLONE_TIMER                 =   new ReentrantStopwatch("Deep clone");
+    public static final ReentrantStopwatch DEEP_CLONE_TIMER = new ReentrantStopwatch("Deep clone");
 
     private static final Map<KLabelConstant, ReentrantStopwatch> FUNCTION_PROFILING_TIMERS = new HashMap<>();
 
     public static ReentrantStopwatch getTimerForFunction(KLabelConstant klabel) {
         if (enableProfilingMode.get()) {
-            synchronized(FUNCTION_PROFILING_TIMERS) {
+            synchronized (FUNCTION_PROFILING_TIMERS) {
                 ReentrantStopwatch stopwatch = FUNCTION_PROFILING_TIMERS.get(klabel);
                 if (stopwatch == null) {
-                   stopwatch = new ReentrantStopwatch(klabel.label());
-                   FUNCTION_PROFILING_TIMERS.put(klabel, stopwatch);
+                    stopwatch = new ReentrantStopwatch(klabel.label());
+                    FUNCTION_PROFILING_TIMERS.put(klabel, stopwatch);
                 }
                 return stopwatch;
             }

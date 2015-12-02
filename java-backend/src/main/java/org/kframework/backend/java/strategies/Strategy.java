@@ -9,17 +9,16 @@ import java.util.Collection;
  * Interface definition for an evaluation strategy. Strategies that implement
  * this interface partition collections of Rule objects into equivalence
  * classes of rules and return each equivalence class in a specified order.
- *
+ * <p>
  * USAGE:
  * Strategy s = new ConcreteStrategy();
  * s.reset(someRules);
  * while (s.hasNext()) {
- *   Collection<Rule> rules = s.next();
- *   // Process the rules in this equivalence class
+ * Collection<Rule> rules = s.next();
+ * // Process the rules in this equivalence class
  * }
  *
  * @author ericmikida
- *
  */
 
 public interface Strategy {

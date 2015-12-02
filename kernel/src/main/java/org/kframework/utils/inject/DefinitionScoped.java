@@ -12,5 +12,7 @@ import java.lang.annotation.Target;
 
 import com.google.inject.ScopeAnnotation;
 
-@Target({ TYPE, METHOD }) @Retention(RUNTIME) @ScopeAnnotation
+@Target({TYPE, METHOD})
+@Retention(RUNTIME)
+@ScopeAnnotation
 public @interface DefinitionScoped {}

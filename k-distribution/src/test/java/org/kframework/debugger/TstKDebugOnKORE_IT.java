@@ -31,6 +31,7 @@ public class TstKDebugOnKORE_IT {
     private KtoKORE trans;
     private String fileName;
     private KRunOptions kRunOptions;
+
     @Before
     public void setup() throws URISyntaxException, IOException {
         fileName = "/convertor-tests/kore_imp.k";
@@ -49,6 +50,7 @@ public class TstKDebugOnKORE_IT {
         K expectedResult = trans.apply(utils.stepRewrite(parsed, Optional.ofNullable(new Integer(steps))));
         assertEquals("Normal and Debug results don't match, when both allowed to run for some random steps", expectedResult, debugResult);
     }
+
     @Test
     public void jumpBackTest() {
         /* Going Back on Debugger */
@@ -82,7 +84,7 @@ public class TstKDebugOnKORE_IT {
 
     private int getRandomSteps(int min, int max) {
         Random rand = new Random();
-        int randomNum = min + (int)(Math.random() * ((max - min) + 1));
+        int randomNum = min + (int) (Math.random() * ((max - min) + 1));
         return randomNum;
     }
 }

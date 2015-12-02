@@ -46,8 +46,7 @@ public class KLabelConstant extends KLabel {
      * Static function for creating AST term representation of KLabel constants. The function caches the KLabelConstant objects; subsequent calls with the same label return
      * the same object. As opposed to "of", does not inspect for list of productions. Should be used for builtins only.
      *
-     * @param label
-     *            string representation of the KLabel; must not be '`' escaped;
+     * @param label string representation of the KLabel; must not be '`' escaped;
      * @return AST term representation the KLabel;
      */
     public static KLabelConstant of(String label) {
@@ -57,10 +56,11 @@ public class KLabelConstant extends KLabel {
 
     /**
      * Checks whether this label corresponds to a predicate
+     *
      * @return true if the label denotes a predicate or false otherwise
      */
     public boolean isPredicate() {
-        return  label.startsWith("is");
+        return label.startsWith("is");
     }
 
     public String getLabel() {
@@ -116,8 +116,9 @@ public class KLabelConstant extends KLabel {
     /**
      * A KLabel is considered functional if either it syntactically qualifies as a predicate,
      * or if the attributes associated to its production contain
-     * @param context  the definitional context in which the labels should be considered.
-     * @return  whether this KLabel is functional or not in the given {@code context}
+     *
+     * @param context the definitional context in which the labels should be considered.
+     * @return whether this KLabel is functional or not in the given {@code context}
      */
     public boolean isFunctional(Context context) {
         if (isPredicate()) {

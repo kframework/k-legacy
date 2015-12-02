@@ -60,18 +60,27 @@ public interface BitSet<T extends BitSet<?>> extends Cloneable {
     }
 
     void or(T bitSet);
+
     void and(T bitSet);
+
     boolean intersects(T bitSet);
+
     boolean subset(T bitSet);
 
     boolean get(int i);
+
     void set(int i);
+
     void clear(int i);
+
     int nextSetBit(int i);
 
     boolean isEmpty();
+
     int cardinality();
+
     int length();
+
     int size();
 
     void clear();

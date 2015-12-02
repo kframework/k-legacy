@@ -136,7 +136,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
 
     public Term transformAndEval(org.kframework.kil.Term node) {
         if (node instanceof BackendTerm) {
-            return (Term)((BackendTerm)node).getValue();
+            return (Term) ((BackendTerm) node).getValue();
         }
         return expandAndEvaluate(termContext, kem, (Term) this.visitNode(node));
     }
@@ -159,7 +159,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.KApp node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.KApp node, Void _void) {
         if (node.getLabel() instanceof org.kframework.kil.Token) {
             if (node.getLabel() instanceof BoolBuiltin) {
                 return BoolToken.of(((BoolBuiltin) node.getLabel()).booleanValue());
@@ -189,49 +189,49 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.KItemProjection node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.KItemProjection node, Void _void) {
         return new KItemProjection(Kind.of(Sort.of(node.projectedKind())), (Term) this.visitNode(node.getTerm()));
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.KLabelConstant node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.KLabelConstant node, Void _void) {
         return KLabelConstant.of(node.getLabel(), globalContext.getDefinition());
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.KLabelInjection node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.KLabelInjection node, Void _void) {
         return new KLabelInjection((Term) this.visitNode(node.getTerm()));
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.KInjectedLabel node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.KInjectedLabel node, Void _void) {
         Term term = (Term) this.visitNode(node.getTerm());
         return new KLabelInjection(term);
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.FreezerLabel node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.FreezerLabel node, Void _void) {
         Term term = (Term) this.visitNode(node.getTerm());
         return new KLabelFreezer(term);
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.Hole node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.Hole node, Void _void) {
         return Hole.HOLE;
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.FreezerHole node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.FreezerHole node, Void _void) {
         return Hole.HOLE;
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.Token node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.Token node, Void _void) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.KSequence node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.KSequence node, Void _void) {
         List<org.kframework.kil.Term> list = new ArrayList<>();
         KILtoBackendJavaKILTransformer.flattenKSequence(list, node.getContents());
 
@@ -254,7 +254,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.KList node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.KList node, Void _void) {
         List<org.kframework.kil.Term> list = new ArrayList<>();
         KILtoBackendJavaKILTransformer.flattenKList(list, node.getContents());
 
@@ -277,7 +277,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.Cell node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.Cell node, Void _void) {
         return CellCollection.singleton(
                 CellLabel.of(node.getLabel()),
                 (Term) this.visitNode(node.getContents()),
@@ -302,7 +302,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.ListBuiltin node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.ListBuiltin node, Void _void) {
         BuiltinList.Builder builder = BuiltinList.builder(termContext.global());
         for (org.kframework.kil.Term element : node.elementsLeft()) {
             builder.addItem((Term) this.visitNode(element));
@@ -317,7 +317,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.SetBuiltin node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.SetBuiltin node, Void _void) {
         BuiltinSet.Builder builder = BuiltinSet.builder(termContext.global());
         for (org.kframework.kil.Term element : node.elements()) {
             builder.add((Term) this.visitNode(element));
@@ -329,7 +329,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.MapBuiltin node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.MapBuiltin node, Void _void) {
         BuiltinMap.Builder builder = BuiltinMap.builder(termContext.global());
         for (Map.Entry<org.kframework.kil.Term, org.kframework.kil.Term> entry :
                 node.elements().entrySet()) {
@@ -344,7 +344,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.ListUpdate node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.ListUpdate node, Void _void) {
         Variable base = (Variable) this.visitNode(node.base());
 
         return DataStructures.listRange(
@@ -355,7 +355,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.SetUpdate node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.SetUpdate node, Void _void) {
         Variable set = (Variable) this.visitNode(node.set());
 
         HashSet<Term> removeSet = new HashSet<>(node.removeEntries().size());
@@ -366,8 +366,8 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
         return DataStructures.setDifference(set, removeSet, termContext);
     }
 
-     @Override
-    public ASTNode visit(org.kframework.kil.MapUpdate node, Void _void)  {
+    @Override
+    public ASTNode visit(org.kframework.kil.MapUpdate node, Void _void) {
         Variable map = (Variable) this.visitNode(node.map());
 
         HashSet<Term> removeSet = new HashSet<>(node.removeEntries().size());
@@ -390,7 +390,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.Variable node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.Variable node, Void _void) {
         String name = node.fullName();
 
         if (node.getSort().equals(org.kframework.kil.Sort.BAG)
@@ -415,7 +415,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
             } else if (dataStructureSort.type().equals(org.kframework.kil.Sort.SET)) {
                 sort = Sort.SET;
             } else {
-                assert false: "unexpected data structure " + dataStructureSort.type();
+                assert false : "unexpected data structure " + dataStructureSort.type();
             }
 
             if (concreteCollectionSize.containsKey(node)) {
@@ -432,7 +432,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
     }
 
     @Override
-    public ASTNode visit(org.kframework.kil.Rule node, Void _void)  {
+    public ASTNode visit(org.kframework.kil.Rule node, Void _void) {
         try {
             assert node.getBody() instanceof org.kframework.kil.Rewrite;
 
@@ -546,8 +546,8 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
 
     private void transformConjunction(Collection<Term> requires, Term term) {
         if (term instanceof KItem &&
-               (((KItem) term).kLabel().toString().equals(ANDBOOL_KLABEL.getLabel()) ||
-                ((KItem) term).kLabel().toString().equals(BOOL_ANDBOOL_KLABEL.getLabel()))) {
+                (((KItem) term).kLabel().toString().equals(ANDBOOL_KLABEL.getLabel()) ||
+                        ((KItem) term).kLabel().toString().equals(BOOL_ANDBOOL_KLABEL.getLabel()))) {
             for (Term item : ((KList) ((KItem) term).kList()).getContents()) {
                 requires.add(item);
             }

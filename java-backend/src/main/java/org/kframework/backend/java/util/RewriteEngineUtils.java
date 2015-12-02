@@ -40,7 +40,7 @@ public class RewriteEngineUtils {
      * substitution and updates the substitution accordingly.
      *
      * @return the updated substitution if it satisfies the side-condition;
-     *         otherwise, {@code null}
+     * otherwise, {@code null}
      */
     public static Substitution<Variable, Term> evaluateConditions(
             Rule rule,
@@ -59,7 +59,7 @@ public class RewriteEngineUtils {
         int i = 0;
         for (Equality equality : rule.lookups().equalities()) {
             Term lookupOrChoice = equality.leftHandSide();
-            Term nonLookupOrChoice =  equality.rightHandSide();
+            Term nonLookupOrChoice = equality.rightHandSide();
             List<RHSInstruction> instructions = rule.instructionsOfLookups().get(i);
             Term evalLookupOrChoice = KAbstractRewriteMachine.construct(instructions, crntSubst, null, context, false);
 
@@ -75,8 +75,8 @@ public class RewriteEngineUtils {
 
                 if (RuleAuditing.isAuditBegun()) {
                     System.err.println("Matching failure: unable to resolve collection operation "
-                    + lookupOrChoice.substitute(crntSubst) + "; evaluated to "
-                    + evalLookupOrChoice);
+                            + lookupOrChoice.substitute(crntSubst) + "; evaluated to "
+                            + evalLookupOrChoice);
                 }
             } else {
                 if (nonLookupOrChoice instanceof Variable) {
@@ -86,7 +86,7 @@ public class RewriteEngineUtils {
                         resolved = newSubst != null;
                         if (!resolved && RuleAuditing.isAuditBegun()) {
                             System.err.println("Matching failure: " + variable + " must match both "
-                            + crntSubst.get(variable) + " and " + evalLookupOrChoice);
+                                    + crntSubst.get(variable) + " and " + evalLookupOrChoice);
                         }
                         crntSubst = newSubst;
                     }
@@ -104,8 +104,8 @@ public class RewriteEngineUtils {
                             crntSubst = crntSubst.plusAll(lookupMatcher.substitution());
                         } else if (RuleAuditing.isAuditBegun()) {
                             System.err.println("Matching failure: substitution "
-                            + lookupMatcher.substitution() + " missing variables "
-                            + Sets.difference(lookupMatcher.substitution().keySet(), nonLookupOrChoice.variableSet()));
+                                    + lookupMatcher.substitution() + " missing variables "
+                                    + Sets.difference(lookupMatcher.substitution().keySet(), nonLookupOrChoice.variableSet()));
                         }
                     }
                 }
@@ -155,8 +155,8 @@ public class RewriteEngineUtils {
      * instantiations.
      *
      * @return a list of instantiations that satisfy the side-conditions; each
-     *         of which is updated with extra bindings introduced during the
-     *         evaluation
+     * of which is updated with extra bindings introduced during the
+     * evaluation
      */
     public static List<Substitution<Variable, Term>> evaluateConditions(
             Rule rule,

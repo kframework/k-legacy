@@ -8,6 +8,7 @@ import java.util.NoSuchElementException;
  * to occur in constant time which java.util.LinkedList did not.
  * Currently only enough functionality is supported
  * to be able to handle the behavior of AbstractUnifier.
+ *
  * @param <E>
  */
 public class DoubleLinkedList<E> {

@@ -4,11 +4,16 @@ import org.junit.Test
 import org.junit.Assert._
 
 class POSetTest {
+
   case class Bar(x: Int)
 
   import POSet._
 
-  val b1 = Bar(1); val b2 = Bar(2); val b3 = Bar(3); val b4 = Bar(4); val b5 = Bar(5)
+  val b1 = Bar(1);
+  val b2 = Bar(2);
+  val b3 = Bar(3);
+  val b4 = Bar(4);
+  val b5 = Bar(5)
 
   @Test def transitiveness() {
     implicit val p = POSet(b1 -> b2, b2 -> b3, b4 -> b5)

@@ -25,21 +25,22 @@ public class CorrectCastPriorityVisitor extends SetsTransformerWithErrors<ParseF
         if (!tc.production().isSyntacticSubsort()
                 && tc.production().klabel().isDefined()
                 && (tc.production().klabel().get().name().equals("#SyntacticCast")
-                    || tc.production().klabel().get().name().startsWith("#SemanticCastTo")
-                    || tc.production().klabel().get().name().equals("#InnerCast")
-                    || tc.production().klabel().get().name().equals("#OuterCast"))) {
+                || tc.production().klabel().get().name().startsWith("#SemanticCastTo")
+                || tc.production().klabel().get().name().equals("#InnerCast")
+                || tc.production().klabel().get().name().equals("#OuterCast"))) {
             // match only on the outermost elements
-                Either<java.util.Set<ParseFailedException>, Term> rez =
-                        new PriorityVisitor2(tc).apply(tc.get(0));
-                if (rez.isLeft())
-                    return rez;
-                tc = tc.with(0, rez.right().get());
+            Either<java.util.Set<ParseFailedException>, Term> rez =
+                    new PriorityVisitor2(tc).apply(tc.get(0));
+            if (rez.isLeft())
+                return rez;
+            tc = tc.with(0, rez.right().get());
         }
         return super.apply(tc);
     }
 
     private static class PriorityVisitor2 extends SetsTransformerWithErrors<ParseFailedException> {
         private final TermCons parent;
+
         public PriorityVisitor2(TermCons parent) {
             this.parent = parent;
         }

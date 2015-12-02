@@ -71,7 +71,7 @@ public class UserSubstitutionTransformer extends PrePostTransformer {
         }
     }
 
-     private class BinderSubstitution extends LocalTransformer {
+    private class BinderSubstitution extends LocalTransformer {
 
         @Override
         public ASTNode transform(KItem kItem) {
@@ -85,7 +85,7 @@ public class UserSubstitutionTransformer extends PrePostTransformer {
             if (kLabel instanceof KLabelConstant) {
                 KLabelConstant kLabelConstant = (KLabelConstant) kLabel;
                 if (kLabelConstant.isBinder()) {  // if label is a binder rename all bound variables
-                    Multimap<Integer, Integer> binderMap =  kLabelConstant.getBinderMap();
+                    Multimap<Integer, Integer> binderMap = kLabelConstant.getBinderMap();
                     //get fresh variables for those in danger of capturing other variables
                     Table<Integer, Term, Term> freshSubstitution = getFreshSubstitution(kList, binderMap);
                     // We link positions in which the renamed variables are bound to their binding variable position
@@ -103,7 +103,7 @@ public class UserSubstitutionTransformer extends PrePostTransformer {
                         Map<Term, Term> newSubstitution = new HashMap<>(substitution);
                         if (backBinding.containsKey(idx)) { // if some variables are renamed for this position
                             for (Integer boundPosition : backBinding.get(idx)) { // for all positions which bind variables in this term
-                                for (Term variable :  kList.get(boundPosition).userVariableSet(kItem.globalContext())) {
+                                for (Term variable : kList.get(boundPosition).userVariableSet(kItem.globalContext())) {
                                     // for all variables bound at this position
                                     if (unboundedVars.contains(variable)) { // if they are potentially capturing
                                         // update the new substitution to rename this variable
@@ -121,40 +121,41 @@ public class UserSubstitutionTransformer extends PrePostTransformer {
                     }
 
                     kItem = KItem.of(kLabel, KList.concatenate(termList), kItem.globalContext(),
-                                kItem.getSource(), kItem.getLocation());
+                            kItem.getSource(), kItem.getLocation());
                     return new DoneTransforming(kItem);
                 }
             }
             return super.transform(kItem);
         }
 
-         /**
-          * Given a binder term's binderMap and lsit of direct subterms, figures out which of the variables bound by this
-          * binder are problematic w.r.t. the substitution and computes a substitution yielding fresh symbols for
-          * those variables.
-          * @param termList  the list of direct subterms of a binder
-          * @param binderMap the multimap of bound positions -> binding position of a binder {@link org.kframework.kil.Production#getBinderMap()}
-          * @return A table of (idx,var,rvar) tuples meaning tha at position idx in the list, variable var is replaced by rvar
-          */
-         private Table<Integer, Term, Term> getFreshSubstitution(KList termList, Multimap<Integer, Integer> binderMap) {
-             Table<Integer, Term, Term> freshSubstitution = HashBasedTable.create();
-             for (int keyIndex : binderMap.keySet()) {
-                 // retrieve all variables in the pattern at this position
-                 Set<Term> boundVars = termList.get(keyIndex).userVariableSet(context.global());
-                 Set<Term> capturingVars = new HashSet<>();
-                 for (Term boundVar : boundVars) {
-                     // all variables which are free in the substitution values or are bound by the substitution are problematic
-                     if (unboundedVars.contains(boundVar) || substitution.containsKey(boundVar)) {
-                         capturingVars.add(boundVar);
-                     }
-                 }
-                 for (Term boundVar : capturingVars) {
-                     Term freshBoundVar = FreshOperations.freshOfSort(boundVar.sort(), context);
-                     freshSubstitution.put(keyIndex, boundVar, freshBoundVar);
-                 }
-             }
-             return freshSubstitution;
-         }
-     }
+        /**
+         * Given a binder term's binderMap and lsit of direct subterms, figures out which of the variables bound by this
+         * binder are problematic w.r.t. the substitution and computes a substitution yielding fresh symbols for
+         * those variables.
+         *
+         * @param termList  the list of direct subterms of a binder
+         * @param binderMap the multimap of bound positions -> binding position of a binder {@link org.kframework.kil.Production#getBinderMap()}
+         * @return A table of (idx,var,rvar) tuples meaning tha at position idx in the list, variable var is replaced by rvar
+         */
+        private Table<Integer, Term, Term> getFreshSubstitution(KList termList, Multimap<Integer, Integer> binderMap) {
+            Table<Integer, Term, Term> freshSubstitution = HashBasedTable.create();
+            for (int keyIndex : binderMap.keySet()) {
+                // retrieve all variables in the pattern at this position
+                Set<Term> boundVars = termList.get(keyIndex).userVariableSet(context.global());
+                Set<Term> capturingVars = new HashSet<>();
+                for (Term boundVar : boundVars) {
+                    // all variables which are free in the substitution values or are bound by the substitution are problematic
+                    if (unboundedVars.contains(boundVar) || substitution.containsKey(boundVar)) {
+                        capturingVars.add(boundVar);
+                    }
+                }
+                for (Term boundVar : capturingVars) {
+                    Term freshBoundVar = FreshOperations.freshOfSort(boundVar.sort(), context);
+                    freshSubstitution.put(keyIndex, boundVar, freshBoundVar);
+                }
+            }
+            return freshSubstitution;
+        }
+    }
 
 }

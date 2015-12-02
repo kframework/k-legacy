@@ -96,6 +96,7 @@ public class BuiltinIOOperations {
                     termContext.global());
         }
     }
+
     public Term write(IntToken term1, StringToken term2, TermContext termContext) {
         try {
             fs.get(term1.longValue()).write(term2.byteArrayValue());
@@ -132,7 +133,7 @@ public class BuiltinIOOperations {
         String stdout = output.stdout != null ? output.stdout : "";
         String stderr = output.stderr != null ? output.stderr : "";
         return KItem.of(klabel, KList.concatenate(IntToken.of(output.exitCode),
-            StringToken.of(stdout.trim()), StringToken.of(stderr.trim())), termContext.global());
+                StringToken.of(stdout.trim()), StringToken.of(stderr.trim())), termContext.global());
     }
 
     private KItem processIOException(String errno, Term klist, TermContext termContext) {

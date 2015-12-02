@@ -14,10 +14,15 @@ trait KORETransformer[T] extends ((K) => T) with java.util.function.Function[K, 
   }
 
   def apply(k: KApply): T
+
   def apply(k: KRewrite): T
+
   def apply(k: KToken): T
+
   def apply(k: KVariable): T
+
   def apply(k: KSequence): T
+
   def apply(k: InjectedKLabel): T
 }
 

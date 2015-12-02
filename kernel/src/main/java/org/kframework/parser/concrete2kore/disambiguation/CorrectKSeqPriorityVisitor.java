@@ -23,6 +23,7 @@ import java.util.Set;
 public class CorrectKSeqPriorityVisitor extends SetsTransformerWithErrors<ParseFailedException> {
 
     private final static Set<String> exceptions;
+
     static {
         exceptions = new HashSet<>();
         exceptions.add("#ruleRequires");
@@ -60,6 +61,7 @@ public class CorrectKSeqPriorityVisitor extends SetsTransformerWithErrors<ParseF
 
     private static class PriorityVisitor2 extends SetsTransformerWithErrors<ParseFailedException> {
         private final TermCons parent;
+
         public PriorityVisitor2(TermCons parent) {
             this.parent = parent;
         }

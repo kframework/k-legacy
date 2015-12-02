@@ -42,18 +42,18 @@ import com.google.inject.Inject;
 public class Context implements Serializable {
 
     public static final Set<Key<String>> parsingTags = ImmutableSet.of(
-        Attribute.keyOf("left"),
-        Attribute.keyOf("right"),
-        Attribute.keyOf("non-assoc"));
+            Attribute.keyOf("left"),
+            Attribute.keyOf("right"),
+            Attribute.keyOf("non-assoc"));
 
     public static final Set<String> specialTerminals = ImmutableSet.of(
-        "(",
-        ")",
-        ",",
-        "[",
-        "]",
-        "{",
-        "}");
+            "(",
+            ")",
+            ",",
+            "[",
+            "]",
+            "{",
+            "}");
 
     /**
      * Represents the bijection map between conses and productions.
@@ -129,9 +129,13 @@ public class Context implements Serializable {
     }
 
     // TODO(dwightguth): remove these fields and replace with injected dependencies
-    @Deprecated @Inject public transient GlobalOptions globalOptions;
+    @Deprecated
+    @Inject
+    public transient GlobalOptions globalOptions;
     public KompileOptions kompileOptions;
-    @Deprecated @Inject(optional=true) public transient KRunOptions krunOptions;
+    @Deprecated
+    @Inject(optional = true)
+    public transient KRunOptions krunOptions;
 
     public Context() {
         initSubsorts(subsorts);
@@ -161,7 +165,7 @@ public class Context implements Serializable {
 
     public void removeProduction(Production p) {
         productions.remove(p);
-         if (p.getKLabel() != null) {
+        if (p.getKLabel() != null) {
             klabels.remove(p.getKLabel(), p);
             tags.remove(p.getKLabel(), p);
             if (p.isListDecl()) {
@@ -228,9 +232,9 @@ public class Context implements Serializable {
 
     /**
      * Takes a List sort and returns the sort of the elements of that List sort. e.g, for List{Exp, ","}, returns Exp.
-     *
+     * <p>
      * returns null if not a List sort
-     *
+     * <p>
      * we suppress cast warnings because we know that the sort must be UserList
      */
     @SuppressWarnings("cast")
@@ -243,10 +247,9 @@ public class Context implements Serializable {
     /**
      * Finds the LUB (Least Upper Bound) of a given set of sorts.
      *
-     * @param sorts
-     *            the given set of sorts
+     * @param sorts the given set of sorts
      * @return the sort which is the LUB of the given set of sorts on success;
-     *         otherwise {@code null}
+     * otherwise {@code null}
      */
     public Sort getLUBSort(Sort... sorts) {
         return subsorts.getLUB(Sets.newHashSet(sorts));
@@ -256,10 +259,9 @@ public class Context implements Serializable {
      * Checks if there is any well-defined common subsort of a given set of
      * sorts.
      *
-     * @param sorts
-     *            the given set of sorts
+     * @param sorts the given set of sorts
      * @return {@code true} if there is at least one well-defined common
-     *         subsort; otherwise, {@code false}
+     * subsort; otherwise, {@code false}
      */
     public boolean hasCommonSubsort(Sort... sorts) {
         Set<Sort> maximalLowerBounds = subsorts.getMaximalLowerBounds(Sets.newHashSet(sorts));
@@ -326,7 +328,7 @@ public class Context implements Serializable {
     public void computeSubsortTransitiveClosure() {
         computeSubsortTransitiveClosure(subsorts);
         computeSubsortTransitiveClosure(syntacticSubsorts);
-   }
+    }
 
     private void computeSubsortTransitiveClosure(Poset<Sort> subsorts) {
         List<Sort> circuit = subsorts.checkForCycles();
@@ -372,7 +374,6 @@ public class Context implements Serializable {
      * (any term parsing as smallSort also parses as bigSort).
      * In particular, elements of a user cons list are syntactically
      * but not semantically subsorted to the list type.
-     *
      */
     public boolean isSyntacticSubsorted(Sort bigSort, Sort smallSort) {
         return syntacticSubsorts.isInRelation(bigSort, smallSort);
@@ -403,8 +404,7 @@ public class Context implements Serializable {
     /**
      * Returns a {@link Set} of productions associated with the specified KLabel
      *
-     * @param label
-     *            string representation of the KLabel
+     * @param label string representation of the KLabel
      * @return list of productions associated with the label
      */
     public Set<Production> productionsOf(String label) {

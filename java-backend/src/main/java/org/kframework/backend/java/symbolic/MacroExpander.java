@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
  * configuration.
  *
  * @author AndreiS
- *
  */
 public class MacroExpander extends CopyOnWriteTransformer {
 
@@ -74,7 +73,7 @@ public class MacroExpander extends CopyOnWriteTransformer {
             processedEnsures.add(processTerm(conditionItem));
         }
         ConjunctiveFormula processedLookups
-            = (ConjunctiveFormula) processTerm(rule.lookups());
+                = (ConjunctiveFormula) processTerm(rule.lookups());
 
         Map<CellLabel, Term> processedLhsOfReadCell = null;
         Map<CellLabel, Term> processedRhsOfWriteCell = null;
@@ -115,8 +114,7 @@ public class MacroExpander extends CopyOnWriteTransformer {
      * Private helper method that keeps expanding macros in a specified node
      * until no macro is found.
      *
-     * @param node
-     *            the specified node
+     * @param node the specified node
      * @return the expanded node
      */
     private JavaSymbolicObject expandMacro(JavaSymbolicObject node) {

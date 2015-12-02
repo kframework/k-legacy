@@ -148,157 +148,157 @@ public final class ColorUtil {
 
     private static void addSvgnamesColors(Map<String, Color> colors) {
         Object[][] svgColors = {
-            {"AliceBlue", .94, .972, 1},
-            {"AntiqueWhite", .98, .92, .844},
-            {"Aqua", 0, 1, 1},
-            {"Aquamarine", .498, 1, .83},
-            {"Azure", .94, 1, 1},
-            {"Beige", .96, .96, .864},
-            {"Bisque", 1, .894, .77},
-            {"Black", 0, 0, 0},
-            {"BlanchedAlmond", 1, .92, .804},
-            {"Blue", 0, 0, 1},
-            {"BlueViolet", .54, .17, .888},
-            {"Brown", .648, .165, .165},
-            {"BurlyWood", .87, .72, .53},
-            {"CadetBlue", .372, .62, .628},
-            {"Chartreuse", .498, 1, 0},
-            {"Chocolate", .824, .41, .116},
-            {"Coral", 1, .498, .312},
-            {"CornflowerBlue", .392, .585, .93},
-            {"Cornsilk", 1, .972, .864},
-            {"Crimson", .864, .08, .235},
-            {"Cyan", 0, 1, 1},
-            {"DarkBlue", 0, 0, .545},
-            {"DarkCyan", 0, .545, .545},
-            {"DarkGoldenrod", .72, .525, .044},
-            {"DarkGray", .664, .664, .664},
-            {"DarkGreen", 0, .392, 0},
-            {"DarkGrey", .664, .664, .664},
-            {"DarkKhaki", .74, .716, .42},
-            {"DarkMagenta", .545, 0, .545},
-            {"DarkOliveGreen", .332, .42, .185},
-            {"DarkOrange", 1, .55, 0},
-            {"DarkOrchid", .6, .196, .8},
-            {"DarkRed", .545, 0, 0},
-            {"DarkSalmon", .912, .59, .48},
-            {"DarkSeaGreen", .56, .736, .56},
-            {"DarkSlateBlue", .284, .24, .545},
-            {"DarkSlateGray", .185, .31, .31},
-            {"DarkSlateGrey", .185, .31, .31},
-            {"DarkTurquoise", 0, .808, .82},
-            {"DarkViolet", .58, 0, .828},
-            {"DeepPink", 1, .08, .576},
-            {"DeepSkyBlue", 0, .75, 1},
-            {"DimGray", .41, .41, .41},
-            {"DimGrey", .41, .41, .41},
-            {"DodgerBlue", .116, .565, 1},
-            {"FireBrick", .698, .132, .132},
-            {"FloralWhite", 1, .98, .94},
-            {"ForestGreen", .132, .545, .132},
-            {"Fuchsia", 1, 0, 1},
-            {"Gainsboro", .864, .864, .864},
-            {"GhostWhite", .972, .972, 1},
-            {"Gold", 1, .844, 0},
-            {"Goldenrod", .855, .648, .125},
-            {"Gray", .5, .5, .5},
-            {"Green", 0, .5, 0},
-            {"GreenYellow", .68, 1, .185},
-            {"Grey", .5, .5, .5},
-            {"Honeydew", .94, 1, .94},
-            {"HotPink", 1, .41, .705},
-            {"IndianRed", .804, .36, .36},
-            {"Indigo", .294, 0, .51},
-            {"Ivory", 1, 1, .94},
-            {"Khaki", .94, .9, .55},
-            {"Lavender", .9, .9, .98},
-            {"LavenderBlush", 1, .94, .96},
-            {"LawnGreen", .488, .99, 0},
-            {"LemonChiffon", 1, .98, .804},
-            {"LightBlue", .68, .848, .9},
-            {"LightCoral", .94, .5, .5},
-            {"LightCyan", .88, 1, 1},
-            {"LightGoldenrod", .933, .867, .51},
-            {"LightGoldenrodYellow", .98, .98, .824},
-            {"LightGray", .828, .828, .828},
-            {"LightGreen", .565, .932, .565},
-            {"LightGrey", .828, .828, .828},
-            {"LightPink", 1, .712, .756},
-            {"LightSalmon", 1, .628, .48},
-            {"LightSeaGreen", .125, .698, .668},
-            {"LightSkyBlue", .53, .808, .98},
-            {"LightSlateBlue", .518, .44, 1},
-            {"LightSlateGray", .468, .532, .6},
-            {"LightSlateGrey", .468, .532, .6},
-            {"LightSteelBlue", .69, .77, .87},
-            {"LightYellow", 1, 1, .88},
-            {"Lime", 0, 1, 0},
-            {"LimeGreen", .196, .804, .196},
-            {"Linen", .98, .94, .9},
-            {"Magenta", 1, 0, 1},
-            {"Maroon", .5, 0, 0},
-            {"MediumAquamarine", .4, .804, .668},
-            {"MediumBlue", 0, 0, .804},
-            {"MediumOrchid", .73, .332, .828},
-            {"MediumPurple", .576, .44, .86},
-            {"MediumSeaGreen", .235, .7, .444},
-            {"MediumSlateBlue", .484, .408, .932},
-            {"MediumSpringGreen", 0, .98, .604},
-            {"MediumTurquoise", .284, .82, .8},
-            {"MediumVioletRed", .78, .084, .52},
-            {"MidnightBlue", .098, .098, .44},
-            {"MintCream", .96, 1, .98},
-            {"MistyRose", 1, .894, .884},
-            {"Moccasin", 1, .894, .71},
-            {"NavajoWhite", 1, .87, .68},
-            {"Navy", 0, 0, .5},
-            {"NavyBlue", 0, 0, .5},
-            {"OldLace", .992, .96, .9},
-            {"Olive", .5, .5, 0},
-            {"OliveDrab", .42, .556, .136},
-            {"Orange", 1, .648, 0},
-            {"OrangeRed", 1, .27, 0},
-            {"Orchid", .855, .44, .84},
-            {"PaleGoldenrod", .932, .91, .668},
-            {"PaleGreen", .596, .985, .596},
-            {"PaleTurquoise", .688, .932, .932},
-            {"PaleVioletRed", .86, .44, .576},
-            {"PapayaWhip", 1, .936, .835},
-            {"PeachPuff", 1, .855, .725},
-            {"Peru", .804, .52, .248},
-            {"Pink", 1, .752, .796},
-            {"Plum", .868, .628, .868},
-            {"PowderBlue", .69, .88, .9},
-            {"Purple", .5, 0, .5},
-            {"Red", 1, 0, 0},
-            {"RosyBrown", .736, .56, .56},
-            {"RoyalBlue", .255, .41, .884},
-            {"SaddleBrown", .545, .27, .075},
-            {"Salmon", .98, .5, .448},
-            {"SandyBrown", .956, .644, .376},
-            {"SeaGreen", .18, .545, .34},
-            {"Seashell", 1, .96, .932},
-            {"Sienna", .628, .32, .176},
-            {"Silver", .752, .752, .752},
-            {"SkyBlue", .53, .808, .92},
-            {"SlateBlue", .415, .352, .804},
-            {"SlateGray", .44, .5, .565},
-            {"SlateGrey", .44, .5, .565},
-            {"Snow", 1, .98, .98},
-            {"SpringGreen", 0, 1, .498},
-            {"SteelBlue", .275, .51, .705},
-            {"Tan", .824, .705, .55},
-            {"Teal", 0, .5, .5},
-            {"Thistle", .848, .75, .848},
-            {"Tomato", 1, .39, .28},
-            {"Turquoise", .25, .88, .815},
-            {"Violet", .932, .51, .932},
-            {"VioletRed", .816, .125, .565},
-            {"Wheat", .96, .87, .7},
-            {"White", 1, 1, 1},
-            {"WhiteSmoke", .96, .96, .96},
-            {"Yellow", 1, 1, 0},
-            {"YellowGreen", .604, .804, .196},
+                {"AliceBlue", .94, .972, 1},
+                {"AntiqueWhite", .98, .92, .844},
+                {"Aqua", 0, 1, 1},
+                {"Aquamarine", .498, 1, .83},
+                {"Azure", .94, 1, 1},
+                {"Beige", .96, .96, .864},
+                {"Bisque", 1, .894, .77},
+                {"Black", 0, 0, 0},
+                {"BlanchedAlmond", 1, .92, .804},
+                {"Blue", 0, 0, 1},
+                {"BlueViolet", .54, .17, .888},
+                {"Brown", .648, .165, .165},
+                {"BurlyWood", .87, .72, .53},
+                {"CadetBlue", .372, .62, .628},
+                {"Chartreuse", .498, 1, 0},
+                {"Chocolate", .824, .41, .116},
+                {"Coral", 1, .498, .312},
+                {"CornflowerBlue", .392, .585, .93},
+                {"Cornsilk", 1, .972, .864},
+                {"Crimson", .864, .08, .235},
+                {"Cyan", 0, 1, 1},
+                {"DarkBlue", 0, 0, .545},
+                {"DarkCyan", 0, .545, .545},
+                {"DarkGoldenrod", .72, .525, .044},
+                {"DarkGray", .664, .664, .664},
+                {"DarkGreen", 0, .392, 0},
+                {"DarkGrey", .664, .664, .664},
+                {"DarkKhaki", .74, .716, .42},
+                {"DarkMagenta", .545, 0, .545},
+                {"DarkOliveGreen", .332, .42, .185},
+                {"DarkOrange", 1, .55, 0},
+                {"DarkOrchid", .6, .196, .8},
+                {"DarkRed", .545, 0, 0},
+                {"DarkSalmon", .912, .59, .48},
+                {"DarkSeaGreen", .56, .736, .56},
+                {"DarkSlateBlue", .284, .24, .545},
+                {"DarkSlateGray", .185, .31, .31},
+                {"DarkSlateGrey", .185, .31, .31},
+                {"DarkTurquoise", 0, .808, .82},
+                {"DarkViolet", .58, 0, .828},
+                {"DeepPink", 1, .08, .576},
+                {"DeepSkyBlue", 0, .75, 1},
+                {"DimGray", .41, .41, .41},
+                {"DimGrey", .41, .41, .41},
+                {"DodgerBlue", .116, .565, 1},
+                {"FireBrick", .698, .132, .132},
+                {"FloralWhite", 1, .98, .94},
+                {"ForestGreen", .132, .545, .132},
+                {"Fuchsia", 1, 0, 1},
+                {"Gainsboro", .864, .864, .864},
+                {"GhostWhite", .972, .972, 1},
+                {"Gold", 1, .844, 0},
+                {"Goldenrod", .855, .648, .125},
+                {"Gray", .5, .5, .5},
+                {"Green", 0, .5, 0},
+                {"GreenYellow", .68, 1, .185},
+                {"Grey", .5, .5, .5},
+                {"Honeydew", .94, 1, .94},
+                {"HotPink", 1, .41, .705},
+                {"IndianRed", .804, .36, .36},
+                {"Indigo", .294, 0, .51},
+                {"Ivory", 1, 1, .94},
+                {"Khaki", .94, .9, .55},
+                {"Lavender", .9, .9, .98},
+                {"LavenderBlush", 1, .94, .96},
+                {"LawnGreen", .488, .99, 0},
+                {"LemonChiffon", 1, .98, .804},
+                {"LightBlue", .68, .848, .9},
+                {"LightCoral", .94, .5, .5},
+                {"LightCyan", .88, 1, 1},
+                {"LightGoldenrod", .933, .867, .51},
+                {"LightGoldenrodYellow", .98, .98, .824},
+                {"LightGray", .828, .828, .828},
+                {"LightGreen", .565, .932, .565},
+                {"LightGrey", .828, .828, .828},
+                {"LightPink", 1, .712, .756},
+                {"LightSalmon", 1, .628, .48},
+                {"LightSeaGreen", .125, .698, .668},
+                {"LightSkyBlue", .53, .808, .98},
+                {"LightSlateBlue", .518, .44, 1},
+                {"LightSlateGray", .468, .532, .6},
+                {"LightSlateGrey", .468, .532, .6},
+                {"LightSteelBlue", .69, .77, .87},
+                {"LightYellow", 1, 1, .88},
+                {"Lime", 0, 1, 0},
+                {"LimeGreen", .196, .804, .196},
+                {"Linen", .98, .94, .9},
+                {"Magenta", 1, 0, 1},
+                {"Maroon", .5, 0, 0},
+                {"MediumAquamarine", .4, .804, .668},
+                {"MediumBlue", 0, 0, .804},
+                {"MediumOrchid", .73, .332, .828},
+                {"MediumPurple", .576, .44, .86},
+                {"MediumSeaGreen", .235, .7, .444},
+                {"MediumSlateBlue", .484, .408, .932},
+                {"MediumSpringGreen", 0, .98, .604},
+                {"MediumTurquoise", .284, .82, .8},
+                {"MediumVioletRed", .78, .084, .52},
+                {"MidnightBlue", .098, .098, .44},
+                {"MintCream", .96, 1, .98},
+                {"MistyRose", 1, .894, .884},
+                {"Moccasin", 1, .894, .71},
+                {"NavajoWhite", 1, .87, .68},
+                {"Navy", 0, 0, .5},
+                {"NavyBlue", 0, 0, .5},
+                {"OldLace", .992, .96, .9},
+                {"Olive", .5, .5, 0},
+                {"OliveDrab", .42, .556, .136},
+                {"Orange", 1, .648, 0},
+                {"OrangeRed", 1, .27, 0},
+                {"Orchid", .855, .44, .84},
+                {"PaleGoldenrod", .932, .91, .668},
+                {"PaleGreen", .596, .985, .596},
+                {"PaleTurquoise", .688, .932, .932},
+                {"PaleVioletRed", .86, .44, .576},
+                {"PapayaWhip", 1, .936, .835},
+                {"PeachPuff", 1, .855, .725},
+                {"Peru", .804, .52, .248},
+                {"Pink", 1, .752, .796},
+                {"Plum", .868, .628, .868},
+                {"PowderBlue", .69, .88, .9},
+                {"Purple", .5, 0, .5},
+                {"Red", 1, 0, 0},
+                {"RosyBrown", .736, .56, .56},
+                {"RoyalBlue", .255, .41, .884},
+                {"SaddleBrown", .545, .27, .075},
+                {"Salmon", .98, .5, .448},
+                {"SandyBrown", .956, .644, .376},
+                {"SeaGreen", .18, .545, .34},
+                {"Seashell", 1, .96, .932},
+                {"Sienna", .628, .32, .176},
+                {"Silver", .752, .752, .752},
+                {"SkyBlue", .53, .808, .92},
+                {"SlateBlue", .415, .352, .804},
+                {"SlateGray", .44, .5, .565},
+                {"SlateGrey", .44, .5, .565},
+                {"Snow", 1, .98, .98},
+                {"SpringGreen", 0, 1, .498},
+                {"SteelBlue", .275, .51, .705},
+                {"Tan", .824, .705, .55},
+                {"Teal", 0, .5, .5},
+                {"Thistle", .848, .75, .848},
+                {"Tomato", 1, .39, .28},
+                {"Turquoise", .25, .88, .815},
+                {"Violet", .932, .51, .932},
+                {"VioletRed", .816, .125, .565},
+                {"Wheat", .96, .87, .7},
+                {"White", 1, 1, 1},
+                {"WhiteSmoke", .96, .96, .96},
+                {"Yellow", 1, 1, 0},
+                {"YellowGreen", .604, .804, .196},
         };
         for (Object[] rawColor : svgColors) {
             colors.put((String) rawColor[0], new Color(toFloat(rawColor[1]), toFloat(rawColor[2]), toFloat(rawColor[3])));
@@ -344,19 +344,19 @@ public final class ColorUtil {
 
     private static Map<Color, String> initEightBitColors(Color terminalColor) {
         Map<Integer, Integer> coordMap = new HashMap<Integer, Integer>();
-        coordMap.put(0,0);
-        coordMap.put(1,95);
-        coordMap.put(2,135);
-        coordMap.put(3,175);
-        coordMap.put(4,215);
-        coordMap.put(5,255);
+        coordMap.put(0, 0);
+        coordMap.put(1, 95);
+        coordMap.put(2, 135);
+        coordMap.put(3, 175);
+        coordMap.put(4, 215);
+        coordMap.put(5, 255);
 
         Map<Color, String> map = new HashMap<Color, String>();
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
                 for (int k = 0; k < 6; k++) {
-                    int code = i *36 + j * 6 + k + 16;
-                    Color color = new Color(coordMap.get(i),coordMap.get(j),coordMap.get(k));
+                    int code = i * 36 + j * 6 + k + 16;
+                    Color color = new Color(coordMap.get(i), coordMap.get(j), coordMap.get(k));
                     map.put(color, getEightBitTerminalCode(code));
                 }
             }
@@ -381,15 +381,15 @@ public final class ColorUtil {
 
     public synchronized static String RgbToAnsi(String rgb, ColorSetting colorSetting, String terminalColor) {
         initColors(terminalColor); //init static maps if needed
-        switch(colorSetting) {
-            case OFF:
-                return "";
-            case ON:
-                return getClosestTerminalCode(colors.get(rgb), ansiColorsToTerminalCodes, colors.get(terminalColor));
-            case EXTENDED:
-                return getClosestTerminalCode(colors.get(rgb), eightBitColorsToTerminalCodes, colors.get(terminalColor));
-            default:
-                throw new UnsupportedOperationException("colorSettung: " + colorSetting);
+        switch (colorSetting) {
+        case OFF:
+            return "";
+        case ON:
+            return getClosestTerminalCode(colors.get(rgb), ansiColorsToTerminalCodes, colors.get(terminalColor));
+        case EXTENDED:
+            return getClosestTerminalCode(colors.get(rgb), eightBitColorsToTerminalCodes, colors.get(terminalColor));
+        default:
+            throw new UnsupportedOperationException("colorSettung: " + colorSetting);
         }
     }
 
@@ -423,14 +423,14 @@ public final class ColorUtil {
         int g = c1.getGreen() - c2.getGreen();
         int b = c1.getBlue() - c2.getBlue();
 
-        return r*r + g*g + b*b;
+        return r * r + g * g + b * b;
     }
 
     public static Color getColorByName(String colorName) {
         try {
             // Find the field and value of colorName
             Field field = Class.forName("java.awt.Color").getField(colorName);
-            return (Color)field.get(null);
+            return (Color) field.get(null);
         } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
             return null;
         }

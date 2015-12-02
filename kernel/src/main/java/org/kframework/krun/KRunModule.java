@@ -134,7 +134,8 @@ public class KRunModule extends AbstractModule {
             return res;
         }
 
-        @Provides @DefinitionScoped
+        @Provides
+        @DefinitionScoped
         Configuration configuration(BinaryLoader loader, Context context, Stopwatch sw, FileUtil files) {
             Configuration cfg = loader.loadOrDie(Configuration.class,
                     files.resolveKompiled("configuration.bin"));

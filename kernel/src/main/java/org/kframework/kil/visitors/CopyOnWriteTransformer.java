@@ -9,8 +9,8 @@ import org.kframework.kil.loader.Context;
 /**
  * A transformer useful for performing compilation steps on ASTs. When a term is modified, it is replaced in the
  * tree to avoid affecting other code with references to that AST.
- * @author dwightguth
  *
+ * @author dwightguth
  */
 public class CopyOnWriteTransformer extends AbstractTransformer<RuntimeException> {
 
@@ -26,6 +26,6 @@ public class CopyOnWriteTransformer extends AbstractTransformer<RuntimeException
     @SuppressWarnings("unchecked")
     @Override
     public <T extends ASTNode> T copy(T original) {
-        return (T)original.shallowCopy();
+        return (T) original.shallowCopy();
     }
 }

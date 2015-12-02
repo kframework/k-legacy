@@ -13,6 +13,6 @@ public class KServerOptions {
     @ParametersDelegate
     public transient GlobalOptions global = new GlobalOptions();
 
-    @Parameter(names={"--port", "-p"}, description="The port to start the server on.")
+    @Parameter(names = {"--port", "-p"}, description = "The port to start the server on.")
     public int port = 2113;
 }

@@ -11,12 +11,16 @@ public class Variable extends Term {
     private static int nextVariableIndex = 0;
 
     private String name;
-    /** True if the variable was written with an explicit type annotation */
+    /**
+     * True if the variable was written with an explicit type annotation
+     */
     private boolean userTyped = false;
     private final boolean freshVariable;
     private final boolean freshConstant;
     private boolean syntactic = false;
-    /** Used by the type inferencer  */
+    /**
+     * Used by the type inferencer
+     */
     private Sort expectedSort = null;
     public static final String GENERATED_ANON_VAR = "GeneratedAnonVar";
 
@@ -125,7 +129,7 @@ public class Variable extends Term {
         return freshConstant;
     }
 
-    public boolean isGenerated(){
+    public boolean isGenerated() {
         return name.startsWith(GENERATED_ANON_VAR);
     }
 

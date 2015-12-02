@@ -11,7 +11,9 @@ import org.kframework.kil.visitors.Visitor;
  * interpretations in the subclasses.
  */
 public class Sentence extends ModuleItem implements MutableParent<Term, Sentence.Children> {
-    /** Label from {@code rule[}label{@code ]:} syntax or "". Currently unrelated to attributes */
+    /**
+     * Label from {@code rule[}label{@code ]:} syntax or "". Currently unrelated to attributes
+     */
     String label = "";
     Term body;
     Term requires = null;
@@ -94,32 +96,32 @@ public class Sentence extends ModuleItem implements MutableParent<Term, Sentence
 
     @Override
     public Term getChild(Children type) {
-        switch(type) {
-            case BODY:
-                return getBody();
-            case ENSURES:
-                return getEnsures();
-            case REQUIRES:
-                return getRequires();
-            default:
-                throw new AssertionError("unreachable");
+        switch (type) {
+        case BODY:
+            return getBody();
+        case ENSURES:
+            return getEnsures();
+        case REQUIRES:
+            return getRequires();
+        default:
+            throw new AssertionError("unreachable");
         }
     }
 
     @Override
     public void setChild(Term child, Children type) {
-        switch(type) {
-            case BODY:
-                setBody(child);
-                break;
-            case ENSURES:
-                setEnsures(child);
-                break;
-            case REQUIRES:
-                setRequires(child);
-                break;
-            default:
-                throw new AssertionError("unreachable");
+        switch (type) {
+        case BODY:
+            setBody(child);
+            break;
+        case ENSURES:
+            setEnsures(child);
+            break;
+        case REQUIRES:
+            setRequires(child);
+            break;
+        default:
+            throw new AssertionError("unreachable");
         }
     }
 }

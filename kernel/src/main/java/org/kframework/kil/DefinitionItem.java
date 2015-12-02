@@ -3,7 +3,9 @@ package org.kframework.kil;
 
 public abstract class DefinitionItem extends ASTNode {
 
-    /** set iff the item was read from a file in the standard libraries */
+    /**
+     * set iff the item was read from a file in the standard libraries
+     */
     private boolean predefined;
 
     public DefinitionItem() {

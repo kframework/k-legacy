@@ -7,12 +7,14 @@ import org.junit.{Assert, Test}
 trait Foo {
   def accept(x: DoubleDispatchVisitor)
 }
+
 case class Bar(x: Int, foo: Foo) extends Foo {
   def accept(x: DoubleDispatchVisitor) {
     x.visitBar(this)
     foo.accept(x)
   }
 }
+
 object Buz extends Foo {
   def accept(x: DoubleDispatchVisitor) {
     x.visitBuz(this)
@@ -21,17 +23,23 @@ object Buz extends Foo {
 
 trait DoubleDispatchVisitor {
   def visitBar(x: Bar)
+
   def visitBuz(x: Buz.type)
 }
 
 class FooDoubleDispatchVisitor extends DoubleDispatchVisitor {
   var sumX = 0
-  def visitBar(bar: Bar) { sumX += bar.x }
+
+  def visitBar(bar: Bar) {
+    sumX += bar.x
+  }
+
   def visitBuz(x: Buz.type) {}
 }
 
 case class FooReflectionVisitor() extends AbstractVisitor {
   var sumX = 0
+
   def visit(foo: Bar) {
     sumX += foo.x
   }
@@ -59,6 +67,7 @@ class VisitorTest {
     startTime = System.nanoTime()
     class PM {
       var sumX = 0
+
       def apply(x: Foo): Unit = x match {
         case Bar(x, rest) =>
           sumX += x; apply(rest)

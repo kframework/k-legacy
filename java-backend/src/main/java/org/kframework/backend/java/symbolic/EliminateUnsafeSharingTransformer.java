@@ -14,7 +14,6 @@ import org.kframework.kil.ASTNode;
  * Eliminates unsafe sharing of mutable terms.
  *
  * @author YilongL
- *
  */
 public class EliminateUnsafeSharingTransformer extends PrePostTransformer {
 

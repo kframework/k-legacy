@@ -78,7 +78,7 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
 
     /**
      * @return {@code true} if this term has {@code Cell} inside; otherwise,
-     *         {@code false}
+     * {@code false}
      */
     public final boolean isMutable() {
         Boolean m = mutable;
@@ -112,8 +112,8 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
      */
     public Term substituteAndEvaluate(Map<Variable, ? extends Term> substitution, TermContext context) {
         return canSubstituteAndEvaluate(substitution) ?
-               (Term) this.accept(new SubstituteAndEvaluateTransformer(substitution, context)) :
-               this;
+                (Term) this.accept(new SubstituteAndEvaluateTransformer(substitution, context)) :
+                this;
     }
 
     /**
@@ -121,14 +121,12 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
      * that this method will copy the terms used for substitution whenever
      * necessary in order to avoid undesired sharing of mutable terms.
      *
-     * @param substitution
-     *            the substitution map; TODO(YilongL): this may become a
-     *            multi-map in the future when the pattern matching algorithm
-     *            allows us to record multiple equal terms binding to a variable
-     *            for the sake of maximizing term reuse
-     * @param variablesToReuse
-     *            a set of variables in the substitution whose binding terms can
-     *            be reused to build the new term
+     * @param substitution     the substitution map; TODO(YilongL): this may become a
+     *                         multi-map in the future when the pattern matching algorithm
+     *                         allows us to record multiple equal terms binding to a variable
+     *                         for the sake of maximizing term reuse
+     * @param variablesToReuse a set of variables in the substitution whose binding terms can
+     *                         be reused to build the new term
      * @param context
      * @return a new term obtained by applying substitution
      */
@@ -145,7 +143,7 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
 
     /**
      * Returns a list containing the contents of each occurrence of a cell with the given name.
-     *
+     * <p>
      * Warning: this is slow!
      * TODO(YilongL): improve performance when better indexing is available
      */
@@ -201,6 +199,7 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
 
     /**
      * (Re-)computes the hashCode of this {@code Term}.
+     *
      * @return the hash code
      */
     protected abstract int computeHash();
@@ -213,5 +212,6 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
     }
 
     public Location location() { return getLocation(); }
+
     public Source source() { return getSource(); }
 }

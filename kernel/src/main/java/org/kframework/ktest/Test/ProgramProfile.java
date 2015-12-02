@@ -8,7 +8,6 @@ import org.kframework.ktest.PgmArg;
 /**
  * A set of information used to specify the behavior for executing some subset of KRun programs.
  * For example, a profile might represent all programs, or it might represent programs individually.
- *
  */
 public class ProgramProfile {
     /**

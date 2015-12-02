@@ -40,6 +40,7 @@ public class LatexFilter extends BackendFilter {
     }
 
     private LinkedList<Boolean> wantParens = new LinkedList<Boolean>();
+
     {
         wantParens.push(Boolean.TRUE);
     }
@@ -68,8 +69,8 @@ public class LatexFilter extends BackendFilter {
         int lastEndl = result.lastIndexOf(endl);
         return  //nested LatexFilter with no new lines yet
                 (lastEndl == -1 && result.length() == indent.length())
-                //top-level or nested LatexFilter with new lines
-                || result.length() == lastEndl + endl.length() + indent.length();
+                        //top-level or nested LatexFilter with new lines
+                        || result.length() == lastEndl + endl.length() + indent.length();
     }
 
     private void decreaseIndentAndNewLineIfNeeded() {
@@ -132,8 +133,8 @@ public class LatexFilter extends BackendFilter {
     @Override
     public Void visit(NonTerminal sort, Void _void) {
         result.append("{\\nonTerminal{\\sort{" + StringUtil.latexify(sort.getName()) + "}}}");
-                terminalBefore = false;
-                return null;
+        terminalBefore = false;
+        return null;
     }
 
     @Override
@@ -145,9 +146,9 @@ public class LatexFilter extends BackendFilter {
         } else {
             result.append("\\syntaxCont");
         }
-      increaseIndent();
-      newLine();
-      result.append("{");
+        increaseIndent();
+        newLine();
+        result.append("{");
         if (!(p.getItems().get(0) instanceof UserList)
                 && patternsVisitor.getPatterns().containsKey(p)) {
             String pattern = patternsVisitor.getPatterns().get(p);
@@ -181,7 +182,7 @@ public class LatexFilter extends BackendFilter {
         if (context.isSpecialTerminal(terminal)) {
             result.append(StringUtil.latexify(terminal));
         } else {
-                  if (terminalBefore) result.append("{}");
+            if (terminalBefore) result.append("{}");
             result.append("\\terminal{" + StringUtil.latexify(terminal) + "}");
         }
         terminalBefore = true;
@@ -197,12 +198,12 @@ public class LatexFilter extends BackendFilter {
         return null;
     }
 
-        @Override
-        public Void visit(Lexical t, Void _void) {
-                result.append("Token\\{");
-                result.append(StringUtil.latexify(t.getLexicalRule()) +  "\\}");
-                return null;
-        }
+    @Override
+    public Void visit(Lexical t, Void _void) {
+        result.append("Token\\{");
+        result.append(StringUtil.latexify(t.getLexicalRule()) + "\\}");
+        return null;
+    }
 
     @Override
     public Void visit(Configuration conf, Void _void) {
@@ -214,7 +215,7 @@ public class LatexFilter extends BackendFilter {
 
     @Override
     public Void visit(Cell c, Void _void) {
-        if(!isOnNewLine()) {
+        if (!isOnNewLine()) {
             newLine();
         }
         wantParens.push(Boolean.FALSE);
@@ -473,11 +474,11 @@ public class LatexFilter extends BackendFilter {
         return null;
     }
 
-        @Override
-        public Void visit(KLabelConstant c, Void _void) {
-                result.append(StringUtil.latexify(c.getLabel()));
-                return null;
-        }
+    @Override
+    public Void visit(KLabelConstant c, Void _void) {
+        result.append(StringUtil.latexify(c.getLabel()));
+        return null;
+    }
 
     @Override
     public Void visit(Token t, Void _void) {
@@ -496,7 +497,7 @@ public class LatexFilter extends BackendFilter {
     @Override
     public Void visit(KApp app, Void _void) {
         if (app.getLabel() instanceof Token) {
-            result.append("\\constant[" + StringUtil.latexify(((Token)app.getLabel()).tokenSort().getName()) + "]{" + StringUtil.latexify(((Token)app.getLabel()).value()) + "}");
+            result.append("\\constant[" + StringUtil.latexify(((Token) app.getLabel()).tokenSort().getName()) + "]{" + StringUtil.latexify(((Token) app.getLabel()).value()) + "}");
         } else {
             this.visitNode(app.getLabel());
             result.append("(");

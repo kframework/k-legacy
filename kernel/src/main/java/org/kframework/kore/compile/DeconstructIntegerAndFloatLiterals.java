@@ -26,11 +26,11 @@ import static org.kframework.kore.KORE.*;
  * Transforms patterns in the LHS of rules which have tokens of sort Int or Float
  * into side conditions generating equality over a reconstructed value.
  * Thus,
- *
+ * <p>
  * rule 5 => .K
- *
+ * <p>
  * becomes
- *
+ * <p>
  * rule I:Int => .K when I ==K 5
  */
 public class DeconstructIntegerAndFloatLiterals {
@@ -96,6 +96,7 @@ public class DeconstructIntegerAndFloatLiterals {
     }
 
     private int counter = 0;
+
     KVariable newDotVariable(Sort sort) {
         KVariable newLabel;
         do {

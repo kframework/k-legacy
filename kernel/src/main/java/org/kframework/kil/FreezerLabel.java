@@ -11,6 +11,7 @@ import org.kframework.kil.visitors.Visitor;
  * Date: 2/5/13
  * Time: 5:58 PM
  */
+
 /**
  * Represents a term of sort KLabel made by injecting a Freezer
  * Corresponds to operator and #freezer_ in source.

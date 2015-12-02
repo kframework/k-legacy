@@ -28,12 +28,15 @@ public class CommonModule extends AbstractModule {
         bind(SimpleScope.class).annotatedWith(Names.named("requestScope")).toInstance(requestScope);
         bind(DefinitionScope.class).toInstance(definitionScope);
         bind(File.class).annotatedWith(WorkingDir.class)
-            .toProvider(SimpleScope.seededKeyProvider()).in(RequestScoped.class);;
+                .toProvider(SimpleScope.seededKeyProvider()).in(RequestScoped.class);
+        ;
         bind(new TypeLiteral<Map<String, String>>() {}).annotatedWith(Environment.class)
-            .toProvider(SimpleScope.seededKeyProvider()).in(RequestScoped.class);
+                .toProvider(SimpleScope.seededKeyProvider()).in(RequestScoped.class);
     }
 
-    @Provides @TempDir @RequestScoped
+    @Provides
+    @TempDir
+    @RequestScoped
     File tempDir(@WorkingDir File workingDir, Tool tool) {
         return new File(workingDir, FileUtil.generateUniqueFolderName("." + tool.name().toLowerCase()));
     }

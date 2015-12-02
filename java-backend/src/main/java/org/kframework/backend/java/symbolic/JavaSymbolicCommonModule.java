@@ -37,7 +37,7 @@ public class JavaSymbolicCommonModule extends AbstractModule {
 
         MapBinder<String, String> builtinMethods = MapBinder.newMapBinder(binder(),
                 String.class, String.class, Builtins.class);
-        for (Object o: properties.keySet()) {
+        for (Object o : properties.keySet()) {
             String key = (String) o;
             builtinMethods.addBinding(key).toInstance(properties.getProperty(key));
         }
@@ -47,7 +47,8 @@ public class JavaSymbolicCommonModule extends AbstractModule {
      * Anything you inject via the injector should be unit tested to avoid failure at runtime. That means
      * ensuring that all dependencies declared in hooks.properties are satisfied.
      */
-    @Provides @Builtins
+    @Provides
+    @Builtins
     Map<String, Provider<MethodHandle>> getBuiltinTable(@Builtins Map<String, String> hookDeclarations, Injector injector, KExceptionManager kem) {
         Map<String, Provider<MethodHandle>> result = new HashMap<>();
         MethodHandles.Lookup lookup = MethodHandles.lookup();

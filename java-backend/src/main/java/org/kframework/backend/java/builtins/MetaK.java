@@ -29,15 +29,12 @@ public class MetaK {
     /**
      * Checks if two given {@link Term}s can be unified.
      *
-     * @param term1
-     *            the first term
-     * @param term2
-     *            the second term
-     * @param context
-     *            the term context
+     * @param term1   the first term
+     * @param term2   the second term
+     * @param context the term context
      * @return {@link BoolToken#TRUE} if the two terms can be unified;
-     *         {@link BoolToken#FALSE} if they cannot be unified; otherwise,
-     *         {@code null}
+     * {@link BoolToken#FALSE} if they cannot be unified; otherwise,
+     * {@code null}
      */
     public static BoolToken unifiable(Term term1, Term term2, TermContext context) {
         ConjunctiveFormula constraint = ConjunctiveFormula.of(context.global())
@@ -64,14 +61,11 @@ public class MetaK {
     /**
      * Checks if the subject term matches the pattern.
      *
-     * @param subject
-     *            the subject term
-     * @param pattern
-     *            the pattern term
-     * @param context
-     *            the term context
+     * @param subject the subject term
+     * @param pattern the pattern term
+     * @param context the term context
      * @return {@link BoolToken#TRUE} if the two terms can be matched;
-     *         otherwise, {@link BoolToken#FALSE}
+     * otherwise, {@link BoolToken#FALSE}
      */
     public static BoolToken matchable(Term subject, Term pattern, TermContext context) {
         return PatternMatcher.matchable(subject, pattern, context) ? BoolToken.TRUE
@@ -82,16 +76,12 @@ public class MetaK {
      * Renames {@link MetaVariable}s of a given {@link Term} to fresh {@link Variable}s if they appear also in
      * a given {@link BuiltinSet} of {@link MetaVariable}s.
      *
-     *
-     * @param term
-     *            the given term
-     * @param builtinSet
-     *            the given set of meta variables
-     * @param context
-     *            the term context
+     * @param term       the given term
+     * @param builtinSet the given set of meta variables
+     * @param context    the term context
      * @return the resulting term if the renaming succeeds; or the original term
-     *         if the given {@code BuiltinSet} has a frame or contains not only
-     *         {@code MetaVariable}s
+     * if the given {@code BuiltinSet} has a frame or contains not only
+     * {@code MetaVariable}s
      */
     public static Term rename(Term term, BuiltinSet builtinSet, TermContext context) {
         if (builtinSet.hasFrame() /* || !builtinSet.operations().isEmpty() */) {
@@ -120,10 +110,8 @@ public class MetaK {
     /**
      * Renames all {@link Variable}s inside a given {@link Term} to unique fresh names.
      *
-     * @param term
-     *            the given term
-     * @param context
-     *            the term context
+     * @param term    the given term
+     * @param context the term context
      * @return the resulting term after renaming
      */
     public static Term renameVariables(Term term, TermContext context) {
@@ -177,16 +165,14 @@ public class MetaK {
     /**
      * Returns the K label of a specified {@link KItem}.
      *
-     * @param kItem
-     *            the specified {@code KItem}
-     * @param context
-     *            the term context
+     * @param kItem   the specified {@code KItem}
+     * @param context the term context
      * @return the K label
      */
     public static KItem getKLabel(KItem kItem, TermContext context) {
         // TODO(AndreiS): handle KLabel variables
         return KItem.of(new KLabelInjection(kItem.kLabel()), KList.EMPTY, context.global(),
-            kItem.getSource(), kItem.getLocation());
+                kItem.getSource(), kItem.getLocation());
     }
 
     public static Term configuration(TermContext context) {

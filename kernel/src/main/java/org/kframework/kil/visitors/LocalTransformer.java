@@ -10,8 +10,8 @@ import org.kframework.utils.errorsystem.ParseFailedException;
 /**
  * A {@link AbstractTransformer} which doesn't visit its children. See also
  * {@link org.kframework.backend.java.symbolic.LocalTransformer}.
- * @author dwightguth
  *
+ * @author dwightguth
  */
 public class LocalTransformer extends AbstractTransformer<ParseFailedException> {
 

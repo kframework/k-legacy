@@ -63,6 +63,7 @@ public class ApplyTypeCheckVisitor extends SetsTransformerWithErrors<ParseFailed
     private class ApplyTypeCheck2 extends SetsTransformerWithErrors<ParseFailedException> {
         private final Sort sort;
         private final boolean strict;
+
         public ApplyTypeCheck2(Sort sort) {
             this.sort = sort;
             strict = false;

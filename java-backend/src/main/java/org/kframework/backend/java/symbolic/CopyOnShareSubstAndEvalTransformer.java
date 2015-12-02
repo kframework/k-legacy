@@ -14,7 +14,6 @@ import com.google.common.collect.Sets;
  * avoiding any undesired sharing between mutable terms.
  *
  * @author YilongL
- *
  */
 public class CopyOnShareSubstAndEvalTransformer extends SubstituteAndEvaluateTransformer {
 

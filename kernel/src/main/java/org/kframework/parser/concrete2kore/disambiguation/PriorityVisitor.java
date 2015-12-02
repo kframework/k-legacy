@@ -26,6 +26,7 @@ public class PriorityVisitor extends SetsTransformerWithErrors<ParseFailedExcept
     private final POSet<Tag> priorities;
     private final Set<Tuple2<Tag, Tag>> leftAssoc;
     private final Set<Tuple2<Tag, Tag>> rightAssoc;
+
     public PriorityVisitor(POSet<Tag> priorities, Set<Tuple2<Tag, Tag>> leftAssoc, Set<Tuple2<Tag, Tag>> rightAssoc) {
         super();
         this.priorities = priorities;
@@ -62,7 +63,10 @@ public class PriorityVisitor extends SetsTransformerWithErrors<ParseFailedExcept
          * Specifies whether the current node is the left most or the right most child of the parent.
          * This is useful because associativity can be checked at the same time with priorities.
          */
-        public static enum Side {LEFT, RIGHT}
+        public static enum Side {
+            LEFT, RIGHT
+        }
+
         private final TermCons parent;
         private final Side side;
         private final POSet<Tag> priorities;

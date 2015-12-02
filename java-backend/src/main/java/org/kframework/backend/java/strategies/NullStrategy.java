@@ -11,7 +11,6 @@ import org.kframework.backend.java.kil.Rule;
  * reset().
  *
  * @author ericmikida
- *
  */
 
 public class NullStrategy implements Strategy {

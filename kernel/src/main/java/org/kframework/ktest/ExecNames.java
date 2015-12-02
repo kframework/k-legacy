@@ -11,7 +11,7 @@ public class ExecNames {
     //
     // This code directly copied from old ktest.
 
-       public static final String FILE_SEPARATOR = System.getProperty("file.separator");
+    public static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
     public static String getKompile() {
         return getExecutable("kompile");

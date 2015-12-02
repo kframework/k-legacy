@@ -16,7 +16,7 @@ public class TermCons extends ProductionReference implements Interfaces.MutableL
      * Since TermCons refers to a production instance rather than a unique identifier,
      * replacing a production with a different production in the definition is not
      * intrinsically safe.
-     *
+     * <p>
      * TODO(dwightguth): make TermCons used only in the parser where productions should not
      * change.
      */
@@ -51,7 +51,7 @@ public class TermCons extends ProductionReference implements Interfaces.MutableL
                     str += "'_" + separator + "_(";
                     for (Term t : contents)
                         str += t + ", ";
-                    str = str.substring(0, str.length()-2) + ")";
+                    str = str.substring(0, str.length() - 2) + ")";
                 }
             } else
                 for (int i = 0, j = 0; i < production.items.size(); i++) {

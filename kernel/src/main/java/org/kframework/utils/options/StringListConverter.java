@@ -14,8 +14,8 @@ import com.beust.jcommander.IStringConverter;
  * passing a set of krun options as parameter to a special krun option.
  * We can't use variable arity because then --simulation --directory foo
  * would be interpreted as two options instead of one with two words.
- * @author dwightguth
  *
+ * @author dwightguth
  */
 public class StringListConverter implements IStringConverter<List<String>> {
 

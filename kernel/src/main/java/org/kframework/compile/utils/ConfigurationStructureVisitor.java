@@ -11,6 +11,7 @@ import java.util.Stack;
 
 /**
  * Visitor populating the configurationStructureMap of a given Context object.
+ *
  * @see ConfigurationStructureMap for additional info about this structure.
  */
 public class ConfigurationStructureVisitor extends BasicVisitor {
@@ -46,7 +47,7 @@ public class ConfigurationStructureVisitor extends BasicVisitor {
         cfg.ancestorIds = Sets.newHashSet();
         if (!ancestors.empty()) {
             ConfigurationStructure parent = ancestors.peek();
-            cfg.level = parent.level+1;
+            cfg.level = parent.level + 1;
             cfg.parent = parent;
             if (cfg.level > maxLevel) maxLevel = cfg.level;
             parent.sons.put(cfg.id, cfg);

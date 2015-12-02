@@ -29,7 +29,7 @@ class TheoryWithFunctions(val module: Module) extends Theory {
       case _ => true
     })), "CreateModuleForFunctions").apply(module)
 
-//  println(moduleWithOnlyFunctions.allImports.mkString("\n\n"))
+  //  println(moduleWithOnlyFunctions.allImports.mkString("\n\n"))
 
   val rewriterForFunctions = new Rewriter(moduleWithOnlyFunctions, SimpleIndex, FreeTheory(moduleWithOnlyFunctions))
 

@@ -53,12 +53,12 @@ public class UseSMT implements Serializable {
             solver.add(query);
 
 
-            if(solver.check() == Status.SATISFIABLE){
+            if (solver.check() == Status.SATISFIABLE) {
 
                 Model model = solver.getModel();
                 FuncDecl[] consts = model.getConstDecls();
 
-                for(int i=0 ; i < consts.length; ++i){
+                for (int i = 0; i < consts.length; ++i) {
 
                     Expr resultFrg = model.getConstInterp(consts[i]);
 

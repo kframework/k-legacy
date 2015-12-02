@@ -122,8 +122,7 @@ public class PatternMatchRewriter {
      * Gets the rules that could be applied to a given term according to the
      * rule indexing mechanism.
      *
-     * @param term
-     *            the given term
+     * @param term the given term
      * @return a list of rules that could be applied
      */
     private List<Rule> getRules(Term term) {
@@ -141,7 +140,7 @@ public class PatternMatchRewriter {
      * This method is extracted to simplify the profiling script.
      * </p>
      */
-    private List<Substitution<Variable,Term>> getMatchingResults(Term subject, Rule rule, TermContext termContext) {
+    private List<Substitution<Variable, Term>> getMatchingResults(Term subject, Rule rule, TermContext termContext) {
         return PatternMatcher.match(subject, rule, termContext);
     }
 
@@ -204,7 +203,7 @@ public class PatternMatchRewriter {
 
             while (strategy.hasNext()) {
                 ArrayList<Rule> rules = new ArrayList<>(strategy.next());
-    //            System.out.println("rules.size: "+rules.size());
+                //            System.out.println("rules.size: "+rules.size());
                 for (Rule rule : rules) {
                     try {
                         if (rule == RuleAuditing.getAuditingRule()) {
@@ -317,7 +316,7 @@ public class PatternMatchRewriter {
         return false;
     }
 
-    public List<Substitution<Variable,Term>> search(
+    public List<Substitution<Variable, Term>> search(
             Term initialTerm,
             Rule pattern,
             int bound,
@@ -326,7 +325,7 @@ public class PatternMatchRewriter {
             TermContext termContext) {
         stopwatch.start();
 
-        List<Substitution<Variable,Term>> searchResults = new ArrayList<>();
+        List<Substitution<Variable, Term>> searchResults = new ArrayList<>();
         Set<Term> visited = new HashSet<>();
 
         // If depth is 0 then we are just trying to match the pattern.
@@ -342,8 +341,8 @@ public class PatternMatchRewriter {
         }
 
         // The search queues will map terms to their depth in terms of transitions.
-        Map<Term,Integer> queue = new LinkedHashMap<>();
-        Map<Term,Integer> nextQueue = new LinkedHashMap<>();
+        Map<Term, Integer> queue = new LinkedHashMap<>();
+        Map<Term, Integer> nextQueue = new LinkedHashMap<>();
 
         visited.add(initialTerm);
         queue.put(initialTerm, 0);

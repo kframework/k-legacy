@@ -47,12 +47,14 @@ import static org.kframework.kore.KORE.*;
  * Apply the priority and associativity filters.
  */
 public class VariableTypeInferenceFilter extends SetsGeneralTransformer<ParseFailedException, ParseFailedException> {
-    public enum VarType { CONTEXT, USER }
+    public enum VarType {CONTEXT, USER}
+
     private final POSet<Sort> subsorts;
     private final scala.collection.Set<Sort> sortSet;
     private final scala.collection.Map<KLabel, scala.collection.Set<Production>> productions;
     private final boolean inferSortChecks;
     private Set<ParseFailedException> warnings = Sets.newHashSet();
+
     public VariableTypeInferenceFilter(POSet<Sort> subsorts, scala.collection.Set<Sort> sortSet, scala.collection.Map<
             KLabel, scala.collection.Set<Production>> productions, boolean inferSortChecks) {
         this.subsorts = subsorts;
@@ -61,12 +63,13 @@ public class VariableTypeInferenceFilter extends SetsGeneralTransformer<ParseFai
         this.inferSortChecks = inferSortChecks;
     }
 
-    /** Return the set of all known sorts which are a lower bound on
+    /**
+     * Return the set of all known sorts which are a lower bound on
      * all sorts in {@code bounds}, leaving out internal sorts below "KBott" or above "K".
      */
     private Set<Sort> lowerBounds(Collection<Sort> bounds) {
         Set<Sort> mins = new HashSet<>();
-        nextsort:
+    nextsort:
         for (Sort sort : iterable(sortSet)) { // for every declared sort
             // Sorts at or below KBott, or above K, are assumed to be
             // sorts from kast.k representing meta-syntax that is not a real sort.
@@ -118,6 +121,7 @@ public class VariableTypeInferenceFilter extends SetsGeneralTransformer<ParseFai
 
     static final class VarKey {
         private final Constant var;
+
         private VarKey(Constant c) {
             var = c;
         }
@@ -127,7 +131,7 @@ public class VariableTypeInferenceFilter extends SetsGeneralTransformer<ParseFai
             if (this == o) return true;
             if (!(o instanceof VarKey)) return false;
 
-            VarKey vo = (VarKey)o;
+            VarKey vo = (VarKey) o;
             return var.equals(vo.var) && var.source().equals(vo.var.source()) && var.location().equals(vo.var.location());
         }
 
@@ -139,9 +143,9 @@ public class VariableTypeInferenceFilter extends SetsGeneralTransformer<ParseFai
         @Override
         public String toString() {
             if (var.location().isPresent()) {
-                return '\''+var.value()+"' at "+var.location().get();
+                return '\'' + var.value() + "' at " + var.location().get();
             } else {
-                return '\''+var.value()+'\'';
+                return '\'' + var.value() + '\'';
             }
         }
 
@@ -162,7 +166,7 @@ public class VariableTypeInferenceFilter extends SetsGeneralTransformer<ParseFai
     public Tuple2<Either<java.util.Set<ParseFailedException>, Term>, java.util.Set<ParseFailedException>> apply(Term t) {
         Term loc = t;
         if (loc instanceof Ambiguity) {
-            loc = ((Ambiguity)loc).items().iterator().next();
+            loc = ((Ambiguity) loc).items().iterator().next();
         }
 
         Set<VarInfo> vis = new CollectVariables().apply(t)._2();
@@ -249,7 +253,7 @@ public class VariableTypeInferenceFilter extends SetsGeneralTransformer<ParseFai
                 }
 
                 // Now check that each variable has a unique maximal possible sort.
-                Multimap<VarKey,Sort> varBounds;
+                Multimap<VarKey, Sort> varBounds;
                 if (solutions.size() > 1) {
                     varBounds = HashMultimap.create();
                     for (Multimap<VarKey, Sort> solution : solutions) {
@@ -258,7 +262,7 @@ public class VariableTypeInferenceFilter extends SetsGeneralTransformer<ParseFai
                 } else {
                     varBounds = solutions.iterator().next();
                 }
-                Multimap<VarKey,Sort> solution = HashMultimap.create();
+                Multimap<VarKey, Sort> solution = HashMultimap.create();
                 for (VarKey k : varBounds.keySet()) {
                     Set<Sort> sorts = subsorts.maximal(varBounds.get(k));
                     if (sorts.size() > 1) {
@@ -275,7 +279,7 @@ public class VariableTypeInferenceFilter extends SetsGeneralTransformer<ParseFai
 
                 if (!solutions.contains(solution)) {
                     List<Set<VarKey>> badVars = new ArrayList<>(solutions.size());
-                    for (Multimap<VarKey,Sort> badSolution : solutions) {
+                    for (Multimap<VarKey, Sort> badSolution : solutions) {
                         HashSet<VarKey> myBadVars = new HashSet<>();
                         for (VarKey k : badSolution.keySet()) {
                             if (!badSolution.get(k).equals(solution.get(k))) {
@@ -286,9 +290,9 @@ public class VariableTypeInferenceFilter extends SetsGeneralTransformer<ParseFai
                     }
                     Set<VarKey> reportVars = hittingSet(solution.keySet(), badVars);
                     String msg = "Could not infer unique sorts. Each variable has a unique greatest possible sort,"
-                            +" but these cannot all be assigned simultaneously: ";
+                            + " but these cannot all be assigned simultaneously: ";
                     for (VarKey v : solution.keySet()) {
-                        msg+= v+" : "+solution.get(v).iterator().next()+", ";
+                        msg += v + " : " + solution.get(v).iterator().next() + ", ";
                     }
                     msg = msg.substring(0, msg.length() - 2);
                     KException kex = new KException(ExceptionType.ERROR, KExceptionGroup.CRITICAL, msg, loc.source().get(), loc.location().get());
@@ -376,7 +380,7 @@ public class VariableTypeInferenceFilter extends SetsGeneralTransformer<ParseFai
         case "#OuterCast":
             return tc.production().sort();
         case "#InnerCast":
-            return ((NonTerminal)tc.production().items().apply(0)).sort();
+            return ((NonTerminal) tc.production().items().apply(0)).sort();
         default:
             if (tc.production().klabel().get().name().startsWith("#SemanticCastTo")) {
                 return tc.production().sort();
@@ -412,6 +416,7 @@ public class VariableTypeInferenceFilter extends SetsGeneralTransformer<ParseFai
         private class CollectVariables2 extends SetsGeneralTransformer<ParseFailedException, VarInfo> {
             private final Sort sort;
             private final VarType varType;
+
             public CollectVariables2(Sort sort, VarType varType) {
                 this.sort = sort;
                 this.varType = varType;
@@ -420,8 +425,8 @@ public class VariableTypeInferenceFilter extends SetsGeneralTransformer<ParseFai
             public Tuple2<Either<java.util.Set<ParseFailedException>, Term>, java.util.Set<VarInfo>> apply(TermCons tc) {
                 if (tc.production().att().contains("bracket")
                         || (tc.production().klabel().isDefined()
-                            && tc.production().klabel().get().equals(KLabel("#KRewrite")))) {
-                   return super.apply(tc);
+                        && tc.production().klabel().get().equals(KLabel("#KRewrite")))) {
+                    return super.apply(tc);
                 }
                 return simpleResult(tc);
             }
@@ -437,6 +442,7 @@ public class VariableTypeInferenceFilter extends SetsGeneralTransformer<ParseFai
 
     private class ApplyTypeCheck extends SetsTransformerWithErrors<ParseFailedException> {
         private final Map<VarKey, Sort> decl;
+
         public ApplyTypeCheck(Map<VarKey, Sort> decl) {
             this.decl = decl;
         }
@@ -583,6 +589,7 @@ public class VariableTypeInferenceFilter extends SetsGeneralTransformer<ParseFai
 
         private class CollectUndeclaredVariables2 extends SafeTransformer {
             private final Sort sort;
+
             public CollectUndeclaredVariables2(Sort sort) {
                 this.sort = sort;
             }

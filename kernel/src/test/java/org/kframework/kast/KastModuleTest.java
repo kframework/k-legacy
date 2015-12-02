@@ -17,7 +17,7 @@ public class KastModuleTest extends BaseTestCase {
 
     @Test
     public void testCreateInjection() {
-        String[] argv = new String[] { "foo.c" };
+        String[] argv = new String[]{"foo.c"};
         List<Module> modules = KastFrontEnd.getModules();
         Injector injector = Guice.createInjector(Modules.override(modules).with(new TestModule(), new DefinitionSpecificTestModule()));
         prepInjector(injector, "-kast", argv);

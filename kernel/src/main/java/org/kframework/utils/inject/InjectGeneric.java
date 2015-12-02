@@ -15,8 +15,10 @@ import com.google.inject.BindingAnnotation;
  * of a generic interface for all possible type parameters.
  * In order for this to work, it is necessary to use a TypeListener
  * and a MembersInjector directly.
- * @author dwightguth
  *
+ * @author dwightguth
  */
-@BindingAnnotation @Target({ FIELD, METHOD }) @Retention(RUNTIME)
+@BindingAnnotation
+@Target({FIELD, METHOD})
+@Retention(RUNTIME)
 public @interface InjectGeneric {}

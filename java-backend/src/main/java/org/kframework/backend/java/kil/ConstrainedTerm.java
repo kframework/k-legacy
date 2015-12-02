@@ -33,11 +33,13 @@ public class ConstrainedTerm extends JavaSymbolicObject {
     public static class Data {
         public final Term term;
         public final ConjunctiveFormula constraint;
+
         public Data(Term term, ConjunctiveFormula constraint) {
             super();
             this.term = term;
             this.constraint = constraint;
         }
+
         @Override
         public int hashCode() {
             final int prime = 31;
@@ -46,6 +48,7 @@ public class ConstrainedTerm extends JavaSymbolicObject {
             result = prime * result + ((term == null) ? 0 : term.hashCode());
             return result;
         }
+
         @Override
         public boolean equals(Object obj) {
             if (this == obj)
@@ -167,8 +170,7 @@ public class ConstrainedTerm extends JavaSymbolicObject {
     /**
      * Unifies this constrained term with another constrained term.
      *
-     * @param constrainedTerm
-     *            another constrained term
+     * @param constrainedTerm another constrained term
      * @return solutions to the unification problem
      */
     public List<Pair<ConjunctiveFormula, Boolean>> unify(

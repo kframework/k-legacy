@@ -71,31 +71,31 @@ public class GenerateSentencesFromConfigDeclTest {
         Att initializerAtts = Att().add("initializer");
         Att productionAtts = initializerAtts.add("function");
         Set<Sentence> reference = Set(Production("<threads>", Sort("ThreadsCell"),
-                        Seq(Terminal("<threads>"), NonTerminal(Sort("ThreadCellBag")), Terminal("</threads>")),
-                        Att().add("cell").add("topcell")),
+                Seq(Terminal("<threads>"), NonTerminal(Sort("ThreadCellBag")), Terminal("</threads>")),
+                Att().add("cell").add("topcell")),
                 SyntaxSort(Sort("ThreadCellBag"), Att().add("hook", "BAG.Bag")),
                 Production("_ThreadCellBag_", Sort("ThreadCellBag"),
                         Seq(NonTerminal(Sort("ThreadCellBag")), NonTerminal(Sort("ThreadCellBag"))),
-                        Att().add("assoc","").add("comm","").add("unit",".ThreadCellBag")
-                                .add("element","ThreadCellBagItem").add("wrapElement","<thread>")
-                                .add("function").add("hook","BAG.concat")),
+                        Att().add("assoc", "").add("comm", "").add("unit", ".ThreadCellBag")
+                                .add("element", "ThreadCellBagItem").add("wrapElement", "<thread>")
+                                .add("function").add("hook", "BAG.concat")),
                 Production(".ThreadCellBag", Sort("ThreadCellBag"),
                         Seq(Terminal(".ThreadCellBag")),
-                        Att().add("function").add("hook","BAG.unit")),
+                        Att().add("function").add("hook", "BAG.unit")),
                 Production(Sort("ThreadCellBag"),
                         Seq(NonTerminal(Sort("ThreadCell")))),
                 Production("ThreadCellBagItem", Sort("ThreadCellBag"),
                         Seq(Terminal("ThreadCellBagItem"), Terminal("("), NonTerminal(Sort("ThreadCell")), Terminal(")")),
-                        Att().add("function").add("hook","BAG.element")),
+                        Att().add("function").add("hook", "BAG.element")),
                 Production("<thread>", Sort("ThreadCell"),
                         Seq(Terminal("<thread>"), NonTerminal(Sort("KCell")), NonTerminal(Sort("OptCell")), Terminal("</thread>")),
-                        Att().add("cell").add("multiplicity","*")),
+                        Att().add("cell").add("multiplicity", "*")),
                 Production("<k>", Sort("KCell"),
                         Seq(Terminal("<k>"), NonTerminal(Sort("K")), Terminal("</k>")),
                         Att().add("cell").add("maincell")),
                 Production("<opt>", Sort("OptCell"),
                         Seq(Terminal("<opt>"), NonTerminal(Sort("OptCellContent")), Terminal("</opt>")),
-                        Att().add("cell").add("multiplicity","?").add("unit",".OptCell")),
+                        Att().add("cell").add("multiplicity", "?").add("unit", ".OptCell")),
                 Production(".OptCell", Sort("OptCell"),
                         Seq(Terminal(".OptCell"))),
                 Production("initThreadsCell", Sort("ThreadsCell"),
@@ -111,42 +111,42 @@ public class GenerateSentencesFromConfigDeclTest {
                         Seq(Terminal("initOptCell")),
                         productionAtts),
                 Rule(KRewrite(KApply(KLabel("initThreadsCell"), KVariable("Init")),
-                                IncompleteCellUtils.make(KLabel("<threads>"), false,
-                                        KApply(KLabel("initThreadCell"), KVariable("Init")), false)),
+                        IncompleteCellUtils.make(KLabel("<threads>"), false,
+                                KApply(KLabel("initThreadCell"), KVariable("Init")), false)),
                         BooleanUtils.TRUE, BooleanUtils.FALSE, initializerAtts),
                 Rule(KRewrite(KApply(KLabel("initThreadCell"), KVariable("Init")),
-                                IncompleteCellUtils.make(KLabel("<thread>"), false,
-                                        Arrays.asList(KApply(KLabel("initKCell"), KVariable("Init")),
-                                                KApply(KLabel(KLabels.CELLS))), false)),
+                        IncompleteCellUtils.make(KLabel("<thread>"), false,
+                                Arrays.asList(KApply(KLabel("initKCell"), KVariable("Init")),
+                                        KApply(KLabel(KLabels.CELLS))), false)),
                         BooleanUtils.TRUE, BooleanUtils.TRUE, initializerAtts),
                 Rule(KRewrite(KApply(KLabel("initKCell"), KVariable("Init")),
-                                IncompleteCellUtils.make(KLabel("<k>"), false, KApply(KLabel("#SemanticCastToKItem"), KApply(KLabel("Map:lookup"),
-                                        KVariable("Init"),
-                                        KToken("$PGM", Sorts.KConfigVar()))), false)),
+                        IncompleteCellUtils.make(KLabel("<k>"), false, KApply(KLabel("#SemanticCastToKItem"), KApply(KLabel("Map:lookup"),
+                                KVariable("Init"),
+                                KToken("$PGM", Sorts.KConfigVar()))), false)),
                         BooleanUtils.TRUE, BooleanUtils.TRUE, initializerAtts),
                 Rule(KRewrite(KApply(KLabel("initOptCell")),
-                                IncompleteCellUtils.make(KLabel("<opt>"), false, KApply(KLabel(".Opt")), false)),
+                        IncompleteCellUtils.make(KLabel("<opt>"), false, KApply(KLabel(".Opt")), false)),
                         BooleanUtils.TRUE, BooleanUtils.TRUE, initializerAtts),
                 Production("<threads>-fragment", Sort("ThreadsCellFragment"),
-                        Seq(Terminal("<threads>-fragment"),NonTerminal(Sort("ThreadCellBag")),Terminal("</threads>-fragment")),
-                        Att().add(Attribute.CELL_FRAGMENT_KEY,"ThreadsCell")),
+                        Seq(Terminal("<threads>-fragment"), NonTerminal(Sort("ThreadCellBag")), Terminal("</threads>-fragment")),
+                        Att().add(Attribute.CELL_FRAGMENT_KEY, "ThreadsCell")),
                 Production("<thread>-fragment", Sort("ThreadCellFragment"),
-                        Seq(Terminal("<thread>-fragment"),NonTerminal(Sort("KCellOpt")),NonTerminal(Sort("OptCellOpt")),Terminal("</thread>-fragment")),
-                        Att().add(Attribute.CELL_FRAGMENT_KEY,"ThreadCell")),
+                        Seq(Terminal("<thread>-fragment"), NonTerminal(Sort("KCellOpt")), NonTerminal(Sort("OptCellOpt")), Terminal("</thread>-fragment")),
+                        Att().add(Attribute.CELL_FRAGMENT_KEY, "ThreadCell")),
                 Production(Sort("OptCellOpt"), Seq(NonTerminal(Sort("OptCell")))),
-                Production("noOptCell", Sort("OptCellOpt"), Seq(Terminal("noOptCell")),Att().add(Attribute.CELL_OPT_ABSENT_KEY, "OptCell")),
+                Production("noOptCell", Sort("OptCellOpt"), Seq(Terminal("noOptCell")), Att().add(Attribute.CELL_OPT_ABSENT_KEY, "OptCell")),
                 Production(Sort("KCellOpt"), Seq(NonTerminal(Sort("KCell")))),
-                Production("noKCell", Sort("KCellOpt"), Seq(Terminal("noKCell")),Att().add(Attribute.CELL_OPT_ABSENT_KEY, "KCell"))
-            );
+                Production("noKCell", Sort("KCellOpt"), Seq(Terminal("noKCell")), Att().add(Attribute.CELL_OPT_ABSENT_KEY, "KCell"))
+        );
 
         assertEquals("Produced unexpected productions", Set(), gen.$amp$tilde(reference));
         assertEquals("Missing expected productions", Set(), reference.$amp$tilde(gen));
         // Production.equals ignores attributes, but they are important here
-        nextgen:
+    nextgen:
         for (Sentence g : iterable(gen)) {
             for (Sentence r : iterable(reference)) {
                 if (g.equals(r)) {
-                    assertEquals("Production "+r+" generated with incorrect attributes", r.att(), g.att());
+                    assertEquals("Production " + r + " generated with incorrect attributes", r.att(), g.att());
                     continue nextgen;
                 }
             }

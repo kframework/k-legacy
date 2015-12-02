@@ -12,13 +12,12 @@ import java.util.Map;
  * Label of a cell.
  *
  * @author YilongL
- *
  */
 public final class CellLabel implements MaximalSharing, Serializable {
 
     private static final Map<String, CellLabel> cache = Collections.synchronizedMap(new PatriciaTrie<>());
 
-    public static final CellLabel K             =   CellLabel.of("k");
+    public static final CellLabel K = CellLabel.of("k");
 
     /**
      * {@code String} representation of this {@code CellLabel}.
@@ -29,8 +28,7 @@ public final class CellLabel implements MaximalSharing, Serializable {
      * Gets the corresponding {@code CellLabel} from its {@code String}
      * representation.
      *
-     * @param name
-     *            the name of the cell label
+     * @param name the name of the cell label
      * @return the cell label
      */
     public static CellLabel of(String name) {

@@ -3,18 +3,18 @@ package org.kframework
 import scala.annotation.tailrec
 
 /**
- * Created by dwightguth on 4/16/15.
- */
+  * Created by dwightguth on 4/16/15.
+  */
 object TopologicalSort {
   def tsort[A](edges: Traversable[(A, A)]): Iterable[A] = {
     @tailrec
     def tsort(toPreds: Map[A, Set[A]], done: Iterable[A]): Iterable[A] = {
-      val (noPreds, hasPreds) = toPreds.partition { _._2.isEmpty }
+      val (noPreds, hasPreds) = toPreds.partition {_._2.isEmpty}
       if (noPreds.isEmpty) {
         if (hasPreds.isEmpty) done else sys.error(hasPreds.toString)
       } else {
-        val found = noPreds.map { _._1 }
-        tsort(hasPreds.mapValues { _ -- found }, done ++ found)
+        val found = noPreds.map {_._1}
+        tsort(hasPreds.mapValues {_ -- found}, done ++ found)
       }
     }
 

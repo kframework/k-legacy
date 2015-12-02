@@ -6,8 +6,8 @@ package org.kframework.utils.file;
  * connected to terminals. Essentially, each boolean in this class is
  * true if and only if the corresponding stream is one for which
  * ultimately the isatty function returns true.
- * @author dwightguth
  *
+ * @author dwightguth
  */
 public class TTYInfo {
 

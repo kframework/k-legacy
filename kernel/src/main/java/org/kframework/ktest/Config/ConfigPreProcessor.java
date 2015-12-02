@@ -61,7 +61,7 @@ public class ConfigPreProcessor extends XMLFilterImpl {
 
     @Override
     public void startElement(String uri, String localName,
-            String qName, Attributes atts) throws SAXException {
+                             String qName, Attributes atts) throws SAXException {
         super.startElement(uri, localName, qName, atts);
 
         // Keep snapshot of start location,
@@ -105,7 +105,7 @@ public class ConfigPreProcessor extends XMLFilterImpl {
 
         @Override
         public void handle(short operation, String key, Object data,
-                Node src, Node dst) {
+                           Node src, Node dst) {
 
             if (src != null && dst != null) {
                 LocationData locatonData = (LocationData)

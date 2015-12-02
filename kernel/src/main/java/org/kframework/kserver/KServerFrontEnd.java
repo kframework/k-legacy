@@ -1,5 +1,6 @@
 // Copyright (c) 2015 K Team. All Rights Reserved.
 package org.kframework.kserver;
+
 import java.io.File;
 import java.io.PrintStream;
 import java.net.InetAddress;
@@ -75,7 +76,8 @@ public class KServerFrontEnd extends FrontEnd {
         while (runningPort == 0) {
             try {
                 Thread.sleep(50L);
-            } catch (InterruptedException e) {}
+            } catch (InterruptedException e) {
+            }
             runningPort = server.getPort();
         }
         System.out.println("K server started on 127.0.0.1:" + options.port);

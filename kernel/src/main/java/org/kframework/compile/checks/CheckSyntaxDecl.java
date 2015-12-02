@@ -2,6 +2,7 @@
 package org.kframework.compile.checks;
 
 import java.util.HashMap;
+
 import org.kframework.kil.Production;
 import org.kframework.kil.ProductionItem;
 import org.kframework.kil.Sentence;
@@ -18,7 +19,6 @@ import org.kframework.utils.errorsystem.KExceptionManager;
  * Check for various errors in syntax declarations. 1. You are not allowed to use empty terminals ("") in definitions. You need to have at least two sorts, or a non empty terminal.
  *
  * @author Radu
- *
  */
 public class CheckSyntaxDecl extends BasicVisitor {
 
@@ -69,7 +69,7 @@ public class CheckSyntaxDecl extends BasicVisitor {
             }
         } else if (!node.containsAttribute(Constants.FUNCTION)
                 && (node.getSort().equals(Sort.K) ||
-                    node.getSort().equals(Sort.KLIST))) {
+                node.getSort().equals(Sort.KLIST))) {
             String msg = "Extending sort K or KList is forbidden:\n\t" + node + "\n\tConsider extending KItem instead.";
             throw KExceptionManager.compilerError(msg, this, node);
         }

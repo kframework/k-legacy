@@ -3,13 +3,14 @@ package org.kframework.kore
 import org.kframework.attributes._
 
 /**
- * This file contains all inner KORE interfaces.
- * The the wiki for documentation:
- * https://github.com/kframework/k/wiki/KORE-data-structures-guide
- */
+  * This file contains all inner KORE interfaces.
+  * The the wiki for documentation:
+  * https://github.com/kframework/k/wiki/KORE-data-structures-guide
+  */
 
 trait K extends Serializable {
   def att: Att
+
   override def toString = Unparse.apply(this)
 
   lazy val cachedHashCode = computeHashCode
@@ -23,34 +24,42 @@ trait KItem extends K
 
 trait KLabel {
   def name: String
+
   override def equals(other: Any) = other match {
     case l: KLabel => name == l.name
     case _ => false
   }
+
   override def hashCode = name.hashCode
 }
 
 trait KToken extends KItem {
   def sort: Sort
+
   def s: String
+
   override def equals(other: Any) = other match {
     case other: KToken => sort == other.sort && s == other.s
     case _ => false
   }
+
   def computeHashCode = sort.hashCode() * 13 + s.hashCode
 }
 
 trait Sort {
   def name: String
+
   override def equals(other: Any) = other match {
     case other: Sort => name == other.name
     case _ => false
   }
+
   override def hashCode = name.hashCode
 }
 
 trait KCollection {
   def items: java.util.List[K]
+
   def stream: java.util.stream.Stream[K] = items.stream()
 
   override def equals(that: Any): Boolean =
@@ -69,6 +78,7 @@ trait KList extends KCollection {
 
 trait KApply extends KItem with KCollection {
   def klabel: KLabel
+
   def klist: KList
 
   override def equals(that: Any): Boolean =
@@ -92,6 +102,7 @@ trait KVariable extends KItem with KLabel {
 
 trait KRewrite extends K {
   def left: K
+
   def right: K
 
   override def equals(that: Any): Boolean =

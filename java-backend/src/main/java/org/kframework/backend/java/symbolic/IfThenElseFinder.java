@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class IfThenElseFinder extends PrePostVisitor {
     final List<KItem> result;
-    private final String IF_THEN_ELSE_LABEL="'#if_#then_#else_#fi";
+    private final String IF_THEN_ELSE_LABEL = "'#if_#then_#else_#fi";
 
     public IfThenElseFinder() {
         result = new ArrayList<>();
@@ -26,7 +26,7 @@ public class IfThenElseFinder extends PrePostVisitor {
                 proceed = result.isEmpty();
             }
         });
-        postVisitor.addVisitor(new LocalVisitor(){
+        postVisitor.addVisitor(new LocalVisitor() {
             @Override
             public void visit(KItem kItem) {
                 if (!result.isEmpty()) return;

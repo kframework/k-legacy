@@ -5,7 +5,9 @@ import org.kframework.attributes.Location;
 import org.kframework.attributes.Source;
 import org.w3c.dom.Element;
 
-/** Subclasses wrap a term as an item in the corresponding collection */
+/**
+ * Subclasses wrap a term as an item in the corresponding collection
+ */
 public abstract class CollectionItem extends Term implements Interfaces.MutableParent<Term, CollectionItem.Children> {
 
     protected Term value;

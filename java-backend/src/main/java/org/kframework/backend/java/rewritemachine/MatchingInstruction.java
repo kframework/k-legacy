@@ -13,7 +13,6 @@ import org.kframework.backend.java.util.Constants;
  * Represents instructions of the {@link KAbstractRewriteMachine}.
  *
  * @author YilongL
- *
  */
 public final class MatchingInstruction implements Serializable {
 

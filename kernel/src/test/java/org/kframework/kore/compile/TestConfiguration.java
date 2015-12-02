@@ -44,23 +44,26 @@ class TestConfiguration implements ConfigurationInfo {
     public void addCell(String parent, String child, String label) {
         addCell(parent, child, label, Multiplicity.ONE);
     }
+
     public void addCell(String parent, String child, String label, Sort contents) {
         addCell(parent, child, label, Multiplicity.ONE, contents);
     }
+
     public void addCell(String parent, String child, String label, Multiplicity m) {
         addCell(parent, child, label, m, null);
     }
+
     public void addCell(String parent, String child, String label, Multiplicity m, Sort contents) {
         if (parent != null) {
             if (!children.containsKey(Sort(parent))) {
                 // create a fragment label for the parent cell.
-                cellFragmentLabels.put(Sort(parent),KLabel(cellLabels.get(Sort(parent)).name()+"-fragment"));
+                cellFragmentLabels.put(Sort(parent), KLabel(cellLabels.get(Sort(parent)).name() + "-fragment"));
             }
             if (m != Multiplicity.STAR) {
-                cellAbsentLabels.put(Sort(child),KLabel("no"+child));
+                cellAbsentLabels.put(Sort(child), KLabel("no" + child));
             }
             if (m == Multiplicity.STAR) {
-                cellCollectionSorts.put(Sort(child+"Bag"),Sort(child));
+                cellCollectionSorts.put(Sort(child + "Bag"), Sort(child));
             }
             parents.put(Sort(child), Sort(parent));
             children.put(Sort(parent), Sort(child));

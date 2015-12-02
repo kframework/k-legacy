@@ -97,6 +97,7 @@ public class ConfigFileParser {
 
     /**
      * Parse config file.
+     *
      * @return List of test cases, all file path fields will be normalized using command line
      * arguments (directory, programs and results file paths)
      * @throws InvalidConfigError when config file contains invalid information
@@ -123,10 +124,15 @@ public class ConfigFileParser {
 
             Element node = (Element) tests.item(testNodeIdx);
             switch (node.getNodeName()) {
-                case "test": if (isValidTestCase(node)) testCases.add(parseTestCase(node)); break;
-                case "include": testCases.addAll(parseInclude(node)); break;
-                default: assert false; // this case should not happen, XML files are validated
-                                       // using XSD and this should be ensured by XSD file
+            case "test":
+                if (isValidTestCase(node)) testCases.add(parseTestCase(node));
+                break;
+            case "include":
+                testCases.addAll(parseInclude(node));
+                break;
+            default:
+                assert false; // this case should not happen, XML files are validated
+                // using XSD and this should be ensured by XSD file
             }
         }
 
@@ -144,6 +150,7 @@ public class ConfigFileParser {
 
     /**
      * Parse a `include' node.
+     *
      * @param includeNode `include' element
      * @return List of test cases.
      * @throws InvalidConfigError
@@ -154,7 +161,7 @@ public class ConfigFileParser {
                 (LocationData) includeNode.getUserData(LocationData.LOCATION_DATA_KEY);
 
         String fileValue = includeAttrs.getNamedItem("file").getNodeValue();
-        String file = concat(files.resolveWorkingDirectory(cmdArgs.getTargetFile()).getParentFile().getAbsolutePath(),fileValue);
+        String file = concat(files.resolveWorkingDirectory(cmdArgs.getTargetFile()).getParentFile().getAbsolutePath(), fileValue);
 
         if (!new File(file).isFile())
             throw new InvalidConfigError(
@@ -267,6 +274,7 @@ public class ConfigFileParser {
 
     /**
      * Parse a `test' node.
+     *
      * @param testNode `test' element.
      * @return a test case
      * @throws InvalidConfigError
@@ -331,11 +339,19 @@ public class ConfigFileParser {
             return skips;
         for (String s : node.getNodeValue().split("\\s+")) {
             switch (s.trim()) {
-                case "kompile": skips.add(KTestStep.KOMPILE); break;
-                case "pdf": skips.add(KTestStep.PDF); break;
-                case "krun": skips.add(KTestStep.KRUN); break;
-                case "": break;
-                default: throw new InvalidConfigError(
+            case "kompile":
+                skips.add(KTestStep.KOMPILE);
+                break;
+            case "pdf":
+                skips.add(KTestStep.PDF);
+                break;
+            case "krun":
+                skips.add(KTestStep.KRUN);
+                break;
+            case "":
+                break;
+            default:
+                throw new InvalidConfigError(
                         "skip attribute option should be [kompile|pdf|krun]+", location);
             }
         }
@@ -405,7 +421,7 @@ public class ConfigFileParser {
             if (childNode.getNodeType() == Node.ELEMENT_NODE
                     && childNode.getNodeName().equals("all-programs")) {
                 ret.addAll(parseKrunOpts(childNode.getChildNodes()));
-                regex = Boolean.parseBoolean(((Element)childNode).getAttribute("regex"));
+                regex = Boolean.parseBoolean(((Element) childNode).getAttribute("regex"));
             }
         }
         return new ProgramProfile(ret, regex);
@@ -426,8 +442,8 @@ public class ConfigFileParser {
                 Element e = (Element) n;
 
                 ret.add(new PgmArg(e.getAttribute("name"),
-                    e.getAttribute("key"),
-                    e.getAttribute("value")));
+                        e.getAttribute("key"),
+                        e.getAttribute("value")));
             }
         }
         return ret;

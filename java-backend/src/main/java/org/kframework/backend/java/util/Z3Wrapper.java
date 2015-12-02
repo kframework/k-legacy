@@ -91,9 +91,9 @@ public class Z3Wrapper {
                 pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
                 Process z3Process = pb.start();
                 BufferedWriter input = new BufferedWriter(new OutputStreamWriter(
-                    z3Process.getOutputStream()));
+                        z3Process.getOutputStream()));
                 BufferedReader output = new BufferedReader(new InputStreamReader(
-                    z3Process.getInputStream()));
+                        z3Process.getInputStream()));
                 input.write(SMT_PRELUDE + query + "(check-sat)\n");
                 input.flush();
                 result = output.readLine();

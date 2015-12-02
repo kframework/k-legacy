@@ -8,7 +8,6 @@ package org.kframework.backend.java.kil;
  * can be done by identity check.
  *
  * @author YilongL
- *
  */
 public interface MaximalSharing extends Immutable {
 

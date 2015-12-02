@@ -38,7 +38,8 @@ public class KDepModule extends AbstractModule {
         return options.global;
     }
 
-    @Provides @DefinitionDir
+    @Provides
+    @DefinitionDir
     File definitionDir(@WorkingDir File workingDir, KDepOptions options) {
         if (options.directory == null) {
             return options.mainDefinitionFile().getParentFile();
@@ -48,7 +49,8 @@ public class KDepModule extends AbstractModule {
         return new File(workingDir, options.directory);
     }
 
-    @Provides @KompiledDir
+    @Provides
+    @KompiledDir
     File kompiledDir(@DefinitionDir File defDir, KDepOptions options, @TempDir File tempDir) {
         return new File(defDir, FilenameUtils.removeExtension(options.mainDefinitionFile().getName()) + "-kompiled");
     }

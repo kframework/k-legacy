@@ -14,7 +14,9 @@ import org.kframework.kil.visitors.Visitor;
  */
 public class MapLookup extends BuiltinLookup {
 
-    /** {@link Term} representation of the value */
+    /**
+     * {@link Term} representation of the value
+     */
     private final Term value;
 
     public MapLookup(Variable base, Term key, Term value, Sort kind, boolean choice) {
@@ -53,7 +55,7 @@ public class MapLookup extends BuiltinLookup {
 
         MapLookup mapLookup = (MapLookup) object;
         return base().equals(mapLookup.base()) && key().equals(mapLookup.key())
-               && value.equals(mapLookup.value);
+                && value.equals(mapLookup.value);
     }
 
     @Override

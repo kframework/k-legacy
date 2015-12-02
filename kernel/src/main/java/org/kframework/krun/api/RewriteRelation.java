@@ -9,14 +9,14 @@ import java.util.Optional;
 public class RewriteRelation {
 
     /**
-    The final state reached.
+     * The final state reached.
      */
     private KRunState finalState;
 
     /**
-    Trace of execution, with the final state
-    as the last state, and the original state as root.
-    Empty if computeGraph option wasn't specified as true.
+     * Trace of execution, with the final state
+     * as the last state, and the original state as root.
+     * Empty if computeGraph option wasn't specified as true.
      */
     private Optional<KRunGraph> executionGraph;
 

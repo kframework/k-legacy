@@ -39,8 +39,8 @@ public class InputStreamFile extends File {
 
     public void seek(long pos) throws IOException {
         kem.registerInternalWarning("Potentially unsound file system behavior: attempting to seek from "
-            + "stdin. If you are interested in this behavior, please "
-            + "file an issue on github.");
+                + "stdin. If you are interested in this behavior, please "
+                + "file an issue on github.");
         throw new IOException("ESPIPE");
         //see comment on tell
 //        try {
@@ -73,7 +73,7 @@ public class InputStreamFile extends File {
         if (read == -1) {
             throw new IOException("EOF");
         }
-        return (byte)read;
+        return (byte) read;
     }
 
     public byte[] read(int n) throws IOException {

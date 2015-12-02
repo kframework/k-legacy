@@ -40,12 +40,13 @@ public class IncompleteCellUtils {
     public static boolean isOpenLeft(KApply cell) {
         return isOpen(cell.klist().items().get(0));
     }
+
     public static boolean isOpenRight(KApply cell) {
         return isOpen(cell.klist().items().get(2));
     }
 
     private static void flattenCells(List<K> children, K item) {
-        if (item instanceof KApply && ((KApply)item).klabel().name().equals(KLabels.CELLS)) {
+        if (item instanceof KApply && ((KApply) item).klabel().name().equals(KLabels.CELLS)) {
             for (K deeper : ((KApply) item).klist().items()) {
                 flattenCells(children, deeper);
             }
@@ -53,6 +54,7 @@ public class IncompleteCellUtils {
             children.add(item);
         }
     }
+
     public static List<K> flattenCells(K cells) {
         List<K> children = new ArrayList<K>();
         flattenCells(children, cells);
@@ -66,6 +68,7 @@ public class IncompleteCellUtils {
     private static KApply makeDots(boolean isOpen) {
         return isOpen ? dots : noDots;
     }
+
     private static K makeBody(List<? extends K> children) {
         if (children.size() == 1) {
             return children.get(0);
@@ -77,6 +80,7 @@ public class IncompleteCellUtils {
     public static KApply make(KLabel label, boolean openLeft, K child, boolean openRight) {
         return KApply(label, KList(makeDots(openLeft), child, makeDots(openRight)));
     }
+
     public static KApply make(KLabel label, boolean openLeft, List<? extends K> children, boolean openRight) {
         return KApply(label, KList(makeDots(openLeft), makeBody(children), makeDots(openRight)));
     }

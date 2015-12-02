@@ -25,40 +25,42 @@ import java.util.Set;
  * EBNF style grammar (in this case the K syntax declarations).
  * The main object is the {@link NonTerminal}, containing a unique {@link String} name,
  * and two states: entry and exit.
- *
+ * <p>
  * There are five main types of states: {@link EntryState}, {@link NonTerminalState},
  * {@link PrimitiveState}, @{@link RuleState} and {@link ExitState}.
  * The first four extend {@link NextableState} in order to make connections between the sates.
  * ExitState signifies the end of a NonTerminal so it doesn't need a 'next' field.
- *
+ * <p>
  * Each {@link NonTerminal} contains exactly one {@link EntryState}
  * and one {@link ExitState}. Depending on the grammar it may contain
  * multiple {@link NonTerminalState}, {@link PrimitiveState} or {@link RuleState}.
- *
+ * <p>
  * Example of a NonTerminal NFA structure:
  * E ::= E "+" E   [label(add)]
- *     | E "*" E   [label(mul)]
- *     | {E, ","}+ [label(lst)]
- *
- *     +--[E]---("+")--[E]--<add>--+
- *     |                           |
+ * | E "*" E   [label(mul)]
+ * | {E, ","}+ [label(lst)]
+ * <p>
+ * +--[E]---("+")--[E]--<add>--+
+ * |                           |
  * (|--+--[E]---("*")--[E]--<mul>--+--|)
- *     |                           |
- *     |   +----------------<lst>--+
- *     +--[E]---(",")----+
- *         ^-------------+
- *
+ * |                           |
+ * |   +----------------<lst>--+
+ * +--[E]---(",")----+
+ * ^-------------+
+ * <p>
  * (| - EntryState
  * |) - ExitState
  * [] - NonTerminalState
  * () - PrimitiveState
  * <> - RuleState
- *
+ * <p>
  * NOTE: compile() must be called before it is handed to the parser
  */
 public class Grammar implements Serializable {
 
-    /** The set of "root" NonTerminals */
+    /**
+     * The set of "root" NonTerminals
+     */
     private BiMap<String, NonTerminal> startNonTerminals = HashBiMap.create();
 
     public boolean add(NonTerminal newNT) {
@@ -74,6 +76,7 @@ public class Grammar implements Serializable {
      * Returns a set of all NonTerminals, including the hidden ones which are not considered
      * start symbols.  This is so Grammar doesn't have to track the hidden NonTerminals itself,
      * and makes it impossible for a user to cause problems by failing to add a NonTerminal.
+     *
      * @return a Set of all the {@link NonTerminal}s
      */
     public Set<NonTerminal> getAllNonTerminals() {
@@ -83,6 +86,7 @@ public class Grammar implements Serializable {
 
     /**
      * Returns the NonTerminal specific to the given name that is exposed as a start non-terminal by this grammar.
+     *
      * @param name of the NonTerminal
      * @return the NonTerminal or null if it couldn't find it
      */
@@ -92,6 +96,7 @@ public class Grammar implements Serializable {
      * Creates a mapping from {@link NonTerminal} to a set of all the {@link NonTerminalState}
      * which have as a child (call) that NonTerminal. Normally the NonTerminal contains a set of
      * NonTerminalStates which calls to other NonTerminals. This creates the inverse relation.
+     *
      * @return A mapping from NonTerminal to a Set of NonTerminalStates which call to that
      * NonTerminal
      */
@@ -111,7 +116,7 @@ public class Grammar implements Serializable {
     /**
      * Adds (whitespace)---<Del> pairs of states at the beginning of start NonTerminals
      * and right after every PrimitiveState in order to allow for whitespace in the language.
-     *
+     * <p>
      * For now, whitespace means spaces (See {@link #whites}),
      * single line comments (See {@link #singleLine}), and
      * multi-line comments (See {@link #multiLine}).
@@ -137,10 +142,12 @@ public class Grammar implements Serializable {
     static final String multiLine = "(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/)";
     static final String singleLine = "(//[^\n\r]*)";
     static final String whites = "([\\ \n\r\t])";
+
     /**
      * Add a pair of whitespace-remove whitespace rule to the given state.
      * All children of the given state are moved to the remove whitespace rule.
      * (|-- gets transformed into (|-->(white)--
+     *
      * @param start NextableState to which to attach the whitespaces
      * @return the remove whitespace state
      */
@@ -151,14 +158,14 @@ public class Grammar implements Serializable {
             start = (NextableState) start.next.iterator().next();
         }
         PrimitiveState whitespace = new RegExState(
-            "whitespace", start.nt, pattern);
+                "whitespace", start.nt, pattern);
         whitespace.next.addAll(start.next);
         start.next.clear();
         start.next.add(whitespace);
         return whitespace;
     }
 
-    static final RunAutomaton pattern = new RunAutomaton(new RegExp("("+ multiLine +"|"+ singleLine +"|"+ whites +")*").toAutomaton(), false);
+    static final RunAutomaton pattern = new RunAutomaton(new RegExp("(" + multiLine + "|" + singleLine + "|" + whites + ")*").toAutomaton(), false);
 
     /**
      * Calculates Nullability and OrderingInfo for all the states in the grammar.
@@ -229,12 +236,13 @@ public class Grammar implements Serializable {
 
     /**
      * Recursive DFS that traverses all the states and returns a set of all reachable {@link NonTerminal}.
-     * @param start The state from which to run the collector.
-     * @param visited Start with an empty Set<State>. Used as intermediate data.
+     *
+     * @param start                 The state from which to run the collector.
+     * @param visited               Start with an empty Set<State>. Used as intermediate data.
      * @param reachableNonTerminals A set in which is stored the set of all reachable {@link NonTerminal}.
      */
     private static void collectNTCallers(State start, Set<State> visited,
-        Map<NonTerminal, Set<NonTerminalState>> reachableNonTerminals) {
+                                         Map<NonTerminal, Set<NonTerminalState>> reachableNonTerminals) {
         if (!visited.contains(start)) {
             visited.add(start);
             if (start instanceof NextableState) {
@@ -244,11 +252,11 @@ public class Grammar implements Serializable {
                         NonTerminalState nts = (NonTerminalState) st;
                         if (!reachableNonTerminals.containsKey(nts.child)) {
                             reachableNonTerminals.put(
-                                nts.child, new HashSet<NonTerminalState>(Arrays.asList(nts)));
+                                    nts.child, new HashSet<NonTerminalState>(Arrays.asList(nts)));
                         }
                         reachableNonTerminals.get(nts.child).add(nts);
                         collectNTCallers(((NonTerminalState) st).child.entryState,
-                            visited, reachableNonTerminals);
+                                visited, reachableNonTerminals);
                     }
                     collectNTCallers(st, visited, reachableNonTerminals);
                 }
@@ -291,6 +299,7 @@ public class Grammar implements Serializable {
         /**
          * NonTerminal references only EntryState and ExitState. This goes through the entire
          * NFA graph and returns all the reachable states in the NonTerminal as one Set object.
+         *
          * @return All the states contained in this NonTerminal
          */
         public Set<State> getReachableStates() {
@@ -326,16 +335,26 @@ public class Grammar implements Serializable {
      * (@link NextableState}
      */
     public abstract static class State implements Comparable<State>, Serializable {
-        /** "User friendly" name for the state.  Used only for debugging and error reporting. */
+        /**
+         * "User friendly" name for the state.  Used only for debugging and error reporting.
+         */
         public final String name;
-        /** Counter for generating unique ids for the state. */
+        /**
+         * Counter for generating unique ids for the state.
+         */
         private static int counter = 0;
-        /** The unique id of this state. */
+        /**
+         * The unique id of this state.
+         */
         public final int unique;
 
-        /** A back reference to the NonTerminal that this state is part of. */
+        /**
+         * A back reference to the NonTerminal that this state is part of.
+         */
         public final NonTerminal nt;
-        /** The OrderingInfo for this state. */
+        /**
+         * The OrderingInfo for this state.
+         */
         OrderingInfo orderingInfo = null;
 
         /**
@@ -343,8 +362,11 @@ public class Grammar implements Serializable {
          */
         static class OrderingInfo implements Comparable<OrderingInfo>, Serializable {
             final int key;
+
             public OrderingInfo(int key) { this.key = key; }
+
             public int compareTo(OrderingInfo that) { return Integer.compare(this.key, that.key); }
+
             @Override
             public int hashCode() {
                 final int prime = 31;
@@ -352,6 +374,7 @@ public class Grammar implements Serializable {
                 result = prime * result + key;
                 return result;
             }
+
             @Override
             public boolean equals(Object obj) {
                 if (this == obj)
@@ -365,6 +388,7 @@ public class Grammar implements Serializable {
                     return false;
                 return true;
             }
+
             public String toString() { return Integer.toString(key); }
         }
 
@@ -414,19 +438,24 @@ public class Grammar implements Serializable {
      * Abstract category of states that may have successors.
      */
     public abstract static class NextableState extends State {
-        /** States that are successors of this one in the NFA. */
+        /**
+         * States that are successors of this one in the NFA.
+         */
         public final Set<State> next = new HashSet<State>() {
             @Override
             public boolean add(State s) {
                 assert s.nt == NextableState.this.nt :
-                    "States " + NextableState.this.name + " and " +
-                    s.name + " are not in the same NonTerminal.";
+                        "States " + NextableState.this.name + " and " +
+                                s.name + " are not in the same NonTerminal.";
                 return super.add(s);
             }
         };
+
         NextableState(String name, NonTerminal nt, boolean intermediary) {
             super(name, nt);
-            if (intermediary) { nt.intermediaryStates.add(this); }
+            if (intermediary) {
+                nt.intermediaryStates.add(this);
+            }
         }
     }
 
@@ -443,7 +472,9 @@ public class Grammar implements Serializable {
      * of BNF productions.
      */
     public static class NonTerminalState extends NextableState {
-        /** The NonTerminal referenced by this NonTerminalState */
+        /**
+         * The NonTerminal referenced by this NonTerminalState
+         */
         public final NonTerminal child;
 
         public NonTerminalState(
@@ -460,8 +491,11 @@ public class Grammar implements Serializable {
      * A RuleState takes a Rule and applies an action to the term parsed up to that point.
      */
     public static class RuleState extends NextableState {
-        /** The rule to be applied. */
+        /**
+         * The rule to be applied.
+         */
         public final Rule rule;
+
         public RuleState(String name, NonTerminal nt, Rule rule) {
             super(name, nt, true);
             assert rule != null;
@@ -477,6 +511,7 @@ public class Grammar implements Serializable {
     public abstract static class PrimitiveState extends NextableState {
         public static class MatchResult {
             final public int matchEnd;
+
             public MatchResult(int matchEnd) {
                 this.matchEnd = matchEnd;
             }
@@ -494,6 +529,7 @@ public class Grammar implements Serializable {
 
         /**
          * Checks whether this PrimitiveStates can parse without consuming any tokens.
+         *
          * @return true if it can parse without consuming any tokens.
          */
         public boolean isNullable() {
@@ -507,7 +543,9 @@ public class Grammar implements Serializable {
      * char sequence.
      */
     public static class RegExState extends PrimitiveState {
-        /** The java regular expression pattern. */
+        /**
+         * The java regular expression pattern.
+         */
         public final RunAutomaton pattern;
         public final RunAutomaton precedePattern;
         public final RunAutomaton followPattern;

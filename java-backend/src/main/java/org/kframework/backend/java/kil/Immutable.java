@@ -9,7 +9,6 @@ package org.kframework.backend.java.kil;
  * cannot contain {@code Cell} as their sub-terms.
  *
  * @author YilongL
- *
  */
 public interface Immutable {
 

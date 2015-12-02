@@ -4,7 +4,9 @@ package org.kframework.kil;
 import org.kframework.kil.visitors.Visitor;
 import org.kframework.utils.StringUtil;
 
-/** A terminal in a {@link Production}. */
+/**
+ * A terminal in a {@link Production}.
+ */
 public class Terminal extends ProductionItem {
 
     private String terminal;

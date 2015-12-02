@@ -67,7 +67,7 @@ public class ParserTest {
         Assert.assertEquals("Empty Grammar check: ", expected, result);
         // the start and exit state of the NonTerminal
         grammar.add(nt1);
-        Nullability nc = new Nullability(grammar) ;
+        Nullability nc = new Nullability(grammar);
         Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(nt1.entryState) && nc.isNullable(nt1.exitState));
         Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(nt1));
     }
@@ -89,7 +89,7 @@ public class ParserTest {
         Term result = parser.parse(nt1, 0);
         Term expected = amb(klist(amb(klist(Constant.apply("asdfAAA1", constant("seq"))))));
         Assert.assertEquals("Single Token check: ", expected, result);
-        Nullability nc = new Nullability(grammar) ;
+        Nullability nc = new Nullability(grammar);
         Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(nt1.entryState) && nc.isNullable(nt1.exitState));
         Assert.assertEquals("Expected Nullable NTs", false, nc.isNullable(nt1));
     }
@@ -141,14 +141,15 @@ public class ParserTest {
             }
         }
         */
-        Nullability nc = new Nullability(grammar) ;
+        Nullability nc = new Nullability(grammar);
         Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(nt1.entryState) && nc.isNullable(nt1.exitState));
         Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(nt1));
     }
-    public static long getCpuTime( ) {
-        ThreadMXBean bean = ManagementFactory.getThreadMXBean( );
-        return bean.isCurrentThreadCpuTimeSupported( ) ?
-                bean.getCurrentThreadCpuTime( ) : 0L;
+
+    public static long getCpuTime() {
+        ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+        return bean.isCurrentThreadCpuTimeSupported() ?
+                bean.getCurrentThreadCpuTime() : 0L;
     }
 
     @Test
@@ -185,12 +186,12 @@ public class ParserTest {
         {
             Term result = new Parser("xxyy").parse(nt1, 0);
             Term expected =
-                amb(klist(amb(klist(kapp("xAy",
-                    amb(klist(kapp("xAy",
-                            amb(klist(kapp("epsilon")))))))))));
+                    amb(klist(amb(klist(kapp("xAy",
+                            amb(klist(kapp("xAy",
+                                    amb(klist(kapp("epsilon")))))))))));
             Assert.assertEquals("x^ny^n check: ", expected, result);
         }
-        Nullability nc = new Nullability(grammar) ;
+        Nullability nc = new Nullability(grammar);
         Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(nt1.entryState) && nc.isNullable(nt1.exitState));
         Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(nt1));
     }
@@ -226,12 +227,12 @@ public class ParserTest {
         {
             Term result = new Parser("yy").parse(nt1, 0);
             Term expected =
-                amb(klist(amb(klist(kapp("Ay",
-                    amb(klist(kapp("Ay",
-                            amb(klist(kapp("epsilon")))))))))));
+                    amb(klist(amb(klist(kapp("Ay",
+                            amb(klist(kapp("Ay",
+                                    amb(klist(kapp("epsilon")))))))))));
             Assert.assertEquals("y^n check: ", expected, result);
         }
-        Nullability nc = new Nullability(grammar) ;
+        Nullability nc = new Nullability(grammar);
         Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(nt1.entryState) && nc.isNullable(nt1.exitState));
         Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(nt1));
     }
@@ -268,12 +269,12 @@ public class ParserTest {
         {
             Term result = new Parser("xx").parse(nt1, 0);
             Term expected =
-                amb(klist(amb(klist(kapp("xA",
-                        amb(klist(kapp("xA",
-                                amb(klist(kapp("epsilon")))))))))));
+                    amb(klist(amb(klist(kapp("xA",
+                            amb(klist(kapp("xA",
+                                    amb(klist(kapp("epsilon")))))))))));
             Assert.assertEquals("x^n check: ", expected, result);
         }
-        Nullability nc = new Nullability(grammar) ;
+        Nullability nc = new Nullability(grammar);
         Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(nt1.entryState) && nc.isNullable(nt1.exitState));
         Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(nt1));
     }
@@ -284,7 +285,7 @@ public class ParserTest {
         //     | A A [klabel(AA)]
         NonTerminal nt1 = new NonTerminal("StartNT");
 
-        RegExState resx = new RegExState("RegExStidx", nt1,regex("x"));
+        RegExState resx = new RegExState("RegExStidx", nt1, regex("x"));
 
         NonTerminalState nts1 = new NonTerminalState("NT1", nt1, nt1);
         NonTerminalState nts2 = new NonTerminalState("NT2", nt1, nt1);
@@ -322,7 +323,7 @@ public class ParserTest {
         {
             Term result = new Parser("xxx").parse(nt1, 0);
             Term expected = amb(klist(amb(klist(kapp("AA", amb(klist(kapp("AA", amb(klist(X)), amb(klist(X))))), amb(klist(X)))),
-                                          klist(kapp("AA", amb(klist(X)), amb(klist(kapp("AA", amb(klist(X)), amb(klist(X))))))))));
+                    klist(kapp("AA", amb(klist(X)), amb(klist(kapp("AA", amb(klist(X)), amb(klist(X))))))))));
             Assert.assertEquals("AAA check: ", expected, result);
         }
         {
@@ -334,7 +335,7 @@ public class ParserTest {
             Term expected = amb(klist(t4));
             Assert.assertEquals("AAA check: ", expected, result);
         }
-        Nullability nc = new Nullability(grammar) ;
+        Nullability nc = new Nullability(grammar);
         Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(nt1.entryState) && nc.isNullable(nt1.exitState));
         Assert.assertEquals("Expected Nullable NTs", false, nc.isNullable(nt1));
     }
@@ -357,8 +358,8 @@ public class ParserTest {
         Term expected = amb(klist(kapp("x")));
 
         for (int i = 2; i < 10; i++) {
-            NonTerminal nt = new NonTerminal("NT"+i);
-            NonTerminalState state = new NonTerminalState("S"+i, nt, baseCase);
+            NonTerminal nt = new NonTerminal("NT" + i);
+            NonTerminalState state = new NonTerminalState("S" + i, nt, baseCase);
             RuleState rs2 = new RuleState("RuleStateId" + i, nt, new WrapLabelRule(label("n" + i)));
             nt.entryState.next.add(state);
             state.next.add(rs2);
@@ -375,7 +376,7 @@ public class ParserTest {
             expected = amb(klist(expected));
             Assert.assertEquals("Single char check: ", expected, result);
         }
-        Nullability nc = new Nullability(grammar) ;
+        Nullability nc = new Nullability(grammar);
         Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(baseCase.entryState) && nc.isNullable(baseCase.exitState));
         Assert.assertEquals("Expected Nullable NTs", false, nc.isNullable(baseCase));
     }
@@ -399,8 +400,8 @@ public class ParserTest {
         Term expected = amb(klist(kapp("x")));
 
         for (int i = 2; i < 10; i++) {
-            NonTerminal nt = new NonTerminal("NT"+i);
-            NonTerminalState state = new NonTerminalState("S"+i, nt, baseCase);
+            NonTerminal nt = new NonTerminal("NT" + i);
+            NonTerminalState state = new NonTerminalState("S" + i, nt, baseCase);
             RuleState rs2 = new RuleState("RuleStateId" + i, nt, new WrapLabelRule(label("n" + i)));
             nt.entryState.next.add(state);
             state.next.add(rs2);
@@ -417,7 +418,7 @@ public class ParserTest {
             expected = amb(klist(expected));
             Assert.assertEquals("Single char check: ", expected, result);
         }
-        Nullability nc = new Nullability(grammar) ;
+        Nullability nc = new Nullability(grammar);
         Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(baseCase.entryState) && nc.isNullable(baseCase.exitState));
         Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(baseCase));
     }
@@ -495,11 +496,11 @@ public class ParserTest {
         {
             Term result = new Parser("1+2*3").parse(exp, 0);
             Term expected = amb(klist(amb(klist(kapp("plus", amb(klist(amb(klist(amb(klist(Constant.apply("1", litPrd))))))),
-                                                amb(klist(kapp("mul", amb(klist(amb(klist(Constant.apply("2", litPrd))))),
-                                                          amb(klist(Constant.apply("3", litPrd)))))))))));
+                    amb(klist(kapp("mul", amb(klist(amb(klist(Constant.apply("2", litPrd))))),
+                            amb(klist(Constant.apply("3", litPrd)))))))))));
             Assert.assertEquals("1+2*3: ", expected, result);
         }
-        Nullability nc = new Nullability(grammar) ;
+        Nullability nc = new Nullability(grammar);
         Assert.assertEquals("Expected Nullable NTs", true, nc.isNullable(exp.entryState) && nc.isNullable(exp.exitState));
         Assert.assertEquals("Expected Nullable NTs", false, nc.isNullable(exp));
 
@@ -575,7 +576,7 @@ public class ParserTest {
         Assert.assertEquals("The error: ", expected, result2);
     }
 
-    public static Ambiguity amb(Term ... terms) {
+    public static Ambiguity amb(Term... terms) {
         return Ambiguity.apply(Sets.newHashSet(terms));
     }
 
@@ -587,13 +588,13 @@ public class ParserTest {
         return Production(sort, immutable(Arrays.asList(pi)), new Att(Set(KApply(KLabel("token"), KList()))));
     }
 
-    public static TermCons kapp(String label, Term ... terms) {
+    public static TermCons kapp(String label, Term... terms) {
         List<Term> x = Arrays.asList(terms);
         Collections.reverse(x);
         return TermCons.apply(ConsPStack.from(x), label(label));
     }
 
-    public static KList klist(Term ... terms) {
+    public static KList klist(Term... terms) {
         return KList.apply(ConsPStack.from(Arrays.asList(terms)));
     }
 

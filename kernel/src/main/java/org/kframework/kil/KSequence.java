@@ -6,10 +6,12 @@ import org.kframework.kil.visitors.Visitor;
 import java.util.Collections;
 import java.util.List;
 
-/** Represents the contents (all of sort KItem) joined by ~>. */
+/**
+ * Represents the contents (all of sort KItem) joined by ~>.
+ */
 public class KSequence extends Collection {
 
-    public static final KSequence EMPTY = new KSequence(Collections.<Term> emptyList());
+    public static final KSequence EMPTY = new KSequence(Collections.<Term>emptyList());
 
     public KSequence(KSequence node) {
         super(node);

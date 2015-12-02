@@ -10,13 +10,16 @@ import java.util.List;
 
 /**
  * A block of productions at the same priority within a syntax declaration.
+ *
  * @see Syntax
  */
 public class PriorityBlock extends ASTNode implements Interfaces.MutableList<Production, Enum<?>> {
 
     java.util.List<Production> productions = new ArrayList<Production>();
-    /** "left", "right", or "non-assoc" if this group of productions had
-     * an explicitly declared associativity, "" otherwise */
+    /**
+     * "left", "right", or "non-assoc" if this group of productions had
+     * an explicitly declared associativity, "" otherwise
+     */
     String assoc;
 
     public java.util.List<Production> getProductions() {

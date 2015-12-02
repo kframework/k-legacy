@@ -14,14 +14,13 @@ import java.util.LinkedList;
  * the rule classes, the structural rules are returned first, followed by
  * the transition rules. The idea is that during execution we only want to
  * apply transition rules when there are no more structural rules to be applied.
- *
+ * <p>
  * This class also provides a function saying whether the next equivalence
  * class is the transition class. This is used during search in the java
  * rewrite engine, since transition rules are handled differently than
  * structural rules.
  *
  * @author ericmikida
- *
  */
 
 public class TransitionStrategy implements Strategy {

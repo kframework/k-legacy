@@ -17,7 +17,6 @@ import org.kframework.kil.ASTNode;
  * {@code Collection}'s.
  *
  * @author YilongL
- *
  */
 public class TermCanonicalizer extends CopyOnWriteTransformer {
 

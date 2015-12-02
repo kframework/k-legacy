@@ -2,4 +2,4 @@
 
 package org.kframework.backend.java.symbolic;
 
-public enum TruthValue { TRUE, UNKNOWN, FALSE }
+public enum TruthValue {TRUE, UNKNOWN, FALSE}

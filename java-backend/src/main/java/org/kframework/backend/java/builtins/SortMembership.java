@@ -25,13 +25,11 @@ public class SortMembership {
      * Evaluates a sort membership predicate with respect to a given
      * {@link org.kframework.kil.loader.Context}.
      *
-     * @param kItem
-     *            the sort membership predicate
-     * @param definition
-     *            the definition
+     * @param kItem      the sort membership predicate
+     * @param definition the definition
      * @return {@link BoolToken#TRUE} if the predicate is true; or
-     *         {@link BoolToken#FALSE} if the predicate is false; otherwise, the
-     *         {@code kItem} itself if the evaluation gets stuck
+     * {@link BoolToken#FALSE} if the predicate is false; otherwise, the
+     * {@code kItem} itself if the evaluation gets stuck
      */
     public static Term check(KItem kItem, Definition definition) {
         assert kItem.kLabel() instanceof KLabelConstant;

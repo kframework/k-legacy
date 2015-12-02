@@ -53,7 +53,7 @@ public class KompileOptionsTest {
         options.syntaxModule();
     }
 
-    @Test(expected=KEMException.class)
+    @Test(expected = KEMException.class)
     public void testNoDefinition() throws Exception {
         parse();
     }

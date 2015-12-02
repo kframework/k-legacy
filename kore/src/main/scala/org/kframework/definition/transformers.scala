@@ -43,9 +43,9 @@ object ModuleTransformer {
 }
 
 /**
- * Transform all modules, transforming each module after its imports.
- * The f function take a module with all the imported modules already transformed, and changes the current module.
- */
+  * Transform all modules, transforming each module after its imports.
+  * The f function take a module with all the imported modules already transformed, and changes the current module.
+  */
 class ModuleTransformer(f: Module => Module, name: String) extends (Module => Module) {
   val memoization = collection.concurrent.TrieMap[Module, Module]()
 

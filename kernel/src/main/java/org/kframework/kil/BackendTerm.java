@@ -46,7 +46,7 @@ public class BackendTerm extends Term {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof BackendTerm)) return false;
-        BackendTerm b = (BackendTerm)o;
+        BackendTerm b = (BackendTerm) o;
         return value.equals(b.value);
     }
 

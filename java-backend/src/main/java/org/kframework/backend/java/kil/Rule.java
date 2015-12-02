@@ -201,11 +201,11 @@ public class Rule extends JavaSymbolicObject<Rule> {
 
         // setting fields related to fast rewriting
         this.compiledForFastRewriting = compiledForFastRewriting;
-        this.lhsOfReadCells     = compiledForFastRewriting ? ImmutableMap.copyOf(lhsOfReadCells) : null;
-        this.rhsOfWriteCells    = compiledForFastRewriting ? ImmutableMap.copyOf(rhsOfWriteCells) : null;
-        this.reusableVariables  = computeReusableBoundVars();
-        this.groundCells        = cellsToCopy != null ? ImmutableSet.copyOf(cellsToCopy) : null;
-        this.matchingInstructions       = compiledForFastRewriting ? ImmutableList.copyOf(instructions) : null;
+        this.lhsOfReadCells = compiledForFastRewriting ? ImmutableMap.copyOf(lhsOfReadCells) : null;
+        this.rhsOfWriteCells = compiledForFastRewriting ? ImmutableMap.copyOf(rhsOfWriteCells) : null;
+        this.reusableVariables = computeReusableBoundVars();
+        this.groundCells = cellsToCopy != null ? ImmutableSet.copyOf(cellsToCopy) : null;
+        this.matchingInstructions = compiledForFastRewriting ? ImmutableList.copyOf(instructions) : null;
 
         GenerateRHSInstructions rhsVisitor = new GenerateRHSInstructions();
         rightHandSide.accept(rhsVisitor);
@@ -214,7 +214,7 @@ public class Rule extends JavaSymbolicObject<Rule> {
         instructionsOfWriteCells = new HashMap<>();
         if (compiledForFastRewriting) {
             for (Map.Entry<CellLabel, Term> entry :
-                rhsOfWriteCells.entrySet()) {
+                    rhsOfWriteCells.entrySet()) {
                 GenerateRHSInstructions visitor = new GenerateRHSInstructions();
                 entry.getValue().accept(visitor);
                 ImmutableList<RHSInstruction> rhsInstructions = visitor.getInstructions();
@@ -384,7 +384,7 @@ public class Rule extends JavaSymbolicObject<Rule> {
 
     /**
      * @return {@code true} if this rule is a sort predicate rule; otherwise,
-     *         {@code false}
+     * {@code false}
      */
     public boolean isSortPredicate() {
         return isSortPredicate;
@@ -410,7 +410,7 @@ public class Rule extends JavaSymbolicObject<Rule> {
 
     public boolean isFunction() {
         return containsAttribute(Attribute.FUNCTION_KEY)
-               && !containsAttribute(Attribute.PATTERN_FOLDING_KEY);
+                && !containsAttribute(Attribute.PATTERN_FOLDING_KEY);
     }
 
     public boolean isAnywhere() {

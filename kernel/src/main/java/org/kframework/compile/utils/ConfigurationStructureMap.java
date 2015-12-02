@@ -3,6 +3,7 @@ package org.kframework.compile.utils;
 
 import org.kframework.kil.Cell;
 import org.kframework.utils.errorsystem.KExceptionManager;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
@@ -32,8 +33,7 @@ public class ConfigurationStructureMap extends LinkedHashMap<String, Configurati
      * Returns the position of a cell declared under the {@code Cell} of this
      * {@code ConfigurationStructureMap}.
      *
-     * @param cellLabel
-     *            the cell label
+     * @param cellLabel the cell label
      * @return if found, the position of the cell starting from 0; otherwise, -1
      */
     public int positionOf(String cellLabel) {

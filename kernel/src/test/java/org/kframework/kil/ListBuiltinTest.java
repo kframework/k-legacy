@@ -39,7 +39,7 @@ public class ListBuiltinTest {
                 KApp.of("five")), outer.elementsRight());
         assertEquals(new Variable("one", Sort.LIST), outer.viewBase());
 
-        ListBuiltin outer2 = (ListBuiltin)DataStructureBuiltin.of(listSort,
+        ListBuiltin outer2 = (ListBuiltin) DataStructureBuiltin.of(listSort,
                 left, new Variable("one", Sort.LIST), right, right2);
         assertEquals(Arrays.asList(KApp.of("zero")), outer2.elementsLeft());
         assertEquals(Arrays.asList(KApp.of("two"), KApp.of("three"), KApp.of("four"),
@@ -60,7 +60,7 @@ public class ListBuiltinTest {
     public void testBaseTermWithElements() {
         ListBuiltin inner = ListBuiltin.of(listSort, Arrays.<Term>asList(new Variable("v", Sort.LIST)),
                 Arrays.<Term>asList(KApp.of("k")), Collections.<Term>emptyList());
-        ListBuiltin outer = (ListBuiltin)DataStructureBuiltin.of(listSort, inner, inner);
+        ListBuiltin outer = (ListBuiltin) DataStructureBuiltin.of(listSort, inner, inner);
         assertEquals(Arrays.<Term>asList(KApp.of("k")), outer.elementsLeft());
         assertEquals(Collections.<Term>emptyList(), outer.elementsRight());
         assertEquals(Arrays.<Term>asList(new Variable("v", Sort.LIST),

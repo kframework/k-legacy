@@ -228,7 +228,7 @@ public class KILtoInnerKORE extends KILTransformation<K> {
                 .stream()
                 .map(key -> {
                     String value = attributes.get(key);
-                    return (K)KApply(KLabel(key), KList(KToken(value, Sort("AttributeValue"))));
+                    return (K) KApply(KLabel(key), KList(KToken(value, Sort("AttributeValue"))));
                 }).collect(Collectors.toSet());
 
         return Attributes(immutable(attributesSet));

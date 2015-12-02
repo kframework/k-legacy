@@ -16,7 +16,6 @@ import org.kframework.backend.java.symbolic.Substitution;
  * {@link KAbstractRewriteMachine}.
  *
  * @author YilongL
- *
  */
 class ExtendedSubstitution {
 

@@ -78,7 +78,7 @@ public class JarInfo {
                 System.out.println("K framework internal build");
                 return;
             }
-            Manifest mf = ((JarURLConnection)conn).getManifest();
+            Manifest mf = ((JarURLConnection) conn).getManifest();
             String revision = mf.getMainAttributes().getValue("Implementation-Revision");
             String branch = mf.getMainAttributes().getValue("Implementation-Branch");
             Date date = new Date(Long.parseLong(mf.getMainAttributes().getValue("Implementation-Date")));

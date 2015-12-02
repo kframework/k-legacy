@@ -11,6 +11,7 @@ import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.inject.RequestScoped;
 
 import com.google.inject.Inject;
+
 import java.io.EOFException;
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
@@ -95,7 +96,7 @@ public class PortableFileSystem implements FileSystem {
     public void close(long fd) throws IOException {
         File f = get(fd);
         assert f instanceof org.kframework.krun.ioserver.filesystem.portable.File;
-        ((org.kframework.krun.ioserver.filesystem.portable.File)f).close();
+        ((org.kframework.krun.ioserver.filesystem.portable.File) f).close();
         files.remove(descriptors.get(fd));
         descriptors.remove(fd);
     }

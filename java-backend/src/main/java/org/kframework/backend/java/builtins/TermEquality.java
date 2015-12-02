@@ -20,12 +20,12 @@ public class TermEquality {
         }
 
         switch (getEqualityTruthValue(term1, term2, context)) {
-            case TRUE:
-                return BoolToken.TRUE;
-            case FALSE:
-                return BoolToken.FALSE;
-            default:
-                return null;
+        case TRUE:
+            return BoolToken.TRUE;
+        case FALSE:
+            return BoolToken.FALSE;
+        default:
+            return null;
         }
     }
 
@@ -35,12 +35,12 @@ public class TermEquality {
         }
 
         switch (getEqualityTruthValue(term1, term2, context)) {
-            case FALSE:
-                return BoolToken.TRUE;
-            case TRUE:
-                return BoolToken.FALSE;
-            default:
-                return null;
+        case FALSE:
+            return BoolToken.TRUE;
+        case TRUE:
+            return BoolToken.FALSE;
+        default:
+            return null;
         }
     }
 
@@ -66,16 +66,12 @@ public class TermEquality {
      * Returns the first or the second {@link Term} according to the value of
      * the {@link BoolToken}.
      *
-     * @param boolToken
-     *            the boolean token
-     * @param t
-     *            the first term
-     * @param e
-     *            the second term
-     * @param context
-     *            the term context
+     * @param boolToken the boolean token
+     * @param t         the first term
+     * @param e         the second term
+     * @param context   the term context
      * @return the first term if the {@code BoolToken} represents true;
-     *         otherwise, the second term
+     * otherwise, the second term
      */
     public static Term ite(BoolToken boolToken, Term t, Term e, TermContext context) {
         if (boolToken.booleanValue()) return t;

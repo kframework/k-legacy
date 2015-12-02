@@ -7,7 +7,9 @@ import org.kframework.kil.visitors.Visitor;
  * Applications that are not in sort K, or have not yet been flattened.
  */
 public class ParseError extends ASTNode {
-    /** A unique identifier corresponding to a production, matching the SDF cons */
+    /**
+     * A unique identifier corresponding to a production, matching the SDF cons
+     */
     String message = null;
 
     public ParseError(ParseError node) {

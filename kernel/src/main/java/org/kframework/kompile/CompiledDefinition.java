@@ -109,7 +109,7 @@ public class CompiledDefinition implements Serializable {
     }
 
     private void readObject(java.io.ObjectInputStream stream)
-         throws IOException, ClassNotFoundException {
+            throws IOException, ClassNotFoundException {
         stream.defaultReadObject();
         cachedcompiledPatterns = new ConcurrentHashMap<>();
         cachedParsedPatterns = new ConcurrentHashMap<>();

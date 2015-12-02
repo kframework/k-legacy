@@ -7,16 +7,24 @@ package org.kframework.kil;
  * @author TraianSF
  */
 public abstract class BuiltinLookup extends Term implements Interfaces.Parent<Term, BuiltinLookup.Children> {
-    /** {@link Term} representation of a key */
+    /**
+     * {@link Term} representation of a key
+     */
     private final Term key;
 
-    /** {@link Variable} representing the set */
+    /**
+     * {@link Variable} representing the set
+     */
     private final Variable base;
 
-    /** {@link Sort} representation of the the kind of the value returned by this lookup */
+    /**
+     * {@link Sort} representation of the the kind of the value returned by this lookup
+     */
     private final Sort kind;
 
-    /** True if the key of this lookup is not determined, and this lookup can choose one */
+    /**
+     * True if the key of this lookup is not determined, and this lookup can choose one
+     */
     private final boolean choice;
 
     public static enum Children {
@@ -51,12 +59,12 @@ public abstract class BuiltinLookup extends Term implements Interfaces.Parent<Te
     @Override
     public Term getChild(Children type) {
         switch (type) {
-            case BASE:
-                return base;
-            case KEY:
-                return key;
-            default:
-                throw new IllegalArgumentException("not a valid child type for class " + getClass().getSimpleName());
+        case BASE:
+            return base;
+        case KEY:
+            return key;
+        default:
+            throw new IllegalArgumentException("not a valid child type for class " + getClass().getSimpleName());
         }
     }
 

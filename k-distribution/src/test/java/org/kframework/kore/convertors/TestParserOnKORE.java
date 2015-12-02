@@ -25,7 +25,9 @@ public class TestParserOnKORE extends BaseTest {
         return "-expected.k";
     }
 
-    @Test @Ignore public void simpleRuleKORE() throws IOException {
+    @Test
+    @Ignore
+    public void simpleRuleKORE() throws IOException {
         outerOnlyTest();
     }
 }

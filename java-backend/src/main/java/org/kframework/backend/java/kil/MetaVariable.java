@@ -10,9 +10,8 @@ import org.kframework.kil.ASTNode;
 /**
  * A meta representation of a variable.
  *
- * @see Variable
- *
  * @author: AndreiS
+ * @see Variable
  */
 public class MetaVariable extends Token {
 

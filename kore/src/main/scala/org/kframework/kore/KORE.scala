@@ -8,21 +8,22 @@ import collection.JavaConverters._
 import collection._
 
 /**
- *
- * Basic implementation of a Constructor of inner KORE classes.
- * It can be used by either creating a KORE object, or by importing
- * the class statically.
- *
- * See the wiki for more details:
- * https://github.com/kframework/k/wiki/KORE-data-structures-guide
- *
- */
+  *
+  * Basic implementation of a Constructor of inner KORE classes.
+  * It can be used by either creating a KORE object, or by importing
+  * the class statically.
+  *
+  * See the wiki for more details:
+  * https://github.com/kframework/k/wiki/KORE-data-structures-guide
+  *
+  */
 object KORE extends Constructors[K] with ScalaSugared[K] {
   val c = KORE
 
   val constructor = this
 
   def Attributes(ks: Set[K]) = attributes.Att(ks.toSeq: _*)
+
   @annotation.varargs def Attributes(ks: K*) = attributes.Att(ks: _*)
 
   def Location(startLine: Int, startColumn: Int, endLine: Int, endColumn: Int) = attributes.Location(startLine,

@@ -12,7 +12,9 @@ import java.lang.annotation.Target;
 
 import com.google.inject.BindingAnnotation;
 
-@BindingAnnotation @Target({ FIELD, PARAMETER, METHOD }) @Retention(RUNTIME)
+@BindingAnnotation
+@Target({FIELD, PARAMETER, METHOD})
+@Retention(RUNTIME)
 public @interface Main {
     Class<? extends Annotation> value() default Main.class;
 }

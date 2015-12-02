@@ -35,7 +35,7 @@ import static scala.compat.java8.JFunction.func;
  * Takes as input a reference to a definition containing all the base syntax of K
  * and uses it to generate a grammar by connecting all users sorts in a lattice with
  * the top sort KItem#Top and the bottom sort KItem#Bottom.
- * <p/>
+ * <p>
  * The instances of the non-terminal KItem is renamed in KItem#Top if found in the right
  * hand side of a production, and into KItem#Bottom if found in the left hand side.
  */
@@ -59,6 +59,7 @@ public class RuleGrammarGenerator {
     private static Set<Sort> kSorts() {
         return java.util.Collections.unmodifiableSet(kSorts);
     }
+
     /// modules that have a meaning:
     public static final String RULE_CELLS = "RULE-CELLS";
     public static final String CONFIG_CELLS = "CONFIG-CELLS";
@@ -72,8 +73,9 @@ public class RuleGrammarGenerator {
 
     /**
      * Initialize a grammar generator.
-     * @param baseK A Definition containing a K module giving the syntax of K itself.
-     *              The default K syntax is defined in include/kast.k.
+     *
+     * @param baseK  A Definition containing a K module giving the syntax of K itself.
+     *               The default K syntax is defined in include/kast.k.
      * @param strict true if the generated parsers should retain inferred variable
      *               sorts as sort predicate in the requires clause.
      */
@@ -90,6 +92,7 @@ public class RuleGrammarGenerator {
     /**
      * Creates the seed module that can be used to parse rules.
      * Imports module markers RULE-CELLS and K found in /include/kast.k.
+     *
      * @param mod The user defined module from which to start.
      * @return a new module which imports the original user module and a set of marker modules.
      */
@@ -102,6 +105,7 @@ public class RuleGrammarGenerator {
     /**
      * Creates the seed module that can be used to parse configurations.
      * Imports module markers CONFIG-CELLS and K found in /include/kast.k.
+     *
      * @param mod The user defined module from which to start.
      * @return a new module which imports the original user module and a set of marker modules.
      */
@@ -114,6 +118,7 @@ public class RuleGrammarGenerator {
     /**
      * Creates the seed module that can be used to parse programs.
      * Imports module markers PROGRAM-LISTS found in /include/kast.k.
+     *
      * @param mod The user defined module from which to start.
      * @return a new module which imports the original user module and a set of marker modules.
      */
@@ -324,9 +329,9 @@ public class RuleGrammarGenerator {
         Set<Sentence> prods = new HashSet<>();
         Att attrs1 = Att().add(Attribute.SORT_KEY, castSort.name());
         prods.add(Production("#SyntacticCast", castSort, Seq(NonTerminal(castSort), Terminal("::" + castSort.name())), attrs1));
-        prods.add(Production("#SemanticCastTo" + castSort.name(),  castSort, Seq(NonTerminal(castSort), Terminal(":"  + castSort.name())), attrs1));
-        prods.add(Production("#InnerCast",     outerSort, Seq(NonTerminal(castSort), Terminal("<:" + castSort.name())), attrs1));
-        prods.add(Production("#OuterCast",     castSort, Seq(NonTerminal(innerSort), Terminal(":>" + castSort.name())), attrs1));
+        prods.add(Production("#SemanticCastTo" + castSort.name(), castSort, Seq(NonTerminal(castSort), Terminal(":" + castSort.name())), attrs1));
+        prods.add(Production("#InnerCast", outerSort, Seq(NonTerminal(castSort), Terminal("<:" + castSort.name())), attrs1));
+        prods.add(Production("#OuterCast", castSort, Seq(NonTerminal(innerSort), Terminal(":>" + castSort.name())), attrs1));
         return prods;
     }
 }

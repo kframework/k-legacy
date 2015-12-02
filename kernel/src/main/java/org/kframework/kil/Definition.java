@@ -19,6 +19,7 @@ import java.util.Map;
 /**
  * Represents a language definition.
  * Includes contents from all {@code required}-d files.
+ *
  * @see DefinitionLoader
  */
 public class Definition extends ASTNode implements Interfaces.MutableList<DefinitionItem, Enum<?>> {
@@ -26,7 +27,9 @@ public class Definition extends ASTNode implements Interfaces.MutableList<Defini
     private List<DefinitionItem> items;
     private File mainFile;
     private String mainModule;
-    /** An index of all modules in {@link #items} by name */
+    /**
+     * An index of all modules in {@link #items} by name
+     */
     private String mainSyntaxModule;
     public Map<String, ASTNode> locations = new HashMap<>();
 

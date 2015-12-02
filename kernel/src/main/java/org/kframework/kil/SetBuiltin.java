@@ -32,7 +32,7 @@ public class SetBuiltin extends CollectionBuiltin {
 
     @Override
     public CollectionBuiltin shallowCopy(Collection<Term> baseTerms,
-            Collection<Term> elements) {
+                                         Collection<Term> elements) {
         return new SetBuiltin(sort(), baseTerms, elements);
     }
 

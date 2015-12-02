@@ -496,7 +496,7 @@ public class SymbolicUnifier extends AbstractUnifier {
             }
 
             Variable frame = cellCollection.hasFrame() ? cellCollection.frame() : null;
-            Variable otherFrame = otherCellCollection.hasFrame()? otherCellCollection.frame() : null;
+            Variable otherFrame = otherCellCollection.hasFrame() ? otherCellCollection.frame() : null;
 
             if (frame != null && otherFrame != null && (numOfDiffCellLabels > 0) && (numOfOtherDiffCellLabels > 0)) {
                 Variable variable = Variable.getAnonVariable(Sort.BAG);
@@ -510,9 +510,9 @@ public class SymbolicUnifier extends AbstractUnifier {
                 assert numOfDiffCellLabels == 0 && numOfOtherDiffCellLabels == 0;
             } else {
                 add(CellCollection.of(getRemainingCellMap(cellCollection, unifiableCellLabels),
-                            frame, cellCollection.cellSort(), definition),
-                    CellCollection.of(getRemainingCellMap(otherCellCollection, unifiableCellLabels),
-                            otherFrame, otherCellCollection.cellSort(), definition));
+                        frame, cellCollection.cellSort(), definition),
+                        CellCollection.of(getRemainingCellMap(otherCellCollection, unifiableCellLabels),
+                                otherFrame, otherCellCollection.cellSort(), definition));
             }
         }
         /* Case 2: both cell collections have explicitly specified starred-cells */
@@ -520,8 +520,8 @@ public class SymbolicUnifier extends AbstractUnifier {
             // TODO(AndreiS): fix this assertions
 
             assert !(cellCollection.hasFrame() && otherCellCollection.hasFrame()) :
-                "Two cell collections both having starred cells in their explicit contents and frames: " +
-                "unable to handle this case at present since it greatly complicates the AC-unification";
+                    "Two cell collections both having starred cells in their explicit contents and frames: " +
+                            "unable to handle this case at present since it greatly complicates the AC-unification";
             if (cellCollection.hasFrame()) {
                 /* swap two cell collections to make sure cellCollection is free of frame */
                 CellCollection tmp = cellCollection;
@@ -637,7 +637,7 @@ public class SymbolicUnifier extends AbstractUnifier {
         assert kCollection.getClass().equals(otherKCollection.getClass());
 
         int length = Math.min(kCollection.concreteSize(), otherKCollection.concreteSize());
-        for(int index = 0; index < length; ++index) {
+        for (int index = 0; index < length; ++index) {
             addUnificationTask(kCollection.get(index), otherKCollection.get(index));
         }
 

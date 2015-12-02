@@ -42,8 +42,7 @@ public enum Kind {
     }
 
     /**
-     * @param sort
-     *            the sort
+     * @param sort the sort
      * @return the kind of the given sort
      */
     public static Kind of(Sort sort) {

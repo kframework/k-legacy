@@ -45,7 +45,7 @@ public abstract class Collection extends Term {
 
     /**
      * @return the frame variable of this {@code Collection} if there is one;
-     *         otherwise, fail the assertion
+     * otherwise, fail the assertion
      */
     public final Variable frame() {
         assert hasFrame();

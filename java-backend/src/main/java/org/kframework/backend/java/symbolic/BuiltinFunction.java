@@ -44,7 +44,7 @@ public class BuiltinFunction {
     /**
      * Constructs a builtin function table mapping KLabels to the methods that implement their builtin
      * functions.
-     *
+     * <p>
      * The "impure" attribute on productions is used to exclude functions from evaluation during compilation,
      * when each rule's right-hand side and condition are partially evaluated. Certain functions, like functions
      * performing I/O operations or meta operations should only be evaluated at runtime.
@@ -94,12 +94,9 @@ public class BuiltinFunction {
     /**
      * Invokes the Java implementation of a builtin (hooked) operation.
      *
-     * @param context
-     *            the {@code TermContext}
-     * @param label
-     *            the corresponding K label of the builtin operation
-     * @param arguments
-     *            the arguments of the builtin operation
+     * @param context   the {@code TermContext}
+     * @param label     the corresponding K label of the builtin operation
+     * @param arguments the arguments of the builtin operation
      * @return the result of the builtin operation if the evaluation succeeds
      * @throws IllegalAccessException
      * @throws IllegalArgumentException
@@ -107,7 +104,7 @@ public class BuiltinFunction {
     // DISABLE EXCEPTION CHECKSTYLE
     public Term invoke(TermContext context, KLabelConstant label, Term... arguments)
             throws Throwable {
-    // ENABLE EXCEPTION CHECKSTYLE
+        // ENABLE EXCEPTION CHECKSTYLE
         Object[] args = Arrays.copyOf(arguments, arguments.length + 1, Object[].class);
         args[arguments.length] = context;
         // TODO(YilongL): is reflection/exception really the best way to
@@ -119,10 +116,9 @@ public class BuiltinFunction {
     /**
      * Checks if the given K label represents a builtin (hooked) operation.
      *
-     * @param label
-     *            the given K label
+     * @param label the given K label
      * @return true if the given K label corresponds to a builtin operation;
-     *         otherwise, false
+     * otherwise, false
      */
     public boolean isBuiltinKLabel(KLabelConstant label) {
         return table.containsKey(label);

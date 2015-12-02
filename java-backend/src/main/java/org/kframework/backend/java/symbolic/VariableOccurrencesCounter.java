@@ -11,7 +11,6 @@ import com.google.common.collect.Multiset;
  * Counts the occurrences of all variables inside a {@link Term}.
  *
  * @author YilongL
- *
  */
 public class VariableOccurrencesCounter extends BottomUpVisitor {
 

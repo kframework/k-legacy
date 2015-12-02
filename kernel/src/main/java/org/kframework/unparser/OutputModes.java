@@ -3,8 +3,8 @@ package org.kframework.unparser;
 
 /**
  * Contains functionality generic to all output modes.
- * @author dwightguth
  *
+ * @author dwightguth
  */
 public enum OutputModes {
     PRETTY, SOUND, KAST, BINARY, NONE

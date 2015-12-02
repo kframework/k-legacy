@@ -22,7 +22,7 @@ public class CombinedLocalTransformer extends LocalTransformer {
         transformers = new ArrayList<>();
     }
 
-    public CombinedLocalTransformer(LocalTransformer ... localTransformers) {
+    public CombinedLocalTransformer(LocalTransformer... localTransformers) {
         this();
         transformers.addAll(Arrays.asList(localTransformers));
     }

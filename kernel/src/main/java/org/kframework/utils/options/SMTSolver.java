@@ -3,8 +3,9 @@ package org.kframework.utils.options;
 
 /**
  * Enum storing information about which SMT solver is being used
- *
+ * <p>
  * TODO(dwightguth): create a proper SMT interface and put this class in that package
+ *
  * @author dwightguth
  */
 public enum SMTSolver {

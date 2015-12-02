@@ -16,7 +16,7 @@ public class BuiltinFloatOperations {
 
     /**
      * Get the {@link BinaryMathContext} object to use to compute the arithmetic operation.
-     *
+     * <p>
      * Currently only floats with the same precision and exponent range can be used in a calculation.
      * Users will have to cast floating point types manually using round() if they wish.
      */
@@ -40,15 +40,15 @@ public class BuiltinFloatOperations {
 
     /**
      * Get the number of bits of exponent to use to compute the arithmetic operation.
-     *
+     * <p>
      * Currently only floats with the same precision and exponent range can be used in a calculation.
      * Users will have to cast floating point types manually using round() if they wish.
      */
     private static int getExponent(FloatToken term1, FloatToken term2) {
         if (term1.exponent() != term2.exponent()) {
             throw new IllegalArgumentException("mismatch exponent: "
-                + "first argument exponent is represented on " + term1.exponent() + " bits "
-                + "while second argument exponent is represented on " + term2.exponent() + "bits");
+                    + "first argument exponent is represented on " + term1.exponent() + " bits "
+                    + "while second argument exponent is represented on " + term2.exponent() + "bits");
         }
         return term1.exponent();
     }
@@ -80,14 +80,14 @@ public class BuiltinFloatOperations {
                 getMathContext(term1, term2)), getExponent(term1, term2));
     }
 
-     public static FloatToken sub(FloatToken term1, FloatToken term2, TermContext context) {
-         return FloatToken.of(term1.bigFloatValue().subtract(term2.bigFloatValue(),
-                 getMathContext(term1, term2)), getExponent(term1, term2));
+    public static FloatToken sub(FloatToken term1, FloatToken term2, TermContext context) {
+        return FloatToken.of(term1.bigFloatValue().subtract(term2.bigFloatValue(),
+                getMathContext(term1, term2)), getExponent(term1, term2));
     }
 
     public static FloatToken mul(FloatToken term1, FloatToken term2, TermContext context) {
-         return FloatToken.of(term1.bigFloatValue().multiply(term2.bigFloatValue(),
-                 getMathContext(term1, term2)), getExponent(term1, term2));
+        return FloatToken.of(term1.bigFloatValue().multiply(term2.bigFloatValue(),
+                getMathContext(term1, term2)), getExponent(term1, term2));
     }
 
     public static FloatToken div(FloatToken term1, FloatToken term2, TermContext context) {
@@ -122,7 +122,7 @@ public class BuiltinFloatOperations {
 
     /**
      * Rounds {@code term} to the specfiied precision and exponent range.
-     *
+     * <p>
      * Method is undefined if either integer is less than 2 because 2 is the minimum precision and exponent.
      * Two exponents must be used to store zero/subnormal/infinity/nan, so 4 is the minimum number of distinct
      * exponents a float can have. MPFR does not support floats with 1 bit of precision.

@@ -10,7 +10,7 @@ trait KLabelMappings {
   lazy val labelsToProductions: Map[kore.KLabel, Set[Production]] =
     sentences collect {
       case prod: Production => (makeKLabel(prod.items), prod)
-    } groupBy (_._1) mapValues (_ map { _._2 })
+    } groupBy (_._1) mapValues (_ map {_._2})
 
   def makeKLabel(items: Seq[ProductionItem]): kore.KLabel = ADT.KLabel(
     items map {

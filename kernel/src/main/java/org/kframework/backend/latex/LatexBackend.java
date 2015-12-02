@@ -37,21 +37,21 @@ public class LatexBackend extends PosterBackend {
         String endl = System.getProperty("line.separator");
 
         LatexFilter lf;
-        if(makeDocument) lf = new DocumentationFilter(context);
+        if (makeDocument) lf = new DocumentationFilter(context);
         else lf = new LatexFilter(context);
         lf.visitNode(javaDef);
 
         files.saveToTemp("k.sty", files.loadFromKBase("include/latex/k.sty"));
 
         String latexified = "\\nonstopmode" + endl +
-                "\\PassOptionsToPackage{pdftex,usenames,dvipsnames,svgnames,x11names}{xcolor}"+ endl +
-                "\\PassOptionsToPackage{pdftex}{hyperref}"+ endl +
+                "\\PassOptionsToPackage{pdftex,usenames,dvipsnames,svgnames,x11names}{xcolor}" + endl +
+                "\\PassOptionsToPackage{pdftex}{hyperref}" + endl +
                 "\\documentclass{article}" + endl + "\\usepackage[" + options.docStyle() + "]{k}" + endl;
         String preamble = lf.getPreamble().toString();
         latexified += preamble + "\\begin{document}" + endl + lf.getResult() + "\\end{document}" + endl;
 
         File canonicalFile = options.mainDefinitionFile();
-        if(makeDocument) latexFilePath = FilenameUtils.removeExtension(canonicalFile.getName()) + "-doc.tex";
+        if (makeDocument) latexFilePath = FilenameUtils.removeExtension(canonicalFile.getName()) + "-doc.tex";
         else latexFilePath = FilenameUtils.removeExtension(canonicalFile.getName()) + ".tex";
         files.saveToTemp(latexFilePath, latexified);
 
@@ -64,8 +64,8 @@ public class LatexBackend extends PosterBackend {
 
     @Override
     public void run(Definition javaDef) {
-            compile(javaDef);
-            files.copyTempFileToDefinitionDirectory("k.sty");
-            files.copyTempFileToDefinitionDirectory(latexFilePath);
+        compile(javaDef);
+        files.copyTempFileToDefinitionDirectory("k.sty");
+        files.copyTempFileToDefinitionDirectory(latexFilePath);
     }
 }

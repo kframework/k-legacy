@@ -50,6 +50,7 @@ public final class GlobalOptions {
         private Warnings(Set<ExceptionType> types) {
             typesIncluded = types;
         }
+
         private Set<ExceptionType> typesIncluded;
 
         public boolean includesExceptionType(ExceptionType e) {
@@ -69,24 +70,24 @@ public final class GlobalOptions {
         }
     }
 
-    @Parameter(names={"--help", "-h"}, description="Print this help message", help = true)
+    @Parameter(names = {"--help", "-h"}, description = "Print this help message", help = true)
     public boolean help = false;
 
-    @Parameter(names={"--help-experimental", "-X"}, description="Print help on non-standard options.", help=true)
+    @Parameter(names = {"--help-experimental", "-X"}, description = "Print help on non-standard options.", help = true)
     public boolean helpExperimental = false;
 
-    @Parameter(names="--version", description="Print version information")
+    @Parameter(names = "--version", description = "Print version information")
     public boolean version = false;
 
-    @Parameter(names={"--verbose", "-v"}, description="Print verbose output messages")
+    @Parameter(names = {"--verbose", "-v"}, description = "Print verbose output messages")
     public boolean verbose = false;
 
-    @Parameter(names="--debug", description="Print debugging output messages")
+    @Parameter(names = "--debug", description = "Print debugging output messages")
     public boolean debug = false;
 
-    @Parameter(names={"--warnings", "-w"}, converter=WarningsConverter.class, description="Warning level. Values: [all|normal|none]")
+    @Parameter(names = {"--warnings", "-w"}, converter = WarningsConverter.class, description = "Warning level. Values: [all|normal|none]")
     public Warnings warnings = Warnings.NORMAL;
 
-    @Parameter(names={"--warnings-to-errors", "-w2e"}, description="Convert warnings to errors.")
+    @Parameter(names = {"--warnings-to-errors", "-w2e"}, description = "Convert warnings to errors.")
     public boolean warnings2errors = false;
 }

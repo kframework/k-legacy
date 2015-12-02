@@ -19,7 +19,7 @@ public class ListBuiltin extends CollectionBuiltin {
     private final List<Term> elementsRight;
 
     private ListBuiltin(DataStructureSort sort, List<Term> baseTerms, List<Term> elementsLeft,
-                       List<Term> elementsRight) {
+                        List<Term> elementsRight) {
         super(sort, baseTerms, elementsLeft);
         this.elementsRight = elementsRight;
     }
@@ -44,17 +44,17 @@ public class ListBuiltin extends CollectionBuiltin {
 
     @Override
     public DataStructureBuiltin shallowCopy(Collection<Term> terms) {
-        return ListBuiltin.of(sort(), (List<Term>)terms, elementsLeft(), elementsRight());
+        return ListBuiltin.of(sort(), (List<Term>) terms, elementsLeft(), elementsRight());
     }
 
     @Override
     public CollectionBuiltin shallowCopy(Collection<Term> terms,
-            Collection<Term> elements) {
-        return ListBuiltin.of(sort(), (List<Term>)terms, (List<Term>)elements, elementsRight());
+                                         Collection<Term> elements) {
+        return ListBuiltin.of(sort(), (List<Term>) terms, (List<Term>) elements, elementsRight());
     }
 
     public static ListBuiltin of(DataStructureSort sort, List<Term> terms, List<Term> elementsLeft,
-                       List<Term> elementsRight) {
+                                 List<Term> elementsRight) {
         ArrayList<Term> left = new ArrayList<Term>(elementsLeft);
         ArrayList<Term> base = new ArrayList<Term>();
         ArrayList<Term> right = new ArrayList<Term>();
@@ -92,10 +92,10 @@ public class ListBuiltin extends CollectionBuiltin {
     @Override
     public Collection<Term> getChildren(DataStructureBuiltin.ListChildren type) {
         switch (type) {
-            case ELEMENTS_RIGHT:
-                return elementsRight;
-            default:
-                return super.getChildren(type);
+        case ELEMENTS_RIGHT:
+            return elementsRight;
+        default:
+            return super.getChildren(type);
         }
     }
 

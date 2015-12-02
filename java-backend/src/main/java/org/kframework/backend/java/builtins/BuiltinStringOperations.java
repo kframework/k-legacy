@@ -138,26 +138,27 @@ public class BuiltinStringOperations {
     public static StringToken int2string(IntToken term, TermContext context) {
         return StringToken.of(term.bigIntegerValue().toString());
     }
-/*
-    // when we support java 7
-    public static StringToken name(StringToken term) {
-        if (term.stringValue().codePointCount(0, term.stringValue().length()) != 1) {
-            throw new IllegalArgumentException();
+
+    /*
+        // when we support java 7
+        public static StringToken name(StringToken term) {
+            if (term.stringValue().codePointCount(0, term.stringValue().length()) != 1) {
+                throw new IllegalArgumentException();
+            }
+            String name = Character.getName(term.stringValue().codePointAt(0));
+            if (name == null) {
+                throw new IllegalArgumentExceptino();
+            }
+            return StringToken.of(name);
         }
-        String name = Character.getName(term.stringValue().codePointAt(0));
-        if (name == null) {
-            throw new IllegalArgumentExceptino();
-        }
-        return StringToken.of(name);
-    }
-*/
+    */
     public static StringToken category(StringToken term, TermContext context) {
         if (term.stringValue().codePointCount(0, term.stringValue().length()) != 1) {
             throw new IllegalArgumentException();
         }
         int cat = Character.getType(term.stringValue().codePointAt(0));
         assert cat >= 0 && cat < 128 : "not a byte???";
-        return StringToken.of(StringUtil.getCategoryCode((byte)cat));
+        return StringToken.of(StringUtil.getCategoryCode((byte) cat));
     }
 
     public static StringToken directionality(StringToken term, TermContext context) {
@@ -179,19 +180,15 @@ public class BuiltinStringOperations {
     /**
      * Replaces all occurrences of a string within another string.
      *
-     * @param text
-     *            the string to search and replace in
-     * @param search
-     *            the string to search for
-     * @param replacement
-     *            the string to replace it with
-     * @param context
-     *            the term context
+     * @param text        the string to search and replace in
+     * @param search      the string to search for
+     * @param replacement the string to replace it with
+     * @param context     the term context
      * @return the text with any replacements processed
      */
     public static StringToken replaceAll(StringToken text,
-            StringToken searchString, StringToken replacement,
-            TermContext context) {
+                                         StringToken searchString, StringToken replacement,
+                                         TermContext context) {
         return StringToken.of(StringUtils.replace(text.stringValue(),
                 searchString.stringValue(), replacement.stringValue()));
     }
@@ -200,21 +197,16 @@ public class BuiltinStringOperations {
      * Replaces all occurrences of a string within another string, for the first
      * max values of the search string.
      *
-     * @param text
-     *            the string to search and replace in
-     * @param search
-     *            the string to search for
-     * @param replacement
-     *            the string to replace it with
-     * @param max
-     *            the maximum number of occurrences to be replaced
-     * @param context
-     *            the term context
+     * @param text        the string to search and replace in
+     * @param search      the string to search for
+     * @param replacement the string to replace it with
+     * @param max         the maximum number of occurrences to be replaced
+     * @param context     the term context
      * @return the text with any replacements processed
      */
     public static StringToken replace(StringToken text,
-            StringToken searchString, StringToken replacement, IntToken max,
-            TermContext context) {
+                                      StringToken searchString, StringToken replacement, IntToken max,
+                                      TermContext context) {
         return StringToken.of(StringUtils.replace(text.stringValue(),
                 searchString.stringValue(), replacement.stringValue(),
                 max.intValue()));
@@ -223,19 +215,15 @@ public class BuiltinStringOperations {
     /**
      * Replaces the first occurrence of a string within another string.
      *
-     * @param text
-     *            the string to search and replace in
-     * @param search
-     *            the string to search for
-     * @param replacement
-     *            the string to replace it with
-     * @param context
-     *            the term context
+     * @param text        the string to search and replace in
+     * @param search      the string to search for
+     * @param replacement the string to replace it with
+     * @param context     the term context
      * @return the text with any replacements processed
      */
     public static StringToken replaceFirst(StringToken text,
-            StringToken searchString, StringToken replacement,
-            TermContext context) {
+                                           StringToken searchString, StringToken replacement,
+                                           TermContext context) {
         return StringToken.of(StringUtils.replaceOnce(text.stringValue(),
                 searchString.stringValue(), replacement.stringValue()));
     }
@@ -243,16 +231,13 @@ public class BuiltinStringOperations {
     /**
      * Counts how many times the substring appears in another string.
      *
-     * @param text
-     *            the string to search in
-     * @param substr
-     *            the substring to search for
-     * @param context
-     *            the term context
+     * @param text    the string to search in
+     * @param substr  the substring to search for
+     * @param context the term context
      * @return the number of occurrences
      */
     public static IntToken countOccurences(StringToken text,
-            StringToken substr, TermContext context) {
+                                           StringToken substr, TermContext context) {
         return IntToken.of(StringUtils.countMatches(text.stringValue(),
                 substr.stringValue()));
     }

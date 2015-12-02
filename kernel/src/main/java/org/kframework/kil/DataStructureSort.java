@@ -28,9 +28,11 @@ import java.util.Map;
  */
 public class DataStructureSort implements Serializable {
 
-    public enum Label { CONSTRUCTOR, ELEMENT, UNIT }
+    public enum Label {CONSTRUCTOR, ELEMENT, UNIT}
 
-    /** {@code Set} of builtin data structure types */
+    /**
+     * {@code Set} of builtin data structure types
+     */
     public static final java.util.Set<Sort> TYPES = ImmutableSet.of(
             Sort.BAG,
             Sort.LIST,
@@ -74,17 +76,29 @@ public class DataStructureSort implements Serializable {
     public static final String DEFAULT_SET_ITEM_LABEL = "'SetItem";
     public static final String DEFAULT_SET_UNIT_LABEL = "'.Set";
 
-    /** Name of this data structure sort. */
+    /**
+     * Name of this data structure sort.
+     */
     private final String name;
-    /** Type of the builtin data structure this sort is hooked to (an element of {@code TYPES}). */
+    /**
+     * Type of the builtin data structure this sort is hooked to (an element of {@code TYPES}).
+     */
     private final Sort type;
-    /** {@code String} representation of the data structure constructor KLabel. */
+    /**
+     * {@code String} representation of the data structure constructor KLabel.
+     */
     private final String constructorLabel;
-    /** {@code String} representation of the data structure element KLabel*/
+    /**
+     * {@code String} representation of the data structure element KLabel
+     */
     private final String elementLabel;
-    /** {@code String} representation of the empty data structure KLabel. */
+    /**
+     * {@code String} representation of the empty data structure KLabel.
+     */
     private final String unitLabel;
-    /** {@code Map} of the remaining KLabels hooked to to builtin operations */
+    /**
+     * {@code Map} of the remaining KLabels hooked to to builtin operations
+     */
     private final ImmutableMap<String, String> operatorLabels;
 
     public DataStructureSort(
@@ -94,7 +108,7 @@ public class DataStructureSort implements Serializable {
             String elementLabel,
             String unitLabel,
             Map<String, String> operatorLabels) {
-        assert TYPES.contains(type): "unknown builtin collection type " + type;
+        assert TYPES.contains(type) : "unknown builtin collection type " + type;
 
         this.name = name;
         this.type = type;
@@ -156,7 +170,7 @@ public class DataStructureSort implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof DataStructureSort)) return false;
-        DataStructureSort ds = (DataStructureSort)o;
+        DataStructureSort ds = (DataStructureSort) o;
         return ds.name.equals(name) && ds.type.equals(type) && ds.unitLabel.equals(unitLabel) && ds.constructorLabel.equals(constructorLabel) && ds.elementLabel.equals(elementLabel) && ds.operatorLabels.equals(operatorLabels);
     }
 

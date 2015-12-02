@@ -3,7 +3,7 @@ package org.kframework.krun.api;
 
 /**
  * Marker interface for a class returned by the KRun API.
- * @author dwightguth
  *
+ * @author dwightguth
  */
 public interface KRunResult {}

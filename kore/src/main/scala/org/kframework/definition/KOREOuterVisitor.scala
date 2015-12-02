@@ -20,16 +20,27 @@ trait KOREOuterTransformer[T] extends ((OuterKORE) => T) with java.util.function
   }
 
   def apply(d: Definition): T
+
   def apply(m: Module): T
+
   def apply(nt: NonTerminal): T
+
   def apply(t: Terminal): T
+
   def apply(rt: RegexTerminal): T
+
   def apply(t: Tag): T
+
   def apply(c: Context): T
+
   def apply(s: SyntaxSort): T
+
   def apply(s: SyntaxPriority): T
+
   def apply(s: SyntaxAssociativity): T
+
   def apply(r: Rule): T
+
   def apply(c: ModuleComment): T
 
 }
@@ -43,4 +54,5 @@ trait KOREOuterVisitor extends KOREOuterTransformer[Nothing] {
 /* Java interfaces */
 
 abstract class AbstractKOREOuterTransformer[T] extends KOREOuterTransformer[T]
+
 abstract class AbstractKOREOuterVisitor extends KOREOuterVisitor

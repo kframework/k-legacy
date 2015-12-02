@@ -8,9 +8,13 @@ case class Foo(bar: Int = 6, buz: String)(zzz: String = "foo") {
 
 case class Bar(x: Int, y: String = "foo") {
   def buz(x: Any) = "any"
+
   def buz(x: Int) = "int"
+
   def buz(s: String) = "string"
+
   def buz(n: Number) = "number"
+
   def buz(s: Int, v: Int) = "intint"
 }
 

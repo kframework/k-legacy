@@ -23,7 +23,7 @@ import static org.kframework.kore.KORE.*;
 @RequestScoped
 public final class KastOptions {
 
-    @Parameter(description="<file>")
+    @Parameter(description = "<file>")
     private List<String> parameters;
 
     public Reader stringToParse() {
@@ -52,6 +52,7 @@ public final class KastOptions {
     /**
      * Get the source of the string to parse. This method is undefined if it is called before calling
      * {@link #stringToParse()}.
+     *
      * @return A textual description of the source of the string to parse.
      */
     public Source source() {
@@ -68,11 +69,11 @@ public final class KastOptions {
     @ParametersDelegate
     public DefinitionLoadingOptions definitionLoading = new DefinitionLoadingOptions();
 
-    @Parameter(names={"--expression", "-e"}, description="An expression to parse passed on the command " +
-    "line. It is an error to provide both this option and a file to parse.")
+    @Parameter(names = {"--expression", "-e"}, description = "An expression to parse passed on the command " +
+            "line. It is an error to provide both this option and a file to parse.")
     private String expression;
 
-    @Parameter(names={"--sort", "-s"}, converter=SortTypeConverter.class, description="The start sort for the default parser. " +
+    @Parameter(names = {"--sort", "-s"}, converter = SortTypeConverter.class, description = "The start sort for the default parser. " +
             "The default is the sort of $PGM from the configuration. A sort may also be specified " +
             "with the 'KRUN_SORT' environment variable, in which case it is used if the option is " +
             "not specified on the command line.")
@@ -86,7 +87,7 @@ public final class KastOptions {
         }
     }
 
-    @Parameter(names={"--module", "-m"}, description="Parse text in the specified module. Defaults to the syntax module of the definition.")
+    @Parameter(names = {"--module", "-m"}, description = "Parse text in the specified module. Defaults to the syntax module of the definition.")
     public String module;
 
     @ParametersDelegate

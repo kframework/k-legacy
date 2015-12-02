@@ -36,15 +36,15 @@ public class AddParentsCellsTest {
         addCell("MsgCell", "MsgIdCell", "<msgId>");
     }};
     final LabelInfo labelInfo = new LabelInfo() {{
-        addLabel("TCell","<T>");
-        addLabel("TSCell","<ts>");
-        addLabel("tCell","<t>");
-        addLabel("StateCell","<state>");
-        addLabel("SchedulerCell","<scheduler>");
-        addLabel("KCell","<k>");
-        addLabel("EnvCell","<env>");
-        addLabel("MsgCell","<msg>");
-        addLabel("MsgIdCell","<msgId>");
+        addLabel("TCell", "<T>");
+        addLabel("TSCell", "<ts>");
+        addLabel("tCell", "<t>");
+        addLabel("StateCell", "<state>");
+        addLabel("SchedulerCell", "<scheduler>");
+        addLabel("KCell", "<k>");
+        addLabel("EnvCell", "<env>");
+        addLabel("MsgCell", "<msg>");
+        addLabel("MsgIdCell", "<msgId>");
     }};
     final AddParentCells pass = new AddParentCells(cfgInfo, labelInfo);
 
@@ -150,11 +150,11 @@ public class AddParentsCellsTest {
     @Test
     public void testThreeRewritesSplit() {
         K term = cell("<T>",
-                KRewrite(cells(cell("<k>"),cell("<env>")), cells()),
+                KRewrite(cells(cell("<k>"), cell("<env>")), cells()),
                 KRewrite(cell("<env>"), cell("<k>")),
                 KRewrite(cell("<k>"), cell("<k>")));
         K expected = cell("<T>", cell("<ts>",
-                cell("<t>", KRewrite(cells(cell("<k>"),cell("<env>")), cells())),
+                cell("<t>", KRewrite(cells(cell("<k>"), cell("<env>")), cells())),
                 cell("<t>", KRewrite(cell("<env>"), cell("<k>"))),
                 cell("<t>", KRewrite(cell("<k>"), cell("<k>")))));
         Assert.assertEquals(expected, pass.concretizeCell(term));
@@ -171,9 +171,9 @@ public class AddParentsCellsTest {
 
     @Test
     public void testDotsTogether() {
-        K term = cell("<ts>", true, false, cell("<k>", intToToken(0)), cell("<env>",intToToken(2)));
+        K term = cell("<ts>", true, false, cell("<k>", intToToken(0)), cell("<env>", intToToken(2)));
         K expected = cell("<ts>", true, true, cell("<t>", true, true,
-                cell("<k>", intToToken(0)), cell("<env>",intToToken(2))));
+                cell("<k>", intToToken(0)), cell("<env>", intToToken(2))));
         Assert.assertEquals(expected, pass.concretizeCell(term));
     }
 
@@ -186,13 +186,13 @@ public class AddParentsCellsTest {
                 cell("<msgId>", intToToken(4)),
                 cell("<msgId>", intToToken(5)),
                 cell("<t>", cell("<k>", intToToken(6))));
-        K expected = cell("<T>",cell("<ts>",
+        K expected = cell("<T>", cell("<ts>",
                 cell("<t>", cell("<msg>", intToToken(0)), cell("<msg>", cell("<msgId>", intToToken(1)))),
                 cell("<t>", cell("<k>", intToToken(6))),
                 cell("<t>", cell("<k>", intToToken(2)), cell("<env>", intToToken(3)),
-                    cell("<msg>", cell("<msgId>", intToToken(4))),
-                    cell("<msg>", cell("<msgId>", intToToken(5))))
-                ));
+                        cell("<msg>", cell("<msgId>", intToToken(4))),
+                        cell("<msg>", cell("<msgId>", intToToken(5))))
+        ));
         Assert.assertEquals(expected, pass.concretize(term));
 
     }
@@ -210,14 +210,14 @@ public class AddParentsCellsTest {
 
     @Test
     public void testNonCellItem() {
-        K term = cell("<T>", KApply(KLabel(".K")), cell("<k>",KVariable("X")));
-        K expected = cell("<T>",cells(KApply(KLabel(".K")), cell("<ts>", cell("<t>", cell("<k>", KVariable("X"))))));
+        K term = cell("<T>", KApply(KLabel(".K")), cell("<k>", KVariable("X")));
+        K expected = cell("<T>", cells(KApply(KLabel(".K")), cell("<ts>", cell("<t>", cell("<k>", KVariable("X"))))));
         Assert.assertEquals(expected, pass.concretize(term));
     }
 
     @Test
     public void testNonCellItemRewrite() {
-        K term = cell("<T>", KRewrite(KApply(KLabel("label")),cells(KApply(KLabel(".K")), cell("<k>",KVariable("X")))));
+        K term = cell("<T>", KRewrite(KApply(KLabel("label")), cells(KApply(KLabel(".K")), cell("<k>", KVariable("X")))));
         exception.expect(KEMException.class);
         exception.expectMessage("Can't mix items with different parent cells under a rewrite");
         pass.concretize(term);
@@ -226,6 +226,7 @@ public class AddParentsCellsTest {
     KApply cell(String name, K... ks) {
         return cell(name, false, false, ks);
     }
+
     KApply cell(String name, boolean openLeft, boolean openRight, K... ks) {
         return IncompleteCellUtils.make(KLabel(name), openLeft, Arrays.asList(ks), openRight);
     }

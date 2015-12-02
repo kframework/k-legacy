@@ -62,6 +62,7 @@ public class GlobalContext implements Serializable {
     }
 
     private transient BuiltinFunction builtinFunction;
+
     private BuiltinFunction builtins() {
         BuiltinFunction b = builtinFunction;
         if (b == null) {

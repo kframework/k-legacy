@@ -34,12 +34,12 @@ class TestMeta {
   val m = Module("TEST", Set(), Set(Production("Foo", Sort("Foo"), Seq(Terminal("Bar", Seq())))))
   val d = Definition(m, m, Set(m))
 
-  val metamodule = 'Module("TEST", 'Set(),
-    'Set('Production("Foo", 'Sort("Foo"), 'List('Terminal("Bar")))))
+  val metamodule = 'Module ("TEST", 'Set (),
+    'Set ('Production ("Foo", 'Sort ("Foo"), 'List ('Terminal ("Bar")))))
 
-  val metad = 'Definition(metamodule, metamodule,
-    'Set(metamodule),
-    'Att('Set()))
+  val metad = 'Definition (metamodule, metamodule,
+    'Set (metamodule),
+    'Att ('Set ()))
 
 
   @Ignore
@@ -62,9 +62,9 @@ class TestMeta {
   @Test def location(): Unit = {
     val imports = Set("org.kframework.attributes")
     val down = Down(imports)
-    assertEquals(Location(1, 2, 3, 4), down('Location(1, 2, 3, 4)))
+    assertEquals(Location(1, 2, 3, 4), down('Location (1, 2, 3, 4)))
     val up = new Up(KORE, imports)
-    assertEquals('Location(1, 2, 3, 4), up(Location(1, 2, 3, 4)))
+    assertEquals('Location (1, 2, 3, 4), up(Location(1, 2, 3, 4)))
   }
 
   @Test def upDownSort(): Unit = {
@@ -85,8 +85,8 @@ class TestMeta {
   }
 
   @Test def upDownList: Unit = {
-    assertEquals('List(), up(List()))
-    assertEquals(List(), down('List()))
+    assertEquals('List (), up(List()))
+    assertEquals(List(), down('List ()))
   }
 
   @Test def upDownProduction: Unit = {

@@ -14,13 +14,19 @@ import java.util.Map;
  */
 public class MapUpdate extends Term {
 
-    /** {@link Variable} name of the map */
+    /**
+     * {@link Variable} name of the map
+     */
     private final Variable map;
 
-    /** {@code Map} of entries to be removed from the map */
-    private final  Map<Term, Term> removeEntries;
+    /**
+     * {@code Map} of entries to be removed from the map
+     */
+    private final Map<Term, Term> removeEntries;
 
-    /** {@code Map} of entries to be updated in the map */
+    /**
+     * {@code Map} of entries to be updated in the map
+     */
     private final Map<Term, Term> updateEntries;
 
 
@@ -39,7 +45,7 @@ public class MapUpdate extends Term {
         return Collections.unmodifiableMap(removeEntries);
     }
 
-    public Map<Term, Term> updateEntries(){
+    public Map<Term, Term> updateEntries() {
         return Collections.unmodifiableMap(updateEntries);
     }
 
@@ -69,7 +75,7 @@ public class MapUpdate extends Term {
 
         MapUpdate mapUpdate = (MapUpdate) object;
         return map.equals(mapUpdate.map) && removeEntries.equals(mapUpdate.removeEntries)
-               && updateEntries.equals(mapUpdate.updateEntries);
+                && updateEntries.equals(mapUpdate.updateEntries);
     }
 
     @Override

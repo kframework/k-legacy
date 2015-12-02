@@ -28,7 +28,7 @@ public class KApp extends Term implements Interfaces.MutableParent<Term, KApp.Ch
     /**
      * Constructs the application of the given KLabel to a KList with the given elements.
      *
-     * @param label the KLabel which is applied to a KList with the given elements. A non-null instance of {@link KLabel}, {@link Variable} of sort KLabel or {@link Ambiguity}.
+     * @param label    the KLabel which is applied to a KList with the given elements. A non-null instance of {@link KLabel}, {@link Variable} of sort KLabel or {@link Ambiguity}.
      * @param elements the elements of the KList.
      * @return a {@link KApp} which represents the application of the given KLabel to a KList with the given elements.
      */
@@ -37,19 +37,19 @@ public class KApp extends Term implements Interfaces.MutableParent<Term, KApp.Ch
     }
 
     public static KApp of(Location location, Source source,
-            String label, Term... elements) {
+                          String label, Term... elements) {
         return KApp.of(location, source, KLabelConstant.of(label), elements);
     }
 
     public static KApp of(Location location, Source source,
-            Term label, Term... elements) {
+                          Term label, Term... elements) {
         return new KApp(location, source, label, new KList(Arrays.asList(elements)));
     }
 
     /**
      * Constructs the application of the given KLabel to a KList with the given elements.
      *
-     * @param label the string of a KLabelConstant which is applied to a KList with the given elements.
+     * @param label    the string of a KLabelConstant which is applied to a KList with the given elements.
      * @param elements the elements of the KList.
      * @return a {@link KApp} which represents the application of the given KLabel to a KList with the given elements.
      */
@@ -66,8 +66,8 @@ public class KApp extends Term implements Interfaces.MutableParent<Term, KApp.Ch
      *
      * @param location the line and column
      * @param filename the complete name of the file
-     * @param label the KLabel which is applied to the given KList. A non-null instance of {@link KLabel}, {@link Variable} of sort KLabel or {@link Ambiguity}.
-     * @param child the KList which the given KLabel is applied to. A non-null instance of {@link KList}, {@link Variable} of sort KList, or {@link Ambiguity}.
+     * @param label    the KLabel which is applied to the given KList. A non-null instance of {@link KLabel}, {@link Variable} of sort KLabel or {@link Ambiguity}.
+     * @param child    the KList which the given KLabel is applied to. A non-null instance of {@link KList}, {@link Variable} of sort KList, or {@link Ambiguity}.
      */
     public KApp(Location location, Source source, Term label, Term child) {
         super(location, source, Sort.KITEM);
@@ -179,26 +179,26 @@ public class KApp extends Term implements Interfaces.MutableParent<Term, KApp.Ch
     @Override
     public Term getChild(Children type) {
         switch (type) {
-            case LABEL:
-                return label;
-            case CHILD:
-                return child;
-            default:
-                throw new AssertionError("unreachable");
+        case LABEL:
+            return label;
+        case CHILD:
+            return child;
+        default:
+            throw new AssertionError("unreachable");
         }
     }
 
     @Override
     public void setChild(Term child, Children type) {
         switch (type) {
-            case LABEL:
-                this.label = child;
-                break;
-            case CHILD:
-                this.child = child;
-                break;
-            default:
-                throw new AssertionError("unreachable");
+        case LABEL:
+            this.label = child;
+            break;
+        case CHILD:
+            this.child = child;
+            break;
+        default:
+            throw new AssertionError("unreachable");
         }
     }
 }

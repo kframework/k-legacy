@@ -7,7 +7,7 @@ import org.kframework.kore.K;
 
 /**
  * Created by Manasvi on 6/16/15.
- *
+ * <p>
  * Interface for KRun Execution Modes.
  */
 public interface ExecutionMode<T> {

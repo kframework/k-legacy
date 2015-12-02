@@ -44,6 +44,7 @@ public final class StringToken extends Token implements MaximalSharing {
      * value. The {@code StringToken} instances are cached to ensure uniqueness
      * (subsequent invocations of this method with the same {@code String}
      * value return the same {@code StringToken} object).
+     *
      * @param value A UTF-16 representation of this sequence of code points.
      */
     public static StringToken of(String value) {
@@ -54,6 +55,7 @@ public final class StringToken extends Token implements MaximalSharing {
      * Returns a {@code StringToklen} representation of a given {@code byte[]} value. This value is
      * interpreted as a sequence of code points in the Latin-1 Unicode block according to the
      * ISO-8859-1 encoding.
+     *
      * @param value A Latin-1 representation of the sequence of code points.
      */
     public static StringToken of(byte[] value) {
@@ -75,14 +77,15 @@ public final class StringToken extends Token implements MaximalSharing {
 
     /**
      * Returns a {@code byte[]} representation of the interpreted value of this StringToken.
+     *
      * @throws CharacterCodingException Thrown if the String is not a valid sequence of code points
-     * in the 0-255 range.
+     *                                  in the 0-255 range.
      */
     public byte[] byteArrayValue() throws CharacterCodingException {
         ByteBuffer buffer = Charset.forName("ISO-8859-1")
-            .newEncoder()
-            .onUnmappableCharacter(CodingErrorAction.REPORT)
-            .encode(CharBuffer.wrap(value));
+                .newEncoder()
+                .onUnmappableCharacter(CodingErrorAction.REPORT)
+                .encode(CharBuffer.wrap(value));
         byte[] bytes = new byte[buffer.remaining()];
         buffer.get(bytes);
         return bytes;

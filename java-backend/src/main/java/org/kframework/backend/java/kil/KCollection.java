@@ -30,8 +30,7 @@ public abstract class KCollection extends Collection implements Iterable<Term>, 
      * Returns a view of the fragment of this {@code KCollection} that starts
      * from the specified {@code fromIndex}.
      *
-     * @param fromIndex
-     *            the start index of the fragment
+     * @param fromIndex the start index of the fragment
      * @return a view of the specified fragment
      */
     public abstract Term fragment(int fromIndex);
@@ -41,6 +40,7 @@ public abstract class KCollection extends Collection implements Iterable<Term>, 
     }
 
     public abstract String getSeparatorName();
+
     public abstract String getIdentityName();
 
     public abstract List<Term> getContents();
@@ -53,8 +53,8 @@ public abstract class KCollection extends Collection implements Iterable<Term>, 
     /**
      * Returns the size of the contents of this {@code KCollection}.
      *
-     * @see {@link KCollection#contents}
      * @return the size of the contents
+     * @see {@link KCollection#contents}
      */
     @Override
     public final int concreteSize() {
@@ -126,10 +126,8 @@ public abstract class KCollection extends Collection implements Iterable<Term>, 
      * {@code KSequence} and, similarly, a {@code KSequence} can be promoted to
      * a single-element {@code KList}.
      *
-     * @param term
-     *            the given term to be promoted
-     * @param kind
-     *            the target kind that the term is to be promoted to
+     * @param term the given term to be promoted
+     * @param kind the target kind that the term is to be promoted to
      * @return the resulting term after kind promotion
      */
     public static Term upKind(Term term, Kind kind) {
@@ -163,8 +161,7 @@ public abstract class KCollection extends Collection implements Iterable<Term>, 
      * {@code KSequence} and, similarly, a single-element {@code KSequence} can
      * be degraded to a {@code KItem}.
      *
-     * @param term
-     *            the given term to be degraded
+     * @param term the given term to be degraded
      * @return the resulting term after kind degradation
      */
     public static Term downKind(Term term) {

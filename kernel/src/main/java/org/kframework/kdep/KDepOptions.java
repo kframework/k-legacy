@@ -22,7 +22,7 @@ import java.util.List;
 @RequestScoped
 public class KDepOptions {
 
-    @Parameter(description="<file>")
+    @Parameter(description = "<file>")
     private List<String> parameters;
 
     private File mainDefinitionFile;
@@ -47,13 +47,13 @@ public class KDepOptions {
     @ParametersDelegate
     public transient GlobalOptions global = new GlobalOptions();
 
-    @Parameter(names={"--directory", "-d"}, description="Path to the directory in which the output resides. An output can be either a kompiled K definition or a document which depends on the type of backend. The default is the directory containing the main definition file.")
+    @Parameter(names = {"--directory", "-d"}, description = "Path to the directory in which the output resides. An output can be either a kompiled K definition or a document which depends on the type of backend. The default is the directory containing the main definition file.")
     public String directory;
 
-    @Parameter(names="-I", description="Add a directory to the search path for requires statements.", variableArity = true)
+    @Parameter(names = "-I", description = "Add a directory to the search path for requires statements.", variableArity = true)
     public List<String> includes = new ArrayList<>();
 
-    @Parameter(names="--no-prelude", description="Do not implicitly require prelude.k.")
+    @Parameter(names = "--no-prelude", description = "Do not implicitly require prelude.k.")
     public boolean noPrelude = false;
 
 }

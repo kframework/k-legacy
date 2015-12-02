@@ -151,8 +151,7 @@ public class ParserUtils {
                             definitionFile.get(),
                             definitionFile.get().getParentFile(),
                             lookupDirectories));
-                }
-                else
+                } else
                     throw KExceptionManager.criticalError("Could not find file: " +
                             definitionFileName + "\nLookup directories:" + allLookupDirectoris, di);
             }

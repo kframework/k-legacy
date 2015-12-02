@@ -10,11 +10,11 @@ import org.kframework.kil.loader.Context;
 /**
  * A helper class designed to encapsulate functionality shared between
  * {@link LocalTransformer}, {@link ParseForestTransformer}, and {@link CopyOnWriteTransformer}.
- *
+ * <p>
  * This class serves to replace the Transformable interface that existed before, and implements
  * functionality specific to visitors which transform terms.
- * @author dwightguth
  *
+ * @author dwightguth
  */
 public abstract class AbstractTransformer<E extends Throwable> extends AbstractVisitor<Void, ASTNode, E> {
 
@@ -35,7 +35,7 @@ public abstract class AbstractTransformer<E extends Throwable> extends AbstractV
     @SuppressWarnings("unchecked")
     @Override
     public <T extends ASTNode> T processChildTerm(T child, ASTNode childResult) {
-        return (T)childResult;
+        return (T) childResult;
     }
 
     @Override

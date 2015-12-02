@@ -7,21 +7,25 @@ import com.google.common.collect.HashBiMap;
 import java.util.Map;
 import java.util.Set;
 
-/** A BiMap in which values are automatically added to the map
+/**
+ * A BiMap in which values are automatically added to the map
  * if one doesn't already exist. In other words, it is a BiMap
  * that autovivifies.
- * @param <K>    The type of the key
- * @param <V>    The type of the value
+ *
+ * @param <K> The type of the key
+ * @param <V> The type of the value
  */
-public class AutoVivifyingBiMap<K extends AutoVivifyingBiMap.Create<V>,V> {
+public class AutoVivifyingBiMap<K extends AutoVivifyingBiMap.Create<V>, V> {
     /**
      * An interface that K must implement so AutoVivifyingBiMap knows
      * how to crate a V for a given K
+     *
      * @param <C>
      */
     public interface Create<C> {
         /**
          * Creates a default C
+         *
          * @return The newly created C
          */
         C create();
@@ -29,9 +33,10 @@ public class AutoVivifyingBiMap<K extends AutoVivifyingBiMap.Create<V>,V> {
 
     private BiMap<K, V> map = HashBiMap.create();
 
-    /** Retrieves the V associated with a given K.
+    /**
+     * Retrieves the V associated with a given K.
      * Creates a new one if one doesn't exist yet.
-     *
+     * <p>
      * NOTE: We would prefer for this to conform to the java.util.Map interface
      * but that interface requires get() to take an Object as instance and
      * then check that the object is an instance of the right class.
@@ -39,7 +44,7 @@ public class AutoVivifyingBiMap<K extends AutoVivifyingBiMap.Create<V>,V> {
      * is generic and Java doesn't allow 'instanceof' on generic parameters.
      * Sigh ... Java fails us yet another time.
      *
-     * @param key    The key to lookup
+     * @param key The key to lookup
      * @return The value that key maps to
      */
     public V get(K key) {
@@ -53,6 +58,7 @@ public class AutoVivifyingBiMap<K extends AutoVivifyingBiMap.Create<V>,V> {
 
     /**
      * Returns the set of keys that have already been autovivified.
+     *
      * @return The set of keys that have already been autovivified
      */
     public Set<K> keySet() { return map.keySet(); }

@@ -38,34 +38,34 @@ public class DefinitionScope implements Scope {
     public <T> Provider<T> scope(Key<T> key, Provider<T> unscoped) {
         return new Provider<T>() {
             public T get() {
-              Map<Key<?>, Object> scopedObjects = getScopedObjectMap(key);
+                Map<Key<?>, Object> scopedObjects = getScopedObjectMap(key);
 
-              synchronized(scopedObjects) {
-                  @SuppressWarnings("unchecked")
-                  T current = (T) scopedObjects.get(key);
-                  if (current == null && !scopedObjects.containsKey(key)) {
-                    current = unscoped.get();
+                synchronized (scopedObjects) {
+                    @SuppressWarnings("unchecked")
+                    T current = (T) scopedObjects.get(key);
+                    if (current == null && !scopedObjects.containsKey(key)) {
+                        current = unscoped.get();
 
-                    // don't remember proxies; these exist only to serve circular dependencies
-                    if (Scopes.isCircularProxy(current)) {
-                      return current;
+                        // don't remember proxies; these exist only to serve circular dependencies
+                        if (Scopes.isCircularProxy(current)) {
+                            return current;
+                        }
+
+                        scopedObjects.put(key, current);
                     }
-
-                    scopedObjects.put(key, current);
-                  }
-                  return current;
-              }
+                    return current;
+                }
             }
-          };
+        };
     }
 
     private <T> Map<Key<?>, Object> getScopedObjectMap(Key<T> key) {
         File definitionId = currentDefinitionId.get();
         if (definitionId == null) {
-          throw new OutOfScopeException("Cannot access " + key
-              + " outside of a scoping block");
+            throw new OutOfScopeException("Cannot access " + key
+                    + " outside of a scoping block");
         }
-        synchronized(values) {
+        synchronized (values) {
             Map<Key<?>, Object> scopedObjects = values.get(definitionId);
             if (scopedObjects == null) {
                 scopedObjects = Maps.newHashMap();
@@ -73,6 +73,6 @@ public class DefinitionScope implements Scope {
             }
             return scopedObjects;
         }
-      }
+    }
 
 }

@@ -8,10 +8,14 @@ package object tiny {
   lazy val True = new And(Set(), Att())
   lazy val False = new Or(Set(), Att())
 
-  def ins[T](x: T) = { println(x); x }
+  def ins[T](x: T) = {
+    println(x); x
+  }
 
   implicit class WithIns[T](x: T) {
-    def ins = { println(x); x }
+    def ins = {
+      println(x); x
+    }
   }
 
   implicit class HasDNF(val t: K) extends AnyVal {

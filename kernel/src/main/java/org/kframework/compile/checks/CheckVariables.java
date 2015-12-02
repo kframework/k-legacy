@@ -7,6 +7,7 @@ import org.kframework.kil.visitors.BasicVisitor;
 import org.kframework.kore.compile.ResolveAnonVar;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,16 +20,16 @@ import java.util.Map;
 
 /**
  * Checks Variable consistency.
- *
+ * <p>
  * Generic variables:
  * 1. Variables must be bound in the pattern
  * 2. Variables unused in the rhs should be anonymous.
- *
+ * <p>
  * Fresh variables:
  * 1. fresh can only appear as a side condition
  * 2. fresh can only be applied to a variable
  * 3. the fresh variable can only appear as a replacement variable
- *
+ * <p>
  * Matching logic (option -ml): named variables may appear in the rhs
  */
 public class CheckVariables extends BasicVisitor {
@@ -67,15 +68,15 @@ public class CheckVariables extends BasicVisitor {
                                 + " admit fresh variables.", this, node);
             }
 
-            if (current == right  && !inCondition) {
-                 Integer i = fresh.get(node);
-                 if (i == null) i = new Integer(1);
-                 else i = new Integer(i.intValue());
-                 fresh.put(node, i);
-                 return null;
-             }
-             //nodes are ok to be found in rhs
-             throw KExceptionManager.compilerError(
+            if (current == right && !inCondition) {
+                Integer i = fresh.get(node);
+                if (i == null) i = new Integer(1);
+                else i = new Integer(i.intValue());
+                fresh.put(node, i);
+                return null;
+            }
+            //nodes are ok to be found in rhs
+            throw KExceptionManager.compilerError(
                     "Fresh variable \"" + node + "\" is bound in the " + "rule pattern.",
                     this, node);
         }
@@ -126,7 +127,7 @@ public class CheckVariables extends BasicVisitor {
                         this, v);
             }
         }
-        for (Map.Entry<Variable,Integer> e : left.entrySet()) {
+        for (Map.Entry<Variable, Integer> e : left.entrySet()) {
             final Variable key = e.getKey();
             if (fresh.containsKey(key)) {
                 throw KExceptionManager.compilerError(
@@ -139,7 +140,7 @@ public class CheckVariables extends BasicVisitor {
                 kem.register(new KException(KException.ExceptionType.HIDDENWARNING,
                         KException.KExceptionGroup.COMPILER,
                         "Singleton variable " + key.toString() + ".\n" +
-                        "    If this is not a spelling mistake, please consider using anonymous variables.",
+                                "    If this is not a spelling mistake, please consider using anonymous variables.",
                         getName(), key.getSource(), key.getLocation()));
             }
         }

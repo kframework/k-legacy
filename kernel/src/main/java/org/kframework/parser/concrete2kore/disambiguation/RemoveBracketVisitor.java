@@ -11,8 +11,7 @@ public class RemoveBracketVisitor extends SafeTransformer {
         if (tc.production().att().contains("bracket") ||
                 tc.production().klabel().get().name().equals("#SyntacticCast") ||
                 tc.production().klabel().get().name().equals("#InnerCast") ||
-                tc.production().klabel().get().name().equals("#OuterCast"))
-        {
+                tc.production().klabel().get().name().equals("#OuterCast")) {
             return apply(tc.get(0));
         }
         return super.apply(tc);

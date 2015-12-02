@@ -13,7 +13,6 @@ import com.google.common.collect.ImmutableList;
  * information from {@code k} cells and {@code IO stream} cells.
  *
  * @author YilongL
- *
  */
 public class ConfigurationTermIndex {
     private final List<IndexingPair> kCellIndexingPairs;
@@ -23,9 +22,9 @@ public class ConfigurationTermIndex {
     private final int maxOutputBufLen;
 
     public ConfigurationTermIndex(List<IndexingPair> normalIndexingPairs,
-            List<IndexingPair> instreamIndexingPairs,
-            List<IndexingPair> outstreamIndexingPairs, int maxInputBufLen,
-            int maxOutputBufLen) {
+                                  List<IndexingPair> instreamIndexingPairs,
+                                  List<IndexingPair> outstreamIndexingPairs, int maxInputBufLen,
+                                  int maxOutputBufLen) {
         this.kCellIndexingPairs = ImmutableList.copyOf(normalIndexingPairs);
         this.instreamIndexingPairs = ImmutableList.copyOf(instreamIndexingPairs);
         this.outstreamIndexingPairs = ImmutableList.copyOf(outstreamIndexingPairs);

@@ -11,23 +11,23 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
-A transitition in the transition system of a semantics. Used to represent edges in the search graph
-associated with breadth-first search, LTL model-checking, and debugging.
-*/
-public abstract class Transition implements Serializable{
+ * A transitition in the transition system of a semantics. Used to represent edges in the search graph
+ * associated with breadth-first search, LTL model-checking, and debugging.
+ */
+public abstract class Transition implements Serializable {
 
     /**
-    The rule transforming the origin state to the destination state
-    */
+     * The rule transforming the origin state to the destination state
+     */
     protected ASTNode rule;
 
     /**
-    The substitution that the rule resulted in.
+     * The substitution that the rule resulted in.
      */
     protected Map<Variable, Term> substitution;
 
     /**
-     The string read from stdin.
+     * The string read from stdin.
      */
     private String readString;
 
@@ -58,24 +58,24 @@ public abstract class Transition implements Serializable{
 
     public enum TransitionType {
         /**
-        A transition for which the rule transforming the origin to the destination is known
-        */
+         * A transition for which the rule transforming the origin to the destination is known
+         */
         RULE,
 
         /**
-        A transition for which no further information is available, except that the rule had no
-        label.
-        */
+         * A transition for which no further information is available, except that the rule had no
+         * label.
+         */
         UNLABELLED,
 
         /**
-        A rewrite or set of rewrites containing no transitions.
-        */
+         * A rewrite or set of rewrites containing no transitions.
+         */
         REDUCE,
 
         /**
-        An action signifying that the user has entered data on the standard input stream.
-        */
+         * An action signifying that the user has entered data on the standard input stream.
+         */
         STDIN
     }
 

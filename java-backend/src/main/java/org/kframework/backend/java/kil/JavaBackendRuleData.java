@@ -30,13 +30,13 @@ public class JavaBackendRuleData implements Serializable {
     private final ImmutableList<MatchingInstruction> instructions;
 
     public JavaBackendRuleData(ImmutableList<BuiltinLookup> lookups,
-            ImmutableMap<Variable, Integer> concreteDataStructureSize,
-            boolean compiledForFastRewriting,
-            ImmutableSet<String> cellsOfInterest,
-            UnmodifiableMap<String, Term> lhsOfReadCell,
-            UnmodifiableMap<String, Term> rhsOfWriteCell,
-            ImmutableSet<String> cellsToCopy,
-            ImmutableList<MatchingInstruction> instructions) {
+                               ImmutableMap<Variable, Integer> concreteDataStructureSize,
+                               boolean compiledForFastRewriting,
+                               ImmutableSet<String> cellsOfInterest,
+                               UnmodifiableMap<String, Term> lhsOfReadCell,
+                               UnmodifiableMap<String, Term> rhsOfWriteCell,
+                               ImmutableSet<String> cellsToCopy,
+                               ImmutableList<MatchingInstruction> instructions) {
         super();
         this.lookups = lookups;
         this.concreteDataStructureSize = concreteDataStructureSize;

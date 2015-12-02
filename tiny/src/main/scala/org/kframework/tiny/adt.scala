@@ -54,6 +54,7 @@ trait K extends kore.K {
   private val normalBy = collection.mutable.Set[Theory]()
 
   def isNormalBy(theory: Theory) = normalBy.contains(theory)
+
   def setIsNormalBy(theory: Theory) = normalBy.+=(theory)
 
   def isFalse: Boolean = false
@@ -64,8 +65,8 @@ object KApp {
 }
 
 /**
- * Term with children. We automatically lift KSeq and KRewrite to KApp.
- */
+  * Term with children. We automatically lift KSeq and KRewrite to KApp.
+  */
 trait KApp extends {} with kore.KApply with K {
   // KApp seen as a collection Set(2, Set(3, 4)) is normalized and has size 3 and 2,3,4 as children
   def size: Int = children.size
@@ -106,8 +107,8 @@ trait PlainNormalization {
 }
 
 /**
- * Term without children.
- */
+  * Term without children.
+  */
 trait KLeaf extends K {
   def copy(att: Att): KLeaf
 
@@ -117,8 +118,8 @@ trait KLeaf extends K {
 }
 
 /**
- * KApp with a collection of children which are usually defined using an associative operator.
- */
+  * KApp with a collection of children which are usually defined using an associative operator.
+  */
 trait KAssocApp extends KApp with PlainNormalization {
   val klabel: KAssocAppLabel
 
@@ -138,16 +139,16 @@ trait KRegularApp extends KApp {
 }
 
 /**
- * KApp with fixed arity. It is defined using a non-associative operator.
- */
+  * KApp with fixed arity. It is defined using a non-associative operator.
+  */
 trait KProduct extends KRegularApp with Product {
   val children = productIterator collect { case k: K => k } toList
 }
 
 /**
- * KToken-like term, i.e. term without children representing a constant value.
- * KSimpleTok is one example. KInt is another.
- */
+  * KToken-like term, i.e. term without children representing a constant value.
+  * KSimpleTok is one example. KInt is another.
+  */
 trait KTok extends kore.KToken with KLeaf {
   override def matcher(right: K): Matcher = EqualsMatcher(this, right)
 
@@ -244,7 +245,7 @@ final class KSeq private(val children: Seq[K], val att: Att)
 }
 
 case class KRewrite(val left: K, val right: K, val att: Att = Att()) extends
-kore.KRewrite with KProduct with PlainNormalization {
+  kore.KRewrite with KProduct with PlainNormalization {
   val klabel = KRewrite
 }
 

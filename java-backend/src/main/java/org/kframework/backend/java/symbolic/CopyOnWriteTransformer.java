@@ -159,7 +159,7 @@ public abstract class CopyOnWriteTransformer implements Transformer {
             if (innerRHSRewrite.theRHS[i] != null)
                 theNewRHS[i] = (Term) innerRHSRewrite.theRHS[i].accept(this);
         }
-        if(Arrays.equals(theNewRHS, innerRHSRewrite.theRHS)) {
+        if (Arrays.equals(theNewRHS, innerRHSRewrite.theRHS)) {
             return innerRHSRewrite;
         } else {
             return new InnerRHSRewrite(theNewRHS);
@@ -358,7 +358,7 @@ public abstract class CopyOnWriteTransformer implements Transformer {
     public ASTNode transform(BuiltinSet builtinSet) {
         boolean changed = false;
         BuiltinSet.Builder builder = BuiltinSet.builder(resolveGlobalContext(builtinSet));
-        for(Term element : builtinSet.elements()) {
+        for (Term element : builtinSet.elements()) {
             Term transformedElement = (Term) element.accept(this);
             builder.add(transformedElement);
             changed = changed || (transformedElement != element);

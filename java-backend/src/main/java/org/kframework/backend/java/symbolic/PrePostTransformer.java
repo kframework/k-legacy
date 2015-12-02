@@ -199,7 +199,7 @@ public abstract class PrePostTransformer extends CopyOnWriteTransformer {
         }
         assert astNode instanceof KSequence : "preTransformer should not modify type";
         kSequence = (KSequence) astNode;
-        Term term =  (Term) super.transform(kSequence);
+        Term term = (Term) super.transform(kSequence);
         // TODO(YilongL): why not apply postTransformer if term is not a KSequence?
         if (term instanceof KSequence) {
             // TODO(YilongL): why cast it to KSequence?

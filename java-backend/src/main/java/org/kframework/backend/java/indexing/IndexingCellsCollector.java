@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
  * Collects indexing cells used in {@link IndexingTable}.
  *
  * @author YilongL
- *
  */
 public class IndexingCellsCollector extends BottomUpVisitor {
 

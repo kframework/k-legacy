@@ -46,7 +46,7 @@ public class LiftToKSequence {
     }
 
     public K lift(K term) {
-        K result = new TransformKORE()  {
+        K result = new TransformKORE() {
             @Override
             public K apply(KApply k) {
                 List<K> children = new ArrayList<>();

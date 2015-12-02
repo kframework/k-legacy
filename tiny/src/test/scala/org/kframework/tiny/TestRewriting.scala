@@ -35,37 +35,37 @@ class TestRewriting extends AbstractTest {
 
   @Test
   def testSimpleApplyNoMatch() {
-    assertEquals(Set(), 'foo(3).searchFor('foo(4) ==> 'foo(5)))
+    assertEquals(Set(), 'foo (3).searchFor('foo (4) ==> 'foo (5)))
   }
 
   @Test
   def testSimpleApply() {
-    assertEquals(Set('foo(5)), 'foo(4).searchFor('foo(4) ==> 'foo(5)))
+    assertEquals(Set('foo (5)), 'foo (4).searchFor('foo (4) ==> 'foo (5)))
   }
 
   @Test
   def testVar() {
-    assertEquals(Set('foo(5)), 'foo(4).searchFor(X ==> 'foo(5)))
+    assertEquals(Set('foo (5)), 'foo (4).searchFor(X ==> 'foo (5)))
   }
 
   @Test
   def testVarInside() {
-    assertEquals(Set('foo(5)), 'foo(4).searchFor('foo(X) ==> 'foo(5)))
+    assertEquals(Set('foo (5)), 'foo (4).searchFor('foo (X) ==> 'foo (5)))
   }
 
   @Test
   def testVarSubstitution() {
-    assertEquals(Set('foo(5, 4)), 'foo(4).searchFor('foo(X) ==> 'foo(5, X)))
+    assertEquals(Set('foo (5, 4)), 'foo (4).searchFor('foo (X) ==> 'foo (5, X)))
   }
 
   @Test
   def testVarSubstitutionWithTrueSideCondition() {
-    assertEquals(Set('foo(5, 4)), 'foo(4).searchFor('foo(X) ==> 'foo(5: K, X), X -> 4))
+    assertEquals(Set('foo (5, 4)), 'foo (4).searchFor('foo (X) ==> 'foo (5: K, X), X -> 4))
   }
 
   @Test
   def testVarSubstitutionWithFalseSideCondition() {
-    assertEquals(Set(), 'foo(4).searchFor('foo(X) ==> 'foo(5, X), X -> 7))
+    assertEquals(Set(), 'foo (4).searchFor('foo (X) ==> 'foo (5, X), X -> 7))
   }
 
   @Test
@@ -76,83 +76,83 @@ class TestRewriting extends AbstractTest {
 
   @Test
   def testVarSubstitution2() {
-    assertEquals(Set('+(5, 4, 5, 4, 5)), '+(4, 5, 6).searchFor('+(X, 6) ==> '+(5, X, X)))
+    assertEquals(Set('+ (5, 4, 5, 4, 5)), '+ (4, 5, 6).searchFor('+ (X, 6) ==> '+ (5, X, X)))
   }
 
   @Test
   def testDeduplicate() {
-    assertEquals(Set('+(4, 4)), '+(4, 4, 4, 4).searchFor('+(X, X) ==> '+(X)))
+    assertEquals(Set('+ (4, 4)), '+ (4, 4, 4, 4).searchFor('+ (X, X) ==> '+ (X)))
   }
 
   @Test
   def testDeduplicateNot() {
-    assertEquals(Set(), '+(4, 4, 4, 4, 4).searchFor('+(X, X) ==> '+(X)))
+    assertEquals(Set(), '+ (4, 4, 4, 4, 4).searchFor('+ (X, X) ==> '+ (X)))
   }
 
   @Test
   @Ignore
   def testKLabelMatch() {
-    assertEquals(Set('foo(4)), 'foo(4, 4).searchFor(KApply(X, List(4: K, 4: K)) ==> KApply(X, List(4: K), Att
-      ())))
+    assertEquals(Set('foo (4)), 'foo (4, 4).searchFor(KApply(X, List(4: K, 4: K)) ==> KApply(X, List(4: K), Att
+    ())))
   }
 
   @Test
   def simple() {
-    assertEquals(Set('foo(1, 3)),
-      'foo(1, 2).searchFor('foo(1, 2) ==> 'foo(1, 3)))
+    assertEquals(Set('foo (1, 3)),
+      'foo (1, 2).searchFor('foo (1, 2) ==> 'foo (1, 3)))
   }
 
   @Test
   def simpleSwap() {
-    assertEquals(Set('foo(2, 1)),
-      'foo(1, 2).searchFor('foo(X, Y) ==> 'foo(Y, X), Equals(X, 1)))
+    assertEquals(Set('foo (2, 1)),
+      'foo (1, 2).searchFor('foo (X, Y) ==> 'foo (Y, X), Equals(X, 1)))
   }
 
   @Test
   @Ignore
   def simpleSwapOfId() {
-    assertEquals(Set('foo(1, 1)),
-      'foo(1, 1).searchFor('foo(X, Y) ==> 'foo(Y, X), Equals(X, Y)))
+    assertEquals(Set('foo (1, 1)),
+      'foo (1, 1).searchFor('foo (X, Y) ==> 'foo (Y, X), Equals(X, Y)))
   }
 
   @Test def testSimpleToTerm {
-    assertEquals(Set('foo(1, 3)),
-      'foo(1, 2).searchFor('foo(1, (2: K) ==> 3)))
+    assertEquals(Set('foo (1, 3)),
+      'foo (1, 2).searchFor('foo (1, (2: K) ==> 3)))
   }
 
   @Test def testWithVariableInside {
-    assertEquals(Set('foo(1, 3)),
-      'foo(1, 'bar(2, 3)).searchFor('foo(1, 'bar(2, X)) ==> 'foo(1, X)))
+    assertEquals(Set('foo (1, 3)),
+      'foo (1, 'bar (2, 3)).searchFor('foo (1, 'bar (2, X)) ==> 'foo (1, X)))
   }
 
   @Test def testToTermWithVariableInside {
-    assertEquals(Set('foo(1, 3)),
-      'foo(1, 'bar(2, 3)).searchFor('foo(1, 'bar(2, X) ==> X)))
+    assertEquals(Set('foo (1, 3)),
+      'foo (1, 'bar (2, 3)).searchFor('foo (1, 'bar (2, X) ==> X)))
   }
 
   @Test def testAnywhere {
-    assertEquals(Set('bar('foo(0)), 'foo('bar(0))),
-      'foo('bar('foo(0))).searchFor(Anywhere("ONE", 'foo(X) ==> X)))
+    assertEquals(Set('bar ('foo (0)), 'foo ('bar (0))),
+      'foo ('bar ('foo (0))).searchFor(Anywhere("ONE", 'foo (X) ==> X)))
   }
 
   @Test def testAnywhereRule {
-    val r = AnywhereRule('foo(X) ==> X, True)
+    val r = AnywhereRule('foo (X) ==> X, True)
 
-    assertEquals(Set('bar('foo(0)), 'foo('bar(0))),
-      r('foo('bar('foo(0)))))
+    assertEquals(Set('bar ('foo (0)), 'foo ('bar (0))),
+      r('foo ('bar ('foo (0)))))
   }
 
   @Test def testEverywhereRule {
-    val r = EverywhereRule('foo(X) ==> X, True)
+    val r = EverywhereRule('foo (X) ==> X, True)
 
-    assertEquals(Set('bar(0)),
-      r('foo('bar('foo(0)))))
+    assertEquals(Set('bar (0)),
+      r('foo ('bar ('foo (0)))))
   }
 
   @Test def testEverywhereRuleAssoc {
     val r = EverywhereRule(X + Y ==> X, True)
 
-    assertEquals(Set('+()),
+    assertEquals(Set('+ ()),
       r((1: K) + 2 + 3 + 4))
   }
 
@@ -163,28 +163,29 @@ class TestRewriting extends AbstractTest {
       r((1: K) + 2 + 3 + 4))
   }
 
-  @Test @Ignore def testEverywhereRuleAC {
-    val r = EverywhereRule('MyBag(2, 4) ==> 7: K, True)
+  @Test
+  @Ignore def testEverywhereRuleAC {
+    val r = EverywhereRule('MyBag (2, 4) ==> 7: K, True)
 
-    assertEquals(Set('MyBag(1, 3, 7, 5)),
-      r('MyBag(1, 2, 3, 4, 5)))
+    assertEquals(Set('MyBag (1, 3, 7, 5)),
+      r('MyBag (1, 2, 3, 4, 5)))
   }
 
   @Test def testAnywhereRuleAssoc {
     val r = AnywhereRule(X + X ==> X, True)
 
-    assertEquals(Set('+(0, 0, 0), '+(0, 0)),
+    assertEquals(Set('+ (0, 0, 0), '+ (0, 0)),
       r((0: K) + 0 + 0))
   }
 
   @Test
   @Ignore def testTwoAnywheres {
-    val o = 'foo('foo('foo('foo())))
-    val inner = Anywhere("inner", 'foo('foo(X)) ==> X)
-    val outer = Anywhere("outer", 'foo(inner))
+    val o = 'foo ('foo ('foo ('foo ())))
+    val inner = Anywhere("inner", 'foo ('foo (X)) ==> X)
+    val outer = Anywhere("outer", 'foo (inner))
 
-    assertEquals(Set('foo('foo('foo())),
-      'foo('foo('foo('foo())))), o.searchFor(outer))
+    assertEquals(Set('foo ('foo ('foo ())),
+      'foo ('foo ('foo ('foo ())))), o.searchFor(outer))
   }
 
   //  @Test def testRepeat {

@@ -6,6 +6,7 @@ import org.kframework.tiny._
 
 case class Anywhere(klabel: AnywhereLabel, k: K, att: Att = Att()) extends KProduct with PlainNormalization {
   override def matcher(right: K): Matcher = AnywhereMatcher(this, right)
+
   val TOPVariable = klabel.TOPVariable
   val HOLEVariable = klabel.HOLEVariable
 }
@@ -30,7 +31,7 @@ case class AnywhereMatcher(left: Anywhere, right: K) extends Matcher with KProdu
     val localSolution = And(left.k.matcher(right), Binding(TOPVariable, HOLEVariable))
     val childrenSolutions = right match {
       case k: KApp =>
-        Or(k.children.map {c: K => // we are generating distinct solutions for each child of the right
+        Or(k.children.map { c: K => // we are generating distinct solutions for each child of the right
           val solution: K = left.matcher(c).normalize
           val updatedSolution: K = solution match {
             case orSolution: Or => Or(orSolution.children map {
@@ -47,7 +48,7 @@ case class AnywhereMatcher(left: Anywhere, right: K) extends Matcher with KProdu
   }
 
   private def rewire(toRewire: And, k: KApp, childOfK: K)(implicit theory: Theory): K = {
-    val newAnywhere: K = k.klabel(k.children map {childK: K =>
+    val newAnywhere: K = k.klabel(k.children map { childK: K =>
       childK match {
         case `childOfK` => toRewire.binding(TOPVariable)
         case t: K => t

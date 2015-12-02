@@ -7,6 +7,7 @@ import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.util.DoubleLinkedList;
 import org.kframework.builtin.KLabels;
 import org.kframework.kore.Assoc;
+
 import static org.kframework.Collections.*;
 
 import java.util.ArrayList;
@@ -279,13 +280,13 @@ public abstract class AbstractUnifier implements Unifier {
                 for (Integer boundVarPosition : binderMap.keySet()) {
                     Term boundVars = terms.get(boundVarPosition);
                     Set<Variable> variables = boundVars.variableSet();
-                    Map<Variable,Variable> freshSubstitution = Variable.rename(variables);
+                    Map<Variable, Variable> freshSubstitution = Variable.rename(variables);
                     Term freshBoundVars = boundVars.substituteWithBinders(freshSubstitution);
                     terms.set(boundVarPosition, freshBoundVars);
                     for (Integer bindingExpPosition : binderMap.get(boundVarPosition)) {
-                        Term bindingExp = terms.get(bindingExpPosition-1);
+                        Term bindingExp = terms.get(bindingExpPosition - 1);
                         Term freshbindingExp = bindingExp.substituteWithBinders(freshSubstitution);
-                        terms.set(bindingExpPosition-1, freshbindingExp);
+                        terms.set(bindingExpPosition - 1, freshbindingExp);
                     }
                 }
                 kList = KList.concatenate(terms);

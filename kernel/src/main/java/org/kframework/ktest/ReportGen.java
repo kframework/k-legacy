@@ -95,7 +95,8 @@ public class ReportGen {
 
     /**
      * Generate `<testsuite ...> ... </testsuite>' element from list of reports.
-     * @param name name of testsuite
+     *
+     * @param name    name of testsuite
      * @param reports reports to generate testsuite element
      * @return testsuite element
      */

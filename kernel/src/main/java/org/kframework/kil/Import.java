@@ -3,7 +3,9 @@ package org.kframework.kil;
 
 import org.kframework.kil.visitors.Visitor;
 
-/** An import directive */
+/**
+ * An import directive
+ */
 public class Import extends ModuleItem {
 
     String name;

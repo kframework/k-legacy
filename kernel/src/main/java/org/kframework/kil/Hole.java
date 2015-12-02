@@ -45,7 +45,7 @@ public class Hole extends Term {
             return true;
         if (!(obj instanceof Hole))
             return false;
-        Hole hole = (Hole)obj;
+        Hole hole = (Hole) obj;
 
         return this.sort.equals(hole.getSort());
     }

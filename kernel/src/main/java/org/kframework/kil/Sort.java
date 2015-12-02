@@ -108,6 +108,7 @@ public class Sort implements Serializable {
 
     /**
      * TODO(traiansf)
+     *
      * @param sort
      * @return
      */
@@ -122,14 +123,14 @@ public class Sort implements Serializable {
     public boolean isBuiltinSort() {
         /* TODO: replace with a proper table of builtins */
         return equals(Sort.BUILTIN_BOOL)
-               || equals(Sort.BUILTIN_INT)
-               || equals(Sort.BUILTIN_STRING)
-               || equals(Sort.BUILTIN_FLOAT)
+                || equals(Sort.BUILTIN_INT)
+                || equals(Sort.BUILTIN_STRING)
+                || equals(Sort.BUILTIN_FLOAT)
                /* LTL builtin sorts */
 //               || sort.equals(Sort.SHARP_LTL_FORMULA)
-               || equals(Sort.BUILTIN_PROP)
-               || equals(Sort.BUILTIN_MODEL_CHECKER_STATE)
-               || equals(Sort.BUILTIN_MODEL_CHECK_RESULT);
+                || equals(Sort.BUILTIN_PROP)
+                || equals(Sort.BUILTIN_MODEL_CHECKER_STATE)
+                || equals(Sort.BUILTIN_MODEL_CHECK_RESULT);
     }
 
     public boolean isDataSort() {
@@ -160,6 +161,7 @@ public class Sort implements Serializable {
 
     /**
      * TODO(traiansf)
+     *
      * @return
      */
     public Sort mainSort() {

@@ -4,6 +4,7 @@ package org.kframework.backend.java.builtins;
 import org.kframework.backend.java.builtins.primitives.Ints;
 import org.kframework.backend.java.builtins.primitives.OverflowArithmeticResult;
 import org.kframework.backend.java.kil.BuiltinList;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -235,7 +236,7 @@ public class Int32Token extends BitVector<Integer> {
 
         List<BitVector> digits = new ArrayList<>();
         long longValue = UnsignedInts.toLong(this.value);
-        for (int i = 0, j = bitwidth - digitBitWidth; i < count;  ++i, j -= digitBitWidth) {
+        for (int i = 0, j = bitwidth - digitBitWidth; i < count; ++i, j -= digitBitWidth) {
             digits.add(BitVector.of((longValue >> j) & ((1 << digitBitWidth) - 1), digitBitWidth));
         }
 

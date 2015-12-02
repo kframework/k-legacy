@@ -14,10 +14,14 @@ import java.util.Collections;
  */
 public class ListUpdate extends Term implements Interfaces.Collection<Term, ListUpdate.ListChildren> {
 
-    /** {@link Variable} name of the set */
+    /**
+     * {@link Variable} name of the set
+     */
     private final Variable base;
 
-    /** {@code List} of entries to be removed from the list */
+    /**
+     * {@code List} of entries to be removed from the list
+     */
     private final Collection<Term> removeLeft;
     private final Collection<Term> removeRight;
 
@@ -82,12 +86,12 @@ public class ListUpdate extends Term implements Interfaces.Collection<Term, List
     @Override
     public Collection<Term> getChildren(ListChildren type) {
         switch (type) {
-            case REMOVE_LEFT:
-                return removeLeft;
-            case REMOVE_RIGHT:
-                return removeRight;
-            default:
-                throw new AssertionError("unreachable");
+        case REMOVE_LEFT:
+            return removeLeft;
+        case REMOVE_RIGHT:
+            return removeRight;
+        default:
+            throw new AssertionError("unreachable");
         }
     }
 }

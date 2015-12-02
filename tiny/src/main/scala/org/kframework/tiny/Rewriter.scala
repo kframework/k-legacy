@@ -46,9 +46,12 @@ class FullTinyRewriter(module: definition.Module) extends rewriter.Rewriter {
 
   val innerRewriter = new Rewriter(moduleWithoutFunctions, KIndex, new TheoryWithFunctions(module))
 
-  def execute(k: kore.K, depth:java.util.Optional[Integer]): RewriterResult = new RewriterResult(java.util.Optional.of(-1), innerRewriter.execute(k))
+  def execute(k: kore.K, depth: java.util.Optional[Integer]): RewriterResult = new RewriterResult(java.util.Optional.of(-1), innerRewriter.execute(k))
+
   def executeAndMatch(k: kore.K, depth: Optional[Integer], rule: org.kframework.definition.Rule): (RewriterResult, java.util.List[java.util.Map[kore.KVariable, kore.K]]) = ???
+
   def search(initialConfiguration: kore.K, depth: Optional[Integer], bound: Optional[Integer], pattern: org.kframework.definition.Rule, searchType: SearchType): java.util.List[_ <: java.util.Map[_ <: kore.KVariable, _ <: kore.K]] = ???
+
   override def `match`(k: kore.K, rule: org.kframework.definition.Rule): java.util.List[java.util.Map[kore.KVariable, kore.K]] = ???
 
   override def prove(rules: util.List[definition.Rule]): util.List[kore.K] = ???
@@ -91,10 +94,10 @@ class Rewriter(module: definition.Module, index: K => Option[Symbol] = KIndex, t
     module.rules
       .groupBy { r => index(convert(r.body)) }
       .map { case (k, ruleSet) =>
-      (k, ruleSet
-        .map(createRule)
-        .seq.view.par)
-    }
+        (k, ruleSet
+          .map(createRule)
+          .seq.view.par)
+      }
   }
 
   val executeRules = module.rules
@@ -105,10 +108,10 @@ class Rewriter(module: definition.Module, index: K => Option[Symbol] = KIndex, t
     module.rules
       .groupBy { r => index(convert(r.body)) }
       .map { case (k, ruleSet) =>
-      (k, ruleSet
-        .map(createExecuteRule)
-        .seq.view.par)
-    }
+        (k, ruleSet
+          .map(createExecuteRule)
+          .seq.view.par)
+      }
   }
 
 
@@ -143,18 +146,18 @@ class Rewriter(module: definition.Module, index: K => Option[Symbol] = KIndex, t
 
     val res = prioritized
       .map { r =>
-      totalTriedRules += 1
-      val res = r(k).headOption
-      res match {
-        case Some(res) =>
-          //          println(r + "\n" + res + "\n");
-          Some(res)
-        case None => None
+        totalTriedRules += 1
+        val res = r(k).headOption
+        res match {
+          case Some(res) =>
+            //          println(r + "\n" + res + "\n");
+            Some(res)
+          case None => None
+        }
       }
-    }
       .find {
-      _.isInstanceOf[Some[_]]
-    }
+        _.isInstanceOf[Some[_]]
+      }
       .getOrElse(None)
     //    println("RESULT:\n    " + res.mkString("\n    "))
     res

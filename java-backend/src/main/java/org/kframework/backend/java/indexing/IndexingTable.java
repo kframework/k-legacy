@@ -147,9 +147,9 @@ public class IndexingTable implements Serializable, RuleIndex {
         ImmutableSet.Builder<Rule> unindexedRulesBuilder = ImmutableSet.builder();
         for (Rule rule : definition.rules()) {
             if (!rule.containsKCell() && !rule.containsAttribute(Constants.STDIN)
-                        && !rule.containsAttribute(Constants.STDOUT)
-                        && !rule.containsAttribute(Constants.STDERR)) {
-                    unindexedRulesBuilder.add(rule);
+                    && !rule.containsAttribute(Constants.STDOUT)
+                    && !rule.containsAttribute(Constants.STDERR)) {
+                unindexedRulesBuilder.add(rule);
             }
         }
         unindexedRules = unindexedRulesBuilder.build();
@@ -165,8 +165,9 @@ public class IndexingTable implements Serializable, RuleIndex {
 
     /**
      * Given a term, it uses queries the index table to find the rules that may apply.
-     * @param term  The term being re-written
-     * @return  A list of rules that may apply
+     *
+     * @param term The term being re-written
+     * @return A list of rules that may apply
      */
     @Override
     public List<Rule> getRules(Term term) {

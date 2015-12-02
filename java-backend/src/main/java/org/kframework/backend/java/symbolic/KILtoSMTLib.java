@@ -324,7 +324,8 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
                         sb.append(")");
                     }
                     sb.append(")\n");
-                } catch (UnsupportedOperationException e) { }
+                } catch (UnsupportedOperationException e) {
+                }
             }
         }
         return sb.toString();
@@ -437,7 +438,7 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
                 isEmptyAdd = false;
             } catch (UnsupportedOperationException e) {
                 // TODO(AndreiS): fix this translation and the exceptions
-                if (skipEqualities){
+                if (skipEqualities) {
                     /* it is sound to skip the equalities that cannot be translated */
                     e.printStackTrace();
                 } else {
@@ -456,7 +457,7 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
         try {
             return translate(term).expression();
         } catch (UnsupportedOperationException e) {
-            if (skipEqualities){
+            if (skipEqualities) {
                 Variable variable = termAbstractionMap.get(term);
                 if (variable == null) {
                     variable = Variable.getAnonVariable(term.sort());
@@ -492,33 +493,33 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
 
         if (krunOptions.experimental.smt.floatsAsPO) {
             switch (kLabel.label()) {
-                case "'_<Float_":
-                    label = "float_lt";
-                    break;
-                case "'_<=Float_":
-                    label = "float_le";
-                    break;
-                case "'_>Float_":
-                    label = "float_gt";
-                    break;
-                case "'_>=Float_":
-                    label = "float_ge";
-                    break;
-                case "'maxFloat":
-                    label = "float_max";
-                    break;
-                case "'minFloat":
-                    label = "float_min";
-                    break;
-                case "'_==Float_":
-                    label = "=";
-                    break;
-                case "'_=/=Float_":
-                    label = "(not (= #1 #2))";
-                    break;
-                case "'isNaN":
-                    label = "(= #1 float_nan)";
-                    break;
+            case "'_<Float_":
+                label = "float_lt";
+                break;
+            case "'_<=Float_":
+                label = "float_le";
+                break;
+            case "'_>Float_":
+                label = "float_gt";
+                break;
+            case "'_>=Float_":
+                label = "float_ge";
+                break;
+            case "'maxFloat":
+                label = "float_max";
+                break;
+            case "'minFloat":
+                label = "float_min";
+                break;
+            case "'_==Float_":
+                label = "=";
+                break;
+            case "'_=/=Float_":
+                label = "(not (= #1 #2))";
+                break;
+            case "'isNaN":
+                label = "(= #1 float_nan)";
+                break;
             }
         }
 
@@ -533,19 +534,19 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
 
         List<Term> arguments;
         switch (label) {
-            case "exists":
-                Variable variable = (Variable) kList.get(0);
-                label = "exists ((" + variable.name() + " " + variable.sort() + ")) ";
-                arguments = ImmutableList.of(kList.get(1));
-                break;
-            case "extract":
-                int beginIndex = ((IntToken) kList.get(1)).intValue();
-                int endIndex = ((IntToken) kList.get(2)).intValue() - 1;
-                label = "(_ extract " + endIndex + " " + beginIndex + ")";
-                arguments = ImmutableList.of(kList.get(0));
-                break;
-            default:
-                arguments = kList.getContents();
+        case "exists":
+            Variable variable = (Variable) kList.get(0);
+            label = "exists ((" + variable.name() + " " + variable.sort() + ")) ";
+            arguments = ImmutableList.of(kList.get(1));
+            break;
+        case "extract":
+            int beginIndex = ((IntToken) kList.get(1)).intValue();
+            int endIndex = ((IntToken) kList.get(2)).intValue() - 1;
+            label = "(_ extract " + endIndex + " " + beginIndex + ")";
+            arguments = ImmutableList.of(kList.get(0));
+            break;
+        default:
+            arguments = kList.getContents();
         }
 
         if (!arguments.isEmpty()) {

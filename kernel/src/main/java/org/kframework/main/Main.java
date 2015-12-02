@@ -38,8 +38,7 @@ import java.util.ServiceLoader;
 public class Main {
 
     /**
-     * @param args
-     *            - the running arguments for the K3 tool. First argument must be one of the following: kompile|kast|krun.
+     * @param args - the running arguments for the K3 tool. First argument must be one of the following: kompile|kast|krun.
      * @throws IOException when loadDefinition fails
      */
     public static void main(String[] args) {
@@ -124,7 +123,7 @@ public class Main {
     }
 
     public static void seedInjector(SimpleScope scope, String tool, String[] args, File workingDir,
-            Map<String, String> env) {
+                                    Map<String, String> env) {
         scope.seed(Key.get(File.class, WorkingDir.class), workingDir);
         scope.seed(Key.get(new TypeLiteral<Map<String, String>>() {}, Environment.class), env);
         scope.seed(Key.get(String[].class, Options.class), args);
@@ -139,73 +138,73 @@ public class Main {
 
         List<Module> modules = new ArrayList<>();
 
-            switch (tool) {
-                case "-kserver":
-                    modules.addAll(KServerFrontEnd.getModules());
-                    break;
-                case "-kompile":
-                    modules.addAll(KompileFrontEnd.getModules());
-                    for (KModule kModule : kModules) {
-                        List<Module> ms = kModule.getKompileModules();
-                        if (ms != null) {
-                            modules.addAll(ms);
-                        }
-                    }
-                    break;
-                case "-ktest":
-                    modules.addAll(KTestFrontEnd.getModules());
-                    for (KModule kModule : kModules) {
-                        List<Module> ms = kModule.getKTestModules();
-                        if (ms != null) {
-                            modules.addAll(ms);
-                        }
-                    }
-                    break;
-                case "-kdoc":
-                    modules.addAll(KDocFrontEnd.getModules());
-                    for (KModule kModule : kModules) {
-                        List<Module> ms = kModule.getKDocModules();
-                        if (ms != null) {
-                            modules.addAll(ms);
-                        }
-                    }
-                    break;
-                case "-kast":
-                    modules.addAll(KastFrontEnd.getModules());
-                    for (KModule kModule : kModules) {
-                        List<Module> ms = kModule.getKastModules();
-                        if (ms != null) {
-                            modules.addAll(ms);
-                        }
-                    }
-                    break;
-                case "-kdep":
-                    modules = KDepFrontEnd.getModules();
-                    break;
-                case "-krun":
-                    List<Module> definitionSpecificModules = new ArrayList<>();
-                    definitionSpecificModules.addAll(KRunFrontEnd.getDefinitionSpecificModules());
-                    for (KModule kModule : kModules) {
-                        List<Module> ms = kModule.getDefinitionSpecificKRunModules();
-                        if (ms != null) {
-                            definitionSpecificModules.addAll(ms);
-                        }
-                    }
+        switch (tool) {
+        case "-kserver":
+            modules.addAll(KServerFrontEnd.getModules());
+            break;
+        case "-kompile":
+            modules.addAll(KompileFrontEnd.getModules());
+            for (KModule kModule : kModules) {
+                List<Module> ms = kModule.getKompileModules();
+                if (ms != null) {
+                    modules.addAll(ms);
+                }
+            }
+            break;
+        case "-ktest":
+            modules.addAll(KTestFrontEnd.getModules());
+            for (KModule kModule : kModules) {
+                List<Module> ms = kModule.getKTestModules();
+                if (ms != null) {
+                    modules.addAll(ms);
+                }
+            }
+            break;
+        case "-kdoc":
+            modules.addAll(KDocFrontEnd.getModules());
+            for (KModule kModule : kModules) {
+                List<Module> ms = kModule.getKDocModules();
+                if (ms != null) {
+                    modules.addAll(ms);
+                }
+            }
+            break;
+        case "-kast":
+            modules.addAll(KastFrontEnd.getModules());
+            for (KModule kModule : kModules) {
+                List<Module> ms = kModule.getKastModules();
+                if (ms != null) {
+                    modules.addAll(ms);
+                }
+            }
+            break;
+        case "-kdep":
+            modules = KDepFrontEnd.getModules();
+            break;
+        case "-krun":
+            List<Module> definitionSpecificModules = new ArrayList<>();
+            definitionSpecificModules.addAll(KRunFrontEnd.getDefinitionSpecificModules());
+            for (KModule kModule : kModules) {
+                List<Module> ms = kModule.getDefinitionSpecificKRunModules();
+                if (ms != null) {
+                    definitionSpecificModules.addAll(ms);
+                }
+            }
 
-                    modules.addAll(KRunFrontEnd.getModules(definitionSpecificModules));
-                    for (KModule kModule : kModules) {
-                        List<Module> ms = kModule.getKRunModules(definitionSpecificModules);
-                        if (ms != null) {
-                            modules.addAll(ms);
-                        }
-                    }
-                    break;
-                case "-kpp":
-                    modules = KppFrontEnd.getModules();
-                    break;
-                default:
-                    invalidJarArguments();
-                    throw new AssertionError("unreachable");
+            modules.addAll(KRunFrontEnd.getModules(definitionSpecificModules));
+            for (KModule kModule : kModules) {
+                List<Module> ms = kModule.getKRunModules(definitionSpecificModules);
+                if (ms != null) {
+                    modules.addAll(ms);
+                }
+            }
+            break;
+        case "-kpp":
+            modules = KppFrontEnd.getModules();
+            break;
+        default:
+            invalidJarArguments();
+            throw new AssertionError("unreachable");
         }
         if (modules.size() == 0) {
             //boot error, we should have printed it already

@@ -17,6 +17,7 @@ public class StringUtil {
     public static String unquoteCString(String str) {
         return unquoteCString(str, '"');
     }
+
     public static String unquoteCString(String str, char delimiter) {
         StringBuilder sb = new StringBuilder();
         if (str.charAt(0) != delimiter) {
@@ -50,7 +51,8 @@ public class StringUtil {
                         throw new IllegalArgumentException("Malformed octal value in string:" + str);
                     int decimal = a2 * 8 * 8 + a1 * 8 + a0;
                     sb.append((char) decimal);
-                    i++; i++;
+                    i++;
+                    i++;
                 }
                 i++;
             } else
@@ -73,6 +75,7 @@ public class StringUtil {
     public static String enquoteCString(String value) {
         return enquoteCString(value, '"');
     }
+
     public static String enquoteCString(String value, char delimiter) {
         final int length = value.length();
         StringBuilder result = new StringBuilder();
@@ -94,7 +97,7 @@ public class StringUtil {
             } else if (codepoint == '\f') {
                 result.append("\\f");
             } else if (codepoint >= 32 && codepoint < 127) {
-                result.append((char)codepoint);
+                result.append((char) codepoint);
             } else if (codepoint <= 0xff) {
                 result.append("\\");
                 result.append(String.format("%03o", codepoint));
@@ -154,6 +157,7 @@ public class StringUtil {
      * Characters between 127 and 255 are stored as \xFF
      * Characters between 256 and 65535 are stored as \uFFFF
      * Characters above 65536 are stored as \u0010FFFF
+     *
      * @param str Python like double-quoted string
      * @return unescaped and unquoted string
      */
@@ -187,13 +191,13 @@ public class StringUtil {
                     i++;
                 } else if (str.charAt(i + 1) == 'x') {
                     String arg = str.substring(i + 2, i + 4);
-                    sb.append((char)Integer.parseInt(arg, 16));
+                    sb.append((char) Integer.parseInt(arg, 16));
                     i += 3;
                 } else if (str.charAt(i + 1) == 'u') {
                     String arg = str.substring(i + 2, i + 6);
                     int codePoint = Integer.parseInt(arg, 16);
                     StringUtil.throwIfSurrogatePair(codePoint);
-                    sb.append((char)codePoint);
+                    sb.append((char) codePoint);
                     i += 5;
                 } else if (str.charAt(i + 1) == 'U') {
                     String arg = str.substring(i + 2, i + 10);
@@ -215,6 +219,7 @@ public class StringUtil {
      * Characters between 127 and 255 are stored as \xFF
      * Characters between 256 and 65535 are stored as \uFFFF
      * Characters above 65536 are stored as \u0010FFFF
+     *
      * @param value any string
      * @return Python like textual representation of the string
      */
@@ -237,7 +242,7 @@ public class StringUtil {
             } else if (codepoint == '\f') {
                 result.append("\\f");
             } else if (codepoint >= 32 && codepoint < 127) {
-                result.append((char)codepoint);
+                result.append((char) codepoint);
             } else if (codepoint <= 0xff) {
                 result.append("\\x");
                 result.append(String.format("%02x", codepoint));
@@ -257,123 +262,124 @@ public class StringUtil {
      * Returns the two-letter code for a general category of Unicode code point.
      */
     public static String getCategoryCode(byte cat) {
-        switch(cat) {
-            case Character.COMBINING_SPACING_MARK:
-                return "Mc";
-            case Character.CONNECTOR_PUNCTUATION:
-                return "Pc";
-            case Character.CONTROL:
-                return "Cc";
-            case Character.CURRENCY_SYMBOL:
-                return "Sc";
-            case Character.DASH_PUNCTUATION:
-                return "Pd";
-            case Character.DECIMAL_DIGIT_NUMBER:
-                return "Nd";
-            case Character.ENCLOSING_MARK:
-                return "Me";
-            case Character.END_PUNCTUATION:
-                return "Pe";
-            case Character.FINAL_QUOTE_PUNCTUATION:
-                return "Pf";
-            case Character.FORMAT:
-                return "Cf";
-            case Character.INITIAL_QUOTE_PUNCTUATION:
-                return "Pi";
-            case Character.LETTER_NUMBER:
-                return "Nl";
-            case Character.LINE_SEPARATOR:
-                return "Zl";
-            case Character.LOWERCASE_LETTER:
-                return "Ll";
-            case Character.MATH_SYMBOL:
-                return "Sm";
-            case Character.MODIFIER_LETTER:
-                return "Lm";
-            case Character.MODIFIER_SYMBOL:
-                return "Sk";
-            case Character.NON_SPACING_MARK:
-                return "Mn";
-            case Character.OTHER_LETTER:
-                return "Lo";
-            case Character.OTHER_NUMBER:
-                return "No";
-            case Character.OTHER_PUNCTUATION:
-                return "Po";
-            case Character.OTHER_SYMBOL:
-                return "So";
-            case Character.PARAGRAPH_SEPARATOR:
-                return "Zp";
-            case Character.PRIVATE_USE:
-                return "Co";
-            case Character.SPACE_SEPARATOR:
-                return "Zs";
-            case Character.START_PUNCTUATION:
-                return "Ps";
-            case Character.SURROGATE:
-                return "Cs";
-            case Character.TITLECASE_LETTER:
-                return "Lt";
-            case Character.UNASSIGNED:
-                return "Cn";
-            case Character.UPPERCASE_LETTER:
-                return "Lu";
-            default:
-                assert false: "should be exhaustive list of categories";
-                return null; //unreachable
+        switch (cat) {
+        case Character.COMBINING_SPACING_MARK:
+            return "Mc";
+        case Character.CONNECTOR_PUNCTUATION:
+            return "Pc";
+        case Character.CONTROL:
+            return "Cc";
+        case Character.CURRENCY_SYMBOL:
+            return "Sc";
+        case Character.DASH_PUNCTUATION:
+            return "Pd";
+        case Character.DECIMAL_DIGIT_NUMBER:
+            return "Nd";
+        case Character.ENCLOSING_MARK:
+            return "Me";
+        case Character.END_PUNCTUATION:
+            return "Pe";
+        case Character.FINAL_QUOTE_PUNCTUATION:
+            return "Pf";
+        case Character.FORMAT:
+            return "Cf";
+        case Character.INITIAL_QUOTE_PUNCTUATION:
+            return "Pi";
+        case Character.LETTER_NUMBER:
+            return "Nl";
+        case Character.LINE_SEPARATOR:
+            return "Zl";
+        case Character.LOWERCASE_LETTER:
+            return "Ll";
+        case Character.MATH_SYMBOL:
+            return "Sm";
+        case Character.MODIFIER_LETTER:
+            return "Lm";
+        case Character.MODIFIER_SYMBOL:
+            return "Sk";
+        case Character.NON_SPACING_MARK:
+            return "Mn";
+        case Character.OTHER_LETTER:
+            return "Lo";
+        case Character.OTHER_NUMBER:
+            return "No";
+        case Character.OTHER_PUNCTUATION:
+            return "Po";
+        case Character.OTHER_SYMBOL:
+            return "So";
+        case Character.PARAGRAPH_SEPARATOR:
+            return "Zp";
+        case Character.PRIVATE_USE:
+            return "Co";
+        case Character.SPACE_SEPARATOR:
+            return "Zs";
+        case Character.START_PUNCTUATION:
+            return "Ps";
+        case Character.SURROGATE:
+            return "Cs";
+        case Character.TITLECASE_LETTER:
+            return "Lt";
+        case Character.UNASSIGNED:
+            return "Cn";
+        case Character.UPPERCASE_LETTER:
+            return "Lu";
+        default:
+            assert false : "should be exhaustive list of categories";
+            return null; //unreachable
         }
     }
 
     public static String getDirectionalityCode(byte cat) {
-        switch(cat) {
-            case Character.DIRECTIONALITY_ARABIC_NUMBER:
-                return "AN";
-            case Character.DIRECTIONALITY_BOUNDARY_NEUTRAL:
-                return "BN";
-            case Character.DIRECTIONALITY_COMMON_NUMBER_SEPARATOR:
-                return "CS";
-            case Character.DIRECTIONALITY_EUROPEAN_NUMBER:
-                return "EN";
-            case Character.DIRECTIONALITY_EUROPEAN_NUMBER_SEPARATOR:
-                return "ES";
-            case Character.DIRECTIONALITY_EUROPEAN_NUMBER_TERMINATOR:
-                return "ET";
-            case Character.DIRECTIONALITY_LEFT_TO_RIGHT:
-                return "L";
-            case Character.DIRECTIONALITY_LEFT_TO_RIGHT_EMBEDDING:
-                return "LRE";
-            case Character.DIRECTIONALITY_LEFT_TO_RIGHT_OVERRIDE:
-                return "LRO";
-            case Character.DIRECTIONALITY_NONSPACING_MARK:
-                return "NSM";
-            case Character.DIRECTIONALITY_OTHER_NEUTRALS:
-                return "ON";
-            case Character.DIRECTIONALITY_PARAGRAPH_SEPARATOR:
-                return "B";
-            case Character.DIRECTIONALITY_POP_DIRECTIONAL_FORMAT:
-                return "PDF";
-            case Character.DIRECTIONALITY_RIGHT_TO_LEFT:
-                return "R";
-            case Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC:
-                return "AL";
-            case Character.DIRECTIONALITY_RIGHT_TO_LEFT_EMBEDDING:
-                return "RLE";
-            case Character.DIRECTIONALITY_RIGHT_TO_LEFT_OVERRIDE:
-                return "RLO";
-            case Character.DIRECTIONALITY_SEGMENT_SEPARATOR:
-                return "S";
-            case Character.DIRECTIONALITY_UNDEFINED:
-                throw new IllegalArgumentException();
-            case Character.DIRECTIONALITY_WHITESPACE:
-                return "WS";
-            default:
-                assert false: "should be exhaustive list of directionalities";
-                return null; //unreachable
+        switch (cat) {
+        case Character.DIRECTIONALITY_ARABIC_NUMBER:
+            return "AN";
+        case Character.DIRECTIONALITY_BOUNDARY_NEUTRAL:
+            return "BN";
+        case Character.DIRECTIONALITY_COMMON_NUMBER_SEPARATOR:
+            return "CS";
+        case Character.DIRECTIONALITY_EUROPEAN_NUMBER:
+            return "EN";
+        case Character.DIRECTIONALITY_EUROPEAN_NUMBER_SEPARATOR:
+            return "ES";
+        case Character.DIRECTIONALITY_EUROPEAN_NUMBER_TERMINATOR:
+            return "ET";
+        case Character.DIRECTIONALITY_LEFT_TO_RIGHT:
+            return "L";
+        case Character.DIRECTIONALITY_LEFT_TO_RIGHT_EMBEDDING:
+            return "LRE";
+        case Character.DIRECTIONALITY_LEFT_TO_RIGHT_OVERRIDE:
+            return "LRO";
+        case Character.DIRECTIONALITY_NONSPACING_MARK:
+            return "NSM";
+        case Character.DIRECTIONALITY_OTHER_NEUTRALS:
+            return "ON";
+        case Character.DIRECTIONALITY_PARAGRAPH_SEPARATOR:
+            return "B";
+        case Character.DIRECTIONALITY_POP_DIRECTIONAL_FORMAT:
+            return "PDF";
+        case Character.DIRECTIONALITY_RIGHT_TO_LEFT:
+            return "R";
+        case Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC:
+            return "AL";
+        case Character.DIRECTIONALITY_RIGHT_TO_LEFT_EMBEDDING:
+            return "RLE";
+        case Character.DIRECTIONALITY_RIGHT_TO_LEFT_OVERRIDE:
+            return "RLO";
+        case Character.DIRECTIONALITY_SEGMENT_SEPARATOR:
+            return "S";
+        case Character.DIRECTIONALITY_UNDEFINED:
+            throw new IllegalArgumentException();
+        case Character.DIRECTIONALITY_WHITESPACE:
+            return "WS";
+        default:
+            assert false : "should be exhaustive list of directionalities";
+            return null; //unreachable
         }
     }
 
     /**
      * Creates an SDF safe representation of a Sort name.
+     *
      * @param nonTerminal String representation of the sort.
      * @return textual representation of the Sort name.
      */
@@ -383,6 +389,7 @@ public class StringUtil {
 
     /**
      * Creates an SDF safe representation of a Sort name.
+     *
      * @param sort String representation of the sort.
      * @return textual representation of the Sort name.
      */
@@ -392,6 +399,7 @@ public class StringUtil {
 
     /**
      * Creates an SDF safe representation of a Sort name.
+     *
      * @param str String representation of the sort.
      * @return textual representation of the Sort name.
      */
@@ -420,6 +428,7 @@ public class StringUtil {
     /**
      * Takes a string as input and creates a continuous token for the maude lexer.
      * Adds a backquote character to the following characters: ( ) [ ] { } , `
+     *
      * @param tag Input string.
      * @return A string that would be parsed as a continuous token by maude.
      */
@@ -432,6 +441,7 @@ public class StringUtil {
     /**
      * Removes the escaping backqotes required by the maude lexer.
      * Removes backquote from in front of teh following characters: ( ) [ ] { } , `
+     *
      * @param str A maude specific string representation of a token.
      * @return String representation of the token without the backquote escaping.
      */
@@ -495,6 +505,7 @@ public class StringUtil {
     /**
      * split string to lines in a way that no lines will exceed 80 columns
      * NOTE: strings split only at whitespace character ' ', if string contains no ' ', it's returned as is
+     *
      * @param str string to split
      * @return new string with newlines added
      */
@@ -505,6 +516,7 @@ public class StringUtil {
     /**
      * split string to lines in a way that no lines will exceed `col` columns
      * NOTE: strings split only at whitespace character ' ', if string contains no ' ', it's returned as is
+     *
      * @param str string to split
      * @param col rightmost column
      * @return new string with newlines added
@@ -552,11 +564,12 @@ public class StringUtil {
 
     /**
      * Finesse the JCommander usage output to make it more readable to the user.
-     *
+     * <p>
      * This function does two things. First, it reworks the indentation to fix a
      * bug where different commands are indented differently. Second, it
      * separates out experimental and non-experimental options in order to print
      * their usage separately.
+     *
      * @param string The unfiltered output from JCommander's usage
      * @return An array of strings. If the command has experimental options, they
      * are in the second string, and the main options are in the first string.
@@ -585,7 +598,7 @@ public class StringUtil {
                 mainOptions.append("\n");
             }
         }
-        return new String[] {mainOptions.toString(), experimentalOptions.toString()};
+        return new String[]{mainOptions.toString(), experimentalOptions.toString()};
     }
 
     public static String escapeShell(String arg, OS os) {
@@ -608,11 +621,11 @@ public class StringUtil {
     /**
      * Takes a textual representation of a KLabel using backticks to delimit
      * and returns the string representation of the KLabel that it corresponds to
-     *
+     * <p>
      * Used by the KAST parser.
      *
      * @param str An image of a parser token corresponding to a KLabel in KORE which
-     * begins and ends with backtick
+     *            begins and ends with backtick
      * @return The string value of the KLabel
      */
     public static String unescapeKoreKLabel(String str) {
@@ -643,7 +656,7 @@ public class StringUtil {
     /**
      * Takes the value of a KLabel and returns a string representation, delimited with
      * backticks, of the syntax of that KLabel in KORE.
-     *
+     * <p>
      * Used by the KAST pretty printer.
      *
      * @param str A string value corresponding to a KLabel.

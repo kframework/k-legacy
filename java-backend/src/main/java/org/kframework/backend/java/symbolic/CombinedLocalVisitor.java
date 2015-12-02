@@ -42,8 +42,7 @@ public class CombinedLocalVisitor extends LocalVisitor {
     /**
      * Invokes all internal visitors on the given node in order.
      *
-     * @param node
-     *            the given node
+     * @param node the given node
      */
     private void visitAll(JavaSymbolicObject node) {
         for (LocalVisitor t : Visitors) {

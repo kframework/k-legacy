@@ -26,13 +26,13 @@ import java.util.stream.Collectors;
 
 /**
  * Frontend for kdep tool.
- *
+ * <p>
  * kdep is designed to generate a Makefile that contains the dependencies
  * that kompile has on files when you run it. This can be used in order to ensure that if any
  * of the files required by a k definition are changed, the makefile will rerun kompile.
- *
+ * <p>
  * Example Makefile snippet:
- *
+ * <p>
  * <pre>
  *     .depend:
  *             kdep definition.k -d "directory" -I includes > .depend
@@ -85,8 +85,8 @@ public class KDepFrontEnd extends FrontEnd {
                 options.mainDefinitionFile(),
                 options.mainDefinitionFile().getParentFile(),
                 ListUtils.union(options.includes.stream()
-                        .map(files::resolveWorkingDirectory).collect(Collectors.toList()),
-                Lists.newArrayList(Kompile.BUILTIN_DIRECTORY)));
+                                .map(files::resolveWorkingDirectory).collect(Collectors.toList()),
+                        Lists.newArrayList(Kompile.BUILTIN_DIRECTORY)));
         Set<File> allFiles = modules.stream().map(m -> new File(m.getSource().source())).collect(Collectors.toSet());
         System.out.println(files.resolveWorkingDirectory(".").toURI().relativize(files.resolveKompiled("timestamp").toURI()).getPath() + " : \\");
         for (File file : allFiles) {

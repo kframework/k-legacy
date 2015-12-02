@@ -11,6 +11,7 @@ import org.kframework.utils.OS;
 import org.kframework.utils.StringUtil;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -142,7 +143,7 @@ public class TestCase {
         List<Annotated<String, LocationData>> programs = new LinkedList<>();
         programs.add(new Annotated<>(cmdArgs.getResults(), new LocationData()));
 
-        List<Annotated<String,LocationData>> results = new LinkedList<>();
+        List<Annotated<String, LocationData>> results = new LinkedList<>();
         results.add(new Annotated<>(cmdArgs.getResults(), new LocationData()));
 
         List<PgmArg> emptyOpts = Collections.emptyList();
@@ -163,7 +164,7 @@ public class TestCase {
 
     /**
      * @return {@link org.kframework.ktest.Proc} that runs Posix-only command of the test case.
-     *         {@code null} if test case doesn't have a Posix-only command.
+     * {@code null} if test case doesn't have a Posix-only command.
      */
     public Proc<TestCase> getPosixOnlyProc() {
         if (posixInitScript == null) {
@@ -241,7 +242,7 @@ public class TestCase {
             }
             Proc<KRunProgram> p = new Proc<>(program, args, program.inputFile, inputContents,
                     outputContentsAnn, errorContentsAnn, matcher, program.defPath, options,
-                    program.outputFile, program.newOutputFile, kem, env,  warnings2errors);
+                    program.outputFile, program.newOutputFile, kem, env, warnings2errors);
             procs.add(p);
         }
 
@@ -302,6 +303,7 @@ public class TestCase {
 
     /**
      * Do we need to skip a step for this test case?
+     *
      * @param step step to skip
      * @return whether to skip the step or not
      */
@@ -338,7 +340,7 @@ public class TestCase {
      */
     private String[] getPosixOnlyCmd() {
         assert posixInitScript == null || files.resolveWorkingDirectory(posixInitScript).isFile();
-        return new String[] { posixInitScript };
+        return new String[]{posixInitScript};
     }
 
     /**
@@ -374,7 +376,7 @@ public class TestCase {
             kompileDir = definitionFilePath;
         }
         String[] argsArr =
-                new String[] { ExecNames.getKDoc(), "--format", "pdf", "--directory", kompileDir };
+                new String[]{ExecNames.getKDoc(), "--format", "pdf", "--directory", kompileDir};
         if (OS.current() == OS.WINDOWS) {
             for (int i = 0; i < argsArr.length; i++) {
                 argsArr[i] = StringUtil.escapeShell(argsArr[i], OS.current());
@@ -385,6 +387,7 @@ public class TestCase {
 
     /**
      * Generate set of programs to run for this test case.
+     *
      * @return set of programs to krun
      */
     private List<KRunProgram> getPrograms() {
@@ -445,6 +448,7 @@ public class TestCase {
 
     /**
      * Search for program files by taking program extensions and excluded files into account.
+     *
      * @param pgmDir Root folder to start searching
      * @return list of KRunPrograms
      */
@@ -515,14 +519,15 @@ public class TestCase {
     }
 
     private File getNewOutputFilePath(String outputFileName) {
-        return files.resolveWorkingDirectory(FilenameUtils.concat(results.get(results.size() -1).getObj(), outputFileName));
+        return files.resolveWorkingDirectory(FilenameUtils.concat(results.get(results.size() - 1).getObj(), outputFileName));
     }
 
     /**
      * Search file in list of directories in reverse order.
      * Search is recursive, meaning that subfolders are also searched.
+     *
      * @param fname file name (not path)
-     * @param dirs list of directories to search
+     * @param dirs  list of directories to search
      * @return absolute path if file is found, null otherwise
      */
     private String searchFile(String fname, List<Annotated<String, LocationData>> dirs) {
@@ -538,8 +543,9 @@ public class TestCase {
 
     /**
      * Search file recursively in dir.
+     *
      * @param fname file name
-     * @param dir root directory to start searching
+     * @param dir   root directory to start searching
      * @return absolute path if found, null if not
      */
     private String searchFile(String fname, String dir) {

@@ -19,12 +19,12 @@ import java.util.concurrent.TimeUnit;
 /**
  * Just a fancy wrapper around {@link java.util.concurrent.ThreadPoolExecutor}
  * to provide a specialized version for KTest's needs.
- *
+ * <p>
  * Namely, a basic concurrent task in KTest is a TestCase. This class handles splitting a TestCase
  * into {@link org.kframework.ktest.Proc}s and pass it to
  * {@link java.util.concurrent.ThreadPoolExecutor} in a way that provide us good concurrency.
  * (e.g. it tries to minimize threads waiting idle)
- *
+ * <p>
  * TaskQueue makes sure that no thread in {@link java.util.concurrent.ThreadPoolExecutor} will wait
  * idle unless:
  * - krun processes are blocked because their definitions are being compiled.
@@ -52,7 +52,7 @@ public class TaskQueue {
      * may result in race conditions, so this behavior is correct:
      * Test writers should make sure that no compilation is happening to same directory, unless
      * compiled definition is same and same options are used for compilation.
-     *
+     * <p>
      * We also need to keep track of running kompile processes to prevent spawning threads that
      * do same compilation. Value part of the map handles all possibilities.
      */
@@ -63,11 +63,11 @@ public class TaskQueue {
      * need to keep track of in-progress tasks(no other tasks depend on successful PDF tasks so
      * no need to wait until a PDF task is finished, we can just skip the step since we know
      * same PDF task is either in-progress or already done).
-     *
+     * <p>
      * Another difference is that we don't keep track of target PDF file paths, but rather we
      * keep track of .k file paths. This is because we assume every definition file has one unique
      * PDF file.
-     *
+     * <p>
      * Boolean part indicates success of the task.
      */
     private final Map<String, Boolean> pdfDefs = new ConcurrentHashMap<>();
@@ -102,6 +102,7 @@ public class TaskQueue {
 
     /**
      * Add a test case to the task queue.
+     *
      * @param tc TestCase to add to the task queue.
      */
     public void addTask(TestCase tc) {
@@ -155,6 +156,7 @@ public class TaskQueue {
      * krun steps are added to the queue by successfully terminated kompile steps. If we're skipping
      * kompile steps(either because of `--skip kompile` or setting in config file) then this
      * method adds krun steps to the queue.
+     *
      * @param tc TestCase to continue running.
      */
     private void continueFromKompileStep(TestCase tc) {
@@ -170,6 +172,7 @@ public class TaskQueue {
     /**
      * Execute a kompile step of the given test case. krun steps will be added if ktest step
      * is successfully terminates.
+     *
      * @param tc TestCase to execute kompile step.
      */
     private void executeKompileStep(TestCase tc) {
@@ -181,6 +184,7 @@ public class TaskQueue {
      * Create a {@link java.lang.Runnable} from a script step that, after successfully running,
      * adds kompile step that depends on the script. Also adds script
      * {@link org.kframework.ktest.Proc} object to {@link #scriptProcs}.
+     *
      * @param scriptStep Script step to wrap.
      * @return New {@link java.lang.Runnable} that does things described above.
      */
@@ -207,10 +211,11 @@ public class TaskQueue {
      * - Adds the step to {@link #kompilePaths}.
      * After running:
      * - Adds krun tasks that depend on this kompile step to the queue. (only if it's
-     *   successfully done)
+     * successfully done)
      * - Updates {@link #kompilePaths}.
      * - Adds Proc to {@link #kompileProcs}.
      * - Updates {@link #lastTestFinished}.
+     *
      * @param kompileStep Kompile step to wrap.
      * @return New {@link java.lang.Runnable} that does things described above.
      */
@@ -268,6 +273,7 @@ public class TaskQueue {
      * Check status of kompile task that compiles to given path.
      * Path is added to {@link #kompilePaths} as {@code IN_PROGRESS} when {@code NOT_STARTED}
      * is returned.
+     *
      * @param path Path to search in {@link #kompilePaths}.
      * @return Status of kompile task that compiles to given path. Never returns {@code NOT_STARTED}.
      */
@@ -285,6 +291,7 @@ public class TaskQueue {
     /**
      * Create a {@link java.lang.Runnable} from a PDF step that updates {@link #pdfDefs},
      * {@link #pdfProcs} and {@link #lastTestFinished} after it's done.
+     *
      * @param pdfStep PDF step to wrap.
      * @return New {@link java.lang.Runnable} that does things described above.
      */
@@ -326,6 +333,7 @@ public class TaskQueue {
     /**
      * Create a {@link java.lang.Runnable} from a krun step that updates {@link #krunProcs} and
      * {@link #lastTestFinished}.
+     *
      * @param krunStep KRun step to wrap.
      * @return New {@link java.lang.Runnable} that does things described above.
      */

@@ -3,9 +3,13 @@ package org.kframework.kil;
 
 import org.kframework.kil.visitors.Visitor;
 
-/** A require directive */
+/**
+ * A require directive
+ */
 public class Require extends DefinitionItem {
-    /** The string argument to {@code require}, as written in the input file. */
+    /**
+     * The string argument to {@code require}, as written in the input file.
+     */
     private String value;
 
     public Require(Require require) {
@@ -37,7 +41,7 @@ public class Require extends DefinitionItem {
     }
 
     @Override
-        public String toString() {
-          return "require \""+value+"\"";
-        }
+    public String toString() {
+        return "require \"" + value + "\"";
+    }
 }

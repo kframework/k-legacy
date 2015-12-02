@@ -182,7 +182,7 @@ public class AddParentCells {
                 }
             }
             return Optional.empty();
-        } else if (k instanceof  KRewrite) {
+        } else if (k instanceof KRewrite) {
             KRewrite rew = (KRewrite) k;
             List<K> cells = IncompleteCellUtils.flattenCells(rew.left());
             cells.addAll(IncompleteCellUtils.flattenCells(rew.right()));
@@ -217,7 +217,7 @@ public class AddParentCells {
                 for (K item : items) {
                     if (!parent.equals(getParent(item))) {
                         throw KEMException.criticalError("Can't mix items with different parent cells under a rewrite," +
-                                " found "+items.get(0)+" and "+item, k);
+                                " found " + items.get(0) + " and " + item, k);
                     }
                 }
                 return parent;

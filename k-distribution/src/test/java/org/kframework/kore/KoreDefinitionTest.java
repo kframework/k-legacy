@@ -26,7 +26,7 @@ import static org.kframework.Collections.stream;
  */
 public class KoreDefinitionTest {
 
-    private final BubbleParsing bubbles = new BubbleParsing("K-TEST","RuleBody");
+    private final BubbleParsing bubbles = new BubbleParsing("K-TEST", "RuleBody");
 
     public static void main(String[] args) throws Exception {
         Definition def = new KoreDefinitionTest().parse(new FileInputStream(args[0]));

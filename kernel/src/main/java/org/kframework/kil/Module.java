@@ -13,7 +13,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-/** A module. */
+/**
+ * A module.
+ */
 public class Module extends DefinitionItem implements Interfaces.MutableList<ModuleItem, Enum<?>> {
     private String name;
     private List<ModuleItem> items = new ArrayList<>();
@@ -98,6 +100,7 @@ public class Module extends DefinitionItem implements Interfaces.MutableList<Mod
      * sorts.
      * Result will contain duplicates if
      * multiple declarations mention the same sort.
+     *
      * @return
      */
     public Set<Sort> getAllSorts() {

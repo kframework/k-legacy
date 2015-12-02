@@ -24,19 +24,19 @@ class ADTTest extends AbstractTest {
     assertNotEquals(seqX2, X ~> X ~> 2)
     assertEquals(KSequence(X, X, 2), KSequence(X, KSequence(X, 2)))
     assertEquals(KSequence(X, X, 2), KSequence(KSequence(X, X), 2))
-    assertEquals('foo(), KLabel("foo")())
-    assertNotEquals('foo(), KLabel("bar")())
-    assertNotEquals('foo(), KLabel("foo")(X))
+    assertEquals('foo (), KLabel("foo")())
+    assertNotEquals('foo (), KLabel("bar")())
+    assertNotEquals('foo (), KLabel("foo")(X))
 
     val divide = NativeBinaryOpLabel("/", Att(), (x: Int, y: Int) => x / y, Sorts.Int)
 
     assertEquals(5: K, divide(10, 2).normalize)
     assertEquals(KSequence(5: K), KSequence(divide(10, 2)).normalize)
-    assertEquals('foo(KSequence(5: K)), 'foo(KSequence(divide(10, 2))).normalize)
-    assertEquals('foo(KSequence(5: K)), And('foo(divide(10, 2))).normalize)
-    assertEquals('+(KSequence(5: K)), And('+(KSequence(divide(10, 2)))).normalize)
-    assertEquals('+('+(KSequence(5: K)), '+(KMapAppLabel("Map")())), '+('+(KSequence(divide(10, 2))), '+(KMapAppLabel
-      ("Map")())
+    assertEquals('foo (KSequence(5: K)), 'foo (KSequence(divide(10, 2))).normalize)
+    assertEquals('foo (KSequence(5: K)), And('foo (divide(10, 2))).normalize)
+    assertEquals('+ (KSequence(5: K)), And('+ (KSequence(divide(10, 2)))).normalize)
+    assertEquals('+ ('+ (KSequence(5: K)), '+ (KMapAppLabel("Map")())), '+ ('+ (KSequence(divide(10, 2))), '+ (KMapAppLabel
+    ("Map")())
     ).normalize)
 
 

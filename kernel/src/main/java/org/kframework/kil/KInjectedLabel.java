@@ -5,7 +5,8 @@ import org.kframework.attributes.Location;
 import org.kframework.attributes.Source;
 import org.kframework.kil.visitors.Visitor;
 
-/** Represents a term of sort KLabel made by injecting something else.
+/**
+ * Represents a term of sort KLabel made by injecting something else.
  * Corresponds to operators Foo2KLabel and #_ in source.
  * Usually only occurs as the label of a {@link KApp} an {@link Empty} as arguments.
  */
@@ -59,18 +60,18 @@ public class KInjectedLabel extends Term implements Interfaces.MutableParent<Ter
     @Override
     public boolean equals(Object o) {
         if (getClass() != o.getClass()) return false;
-        KInjectedLabel k = (KInjectedLabel)o;
+        KInjectedLabel k = (KInjectedLabel) o;
         return term.equals(k.term);
     }
 
     @Override
     public boolean contains(Object o) {
         if (o instanceof Bracket)
-            return contains(((Bracket)o).getContent());
+            return contains(((Bracket) o).getContent());
         if (o instanceof Cast)
-            return contains(((Cast)o).getContent());
+            return contains(((Cast) o).getContent());
         if (getClass() != o.getClass()) return false;
-        KInjectedLabel k = (KInjectedLabel)o;
+        KInjectedLabel k = (KInjectedLabel) o;
         return term.contains(k.term);
     }
 

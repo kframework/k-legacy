@@ -52,7 +52,8 @@ public class KompileModule extends AbstractModule {
         return options.global;
     }
 
-    @Provides @DefinitionDir
+    @Provides
+    @DefinitionDir
     File definitionDir(@WorkingDir File workingDir, KompileOptions options) {
         if (options.directory == null) {
             return options.mainDefinitionFile().getParentFile();
@@ -62,7 +63,8 @@ public class KompileModule extends AbstractModule {
         return new File(workingDir, options.directory);
     }
 
-    @Provides @KompiledDir
+    @Provides
+    @KompiledDir
     File kompiledDir(@DefinitionDir File defDir, KompileOptions options, @TempDir File tempDir) {
         return new File(defDir, FilenameUtils.removeExtension(options.mainDefinitionFile().getName()) + "-kompiled");
     }

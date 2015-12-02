@@ -95,11 +95,11 @@ public class CloseCellsTest {
     @Test
     public void testCloseCellTerm() {
         K term = KRewrite(cells(),
-                  cells(cell("<thread>", true, false, cell("<k>", intToToken(1))),
+                cells(cell("<thread>", true, false, cell("<k>", intToToken(1))),
                         cell("<thread>", false, true, cell("<k>", intToToken(2))),
                         cell("<thread>", true, true, cell("<env>", intToToken(2)))));
         K expected = KRewrite(cells(),
-                  cells(ccell("<thread>", ccell("<k>", intToToken(1)), ccell("<env>", KApply(KLabel(".Map")))),
+                cells(ccell("<thread>", ccell("<k>", intToToken(1)), ccell("<env>", KApply(KLabel(".Map")))),
                         ccell("<thread>", ccell("<k>", intToToken(2)), ccell("<env>", KApply(KLabel(".Map")))),
                         ccell("<thread>", ccell("<env>", intToToken(2)), ccell("<k>", stringToToken("defaultK")))));
         Assert.assertEquals(expected, new CloseCells(cfgInfo, sortInfo, labelInfo).close(term));
@@ -108,6 +108,7 @@ public class CloseCellsTest {
     KApply cell(String name, K... ks) {
         return cell(name, false, false, ks);
     }
+
     KApply cell(String name, boolean openLeft, boolean openRight, K... ks) {
         return IncompleteCellUtils.make(KLabel(name), openLeft, Arrays.asList(ks), openRight);
     }

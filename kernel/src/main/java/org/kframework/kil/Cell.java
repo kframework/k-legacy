@@ -26,30 +26,38 @@ import java.util.stream.Collectors;
  * <tr><td/><td> | "stream" "=" ('"stdin"' | '"stdout"') </td></tr>
  * </table>
  * <p>
- *  For example, a configuration cell might look like
- *   {@code <output color="blue" multiplicity="?" stream="stdout"> </output>},
- *  while a rule cell might look like
- *     {@code <k ellipses="right"> X </k>}
- *  corresponding to  {@code <k> X ...</k>}
+ * For example, a configuration cell might look like
+ * {@code <output color="blue" multiplicity="?" stream="stdout"> </output>},
+ * while a rule cell might look like
+ * {@code <k ellipses="right"> X </k>}
+ * corresponding to  {@code <k> X ...</k>}
  * <p>
  * Cell attributes are in {@link #cellAttributes}, not {@link #attributes}.
  */
 public class Cell extends Term implements Interfaces.MutableParent<Term, Enum<?>> {
-    /** Possible values for the multiplicity attribute */
+    /**
+     * Possible values for the multiplicity attribute
+     */
     public enum Multiplicity {
         ONE, MAYBE, ANY, SOME,
     }
 
-    /** Possible values for the ellipses attribute */
+    /**
+     * Possible values for the ellipses attribute
+     */
     public enum Ellipses {
         LEFT, RIGHT, BOTH, NONE,
     }
 
     public static String SORT_ATTRIBUTE = "sort";
 
-    /** Must equal with {@link #endLabel} */
+    /**
+     * Must equal with {@link #endLabel}
+     */
     String label;
-    /** Must equal with {@link #label} */
+    /**
+     * Must equal with {@link #label}
+     */
     String endLabel;
 
     public void setEndLabel(String endLabel) {

@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 /**
  * Subsort relation.
- *
+ * <p>
  * TODO(YilongL): delegates this to KORE/Context
  *
  * @author YilongL

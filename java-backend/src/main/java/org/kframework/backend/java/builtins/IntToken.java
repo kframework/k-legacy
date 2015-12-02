@@ -67,6 +67,7 @@ public final class IntToken extends Token {
     /**
      * Returns an {@code int} representation of the (interpreted) value of this
      * IntToken.
+     *
      * @throws ArithmeticException Integer does not fit in an int.
      */
     public int intValue() {
@@ -76,12 +77,13 @@ public final class IntToken extends Token {
         if (value.compareTo(BigInteger.valueOf(Integer.MIN_VALUE)) < 0) {
             throw new ArithmeticException();
         }
-        return (int)value.longValue();
+        return (int) value.longValue();
     }
 
     /**
      * Returns a {@code long} representation of the (interpreted) value of this
      * IntToken.
+     *
      * @throws ArithmeticException Integer does not fit in a long.
      */
     public long longValue() {
@@ -97,6 +99,7 @@ public final class IntToken extends Token {
     /**
      * Returns a {@code byte} representation of the (interpreted) value of this
      * IntToken. Assumes an unsigned value in the range 0-255.
+     *
      * @throws ArithmeticException Integer is not in the range of an unsigned byte.
      */
     public byte unsignedByteValue() {
@@ -106,7 +109,7 @@ public final class IntToken extends Token {
         if (value.compareTo(BigInteger.valueOf(0)) < 0) {
             throw new ArithmeticException();
         }
-        return (byte)value.longValue();
+        return (byte) value.longValue();
     }
 
     @Override

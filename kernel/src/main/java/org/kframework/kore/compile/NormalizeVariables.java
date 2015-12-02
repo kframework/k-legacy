@@ -25,6 +25,7 @@ public class NormalizeVariables {
 
     private int counter = 0;
     private Map<KVariable, String> vars = new HashMap<>();
+
     private KVariable normalize(KVariable var) {
         if (var.att().contains("denormal"))
             return var;
@@ -36,12 +37,13 @@ public class NormalizeVariables {
 
     /**
      * Applies the normalization existing in a particular set of normalized terms to a denormal term
+     *
      * @param denormal The term to be normalized. Only variables which exist in the specified
      *                 {@code normals} are normalized.
-     * @param normals A list of terms that have previously been normalized using this class, or which
-     *               have been constructed manually with all variables given the "denormal"
-     *               attribute specifying their denormal name. The term to be normalized
-     *               will be normalized according to the same normalization as these terms.
+     * @param normals  A list of terms that have previously been normalized using this class, or which
+     *                 have been constructed manually with all variables given the "denormal"
+     *                 attribute specifying their denormal name. The term to be normalized
+     *                 will be normalized according to the same normalization as these terms.
      * @return The normalized version of {@code denormal}, in which each variable present in
      * the denormal version of the specified {@code normals} is replaced with its normalized
      * name.

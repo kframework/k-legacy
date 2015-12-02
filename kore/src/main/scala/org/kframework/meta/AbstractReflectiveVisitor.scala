@@ -1,7 +1,9 @@
 package org.kframework.meta
 
 abstract class AbstractReflectiveVisitor {
+
   import scala.reflect.runtime.universe.MethodMirror
+
   val cache = collection.mutable.Map[Class[_], MethodMirror]()
   //  val cache = collection.mutable.Map[Class[_], Method]()
 
@@ -14,5 +16,6 @@ abstract class AbstractReflectiveVisitor {
     methodMirror(o)
     Reflection.deconstruct(o) foreach apply
   }
+
   def visit(x: AnyRef) {}
 }

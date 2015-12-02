@@ -22,7 +22,7 @@ public class Coverage {
      * - If {@code file} is null, then it does nothing.
      * - If the location information is not available, then it does nothing.
      *
-     * @param file could be null.
+     * @param file            could be null.
      * @param constrainedTerm should not be null.
      */
     public static void print(File file, ConstrainedTerm constrainedTerm) {

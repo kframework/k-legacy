@@ -98,7 +98,8 @@ public class KTestFrontEnd extends FrontEnd {
         default:
             // this code should be unreacable, because `validateArgs' should ensure that
             // targetFile extension can only be .k or .xml
-            ret = null; assert false;
+            ret = null;
+            assert false;
         }
         return ret;
     }

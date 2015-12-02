@@ -122,7 +122,7 @@ public class Attribute<T> extends ASTNode {
         public static String toString(Annotation annotation) {
             if (annotation == null) return null;
             if (annotation instanceof Named) {
-                return ((Named)annotation).value();
+                return ((Named) annotation).value();
             }
             return annotation.toString();
         }

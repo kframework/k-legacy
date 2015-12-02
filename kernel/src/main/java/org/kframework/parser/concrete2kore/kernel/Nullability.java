@@ -32,15 +32,16 @@ public class Nullability {
      * B. entryNullable(state) && childNullable(state) => entryNullable(state.next)
      * Where childNullable(state) is true when it is possible to get from the
      * start of the state to the end of the state without consuming input.
-     *
+     * <p>
      * The following algorithm is a least fixed-point algorithm for solving those implications.
      * mark(state) is called when we discover an implication implying entryNullable(state). We can
      * discover this implication one of three ways:
-     *
+     * <p>
      * 1. A state is an entry state (see rule A)
      * 2. The entryNullable(state) in rule B becomes true (in which case we check childNullable).)
      * 3. The childNullable(state) in rule B becomes true (in which case we check entryNullable(state).)
      * (ChildNullable(state) becomes true when an exit state becomes entryNullable.)
+     *
      * @param grammar the grammar object.
      * @return A set with all the NonTerminals that can become entryNullable.
      */
@@ -72,12 +73,12 @@ public class Nullability {
                     for (State s : ((NextableState) state).next)
                         mark(s, nonTerminalCallers);
             } else {
-                assert state instanceof ExitState: "Expected element of type ExitState: " + state;
+                assert state instanceof ExitState : "Expected element of type ExitState: " + state;
                 // previous calls to childNullable would have returned False
                 // so now we restart those recursions
                 for (State s : nonTerminalCallers.get(state.nt)) {
                     if (entryNullable.contains(s)) {
-                        for (State child : ((NextableState)s).next) {
+                        for (State child : ((NextableState) s).next) {
                             mark(child, nonTerminalCallers);
                         }
                     }
@@ -88,6 +89,7 @@ public class Nullability {
 
     /**
      * Checks if a state can parse without consuming characters.
+     *
      * @param state The state to check
      * @return true if the state can parse without consuming characters and false otherwise
      */
@@ -95,8 +97,8 @@ public class Nullability {
         return (state instanceof EntryState) ||
                 (state instanceof ExitState) ||
                 (state instanceof RuleState) ||
-               ((state instanceof PrimitiveState) && ((PrimitiveState)state).isNullable()) ||
-               ((state instanceof NonTerminalState) && isNullable(((NonTerminalState) state).child));
+                ((state instanceof PrimitiveState) && ((PrimitiveState) state).isNullable()) ||
+                ((state instanceof NonTerminalState) && isNullable(((NonTerminalState) state).child));
     }
 
     public boolean isNullable(NonTerminal nt) { return entryNullable.contains(nt.exitState); }

@@ -39,7 +39,7 @@ public class AmbFilter extends SetsGeneralTransformer<ParseFailedException, Pars
             }
             last = next;
         }
-        if(equal) {
+        if (equal) {
             // all ambiguities have the same abstract syntax, so just pick one
             return candidate;
         }

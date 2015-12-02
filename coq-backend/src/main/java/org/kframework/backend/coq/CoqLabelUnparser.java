@@ -22,7 +22,7 @@ public class CoqLabelUnparser extends NonCachingVisitor {
             Variable v = (Variable) t;
             builder.append(v.getName());
         } else {
-            KLabelConstant l = (KLabelConstant)t;
+            KLabelConstant l = (KLabelConstant) t;
             builder.append('`');
             builder.append(l.getLabel());
             builder.append('`');
@@ -31,11 +31,11 @@ public class CoqLabelUnparser extends NonCachingVisitor {
 
     public void visitNodeOrKList(Term t) {
         if (t instanceof Bracket) {
-            Bracket b = (Bracket)t;
+            Bracket b = (Bracket) t;
             visitNodeOrKList(b.getContent());
         } else if (t instanceof KList) {
             builder.append("`#klist`(");
-            visitNestedKLists((KList)t);
+            visitNestedKLists((KList) t);
             builder.append(')');
         } else {
             visitNode(t);
@@ -50,7 +50,7 @@ public class CoqLabelUnparser extends NonCachingVisitor {
         builder.append("module ");
         builder.append(m.getName());
         builder.append('\n');
-        super.visit(m,_void);
+        super.visit(m, _void);
         builder.append("endmodule\n");
         return null;
     }
@@ -109,16 +109,16 @@ public class CoqLabelUnparser extends NonCachingVisitor {
     @Override
     public Void visit(KApp app, Void _void) {
         if (app.getLabel() instanceof Token) {
-            assert ((KList)app.getChild()).isEmpty();
+            assert ((KList) app.getChild()).isEmpty();
             this.visitNode(app.getLabel());
         } else {
             printLabel(app.getLabel());
             Term child = app.getChild();
             builder.append('(');
             if (child instanceof KList) {
-                visitNestedKLists((KList)child);
+                visitNestedKLists((KList) child);
             } else if (child instanceof Variable) {
-                Variable klistVar = (Variable)child;
+                Variable klistVar = (Variable) child;
                 assert (klistVar.getSort().equals(Sort.KLIST));
                 builder.append(klistVar.getName());
                 builder.append(":KList");
@@ -142,7 +142,7 @@ public class CoqLabelUnparser extends NonCachingVisitor {
     }
 
     @Override
-    public Void visit(KSequence k , Void _void) {
+    public Void visit(KSequence k, Void _void) {
         if (k.isEmpty()) {
             builder.append(".K");
         } else {
@@ -198,7 +198,7 @@ public class CoqLabelUnparser extends NonCachingVisitor {
         builder.append("`");
         if (prod.isListDecl() && c.getContents().size() == 2) {
             UserList list = prod.getListDecl();
-            builder.append('_'+list.getSeparator()+prod.getSort()+'_');
+            builder.append('_' + list.getSeparator() + prod.getSort() + '_');
         } else {
             builder.append(prod.getKLabel());
         }
@@ -206,7 +206,7 @@ public class CoqLabelUnparser extends NonCachingVisitor {
         builder.append('(');
         boolean listOp = false;
         for (ProductionItem i : c.getProduction().getItems()) {
-            if (i instanceof NonTerminal && ((NonTerminal)i).getName().equals("KList")) {
+            if (i instanceof NonTerminal && ((NonTerminal) i).getName().equals("KList")) {
                 listOp = true;
                 break;
             }
@@ -254,10 +254,12 @@ public class CoqLabelUnparser extends NonCachingVisitor {
     public Void visit(Syntax s, Void _void) {
         return null;
     }
+
     @Override
     public Void visit(PriorityExtended s, Void _void) {
         return null;
     }
+
     @Override
     public Void visit(PriorityExtendedAssoc s, Void _void) {
         return null;
@@ -290,17 +292,17 @@ public class CoqLabelUnparser extends NonCachingVisitor {
         boolean allCells = true;
         for (Term t : b.getContents()) {
             if (t instanceof Cell
-                || t instanceof TermComment) {
+                    || t instanceof TermComment) {
                 continue;
             } else if (t instanceof Variable) {
-                Variable v = (Variable)t;
+                Variable v = (Variable) t;
                 if (v.getSort().equals(Sort.BAG)) {
                     continue;
                 }
             } else if (t instanceof Bracket) {
-                Bracket r = (Bracket)t;
+                Bracket r = (Bracket) t;
                 if (r.getContent() instanceof Rewrite
-                    && r.getContent().getSort().equals(Sort.BAG)) {
+                        && r.getContent().getSort().equals(Sort.BAG)) {
                     continue;
                 }
             }

@@ -15,11 +15,11 @@ import com.google.common.collect.ImmutableList;
  * usual syntax of K, it can be defined as the following:
  * <p>
  * <blockquote>
- *
+ * <p>
  * <pre>
  * syntax KList ::= List{K}{","}
  * </pre>
- *
+ * <p>
  * </blockquote>
  * <p>
  *

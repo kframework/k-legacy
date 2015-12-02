@@ -7,8 +7,8 @@ import com.beust.jcommander.ParameterException;
 /**
  * Since the default "PositiveInteger" validator actually validates non-negative
  * integers, I created this class as a utility
- * @author dwightguth
  *
+ * @author dwightguth
  */
 public class PositiveInteger implements IValueValidator<Integer> {
     @Override

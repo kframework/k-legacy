@@ -14,7 +14,7 @@ public class SMTOptions implements Serializable {
     @Inject
     public SMTOptions(Void v) {}
 
-    @Parameter(names="--smt", converter=SMTSolverConverter.class, description="SMT solver to use for checking constraints. <solver> is one of [z3|none].")
+    @Parameter(names = "--smt", converter = SMTSolverConverter.class, description = "SMT solver to use for checking constraints. <solver> is one of [z3|none].")
     public SMTSolver smt = SMTSolver.Z3;
 
     public static class SMTSolverConverter extends BaseEnumConverter<SMTSolver> {
@@ -29,18 +29,18 @@ public class SMTOptions implements Serializable {
         }
     }
 
-    @Parameter(names="--floats-as-po", description="Abstracts floating-point values as a partial order relation.")
+    @Parameter(names = "--floats-as-po", description = "Abstracts floating-point values as a partial order relation.")
     public boolean floatsAsPO = false;
 
-    @Parameter(names="--smt_prelude", description="Path to the SMT prelude file.")
+    @Parameter(names = "--smt_prelude", description = "Path to the SMT prelude file.")
     public String smtPrelude;
 
-    @Parameter(names="--z3-executable", description="Invokes Z3 as an external process.")
+    @Parameter(names = "--z3-executable", description = "Invokes Z3 as an external process.")
     public boolean z3Executable = false;
 
-    @Parameter(names="--z3-cnstr-timeout", description="The default soft timeout (in milli seconds) of Z3 for checking constraint satisfiability.")
+    @Parameter(names = "--z3-cnstr-timeout", description = "The default soft timeout (in milli seconds) of Z3 for checking constraint satisfiability.")
     public int z3CnstrTimeout = 50;
 
-    @Parameter(names="--z3-impl-timeout", description="The default soft timeout (in milli seconds) of Z3 for checking implication.")
+    @Parameter(names = "--z3-impl-timeout", description = "The default soft timeout (in milli seconds) of Z3 for checking implication.")
     public int z3ImplTimeout = 5000;
 }

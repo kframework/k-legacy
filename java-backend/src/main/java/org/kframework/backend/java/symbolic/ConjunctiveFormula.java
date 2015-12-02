@@ -493,10 +493,10 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
                 && ((BuiltinMap) DataStructures.getLookupBase(term)).isConcreteCollection()) {
             result = result.add(new DisjunctiveFormula((
                     (BuiltinMap) DataStructures.getLookupBase(term)).getEntries().keySet().stream()
-                        .map(key -> new Equality(DataStructures.getLookupKey(term), key, global))
-                        .filter(e -> !e.isFalse())
-                        .map(e -> ConjunctiveFormula.of(global).add(e))
-                        .collect(Collectors.toList()),
+                    .map(key -> new Equality(DataStructures.getLookupKey(term), key, global))
+                    .filter(e -> !e.isFalse())
+                    .map(e -> ConjunctiveFormula.of(global).add(e))
+                    .collect(Collectors.toList()),
                     global));
         }
         return result;
@@ -615,7 +615,7 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
                 continue;
             }
 
-            if (!impliesSMT(left,right, rightOnlyVariables)) {
+            if (!impliesSMT(left, right, rightOnlyVariables)) {
                 if (global.globalOptions.debug) {
                     System.err.println("Failure!");
                 }
@@ -639,7 +639,7 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
                 Maps.difference(constraint.substitution, substitution).entriesInCommon().keySet());
         Predicate<Equality> inConstraint = equality -> !equalities().contains(equality)
                 && !equalities().contains(new Equality(equality.rightHandSide(), equality.leftHandSide(), global));
-        PersistentUniqueList<Equality> simplifiedEqualities= PersistentUniqueList.from(
+        PersistentUniqueList<Equality> simplifiedEqualities = PersistentUniqueList.from(
                 constraint.equalities().stream().filter(inConstraint).collect(Collectors.toList()));
         ConjunctiveFormula simplifiedConstraint = ConjunctiveFormula.of(
                 simplifiedSubstitution,

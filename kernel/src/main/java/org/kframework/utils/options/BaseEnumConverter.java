@@ -12,8 +12,8 @@ import com.beust.jcommander.converters.BaseConverter;
  * Helper class used to abstract functionality of converting enums in JCommander.
  * We use this because JCommander has bugs and feature issues regarding casing and hyphens
  * in enum names.
- * @author dwightguth
  *
+ * @author dwightguth
  */
 public abstract class BaseEnumConverter<T extends Enum<T>> extends BaseConverter<T> {
 

@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
  * cell collection.
  *
  * @author AndreiS
- *
  */
 public class CellCollection extends Collection implements CollectionInternalRepresentation {
 
@@ -165,7 +164,7 @@ public class CellCollection extends Collection implements CollectionInternalRepr
         }
 
         assert count <= 1 :
-            "Multiple types of starred cells in one cell collection not supported at present";
+                "Multiple types of starred cells in one cell collection not supported at present";
         return count;
     }
 
@@ -418,8 +417,10 @@ public class CellCollection extends Collection implements CollectionInternalRepr
             ImmutableMultiset<Variable> collectionVariables = collectionVariablesBuilder.build();
             if (cells.isEmpty()) {
                 switch (collectionVariables.size()) {
-                    case 1:  return collectionVariables.iterator().next();
-                    default: return new CellCollection(cells, collectionVariables, cellSort, definition);
+                case 1:
+                    return collectionVariables.iterator().next();
+                default:
+                    return new CellCollection(cells, collectionVariables, cellSort, definition);
                 }
             } else {
                 return new CellCollection(cells, collectionVariables, cellSort, definition);

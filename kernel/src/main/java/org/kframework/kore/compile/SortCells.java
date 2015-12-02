@@ -42,14 +42,14 @@ import static org.kframework.kore.KORE.*;
  * Arrange cell contents and variables to match the klabels declared for cells.
  * In Full K, cell contents can be written in any order, and variables can
  * be written that match multiple cells.
- * <p/>
+ * <p>
  * In the input to this pass, parent cells are represented by appling the label directly
  * to a klist of all the children, variables, and rewrites under the cell.
  * Left cells should already be in their final form.
  * In the output each cell will be represented by using the cell labels in agreement
  * with the production declaring it, so parent cells will have a fixed arity with separate
  * argument positions reserved for different types of child cell.
- * <p/>
+ * <p>
  * The most complicated part of the transformation is dealing with variables
  * in cells. An occurrence in a cell that might match child cells of different
  * sorts has to be split into several variables in different arguments, and any
@@ -59,6 +59,7 @@ import static org.kframework.kore.KORE.*;
  */
 public class SortCells {
     private final ConcretizationInfo cfg;
+
     public SortCells(ConfigurationInfo cfgInfo, LabelInfo labelInfo) {
         this.cfg = new ConcretizationInfo(cfgInfo, labelInfo);
     }
@@ -115,7 +116,7 @@ public class SortCells {
             if (parentCell == null) {
                 parentCell = cell;
             } else if (!parentCell.equals(cell)) {
-                throw KEMException.criticalError("Cell variable "+var+" used under two cells, "
+                throw KEMException.criticalError("Cell variable " + var + " used under two cells, "
                         + parentCell + " and " + cell);
             }
             if (remainingCells == null) {
@@ -166,8 +167,8 @@ public class SortCells {
             return KApply(fragmentLabel, immutable(arguments));
         }
 
-       Map<Sort, K> getSplit(KVariable var) {
-            if(split != null) {
+        Map<Sort, K> getSplit(KVariable var) {
+            if (split != null) {
                 return split;
             }
             if (remainingCells.size() == 0) {
@@ -187,6 +188,7 @@ public class SortCells {
 
 
     private int counter = 0;
+
     KVariable newDotVariable() {
         KVariable newLabel;
         do {
@@ -201,7 +203,10 @@ public class SortCells {
     private Set<KVariable> previousVars = new HashSet<>();
 
     private void resetVars() {
-        variables.clear(); cellVariables.clear(); previousVars.clear(); counter = 0;
+        variables.clear();
+        cellVariables.clear();
+        previousVars.clear();
+        counter = 0;
     }
 
     private void analyzeVars(K term) {
@@ -215,14 +220,15 @@ public class SortCells {
 
             private K left(K term) {
                 if (term instanceof KRewrite) {
-                    return ((KRewrite)term).left();
+                    return ((KRewrite) term).left();
                 } else {
                     return term;
                 }
             }
+
             private K right(K term) {
                 if (term instanceof KRewrite) {
-                    return ((KRewrite)term).right();
+                    return ((KRewrite) term).right();
                 } else {
                     return term;
                 }
@@ -258,22 +264,22 @@ public class SortCells {
                             if (cfg.cfg.isCell(sort)) {
                                 if (!cellVariables.getOrDefault(var, sort).equals(sort)) {
                                     Sort prevSort = cellVariables.get(var);
-                                    throw KEMException.compilerError("Variable "+var+" occurs annotated as multiple cell sorts, "+sort+" and "+prevSort,
+                                    throw KEMException.compilerError("Variable " + var + " occurs annotated as multiple cell sorts, " + sort + " and " + prevSort,
                                             item);
                                 }
                                 if (variables.containsKey(var)) {
-                                    throw KEMException.compilerError("Variable "+var+" occurs with cell sort "+sort+" after occurance without cell sort annotation");
+                                    throw KEMException.compilerError("Variable " + var + " occurs with cell sort " + sort + " after occurance without cell sort annotation");
                                 }
-                                cellVariables.put(var,sort);
+                                cellVariables.put(var, sort);
                                 continue;
                             } else {
                                 if (cellVariables.containsKey(var)) {
-                                    throw KEMException.compilerError("Variable "+var+" occurs annotated as non-cell sort "+sort+" after appearing as cell sort "+cellVariables.get(var),item);
+                                    throw KEMException.compilerError("Variable " + var + " occurs annotated as non-cell sort " + sort + " after appearing as cell sort " + cellVariables.get(var), item);
                                 }
                             }
                         }
                         if (cellVariables.containsKey(var)) {
-                            throw KEMException.compilerError("Variable "+var+" occurs without sort annotation after appearing as cell sort "+cellVariables.get(var),item);
+                            throw KEMException.compilerError("Variable " + var + " occurs without sort annotation after appearing as cell sort " + cellVariables.get(var), item);
                         }
                         bagVars.add(var);
                     }
@@ -326,9 +332,9 @@ public class SortCells {
         if (app.klist().size() != 1) return false;
         K argument = app.klist().items().get(0);
         if (!(argument instanceof KVariable)) return false;
-        VarInfo info = variables.get((KVariable)argument);
+        VarInfo info = variables.get((KVariable) argument);
         if (info == null) return false;
-        KLabel expectedPredicate = KLabel("is"+cfg.getCellSort(info.parentCell).toString()+"Fragment");
+        KLabel expectedPredicate = KLabel("is" + cfg.getCellSort(info.parentCell).toString() + "Fragment");
         return app.klabel().equals(expectedPredicate);
     }
 
@@ -350,10 +356,10 @@ public class SortCells {
                         return getSplit(k.klist().items().get(0)).entrySet().stream()
                                 .map(e -> (K) KApply(KLabel("is" + getPredicateSort(e.getKey())), e.getValue()))
                                 .reduce(BooleanUtils.TRUE, BooleanUtils::and);
-                    } else if(k.klabel().name().equals("isBag")
+                    } else if (k.klabel().name().equals("isBag")
                             && k.klist().size() == 1
                             && k.klist().items().get(0) instanceof KVariable) {
-                        KVariable var = (KVariable)k.klist().items().get(0);
+                        KVariable var = (KVariable) k.klist().items().get(0);
                         VarInfo info = variables.get(var);
                         if (info != null) {
                             return info.getSplit(var).entrySet().stream()
@@ -396,13 +402,13 @@ public class SortCells {
                         if (cellSort == null) {
                             throw new IllegalArgumentException("Unknown variable " + item);
                         } else {
-                            return ImmutableMap.of(cellSort,item);
+                            return ImmutableMap.of(cellSort, item);
                         }
                     }
                     return info.getSplit((KVariable) item);
                 } else if (item instanceof KApply) {
                     List<K> children = IncompleteCellUtils.flattenCells(item);
-                    if(children.size() == 1 && children.get(0) == item) {
+                    if (children.size() == 1 && children.get(0) == item) {
                         final KLabel label = ((KApply) item).klabel();
                         Sort s = cfg.getCellSort(label);
                         if (s == null) {
@@ -451,7 +457,7 @@ public class SortCells {
                 int ix = children.size();
                 K result = children.get(--ix);
                 while (ix > 0) {
-                    result = KApply(concat,children.get(--ix),result);
+                    result = KApply(concat, children.get(--ix), result);
                 }
                 return result;
             }

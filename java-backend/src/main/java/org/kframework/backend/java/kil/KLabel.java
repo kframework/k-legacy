@@ -38,7 +38,7 @@ public abstract class KLabel extends Term {
      * represents a constructor, a function, or a pattern.
      *
      * @return true if this {@code KLabel} represents a constructor; otherwise,
-     *         false
+     * false
      */
     public abstract boolean isConstructor();
 
@@ -47,7 +47,7 @@ public abstract class KLabel extends Term {
      * represents a constructor, a function, or a pattern.
      *
      * @return true if this {@code KLabel} represents a function; otherwise,
-     *         false
+     * false
      */
     public abstract boolean isFunction();
 
@@ -57,7 +57,7 @@ public abstract class KLabel extends Term {
      * represents a constructor, a function, or a pattern.
      *
      * @return true if this {@code KLabel} represents a pattern; otherwise,
-     *         false
+     * false
      */
     public abstract boolean isPattern();
 

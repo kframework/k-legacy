@@ -40,8 +40,8 @@ public class ConcreteCollectionVariable extends Variable {
         } else if (term instanceof Collection) {
             Collection collection = (Collection) term;
             return collection.isConcreteCollection() ?
-                collection.concreteSize() == concreteSize :
-                collection.concreteSize() <= concreteSize;
+                    collection.concreteSize() == concreteSize :
+                    collection.concreteSize() <= concreteSize;
         } else if (term instanceof Variable) {
             return true;
         } else {

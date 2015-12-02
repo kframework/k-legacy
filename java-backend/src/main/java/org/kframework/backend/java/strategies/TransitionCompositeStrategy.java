@@ -11,12 +11,11 @@ import java.util.Collection;
  * rewrite engine to ensure that structural rules will always be applied
  * before transition rules, while still adding the user to specify more
  * strategies to be used.
- *
+ * <p>
  * The actual logic of resetting and getting rules is inherited from
  * CompositeStrategy. All that needs to be changed is pop, and push.
  *
  * @author ericmikida
- *
  */
 
 public class TransitionCompositeStrategy extends CompositeStrategy {

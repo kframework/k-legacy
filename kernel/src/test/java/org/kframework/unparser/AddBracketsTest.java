@@ -32,7 +32,7 @@ public class AddBracketsTest {
     private RuleGrammarGenerator gen;
 
     @Before
-    public void setUp() throws  Exception{
+    public void setUp() throws Exception {
         gen = makeRuleGrammarGenerator();
     }
 

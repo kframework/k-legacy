@@ -28,7 +28,7 @@ public class PortableFileSystemTest extends BaseTestCase {
             @Override
             public java.io.File answer(InvocationOnMock invocation)
                     throws Throwable {
-                return new java.io.File((String)invocation.getArguments()[0]);
+                return new java.io.File((String) invocation.getArguments()[0]);
             }
         });
         PortableFileSystem fs = new PortableFileSystem(kem, files);

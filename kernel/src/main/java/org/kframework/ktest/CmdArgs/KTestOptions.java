@@ -28,11 +28,11 @@ import java.util.Set;
 /**
  * Represents valid command line arguments. This class must call the
  * `validateArgs' method, which ensures validation of arguments, before use.
- *
+ * <p>
  * Being valid means:
- *   - File paths are valid(e.g. point to a files/directories) relative to current directory
- *   - Only one unnamed argument is passed
- *   - File extension is either .k or .xml
+ * - File paths are valid(e.g. point to a files/directories) relative to current directory
+ * - Only one unnamed argument is passed
+ * - File extension is either .k or .xml
  */
 @RequestScoped
 public class KTestOptions {
@@ -71,17 +71,17 @@ public class KTestOptions {
      * A root directory where K definitions reside. By default this is the current directory.
      * Valid only in batch mode.
      */
-    @Parameter(names={"-d", "--directory"}, description="A root directory where K definitions reside." +
-                        " By default this is the current directory. Valid only in batch mode.")
+    @Parameter(names = {"-d", "--directory"}, description = "A root directory where K definitions reside." +
+            " By default this is the current directory. Valid only in batch mode.")
     private String _directory;
 
     /**
      * Programs directory in single job mode, or a root directory for programs in batch mode. By
      * default this is the directory where <file> reside.
      */
-    @Parameter(names="--programs", description="Programs directory in single job mode, " +
-                        "or a root directory for programs in batch mode. By default this is the " +
-                        "directory where <file> reside.")
+    @Parameter(names = "--programs", description = "Programs directory in single job mode, " +
+            "or a root directory for programs in batch mode. By default this is the " +
+            "directory where <file> reside.")
     private String _programs;
 
     /**
@@ -89,10 +89,10 @@ public class KTestOptions {
      * or a root directory for the expected I/O for programs in batch mode. By default this is
      * the directory where <file> reside.
      */
-    @Parameter(names="--results", description="Directory containing input and expected " +
-                        "output for programs in single job mode, or a root directory for the " +
-                        "expected I/O for programs in batch mode. By default this is the " +
-                        "directory where <file> reside.")
+    @Parameter(names = "--results", description = "Directory containing input and expected " +
+            "output for programs in single job mode, or a root directory for the " +
+            "expected I/O for programs in batch mode. By default this is the " +
+            "directory where <file> reside.")
     private String _results;
 
     // contains the values processed from external state
@@ -102,84 +102,84 @@ public class KTestOptions {
      * The list of program extensions separated by whitespaces. Required in single job mode,
      * invalid in batch mode.
      */
-    @Parameter(names="--extension", description="The list of program extensions separated " +
-                        "by whitespaces. Required in single job mode, invalid in batch mode.",
-                        listConverter=StringListConverter.class)
+    @Parameter(names = "--extension", description = "The list of program extensions separated " +
+            "by whitespaces. Required in single job mode, invalid in batch mode.",
+            listConverter = StringListConverter.class)
     private List<String> extensions = new ArrayList<>();
 
     /**
      * The list of programs which will not be tested. Valid only in single job mode.
      */
-    @Parameter(names="--exclude", description="The list of programs which will not be " +
-                        "tested. Valid only in single job mode.",
-                        listConverter=StringListConverter.class)
+    @Parameter(names = "--exclude", description = "The list of programs which will not be " +
+            "tested. Valid only in single job mode.",
+            listConverter = StringListConverter.class)
     private List<String> excludes = new ArrayList<>();
 
     /**
      * The list of steps separated by whitespace to be skipped.
      */
-    @Parameter(names="--skip", description="The list of steps to be skipped, separated by whitespace. " +
-                        "A step is either [" + "kompile" + "|" + "pdf" +
-                        "|" + "krun" + "].",
-                        converter=KTestStepSetConverter.class)
+    @Parameter(names = "--skip", description = "The list of steps to be skipped, separated by whitespace. " +
+            "A step is either [" + "kompile" + "|" + "pdf" +
+            "|" + "krun" + "].",
+            converter = KTestStepSetConverter.class)
     private Set<KTestStep> skips = EnumSet.noneOf(KTestStep.class);
 
     /**
      * Maximum number of threads spawned for parallel execution.
      */
-    @Parameter(names="--threads", description="Maximum number of threads spawned for parallel execution.",
-            validateValueWith=PositiveInteger.class)
+    @Parameter(names = "--threads", description = "Maximum number of threads spawned for parallel execution.",
+            validateValueWith = PositiveInteger.class)
     private int threads = Runtime.getRuntime().availableProcessors();
 
     /**
      * Generate a junit-like report.
      */
-    @Parameter(names="--report", description="Generate a junit-like report.")
+    @Parameter(names = "--report", description = "Generate a junit-like report.")
     private boolean generateReport = false;
 
     /**
      * Config XML file for batch mode, K definition for single job mode.
      */
-    @Parameter(description="<file>")
+    @Parameter(description = "<file>")
     private List<String> parameters;
 
     /**
      * Timeout for processes spawned by ktest. (in seconds)
      */
-    @Parameter(names="--timeout", description="Time limit for each process (milliseconds).")
+    @Parameter(names = "--timeout", description = "Time limit for each process (milliseconds).")
     private int timeout = 300000;
 
     /**
      * Update existing .out files.
      */
-    @Parameter(names="--update-out", description="Update existing .out files.")
+    @Parameter(names = "--update-out", description = "Update existing .out files.")
     private boolean updateOut = false;
 
     /**
      * Newly generate .out files if needed.
      */
-    @Parameter(names="--generate-out", description="Newly generate .out files if needed.")
+    @Parameter(names = "--generate-out", description = "Newly generate .out files if needed.")
     private boolean generateOut = false;
 
     /**
      * Ignore whitespace while comparing program outputs.
      */
-    @Parameter(names="--ignore-whitespace", description="Ignore white spaces when comparing results.",
-            arity=1, converter=OnOffConverter.class)
+    @Parameter(names = "--ignore-whitespace", description = "Ignore white spaces when comparing results.",
+            arity = 1, converter = OnOffConverter.class)
     private boolean ignoreWS = true;
 
     /**
      * Ignore balanced parens while comparing program outputs.
      */
-    @Parameter(names="--ignore-balanced-parens", description="Ignore balanced parentheses when " +
-                        "comparing results.", arity=1, converter=OnOffConverter.class)
+    @Parameter(names = "--ignore-balanced-parens", description = "Ignore balanced parentheses when " +
+            "comparing results.", arity = 1, converter = OnOffConverter.class)
     private boolean ignoreBalancedParens = true;
 
     /**
      * Dry run.
      */
-    @Parameter(names="--dry", description="Dry run: print out the " +
-                "command to be executed without actual execution.")
+    @Parameter(names = "--dry", description = "Dry run: print out the " +
+            "command to be executed without actual execution.")
     public boolean dry = false;
 
     /**
@@ -198,6 +198,7 @@ public class KTestOptions {
 
     /**
      * Copy constructor.
+     *
      * @param obj KTestOptions object to copy
      */
     public KTestOptions(KTestOptions obj) {
@@ -225,6 +226,7 @@ public class KTestOptions {
     /**
      * Validate raw data parsed from command line arguments and set fields,
      * which are needed for TestSuite to run tests.
+     *
      * @throws ParameterException in case of an invalid argument
      */
     public void validateArgs(FileUtil files) throws ParameterException {

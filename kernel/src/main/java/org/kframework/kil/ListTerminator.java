@@ -45,9 +45,9 @@ public class ListTerminator extends Term {
         if (separator != null && sort.equals(Sort.K)) {
             return "'.List`{" + StringUtil.enquoteCString(StringUtil.escapeMaude(separator)) + "`}(.KList)";
         } else {
-        return "." + sort;
-    }
+            return "." + sort;
         }
+    }
 
     @Override
     public ListTerminator shallowCopy() {

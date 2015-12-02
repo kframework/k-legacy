@@ -90,6 +90,7 @@ public class FloatBuiltin extends Token {
     }
 
     private static Pattern precisionAndExponent = Pattern.compile("(.*)[pP](\\d+)[xX](\\d+)");
+
     public static Pair<BigFloat, Integer> parseKFloat(String s) {
         try {
             Matcher m = precisionAndExponent.matcher(s);

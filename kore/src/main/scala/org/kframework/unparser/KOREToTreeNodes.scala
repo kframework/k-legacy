@@ -15,7 +15,7 @@ object KOREToTreeNodes {
 
   def apply(t: K, mod: Module): Term = t match {
     case t: KToken => Constant(t.s, mod.tokenProductionsFor(Sort(t.sort.name)).head, t.att.getOptional[Location]("Location"), t.att.getOptional[Source]("Source"))
-    case a: KApply => TermCons(ConsPStack.from((a.klist.items.asScala map { i:K => apply(i, mod) }).reverse asJava),
+    case a: KApply => TermCons(ConsPStack.from((a.klist.items.asScala map { i: K => apply(i, mod) }).reverse asJava),
       mod.productionsFor(KLabel(a.klabel.name)).find(_.items.filter(_.isInstanceOf[NonTerminal]).size == a.klist.size).get, t.att.getOptional[Location]("Location"), t.att.getOptional[Source]("Source"))
   }
 
@@ -53,7 +53,7 @@ object KOREToTreeNodes {
         case RegexTerminal(_, _, _) => throw new AssertionError("Unimplemented yet")
       }
       if (p.att.contains("format")) {
-        p.att.get[String]("format").get.format(unparsedItems:_*)
+        p.att.get[String]("format").get.format(unparsedItems: _*)
       } else {
         unparsedItems.mkString(" ")
       }

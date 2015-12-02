@@ -3,7 +3,6 @@ package org.kframework.kil.loader;
 
 /**
  * @author andrei.arusoaie
- *
  */
 public class Constants {
 

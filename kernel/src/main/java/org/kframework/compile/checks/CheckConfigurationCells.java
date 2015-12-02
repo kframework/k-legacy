@@ -4,6 +4,7 @@ package org.kframework.compile.checks;
 import org.kframework.kil.*;
 import org.kframework.kil.visitors.BasicVisitor;
 import org.kframework.utils.errorsystem.KExceptionManager;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,7 +13,7 @@ import java.util.Map;
  */
 public class CheckConfigurationCells extends BasicVisitor {
 
-    Map<String,Cell> cells = new HashMap<String,Cell>();
+    Map<String, Cell> cells = new HashMap<String, Cell>();
 
     @Override
     public Void visit(Configuration node, Void _void) {

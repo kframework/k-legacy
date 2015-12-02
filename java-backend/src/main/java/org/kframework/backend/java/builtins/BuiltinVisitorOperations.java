@@ -13,9 +13,8 @@ import java.util.List;
 /**
  * Provides a builtin implementation of a K visitor.
  *
- * @see include/modules/k-functional-visitor.k
- *
  * @author Traian
+ * @see include/modules/k-functional-visitor.k
  */
 public class BuiltinVisitorOperations {
 
@@ -106,14 +105,13 @@ public class BuiltinVisitorOperations {
     /**
      * Implements operation {@code #visit(K, VisitLabel, VisitList, IfLabel, IfList)}.
      *
-     * @param term Term being visited
+     * @param term           Term being visited
      * @param visitLabelTerm {@code KItem} representation of the kLabel of the visitation performed on a node
-     * @param visitListTerm {@code KItem} representation of the kList of additional arguments passed the visitation KLabel
-     * @param ifLabelTerm {@code KItem} representation of the kLabel of the guard controlling whether a node is visited
-     * @param ifListTerm {@code KItem} representation of the kList of additional arguments passed to the guard KLabel
+     * @param visitListTerm  {@code KItem} representation of the kList of additional arguments passed the visitation KLabel
+     * @param ifLabelTerm    {@code KItem} representation of the kLabel of the guard controlling whether a node is visited
+     * @param ifListTerm     {@code KItem} representation of the kList of additional arguments passed to the guard KLabel
      * @param context
      * @return Visited term
-     *
      * @see org.kframework.backend.java.kil.KLabelInjection
      */
     public static Term visit(

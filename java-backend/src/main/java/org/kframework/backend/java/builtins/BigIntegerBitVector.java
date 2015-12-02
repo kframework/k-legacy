@@ -265,7 +265,7 @@ public final class BigIntegerBitVector extends BitVector<BigInteger> {
         BigInteger unsignedValue = unsignedValue();
 
         BigInteger mask = BigInteger.ONE.shiftLeft(digitBitWidth).subtract(BigInteger.ONE);
-        for (int i = 0, j = bitwidth - digitBitWidth; i < count;  ++i, j -= digitBitWidth) {
+        for (int i = 0, j = bitwidth - digitBitWidth; i < count; ++i, j -= digitBitWidth) {
             digits.add(BitVector.of(unsignedValue.shiftRight(j).and(mask), digitBitWidth));
         }
 

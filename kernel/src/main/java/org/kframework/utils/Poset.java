@@ -41,6 +41,7 @@ public class Poset<T> implements Serializable {
 
     /**
      * Add all the elements and relations to the current object.
+     *
      * @param poset the new relations.
      */
     public void add(Poset<T> poset) {
@@ -117,13 +118,12 @@ public class Poset<T> implements Serializable {
 
     /**
      * finds the least upper bound of a subset of the elements of
-     *
+     * <p>
      * returns null if none exists
-     *
+     * <p>
      * assumes that all elements in subset are actually elements of the Poset
-     *
+     * <p>
      * also assumes that the Poset is actually a Poset (transitively closed)
-     *
      */
     public T getLUB(Set<T> subset) {
         return getUniqueBound(subset, upperBound);
@@ -131,13 +131,12 @@ public class Poset<T> implements Serializable {
 
     /**
      * finds the greatest lower bound of a subset of the elements of
-     *
+     * <p>
      * returns null if none exists
-     *
+     * <p>
      * assumes that all elements in subset are actually elements of the Poset
-     *
+     * <p>
      * also assumes that the Poset is actually a Poset (transitively closed)
-     *
      */
     public T getGLB(Set<T> subset) {
         return getUniqueBound(subset, lowerBound);
@@ -258,8 +257,7 @@ public class Poset<T> implements Serializable {
     /**
      * Finds the maximal lower bounds of a subset of the elements in this poset.
      *
-     * @param subset
-     *            the subset of elements
+     * @param subset the subset of elements
      * @return an immutable set of the maximal lower bounds
      */
     public Set<T> getMaximalLowerBounds(Set<T> subset) {
@@ -269,8 +267,7 @@ public class Poset<T> implements Serializable {
     /**
      * Finds the minimal upper bounds of a subset of the elements in this poset.
      *
-     * @param subset
-     *            the subset of elements
+     * @param subset the subset of elements
      * @return an immutable set of the minimal upper bounds
      */
     public Set<T> getMinimalUpperBounds(Set<T> subset) {

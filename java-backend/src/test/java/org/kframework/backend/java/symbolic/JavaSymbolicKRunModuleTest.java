@@ -42,7 +42,7 @@ public class JavaSymbolicKRunModuleTest extends BaseTestCase {
     @Test
     public void testCreateInjectionJava() {
         context.kompileOptions.backend = "java";
-        String[] argv = new String[] { "foo.c" };
+        String[] argv = new String[]{"foo.c"};
         List<Module> definitionSpecificModules = Lists.newArrayList(KRunFrontEnd.getDefinitionSpecificModules());
         definitionSpecificModules.addAll(new JavaBackendKModule().getDefinitionSpecificKRunModules());
         Module definitionSpecificModuleOverride = Modules.override(definitionSpecificModules).with(new TestModule());
@@ -57,7 +57,7 @@ public class JavaSymbolicKRunModuleTest extends BaseTestCase {
 
     @Test
     public void testCreateInjectionJavaKompile() {
-        String[] argv = new String[] { "foo.k", "--backend", "java" };
+        String[] argv = new String[]{"foo.k", "--backend", "java"};
         List<Module> modules = Lists.newArrayList(KompileFrontEnd.getModules());
         modules.addAll(new JavaBackendKModule().getKompileModules());
         Injector injector = Guice.createInjector(Modules.override(modules).with(new TestModule(), new BaseTestCase.TestModule()));

@@ -41,6 +41,7 @@ public class ConcretizationInfo {
     public ConfigurationInfo.Multiplicity getMultiplicity(KLabel label) {
         return cfg.getMultiplicity(labels.getCodomain(label));
     }
+
     public ConfigurationInfo.Multiplicity getMultiplicity(Sort sort) {
         return cfg.getMultiplicity(sort);
     }
@@ -62,7 +63,8 @@ public class ConcretizationInfo {
         return cfg.isCell(s) ? s : null;
     }
 
-    /** If {@code label} is a label making a cell collection, return the
+    /**
+     * If {@code label} is a label making a cell collection, return the
      * Sort of the cells in that collection.
      */
     public Sort getCellCollectionCell(KLabel label) {
@@ -72,6 +74,7 @@ public class ConcretizationInfo {
         }
         return result.isDefined() ? result.get() : null;
     }
+
     public KLabel getCellFragmentLabel(KLabel cellLabel) {
         Sort s = labels.getCodomain(cellLabel);
         return cfg.getCellFragmentLabel(s);
@@ -91,9 +94,11 @@ public class ConcretizationInfo {
         Sort s = labels.getCodomain(klabel);
         return cfg.isCell(s) && cfg.getCellLabel(s).equals(klabel);
     }
+
     public boolean isLeafCell(KLabel klabel) {
         return cfg.isLeafCell(labels.getCodomain(klabel));
     }
+
     public boolean isParentCell(KLabel klabel) {
         return isCell(klabel) && cfg.isParentCell(labels.getCodomain(klabel));
     }
@@ -101,6 +106,7 @@ public class ConcretizationInfo {
     public Sort leafCellType(KLabel label) {
         return cfg.leafCellType(labels.getCodomain(label));
     }
+
     public List<Sort> getChildren(KLabel label) {
         return cfg.getChildren(labels.getCodomain(label));
     }

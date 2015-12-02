@@ -12,6 +12,7 @@ package org.kframework.backend.java.symbolic;
 public interface Visitable {
     /**
      * Implements a Visitor pattern.
+     *
      * @param visitor
      */
     void accept(Visitor visitor);

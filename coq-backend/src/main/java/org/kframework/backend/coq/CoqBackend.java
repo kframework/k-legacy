@@ -34,8 +34,8 @@ public class CoqBackend {
     public void run(Definition definition) {
         final String labelFile = FilenameUtils.removeExtension(options.mainDefinitionFile().getName()) + ".labeled_rules";
         final String langName = definition.getMainModule().toLowerCase();
-        final String domainFile = langName+"_domains.v";
-        final String ruleFile = langName+"_rules.v";
+        final String domainFile = langName + "_domains.v";
+        final String ruleFile = langName + "_rules.v";
 
         CoqLabelUnparser unparser = new CoqLabelUnparser(context);
         unparser.visitNode(definition);
@@ -47,9 +47,9 @@ public class CoqBackend {
         File directory = definition.getMainFile().getParentFile();
 
         try {
-            Process p = pb.get().command(kcoq,"syntax","--recursive",
-                    definition.getMainFile().getAbsolutePath(),domainFile)
-              .inheritIO().directory(directory).start();
+            Process p = pb.get().command(kcoq, "syntax", "--recursive",
+                    definition.getMainFile().getAbsolutePath(), domainFile)
+                    .inheritIO().directory(directory).start();
             int result;
             try {
                 result = p.waitFor();
@@ -65,9 +65,9 @@ public class CoqBackend {
             throw KEMException.criticalError("Error generating Coq syntax definition", e);
         }
         try {
-            Process p = pb.get().command(kcoq,"rules","--lang-name",langName,"--recursive",
-                    definition.getMainFile().getAbsolutePath(),"--rules-from",labelFile,ruleFile)
-              .inheritIO().directory(directory).start();
+            Process p = pb.get().command(kcoq, "rules", "--lang-name", langName, "--recursive",
+                    definition.getMainFile().getAbsolutePath(), "--rules-from", labelFile, ruleFile)
+                    .inheritIO().directory(directory).start();
             int result;
             try {
                 result = p.waitFor();
@@ -91,6 +91,7 @@ public class CoqBackend {
     public String autoincludedFile() {
         return Backends.AUTOINCLUDE_JAVA;
     }
+
     public boolean generatesDefinition() {
         return false;
     }

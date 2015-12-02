@@ -13,7 +13,7 @@ import com.google.inject.util.Modules;
 public class KDocModuleTest extends BaseTestCase {
     @Test
     public void testCreateInjection() {
-        String[] argv = new String[] { "--format", "latex" };
+        String[] argv = new String[]{"--format", "latex"};
         Injector injector = Guice.createInjector(Modules.override(KDocFrontEnd.getModules()).with(new DefinitionSpecificTestModule(), new TestModule()));
         prepInjector(injector, "-kdoc", argv);
         assertTrue(injector.getInstance(FrontEnd.class) instanceof KDocFrontEnd);

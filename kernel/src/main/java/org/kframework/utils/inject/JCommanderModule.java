@@ -23,20 +23,27 @@ import com.google.inject.AbstractModule;
 import com.google.inject.BindingAnnotation;
 import com.google.inject.Provides;
 
-public class JCommanderModule extends AbstractModule  {
+public class JCommanderModule extends AbstractModule {
 
-    @BindingAnnotation @Target({FIELD, PARAMETER, METHOD}) @Retention(RUNTIME)
+    @BindingAnnotation
+    @Target({FIELD, PARAMETER, METHOD})
+    @Retention(RUNTIME)
     public @interface Usage {}
-    @BindingAnnotation @Target({FIELD, PARAMETER, METHOD}) @Retention(RUNTIME)
+
+    @BindingAnnotation
+    @Target({FIELD, PARAMETER, METHOD})
+    @Retention(RUNTIME)
     public @interface ExperimentalUsage {}
 
     @Override
     protected void configure() {
         bind(String[].class).annotatedWith(Options.class)
-            .toProvider(SimpleScope.seededKeyProvider()).in(RequestScoped.class);;
+                .toProvider(SimpleScope.seededKeyProvider()).in(RequestScoped.class);
+        ;
     }
 
-    @Provides @RequestScoped
+    @Provides
+    @RequestScoped
     JCommander jcommander(@Options String[] args, Tool tool, @Options Set<Object> options, @Options Set<Class<?>> experimentalOptions, KExceptionManager kem, Stopwatch sw) {
         try {
             JCommander jc = new JCommander(options.toArray(new Object[options.size()]), args);
@@ -49,14 +56,18 @@ public class JCommanderModule extends AbstractModule  {
         }
     }
 
-    @Provides @Usage @RequestScoped
+    @Provides
+    @Usage
+    @RequestScoped
     String usage(JCommander jc) {
         StringBuilder sb = new StringBuilder();
         jc.usage(sb);
         return StringUtil.finesseJCommanderUsage(sb.toString(), jc)[0];
     }
 
-    @Provides @ExperimentalUsage @RequestScoped
+    @Provides
+    @ExperimentalUsage
+    @RequestScoped
     String experimentalUsage(JCommander jc) {
         StringBuilder sb = new StringBuilder();
         jc.usage(sb);

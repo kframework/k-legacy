@@ -34,8 +34,7 @@ public abstract class ASTNode implements Serializable {
     /**
      * Initializes an ASTNode from XML describing the parse tree
      *
-     * @param elem
-     *            The XML element describing the ASTNode
+     * @param elem The XML element describing the ASTNode
      */
     public ASTNode(Element elem) {
         this(getElementLocation(elem), getElementSource(elem));
@@ -55,8 +54,7 @@ public abstract class ASTNode implements Serializable {
             int endLine = scanner.nextInt();
             int endCol = scanner.nextInt();
             return new Location(beginLine, beginCol, endLine, endCol);
-        }
-        else
+        } else
             return null;
     }
 
@@ -263,7 +261,8 @@ public abstract class ASTNode implements Serializable {
 
     /**
      * Updates the value of an attribute in the list of attributes.
-     *get
+     * get
+     *
      * @param key
      * @param val
      */
@@ -299,6 +298,7 @@ public abstract class ASTNode implements Serializable {
      * Copies attributes from another node into this node.
      * Use this in preference to {@link ASTNode#getAttributes} where appropriate because
      * the latter will create a new object if no attributes exist.
+     *
      * @param node The ASTNode to copy all attributes from.
      */
     public void copyAttributesFrom(ASTNode node) {

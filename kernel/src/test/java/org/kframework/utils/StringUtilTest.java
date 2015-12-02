@@ -33,8 +33,8 @@ public class StringUtilTest {
 
     @Test
     public void StringUtilEscapeShell() throws Exception {
-        String[] cmd1 = new String[] {"foo", "bar \" baz"};
-        String[] cmd2 = new String[] {"'"};
+        String[] cmd1 = new String[]{"foo", "bar \" baz"};
+        String[] cmd2 = new String[]{"'"};
         Assert.assertEquals("\"foo\" \"bar \\\" baz\"", StringUtil.escapeShell(cmd1, OS.WINDOWS));
         Assert.assertEquals("'foo' 'bar \" baz'", StringUtil.escapeShell(cmd1, OS.LINUX));
         Assert.assertEquals("''\\'''", StringUtil.escapeShell(cmd2, OS.LINUX));
@@ -50,9 +50,9 @@ public class StringUtilTest {
         String backToAll = StringUtil.unquoteCString(enquoted);
         char[] all2 = backToAll.toCharArray();
 
-        Assert.assertEquals("Different sizes after running quote unquote.", all.length , all2.length);
+        Assert.assertEquals("Different sizes after running quote unquote.", all.length, all2.length);
         for (int i = 0; i < 256; i++)
-            Assert.assertEquals("Different values at position: " + i, all[i] , all2[i]);
+            Assert.assertEquals("Different values at position: " + i, all[i], all2[i]);
     }
 
     @Test
@@ -66,9 +66,9 @@ public class StringUtilTest {
         String backToAll = StringUtil.unquoteKString(enquoted);
         char[] all2 = backToAll.toCharArray();
 
-        Assert.assertEquals("Different sizes after running quote unquote.", all.length , all2.length);
+        Assert.assertEquals("Different sizes after running quote unquote.", all.length, all2.length);
         for (int i = 0; i < 257; i++)
-            Assert.assertEquals("Different values at position: " + i, all[i] , all2[i]);
+            Assert.assertEquals("Different values at position: " + i, all[i], all2[i]);
     }
 
     @Test

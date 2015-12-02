@@ -15,6 +15,7 @@ class MatcherTest extends AbstractTest {
       case or: Or => or
       case k => k
     }
+
     def matchOne(other: K, sideConditions: K = True) = matchAll(other, sideConditions) match {
       case or: Or if or.children.size > 0 => or.children.head
       case x => x
@@ -22,66 +23,66 @@ class MatcherTest extends AbstractTest {
   }
 
   @Test def testSimple() {
-    assertEquals(X -> 'foo(), X.matcher('foo()).normalize)
+    assertEquals(X -> 'foo (), X.matcher('foo ()).normalize)
   }
 
   @Test def testSimpleWithFalseSideCondition() {
-    val foo = 'foo()
+    val foo = 'foo ()
 
-    assertEquals(False, And(X.matcher('foo()), False).normalize)
+    assertEquals(False, And(X.matcher('foo ()), False).normalize)
   }
 
   @Test def testSimpleWithTrueSideCondition() {
-    val foo = 'foo()
-    Assert.assertEquals(X -> 'foo(), X.matchAll(foo, True))
+    val foo = 'foo ()
+    Assert.assertEquals(X -> 'foo (), X.matchAll(foo, True))
   }
 
   @Test def testEmptyMatch() {
-    val foo = 'foo()
+    val foo = 'foo ()
     Assert.assertEquals(True, foo.matchOne(foo, True))
   }
 
   @Test def testKApply() {
-    val foo = 'foo(5: K)
-    val pattern = 'foo(X)
+    val foo = 'foo (5: K)
+    val pattern = 'foo (X)
     Assert.assertEquals(X -> ((5: K): K),
       pattern.matchOne(foo, True))
   }
 
   @Test def testKApplyWithCondition() {
-    val foo = 'foo(5: K)
-    val pattern = 'foo(X)
+    val foo = 'foo (5: K)
+    val pattern = 'foo (X)
     assertEquals(X -> 5, pattern.matchOne(foo, X -> 5))
   }
 
   @Test def testKApplyWithFailingCondition() {
-    val foo = 'foo(5: K)
-    val pattern = 'foo(X)
+    val foo = 'foo (5: K)
+    val pattern = 'foo (X)
     assertEquals(False, pattern.matchAll(foo, X -> 4))
   }
 
   @Test
   @Ignore def testKApplyIdWithFailingCondition() {
-    val foo = 'foo(5: K, 6: K)
-    val pattern = 'foo(X, Y)
+    val foo = 'foo (5: K, 6: K)
+    val pattern = 'foo (X, Y)
     assertEquals(False, pattern.matchAll(foo, Equals(X, Y)))
   }
 
   @Test
   @Ignore def testKApplyIdWithPassingCondition() {
-    val foo = 'foo(5: K, 5: K)
-    val pattern = 'foo(X, Y)
+    val foo = 'foo (5: K, 5: K)
+    val pattern = 'foo (X, Y)
     assertEquals(Or(And(X -> (5: K), Y -> (5: K))), pattern.matchAll(foo, Equals(X, Y)))
   }
 
   @Test def testKApply1() {
-    val foo = 'foo(5)
-    val pattern = 'bar(X)
+    val foo = 'foo (5)
+    val pattern = 'bar (X)
     assertEquals(False, pattern.matchOne(foo))
   }
 
   @Test def testNested() {
-    assertEquals(X -> ((5: K): K), 'foo('bar(X)).matchAll('foo('bar(5: K))))
+    assertEquals(X -> ((5: K): K), 'foo ('bar (X)).matchAll('foo ('bar (5: K))))
   }
 
   @Test def testAssocEntire() {
@@ -111,16 +112,16 @@ class MatcherTest extends AbstractTest {
   @Test def testAssocMultivar() {
     val foo = (5: K)
     val pattern = X + Y
-    assertEquals(Or(And(X -> '+(), Y -> 5), And(X -> 5, Y -> '+())), pattern.matchAll(foo))
+    assertEquals(Or(And(X -> '+ (), Y -> 5), And(X -> 5, Y -> '+ ())), pattern.matchAll(foo))
   }
 
   @Test def testAssocMultivar1() {
     val foo = (5: K) + 6
     val pattern = X + Y
     assertEquals(Or(
-      And(Y -> '+(5, 6), X -> '+()),
+      And(Y -> '+ (5, 6), X -> '+ ()),
       And(Y -> 6, X -> 5),
-      And(Y -> '+(), X -> '+(5, 6))),
+      And(Y -> '+ (), X -> '+ (5, 6))),
       pattern.matchAll(foo))
   }
 
@@ -134,9 +135,9 @@ class MatcherTest extends AbstractTest {
     val foo = (5: K) + 5 + 5
     val pattern = X + 5 + Y
     assertEquals(Or(
-      And(X -> '+(), Y -> ((5: K) + 5)),
+      And(X -> '+ (), Y -> ((5: K) + 5)),
       And(X -> 5, Y -> 5),
-      And(X -> ((5: K) + 5), Y -> '+())
+      And(X -> ((5: K) + 5), Y -> '+ ())
     ), pattern.matchAll(foo))
   }
 
@@ -149,22 +150,22 @@ class MatcherTest extends AbstractTest {
   }
 
   @Test def testAssocMultipleVar() {
-    val foo = '+(5: K, 5: K)
-    val pattern = '+(X, X)
+    val foo = '+ (5: K, 5: K)
+    val pattern = '+ (X, X)
     assertEquals(X -> (5: K),
       pattern.matchAll(foo))
   }
 
   @Test def testAssocAssocMultipleVar() {
-    val foo = '+(5: K, 5: K, 5: K)
-    val pattern = '+(X, X)
+    val foo = '+ (5: K, 5: K, 5: K)
+    val pattern = '+ (X, X)
     assertEquals(False, pattern.matchAll(foo))
   }
 
   @Test def testKApplyWithEmptySeq() {
-    val foo = '+()
-    val pattern = '+(X)
-    assertEquals(X -> '+(), pattern.matchOne(foo))
+    val foo = '+ ()
+    val pattern = '+ (X)
+    assertEquals(X -> '+ (), pattern.matchOne(foo))
   }
 
   //  @Test def testKVariableMatchingKLabel() {
@@ -186,25 +187,25 @@ class MatcherTest extends AbstractTest {
   }
 
   @Test def testKSeqWithMatchAtEnd() {
-    val foo = KSequence('+(5: K, 5: K))
+    val foo = KSequence('+ (5: K, 5: K))
 
     val pattern = KSequence(X + Y, Z)
     assertEquals(
-      Or(And(Y -> '+(), Z -> KSeq(), X -> '+(5, 5)),
+      Or(And(Y -> '+ (), Z -> KSeq(), X -> '+ (5, 5)),
         And(Y -> 5, Z -> KSeq(), X -> 5),
-        And(X -> '+(), Z -> KSeq(), Y -> '+(5, 5)))
+        And(X -> '+ (), Z -> KSeq(), Y -> '+ (5, 5)))
       , pattern.matchAll(foo,
         And(liftBool(SortPredicate(Sorts.KSeq, Z)), liftBool(SortPredicate(Sorts.Int, X)))))
   }
 
   @Test def testKSeqWithMatchAtEnd1() {
-    val foo = KSequence('+(5: K, 5: K), KSeq())
+    val foo = KSequence('+ (5: K, 5: K), KSeq())
 
     val pattern = KSequence(X + Y, Z)
     assertEquals(
-      Or(And(Y -> '+(), Z -> KSeq(), X -> '+(5, 5)),
+      Or(And(Y -> '+ (), Z -> KSeq(), X -> '+ (5, 5)),
         And(Y -> 5, Z -> KSeq(), X -> 5),
-        And(X -> '+(), Z -> KSeq(), Y -> '+(5, 5)))
+        And(X -> '+ (), Z -> KSeq(), Y -> '+ (5, 5)))
       , pattern.matchAll(foo,
         And(liftBool(SortPredicate(Sorts.KSeq, Z)), liftBool(SortPredicate(Sorts.Int, X)))))
   }
@@ -217,24 +218,24 @@ class MatcherTest extends AbstractTest {
   //
 
   @Test def testAnywhere() {
-    val o = 'foo('bar('foo('bar())))
-    val a: Anywhere = Anywhere("ONE", 'foo(X))
+    val o = 'foo ('bar ('foo ('bar ())))
+    val a: Anywhere = Anywhere("ONE", 'foo (X))
     assertEquals(
-      Or(And(X -> 'bar('foo('bar())), a.TOPVariable -> a.HOLEVariable),
-        And(X -> 'bar(), a.TOPVariable -> 'foo('bar(a.HOLEVariable)))),
+      Or(And(X -> 'bar ('foo ('bar ())), a.TOPVariable -> a.HOLEVariable),
+        And(X -> 'bar (), a.TOPVariable -> 'foo ('bar (a.HOLEVariable)))),
       a.matchAll(o))
   }
 
 
   @Test
   @Ignore def testTwoAnywheres() {
-    val o = 'foo('foo('foo('bar())))
-    val inner = Anywhere("inner", 'foo(X))
-    val outer = Anywhere("outer", 'foo(inner))
+    val o = 'foo ('foo ('foo ('bar ())))
+    val inner = Anywhere("inner", 'foo (X))
+    val outer = Anywhere("outer", 'foo (inner))
     Assert.assertEquals(
-      ((X -> 'foo('bar()) && inner.TOPVariable -> inner.HOLEVariable && outer.TOPVariable -> outer.HOLEVariable) ||
-        (X -> 'bar() && inner.TOPVariable -> 'foo(inner.HOLEVariable) && outer.TOPVariable -> outer.HOLEVariable) ||
-        (X -> 'bar() && inner.TOPVariable -> inner.HOLEVariable && outer.TOPVariable -> 'foo(outer.HOLEVariable))),
+      ((X -> 'foo ('bar ()) && inner.TOPVariable -> inner.HOLEVariable && outer.TOPVariable -> outer.HOLEVariable) ||
+        (X -> 'bar () && inner.TOPVariable -> 'foo (inner.HOLEVariable) && outer.TOPVariable -> outer.HOLEVariable) ||
+        (X -> 'bar () && inner.TOPVariable -> inner.HOLEVariable && outer.TOPVariable -> 'foo (outer.HOLEVariable))),
       outer.matchAll(o))
   }
 
@@ -250,22 +251,25 @@ class MatcherTest extends AbstractTest {
     val p = Or(1: K, X)
     assertEquals(X -> Or(1, 2), p.matchAll(o))
   }
+
   @Test def testOrInMatchWithVariable1 {
     theory.cache.cleanUp()
     val o = Or(1: K, 2: K)
     val p = X
     assertEquals(X -> Or(1, 2), p.matchAll(o))
   }
+
   @Test def testOrInMatchWithVariable2 {
     theory.cache.cleanUp()
-    val o = 'foo(Or(1: K, 2: K))
-    val p = 'foo(X)
+    val o = 'foo (Or(1: K, 2: K))
+    val p = 'foo (X)
     assertEquals(X -> Or(1, 2), p.matchAll(o))
   }
+
   @Test def testOrInMatchWithVariable3 {
     theory.cache.cleanUp()
-    val o = 'foo(Or(1: K, 2: K))
-    val p = 'foo(X)
+    val o = 'foo (Or(1: K, 2: K))
+    val p = 'foo (X)
     assertEquals(X -> 2, p.matchAll(o, X -> 2))
   }
 
@@ -275,16 +279,16 @@ class MatcherTest extends AbstractTest {
 
   @Test def testBag {
     theory.cache.cleanUp()
-    val o = 'MyBag(1, 2, 3)
-    val p = 'MyBag(X, 2)
-    assertEquals(False, 'MyBag(X, 7).matchAll(o))
-    assertEquals(X -> 'MyBag(1, 3), p.matchAll(o))
+    val o = 'MyBag (1, 2, 3)
+    val p = 'MyBag (X, 2)
+    assertEquals(False, 'MyBag (X, 7).matchAll(o))
+    assertEquals(X -> 'MyBag (1, 3), p.matchAll(o))
     assertEquals(Or(
-      And(X -> 'MyBag(), Y -> 'MyBag(1, 2)),
-      And(X -> 'MyBag(1), Y -> 'MyBag(2)),
-      And(X -> 'MyBag(2), Y -> 'MyBag(1)),
-      And(X -> 'MyBag(1, 2), Y -> 'MyBag())
-    ), 'MyBag(X, Y).matchAll('MyBag(1, 2)))
+      And(X -> 'MyBag (), Y -> 'MyBag (1, 2)),
+      And(X -> 'MyBag (1), Y -> 'MyBag (2)),
+      And(X -> 'MyBag (2), Y -> 'MyBag (1)),
+      And(X -> 'MyBag (1, 2), Y -> 'MyBag ())
+    ), 'MyBag (X, Y).matchAll('MyBag (1, 2)))
 
     assertEquals(Or(
       And(X -> 1, Y -> 2, Z -> 3),
@@ -293,9 +297,9 @@ class MatcherTest extends AbstractTest {
       And(X -> 2, Y -> 3, Z -> 1),
       And(X -> 3, Y -> 1, Z -> 2),
       And(X -> 3, Y -> 2, Z -> 1)
-    ), 'MyBag(X, 'MyBag(Y, Z)).matchAll('MyBag(1, 2, 3), And(liftBool('isInt(X)), liftBool('isInt(Y)), liftBool('isInt(Z)))))
+    ), 'MyBag (X, 'MyBag (Y, Z)).matchAll('MyBag (1, 2, 3), And(liftBool('isInt (X)), liftBool('isInt (Y)), liftBool('isInt (Z)))))
 
-    assertEquals(Or(), 'MyBag(X, Y).matchAll('MyBag(1)))
+    assertEquals(Or(), 'MyBag (X, Y).matchAll('MyBag (1)))
 
   }
 }

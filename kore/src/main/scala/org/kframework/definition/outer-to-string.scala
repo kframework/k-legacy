@@ -50,9 +50,9 @@ trait RegexTerminalToString {
   self: RegexTerminal =>
   override def toString = {
     "r\"" + StringEscapeUtils.escapeJava(
-      (if ("#" == precedeRegex) "" else "(?<!" + precedeRegex + ")" ) +
-      regex +
-      (if ("#" == followRegex) "" else "(?!" + precedeRegex + ")" )
+      (if ("#" == precedeRegex) "" else "(?<!" + precedeRegex + ")") +
+        regex +
+        (if ("#" == followRegex) "" else "(?!" + precedeRegex + ")")
     ) + "\""
   }
 }

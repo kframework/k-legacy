@@ -19,26 +19,28 @@ public class HTMLPatternsVisitor extends BasicVisitor {
 
     public enum HTMLPatternType {
         LATEX, HTML, DEFAULT
-    };
+    }
 
-    private Map<Production,String> patterns = new HashMap<Production,String>();
-    private Map<Production,HTMLPatternType> type = new HashMap<Production,HTMLPatternType>();
+    ;
+
+    private Map<Production, String> patterns = new HashMap<Production, String>();
+    private Map<Production, HTMLPatternType> type = new HashMap<Production, HTMLPatternType>();
 
     String pattern = "";
     int nonTerm;
     boolean prevNonTerm;
 
-    public void setPatterns(Map<Production,String> patterns) {
+    public void setPatterns(Map<Production, String> patterns) {
         this.patterns = patterns;
     }
 
 
-    public Map<Production,String> getPatterns() {
+    public Map<Production, String> getPatterns() {
         return patterns;
     }
 
-    public HTMLPatternType getPatternType(Production prod){
-        if(type.containsKey(prod))
+    public HTMLPatternType getPatternType(Production prod) {
+        if (type.containsKey(prod))
             return type.get(prod);
         else
             return null;
@@ -46,7 +48,7 @@ public class HTMLPatternsVisitor extends BasicVisitor {
 
     @Override
     public Void visit(Production p, Void _void) {
-        if(p.containsAttribute("latex") || p.containsAttribute("html")) {
+        if (p.containsAttribute("latex") || p.containsAttribute("html")) {
             if (p.containsAttribute("latex")) {
 
                 pattern = p.getAttribute("latex");
@@ -58,7 +60,7 @@ public class HTMLPatternsVisitor extends BasicVisitor {
             if (p.containsAttribute("html")) {
 
                 pattern = p.getAttribute("html");
-                pattern = pattern.substring(1, pattern.length()-1).replace("\\\\", "\\");
+                pattern = pattern.substring(1, pattern.length() - 1).replace("\\\\", "\\");
                 patterns.put(p, pattern);
                 type.put(p, HTMLPatternType.HTML);
 

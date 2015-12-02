@@ -18,11 +18,11 @@ import java.util.List;
  * usual syntax of K, it can be defined as the following:
  * <p>
  * <blockquote>
- *
+ * <p>
  * <pre>
  * syntax K ::= List{KItem}{"~>"}
  * </pre>
- *
+ * <p>
  * </blockquote>
  * <p>
  *

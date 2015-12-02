@@ -29,7 +29,6 @@ import java.util.Set;
  * subject term such that its previous state before rewriting is not preserved.
  *
  * @author YilongL
- *
  */
 public class KAbstractRewriteMachine {
 
@@ -104,8 +103,8 @@ public class KAbstractRewriteMachine {
     }
 
     public static Term construct(List<RHSInstruction> rhsInstructions,
-            Map<Variable, Term> solution, Set<Variable> reusableVariables, TermContext context,
-            boolean doClone) {
+                                 Map<Variable, Term> solution, Set<Variable> reusableVariables, TermContext context,
+                                 boolean doClone) {
         GlobalContext global = context.global();
 
         /* Special case for one-instruction lists that can be resolved without a stack;
@@ -325,7 +324,7 @@ public class KAbstractRewriteMachine {
                 } else {
                     if (RuleAuditing.isAuditBegun()) {
                         System.err.println("Cell " + crntCell.cellLabel()
-                        + " does not contain required cell " + nextInstr.cellLabel());
+                                + " does not contain required cell " + nextInstr.cellLabel());
                     }
                     success = false;
                 }

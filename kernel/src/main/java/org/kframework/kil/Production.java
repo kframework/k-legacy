@@ -6,6 +6,7 @@ import com.google.common.collect.Multimap;
 import org.kframework.kil.visitors.Visitor;
 import org.kframework.utils.StringUtil;
 import org.kframework.utils.errorsystem.KExceptionManager;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +47,7 @@ public class Production extends ASTNode implements Interfaces.MutableList<Produc
     /**
      * Retrieves the {@link UserList} object of the production if this is a list declaration.
      * Should not be called on other types of productions.
+     *
      * @return the list object
      */
     public UserList getListDecl() {
@@ -57,6 +59,7 @@ public class Production extends ASTNode implements Interfaces.MutableList<Produc
      * Returns the KLabel for the list terminator.
      * Constructed as '.List{"<list_klabel>"}
      * Should be called only if isListDecl is true.
+     *
      * @return String representation of the separator KLabel.
      */
     public String getTerminatorKLabel() {
@@ -68,6 +71,7 @@ public class Production extends ASTNode implements Interfaces.MutableList<Produc
      * True if this production consists of a single nonterminal,
      * even if it has an explicitly assigned label and so is
      * not semantically a subsort declaration.
+     *
      * @return
      */
     public boolean isSyntacticSubsort() {
@@ -78,6 +82,7 @@ public class Production extends ASTNode implements Interfaces.MutableList<Produc
      * True if this production consists is a subsort declaration.
      * It must consist of a single nonterminal, and not have an
      * explicitly assigned label.
+     *
      * @return
      */
     public boolean isSubsort() {
@@ -87,6 +92,7 @@ public class Production extends ASTNode implements Interfaces.MutableList<Produc
     /**
      * Retrieves the {@link NonTerminal} object of the production if this is a subsorting.
      * Should not be called on other types of productions.
+     *
      * @return the Sort object
      */
     public Sort getSubsort() {
@@ -101,6 +107,7 @@ public class Production extends ASTNode implements Interfaces.MutableList<Produc
     /**
      * Retrieves the {@link Lexical} object of the production if this is a lexical token.
      * Should not be called on other types of productions.
+     *
      * @return the Lexical object
      */
     public Lexical getLexical() {
@@ -115,8 +122,8 @@ public class Production extends ASTNode implements Interfaces.MutableList<Produc
 
     public boolean isConstant(org.kframework.kil.loader.Context context) {
         return isTerminal() && (sort.getName().startsWith("#") ||
-                                sort.equals(Sort.KLABEL) ||
-                                context.getTokenSorts().contains(getSort()));
+                sort.equals(Sort.KLABEL) ||
+                context.getTokenSorts().contains(getSort()));
     }
 
     public boolean isBracket() {
@@ -126,6 +133,7 @@ public class Production extends ASTNode implements Interfaces.MutableList<Produc
     /**
      * Retrieves the {@link Terminal} object of the production if this is a constant.
      * Should not be called on other types of productions.
+     *
      * @return the Terminal object
      */
     public Terminal getConstant() {
@@ -174,6 +182,7 @@ public class Production extends ASTNode implements Interfaces.MutableList<Produc
      * Gets the KLabel corresponding to this production. A production has a
      * KLabel if and only if the production flattens in KORE to a term which is of sort
      * KItem (ie, is a function or a constructor).
+     *
      * @return
      */
     public String getKLabel() {
@@ -215,6 +224,7 @@ public class Production extends ASTNode implements Interfaces.MutableList<Produc
      * Gets the arity of a production. A production's arity is the number of
      * nonterminals in the syntactic declaration which the production
      * corresponds to.
+     *
      * @return
      */
     public int getArity() {
@@ -233,6 +243,7 @@ public class Production extends ASTNode implements Interfaces.MutableList<Produc
      * A KItem has the arity of its production, if that production is not
      * a KLabel declaration. KLabel declarations declare KItems with an
      * arity equal to the value of the required integer attribute "arity".
+     *
      * @return
      */
     public int getArityOfKItem() {
@@ -402,7 +413,7 @@ public class Production extends ASTNode implements Interfaces.MutableList<Produc
      * The binder map is a MultiMap consisting of key -> value pairs
      * representing the position of a bounded variable and the position
      * of an expression in which it is bound.
-     *
+     * <p>
      * Important note:  Unlike the positions specified by user (which start at 1),
      * the positions in binderMap are rebased to start at 0 as it
      * is customary for Java collections.
@@ -432,6 +443,7 @@ public class Production extends ASTNode implements Interfaces.MutableList<Produc
      * A production declares a KLabel if it has a corresponding KLabel (ie,
      * produces a term of sort KItem), or if it is a constant constructor
      * of sort KLabel.
+     *
      * @return
      */
     public String getKLabelOfKItem() {

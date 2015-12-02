@@ -39,7 +39,7 @@ import static org.kframework.kore.KORE.*;
  * isK(K) => true
  * isKItem(K1(K2)) => true
  * isKItem(#token(_, _)) => true
- *
+ * <p>
  * plus one sort membership function for each builtin-hooked sort.
  */
 public class GenerateSortPredicateRules {

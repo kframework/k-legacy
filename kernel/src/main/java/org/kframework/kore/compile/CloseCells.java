@@ -28,7 +28,7 @@ import static org.kframework.kore.KORE.*;
 /**
  * Remove any use of dots in cells, by replacing them with variables and appropriate connectives.
  * This expects parent cells to have been added by earlier passes, it will only add variables
- *
+ * <p>
  * The input to this pass is represents cells as described by {@link IncompleteCellUtils}.
  * In the output cells no longer have dots. Leaf cells have a single argument which is
  * the body, and parent cells are applied directly to the child cells and variables
@@ -77,9 +77,9 @@ public class CloseCells {
 
     public synchronized Sentence close(Sentence s) {
         if (s instanceof Rule) {
-            return close((Rule)s);
+            return close((Rule) s);
         } else if (s instanceof Context) {
-            return close((Context)s);
+            return close((Context) s);
         } else {
             return s;
         }

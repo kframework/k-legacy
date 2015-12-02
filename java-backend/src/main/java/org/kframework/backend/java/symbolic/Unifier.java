@@ -29,17 +29,29 @@ public interface Unifier {
     String getName();
 
     void unify(Bottom bottom, Bottom term);
+
     void unify(BuiltinList builtinList, BuiltinList term);
+
     void unify(BuiltinMap builtinMap, BuiltinMap term);
+
     void unify(BuiltinSet builtinSet, BuiltinSet term);
+
     void unify(CellCollection cellCollection, CellCollection term);
+
     void unify(Hole hole, Hole term);
+
     void unify(KItem kItem, KItem term);
+
     void unify(KLabelConstant kLabelConstant, KLabelConstant term);
+
     void unify(KLabelInjection kLabelInjection, KLabelInjection term);
+
     void unify(KList kList, KList term);
+
     void unify(KSequence kSequence, KSequence term);
+
     void unify(Token token, Token term);
+
     void unify(InjectedKLabel injectedKLabel, InjectedKLabel term);
 
 }

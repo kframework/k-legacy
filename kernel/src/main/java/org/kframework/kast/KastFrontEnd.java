@@ -73,7 +73,6 @@ public class KastFrontEnd extends FrontEnd {
     }
 
     /**
-     *
      * @return true if the application terminated normally; false otherwise
      */
     @Override

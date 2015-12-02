@@ -64,8 +64,8 @@ public class BinaryLoader {
     }
 
     public void save(OutputStream out, Object o) throws IOException {
-        try(ObjectOutputStream serializer
-                = new ObjectOutputStream(new BufferedOutputStream(out))) {
+        try (ObjectOutputStream serializer
+                     = new ObjectOutputStream(new BufferedOutputStream(out))) {
             serializer.writeObject(o);
         }
     }
@@ -88,7 +88,7 @@ public class BinaryLoader {
 
     public Object load(InputStream in) throws IOException, ClassNotFoundException {
         try (ObjectInputStream deserializer
-                = new ObjectInputStream(in)) {
+                     = new ObjectInputStream(in)) {
             Object obj = deserializer.readObject();
             return obj;
         }

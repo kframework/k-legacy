@@ -35,9 +35,9 @@ import static org.kframework.definition.Constructors.Rule;
 /**
  * Takes a KORE module with bubble and returns a new KORE module with all
  * the bubbles parsed.
- * <p/>
+ * <p>
  * Works for KORE bubbles for now.
- * <p/>
+ * <p>
  * TODO: WORK IN PROGRESS
  */
 
@@ -115,10 +115,10 @@ public class BubbleParsing {
                 K kBody = TreeNodesToKORE.apply(cleaned);
 
                 switch (bubble.sentenceType()) {
-                    case "rule":
-                        return Rule(kBody, null, null, bubble.att());
-                    default:
-                        return bubble;
+                case "rule":
+                    return Rule(kBody, null, null, bubble.att());
+                default:
+                    return bubble;
                 }
             } else {
                 return s;

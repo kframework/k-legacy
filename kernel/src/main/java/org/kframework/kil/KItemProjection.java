@@ -15,7 +15,7 @@ public class KItemProjection extends Term implements Interfaces.MutableParent<Te
         this.term = term;
     }
 
-    public KItemProjection(KItemProjection kItemProjection){
+    public KItemProjection(KItemProjection kItemProjection) {
         super(kItemProjection);
         this.term = kItemProjection.term;
     }

@@ -236,14 +236,14 @@ public class KILtoKORE extends KILTransformation<Object> {
     public Value applyAssoc(String assocOrig) {
         // "left", "right", "non-assoc"
         switch (assocOrig) {
-            case "left":
-                return Associativity.Left();
-            case "right":
-                return Associativity.Right();
-            case "non-assoc":
-                return Associativity.NonAssoc();
-            default:
-                throw new AssertionError("Incorrect assoc string: " + assocOrig);
+        case "left":
+            return Associativity.Left();
+        case "right":
+            return Associativity.Right();
+        case "non-assoc":
+            return Associativity.NonAssoc();
+        default:
+            throw new AssertionError("Incorrect assoc string: " + assocOrig);
         }
     }
 
@@ -368,7 +368,7 @@ public class KILtoKORE extends KILTransformation<Object> {
         String follow = "#";
         int followIndex = regex.lastIndexOf("(?!");
         if (followIndex != -1 && regex.endsWith(")")) { // find the follow pattern at the end: (?!X)
-            if (!(followIndex > 0 && regex.charAt(followIndex-1) == '\\')) {
+            if (!(followIndex > 0 && regex.charAt(followIndex - 1) == '\\')) {
                 follow = regex.substring(followIndex + "(?!".length(), regex.length() - 1);
                 regex = regex.substring(0, followIndex);
             }

@@ -31,7 +31,8 @@ public class DefinitionLoadingModule extends AbstractModule {
     protected void configure() {
     }
 
-    @Provides @DefinitionScoped
+    @Provides
+    @DefinitionScoped
     Context context(
             BinaryLoader loader,
             DefinitionLoadingOptions options,
@@ -50,18 +51,22 @@ public class DefinitionLoadingModule extends AbstractModule {
         return context;
     }
 
-    @Provides @DefinitionScoped @Concrete
+    @Provides
+    @DefinitionScoped
+    @Concrete
     Definition concreteDefinition(BinaryLoader loader, FileUtil files) {
         return loader.loadOrDie(Definition.class, files.resolveKompiled("definition-concrete.bin"));
     }
 
-    @Provides @DefinitionScoped
+    @Provides
+    @DefinitionScoped
     Definition definition(BinaryLoader loader, FileUtil files) {
         return loader.loadOrDie(Definition.class, files.resolveKompiled("definition.bin"));
     }
 
 
-    @Provides @DefinitionScoped
+    @Provides
+    @DefinitionScoped
     CompiledDefinition koreDefinition(BinaryLoader loader, FileUtil files) {
         return loader.loadOrDie(CompiledDefinition.class, files.resolveKompiled("compiled.bin"));
     }
@@ -79,7 +84,8 @@ public class DefinitionLoadingModule extends AbstractModule {
         }
     }
 
-    @Provides @KompiledDir
+    @Provides
+    @KompiledDir
     File definition(@DefinitionDir File defDir, KExceptionManager kem) {
         File directory = null;
         File[] dirs = defDir.listFiles(new FilenameFilter() {
@@ -111,7 +117,8 @@ public class DefinitionLoadingModule extends AbstractModule {
         return directory;
     }
 
-    @Provides @DefinitionDir
+    @Provides
+    @DefinitionDir
     File directory(DefinitionLoadingOptions options, @WorkingDir File workingDir, KExceptionManager kem, @Environment Map<String, String> env) {
         File directory;
         if (options.directory == null) {

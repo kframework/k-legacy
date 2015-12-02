@@ -35,10 +35,12 @@ public abstract class Rule implements Serializable {
                 this.column = column;
             }
         }
+
         public final Source source;
         public final Location start;
         public final Location end;
         public final CharSequence input;
+
         public MetaData(Source source, Location start, Location end, CharSequence input) {
             assert start != null && end != null && source != null;
             this.source = source;
@@ -57,13 +59,14 @@ public abstract class Rule implements Serializable {
         public Set<Term> apply(Set<Term> set, MetaData metaData) {
             Set<Term> result = new HashSet<>();
             for (Term klist : set) {
-                Term newKList = this.apply((KList)klist, metaData);
+                Term newKList = this.apply((KList) klist, metaData);
                 if (newKList != null) {
                     result.add(newKList);
                 }
             }
             return result;
         }
+
         protected abstract KList apply(KList set, MetaData metaData);
     }
 
@@ -74,15 +77,18 @@ public abstract class Rule implements Serializable {
         private final Production label;
         public final Automaton rejectPattern;
         private final Set<String> rejects;
+
         public WrapLabelRule(Production label, Automaton rejectPattern, Set<String> rejects) {
             assert label != null;
             this.label = label;
             this.rejectPattern = rejectPattern;
             this.rejects = rejects;
         }
+
         public WrapLabelRule(Production label) {
             this(label, null, new HashSet<>());
         }
+
         protected KList apply(KList klist, MetaData metaData) {
             Term term;
             Location loc = new Location(metaData.start.line, metaData.start.column, metaData.end.line, metaData.end.column);
@@ -109,6 +115,7 @@ public abstract class Rule implements Serializable {
      */
     public static class DeleteRule extends KListRule {
         private final int length;
+
         public DeleteRule(int length) {
             this.length = length;
         }

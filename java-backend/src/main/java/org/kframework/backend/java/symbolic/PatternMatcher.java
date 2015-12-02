@@ -81,14 +81,11 @@ public class PatternMatcher extends AbstractUnifier {
     /**
      * Checks if the subject term matches the pattern.
      *
-     * @param subject
-     *            the subject term
-     * @param pattern
-     *            the pattern
-     * @param context
-     *            the term context
+     * @param subject the subject term
+     * @param pattern the pattern
+     * @param context the term context
      * @return {@code true} if the two terms can be matched; otherwise,
-     *         {@code false}
+     * {@code false}
      */
     public static boolean matchable(Term subject, Term pattern, TermContext context) {
         return new PatternMatcher(false, false, context).patternMatch(subject, pattern);
@@ -101,15 +98,12 @@ public class PatternMatcher extends AbstractUnifier {
      * apply definitely; it is possible that side-conditions are blocked by
      * symbolic argument(s).
      *
-     * @param subject
-     *            the subject term
-     * @param rule
-     *            the rule
-     * @param context
-     *            the term context
+     * @param subject the subject term
+     * @param rule    the rule
+     * @param context the term context
      * @return a list of possible instantiations of the left-hand side of the
-     *         rule (each instantiation is represented as a substitution mapping
-     *         variables in the pattern to sub-terms in the subject)
+     * rule (each instantiation is represented as a substitution mapping
+     * variables in the pattern to sub-terms in the subject)
      */
     public static List<Substitution<Variable, Term>> match(Term subject, Rule rule, TermContext context) {
         PatternMatcher matcher = new PatternMatcher(rule.isFunction() || rule.isLemma(), true, context);
@@ -179,6 +173,7 @@ public class PatternMatcher extends AbstractUnifier {
     /**
      * try last-resort matching techniques, such as checking hashCode and equals, which
      * are expensive and we do not want to try every time.
+     *
      * @param msg The message to throw in the exception if matching can not be completed.
      */
     private void lastChanceMatching(String msg, Term term, Term otherTerm) {
@@ -414,8 +409,8 @@ public class PatternMatcher extends AbstractUnifier {
     @Override
     public void unify(CellCollection cellCollection, CellCollection otherCellCollection) {
         if (cellCollection.hasFrame()) {
-        // TODO(dwightguth): put this assertion back in once this class is constructed by
-        // the injector
+            // TODO(dwightguth): put this assertion back in once this class is constructed by
+            // the injector
 //            assert !termContext.definition().context().javaExecutionOption/*s.concreteExecution() :
 //                "the subject term should be ground in concrete execution";*/
             if (!otherCellCollection.hasFrame()) {
@@ -443,7 +438,7 @@ public class PatternMatcher extends AbstractUnifier {
             }
 
             Variable frame = cellCollection.hasFrame() ? cellCollection.frame() : null;
-            Variable otherFrame = otherCellCollection.hasFrame()? otherCellCollection.frame() : null;
+            Variable otherFrame = otherCellCollection.hasFrame() ? otherCellCollection.frame() : null;
 
             if (frame != null) {
                 if (otherFrame != null && numOfOtherDiffCellLabels == 0) {

@@ -27,11 +27,11 @@ class Constructors(val module: definition.Module, implicit val theory: Theory) e
     case "Map:keys" => MapKeys
     case "Map:lookup" =>
       BinaryHookedFunctionLabel(labelString, Att(), {
-      case (map: RegularKApp, index: K) if map.klabel == Tuple2Label && map.children.head == index =>
-        map.children.tail.head
-      case (map: KMapApp, index: K) =>
-        map.theMap(index)
-    })
+        case (map: RegularKApp, index: K) if map.klabel == Tuple2Label && map.children.head == index =>
+          map.children.tail.head
+        case (map: KMapApp, index: K) =>
+          map.theMap(index)
+      })
     case "Set:in" => RegularKAppLabel("???in???", Att())
     case "LOGIC:AND" => And
     case "LOGIC:OR" => Or
@@ -107,7 +107,7 @@ class Constructors(val module: definition.Module, implicit val theory: Theory) e
 
 
   override def KRewrite(left: kore.K, right: kore.K, att: Att) = tiny.KRewrite(convert(left), convert
-    (right), att)
+  (right), att)
 
   override def KList[KK <: kore.K](items: java.util.List[KK]): kore.KList = KORE.KList(items)
 

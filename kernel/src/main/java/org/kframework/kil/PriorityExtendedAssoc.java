@@ -8,10 +8,14 @@ import org.kframework.kil.visitors.Visitor;
 /**
  * An associativity declaration, one of {@code syntax left}, {@code syntax right}, or {@ code syntax non-assoc}.
  */
-public class PriorityExtendedAssoc extends ModuleItem implements Interfaces.MutableList<KLabelConstant, Enum<?>>{
-    /** "left", "right", "non-assoc" */
+public class PriorityExtendedAssoc extends ModuleItem implements Interfaces.MutableList<KLabelConstant, Enum<?>> {
+    /**
+     * "left", "right", "non-assoc"
+     */
     String assoc = null;
-    /** The labels getting an associativity. */
+    /**
+     * The labels getting an associativity.
+     */
     java.util.List<KLabelConstant> tags;
 
     public String getAssoc() {

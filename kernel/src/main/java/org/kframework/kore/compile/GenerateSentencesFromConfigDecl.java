@@ -48,24 +48,25 @@ public class GenerateSentencesFromConfigDecl {
 
     /**
      * Takes a configuration declaration and returns the sentences that it desugars into.
-     *
+     * <p>
      * Cells of multiplicity 1 desugar into an initializer production, an initializer rule, and a cell production.
      * Cells of multiplicity * desugar into an initializer production, an initializer rule, a cell production, and a bag
      * sort to represent a bag of those cells.
      * Cells of multiplicity ? desugar into an initializer production, an initializer rule, a cell production, and an
      * empty production indicating the absence of that cell.
      * Cells with children additionally generate a *CellFragment sort with the same arity as the cell production,
-     *  but the arguments made optional by generating additional sorts.
+     * but the arguments made optional by generating additional sorts.
      * Cells which have parents and are not multiplicity * generate a CellOpt sort which is a supersort of the cell sort
-     *  and has an additional production name like {@code <cell>-absent}. (For a cell with multiplicitly ? this is
-     *  necessary to distinguish a fragment that did capture the state of the cell when it wasn't present, from
-     *  a cell fragment that didn't even try to capture the cell).
-     *
+     * and has an additional production name like {@code <cell>-absent}. (For a cell with multiplicitly ? this is
+     * necessary to distinguish a fragment that did capture the state of the cell when it wasn't present, from
+     * a cell fragment that didn't even try to capture the cell).
+     * <p>
      * Currently the implementation does not handle initializer rules; we will address this eventually.
-     * @param body The body of the configuration declaration.
+     *
+     * @param body    The body of the configuration declaration.
      * @param ensures The ensures clause of the configuration declaration.
-     * @param att The attributes of the configuration declaration.
-     * @param m The module the configuration declaration exists in.
+     * @param att     The attributes of the configuration declaration.
+     * @param m       The module the configuration declaration exists in.
      * @return A set of sentences representing the configuration declaration.
      */
     public static Set<Sentence> gen(K body, K ensures, Att att, Module m) {
@@ -75,14 +76,15 @@ public class GenerateSentencesFromConfigDecl {
     /**
      * Recurses over a cell and computes all the sentences corresponding to its children, and then generates
      * the sentences for itself.
-     * @param term The term to be processed. Can be either a cell, in which case it processes that cell,
-     *             a list of cells, in which case it processes each of those cells, or a noncell, in which case
-     *             its parent is treated as a leaf cell.
+     *
+     * @param term    The term to be processed. Can be either a cell, in which case it processes that cell,
+     *                a list of cells, in which case it processes each of those cells, or a noncell, in which case
+     *                its parent is treated as a leaf cell.
      * @param ensures The ensures clause from the configuration declaration. This is appended to the initializer of
      *                the top cell, but not any other cells. The algorithm assumes this will be null if and only if
      *                it is not the top cell of a configuration declaration.
-     * @param cfgAtt The attributes of the configuration declaration. Appended to all cell productions generated.
-     * @param m The module the configuration declaration is in. Used to get the sort of leaf cells.
+     * @param cfgAtt  The attributes of the configuration declaration. Appended to all cell productions generated.
+     * @param m       The module the configuration declaration is in. Used to get the sort of leaf cells.
      * @return A tuple of the sentences generated, a list of the sorts of the children of the cell, and the body of the initializer.
      */
     private static Tuple3<Set<Sentence>, List<Sort>, K> genInternal(K term, K ensures, Att cfgAtt, Module m) {
@@ -110,7 +112,7 @@ public class GenerateSentencesFromConfigDecl {
                                 boolean isLeafCell = childResult._1().isEmpty();
                                 Tuple3<Set<Sentence>, Sort, K> myResult = computeSentencesOfWellFormedCell(isLeafCell, isStream, multiplicity, cfgAtt, m, cellName, cellProperties,
                                         childResult._2(), childResult._3(), ensures, hasConfigVariable(cellContents));
-                                return Tuple3.apply((Set<Sentence>)childResult._1().$bar(myResult._1()), Lists.newArrayList(myResult._2()), myResult._3());
+                                return Tuple3.apply((Set<Sentence>) childResult._1().$bar(myResult._1()), Lists.newArrayList(myResult._2()), myResult._3());
                             }
                         }
                     }
@@ -155,7 +157,7 @@ public class GenerateSentencesFromConfigDecl {
                 for (K cell : cells) {
                     //for each cell, generate the child and inform the parent of the children it contains
                     Tuple3<Set<Sentence>, List<Sort>, K> childResult = genInternal(cell, null, cfgAtt, m);
-                    accumSentences = (Set<Sentence>)accumSentences.$bar(childResult._1());
+                    accumSentences = (Set<Sentence>) accumSentences.$bar(childResult._1());
                     sorts.addAll(childResult._2());
                     initializers.add(childResult._3());
                 }
@@ -185,6 +187,7 @@ public class GenerateSentencesFromConfigDecl {
 
     /**
      * Returns true if the specified term has a configuration variable
+     *
      * @param contents
      */
     private static boolean hasConfigVariable(K contents) {
@@ -195,6 +198,7 @@ public class GenerateSentencesFromConfigDecl {
 
     private static class FindConfigVar extends VisitKORE {
         boolean hasConfigVar;
+
         @Override
         public Void apply(KToken k) {
             if (k.sort().equals(Sorts.KConfigVar())) {
@@ -207,6 +211,7 @@ public class GenerateSentencesFromConfigDecl {
     /**
      * Returns the body of an initializer for a leaf cell: replaces any configuration variables
      * with map lookups in the initialization map.
+     *
      * @param leafContents
      * @return
      */
@@ -224,19 +229,20 @@ public class GenerateSentencesFromConfigDecl {
 
     /**
      * Generates the sentences associated with a particular cell.
-     *
+     * <p>
      * As a special case, cells with the maincell attribute (usually just the {@code <k>} cell)
      * are generated with contents of sort K, rather than a narrower sort calculated from the contents.
-     * @param isLeaf true if this cell has no child cells.
-     * @param isStream true if this cell has a stream attribute.
-     * @param multiplicity The multiplicity of the cell
-     * @param configAtt The attributes on the configuration declaration.
-     * @param m The module containing the configuration.
-     * @param cellName The name of the cell being generated.
-     * @param cellProperties The attributes on the configuration cell (&lt;cell foo="bar"&gt;&lt;/cell&gt;
-     * @param childSorts The list of sorts computed via recursion of the children of the current cell.
-     * @param childInitializer The contents of the cell being processed, converted into the right hand side of an initializer.
-     * @param ensures The ensures clause to be used; null if the cell is not a top cell.
+     *
+     * @param isLeaf                   true if this cell has no child cells.
+     * @param isStream                 true if this cell has a stream attribute.
+     * @param multiplicity             The multiplicity of the cell
+     * @param configAtt                The attributes on the configuration declaration.
+     * @param m                        The module containing the configuration.
+     * @param cellName                 The name of the cell being generated.
+     * @param cellProperties           The attributes on the configuration cell (&lt;cell foo="bar"&gt;&lt;/cell&gt;
+     * @param childSorts               The list of sorts computed via recursion of the children of the current cell.
+     * @param childInitializer         The contents of the cell being processed, converted into the right hand side of an initializer.
+     * @param ensures                  The ensures clause to be used; null if the cell is not a top cell.
      * @param hasConfigurationVariable true if the initializer for the cell requires a configuration variable.
      *                                 This causes cells of multiplicity * or ? to be initialized to a non-empty bag,
      *                                 and the initializer to take a Map argument containing the values of the configuration
@@ -304,23 +310,23 @@ public class GenerateSentencesFromConfigDecl {
             // an explicit pattern for some cells.
             // We don't need to add those sorts for cells of multiplicitly *, because explicit patterns in the
             // context of a cell fragment variable can never be sure to capture all copies of such a cell.
-            Sort fragmentSort = Sort(sortName+"Fragment");
-            List<ProductionItem> fragmentItems = new ArrayList<ProductionItem>(2+childSorts.size());
-            fragmentItems.add(Terminal("<"+cellName+">-fragment"));
+            Sort fragmentSort = Sort(sortName + "Fragment");
+            List<ProductionItem> fragmentItems = new ArrayList<ProductionItem>(2 + childSorts.size());
+            fragmentItems.add(Terminal("<" + cellName + ">-fragment"));
             for (Sort childSort : childSorts) {
                 if (!childSort.name().endsWith("Cell")) {
                     // child was a multiplicity * List/Bag/Set
                     fragmentItems.add(NonTerminal(childSort));
                 } else {
-                    Sort childOptSort = Sort(childSort.name()+"Opt");
+                    Sort childOptSort = Sort(childSort.name() + "Opt");
                     fragmentItems.add(NonTerminal(childOptSort));
 
                     sentences.add(Production(childOptSort, List(NonTerminal(childSort))));
-                    sentences.add(Production("no"+childSort.name(), childOptSort, List(Terminal("no"+childSort.name())),
-                            Att().add(Attribute.CELL_OPT_ABSENT_KEY,childSort.name())));
+                    sentences.add(Production("no" + childSort.name(), childOptSort, List(Terminal("no" + childSort.name())),
+                            Att().add(Attribute.CELL_OPT_ABSENT_KEY, childSort.name())));
                 }
             }
-            fragmentItems.add(Terminal("</"+cellName+">-fragment"));
+            fragmentItems.add(Terminal("</" + cellName + ">-fragment"));
             sentences.add(Production("<" + cellName + ">-fragment", fragmentSort, immutable(fragmentItems),
                     Att().add(Attribute.CELL_FRAGMENT_KEY, sortName)));
         }
@@ -355,7 +361,7 @@ public class GenerateSentencesFromConfigDecl {
                     .add(Attribute.HOOK_KEY, type.toUpperCase() + ".concat")
                     .add(Attribute.FUNCTION_KEY);
             String unitHook = type.toUpperCase() + ".unit", elementHook = type.toUpperCase() + ".element";
-            switch(type) {
+            switch (type) {
             case "Set":
                 bagAtt = bagAtt.add(Attribute.IDEMPOTENT_KEY, "");
             case "Bag":
@@ -405,7 +411,7 @@ public class GenerateSentencesFromConfigDecl {
                 rhs = KApply(KLabel(initLabel));
             }
         }
-        return Tuple3.apply(immutable(sentences),cellsSort,rhs);
+        return Tuple3.apply(immutable(sentences), cellsSort, rhs);
     }
 
     /**
@@ -478,8 +484,8 @@ public class GenerateSentencesFromConfigDecl {
         StringBuilder sb = new StringBuilder();
         sb.append(Character.toUpperCase(chars[0]));
         for (int i = 1; i < chars.length; i++) {
-            if (chars[i] == '-' && i + 1 < chars.length && Character.isLowerCase(chars[i+1])) {
-                chars[i+1] = Character.toUpperCase(chars[i+1]);
+            if (chars[i] == '-' && i + 1 < chars.length && Character.isLowerCase(chars[i + 1])) {
+                chars[i + 1] = Character.toUpperCase(chars[i + 1]);
             } else if (chars[i] != '-') {
                 sb.append(chars[i]);
             }

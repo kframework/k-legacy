@@ -43,6 +43,6 @@ public class LiterateDefinitionComment extends DefinitionItem implements Literat
 
     @Override
     public String toString() {
-        return "/*"+lcType+value+"*/";
+        return "/*" + lcType + value + "*/";
     }
 }

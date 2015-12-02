@@ -6,7 +6,6 @@ import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.kil.ASTNode;
 
 
-
 /**
  * An injection KLabel.
  *

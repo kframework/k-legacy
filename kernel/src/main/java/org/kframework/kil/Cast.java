@@ -6,7 +6,9 @@ import org.kframework.attributes.Location;
 import org.kframework.attributes.Source;
 import org.kframework.kil.visitors.Visitor;
 
-/** Represents parentheses uses for grouping. All productions labeled bracket parse to this. */
+/**
+ * Represents parentheses uses for grouping. All productions labeled bracket parse to this.
+ */
 public class Cast extends Term implements Interfaces.MutableParent<Term, Enum<?>> {
     public enum CastType {
         /**

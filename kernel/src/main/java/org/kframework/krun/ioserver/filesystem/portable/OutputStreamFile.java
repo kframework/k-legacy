@@ -19,8 +19,8 @@ public class OutputStreamFile extends File {
 
     public long tell() throws IOException {
         kem.registerInternalWarning("Potentially unsound file system behavior: attempting to tell from "
-            + "output-only file. If you are interested in this behavior, please "
-            + "file an issue on github.");
+                + "output-only file. If you are interested in this behavior, please "
+                + "file an issue on github.");
         throw new IOException("ESPIPE");
         // technically the above code is incorrect (it should be what is below); however,
         // we cannot guarantee in a client/server architecture that we have access to
@@ -38,8 +38,8 @@ public class OutputStreamFile extends File {
 
     public void seek(long pos) throws IOException {
         kem.registerInternalWarning("Potentially unsound file system behavior: attempting to seek from "
-            + "output-only file. If you are interested in this behavior, please "
-            + "file an issue on github.");
+                + "output-only file. If you are interested in this behavior, please "
+                + "file an issue on github.");
         throw new IOException("ESPIPE");
         //see comment on tell
 //        try {

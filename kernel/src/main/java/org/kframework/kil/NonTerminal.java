@@ -3,7 +3,9 @@ package org.kframework.kil;
 
 import org.kframework.kil.visitors.Visitor;
 
-/** A nonterminal in a {@link Production}. Also abused in some places as a sort identifier */
+/**
+ * A nonterminal in a {@link Production}. Also abused in some places as a sort identifier
+ */
 public class NonTerminal extends ProductionItem {
 
     private Sort sort;

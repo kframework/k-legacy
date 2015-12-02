@@ -23,8 +23,8 @@ public class FreezerIndex implements Index {
         if (index instanceof FreezerIndex) {
             FreezerIndex freezerIndex = (FreezerIndex) index;
             return kLabel.equals(freezerIndex.kLabel)
-                   && (holeIndex == -1 || freezerIndex.holeIndex == -1
-                       || holeIndex == freezerIndex.holeIndex);
+                    && (holeIndex == -1 || freezerIndex.holeIndex == -1
+                    || holeIndex == freezerIndex.holeIndex);
         } else {
             return index instanceof TopIndex;
         }

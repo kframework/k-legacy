@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import scala.collection.immutable.List;
 import scala.collection.Set;
+
 import static org.kframework.Collections.*;
 import static org.junit.Assert.*;
 

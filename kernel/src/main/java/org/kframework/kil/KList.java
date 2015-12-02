@@ -9,10 +9,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/** Represents a ,, list, as used in KApp */
+/**
+ * Represents a ,, list, as used in KApp
+ */
 public class KList extends Collection {
 
-    public static final KList EMPTY = new KList(Collections.<Term> emptyList());
+    public static final KList EMPTY = new KList(Collections.<Term>emptyList());
 
     public KList() {
         super(Sort.KLIST);
@@ -30,7 +32,7 @@ public class KList extends Collection {
         super(Sort.KLIST, col);
     }
 
-    public KList(Term ... terms) { this(Arrays.asList(terms)); }
+    public KList(Term... terms) { this(Arrays.asList(terms)); }
 
     @Override
     public String toString() {

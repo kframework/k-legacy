@@ -16,7 +16,7 @@ import java.util.Map;
 /**
  * Scopes a single execution of a block of code. Apply this scope with a
  * try/finally block:
- *
+ * <p>
  * <pre>
  * <code>
  *
@@ -30,14 +30,14 @@ import java.util.Map;
  *   }
  * </code>
  * </pre>
- *
+ * <p>
  * The scope can be initialized with one or more seed values by calling
  * <code>seed(key, value)</code> before the injector will be called upon to
  * provide for this key. A typical use is for a servlet filter to enter/exit the
  * scope, representing a Request Scope, and seed HttpServletRequest and
  * HttpServletResponse. For each key inserted with seed(), you must include a
  * corresponding binding:
- *
+ * <p>
  * <pre>
  * <code>
  *   bind(key)
@@ -65,7 +65,7 @@ public class SimpleScope implements Scope {
     public void enter() {
         checkState(values.get() == null,
                 "A scoping block is already in progress");
-        values.set(Maps.<Key<?>, Object> newHashMap());
+        values.set(Maps.<Key<?>, Object>newHashMap());
     }
 
     public void exit() {
@@ -127,7 +127,7 @@ public class SimpleScope implements Scope {
      *
      * @return typed provider
      */
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings({"unchecked"})
     public static <T> Provider<T> seededKeyProvider() {
         return (Provider<T>) SEEDED_KEY_PROVIDER;
     }

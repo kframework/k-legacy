@@ -29,7 +29,7 @@ public class Report {
     }
 
     public static Report reportFailure(String name, long timeDelta, String stdout, String stderr,
-                                String errorMsg) {
+                                       String errorMsg) {
         return new Report(name, true, timeDelta, stdout, stderr, errorMsg);
     }
 
@@ -39,6 +39,7 @@ public class Report {
 
     /**
      * Generate `<testcase ...> ... </testcase>' element for a test.
+     *
      * @return testcase element
      */
     public Element genElement(Document doc) {

@@ -203,7 +203,8 @@ public class BottomUpVisitor implements Visitor {
         }
     }
 
-    @Override public void visit(Term term) { }
+    @Override
+    public void visit(Term term) { }
 
     @Override
     public void visit(Token token) {

@@ -17,9 +17,9 @@ object ConfigurationInfoFromModule
 
 class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
 
-  private val cellProductions: Map[Sort,Production] =
+  private val cellProductions: Map[Sort, Production] =
     m.productions.filter(_.att.contains("cell")).map(p => (p.sort, p)).toMap
-  private val cellBagProductions: Map[Sort,Production] =
+  private val cellBagProductions: Map[Sort, Production] =
     m.productions.filter(_.att.contains("assoc")).map(p => (p.sort, p)).toMap
   private val cellBagSubsorts: Map[Sort, Set[Sort]] = cellBagProductions.values.map(p => (p.sort, getCellSortsOfCellBag(p.sort))).toMap
   private val cellSorts: Set[Sort] = cellProductions.keySet
@@ -27,24 +27,25 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
   private val cellLabels: Map[Sort, KLabel] = cellProductions.mapValues(_.klabel.get)
   private val cellLabelsToSorts: Map[KLabel, Sort] = cellLabels.map(_.swap)
 
-  private val cellFragmentLabel: Map[String,KLabel] =
+  private val cellFragmentLabel: Map[String, KLabel] =
     m.productions.filter(_.att.contains("cellFragment"))
-      .map(p => (p.att.get("cellFragment",classOf[String]).get,p.klabel.get)).toMap
-  private val cellAbsentLabel: Map[String,KLabel] =
+      .map(p => (p.att.get("cellFragment", classOf[String]).get, p.klabel.get)).toMap
+  private val cellAbsentLabel: Map[String, KLabel] =
     m.productions.filter(_.att.contains("cellOptAbsent"))
-      .map (p => (p.att.get("cellOptAbsent",classOf[String]).get,p.klabel.get)).toMap
+      .map(p => (p.att.get("cellOptAbsent", classOf[String]).get, p.klabel.get)).toMap
 
 
   private val cellInitializer: Map[Sort, KApply] =
     m.productions.filter(p => cellSorts(p.sort) && p.att.contains("initializer"))
       .map(p => (p.sort, KApply(p.klabel.get))).toMap
 
-  private val edges: Set[(Sort, Sort)] = cellProductions.toList.flatMap { case (s,p) =>
-    p.items.flatMap{
+  private val edges: Set[(Sort, Sort)] = cellProductions.toList.flatMap { case (s, p) =>
+    p.items.flatMap {
       case NonTerminal(n) if cellSorts.contains(n) => List((s, n))
       case NonTerminal(n) if cellBagSorts.contains(n) => getCellSortsOfCellBag(n).map(subsort => (s, subsort))
       case _ => List()
-    }}.toSet
+    }
+  }.toSet
 
   private def getCellSortsOfCellBag(n: Sort): Set[Sort] = {
     m.definedSorts.filter(m.subsorts.directlyGreaterThan(n, _))
@@ -56,7 +57,7 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
 
   private val edgesPoset: POSet[Sort] = POSet(edges)
 
-  private val topCells = cellSorts.filter (l => !edges.map(_._2).contains(l))
+  private val topCells = cellSorts.filter(l => !edges.map(_._2).contains(l))
 
   if (topCells.size > 1)
     throw new AssertionError("Too many top cells:" + topCells)
@@ -78,6 +79,7 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
   }
 
   override def getLevel(k: Sort): Int = levels.getOrElse(k, -1)
+
   override def isParentCell(k: Sort): Boolean = edges exists { case (c, _) => c == k }
 
   override def getMultiplicity(k: Sort): Multiplicity =
@@ -89,19 +91,24 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
       Multiplicity.ONE
 
   override def getParent(k: Sort): Sort = edges collectFirst { case (p, `k`) => p } get
+
   override def isCell(k: Sort): Boolean = cellSorts.contains(k)
+
   override def isCellCollection(s: Sort): Boolean = cellBagSorts.contains(s)
+
   override def isCellLabel(kLabel: KLabel): Boolean = cellLabelsToSorts.contains(kLabel)
+
   override def isLeafCell(k: Sort): Boolean = !isParentCell(k)
 
-  override def getChildren(k: Sort): util.List[Sort] = cellProductions(k).items.filter(_.isInstanceOf[NonTerminal]).map(_.asInstanceOf[NonTerminal].sort).flatMap {s => {
+  override def getChildren(k: Sort): util.List[Sort] = cellProductions(k).items.filter(_.isInstanceOf[NonTerminal]).map(_.asInstanceOf[NonTerminal].sort).flatMap { s => {
     if (cellBagSorts(s))
       getCellSortsOfCellBag(s).toSeq
     else
       Seq(s)
-  }}.asJava
+  }
+  }.asJava
 
-  override def leafCellType(k: Sort): Sort = cellProductions(k).items.collectFirst{ case NonTerminal(n) => n} get
+  override def leafCellType(k: Sort): Sort = cellProductions(k).items.collectFirst { case NonTerminal(n) => n } get
 
   override def getDefaultCell(k: Sort): KApply = cellInitializer(k)
 
@@ -110,13 +117,17 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
   }
 
   override def getCellLabel(k: Sort): KLabel = cellLabels(k)
+
   override def getCellSort(kLabel: KLabel): Sort = cellLabelsToSorts(kLabel)
 
-  override def getCellFragmentLabel(k : Sort): KLabel = cellFragmentLabel(k.name)
+  override def getCellFragmentLabel(k: Sort): KLabel = cellFragmentLabel(k.name)
+
   override def getCellAbsentLabel(k: Sort): KLabel = cellAbsentLabel(k.name)
 
   override def getRootCell: Sort = topCell
+
   override def getComputationCell: Sort = mainCell
+
   override def getCellSorts: util.Set[Sort] = cellSorts.asJava
 
   override def getUnit(k: Sort): KApply = {

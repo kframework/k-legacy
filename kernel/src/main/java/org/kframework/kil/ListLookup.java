@@ -15,7 +15,9 @@ import org.kframework.kil.visitors.Visitor;
  */
 public class ListLookup extends BuiltinLookup {
 
-    /** {@link Term} representation of the value */
+    /**
+     * {@link Term} representation of the value
+     */
     private final Term value;
 
     public ListLookup(Variable base, Term key, Term value, Sort kind) {

@@ -116,7 +116,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
                 BigInteger initCounterValue,
                 GlobalContext rewritingContext,
                 KExceptionManager kem) {
-            this.rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, javaOptions, new KRunState.Counter());
+            this.rewriter = new SymbolicRewriter(rewritingContext, kompileOptions, javaOptions, new KRunState.Counter());
             this.definition = definition;
             this.module = module;
             this.initCounterValue = initCounterValue;
@@ -134,7 +134,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
         }
 
         @Override
-        public List<? extends Map<? extends KVariable,? extends K>> match(K k, org.kframework.definition.Rule rule) {
+        public List<? extends Map<? extends KVariable, ? extends K>> match(K k, org.kframework.definition.Rule rule) {
             return search(k, Optional.of(0), Optional.empty(), rule, SearchType.STAR);
         }
 

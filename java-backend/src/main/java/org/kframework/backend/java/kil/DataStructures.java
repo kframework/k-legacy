@@ -9,7 +9,7 @@ import java.util.Set;
 
 /**
  * Contains helper methods for handling data structures and operations (lookup, update, ...) on data structures.
- *
+ * <p>
  * TODO: make these methods take GlobalContext instead of TermContext as argument
  *
  * @author AndreiS
@@ -49,7 +49,7 @@ public interface DataStructures {
         return term instanceof KItem
                 && ((KItem) term).kLabel() instanceof KLabelConstant
                 && (((KItem) term).kLabel().toString().equals(MAP_CHOICE)
-                        || ((KItem) term).kLabel().toString().equals(SET_CHOICE))
+                || ((KItem) term).kLabel().toString().equals(SET_CHOICE))
                 && ((KItem) term).kList() instanceof KList
                 && ((KList) ((KItem) term).kList()).isConcreteCollection()
                 && ((KList) ((KItem) term).kList()).concreteSize() == 1;
@@ -59,8 +59,8 @@ public interface DataStructures {
         return term instanceof KItem
                 && ((KItem) term).kLabel() instanceof KLabelConstant
                 && (((KItem) term).kLabel().toString().equals(LIST_GET)
-                        || ((KItem) term).kLabel().toString().equals(MAP_LOOKUP)
-                        || ((KItem) term).kLabel().toString().equals(SET_MEMBERSHIP))
+                || ((KItem) term).kLabel().toString().equals(MAP_LOOKUP)
+                || ((KItem) term).kLabel().toString().equals(SET_MEMBERSHIP))
                 && ((KItem) term).kList() instanceof KList
                 && ((KList) ((KItem) term).kList()).isConcreteCollection()
                 && ((KList) ((KItem) term).kList()).concreteSize() == 2;
@@ -73,16 +73,16 @@ public interface DataStructures {
     static Term getLookupBase(Term term) {
         assert isLookup(term);
         return !term.sort().equals(Sort.SET) ?
-               ((KList) (((KItem) term).kList())).get(0) :
-               ((KList) (((KItem) term).kList())).get(1);
+                ((KList) (((KItem) term).kList())).get(0) :
+                ((KList) (((KItem) term).kList())).get(1);
 
     }
 
     static Term getLookupKey(Term term) {
         assert isLookup(term);
         return !term.sort().equals(Sort.SET) ?
-               ((KList) (((KItem) term).kList())).get(1) :
-               ((KList) (((KItem) term).kList())).get(0);
+                ((KList) (((KItem) term).kList())).get(1) :
+                ((KList) (((KItem) term).kList())).get(0);
 
     }
 
@@ -171,8 +171,8 @@ public interface DataStructures {
 
     static CellCollection.Cell getCellEntry(Term term) {
         assert term instanceof CellCollection
-               && ((CellCollection) term).isConcreteCollection()
-               && ((CellCollection) term).concreteSize() == 1;
+                && ((CellCollection) term).isConcreteCollection()
+                && ((CellCollection) term).concreteSize() == 1;
         return ((CellCollection) term).cells().entries().iterator().next().getValue();
     }
 

@@ -10,8 +10,8 @@ import scala.collection.immutable.Iterable
 import collection._
 
 /**
- * Compiler pass for merging the rules as expected by FastRuleMatcher
- */
+  * Compiler pass for merging the rules as expected by FastRuleMatcher
+  */
 class MergeRules(c: Constructors[K]) extends (Module => Module) {
 
   import c._

@@ -40,7 +40,7 @@ import static org.kframework.kore.KORE.*;
  * Uses the Java backend to expand all the macros in a particular module. A macro is a rule (without a side condition)
  * which is tagged with the "macro" attribute. This class creates a Java Backend rewriter and uses it to reach
  * a fixed point on such rules.
- *
+ * <p>
  * Note that this class is somewhat expensive to construct, and so copies of it should be kept around as long
  * as possible and reused where they can be.
  */
@@ -77,10 +77,10 @@ public class ExpandMacros {
             return true;
         }
         if (term instanceof KApply) {
-            KApply app = (KApply)term;
+            KApply app = (KApply) term;
             KLabel l = app.klabel();
             if (l.equals(KLabel("_andBool_"))) {
-                return app.klist().stream().allMatch(t -> isSortPredicates(t,mod));
+                return app.klist().stream().allMatch(t -> isSortPredicates(t, mod));
             } else {
                 return isSortPredicate(l, mod);
             }
@@ -101,7 +101,7 @@ public class ExpandMacros {
         Set<Rule> macroRules = stream(mod.rules())
                 .filter(r -> r.att().contains(Attribute.MACRO_KEY))
                 .map(r -> {
-                    if (!r.ensures().equals(BooleanUtils.TRUE) || !isSortPredicates(r.requires(),mod)) {
+                    if (!r.ensures().equals(BooleanUtils.TRUE) || !isSortPredicates(r.requires(), mod)) {
                         throw KEMException.compilerError("Side conditions are not allowed in macro rules. If you are typing a variable, use ::.", r);
                     }
                     if (!r.requires().equals(BooleanUtils.TRUE)) {

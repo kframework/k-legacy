@@ -78,18 +78,18 @@ public final class RHSInstruction implements Serializable {
         }
 
         public Constructor(ConstructorType type, int size1,
-                int size2) {
+                           int size2) {
             this(type, size1, size2, 0);
         }
 
         public Constructor(ConstructorType type, int size1,
-                int size2, int size3) {
+                           int size2, int size3) {
             this(type, size1, size2, size3, null, null, null);
         }
 
         public Constructor(ConstructorType type, int size1,
-                int size2, int size3, Kind kind,
-                Sort cellCollectionSort, List<CellLabel> cellLabels) {
+                           int size2, int size3, Kind kind,
+                           Sort cellCollectionSort, List<CellLabel> cellLabels) {
             this(type, size1, size2, size3, kind, cellCollectionSort, cellLabels, null, null);
         }
 
@@ -98,8 +98,8 @@ public final class RHSInstruction implements Serializable {
         }
 
         public Constructor(ConstructorType type, int size1,
-                int size2, int size3, Kind kind, Sort cellCollectionSort, List<CellLabel> cellLabels,
-                Source source, Location location) {
+                           int size2, int size3, Kind kind, Sort cellCollectionSort, List<CellLabel> cellLabels,
+                           Source source, Location location) {
             this.type = type;
             this.size1 = size1;
             this.size2 = size2;
@@ -116,7 +116,7 @@ public final class RHSInstruction implements Serializable {
         }
 
         public Constructor(ConstructorType type, int size1,
-                List<CellLabel> cellLabels, Sort cellCollectionSort) {
+                           List<CellLabel> cellLabels, Sort cellCollectionSort) {
             this(type, size1, 0, 0, null, cellCollectionSort, cellLabels);
         }
 
@@ -168,6 +168,7 @@ public final class RHSInstruction implements Serializable {
     public static RHSInstruction SUBST(Variable var) {
         return new RHSInstruction(Type.SUBST, var, null);
     }
+
     private RHSInstruction(Type type, Term term, Constructor constructor) {
         this.type = type;
         this.term = term;

@@ -21,7 +21,8 @@ public class UnboundedVariablesCollector extends PrePostVisitor {
 
     /**
      * Computes the set of unbounded (free) variables of a given term
-     * @param term --- the term to compute the set of unbounded vars for
+     *
+     * @param term   --- the term to compute the set of unbounded vars for
      * @param global
      * @return the set of unbounded vars in {@code term}
      */
@@ -49,7 +50,7 @@ public class UnboundedVariablesCollector extends PrePostVisitor {
             }
         });
         // if the visited term is a user variable and not previously bound, add to the set of free variables
-        preVisitor.addVisitor(new LocalVisitor(){
+        preVisitor.addVisitor(new LocalVisitor() {
             @Override
             public void visit(Term node) {
                 if (!(node instanceof KList) && global.getDefinition().subsorts().isSubsortedEq(Sort.VARIABLE, node.sort())) {
@@ -61,7 +62,7 @@ public class UnboundedVariablesCollector extends PrePostVisitor {
                 }
             }
         });
-     }
+    }
 
     private void handleBinderVariables(KItem kItem, boolean add) {
         // TODO(AndreiS): fix binder when dealing with KLabel variables and non-concrete KLists

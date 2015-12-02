@@ -20,6 +20,7 @@ public class KException implements Serializable {
 
     private static final Map<ExceptionType, String> types;
     private static final Map<KExceptionGroup, String> labels;
+
     static {
         types = new HashMap<KException.ExceptionType, String>();
         types.put(ExceptionType.ERROR, "Error");
@@ -127,6 +128,7 @@ public class KException implements Serializable {
     private int frames = 0;
     private int identicalFrames = 1;
     private String lastFrame;
+
     public void addTraceFrame(String frame) {
         if (frames < 1024) {
             if (frame.equals(lastFrame)) {

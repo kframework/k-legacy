@@ -18,8 +18,8 @@ import java.util.List;
 
 /**
  * Abstract class representing a bit vector (and integer on an arbitrary but fixed number of bits).
- * @author AndreiS
  *
+ * @author AndreiS
  * @see include/builtins/mint.k
  */
 public abstract class BitVector<T extends Number> extends Token {
@@ -53,10 +53,10 @@ public abstract class BitVector<T extends Number> extends Token {
         assert bitwidth > 0;
 
         switch (bitwidth) {
-            case Integer.SIZE:
-                return Int32Token.of(value.intValue());
-            default:
-                return BigIntegerBitVector.of(value, bitwidth);
+        case Integer.SIZE:
+            return Int32Token.of(value.intValue());
+        default:
+            return BigIntegerBitVector.of(value, bitwidth);
         }
     }
 
@@ -67,10 +67,10 @@ public abstract class BitVector<T extends Number> extends Token {
         assert bitwidth > 0;
 
         switch (bitwidth) {
-            case Integer.SIZE:
-                return Int32Token.of(Long.valueOf(value).intValue());
-            default:
-                return BigIntegerBitVector.of(BigInteger.valueOf(value), bitwidth);
+        case Integer.SIZE:
+            return Int32Token.of(Long.valueOf(value).intValue());
+        default:
+            return BigIntegerBitVector.of(BigInteger.valueOf(value), bitwidth);
         }
     }
 
@@ -142,39 +142,61 @@ public abstract class BitVector<T extends Number> extends Token {
     }
 
     public abstract BitVector<T> add(BitVector<T> bitVector);
+
     public abstract BitVector<T> sub(BitVector<T> bitVector);
+
     public abstract BitVector<T> mul(BitVector<T> bitVector);
 
     public abstract BuiltinList sdiv(BitVector<T> bitVector, TermContext context);
+
     public abstract BuiltinList srem(BitVector<T> bitVector, TermContext context);
 
     public abstract BitVector<T> udiv(BitVector<T> bitVector);
+
     public abstract BitVector<T> urem(BitVector<T> bitVector);
 
     public abstract BuiltinList sadd(BitVector<T> bitVector, TermContext context);
+
     public abstract BuiltinList uadd(BitVector<T> bitVector, TermContext context);
+
     public abstract BuiltinList ssub(BitVector<T> bitVector, TermContext context);
+
     public abstract BuiltinList usub(BitVector<T> bitVector, TermContext context);
+
     public abstract BuiltinList smul(BitVector<T> bitVector, TermContext context);
+
     public abstract BuiltinList umul(BitVector<T> bitVector, TermContext context);
 
     public abstract BitVector<T> shl(IntToken intToken);
+
     public abstract BitVector<T> ashr(IntToken intToken);
+
     public abstract BitVector<T> lshr(IntToken intToken);
 
     public abstract BitVector<T> and(BitVector<T> bitVector);
+
     public abstract BitVector<T> or(BitVector<T> bitVector);
+
     public abstract BitVector<T> xor(BitVector<T> bitVector);
 
     public abstract BoolToken slt(BitVector<T> bitVector);
+
     public abstract BoolToken ult(BitVector<T> bitVector);
+
     public abstract BoolToken sle(BitVector<T> bitVector);
+
     public abstract BoolToken ule(BitVector<T> bitVector);
+
     public abstract BoolToken sgt(BitVector<T> bitVector);
+
     public abstract BoolToken ugt(BitVector<T> bitVector);
+
     public abstract BoolToken sge(BitVector<T> bitVector);
+
     public abstract BoolToken uge(BitVector<T> bitVector);
+
     public abstract BoolToken eq(BitVector<T> bitVector);
+
     public abstract BoolToken ne(BitVector<T> bitVector);
 
     public BitVector concatenate(BitVector bitVector) {
@@ -182,6 +204,7 @@ public abstract class BitVector<T extends Number> extends Token {
                 unsignedValue().shiftLeft(bitVector.bitwidth).add(bitVector.unsignedValue()),
                 bitwidth + bitVector.bitwidth);
     }
+
     public abstract BitVector extract(int beginIndex, int endIndex);
 
     public abstract List<BitVector> toDigits(int digitBitWidth, int count);

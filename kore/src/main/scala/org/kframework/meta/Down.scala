@@ -18,7 +18,7 @@ case class Down(imports: Set[String]) extends (K => Any) {
 
   def apply(o: K): Any = o match {
     case KToken(v, `KString`) => v
-    case KToken(v,`String`) => v
+    case KToken(v, `String`) => v
     case KToken(v, `Int`) => v.toInt
     case KToken(v, `AttVal`) => v
     //    case KApply(KLabel("List"), ks, att) => ks.delegate map apply
@@ -54,12 +54,12 @@ case class Down(imports: Set[String]) extends (K => Any) {
           .flatMap { className => Try(Reflection.construct(className, ks map apply)).toOption }
           .headOption
           .getOrElse {
-          throw new AssertionError("Could not find a proper constructor for " + l +
-            "\n with arguments (" + children.mkString(",") +
-            ")\n of types (" + children.map(_.getClass()).mkString(",") +
-            ")\n Tried:\n    " +
-            matchingClasses.mkString("\n    "))
-        }
+            throw new AssertionError("Could not find a proper constructor for " + l +
+              "\n with arguments (" + children.mkString(",") +
+              ")\n of types (" + children.map(_.getClass()).mkString(",") +
+              ")\n Tried:\n    " +
+              matchingClasses.mkString("\n    "))
+          }
       }
     //    case _ => throw new AssertionError("Could not down.")
   }

@@ -13,13 +13,13 @@ import java.util.*;
  * class of rules is passed to the strategy above it to be partitioned. This
  * propogates to the top of the stack, until the top strategy receives a set
  * of rules to partition.
- *
+ * <p>
  * For example: If we have a transition strategy on top of a priority strategy,
  * we will first get the highest priority rules from the priority strategy, then
  * partition them with the transition strategy. If instead, the priority
  * strategy is on top, then we will first get the structural rules from the
  * transition strategy, then partition them with the priority strategy.
- *
+ * <p>
  * When getting the next equivalence class from a composite strategy, we first
  * attempt to get it from the top strategy. If it does not have a next class
  * we pop it from the stack, and retry with the next strategy. Once we get a
@@ -27,7 +27,6 @@ import java.util.*;
  * them back to the stack until we eventually get back to the top of the stack.
  *
  * @author ericmikida
- *
  */
 
 public class CompositeStrategy implements Strategy {

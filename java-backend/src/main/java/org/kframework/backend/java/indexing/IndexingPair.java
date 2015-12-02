@@ -44,15 +44,13 @@ public class IndexingPair implements Serializable {
                 } else {
                     return definition.indexingData.BOTTOM_INDEXING_PAIR;
                 }
-            }
-            else if (kSequence.concreteSize() == 1) {
+            } else if (kSequence.concreteSize() == 1) {
                 if (kSequence.hasFrame()) {
                     return new IndexingPair(getIndex(kSequence.get(0), definition), definition.indexingData.TOP_INDEX);
                 } else {
                     return new IndexingPair(getIndex(kSequence.get(0), definition), definition.indexingData.BOTTOM_INDEX);
                 }
-            }
-            else {
+            } else {
                 return new IndexingPair(
                         getIndex(kSequence.get(0), definition),
                         getIndex(kSequence.get(1), definition));
@@ -66,10 +64,8 @@ public class IndexingPair implements Serializable {
      * Retrieves {@code IndexingPair} from an input stream pattern based on the
      * first and last elements.
      *
-     * @param pattern
-     *            the input stream pattern
-     * @param definition
-     *            the definition
+     * @param pattern    the input stream pattern
+     * @param definition the definition
      * @return the indexing pair
      */
     public static IndexingPair getInstreamIndexingPair(Term pattern, Definition definition) {
@@ -96,10 +92,8 @@ public class IndexingPair implements Serializable {
      * Retrieves {@code IndexingPair} from an output stream pattern based on the
      * first and second elements.
      *
-     * @param pattern
-     *            the output stream pattern
-     * @param definition
-     *            the definition
+     * @param pattern    the output stream pattern
+     * @param definition the definition
      * @return the indexing pair
      */
     public static IndexingPair getOutstreamIndexingPair(Term pattern, Definition definition) {

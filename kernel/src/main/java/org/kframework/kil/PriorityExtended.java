@@ -5,11 +5,15 @@ import java.util.List;
 
 import org.kframework.kil.visitors.Visitor;
 
-/** A priority declaration, {@code syntax priorities} <em>labels</em> {@code >} ... {@code >} <em>labels</em>.
+/**
+ * A priority declaration, {@code syntax priorities} <em>labels</em> {@code >} ... {@code >} <em>labels</em>.
+ *
  * @see PriorityBlockExtended
  */
-public class PriorityExtended extends ModuleItem  implements Interfaces.MutableList<PriorityBlockExtended, Enum<?>>{
-    /** Highest priority block comes first */
+public class PriorityExtended extends ModuleItem implements Interfaces.MutableList<PriorityBlockExtended, Enum<?>> {
+    /**
+     * Highest priority block comes first
+     */
     java.util.List<PriorityBlockExtended> priorityBlocks;
 
     public PriorityExtended(java.util.List<PriorityBlockExtended> priorities) {

@@ -11,6 +11,7 @@ import scala.collection.mutable.Builder
 final class KMapApp(val klabel: KMapAppLabel, val theMap: Map[K, K], val att: Att = Att())
   extends KApp with PlainNormalization {
   val children: immutable.Iterable[K] = (theMap map { case (k, v) => Tuple2Label(k, v) } toList).sortBy(_.toString)
+
   override def matcher(right: K): Matcher = KMapAppMatcher(this, right)
 
   override def computeHashCode = klabel.hashCode * 19 + theMap.hashCode
@@ -64,6 +65,7 @@ class KMapAppBuilder(val builder: mutable.MapBuilder[K, K, Map[K, K]], label: La
 
 case class MapKeys(k: K, att: Att = Att()) extends KProduct {
   override val klabel = MapKeys
+
   override def toString = "keys(" + k + ")"
 
   override def normalizeInner(implicit theory: Theory) = MapKeys(k.normalize)

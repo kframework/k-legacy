@@ -51,6 +51,6 @@ public class LiterateModuleComment extends ModuleItem implements LiterateComment
 
     @Override
     public String toString() {
-        return "/*"+lcType+value+"*/";
+        return "/*" + lcType + value + "*/";
     }
 }

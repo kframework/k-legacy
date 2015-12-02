@@ -7,7 +7,9 @@ import org.kframework.attributes.Source;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Base class for collection sorts */
+/**
+ * Base class for collection sorts
+ */
 public abstract class Collection extends Term implements Interfaces.MutableList<Term, Enum<?>> {
 
     protected java.util.List<Term> contents;

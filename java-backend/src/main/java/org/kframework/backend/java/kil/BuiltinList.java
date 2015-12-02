@@ -68,11 +68,11 @@ public class BuiltinList extends Collection implements KItemCollection {
 
     private BuiltinList(ImmutableList<Term> elementsLeft, GlobalContext global) {
         this(elementsLeft,
-             ImmutableList.<Term>of(),
-             ImmutableList.<Term>of(),
-             ImmutableList.<BaseTermType>of(),
-             ImmutableList.<Variable>of(),
-             global);
+                ImmutableList.<Term>of(),
+                ImmutableList.<Term>of(),
+                ImmutableList.<BaseTermType>of(),
+                ImmutableList.<Variable>of(),
+                global);
     }
 
     public static Term concatenate(GlobalContext global, Term... lists) {
@@ -360,8 +360,7 @@ public class BuiltinList extends Collection implements KItemCollection {
          * Appends the specified term as a list item, namely
          * {@code ListItem(term)}, to the end of the list.
          *
-         * @param term
-         *            the specified term
+         * @param term the specified term
          */
         public void addItem(Term term) {
             if (status == BuilderStatus.ELEMENTS_LEFT) {
@@ -457,7 +456,7 @@ public class BuiltinList extends Collection implements KItemCollection {
             } else {
                 throw KExceptionManager.criticalError(
                         "the builder is not allowed to concatencate list terms in "
-                        + BuilderStatus.ELEMENTS_RIGHT, term);
+                                + BuilderStatus.ELEMENTS_RIGHT, term);
             }
         }
 
@@ -493,8 +492,8 @@ public class BuiltinList extends Collection implements KItemCollection {
                     listVariablesBuilder.build(),
                     global);
             return builtinList.baseTerms().size() == 1 && builtinList.concreteSize() == 0 ?
-                   builtinList.baseTerms().get(0) :
-                   builtinList;
+                    builtinList.baseTerms().get(0) :
+                    builtinList;
         }
     }
 

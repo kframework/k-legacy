@@ -7,7 +7,6 @@ import org.kframework.kil.visitors.Visitor;
  * Used as a container for unparsed sentences like rule, context and configuration.
  *
  * @author Radu
- *
  */
 public class StringSentence extends ModuleItem {
     private String content;
@@ -30,7 +29,7 @@ public class StringSentence extends ModuleItem {
     }
 
     public String toString() {
-        return type+"["+label+"]:"+content;
+        return type + "[" + label + "]:" + content;
     }
 
     @Override

@@ -20,7 +20,6 @@ import org.kframework.kil.ASTNode;
  * {@link CopyOnWriteTransformer} directly and, thus, is much more efficient.
  *
  * @author YilongL
- *
  */
 public class SubstituteAndEvaluateTransformer extends CopyOnWriteTransformer {
 

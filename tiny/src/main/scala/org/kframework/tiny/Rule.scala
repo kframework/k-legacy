@@ -68,13 +68,13 @@ case class AnywhereRule(termWithRewrite: K, sideConditions: K)(implicit val theo
     kapp.children
       .map(recursiveResults)
       .foldLeft(Set(Seq[K]())) { (soFar, nextArg) => soFar flatMap { args => nextArg map {
-      args :+ _
-    }
-    }
-    }
+        args :+ _
+      }
+      }
+      }
       .map {
-      kapp.klabel(_: _*)
-    }
+        kapp.klabel(_: _*)
+      }
   }
 
   def apply(t: K) = {

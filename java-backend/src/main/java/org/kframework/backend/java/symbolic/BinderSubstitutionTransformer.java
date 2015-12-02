@@ -41,19 +41,19 @@ public class BinderSubstitutionTransformer extends SubstitutionTransformer {
             if (kLabel instanceof KLabelConstant) {
                 KLabelConstant kLabelConstant = (KLabelConstant) kLabel;
                 if (kLabelConstant.isMetaBinder()) {
-                    assert kList.getContents().size()==2 && !kList.hasFrame() :
+                    assert kList.getContents().size() == 2 && !kList.hasFrame() :
                             "Only supporting binders of the form lambda x. e for now";
                     Term boundVars = kList.get(0);
 //                    if (boundVars instanceof Variable ||
 //                            boundVars instanceof BuiltinList || boundVars instanceof BuiltinSet) {
-                        // only rename vars if they are already a builtin structure.
-                        Term bindingExp = kList.get(1);
-                        Set<Variable> variables = boundVars.variableSet();
-                        Map<Variable,Variable> renameSubst = Variable.rename(variables);
-                        Term freshBoundVars = boundVars.substitute(renameSubst);
-                        Term freshBindingExp = bindingExp.substitute(renameSubst);
-                        kItem = KItem.of(kLabel, KList.concatenate(freshBoundVars, freshBindingExp),
-                                kItem.globalContext(), kItem.getSource(), kItem.getLocation());
+                    // only rename vars if they are already a builtin structure.
+                    Term bindingExp = kList.get(1);
+                    Set<Variable> variables = boundVars.variableSet();
+                    Map<Variable, Variable> renameSubst = Variable.rename(variables);
+                    Term freshBoundVars = boundVars.substitute(renameSubst);
+                    Term freshBindingExp = bindingExp.substitute(renameSubst);
+                    kItem = KItem.of(kLabel, KList.concatenate(freshBoundVars, freshBindingExp),
+                            kItem.globalContext(), kItem.getSource(), kItem.getLocation());
 //                    }
                 }
             }

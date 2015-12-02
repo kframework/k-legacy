@@ -14,11 +14,15 @@ import java.util.Collection;
  */
 public class SetUpdate extends Term implements Interfaces.Collection<Term, Enum<?>>, Interfaces.Parent<Variable, Enum<?>> {
 
-    /** {@link org.kframework.kil.Variable} name of the set */
+    /**
+     * {@link org.kframework.kil.Variable} name of the set
+     */
     private final Variable set;
 
-    /** {@code Map} of entries to be removed from the set */
-    private final  Collection<Term> removeEntries;
+    /**
+     * {@code Map} of entries to be removed from the set
+     */
+    private final Collection<Term> removeEntries;
 
     public SetUpdate(Variable set, Collection<Term> removeEntries) {
         super(set.getSort());

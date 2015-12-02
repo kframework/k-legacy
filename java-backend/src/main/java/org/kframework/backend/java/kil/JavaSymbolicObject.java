@@ -39,7 +39,7 @@ public abstract class JavaSymbolicObject<T extends JavaSymbolicObject<T>> extend
     /**
      * AndreiS: serializing this field causes a NullPointerException when hashing a de-serialized
      * Variable (the variable has all fields set to null at the moment of hashing).
-     *
+     * <p>
      * dwightguth: made these volatile in order to simplify the code associated with computing
      * an entire tree of data all at once. if we want to eke out extra performance later, we can
      * adopt the same pattern used for hashCode, which is also safe and potentially a tiny bit faster.

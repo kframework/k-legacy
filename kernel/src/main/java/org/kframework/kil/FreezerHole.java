@@ -4,11 +4,14 @@ package org.kframework.kil;
 import org.kframework.kil.visitors.Visitor;
 import org.w3c.dom.Element;
 
-/** The hole in a {@link Freezer}.
+/**
+ * The hole in a {@link Freezer}.
  * See {@link Hole} for the syntax of contexts.
  */
 public class FreezerHole extends Term {
-    /** Currently always zero, until nested freezers are implemented */
+    /**
+     * Currently always zero, until nested freezers are implemented
+     */
     private int index;
 
     public FreezerHole(int index) {
@@ -33,7 +36,7 @@ public class FreezerHole extends Term {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof FreezerHole)) return false;
-        FreezerHole f = (FreezerHole)o;
+        FreezerHole f = (FreezerHole) o;
         return index == f.index;
     }
 

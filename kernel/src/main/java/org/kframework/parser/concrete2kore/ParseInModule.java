@@ -46,6 +46,7 @@ public class ParseInModule implements Serializable {
     private final Module parsingModule;
     private volatile Grammar grammar = null;
     private final boolean strict;
+
     ParseInModule(Module seedModule) {
         this(seedModule, seedModule, seedModule, seedModule, true);
     }
@@ -61,6 +62,7 @@ public class ParseInModule implements Serializable {
     /**
      * The original module, which includes all the marker/flags imports.
      * This can be used to invalidate caches.
+     *
      * @return Module given by the user.
      */
     public Module seedModule() {
@@ -70,6 +72,7 @@ public class ParseInModule implements Serializable {
     /**
      * An extension module of the seedModule which includes all productions, unmodified, and in addition,
      * contains extra productions auto-defined, like casts.
+     *
      * @return Module with extra productions defined during parser generator.
      */
     public Module getExtensionModule() {
@@ -78,12 +81,13 @@ public class ParseInModule implements Serializable {
 
     /**
      * Parse as input the given string and start symbol using the module stored in the object.
-     * @param input          the string to parse.
-     * @param startSymbol    the start symbol from which to parse.
+     *
+     * @param input       the string to parse.
+     * @param startSymbol the start symbol from which to parse.
      * @return the Term representation of the parsed input.
      */
     public Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>>
-            parseString(String input, Sort startSymbol, Source source) {
+    parseString(String input, Sort startSymbol, Source source) {
         return parseString(input, startSymbol, source, 1, 1);
     }
 
@@ -96,7 +100,7 @@ public class ParseInModule implements Serializable {
     }
 
     public Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>>
-        parseString(String input, Sort startSymbol, Source source, int startLine, int startColumn) {
+    parseString(String input, Sort startSymbol, Source source, int startLine, int startColumn) {
         final Tuple2<Either<Set<ParseFailedException>, Term>, Set<ParseFailedException>> result
                 = parseStringTerm(input, startSymbol, source, startLine, startColumn);
         Either<Set<ParseFailedException>, K> parseInfo;
@@ -115,6 +119,7 @@ public class ParseInModule implements Serializable {
      * somewhat arbitrary as an actual parser {@link Term}.
      * Fortunately all callers want the result as a K, and can use the public
      * version of this method.
+     *
      * @param input
      * @param startSymbol
      * @param source
@@ -123,7 +128,7 @@ public class ParseInModule implements Serializable {
      * @return
      */
     private Tuple2<Either<Set<ParseFailedException>, Term>, Set<ParseFailedException>>
-            parseStringTerm(String input, Sort startSymbol, Source source, int startLine, int startColumn) {
+    parseStringTerm(String input, Sort startSymbol, Source source, int startLine, int startColumn) {
         getGrammar();
 
         Grammar.NonTerminal startSymbolNT = grammar.get(startSymbol.name());

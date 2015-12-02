@@ -21,8 +21,8 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 /**
- *  If a SemanticSentence (Rule or Context) has a body that is not wrapped in any cell,
- *  wrap it in a {@code <k>} cell
+ * If a SemanticSentence (Rule or Context) has a body that is not wrapped in any cell,
+ * wrap it in a {@code <k>} cell
  */
 public class AddImplicitComputationCell implements UnaryOperator<Sentence> {
 

@@ -4,6 +4,7 @@ package org.kframework.backend.java.builtins;
 import org.kframework.backend.java.kil.BuiltinList;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
+
 import java.util.List;
 
 
@@ -25,7 +26,7 @@ public final class BuiltinBitVectorOperations {
 
     public static IntToken bitwidth(Term term, TermContext context) {
         if (term instanceof BitVector) {
-            return IntToken.of(((BitVector)term).bitwidth());
+            return IntToken.of(((BitVector) term).bitwidth());
         } else {
             Integer bitwidth = BitVector.getBitwidth(term);
             if (bitwidth == null) {
@@ -318,8 +319,8 @@ public final class BuiltinBitVectorOperations {
             BitVector term2) {
         return new IllegalArgumentException(
                 "mismatch bit width: "
-                + "first argument is represented on " + term1.bitwidth() + " bits "
-                + "while second argument is represented on " + term2.bitwidth() + "bits");
+                        + "first argument is represented on " + term1.bitwidth() + " bits "
+                        + "while second argument is represented on " + term2.bitwidth() + "bits");
     }
 
 }

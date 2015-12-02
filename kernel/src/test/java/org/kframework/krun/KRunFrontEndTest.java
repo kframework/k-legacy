@@ -25,7 +25,8 @@ public class KRunFrontEndTest extends BaseTestCase {
         verify(jarInfo).printVersionMessage();
     }
 
-    @Test @Ignore
+    @Test
+    @Ignore
     public void testNothingAvailable() {
         GlobalOptions options = new GlobalOptions();
         KRunFrontEnd frontend = new KRunFrontEnd(options, null, null, jarInfo, scope, Providers.of(kompiledDir), kem, new KRunOptions(), files, null, null, null, null);

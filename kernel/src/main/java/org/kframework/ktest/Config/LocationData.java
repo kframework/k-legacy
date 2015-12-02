@@ -17,7 +17,7 @@ public class LocationData {
     private final Location location;
 
     public LocationData(File systemId, int startLine,
-            int startColumn, int endLine, int endColumn) {
+                        int startColumn, int endLine, int endColumn) {
         super();
         this.location = new Location(startLine, startColumn, endLine, endColumn);
         this.source = Source.apply(systemId.getAbsolutePath());

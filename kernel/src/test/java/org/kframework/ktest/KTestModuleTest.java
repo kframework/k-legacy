@@ -19,7 +19,7 @@ public class KTestModuleTest extends BaseTestCase {
 
     @Test
     public void testCreateInjection() {
-        String[] argv = new String[] { "foo.c" };
+        String[] argv = new String[]{"foo.c"};
         List<Module> modules = KTestFrontEnd.getModules();
         Injector injector = Guice.createInjector(Modules.override(modules).with(new TestModule()));
         prepInjector(injector, "-ktest", argv);

@@ -7,7 +7,7 @@ import org.kframework.kompile.KompileOptions;
 
 /**
  * Initially created by: Traian Florin Serbanuta
- * <p/>
+ * <p>
  * Date: 12/17/12
  * Time: 6:24 PM
  */
