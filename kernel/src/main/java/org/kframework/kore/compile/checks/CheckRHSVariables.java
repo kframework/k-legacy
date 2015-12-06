@@ -66,26 +66,26 @@ public class CheckRHSVariables {
     void gatherVars(K term) {
         new RewriteAwareVisitor() {
             @Override
-            public Void apply(KVariable v) {
+            public void apply(KVariable v) {
                 if (isLHS() && !v.equals(ResolveAnonVar.ANON_VAR))
                     vars.add(v);
-                return super.apply(v);
+                super.apply(v);
             }
 
             @Override
-            public Void apply(KApply k) {
+            public void apply(KApply k) {
                 if (k.klabel() instanceof KVariable) {
                     apply((KVariable) k.klabel());
                 }
-                return super.apply(k);
+                super.apply(k);
             }
 
             @Override
-            public Void apply(InjectedKLabel k) {
+            public void apply(InjectedKLabel k) {
                 if (k.klabel() instanceof KVariable) {
                     apply((KVariable) k.klabel());
                 }
-                return super.apply(k);
+                super.apply(k);
             }
         }.apply(term);
     }
@@ -93,7 +93,7 @@ public class CheckRHSVariables {
     private void check(K body) {
         new RewriteAwareVisitor() {
             @Override
-            public Void apply(KVariable k) {
+            public void apply(KVariable k) {
                 if (isRHS()) {
                     if ((k.equals(ResolveAnonVar.ANON_VAR) && !isLHS())
                         || (!k.equals(ResolveAnonVar.ANON_VAR) && !(k.name().startsWith("?") || k.name().startsWith("!")) && !vars.contains(k))) {
@@ -102,23 +102,22 @@ public class CheckRHSVariables {
                                 + " Did you mean \"?" + k.name() + "\"?", k));
                     }
                 }
-                return null;
             }
 
             @Override
-            public Void apply(InjectedKLabel k) {
+            public void apply(InjectedKLabel k) {
                 if (k.klabel() instanceof KVariable) {
                     apply((KVariable) k.klabel());
                 }
-                return super.apply(k);
+                super.apply(k);
             }
 
             @Override
-            public Void apply(KApply k) {
+            public void apply(KApply k) {
                 if (k.klabel() instanceof KVariable) {
                     apply((KVariable) k.klabel());
                 }
-                return super.apply(k);
+                super.apply(k);
             }
         }.apply(body);
     }
