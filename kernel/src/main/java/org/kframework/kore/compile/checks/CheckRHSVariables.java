@@ -2,6 +2,7 @@
 package org.kframework.kore.compile.checks;
 
 import com.google.common.collect.Sets;
+import org.kframework.builtin.KLabels;
 import org.kframework.definition.Context;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
@@ -9,6 +10,7 @@ import org.kframework.kore.FoldKIntoSet;
 import org.kframework.kore.InjectedKLabel;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
+import org.kframework.kore.KORE;
 import org.kframework.kore.KRewrite;
 import org.kframework.kore.KVariable;
 import org.kframework.kore.compile.ResolveAnonVar;
@@ -55,23 +57,30 @@ public class CheckRHSVariables {
         check(context.requires());
     }
 
-    private void shortCheck(K k) {
-        Set<KRewrite> rewrites = new FoldKIntoSet<KRewrite>() {
-            public Set<KRewrite> apply(KRewrite rw) {
-                return Set(rw);
+    private void shortCheck(K k, K requires, K ensures) {
+        Set<KVariable> lhsVars = new FoldKIntoSet<KVariable>() {
+            public Set<KVariable> apply(KRewrite rw) {
+                return apply(rw.left());
             }
-        }.apply(k);
-        FoldKIntoSet<KVariable> gatherVars = new FoldKIntoSet<KVariable>() {
+
             public Set<KVariable> apply(KVariable v) {
                 return Set(v);
             }
-        };
-        Set<KVariable> leftVars = stream(rewrites).flatMap(rw -> stream(gatherVars.apply(rw.left()))).collect(toSet());
-        Stream<KVariable> rightVarsStream = stream(rewrites).flatMap(rw -> stream(gatherVars.apply(rw.right())));
+        }.apply(k);
 
-        rightVarsStream.forEach(v -> {
+        Set<KVariable> rhsVars = new FoldKIntoSet<KVariable>() {
+            public Set<KVariable> apply(KRewrite rw) {
+                return apply(rw.right());
+            }
+
+            public Set<KVariable> apply(KVariable v) {
+                return Set(v);
+            }
+        }.apply(KORE.KApply(KORE.KLabel(KLabels.ML_AND), KORE.KApply(KORE.KLabel(KLabels.ML_AND), k, requires), ensures));
+
+        stream(rhsVars).forEach(v -> {
             if (v.equals(ResolveAnonVar.ANON_VAR)
-                    || (!v.equals(ResolveAnonVar.ANON_VAR) && !(v.name().startsWith("?") || v.name().startsWith("!")) && !vars.contains(v))) {
+                    || (!v.equals(ResolveAnonVar.ANON_VAR) && !(v.name().startsWith("?") || v.name().startsWith("!")) && !lhsVars.contains(v))) {
                 errors.add(KEMException.compilerError("Found variable " + v.name()
                         + " on right hand side of rule, not bound on left hand side."
                         + " Did you mean \"?" + v.name() + "\"?", v));
