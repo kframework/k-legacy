@@ -279,7 +279,9 @@ public class SortCells {
             @Override
             public Void apply(KApply k) {
                 final Sort codomain = labels.getCodomain(k.klabel());
-                if (cfg.isParentCell(codomain) || cfg.isCellFragment(codomain)) {
+                if ((cfg.isParentCell(codomain) && cfg.getCellLabel(codomain).equals(k.klabel()))
+                        || (cfg.isCellFragment(codomain)
+                        && cfg.getCellFragmentLabel(cfg.getCellOfFragment(codomain)).equals(k.klabel()))) {
                     if (inRewrite) {
                         processSide(k, inRhs, k.klist().stream()
                                 .flatMap(this::streamCells)
@@ -361,7 +363,7 @@ public class SortCells {
     }
 
     private KLabel getPredicate(boolean onlyFragment, Sort s) {
-        return KLabel("is"+getPredicateSort(onlyFragment,s));
+        return KLabel("is" + getPredicateSort(onlyFragment, s));
     }
 
     private Sort getPredicateSort(boolean onlyFragment, Sort s) {
@@ -407,7 +409,9 @@ public class SortCells {
             @Override
             public K apply(KApply k) {
                 Sort resultSort = labels.getCodomain(k.klabel());
-                if (cfg.isParentCell(resultSort) || cfg.isCellFragment(resultSort)) {
+                if ((cfg.isParentCell(resultSort) && cfg.getCellLabel(resultSort).equals(k.klabel()))
+                        || (cfg.isCellFragment(resultSort)
+                        && cfg.getCellFragmentLabel(cfg.getCellOfFragment(resultSort)).equals(k.klabel()))) {
                     boolean isFragment = cfg.isCellFragment(resultSort);
                     Sort cell = isFragment ? cfg.getCellOfFragment(resultSort) : resultSort;
                     List<Sort> order = cfg.getChildren(cell);
