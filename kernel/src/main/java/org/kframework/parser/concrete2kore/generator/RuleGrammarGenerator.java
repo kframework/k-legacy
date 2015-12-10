@@ -141,6 +141,20 @@ public class RuleGrammarGenerator {
         Set<Sentence> disambProds = createDisamb(mod, extensionProds);
 
         Set<Sentence> parseProds = disambProds.stream().collect(Collectors.toSet());
+
+        if (baseK.getModule(RULE_LISTS).isDefined() && mod.importedModules().contains(baseK.getModule(RULE_LISTS).get())) {
+            java.util.Set<Sentence> res = new HashSet<>();
+            for (UserList ul : UserList.getLists(parseProds)) {
+                org.kframework.definition.Production prod1;
+                // Es ::= E
+                prod1 = Production(Sort(ul.sort), Seq(NonTerminal(Sort(ul.childSort))));
+                res.add(prod1);
+            }
+
+            parseProds.addAll(res);
+            disambProds.addAll(res);
+        }
+
         if (baseK.getModule(PROGRAM_LISTS).isDefined() && mod.importedModules().contains(baseK.getModule(PROGRAM_LISTS).get())) {
             Set<Sentence> prods3 = new HashSet<>();
             // if no start symbol has been defined in the configuration, then use K
@@ -185,18 +199,6 @@ public class RuleGrammarGenerator {
             parseProds = res;
         }
 
-        if (baseK.getModule(RULE_LISTS).isDefined() && mod.importedModules().contains(baseK.getModule(RULE_LISTS).get())) {
-            java.util.Set<Sentence> res = new HashSet<>();
-            for (UserList ul : UserList.getLists(parseProds)) {
-                org.kframework.definition.Production prod1;
-                // Es ::= E
-                prod1 = Production(Sort(ul.sort), Seq(NonTerminal(Sort(ul.childSort))));
-                res.add(prod1);
-            }
-
-            parseProds.addAll(res);
-            disambProds.addAll(res);
-        }
         Module extensionM = new Module(mod.name() + "-EXTENSION", Set(mod), immutable(extensionProds), mod.att());
         Module disambM = new Module(mod.name() + "-DISAMB", Set(), immutable(disambProds), mod.att());
         Module parseM = new Module(mod.name() + "-PARSER", Set(), immutable(parseProds), mod.att());
