@@ -2,21 +2,23 @@
 
 package org.kframework.backend.java.symbolic;
 
-import org.apache.commons.math3.analysis.function.Abs;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
+import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.InnerRHSRewrite;
 import org.kframework.backend.java.kil.KItem;
 import org.kframework.backend.java.kil.KLabelConstant;
 import org.kframework.backend.java.kil.KList;
+import org.kframework.backend.java.kil.Rule;
 import org.kframework.backend.java.kil.RuleAutomatonDisjunction;
 import org.kframework.backend.java.kil.Sort;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.kil.Token;
 import org.kframework.backend.java.kil.Variable;
+import org.kframework.backend.java.util.RewriteEngineUtils;
 import org.kframework.builtin.KLabels;
-import org.kframework.kore.Assoc;
 import org.kframework.kore.KApply;
+import org.kframework.kore.KLabel;
 import org.kframework.utils.BitSet;
 
 import static org.kframework.Collections.*;
@@ -25,7 +27,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -43,33 +44,32 @@ public class FastRuleMatcher {
     private final int ruleCount;
 
     /**
-     * @return maps from AST paths to the corresponding rewrite RHSs, indexed by the rule ordinal
+     * @return map from AST path to the corresponding rewrite RHS
      */
-    public Map<scala.collection.immutable.List<Integer>, Term>[] getRewrites() {
-        return rewrites;
+    public Map<scala.collection.immutable.List<Integer>, Term> getRewrite(int index) {
+        return rewrites[index];
     }
 
     private BitSet empty;
 
-    private final TermContext context;
+    private final GlobalContext global;
 
     private final KLabelConstant kSeqLabel;
-    private final KLabelConstant kDotLabel;
     private final KItem kDot;
 
     private final KLabelConstant threadCellBagLabel;
     private final KItem dotThreadCellBag;
 
 
-    public FastRuleMatcher(TermContext context, int ruleCount, int variableCount) {
-        this.context = context;
-        kSeqLabel = KLabelConstant.of(KLabels.KSEQ, context.definition());
-        kDotLabel = KLabelConstant.of(KLabels.DOTK, context.definition());
-        kDot = KItem.of(kDotLabel, KList.concatenate(), context);
+    public FastRuleMatcher(GlobalContext global, int ruleCount) {
+        this.global = global;
+        kSeqLabel = KLabelConstant.of(KLabels.KSEQ, global.getDefinition());
+        KLabelConstant kDotLabel = KLabelConstant.of(KLabels.DOTK, global.getDefinition());
+        kDot = KItem.of(kDotLabel, KList.concatenate(), global);
 
         // remove hack when A/AC is properly supported
-        threadCellBagLabel = KLabelConstant.of("_ThreadCellBag_", context.definition());
-        dotThreadCellBag = KItem.of(KLabelConstant.of(".ThreadCellBag", context.definition()), KList.concatenate(), context);
+        threadCellBagLabel = KLabelConstant.of("_ThreadCellBag_", global.getDefinition());
+        dotThreadCellBag = KItem.of(KLabelConstant.of(".ThreadCellBag", global.getDefinition()), KList.concatenate(), global);
 
         this.ruleCount = ruleCount;
         substitutions = new Substitution[this.ruleCount];
@@ -85,7 +85,7 @@ public class FastRuleMatcher {
      *
      * @return a list of substitutions tagged with the Integer identifier of the rule they belong to.
      */
-    public List<Pair<Substitution<Variable, Term>, Integer>> mainMatch(Term subject, Term pattern, BitSet ruleMask) {
+    public List<Pair<Substitution<Variable, Term>, Integer>> mainMatch(Term subject, Term pattern, BitSet ruleMask, boolean computeOne, TermContext context) {
         assert subject.isGround() : subject;
 
         ruleMask.stream().forEach(i -> substitutions[i].clear());
@@ -98,7 +98,14 @@ public class FastRuleMatcher {
         List<Pair<Substitution<Variable, Term>, Integer>> theResult = new ArrayList<>();
 
         for (int i = theMatchingRules.nextSetBit(0); i >= 0; i = theMatchingRules.nextSetBit(i + 1)) {
-            theResult.add(Pair.of(substitutions[i], i));
+            Rule rule = global.getDefinition().ruleTable.get(i);
+            Substitution<Variable, Term> subst = RewriteEngineUtils.evaluateConditions(rule, substitutions[i], context);
+            if (subst != null) {
+                theResult.add(Pair.of(subst, i));
+                if (computeOne) {
+                    break;
+                }
+            }
         }
         return theResult;
     }
@@ -130,8 +137,9 @@ public class FastRuleMatcher {
             }
 
             if (subject instanceof KItem) {
-                // main match of KItems
+                // main match of KItem
                 matchInside(subject, ruleMask, path, returnSet, automatonDisjunction.getKItemPatternForKLabel((KLabelConstant) ((KItem) subject).kLabel()));
+                checkVarLabelPatterns(subject, ruleMask, path, automatonDisjunction, returnSet);
             } else if (subject instanceof Token) {
                 // and matching Tokens
                 BitSet rules = automatonDisjunction.tokenDisjunctions.get(subject);
@@ -173,15 +181,14 @@ public class FastRuleMatcher {
         if (pattern instanceof KItem && ((KItem) pattern).kLabel().equals(threadCellBagLabel)
                 && !subject.sort().equals(Sort.of("ThreadCellBag")) &&
                 !((subject instanceof KItem) && ((KItem) subject).kLabel().equals(threadCellBagLabel))) {
-            subject = KItem.of(threadCellBagLabel, KList.concatenate(subject, dotThreadCellBag), context);
+            subject = KItem.of(threadCellBagLabel, KList.concatenate(subject, dotThreadCellBag), global);
         }
 
         if (subject instanceof KItem && pattern instanceof KItem) {
             KItem kitemPattern = (KItem) pattern;
-
             KLabelConstant subjectKLabel = (KLabelConstant) ((KItem) subject).kLabel();
-            KLabelConstant patternKLabel = (KLabelConstant) kitemPattern.kLabel();
-            if (subjectKLabel != patternKLabel) {
+            KLabel patternKLabel = ((KItem) pattern).klabel();
+            if (!(patternKLabel instanceof Variable) && subjectKLabel != patternKLabel) {
                 return empty;
             }
 
@@ -206,6 +213,9 @@ public class FastRuleMatcher {
                     return ruleMask;
                 }
             }
+            if (patternKLabel instanceof Variable) {
+                add((Variable) patternKLabel, ((KItem) subject).kLabel(), ruleMask);
+            }
             return ruleMask;
         } else if (subject instanceof Token && pattern instanceof Token) {
             // TODO: make tokens unique?
@@ -214,6 +224,15 @@ public class FastRuleMatcher {
             return empty;
         } else {
             throw new AssertionError("unexpected class at matching: " + subject.getClass());
+        }
+    }
+
+    private void checkVarLabelPatterns(Term subject, BitSet ruleMask, scala.collection.immutable.List<Integer> path, RuleAutomatonDisjunction automatonDisjunction, BitSet returnSet) {
+        List<Pair<KItem, BitSet>> varLabelPatterns = automatonDisjunction.getKItemPatternByArity(((KItem) subject).klist().size());
+        if (!(varLabelPatterns == null)) {
+            for (Pair<KItem, BitSet> p : varLabelPatterns) {
+                matchInside(subject, ruleMask, path, returnSet, p);
+            }
         }
     }
 
@@ -237,7 +256,7 @@ public class FastRuleMatcher {
             return ruleMask;
         }
 
-        if (!context.definition().subsorts().isSubsortedEq(variable.sort(), term.sort())) {
+        if (!global.getDefinition().subsorts().isSubsortedEq(variable.sort(), term.sort())) {
             return empty;
         }
 
@@ -253,14 +272,8 @@ public class FastRuleMatcher {
 
     private Term upKSeq(Term otherTerm) {
         if (!AbstractUnifier.isKSeq(otherTerm) && !AbstractUnifier.isKSeqVar(otherTerm))
-            otherTerm = KItem.of(kSeqLabel, KList.concatenate(otherTerm, kDot), context);
+            otherTerm = KItem.of(kSeqLabel, KList.concatenate(otherTerm, kDot), global);
         return otherTerm;
-    }
-
-    private Term getCanonicalKSeq(Term term) {
-        return (Term) stream(Assoc.flatten(kSeqLabel, Seq(term), kDotLabel).reverse())
-                .reduce((a, b) -> KItem.of(kSeqLabel, KList.concatenate((Term) b, (Term) a), context))
-                .orElse(kDot);
     }
 
 }
