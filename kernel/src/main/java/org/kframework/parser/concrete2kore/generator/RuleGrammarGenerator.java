@@ -139,22 +139,16 @@ public class RuleGrammarGenerator {
     public ParseInModule getCombinedGrammar(Module mod) {
         Set<Sentence> extensionProds = createExtension(mod);
         Set<Sentence> disambProds = createDisamb(mod, extensionProds);
+        Set<Sentence> parseProds = createParser(mod, disambProds);
 
+        Module extensionM = new Module(mod.name() + "-EXTENSION", Set(mod), immutable(extensionProds), mod.att());
+        Module disambM = new Module(mod.name() + "-DISAMB", Set(), immutable(disambProds), mod.att());
+        Module parseM = new Module(mod.name() + "-PARSER", Set(), immutable(parseProds), mod.att());
+        return new ParseInModule(mod, extensionM, disambM, parseM, this.strict);
+    }
+
+    private Set<Sentence> createParser(Module mod, Set<Sentence> disambProds) {
         Set<Sentence> parseProds = disambProds.stream().collect(Collectors.toSet());
-
-        if (baseK.getModule(RULE_LISTS).isDefined() && mod.importedModules().contains(baseK.getModule(RULE_LISTS).get())) {
-            java.util.Set<Sentence> res = new HashSet<>();
-            for (UserList ul : UserList.getLists(parseProds)) {
-                org.kframework.definition.Production prod1;
-                // Es ::= E
-                prod1 = Production(Sort(ul.sort), Seq(NonTerminal(Sort(ul.childSort))));
-                res.add(prod1);
-            }
-
-            parseProds.addAll(res);
-            disambProds.addAll(res);
-        }
-
         if (baseK.getModule(PROGRAM_LISTS).isDefined() && mod.importedModules().contains(baseK.getModule(PROGRAM_LISTS).get())) {
             Set<Sentence> prods3 = new HashSet<>();
             // if no start symbol has been defined in the configuration, then use K
@@ -166,9 +160,9 @@ public class RuleGrammarGenerator {
             }
             // for each triple, generate a new pattern which works better for parsing lists in programs.
             prods3.addAll(parseProds.stream().collect(Collectors.toSet()));
-            java.util.Set<Sentence> res = new HashSet<>();
+            Set<Sentence> res = new HashSet<>();
             for (UserList ul : UserList.getLists(prods3)) {
-                org.kframework.definition.Production prod1, prod2, prod3, prod4, prod5;
+                Production prod1, prod2, prod3, prod4, prod5;
                 // Es#Terminator ::= "" [klabel('.Es)]
                 prod1 = Production(ul.terminatorKLabel, Sort(ul.sort + "#Terminator"), Seq(Terminal("")),
                         ul.attrs.add("klabel", ul.terminatorKLabel).add(Constants.ORIGINAL_PRD, ul.pTerminator));
@@ -198,11 +192,7 @@ public class RuleGrammarGenerator {
             res.addAll(prods3.stream().filter(p -> !(p instanceof Production && p.att().contains(KOREtoKIL.USER_LIST_ATTRIBUTE))).collect(Collectors.toSet()));
             parseProds = res;
         }
-
-        Module extensionM = new Module(mod.name() + "-EXTENSION", Set(mod), immutable(extensionProds), mod.att());
-        Module disambM = new Module(mod.name() + "-DISAMB", Set(), immutable(disambProds), mod.att());
-        Module parseM = new Module(mod.name() + "-PARSER", Set(), immutable(parseProds), mod.att());
-        return new ParseInModule(mod, extensionM, disambM, parseM, this.strict);
+        return parseProds;
     }
 
     private Set<Sentence> createDisamb(Module mod, Set<Sentence> extensionProds) {
@@ -286,6 +276,18 @@ public class RuleGrammarGenerator {
                 return s;
             }).collect(Collectors.toSet());
         }
+
+        if (baseK.getModule(RULE_LISTS).isDefined() && mod.importedModules().contains(baseK.getModule(RULE_LISTS).get())) {
+            java.util.Set<Sentence> res = new HashSet<>();
+            for (UserList ul : UserList.getLists(disambProds)) {
+                org.kframework.definition.Production prod1;
+                // Es ::= E
+                prod1 = Production(Sort(ul.sort), Seq(NonTerminal(Sort(ul.childSort))));
+                res.add(prod1);
+            }
+            disambProds.addAll(res);
+        }
+
         return disambProds;
     }
 
