@@ -137,123 +137,10 @@ public class RuleGrammarGenerator {
      * @return parser which applies disambiguation filters by default.
      */
     public ParseInModule getCombinedGrammar(Module mod) {
-        Set<Sentence> prods = new HashSet<>();
-        Set<Sentence> extensionProds = new HashSet<>();
-        Set<Sentence> disambProds;
+        Set<Sentence> extensionProds = createExtension(mod);
+        Set<Sentence> disambProds = createDisamb(mod, extensionProds);
 
-        if (baseK.getModule(AUTO_CASTS).isDefined() && mod.importedModules().contains(baseK.getModule(AUTO_CASTS).get())) { // create the diamond
-            Set<Sentence> temp;
-            for (Sort srt : iterable(mod.definedSorts())) {
-                if (!isParserSort(srt)) {
-                    // K ::= K "::Sort" | K ":Sort" | K "<:Sort" | K ":>Sort"
-                    prods.addAll(makeCasts(Sorts.KBott(), Sorts.K(), srt));
-                }
-            }
-            prods.addAll(makeCasts(Sorts.KLabel(), Sorts.KLabel(), Sorts.KLabel()));
-            prods.addAll(makeCasts(Sorts.KList(), Sorts.KList(), Sorts.KList()));
-            prods.addAll(makeCasts(Sorts.KBott(), Sorts.K(), Sorts.KItem()));
-            prods.addAll(makeCasts(Sorts.KBott(), Sorts.K(), Sorts.K()));
-        }
-        if (baseK.getModule(K_TOP_SORT).isDefined() && mod.importedModules().contains(baseK.getModule(K_TOP_SORT).get())) { // create the diamond
-            for (Sort srt : iterable(mod.definedSorts())) {
-                if (!isParserSort(srt)) {
-                    // K ::= Sort
-                    prods.add(Production(Sorts.K(), Seq(NonTerminal(srt)), Att()));
-                }
-            }
-        }
-
-        if (baseK.getModule(K_BOTTOM_SORT).isDefined() && mod.importedModules().contains(baseK.getModule(K_BOTTOM_SORT).get())) { // create the diamond
-            for (Sort srt : iterable(mod.definedSorts())) {
-                if (!isParserSort(srt)) {
-                    // Sort ::= KBott
-                    prods.add(Production(srt, Seq(NonTerminal(Sorts.KBott())), Att()));
-                }
-            }
-        }
-        extensionProds.addAll(prods);
-
-        boolean addRuleCells;
-        if (baseK.getModule(RULE_CELLS).isDefined() && mod.importedModules().contains(baseK.getModule(RULE_CELLS).get())) { // prepare cell productions for rule parsing
-            // make sure a configuration actually exists, otherwise ConfigurationInfoFromModule explodes.
-            addRuleCells = mod.sentences().exists(func(p -> p instanceof Production && ((Production) p).att().contains("cell")));
-        } else {
-            addRuleCells = false;
-        }
-        Set<Sentence> parseProds;
-        if (addRuleCells) {
-            ConfigurationInfo cfgInfo = new ConfigurationInfoFromModule(mod);
-            parseProds = Stream.concat(prods.stream(), stream(mod.sentences())).flatMap(s -> {
-                if (s instanceof Production && (s.att().contains("cell"))) {
-                    Production p = (Production) s;
-                    // assuming that productions tagged with 'cell' start and end with terminals, and only have non-terminals in the middle
-                    assert p.items().head() instanceof Terminal || p.items().head() instanceof RegexTerminal;
-                    assert p.items().last() instanceof Terminal || p.items().last() instanceof RegexTerminal;
-                    final ProductionItem body;
-                    if (cfgInfo.isLeafCell(p.sort())) {
-                        body = p.items().tail().head();
-                    } else {
-                        body = NonTerminal(Sort("Bag"));
-                    }
-                    final ProductionItem optDots = NonTerminal(Sort("#OptionalDots"));
-                    Seq<ProductionItem> pi = Seq(p.items().head(), optDots, body, optDots, p.items().last());
-                    Production p1 = Production(p.klabel().get().name(), Sort("Cell"), pi, p.att());
-                    Production p2 = Production(Sort("Cell"), Seq(NonTerminal(p.sort())));
-                    return Stream.of(p1, p2);
-                }
-                if (s instanceof Production && (s.att().contains("cellFragment"))) {
-                    Production p = (Production) s;
-                    Production p1 = Production(Sort("Cell"), Seq(NonTerminal(p.sort())));
-                    return Stream.of(p, p1);
-                }
-                return Stream.of(s);
-            }).collect(Collectors.toSet());
-        } else
-            parseProds = Stream.concat(prods.stream(), stream(mod.sentences())).collect(Collectors.toSet());
-
-        if (baseK.getModule(AUTO_FOLLOW).isDefined() && mod.importedModules().contains(baseK.getModule(AUTO_FOLLOW).get())) {
-            Object PRESENT = new Object();
-            PatriciaTrie<Object> terminals = new PatriciaTrie<>(); // collect all terminals so we can do automatic follow restriction for prefix terminals
-            parseProds.stream().filter(sent -> sent instanceof Production).forEach(p -> stream(((Production) p).items()).forEach(i -> {
-                if (i instanceof Terminal) terminals.put(((Terminal) i).value(), PRESENT);
-            }));
-            parseProds = parseProds.stream().map(s -> {
-                if (s instanceof Production) {
-                    Production p = (Production) s;
-                    if (p.sort().name().startsWith("#"))
-                        return p; // don't do anything for such productions since they are advanced features
-                    // rewrite productions to contain follow restrictions for prefix terminals
-                    // example _==_ and _==K_ can produce ambiguities. Rewrite the first into _(==(?![K])_
-                    // this also takes care of casting and productions that have ":"
-                    Seq<ProductionItem> items = map(pi -> {
-                        if (pi instanceof Terminal) {
-                            Terminal t = (Terminal) pi;
-                            if (t.value().trim().equals(""))
-                                return pi;
-                            Set<String> follow = new HashSet<>();
-                            terminals.prefixMap(t.value()).keySet().stream().filter(biggerString -> !t.value().equals(biggerString))
-                                    .forEach(biggerString -> {
-                                        String ending = biggerString.substring(t.value().length());
-                                        follow.add(ending);
-                                    });
-                            // add follow restrictions for the characters that might produce ambiguities
-                            if (!follow.isEmpty()) {
-                                return Terminal.apply(t.value(), follow.stream().collect(toList()));
-                            }
-                        }
-                        return pi;
-                    }, p.items());
-                    if (p.klabel().isDefined())
-                        p = Production(p.klabel().get().name(), p.sort(), Seq(items), p.att());
-                    else
-                        p = Production(p.sort(), Seq(items), p.att());
-                    return p;
-                }
-                return s;
-            }).collect(Collectors.toSet());
-        }
-
-        disambProds = parseProds.stream().collect(Collectors.toSet());
+        Set<Sentence> parseProds = disambProds.stream().collect(Collectors.toSet());
         if (baseK.getModule(PROGRAM_LISTS).isDefined() && mod.importedModules().contains(baseK.getModule(PROGRAM_LISTS).get())) {
             Set<Sentence> prods3 = new HashSet<>();
             // if no start symbol has been defined in the configuration, then use K
@@ -314,6 +201,129 @@ public class RuleGrammarGenerator {
         Module disambM = new Module(mod.name() + "-DISAMB", Set(), immutable(disambProds), mod.att());
         Module parseM = new Module(mod.name() + "-PARSER", Set(), immutable(parseProds), mod.att());
         return new ParseInModule(mod, extensionM, disambM, parseM, this.strict);
+    }
+
+    private Set<Sentence> createDisamb(Module mod, Set<Sentence> extensionProds) {
+        Set<Sentence> disambProds;
+
+        boolean addRuleCells;
+        if (baseK.getModule(RULE_CELLS).isDefined() && mod.importedModules().contains(baseK.getModule(RULE_CELLS).get())) { // prepare cell productions for rule parsing
+            // make sure a configuration actually exists, otherwise ConfigurationInfoFromModule explodes.
+            addRuleCells = mod.sentences().exists(func(p -> p instanceof Production && ((Production) p).att().contains("cell")));
+        } else {
+            addRuleCells = false;
+        }
+        if (addRuleCells) {
+            ConfigurationInfo cfgInfo = new ConfigurationInfoFromModule(mod);
+            disambProds = Stream.concat(extensionProds.stream(), stream(mod.sentences())).flatMap(s -> {
+                if (s instanceof Production && (s.att().contains("cell"))) {
+                    Production p = (Production) s;
+                    // assuming that productions tagged with 'cell' start and end with terminals, and only have non-terminals in the middle
+                    assert p.items().head() instanceof Terminal || p.items().head() instanceof RegexTerminal;
+                    assert p.items().last() instanceof Terminal || p.items().last() instanceof RegexTerminal;
+                    final ProductionItem body;
+                    if (cfgInfo.isLeafCell(p.sort())) {
+                        body = p.items().tail().head();
+                    } else {
+                        body = NonTerminal(Sort("Bag"));
+                    }
+                    final ProductionItem optDots = NonTerminal(Sort("#OptionalDots"));
+                    Seq<ProductionItem> pi = Seq(p.items().head(), optDots, body, optDots, p.items().last());
+                    Production p1 = Production(p.klabel().get().name(), Sort("Cell"), pi, p.att());
+                    Production p2 = Production(Sort("Cell"), Seq(NonTerminal(p.sort())));
+                    return Stream.of(p1, p2);
+                }
+                if (s instanceof Production && (s.att().contains("cellFragment"))) {
+                    Production p = (Production) s;
+                    Production p1 = Production(Sort("Cell"), Seq(NonTerminal(p.sort())));
+                    return Stream.of(p, p1);
+                }
+                return Stream.of(s);
+            }).collect(Collectors.toSet());
+        } else
+            disambProds = Stream.concat(extensionProds.stream(), stream(mod.sentences())).collect(Collectors.toSet());
+
+        if (baseK.getModule(AUTO_FOLLOW).isDefined() && mod.importedModules().contains(baseK.getModule(AUTO_FOLLOW).get())) {
+            Object PRESENT = new Object();
+            PatriciaTrie<Object> terminals = new PatriciaTrie<>(); // collect all terminals so we can do automatic follow restriction for prefix terminals
+            disambProds.stream().filter(sent -> sent instanceof Production).forEach(p -> stream(((Production) p).items()).forEach(i -> {
+                if (i instanceof Terminal) terminals.put(((Terminal) i).value(), PRESENT);
+            }));
+            disambProds = disambProds.stream().map(s -> {
+                if (s instanceof Production) {
+                    Production p = (Production) s;
+                    if (p.sort().name().startsWith("#"))
+                        return p; // don't do anything for such productions since they are advanced features
+                    // rewrite productions to contain follow restrictions for prefix terminals
+                    // example _==_ and _==K_ can produce ambiguities. Rewrite the first into _(==(?![K])_
+                    // this also takes care of casting and productions that have ":"
+                    Seq<ProductionItem> items = map(pi -> {
+                        if (pi instanceof Terminal) {
+                            Terminal t = (Terminal) pi;
+                            if (t.value().trim().equals(""))
+                                return pi;
+                            Set<String> follow = new HashSet<>();
+                            terminals.prefixMap(t.value()).keySet().stream().filter(biggerString -> !t.value().equals(biggerString))
+                                    .forEach(biggerString -> {
+                                        String ending = biggerString.substring(t.value().length());
+                                        follow.add(ending);
+                                    });
+                            // add follow restrictions for the characters that might produce ambiguities
+                            if (!follow.isEmpty()) {
+                                return Terminal.apply(t.value(), follow.stream().collect(toList()));
+                            }
+                        }
+                        return pi;
+                    }, p.items());
+                    if (p.klabel().isDefined())
+                        p = Production(p.klabel().get().name(), p.sort(), Seq(items), p.att());
+                    else
+                        p = Production(p.sort(), Seq(items), p.att());
+                    return p;
+                }
+                return s;
+            }).collect(Collectors.toSet());
+        }
+        return disambProds;
+    }
+
+    private Set<Sentence> createExtension(Module mod) {
+        Set<Sentence> prods = new HashSet<>();
+        Set<Sentence> extensionProds = new HashSet<>();
+        Set<Sentence> disambProds;
+
+        if (baseK.getModule(AUTO_CASTS).isDefined() && mod.importedModules().contains(baseK.getModule(AUTO_CASTS).get())) { // create the diamond
+            Set<Sentence> temp;
+            for (Sort srt : iterable(mod.definedSorts())) {
+                if (!isParserSort(srt)) {
+                    // K ::= K "::Sort" | K ":Sort" | K "<:Sort" | K ":>Sort"
+                    prods.addAll(makeCasts(Sorts.KBott(), Sorts.K(), srt));
+                }
+            }
+            prods.addAll(makeCasts(Sorts.KLabel(), Sorts.KLabel(), Sorts.KLabel()));
+            prods.addAll(makeCasts(Sorts.KList(), Sorts.KList(), Sorts.KList()));
+            prods.addAll(makeCasts(Sorts.KBott(), Sorts.K(), Sorts.KItem()));
+            prods.addAll(makeCasts(Sorts.KBott(), Sorts.K(), Sorts.K()));
+        }
+        if (baseK.getModule(K_TOP_SORT).isDefined() && mod.importedModules().contains(baseK.getModule(K_TOP_SORT).get())) { // create the diamond
+            for (Sort srt : iterable(mod.definedSorts())) {
+                if (!isParserSort(srt)) {
+                    // K ::= Sort
+                    prods.add(Production(Sorts.K(), Seq(NonTerminal(srt)), Att()));
+                }
+            }
+        }
+
+        if (baseK.getModule(K_BOTTOM_SORT).isDefined() && mod.importedModules().contains(baseK.getModule(K_BOTTOM_SORT).get())) { // create the diamond
+            for (Sort srt : iterable(mod.definedSorts())) {
+                if (!isParserSort(srt)) {
+                    // Sort ::= KBott
+                    prods.add(Production(srt, Seq(NonTerminal(Sorts.KBott())), Att()));
+                }
+            }
+        }
+        extensionProds.addAll(prods);
+        return extensionProds;
     }
 
     private boolean isExceptionSort(Sort srt) {
