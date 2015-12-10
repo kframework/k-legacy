@@ -139,7 +139,7 @@ public class RuleGrammarGenerator {
     public ParseInModule getCombinedGrammar(Module mod) {
         Set<Sentence> extensionProds = createExtension(mod);
         Module extensionM = new Module(mod.name() + "-EXTENSION", Set(mod), immutable(extensionProds), mod.att());
-        Set<Sentence> disambProds = createDisamb(extensionM, extensionProds);
+        Set<Sentence> disambProds = createDisamb(mod, extensionM, extensionProds);
         Module disambM = new Module(mod.name() + "-DISAMB", Set(), immutable(disambProds), mod.att());
         Set<Sentence> parseProds = createParser(mod, disambM, disambProds);
         Module parseM = new Module(mod.name() + "-PARSER", Set(), immutable(parseProds), mod.att());
@@ -195,11 +195,11 @@ public class RuleGrammarGenerator {
         return parseProds;
     }
 
-    private Set<Sentence> createDisamb(Module mod, Set<Sentence> extensionProds) {
+    private Set<Sentence> createDisamb(Module mod, Module extensionM, Set<Sentence> extensionProds) {
         Set<Sentence> disambProds;
 
         boolean addRuleCells;
-        if (baseK.getModule(RULE_CELLS).isDefined() && mod.importedModules().contains(baseK.getModule(RULE_CELLS).get())) { // prepare cell productions for rule parsing
+        if (baseK.getModule(RULE_CELLS).isDefined() && extensionM.importedModules().contains(baseK.getModule(RULE_CELLS).get())) { // prepare cell productions for rule parsing
             // make sure a configuration actually exists, otherwise ConfigurationInfoFromModule explodes.
             addRuleCells = mod.sentences().exists(func(p -> p instanceof Production && ((Production) p).att().contains("cell")));
         } else {
@@ -207,7 +207,7 @@ public class RuleGrammarGenerator {
         }
         if (addRuleCells) {
             ConfigurationInfo cfgInfo = new ConfigurationInfoFromModule(mod);
-            disambProds = Stream.concat(extensionProds.stream(), stream(mod.sentences())).flatMap(s -> {
+            disambProds = Stream.concat(extensionProds.stream(), stream(extensionM.sentences())).flatMap(s -> {
                 if (s instanceof Production && (s.att().contains("cell"))) {
                     Production p = (Production) s;
                     // assuming that productions tagged with 'cell' start and end with terminals, and only have non-terminals in the middle
@@ -233,9 +233,9 @@ public class RuleGrammarGenerator {
                 return Stream.of(s);
             }).collect(Collectors.toSet());
         } else
-            disambProds = Stream.concat(extensionProds.stream(), stream(mod.sentences())).collect(Collectors.toSet());
+            disambProds = Stream.concat(extensionProds.stream(), stream(extensionM.sentences())).collect(Collectors.toSet());
 
-        if (baseK.getModule(AUTO_FOLLOW).isDefined() && mod.importedModules().contains(baseK.getModule(AUTO_FOLLOW).get())) {
+        if (baseK.getModule(AUTO_FOLLOW).isDefined() && extensionM.importedModules().contains(baseK.getModule(AUTO_FOLLOW).get())) {
             Object PRESENT = new Object();
             PatriciaTrie<Object> terminals = new PatriciaTrie<>(); // collect all terminals so we can do automatic follow restriction for prefix terminals
             disambProds.stream().filter(sent -> sent instanceof Production).forEach(p -> stream(((Production) p).items()).forEach(i -> {
@@ -277,7 +277,7 @@ public class RuleGrammarGenerator {
             }).collect(Collectors.toSet());
         }
 
-        if (baseK.getModule(RULE_LISTS).isDefined() && mod.importedModules().contains(baseK.getModule(RULE_LISTS).get())) {
+        if (baseK.getModule(RULE_LISTS).isDefined() && extensionM.importedModules().contains(baseK.getModule(RULE_LISTS).get())) {
             java.util.Set<Sentence> res = new HashSet<>();
             for (UserList ul : UserList.getLists(disambProds)) {
                 org.kframework.definition.Production prod1;
