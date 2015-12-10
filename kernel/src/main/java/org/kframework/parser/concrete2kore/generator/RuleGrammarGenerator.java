@@ -137,9 +137,8 @@ public class RuleGrammarGenerator {
      * @return parser which applies disambiguation filters by default.
      */
     public ParseInModule getCombinedGrammar(Module mod) {
-        Set<Sentence> extensionProds = createExtension(mod);
-        Module extensionM = new Module(mod.name() + "-EXTENSION", Set(mod), immutable(extensionProds), mod.att());
-        Set<Sentence> disambProds = createDisamb(mod, extensionM, extensionProds);
+        Module extensionM = createExtension(mod);
+        Set<Sentence> disambProds = createDisamb(mod, extensionM);
         Module disambM = new Module(mod.name() + "-DISAMB", Set(), immutable(disambProds), mod.att());
         Set<Sentence> parseProds = createParser(mod, disambM, disambProds);
         Module parseM = new Module(mod.name() + "-PARSER", Set(), immutable(parseProds), mod.att());
@@ -195,7 +194,8 @@ public class RuleGrammarGenerator {
         return parseProds;
     }
 
-    private Set<Sentence> createDisamb(Module mod, Module extensionM, Set<Sentence> extensionProds) {
+    private Set<Sentence> createDisamb(Module mod, Module extensionM) {
+        Set<Production> extensionProds = mutable(extensionM.productions());
         Set<Sentence> disambProds;
 
         boolean addRuleCells;
@@ -291,7 +291,7 @@ public class RuleGrammarGenerator {
         return disambProds;
     }
 
-    private Set<Sentence> createExtension(Module mod) {
+    private Module createExtension(Module mod) {
         Set<Sentence> prods = new HashSet<>();
         Set<Sentence> extensionProds = new HashSet<>();
         Set<Sentence> disambProds;
@@ -327,7 +327,7 @@ public class RuleGrammarGenerator {
             }
         }
         extensionProds.addAll(prods);
-        return extensionProds;
+        return new Module(mod.name() + "-EXTENSION", Set(mod), immutable(extensionProds), mod.att());
     }
 
     private boolean isExceptionSort(Sort srt) {
