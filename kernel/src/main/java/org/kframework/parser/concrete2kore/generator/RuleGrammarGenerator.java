@@ -138,22 +138,22 @@ public class RuleGrammarGenerator {
      */
     public ParseInModule getCombinedGrammar(Module mod) {
         Set<Sentence> extensionProds = createExtension(mod);
-        Set<Sentence> disambProds = createDisamb(mod, extensionProds);
-        Set<Sentence> parseProds = createParser(mod, disambProds);
-
         Module extensionM = new Module(mod.name() + "-EXTENSION", Set(mod), immutable(extensionProds), mod.att());
+        Set<Sentence> disambProds = createDisamb(extensionM, extensionProds);
         Module disambM = new Module(mod.name() + "-DISAMB", Set(), immutable(disambProds), mod.att());
+        Set<Sentence> parseProds = createParser(mod, disambM, disambProds);
         Module parseM = new Module(mod.name() + "-PARSER", Set(), immutable(parseProds), mod.att());
+
         return new ParseInModule(mod, extensionM, disambM, parseM, this.strict);
     }
 
-    private Set<Sentence> createParser(Module mod, Set<Sentence> disambProds) {
+    private Set<Sentence> createParser(Module mod, Module disambM, Set<Sentence> disambProds) {
         Set<Sentence> parseProds = disambProds.stream().collect(Collectors.toSet());
         if (baseK.getModule(PROGRAM_LISTS).isDefined() && mod.importedModules().contains(baseK.getModule(PROGRAM_LISTS).get())) {
             Set<Sentence> prods3 = new HashSet<>();
             // if no start symbol has been defined in the configuration, then use K
-            for (Sort srt : iterable(mod.definedSorts())) {
-                if (!kSorts.contains(srt) && !mod.listSorts().contains(srt)) {
+            for (Sort srt : iterable(disambM.definedSorts())) {
+                if (!kSorts.contains(srt) && !disambM.listSorts().contains(srt)) {
                     // K ::= Sort
                     prods3.add(Production(Sorts.K(), Seq(NonTerminal(srt)), Att()));
                 }

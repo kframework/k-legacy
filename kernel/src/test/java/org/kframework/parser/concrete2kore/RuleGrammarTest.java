@@ -87,7 +87,7 @@ public class RuleGrammarTest {
     }
 
     private void printout(Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>> rule, int warnings, boolean expectedError) {
-        if (false) { // true to print detailed results
+        if (true) { // true to print detailed results
             KExceptionManager kem = new KExceptionManager(new GlobalOptions(true, Warnings.ALL, true));
             if (rule._1().isLeft()) {
                 for (ParseFailedException x : rule._1().left().get()) {
