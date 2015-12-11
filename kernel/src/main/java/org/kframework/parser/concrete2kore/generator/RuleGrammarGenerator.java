@@ -139,13 +139,12 @@ public class RuleGrammarGenerator {
     public ParseInModule getCombinedGrammar(Module mod) {
         Module extensionM = createExtension(mod);
         Module disambM = createDisamb(mod, extensionM);
-        Set<Sentence> parseProds = createParser(mod, disambM);
-        Module parseM = new Module(mod.name() + "-PARSER", Set(), immutable(parseProds), mod.att());
+        Module parseM =  createParser(mod, disambM);
 
         return new ParseInModule(mod, extensionM, disambM, parseM, this.strict);
     }
 
-    private Set<Sentence> createParser(Module mod, Module disambM) {
+    private Module createParser(Module mod, Module disambM) {
         Set<Sentence> parseProds = mutable(disambM.sentences());
         if (baseK.getModule(PROGRAM_LISTS).isDefined() && mod.importedModules().contains(baseK.getModule(PROGRAM_LISTS).get())) {
             Set<Sentence> prods3 = new HashSet<>();
@@ -190,7 +189,7 @@ public class RuleGrammarGenerator {
             res.addAll(prods3.stream().filter(p -> !(p instanceof Production && p.att().contains(KOREtoKIL.USER_LIST_ATTRIBUTE))).collect(Collectors.toSet()));
             parseProds = res;
         }
-        return parseProds;
+        return new Module(mod.name() + "-PARSER", Set(), immutable(parseProds), mod.att());
     }
 
     private Module createDisamb(Module mod, Module extensionM) {
