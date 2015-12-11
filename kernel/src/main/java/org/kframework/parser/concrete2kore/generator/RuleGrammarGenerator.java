@@ -138,16 +138,15 @@ public class RuleGrammarGenerator {
      */
     public ParseInModule getCombinedGrammar(Module mod) {
         Module extensionM = createExtension(mod);
-        Set<Sentence> disambProds = createDisamb(mod, extensionM);
-        Module disambM = new Module(mod.name() + "-DISAMB", Set(), immutable(disambProds), mod.att());
-        Set<Sentence> parseProds = createParser(mod, disambM, disambProds);
+        Module disambM = createDisamb(mod, extensionM);
+        Set<Sentence> parseProds = createParser(mod, disambM);
         Module parseM = new Module(mod.name() + "-PARSER", Set(), immutable(parseProds), mod.att());
 
         return new ParseInModule(mod, extensionM, disambM, parseM, this.strict);
     }
 
-    private Set<Sentence> createParser(Module mod, Module disambM, Set<Sentence> disambProds) {
-        Set<Sentence> parseProds = disambProds.stream().collect(Collectors.toSet());
+    private Set<Sentence> createParser(Module mod, Module disambM) {
+        Set<Sentence> parseProds = mutable(disambM.sentences());
         if (baseK.getModule(PROGRAM_LISTS).isDefined() && mod.importedModules().contains(baseK.getModule(PROGRAM_LISTS).get())) {
             Set<Sentence> prods3 = new HashSet<>();
             // if no start symbol has been defined in the configuration, then use K
@@ -194,7 +193,7 @@ public class RuleGrammarGenerator {
         return parseProds;
     }
 
-    private Set<Sentence> createDisamb(Module mod, Module extensionM) {
+    private Module createDisamb(Module mod, Module extensionM) {
         Set<Production> extensionProds = mutable(extensionM.productions());
         Set<Sentence> disambProds;
 
@@ -287,8 +286,7 @@ public class RuleGrammarGenerator {
             }
             disambProds.addAll(res);
         }
-
-        return disambProds;
+        return new Module(mod.name() + "-DISAMB", Set(), immutable(disambProds), mod.att());
     }
 
     private Module createExtension(Module mod) {
