@@ -193,7 +193,6 @@ public class RuleGrammarGenerator {
     }
 
     private Module createDisamb(Module mod, Module extensionM) {
-        Set<Production> extensionProds = mutable(extensionM.productions());
         Set<Sentence> disambProds;
 
         boolean addRuleCells;
@@ -205,7 +204,7 @@ public class RuleGrammarGenerator {
         }
         if (addRuleCells) {
             ConfigurationInfo cfgInfo = new ConfigurationInfoFromModule(mod);
-            disambProds = Stream.concat(extensionProds.stream(), stream(extensionM.sentences())).flatMap(s -> {
+            disambProds = stream(extensionM.sentences()).flatMap(s -> {
                 if (s instanceof Production && (s.att().contains("cell"))) {
                     Production p = (Production) s;
                     // assuming that productions tagged with 'cell' start and end with terminals, and only have non-terminals in the middle
@@ -231,7 +230,7 @@ public class RuleGrammarGenerator {
                 return Stream.of(s);
             }).collect(Collectors.toSet());
         } else
-            disambProds = Stream.concat(extensionProds.stream(), stream(extensionM.sentences())).collect(Collectors.toSet());
+            disambProds = mutable(extensionM.sentences());
 
         if (baseK.getModule(AUTO_FOLLOW).isDefined() && extensionM.importedModules().contains(baseK.getModule(AUTO_FOLLOW).get())) {
             Object PRESENT = new Object();
