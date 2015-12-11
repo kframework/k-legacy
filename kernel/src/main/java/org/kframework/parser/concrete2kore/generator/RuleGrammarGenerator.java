@@ -285,7 +285,7 @@ public class RuleGrammarGenerator {
             }
             disambProds.addAll(res);
         }
-        return new Module(mod.name() + "-DISAMB", Set(), immutable(disambProds), mod.att());
+        return new Module(mod.name() + "-DISAMB", Set(), immutable(disambProds), Att().add("generated"));
     }
 
     private Module createExtension(Module mod) {
