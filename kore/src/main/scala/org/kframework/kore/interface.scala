@@ -1,6 +1,7 @@
 package org.kframework.kore
 
 import org.kframework.attributes._
+import org.kframework.definition.ModuleQualified
 
 /**
  * This file contains all inner KORE interfaces.
@@ -40,7 +41,7 @@ trait KToken extends KItem {
   def computeHashCode = sort.hashCode() * 13 + s.hashCode
 }
 
-trait Sort {
+trait Sort extends ModuleQualified {
   def name: String
   override def equals(other: Any) = other match {
     case other: Sort => name == other.name

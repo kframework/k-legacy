@@ -1,25 +1,27 @@
 package org.kframework.definition
 
+import collection._
+
 object ModuleName {
   val STAR = ModuleName("*")
 }
 
-case class ModuleName(s: String)
-
-trait HasLocalName {
-  val localName: String
+case class ModuleName(s: String) {
+  override def toString = s
 }
 
 trait ModuleQualified {
+  val localName: String
   val moduleName: ModuleName
+  def name: String = localName + "@" + moduleName
 }
 
-trait LookupSymbol extends HasLocalName with ModuleQualified
+trait LookupSymbol extends ModuleQualified
 
-trait ResolvedSymbol extends HasLocalName with ModuleQualified
+trait ResolvedSymbol extends ModuleQualified
 
-case class SymbolResolver[L <: LookupSymbol, S <: ResolvedSymbol](val moduleName: String, imported: Set[SymbolResolver[L, S]], definedLookups: Set[L])
-                                                                 (implicit makeS: (String, ModuleName) => S, makeL: (String, ModuleName) => L)
+case class SymbolResolver[L <: ModuleQualified, S <: ResolvedSymbol](val moduleName: String, imported: Set[SymbolResolver[L, S]], definedLookups: Set[L])
+                                                                    (implicit makeL: (String, ModuleName) => L, makeS: (String, ModuleName) => S)
   extends (L => Option[S]) {
 
   val thisNamespace = ModuleName(moduleName)

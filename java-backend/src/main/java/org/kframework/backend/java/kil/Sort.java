@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.collections4.trie.PatriciaTrie;
 
 import com.google.common.collect.ImmutableSet;
+import org.kframework.definition.ModuleName;
 import org.kframework.utils.errorsystem.KEMException;
 
 /**
@@ -137,5 +138,15 @@ public final class Sort implements MaximalSharing, Serializable, org.kframework.
         }
         // TODO: fix bug: ordinals from deserialized objects may overlap with those of newly created objects
         return cache.computeIfAbsent(name, x -> this);
+    }
+
+    @Override
+    public ModuleName moduleName() {
+        throw new AssertionError("Unimplemented");
+    }
+
+    @Override
+    public String localName() {
+        throw new AssertionError("Unimplemented");
     }
 }

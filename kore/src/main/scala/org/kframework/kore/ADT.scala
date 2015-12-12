@@ -63,12 +63,12 @@ object ADT {
     def apply(ks: K*) = KApply(this, KList(ks.toList))
   }
 
-  case class SortLookup(localName: String) extends kore.Sort with LookupSymbol {
+  object SortLookup {
+    def apply(s: String): SortLookup = SortLookup(s, ModuleName.STAR)
+  }
+
+  case class SortLookup(localName: String, moduleName: ModuleName) extends kore.Sort with LookupSymbol {
     override def toString = name
-
-    val moduleName = ModuleName.STAR
-
-    val name = localName + "@" + moduleName
 
     override def equals(other: Any) = other match {
       case s: Sort => throw new AssertionError("Trying to compare a lookup sort " + this + " with qualified sort " + s)
@@ -76,13 +76,7 @@ object ADT {
     }
   }
 
-  case class Sort(module: Module, localName: String) extends kore.Sort with ResolvedSymbol {
-    override def name = localName + "@" + module.name
-
-    val moduleName = ModuleName(module.name)
-
-    assert(name.count(_ == '@') == 1)
-
+  case class Sort(localName: String, moduleName: ModuleName) extends kore.Sort with ResolvedSymbol {
     override def toString = name
 
     override def equals(other: Any) = other match {

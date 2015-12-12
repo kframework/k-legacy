@@ -66,7 +66,13 @@ class Module(val name: String,
   val unresolvedLocalSyntaxSentences: Set[SyntaxSentence] = unresolvedLocalSentences.collect({ case s: SyntaxSentence => s })
   val unresolvedLocalSemanticSentences: Set[SemanticSentence] = unresolvedLocalSentences.collect({ case s: SemanticSentence => s })
 
-//  val sortResolver = new SymbolResolver(name, imports map {_.sortResolver}, )
+  val lookingToDefineSorts: Set[Sort] = unresolvedLocalSyntaxSentences collect {
+    case Production(s, _, _) => s
+    case SyntaxSort(s, _) => s
+  }
+
+  val sortResolver: SymbolResolver[Sort, ADT.Sort] =
+    new SymbolResolver(name, imports map {_.sortResolver}, lookingToDefineSorts)(ADT.SortLookup.apply, ADT.Sort.apply)
 
   private val importedSorts = imports flatMap {
     //noinspection ForwardReference
@@ -85,40 +91,7 @@ class Module(val name: String,
     override def getMessage() = "While constructing module " + name + ": " + m
   }
 
-  def tryToDefineSortForProduction(sentence: SyntaxSentence): Option[ADT.Sort] = try
-    sentence match {
-      case DeclaresSort(s) => (s match {
-        case s: ADT.Sort => (s.localName, s.module.name)
-        case s: ADT.SortLookup => splitAtModule(s.name)
-      }) match {
-        case (localName, moduleName) =>
-          if (moduleName == this.name) {
-            imports flatMap {
-              _.lookupSort(localName)
-            } match {
-              case sortSet if sortSet.isEmpty => Some(ADT.Sort(this, localName))
-              case sortSet if sortSet.size == 1 => None
-              case sortSet => throw OuterException(makeTooManySortsErrorMessage(localName + "@" + moduleName, sortSet))
-            }
-          } else {
-            val fromImports = imports flatMap {
-              _.lookupSort(localName, moduleName)
-            }
-            fromImports match {
-              case sortSet if sortSet.isEmpty =>
-                Some(ADT.Sort(this, localName))
-              //                throw OuterException("Trying to override undefined sort: " + localName + "@" + moduleName)
-              case sortSet if sortSet.size == 1 => None
-              case sortSet => throw KEMException.compilerError(makeTooManySortsErrorMessage(localName + "@" + moduleName, sortSet))
-            }
-          }
-      }
-      case _ => None
-    } catch {
-    case m: OuterException => throw KEMException.compilerError(m.getMessage(), sentence)
-  }
-
-  val localSorts: Set[ADT.Sort] = unresolvedLocalSyntaxSentences flatMap tryToDefineSortForProduction
+  val localSorts: Set[ADT.Sort] = ??? /// unresolvedLocalSyntaxSentences flatMap tryToDefineSortForProduction
 
   def resolve(sort: Sort): Sort = Sort(sort.name)
 
@@ -291,7 +264,7 @@ class Module(val name: String,
   val definedSorts: Set[Sort] = (productions map {_.sort}) ++ (sortDeclarations map {_.sort})
 
   val withSameShortName = definedSorts.groupBy(_.asInstanceOf[ADT.Sort].localName).filter(_._2.size > 1)
-  if(withSameShortName.size > 0) {
+  if (withSameShortName.size > 0) {
     println(name)
     println(withSameShortName.mkString("\n"))
   }
