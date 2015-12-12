@@ -56,16 +56,16 @@ public class KoreUtils {
         return new File(KoreUtils.class.getResource(baseName).toURI());
     }
 
-    public KoreUtils(String fileName, String mainModuleName, String mainProgramsModuleName) throws URISyntaxException {
-        kem = new KExceptionManager(new GlobalOptions());
+    public KoreUtils(String fileName, String mainModuleName, String mainProgramsModuleName, KExceptionManager kem) throws URISyntaxException {
+        this.kem = kem;
         File definitionFile = testResource(fileName);
         KompileOptions kompileOptions = new KompileOptions();
         GlobalOptions globalOptions = new GlobalOptions();
         globalOptions.debug = true;
 
-        Kompile kompile = new Kompile(kompileOptions, FileUtil.testFileUtil(), kem, false);
+        Kompile kompile = new Kompile(kompileOptions, FileUtil.testFileUtil(), this.kem, false);
         compiledDef = kompile.run(definitionFile, mainModuleName, mainProgramsModuleName, Sorts.K(),
-                new JavaBackend(kem, FileUtil.testFileUtil(), globalOptions, kompileOptions).steps(kompile));
+                new JavaBackend(this.kem, FileUtil.testFileUtil(), globalOptions, kompileOptions).steps(kompile));
         requestScope = new SimpleScope();
         injector = Guice.createInjector(new JavaSymbolicCommonModule() {
             @Override
@@ -82,7 +82,7 @@ public class KoreUtils {
                 bindScope(DefinitionScoped.class, requestScope);
             }
         });
-        programParser = compiledDef.getProgramParser(kem);
+        programParser = compiledDef.getProgramParser(this.kem);
     }
 
     public K getParsed(String program, Source source) throws IOException, URISyntaxException {

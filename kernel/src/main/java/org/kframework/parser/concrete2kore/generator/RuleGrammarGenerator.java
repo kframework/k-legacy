@@ -137,53 +137,74 @@ public class RuleGrammarGenerator {
      * @return parser which applies disambiguation filters by default.
      */
     public ParseInModule getCombinedGrammar(Module mod) {
-        Set<Sentence> prods = new HashSet<>();
-        Set<Sentence> extensionProds = new HashSet<>();
+        Module extensionM = createExtension(mod);
+        Module disambM = createDisamb(mod, extensionM);
+        Module parseM =  createParser(mod, disambM);
+
+        return new ParseInModule(mod, extensionM, disambM, parseM, this.strict);
+    }
+
+    private Module createParser(Module mod, Module disambM) {
+        Set<Sentence> parseProds = mutable(disambM.sentences());
+        if (baseK.getModule(PROGRAM_LISTS).isDefined() && mod.importedModules().contains(baseK.getModule(PROGRAM_LISTS).get())) {
+            Set<Sentence> prods3 = new HashSet<>();
+            // if no start symbol has been defined in the configuration, then use K
+            for (Sort srt : iterable(disambM.definedSorts())) {
+                if (!kSorts.contains(srt) && !disambM.listSorts().contains(srt)) {
+                    // K ::= Sort
+                    prods3.add(Production(Sorts.K(), Seq(NonTerminal(srt)), Att()));
+                }
+            }
+            // for each triple, generate a new pattern which works better for parsing lists in programs.
+            prods3.addAll(parseProds.stream().collect(Collectors.toSet()));
+            Set<Sentence> res = new HashSet<>();
+            for (UserList ul : UserList.getLists(prods3)) {
+                Production prod1, prod2, prod3, prod4, prod5;
+                // Es#Terminator ::= "" [klabel('.Es)]
+                prod1 = Production(ul.terminatorKLabel, Sort(ul.sort + "#Terminator"), Seq(Terminal("")),
+                        ul.attrs.add("klabel", ul.terminatorKLabel).add(Constants.ORIGINAL_PRD, ul.pTerminator));
+                // Ne#Es ::= E "," Ne#Es [klabel('_,_)]
+                prod2 = Production(ul.klabel, Sort("Ne#" + ul.sort),
+                        Seq(NonTerminal(Sort(ul.childSort)), Terminal(ul.separator), NonTerminal(Sort("Ne#" + ul.sort))),
+                        ul.attrs.add("klabel", ul.klabel).add(Constants.ORIGINAL_PRD, ul.pList));
+                // Ne#Es ::= E Es#Terminator [klabel('_,_)]
+                prod3 = Production(ul.klabel, Sort("Ne#" + ul.sort),
+                        Seq(NonTerminal(Sort(ul.childSort)), NonTerminal(Sort(ul.sort + "#Terminator"))),
+                        ul.attrs.add("klabel", ul.klabel).add(Constants.ORIGINAL_PRD, ul.pList));
+                // Es ::= Ne#Es
+                prod4 = Production(Sort(ul.sort), Seq(NonTerminal(Sort("Ne#" + ul.sort))));
+                // Es ::= Es#Terminator // if the list is *
+                prod5 = Production(Sort(ul.sort), Seq(NonTerminal(Sort(ul.sort + "#Terminator"))));
+
+                res.add(prod1);
+                res.add(prod2);
+                res.add(prod3);
+                res.add(prod4);
+                res.add(SyntaxSort(Sort(ul.sort + "#Terminator")));
+                res.add(SyntaxSort(Sort("Ne#" + ul.sort)));
+                if (!ul.nonEmpty) {
+                    res.add(prod5);
+                }
+            }
+            res.addAll(prods3.stream().filter(p -> !(p instanceof Production && p.att().contains(KOREtoKIL.USER_LIST_ATTRIBUTE))).collect(Collectors.toSet()));
+            parseProds = res;
+        }
+        return new Module(mod.name() + "-PARSER", Set(), immutable(parseProds), mod.att());
+    }
+
+    private Module createDisamb(Module mod, Module extensionM) {
         Set<Sentence> disambProds;
 
-        if (baseK.getModule(AUTO_CASTS).isDefined() && mod.importedModules().contains(baseK.getModule(AUTO_CASTS).get())) { // create the diamond
-            Set<Sentence> temp;
-            for (Sort srt : iterable(mod.definedSorts())) {
-                if (!isParserSort(srt)) {
-                    // K ::= K "::Sort" | K ":Sort" | K "<:Sort" | K ":>Sort"
-                    prods.addAll(makeCasts(Sorts.KBott(), Sorts.K(), srt));
-                }
-            }
-            prods.addAll(makeCasts(Sorts.KLabel(), Sorts.KLabel(), Sorts.KLabel()));
-            prods.addAll(makeCasts(Sorts.KList(), Sorts.KList(), Sorts.KList()));
-            prods.addAll(makeCasts(Sorts.KBott(), Sorts.K(), Sorts.KItem()));
-            prods.addAll(makeCasts(Sorts.KBott(), Sorts.K(), Sorts.K()));
-        }
-        if (baseK.getModule(K_TOP_SORT).isDefined() && mod.importedModules().contains(baseK.getModule(K_TOP_SORT).get())) { // create the diamond
-            for (Sort srt : iterable(mod.definedSorts())) {
-                if (!isParserSort(srt)) {
-                    // K ::= Sort
-                    prods.add(Production(Sorts.K(), Seq(NonTerminal(srt)), Att()));
-                }
-            }
-        }
-
-        if (baseK.getModule(K_BOTTOM_SORT).isDefined() && mod.importedModules().contains(baseK.getModule(K_BOTTOM_SORT).get())) { // create the diamond
-            for (Sort srt : iterable(mod.definedSorts())) {
-                if (!isParserSort(srt)) {
-                    // Sort ::= KBott
-                    prods.add(Production(srt, Seq(NonTerminal(Sorts.KBott())), Att()));
-                }
-            }
-        }
-        extensionProds.addAll(prods);
-
         boolean addRuleCells;
-        if (baseK.getModule(RULE_CELLS).isDefined() && mod.importedModules().contains(baseK.getModule(RULE_CELLS).get())) { // prepare cell productions for rule parsing
+        if (baseK.getModule(RULE_CELLS).isDefined() && extensionM.importedModules().contains(baseK.getModule(RULE_CELLS).get())) { // prepare cell productions for rule parsing
             // make sure a configuration actually exists, otherwise ConfigurationInfoFromModule explodes.
             addRuleCells = mod.sentences().exists(func(p -> p instanceof Production && ((Production) p).att().contains("cell")));
         } else {
             addRuleCells = false;
         }
-        Set<Sentence> parseProds;
         if (addRuleCells) {
             ConfigurationInfo cfgInfo = new ConfigurationInfoFromModule(mod);
-            parseProds = Stream.concat(prods.stream(), stream(mod.sentences())).flatMap(s -> {
+            disambProds = stream(extensionM.sentences()).flatMap(s -> {
                 if (s instanceof Production && (s.att().contains("cell"))) {
                     Production p = (Production) s;
                     // assuming that productions tagged with 'cell' start and end with terminals, and only have non-terminals in the middle
@@ -209,15 +230,15 @@ public class RuleGrammarGenerator {
                 return Stream.of(s);
             }).collect(Collectors.toSet());
         } else
-            parseProds = Stream.concat(prods.stream(), stream(mod.sentences())).collect(Collectors.toSet());
+            disambProds = mutable(extensionM.sentences());
 
-        if (baseK.getModule(AUTO_FOLLOW).isDefined() && mod.importedModules().contains(baseK.getModule(AUTO_FOLLOW).get())) {
+        if (baseK.getModule(AUTO_FOLLOW).isDefined() && extensionM.importedModules().contains(baseK.getModule(AUTO_FOLLOW).get())) {
             Object PRESENT = new Object();
             PatriciaTrie<Object> terminals = new PatriciaTrie<>(); // collect all terminals so we can do automatic follow restriction for prefix terminals
-            parseProds.stream().filter(sent -> sent instanceof Production).forEach(p -> stream(((Production) p).items()).forEach(i -> {
+            disambProds.stream().filter(sent -> sent instanceof Production).forEach(p -> stream(((Production) p).items()).forEach(i -> {
                 if (i instanceof Terminal) terminals.put(((Terminal) i).value(), PRESENT);
             }));
-            parseProds = parseProds.stream().map(s -> {
+            disambProds = disambProds.stream().map(s -> {
                 if (s instanceof Production) {
                     Production p = (Production) s;
                     if (p.sort().name().startsWith("#"))
@@ -253,67 +274,56 @@ public class RuleGrammarGenerator {
             }).collect(Collectors.toSet());
         }
 
-        disambProds = parseProds.stream().collect(Collectors.toSet());
-        if (baseK.getModule(PROGRAM_LISTS).isDefined() && mod.importedModules().contains(baseK.getModule(PROGRAM_LISTS).get())) {
-            Set<Sentence> prods3 = new HashSet<>();
-            // if no start symbol has been defined in the configuration, then use K
-            for (Sort srt : iterable(mod.definedSorts())) {
-                if (!kSorts.contains(srt) && !mod.listSorts().contains(srt)) {
-                    // K ::= Sort
-                    prods3.add(Production(Sorts.K(), Seq(NonTerminal(srt)), Att()));
-                }
-            }
-            // for each triple, generate a new pattern which works better for parsing lists in programs.
-            prods3.addAll(parseProds.stream().collect(Collectors.toSet()));
+        if (baseK.getModule(RULE_LISTS).isDefined() && extensionM.importedModules().contains(baseK.getModule(RULE_LISTS).get())) {
             java.util.Set<Sentence> res = new HashSet<>();
-            for (UserList ul : UserList.getLists(prods3)) {
-                org.kframework.definition.Production prod1, prod2, prod3, prod4, prod5;
-                // Es#Terminator ::= "" [klabel('.Es)]
-                prod1 = Production(ul.terminatorKLabel, Sort(ul.sort + "#Terminator"), Seq(Terminal("")),
-                        ul.attrs.add("klabel", ul.terminatorKLabel).add(Constants.ORIGINAL_PRD, ul.pTerminator));
-                // Ne#Es ::= E "," Ne#Es [klabel('_,_)]
-                prod2 = Production(ul.klabel, Sort("Ne#" + ul.sort),
-                        Seq(NonTerminal(Sort(ul.childSort)), Terminal(ul.separator), NonTerminal(Sort("Ne#" + ul.sort))),
-                        ul.attrs.add("klabel", ul.klabel).add(Constants.ORIGINAL_PRD, ul.pList));
-                // Ne#Es ::= E Es#Terminator [klabel('_,_)]
-                prod3 = Production(ul.klabel, Sort("Ne#" + ul.sort),
-                        Seq(NonTerminal(Sort(ul.childSort)), NonTerminal(Sort(ul.sort + "#Terminator"))),
-                        ul.attrs.add("klabel", ul.klabel).add(Constants.ORIGINAL_PRD, ul.pList));
-                // Es ::= Ne#Es
-                prod4 = Production(Sort(ul.sort), Seq(NonTerminal(Sort("Ne#" + ul.sort))));
-                // Es ::= Es#Terminator // if the list is *
-                prod5 = Production(Sort(ul.sort), Seq(NonTerminal(Sort(ul.sort + "#Terminator"))));
-
-                res.add(prod1);
-                res.add(prod2);
-                res.add(prod3);
-                res.add(prod4);
-                res.add(SyntaxSort(Sort(ul.sort + "#Terminator")));
-                res.add(SyntaxSort(Sort("Ne#" + ul.sort)));
-                if (!ul.nonEmpty) {
-                    res.add(prod5);
-                }
-            }
-            res.addAll(prods3.stream().filter(p -> !(p instanceof Production && p.att().contains(KOREtoKIL.USER_LIST_ATTRIBUTE))).collect(Collectors.toSet()));
-            parseProds = res;
-        }
-
-        if (baseK.getModule(RULE_LISTS).isDefined() && mod.importedModules().contains(baseK.getModule(RULE_LISTS).get())) {
-            java.util.Set<Sentence> res = new HashSet<>();
-            for (UserList ul : UserList.getLists(parseProds)) {
+            for (UserList ul : UserList.getLists(disambProds)) {
                 org.kframework.definition.Production prod1;
                 // Es ::= E
                 prod1 = Production(Sort(ul.sort), Seq(NonTerminal(Sort(ul.childSort))));
                 res.add(prod1);
             }
-
-            parseProds.addAll(res);
             disambProds.addAll(res);
         }
-        Module extensionM = Module.apply(mod.name() + "-EXTENSION", Set(mod), immutable(extensionProds), mod.att());
-        Module disambM = Module.apply(mod.name() + "-DISAMB", Set(), immutable(disambProds), mod.att());
-        Module parseM = Module.apply(mod.name() + "-PARSER", Set(), immutable(parseProds), mod.att());
-        return new ParseInModule(mod, extensionM, disambM, parseM, this.strict);
+        return new Module(mod.name() + "-DISAMB", Set(), immutable(disambProds), Att().add("generated"));
+    }
+
+    private Module createExtension(Module mod) {
+        Set<Sentence> prods = new HashSet<>();
+        Set<Sentence> extensionProds = new HashSet<>();
+        Set<Sentence> disambProds;
+
+        if (baseK.getModule(AUTO_CASTS).isDefined() && mod.importedModules().contains(baseK.getModule(AUTO_CASTS).get())) { // create the diamond
+            Set<Sentence> temp;
+            for (Sort srt : iterable(mod.definedSorts())) {
+                if (!isParserSort(srt)) {
+                    // K ::= K "::Sort" | K ":Sort" | K "<:Sort" | K ":>Sort"
+                    prods.addAll(makeCasts(Sorts.KBott(), Sorts.K(), srt));
+                }
+            }
+            prods.addAll(makeCasts(Sorts.KLabel(), Sorts.KLabel(), Sorts.KLabel()));
+            prods.addAll(makeCasts(Sorts.KList(), Sorts.KList(), Sorts.KList()));
+            prods.addAll(makeCasts(Sorts.KBott(), Sorts.K(), Sorts.KItem()));
+            prods.addAll(makeCasts(Sorts.KBott(), Sorts.K(), Sorts.K()));
+        }
+        if (baseK.getModule(K_TOP_SORT).isDefined() && mod.importedModules().contains(baseK.getModule(K_TOP_SORT).get())) { // create the diamond
+            for (Sort srt : iterable(mod.definedSorts())) {
+                if (!isParserSort(srt)) {
+                    // K ::= Sort
+                    prods.add(Production(Sorts.K(), Seq(NonTerminal(srt)), Att()));
+                }
+            }
+        }
+
+        if (baseK.getModule(K_BOTTOM_SORT).isDefined() && mod.importedModules().contains(baseK.getModule(K_BOTTOM_SORT).get())) { // create the diamond
+            for (Sort srt : iterable(mod.definedSorts())) {
+                if (!isParserSort(srt)) {
+                    // Sort ::= KBott
+                    prods.add(Production(srt, Seq(NonTerminal(Sorts.KBott())), Att()));
+                }
+            }
+        }
+        extensionProds.addAll(prods);
+        return new Module(mod.name() + "-EXTENSION", Set(mod), immutable(extensionProds), mod.att());
     }
 
     private boolean isExceptionSort(Sort srt) {
