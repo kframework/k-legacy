@@ -66,6 +66,8 @@ class Module(val name: String,
   val unresolvedLocalSyntaxSentences: Set[SyntaxSentence] = unresolvedLocalSentences.collect({ case s: SyntaxSentence => s })
   val unresolvedLocalSemanticSentences: Set[SemanticSentence] = unresolvedLocalSentences.collect({ case s: SemanticSentence => s })
 
+//  val sortResolver = new SymbolResolver(name, imports map {_.sortResolver}, )
+
   private val importedSorts = imports flatMap {
     //noinspection ForwardReference
     _.sorts
@@ -99,11 +101,13 @@ class Module(val name: String,
               case sortSet => throw OuterException(makeTooManySortsErrorMessage(localName + "@" + moduleName, sortSet))
             }
           } else {
-            imports flatMap {
-              _.lookupSort(moduleName, localName)
-            } match {
+            val fromImports = imports flatMap {
+              _.lookupSort(localName, moduleName)
+            }
+            fromImports match {
               case sortSet if sortSet.isEmpty =>
-                throw OuterException("Trying to override undefined sort: " + localName + "@" + moduleName)
+                Some(ADT.Sort(this, localName))
+              //                throw OuterException("Trying to override undefined sort: " + localName + "@" + moduleName)
               case sortSet if sortSet.size == 1 => None
               case sortSet => throw KEMException.compilerError(makeTooManySortsErrorMessage(localName + "@" + moduleName, sortSet))
             }
@@ -116,21 +120,23 @@ class Module(val name: String,
 
   val localSorts: Set[ADT.Sort] = unresolvedLocalSyntaxSentences flatMap tryToDefineSortForProduction
 
+  def resolve(sort: Sort): Sort = Sort(sort.name)
+
   def lookupSort(name: String): Set[ADT.Sort] = splitAtModule(name) match {
     case (localName, moduleName) => lookupSort(localName, moduleName)
   }
 
   def lookupSort(localName: String, moduleName: String): Set[ADT.Sort] = {
-    if (moduleName == this.name) {
-      val localRes = localSorts.filter(_.localName == localName)
-      if (localRes.nonEmpty) {
-        localRes
-      } else {
-        imports flatMap {_.lookupSort(localName)}
-      }
+    //    if (moduleName == this.name) {
+    val localRes = localSorts.filter(_.localName == localName)
+    if (localRes.nonEmpty) {
+      localRes
     } else {
-      imports flatMap {_.lookupSort(moduleName, localName)}
+      imports flatMap {_.lookupSort(localName)}
     }
+    //    } else {
+    //      imports flatMap {_.lookupSort(moduleName, localName)}
+    //    }
   }
 
   def makeTooManySortsErrorMessage(name: String, sortSet: Set[ADT.Sort]): String = {
@@ -283,6 +289,13 @@ class Module(val name: String,
   }
 
   val definedSorts: Set[Sort] = (productions map {_.sort}) ++ (sortDeclarations map {_.sort})
+
+  val withSameShortName = definedSorts.groupBy(_.asInstanceOf[ADT.Sort].localName).filter(_._2.size > 1)
+  if(withSameShortName.size > 0) {
+    println(name)
+    println(withSameShortName.mkString("\n"))
+  }
+
   val usedCellSorts: Set[Sort] = productions.flatMap { p => p.items.collect { case NonTerminal(s) => s }
     .filter(s => s.name.endsWith("Cell") || s.name.endsWith("CellFragment"))
   }

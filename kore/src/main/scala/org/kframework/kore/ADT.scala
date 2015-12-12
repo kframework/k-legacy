@@ -3,8 +3,9 @@ package org.kframework.kore
 import org.kframework.builtin.KLabels
 import org.kframework.kore
 import org.kframework.attributes._
+import org.kframework.utils.errorsystem.KEMException
 import collection.JavaConverters._
-import org.kframework.definition.Module
+import org.kframework.definition.{LookupSymbol, ModuleName, ResolvedSymbol, Module}
 
 /**
   * Abstract Data Types: basic implementations for the inner KORE interfaces.
@@ -62,16 +63,32 @@ object ADT {
     def apply(ks: K*) = KApply(this, KList(ks.toList))
   }
 
-  case class SortLookup(name: String) extends kore.Sort {
+  case class SortLookup(localName: String) extends kore.Sort with LookupSymbol {
     override def toString = name
+
+    val moduleName = ModuleName.STAR
+
+    val name = localName + "@" + moduleName
+
+    override def equals(other: Any) = other match {
+      case s: Sort => throw new AssertionError("Trying to compare a lookup sort " + this + " with qualified sort " + s)
+      case _ => super.equals(other)
+    }
   }
 
-  case class Sort(module: Module, localName: String) extends kore.Sort {
+  case class Sort(module: Module, localName: String) extends kore.Sort with ResolvedSymbol {
     override def name = localName + "@" + module.name
+
+    val moduleName = ModuleName(module.name)
 
     assert(name.count(_ == '@') == 1)
 
     override def toString = name
+
+    override def equals(other: Any) = other match {
+      case s: SortLookup => throw new AssertionError("Trying to compare a qualified sort " + this + " with a sort lookup " + s)
+      case _ => super.equals(other)
+    }
   }
 
   case class KToken(s: String, sort: kore.Sort, att: Att = Att()) extends kore.KToken
