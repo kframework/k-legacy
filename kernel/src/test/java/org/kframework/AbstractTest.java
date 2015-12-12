@@ -1,3 +1,4 @@
+// Copyright (c) 2015 K Team. All Rights Reserved.
 package org.kframework;
 
 import org.junit.After;
@@ -5,9 +6,6 @@ import org.junit.Before;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
 
-/**
- * Created by cos on 12/12/15.
- */
 public class AbstractTest {
     protected KExceptionManager kem;
 
