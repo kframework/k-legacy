@@ -4,16 +4,16 @@ import org.junit.Test
 import org.junit.Assert._
 
 
-class SymbolTest {
+class ResolvedSymbolTest {
 
-  case class L(localName: String, namespace: Namespace) extends Lookup
+  case class L(localName: String, moduleName: ModuleName) extends LookupSymbol
 
-  case class S(localName: String, namespace: Namespace) extends Symbol
+  case class S(localName: String, moduleName: ModuleName) extends ResolvedSymbol
 
   implicit val makeS = S
   implicit val makeL = L
 
-  val ns = Namespace
+  val ns = ModuleName
 
   val INT = SymbolResolver[L, S]("INT", Set(), Set(L("Int", ns("INT"))))
 
