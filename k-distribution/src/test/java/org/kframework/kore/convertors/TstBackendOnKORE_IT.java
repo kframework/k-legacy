@@ -4,13 +4,16 @@ package org.kframework.kore.convertors;
 
 import org.junit.Test;
 import org.junit.rules.TestName;
+import org.kframework.AbstractTest;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Module;
 import org.kframework.kore.K;
+import org.kframework.main.GlobalOptions;
 import org.kframework.parser.ProductionReference;
 import org.kframework.unparser.AddBrackets;
 import org.kframework.unparser.KOREToTreeNodes;
 import org.kframework.utils.KoreUtils;
+import org.kframework.utils.errorsystem.KExceptionManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +22,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.*;
 
-public class TstBackendOnKORE_IT {
+public class TstBackendOnKORE_IT extends AbstractTest {
 
     @org.junit.Rule
     public TestName name = new TestName();
@@ -31,7 +34,7 @@ public class TstBackendOnKORE_IT {
     @Test
     public void kore_imp() throws IOException, URISyntaxException {
         String filename = "/convertor-tests/" + name.getMethodName() + ".k";
-        KoreUtils utils = new KoreUtils(filename, "IMP", "IMP-SYNTAX");
+        KoreUtils utils = new KoreUtils(filename, "IMP", "IMP-SYNTAX", kem);
 
         String pgm = "int s, n; n = 10; while(0<=n) { s = s + n; n = n + -1; }";
 
@@ -48,7 +51,7 @@ public class TstBackendOnKORE_IT {
     @Test
     public void kore_varlabel() throws IOException, URISyntaxException {
         String filename = "/convertor-tests/" + name.getMethodName() + ".k";
-        KoreUtils utils = new KoreUtils(filename, "VARLABEL", "VARLABEL-SYNTAX");
+        KoreUtils utils = new KoreUtils(filename, "VARLABEL", "VARLABEL-SYNTAX", kem);
 
         String pgm = "holder(1 +1)";
 
