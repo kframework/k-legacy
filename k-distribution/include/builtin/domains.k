@@ -88,6 +88,7 @@ endmodule
 module SET
   imports INT-SYNTAX
   imports BASIC-K
+  imports BOOL-SYNTAX
 
   syntax Set [hook(SET.Set)]
 
@@ -132,6 +133,7 @@ endmodule
 module LIST
   imports INT-SYNTAX
   imports BASIC-K
+  imports BOOL-SYNTAX
 
   syntax List [hook(LIST.List)]
 
@@ -477,14 +479,18 @@ module STRING
 
 endmodule
 
+module ID-JUST-SORT
+  syntax Id
+endmodule
+
 module ID
+  imports ID-JUST-SORT
   syntax Id ::= r"(?<![A-Za-z0-9\\_])[A-Za-z\\_][A-Za-z0-9\\_]*"     [notInRules, token, autoReject]
 endmodule
 
 module EMPTY-ID
+  imports ID-JUST-SORT
   imports STRING
-
-  syntax Id
 
   syntax String ::= "Id2String" "(" Id ")"    [function, hook(STRING.token2string), klabel(Id2String)]
   syntax Id ::= "String2Id" "(" String ")"    [function, klabel(String2Id)]
