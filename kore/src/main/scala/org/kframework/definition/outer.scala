@@ -74,7 +74,7 @@ class Module(val name: String,
   val sortResolver: SymbolResolver[Sort, ADT.Sort] =
     new SymbolResolver(name, imports map {_.sortResolver}, lookingToDefineSorts)(ADT.SortLookup.apply, ADT.Sort.apply)
 
-  def resolve(s: Sort): ADT.Sort = sortResolver(s).get
+  def resolve(s: Sort): ADT.Sort = sortResolver(s)
 
   private val importedSorts = imports flatMap {
     //noinspection ForwardReference
@@ -85,7 +85,7 @@ class Module(val name: String,
     override def getMessage() = "While constructing module " + name + ": " + m
   }
 
-  val localSorts: Set[ADT.Sort] = lookingToDefineSorts map sortResolver flatten
+  val localSorts: Set[ADT.Sort] = lookingToDefineSorts map sortResolver.get flatten
 
   def makeTooManySortsErrorMessage(name: String, sortSet: Set[ADT.Sort]): String = {
     "While defining module " + this.name + ": "
@@ -104,7 +104,7 @@ class Module(val name: String,
     case _ => throw KEMException.compilerError("Sort name contains multiple @ symbols: " + name)
   }
 
-  def SortOption(localName: String): Option[ADT.Sort] = sortResolver(ADT.SortLookup(localName, ModuleName.STAR))
+  def SortOption(localName: String): Option[ADT.Sort] = sortResolver.get(ADT.SortLookup(localName, ModuleName.STAR))
 
   def Sort(localName: String): ADT.Sort = SortOption(localName) match {
     case Some(s) => s
@@ -235,7 +235,8 @@ class Module(val name: String,
   val definedSorts: Set[Sort] = (productions map {_.sort}) ++ (sortDeclarations map {_.sort})
 
   val withSameShortName = definedSorts.groupBy(_.asInstanceOf[ADT.Sort].localName).filter(_._2.size > 1)
-  if (withSameShortName.size > 0) {
+
+  if (withSameShortName.nonEmpty) {
     println(name)
     println(withSameShortName.mkString("\n"))
   }

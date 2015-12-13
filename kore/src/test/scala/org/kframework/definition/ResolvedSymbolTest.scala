@@ -26,14 +26,14 @@ class ResolvedSymbolTest {
 
     IMP.defined === Set(S("Exp", ns("IMP")))
 
-    IMP(L("Exp", ns("IMP"))) === Some(S("Exp", ns("IMP")))
-    IMP(L("Int", ns("INT"))) === Some(S("Int", ns("INT")))
-    IMP(L("Int", ns("IMP"))) === Some(S("Int", ns("INT")))
-    IMP(L("Exp", ns("INT"))) === None
-    IMP(L("Foo", ns("IMP"))) === None
-    IMP(L("Foo", ns("INT"))) === None
-    IMP(L("Exp", ns("FOO"))) === None
-    IMP(L("Int", ns("FOO"))) === None
+    IMP.get(L("Exp", ns("IMP"))) === Some(S("Exp", ns("IMP")))
+    IMP.get(L("Int", ns("INT"))) === Some(S("Int", ns("INT")))
+    IMP.get(L("Int", ns("IMP"))) === Some(S("Int", ns("INT")))
+    IMP.get(L("Exp", ns("INT"))) === None
+    IMP.get(L("Foo", ns("IMP"))) === None
+    IMP.get(L("Foo", ns("INT"))) === None
+    IMP.get(L("Exp", ns("FOO"))) === None
+    IMP.get(L("Int", ns("FOO"))) === None
   }
 
   @Test def overrideExtends() {
@@ -41,11 +41,11 @@ class ResolvedSymbolTest {
 
     IMP.defined === Set()
 
-    IMP(L("Int", ns("INT"))) === Some(S("Int", ns("INT")))
-    IMP(L("Int", ns("IMP"))) === Some(S("Int", ns("INT")))
-    IMP(L("Foo", ns("IMP"))) === None
-    IMP(L("Foo", ns("INT"))) === None
-    IMP(L("Int", ns("FOO"))) === None
+    IMP.get(L("Int", ns("INT"))) === Some(S("Int", ns("INT")))
+    IMP.get(L("Int", ns("IMP"))) === Some(S("Int", ns("INT")))
+    IMP.get(L("Foo", ns("IMP"))) === None
+    IMP.get(L("Foo", ns("INT"))) === None
+    IMP.get(L("Int", ns("FOO"))) === None
   }
 
   @Test def definingInImportedModule() {
@@ -53,10 +53,10 @@ class ResolvedSymbolTest {
 
     IMP.defined === Set(S("Foo", ns("INT")))
 
-    IMP(L("Int", ns("INT"))) === Some(S("Int", ns("INT")))
-    IMP(L("Int", ns("IMP"))) === Some(S("Int", ns("INT")))
-    IMP(L("Foo", ns("INT"))) === Some(S("Foo", ns("INT")))
-    IMP(L("Foo", ns("IMP"))) === Some(S("Foo", ns("INT")))
+    IMP.get(L("Int", ns("INT"))) === Some(S("Int", ns("INT")))
+    IMP.get(L("Int", ns("IMP"))) === Some(S("Int", ns("INT")))
+    IMP.get(L("Foo", ns("INT"))) === Some(S("Foo", ns("INT")))
+    IMP.get(L("Foo", ns("IMP"))) === Some(S("Foo", ns("INT")))
   }
 
   @Test def definingJunk() {
@@ -64,10 +64,10 @@ class ResolvedSymbolTest {
 
     IMP.defined === Set(S("Foo", ns("FOO")))
 
-    IMP(L("Int", ns("INT"))) === Some(S("Int", ns("INT")))
-    IMP(L("Int", ns("IMP"))) === Some(S("Int", ns("INT")))
-    IMP(L("Foo", ns("FOO"))) === Some(S("Foo", ns("FOO")))
-    IMP(L("Foo", ns("IMP"))) === Some(S("Foo", ns("FOO")))
-    IMP(L("Foo", ns("INT"))) === None
+    IMP.get(L("Int", ns("INT"))) === Some(S("Int", ns("INT")))
+    IMP.get(L("Int", ns("IMP"))) === Some(S("Int", ns("INT")))
+    IMP.get(L("Foo", ns("FOO"))) === Some(S("Foo", ns("FOO")))
+    IMP.get(L("Foo", ns("IMP"))) === Some(S("Foo", ns("FOO")))
+    IMP.get(L("Foo", ns("INT"))) === None
   }
 }

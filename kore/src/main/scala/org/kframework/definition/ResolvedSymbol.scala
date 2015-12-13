@@ -23,7 +23,7 @@ trait ResolvedSymbol extends ModuleQualified
 
 case class SymbolResolver[L <: ModuleQualified, S <: ResolvedSymbol](val moduleName: String, imported: Set[SymbolResolver[L, S]], definedLookups: Set[L])
                                                                     (implicit makeL: (String, ModuleName) => L, makeS: (String, ModuleName) => S)
-  extends (L => Option[S]) {
+  extends (L => S) {
 
   val thisNamespace = ModuleName(moduleName)
 
@@ -45,7 +45,7 @@ case class SymbolResolver[L <: ModuleQualified, S <: ResolvedSymbol](val moduleN
   def lookupInImported(ll: L): Option[S] = {
     val l = makeL(ll.localName, starify(ll.moduleName))
 
-    val importedSymbols: Set[S] = imported flatMap { sr => sr(l) }
+    val importedSymbols: Set[S] = imported flatMap { sr => sr.get(l) }
 
     if (importedSymbols.size > 1) {
       throw new RuntimeException(makeTooManySymbolsErrorMessage(l, importedSymbols))
@@ -56,8 +56,12 @@ case class SymbolResolver[L <: ModuleQualified, S <: ResolvedSymbol](val moduleN
 
   val defined: Set[S] = definedLookups flatMap tryToDefine
 
-  def apply(l: L): Option[S] = defined
+  def get(l: L): Option[S] = defined
     .find(s => s.localName == l.localName && (s.moduleName == l.moduleName || starify(l.moduleName) == ModuleName.STAR))
     // TODO: remove "|| starify(l.moduleName) == ModuleName.STAR)" when frontend steps are cleaner
     .orElse(lookupInImported(l))
+
+  def apply(l: L): S = get(l).getOrElse({
+    throw new AssertionError("Could not find symbol " + l)
+  })
 }
