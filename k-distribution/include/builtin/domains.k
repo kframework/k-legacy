@@ -191,6 +191,8 @@ module LIST
 endmodule
 
 module BOOL-SYNTAX
+  imports SORT-K
+
   syntax Bool [hook(BOOL.Bool)]
   syntax Bool ::= "true"  [token]
   syntax Bool ::= "false" [token]

@@ -63,5 +63,5 @@ case class SymbolResolver[L <: ModuleQualified, S <: ResolvedSymbol](val moduleN
     .orElse(lookupInImported(l))
 
   def apply(l: L): S = get(l).getOrElse(
-    throw new AssertionError("Could not find symbol " + l))
+    throw new AssertionError("While defining module " + this.thisNamespace + ": Could not find symbol " + l))
 }

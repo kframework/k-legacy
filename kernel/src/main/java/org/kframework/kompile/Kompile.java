@@ -172,7 +172,6 @@ public class Kompile {
         DefinitionTransformer resolveAnonVars = DefinitionTransformer.fromSentenceTransformer(new ResolveAnonVar()::resolve, "resolving \"_\" vars");
         DefinitionTransformer resolveSemanticCasts =
                 DefinitionTransformer.fromSentenceTransformer(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve, "resolving semantic casts");
-        DefinitionTransformer generateSortPredicateSyntax = DefinitionTransformer.from(new GenerateSortPredicateSyntax()::gen, "adding sort predicate productions");
 
         return def -> func(this::resolveIOStreams)
                 .andThen(resolveStrict)
@@ -180,7 +179,7 @@ public class Kompile {
                 .andThen(resolveContexts)
                 .andThen(resolveHeatCoolAttribute)
                 .andThen(resolveSemanticCasts)
-                .andThen(generateSortPredicateSyntax)
+                .andThen(func(d -> new GenerateSortPredicateSyntax().apply(d)))
                 .andThen(func(this::resolveFreshConstants))
                 .andThen(func(AddImplicitComputationCell::transformDefinition))
                 .andThen(func(ConcretizeCells::transformDefinition))
