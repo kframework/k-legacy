@@ -58,19 +58,19 @@ public class KOREtoKIL implements Function<Definition, org.kframework.kil.Defini
         private org.kframework.kil.Syntax makeUserList(org.kframework.parser.concrete2kore.generator.UserList ul) {
 
             org.kframework.kil.UserList userList = new org.kframework.kil.UserList(
-                    org.kframework.kil.Sort.of(ul.childSort), ul.separator, ul.nonEmpty ? "+" : "*");
+                    org.kframework.kil.Sort.of(ul.childSort.name()), ul.separator, ul.nonEmpty ? "+" : "*");
 
             List<org.kframework.kil.ProductionItem> prodItems = new ArrayList<>(1);
             prodItems.add(userList);
 
             org.kframework.kil.Production prod = new org.kframework.kil.Production(
-                    new org.kframework.kil.NonTerminal(org.kframework.kil.Sort.of(ul.sort)), prodItems);
+                    new org.kframework.kil.NonTerminal(org.kframework.kil.Sort.of(ul.sort.name())), prodItems);
 
             kilProductionIdToProductionInstance.put(
                     ul.pList.att().<String>getOptional(KILtoInnerKORE.PRODUCTION_ID).get(), prod);
 
             org.kframework.kil.PriorityBlock pb = new org.kframework.kil.PriorityBlock("", prod);
-            return new org.kframework.kil.Syntax(new org.kframework.kil.NonTerminal(org.kframework.kil.Sort.of(ul.sort)), pb);
+            return new org.kframework.kil.Syntax(new org.kframework.kil.NonTerminal(org.kframework.kil.Sort.of(ul.sort.name())), pb);
         }
     }
 

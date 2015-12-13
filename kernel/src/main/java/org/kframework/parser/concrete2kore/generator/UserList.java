@@ -5,6 +5,7 @@ import org.kframework.definition.NonTerminal;
 import org.kframework.definition.Production;
 import org.kframework.definition.Sentence;
 import org.kframework.definition.Terminal;
+import org.kframework.kore.Sort;
 import org.kframework.kore.convertors.KOREtoKIL;
 
 import java.util.*;
@@ -14,8 +15,8 @@ import java.util.stream.Collectors;
  * Class to hold easy to access information about user defined lists.
  */
 public class UserList {
-    public String sort = "";
-    public String childSort = null;
+    public Sort sort = null;
+    public Sort childSort = null;
     public String separator = null;
     public String terminatorKLabel = null;
     public String klabel = null;
@@ -30,11 +31,11 @@ public class UserList {
     public static java.util.List<UserList> getLists(Set<Sentence> sentences) {
         Map<Boolean, List<Sentence>> separatedProds
                 = sentences.stream().collect(Collectors.groupingBy(p -> p instanceof Production && p.att().contains(KOREtoKIL.USER_LIST_ATTRIBUTE)));
-        Map<String, java.util.List<Sentence>> listsMap = separatedProds.getOrDefault(true, new LinkedList<>())
-                .stream().collect(Collectors.groupingBy(s -> ((Production) s).sort().name()));
+        Map<Sort, java.util.List<Sentence>> listsMap = separatedProds.getOrDefault(true, new LinkedList<>())
+                .stream().collect(Collectors.groupingBy(s -> ((Production) s).sort()));
 
         java.util.List<UserList> res = new ArrayList<>();
-        for (Map.Entry<String, java.util.List<Sentence>> x : listsMap.entrySet()) {
+        for (Map.Entry<Sort, java.util.List<Sentence>> x : listsMap.entrySet()) {
             UserList ul = new UserList();
             ul.sort = x.getKey();
             assert x.getValue().size() == 2;
@@ -46,7 +47,7 @@ public class UserList {
                     ul.klabel = p.klabel().get().name();
                     ul.attrs = p.att().remove("klabel");
                     ul.nonEmpty = ul.attrs.get(KOREtoKIL.USER_LIST_ATTRIBUTE).get().equals("+");
-                    ul.childSort = ((NonTerminal) p.items().head()).sort().name();
+                    ul.childSort = ((NonTerminal) p.items().head()).sort();
                     ul.pList = p;
                 } else if (p.items().size() == 1 && p.items().head() instanceof Terminal) {
                     ul.terminatorKLabel = p.klabel().get().name();

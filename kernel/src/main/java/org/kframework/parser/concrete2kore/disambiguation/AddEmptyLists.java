@@ -48,7 +48,7 @@ public class AddEmptyLists extends SetsGeneralTransformer<ParseFailedException, 
     private final Module m;
     private final POSet<Sort> subsorts;
     private final scala.collection.Set<Sort> listSorts;
-    private final Map<String, List<UserList>> lists;
+    private final Map<Sort, List<UserList>> lists;
 
     public AddEmptyLists(Module m) {
         this.m = m;
@@ -96,7 +96,7 @@ public class AddEmptyLists extends SetsGeneralTransformer<ParseFailedException, 
                             new KException(KException.ExceptionType.HIDDENWARNING, KException.KExceptionGroup.LISTS, msg, child.source().get(), child.location().get())));
                     newItems.add(child);
                 } else {
-                    UserList ul = lists.get(expectedSort.name()).get(0);
+                    UserList ul = lists.get(expectedSort).get(0);
                     TermCons terminator = TermCons.apply(ConsPStack.empty(), ul.pTerminator, child.location(), child.source());
                     // TermCons with PStack requires the elements to be in the reverse order
                     TermCons newTc = TermCons.apply(ConsPStack.from(Arrays.asList(terminator, child)), ul.pList, child.location(), child.source());

@@ -15,6 +15,7 @@ import org.kframework.definition.Sentence;
 import org.kframework.definition.Terminal;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.loader.Constants;
+import org.kframework.kore.ADT;
 import org.kframework.kore.Sort;
 import org.kframework.kore.convertors.KOREtoKIL;
 import org.kframework.parser.concrete2kore.ParseInModule;
@@ -35,7 +36,7 @@ import static scala.compat.java8.JFunction.func;
  * Takes as input a reference to a definition containing all the base syntax of K
  * and uses it to generate a grammar by connecting all users sorts in a lattice with
  * the top sort KItem#Top and the bottom sort KItem#Bottom.
- * <p/>
+ * <p>
  * The instances of the non-terminal KItem is renamed in KItem#Top if found in the right
  * hand side of a production, and into KItem#Bottom if found in the left hand side.
  */
@@ -59,6 +60,7 @@ public class RuleGrammarGenerator {
     private static Set<Sort> kSorts() {
         return java.util.Collections.unmodifiableSet(kSorts);
     }
+
     /// modules that have a meaning:
     public static final String RULE_CELLS = "RULE-CELLS";
     public static final String CONFIG_CELLS = "CONFIG-CELLS";
@@ -72,8 +74,9 @@ public class RuleGrammarGenerator {
 
     /**
      * Initialize a grammar generator.
-     * @param baseK A Definition containing a K module giving the syntax of K itself.
-     *              The default K syntax is defined in include/kast.k.
+     *
+     * @param baseK  A Definition containing a K module giving the syntax of K itself.
+     *               The default K syntax is defined in include/kast.k.
      * @param strict true if the generated parsers should retain inferred variable
      *               sorts as sort predicate in the requires clause.
      */
@@ -90,6 +93,7 @@ public class RuleGrammarGenerator {
     /**
      * Creates the seed module that can be used to parse rules.
      * Imports module markers RULE-CELLS and K found in /include/kast.k.
+     *
      * @param mod The user defined module from which to start.
      * @return a new module which imports the original user module and a set of marker modules.
      */
@@ -102,6 +106,7 @@ public class RuleGrammarGenerator {
     /**
      * Creates the seed module that can be used to parse configurations.
      * Imports module markers CONFIG-CELLS and K found in /include/kast.k.
+     *
      * @param mod The user defined module from which to start.
      * @return a new module which imports the original user module and a set of marker modules.
      */
@@ -114,6 +119,7 @@ public class RuleGrammarGenerator {
     /**
      * Creates the seed module that can be used to parse programs.
      * Imports module markers PROGRAM-LISTS found in /include/kast.k.
+     *
      * @param mod The user defined module from which to start.
      * @return a new module which imports the original user module and a set of marker modules.
      */
@@ -139,7 +145,7 @@ public class RuleGrammarGenerator {
     public ParseInModule getCombinedGrammar(Module mod) {
         Module extensionM = createExtension(mod);
         Module disambM = createDisamb(mod, extensionM);
-        Module parseM =  createParser(mod, disambM);
+        Module parseM = createParser(mod, disambM);
 
         return new ParseInModule(mod, extensionM, disambM, parseM, this.strict);
     }
@@ -161,29 +167,30 @@ public class RuleGrammarGenerator {
             for (UserList ul : UserList.getLists(prods3)) {
                 Production prod1, prod2, prod3, prod4, prod5;
                 // Es#Terminator ::= "" [klabel('.Es)]
-                String listLocalSort = Sort(ul.sort).localName();
-                Sort terminatorSort = Sort(listLocalSort + "#Terminator");
+                Sort terminatorSort = addSuffixToSort(ul.sort, "#Terminator");
+                ADT.SortLookup neSort = addPrefixToSort("Ne#", ul.sort);
+
                 prod1 = Production(ul.terminatorKLabel, terminatorSort, Seq(Terminal("")),
                         ul.attrs.add("klabel", ul.terminatorKLabel).add(Constants.ORIGINAL_PRD, ul.pTerminator));
                 // Ne#Es ::= E "," Ne#Es [klabel('_,_)]
-                prod2 = Production(ul.klabel, Sort("Ne#" + listLocalSort),
-                        Seq(NonTerminal(Sort(ul.childSort)), Terminal(ul.separator), NonTerminal(Sort("Ne#" + listLocalSort))),
+                prod2 = Production(ul.klabel, neSort,
+                        Seq(NonTerminal(ul.childSort), Terminal(ul.separator), NonTerminal(neSort)),
                         ul.attrs.add("klabel", ul.klabel).add(Constants.ORIGINAL_PRD, ul.pList));
                 // Ne#Es ::= E Es#Terminator [klabel('_,_)]
-                prod3 = Production(ul.klabel, Sort("Ne#" + listLocalSort),
-                        Seq(NonTerminal(Sort(ul.childSort)), NonTerminal(terminatorSort)),
+                prod3 = Production(ul.klabel, neSort,
+                        Seq(NonTerminal(ul.childSort), NonTerminal(terminatorSort)),
                         ul.attrs.add("klabel", ul.klabel).add(Constants.ORIGINAL_PRD, ul.pList));
                 // Es ::= Ne#Es
-                prod4 = Production(Sort(listLocalSort), Seq(NonTerminal(terminatorSort)));
+                prod4 = Production(ul.sort, Seq(NonTerminal(terminatorSort)));
                 // Es ::= Es#Terminator // if the list is *
-                prod5 = Production(Sort(listLocalSort), Seq(NonTerminal(terminatorSort)));
+                prod5 = Production(ul.sort, Seq(NonTerminal(terminatorSort)));
 
                 res.add(prod1);
                 res.add(prod2);
                 res.add(prod3);
                 res.add(prod4);
-                res.add(SyntaxSort(Sort(listLocalSort + "#Terminator")));
-                res.add(SyntaxSort(Sort("Ne#" + listLocalSort)));
+                res.add(SyntaxSort(terminatorSort));
+                res.add(SyntaxSort(neSort));
                 if (!ul.nonEmpty) {
                     res.add(prod5);
                 }
@@ -192,6 +199,14 @@ public class RuleGrammarGenerator {
             parseProds = res;
         }
         return new Module(mod.name() + "-PARSER", Set(), immutable(parseProds), mod.att());
+    }
+
+    private ADT.SortLookup addSuffixToSort(Sort sort, String suffix) {
+        return new ADT.SortLookup(sort.localName() + suffix, sort.moduleName());
+    }
+
+    private ADT.SortLookup addPrefixToSort(String prefix, Sort sort) {
+        return new ADT.SortLookup(prefix + sort.localName(), sort.moduleName());
     }
 
     private Module createDisamb(Module mod, Module extensionM) {
@@ -204,6 +219,7 @@ public class RuleGrammarGenerator {
         } else {
             addRuleCells = false;
         }
+
         if (addRuleCells) {
             ConfigurationInfo cfgInfo = new ConfigurationInfoFromModule(mod);
             disambProds = stream(extensionM.sentences()).flatMap(s -> {
@@ -281,7 +297,7 @@ public class RuleGrammarGenerator {
             for (UserList ul : UserList.getLists(disambProds)) {
                 org.kframework.definition.Production prod1;
                 // Es ::= E
-                prod1 = Production(Sort(ul.sort), Seq(NonTerminal(Sort(ul.childSort))));
+                prod1 = Production(ul.sort, Seq(NonTerminal(ul.childSort)));
                 res.add(prod1);
             }
             disambProds.addAll(res);
@@ -336,9 +352,9 @@ public class RuleGrammarGenerator {
         Set<Sentence> prods = new HashSet<>();
         Att attrs1 = Att().add(Attribute.SORT_KEY, castSort.localName());
         prods.add(Production("#SyntacticCast", castSort, Seq(NonTerminal(castSort), Terminal("::" + castSort.localName())), attrs1));
-        prods.add(Production("#SemanticCastTo" + castSort.localName(),  castSort, Seq(NonTerminal(castSort), Terminal(":"  + castSort.localName())), attrs1));
-        prods.add(Production("#InnerCast",     outerSort, Seq(NonTerminal(castSort), Terminal("<:" + castSort.localName())), attrs1));
-        prods.add(Production("#OuterCast",     castSort, Seq(NonTerminal(innerSort), Terminal(":>" + castSort.localName())), attrs1));
+        prods.add(Production("#SemanticCastTo" + castSort.localName(), castSort, Seq(NonTerminal(castSort), Terminal(":" + castSort.localName())), attrs1));
+        prods.add(Production("#InnerCast", outerSort, Seq(NonTerminal(castSort), Terminal("<:" + castSort.localName())), attrs1));
+        prods.add(Production("#OuterCast", castSort, Seq(NonTerminal(innerSort), Terminal(":>" + castSort.localName())), attrs1));
         return prods;
     }
 }
