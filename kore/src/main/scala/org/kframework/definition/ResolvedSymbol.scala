@@ -13,7 +13,8 @@ case class ModuleName(s: String) {
 trait ModuleQualified {
   val localName: String
   val moduleName: ModuleName
-  def name: String = localName + "@" + moduleName
+  def name: String = localName + (if (moduleName != ModuleName.STAR) "@" + moduleName else "")
+  override def hashCode = localName.hashCode
 }
 
 trait LookupSymbol extends ModuleQualified

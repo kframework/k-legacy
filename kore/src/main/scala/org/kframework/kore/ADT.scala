@@ -71,17 +71,20 @@ object ADT {
     override def toString = name
 
     override def equals(other: Any) = other match {
-      case s: Sort => throw new AssertionError("Trying to compare a lookup sort " + this + " with qualified sort " + s)
-      case _ => super.equals(other)
+      case s: Sort if this.moduleName == ModuleName.STAR => s.localName == this.localName
+      case s: kore.Sort => this.moduleName == s.moduleName && this.localName == s.localName
+      case _ => throw new AssertionError("We cannot compare this.")
     }
   }
 
   case class Sort(localName: String, moduleName: ModuleName) extends kore.Sort with ResolvedSymbol {
     override def toString = name
+    assert(moduleName != ModuleName.STAR)
 
     override def equals(other: Any) = other match {
-      case s: SortLookup => throw new AssertionError("Trying to compare a qualified sort " + this + " with a sort lookup " + s)
-      case _ => super.equals(other)
+      case s: SortLookup if s.moduleName == ModuleName.STAR => this.localName == s.localName
+      case s: kore.Sort => s.moduleName == this.moduleName && s.localName == this.localName
+      case _ => throw new AssertionError("We cannot compare this.")
     }
   }
 

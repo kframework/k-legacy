@@ -74,43 +74,18 @@ class Module(val name: String,
   val sortResolver: SymbolResolver[Sort, ADT.Sort] =
     new SymbolResolver(name, imports map {_.sortResolver}, lookingToDefineSorts)(ADT.SortLookup.apply, ADT.Sort.apply)
 
+  def resolve(s: Sort): ADT.Sort = sortResolver(s).get
+
   private val importedSorts = imports flatMap {
     //noinspection ForwardReference
     _.sorts
-  }
-
-  object DeclaresSort {
-    def unapply(s: SyntaxSentence): Option[Sort] = s match {
-      case Production(s, _, _) => Some(s)
-      case SyntaxSort(s, _) => Some(s)
-      case _ => None
-    }
   }
 
   case class OuterException(m: String) extends Throwable {
     override def getMessage() = "While constructing module " + name + ": " + m
   }
 
-  val localSorts: Set[ADT.Sort] = ??? /// unresolvedLocalSyntaxSentences flatMap tryToDefineSortForProduction
-
-  def resolve(sort: Sort): Sort = Sort(sort.name)
-
-  def lookupSort(name: String): Set[ADT.Sort] = splitAtModule(name) match {
-    case (localName, moduleName) => lookupSort(localName, moduleName)
-  }
-
-  def lookupSort(localName: String, moduleName: String): Set[ADT.Sort] = {
-    //    if (moduleName == this.name) {
-    val localRes = localSorts.filter(_.localName == localName)
-    if (localRes.nonEmpty) {
-      localRes
-    } else {
-      imports flatMap {_.lookupSort(localName)}
-    }
-    //    } else {
-    //      imports flatMap {_.lookupSort(moduleName, localName)}
-    //    }
-  }
+  val localSorts: Set[ADT.Sort] = lookingToDefineSorts map sortResolver flatten
 
   def makeTooManySortsErrorMessage(name: String, sortSet: Set[ADT.Sort]): String = {
     "While defining module " + this.name + ": "
@@ -129,23 +104,19 @@ class Module(val name: String,
     case _ => throw KEMException.compilerError("Sort name contains multiple @ symbols: " + name)
   }
 
-  def SortOption(name: String): Option[ADT.Sort] = lookupSort(name) match {
-    case s if s.size == 0 => None
-    case s if s.size == 1 => Some(s.head)
-    case s => throw KEMException.compilerError(makeTooManySortsErrorMessage(name, s))
-  }
+  def SortOption(localName: String): Option[ADT.Sort] = sortResolver(ADT.SortLookup(localName, ModuleName.STAR))
 
-  def Sort(name: String): ADT.Sort = SortOption(name) match {
+  def Sort(localName: String): ADT.Sort = SortOption(localName) match {
     case Some(s) => s
-    case None => throw KEMException.compilerError("Could not find sort named: " + name)
+    case None => throw KEMException.compilerError("Could not find sort named: " + localName)
   }
 
   val localSyntaxSentences: Set[SyntaxSentence] = unresolvedLocalSyntaxSentences map {
-    case p: Production => p.copy(sort = this.Sort(p.sort.name), p.items map {
-      case t: NonTerminal => t.copy(sort = this.Sort(t.sort.name))
+    case p: Production => p.copy(sort = resolve(p.sort), p.items map {
+      case t: NonTerminal => t.copy(sort = resolve(t.sort))
       case other => other
     })
-    case s: SyntaxSort => s.copy(sort = this.Sort(s.sort.name))
+    case s: SyntaxSort => s.copy(sort = resolve(s.sort))
     case other => other
   }
 
