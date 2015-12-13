@@ -64,7 +64,15 @@ object ADT {
   }
 
   object SortLookup {
-    def apply(s: String): SortLookup = SortLookup(s, ModuleName.STAR)
+    def apply(s: String): SortLookup = {
+      s.count(_ == '@') match {
+        case 0 => SortLookup(s, ModuleName.STAR)
+        case 1 =>
+          val ssplit = s.split("@")
+          SortLookup(ssplit(0), ModuleName(ssplit(1)))
+        case 2 => throw new AssertionError("Sort name contains multiple @s")
+      }
+    }
   }
 
   case class SortLookup(localName: String, moduleName: ModuleName) extends kore.Sort with LookupSymbol {

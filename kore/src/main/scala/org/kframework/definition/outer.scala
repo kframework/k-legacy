@@ -5,6 +5,7 @@ package org.kframework.definition
 import dk.brics.automaton.{BasicAutomata, RegExp, RunAutomaton, SpecialOperations}
 import org.kframework.POSet
 import org.kframework.attributes.{Source, Location, Att}
+import org.kframework.kore.SortedADT.SortedKVariable
 import org.kframework.kore.Unapply.{KApply, KLabel}
 import org.kframework.kore._
 import org.kframework.utils.errorsystem.KEMException
@@ -120,7 +121,11 @@ class Module(val name: String,
     case other => other
   }
 
-  def resolveSorts(k: K): K = ???
+  def resolveSorts(k: K): K = (new TransformK() {
+    override def apply(t: KToken): K = t match {
+      case tt: ADT.KToken => tt.copy(sort = sortResolver(tt.sort))
+    }
+  }) (k)
 
   //    k match {
   //    case app: KApply => app.copy(list map resolveSorts, app.att)

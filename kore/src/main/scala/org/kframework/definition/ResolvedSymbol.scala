@@ -12,6 +12,7 @@ case class ModuleName(s: String) {
 
 trait ModuleQualified {
   val localName: String
+  assert(!localName.contains("@"))
   val moduleName: ModuleName
   def name: String = localName + (if (moduleName != ModuleName.STAR) "@" + moduleName else "")
   override def hashCode = localName.hashCode
@@ -61,7 +62,6 @@ case class SymbolResolver[L <: ModuleQualified, S <: ResolvedSymbol](val moduleN
     // TODO: remove "|| starify(l.moduleName) == ModuleName.STAR)" when frontend steps are cleaner
     .orElse(lookupInImported(l))
 
-  def apply(l: L): S = get(l).getOrElse({
-    throw new AssertionError("Could not find symbol " + l)
-  })
+  def apply(l: L): S = get(l).getOrElse(
+    throw new AssertionError("Could not find symbol " + l))
 }
