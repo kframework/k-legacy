@@ -332,11 +332,11 @@ public class RuleGrammarGenerator {
 
     private Set<Sentence> makeCasts(Sort outerSort, Sort innerSort, Sort castSort) {
         Set<Sentence> prods = new HashSet<>();
-        Att attrs1 = Att().add(Attribute.SORT_KEY, castSort.name());
-        prods.add(Production("#SyntacticCast", castSort, Seq(NonTerminal(castSort), Terminal("::" + castSort.name())), attrs1));
-        prods.add(Production("#SemanticCastTo" + castSort.name(),  castSort, Seq(NonTerminal(castSort), Terminal(":"  + castSort.name())), attrs1));
-        prods.add(Production("#InnerCast",     outerSort, Seq(NonTerminal(castSort), Terminal("<:" + castSort.name())), attrs1));
-        prods.add(Production("#OuterCast",     castSort, Seq(NonTerminal(innerSort), Terminal(":>" + castSort.name())), attrs1));
+        Att attrs1 = Att().add(Attribute.SORT_KEY, castSort.localName());
+        prods.add(Production("#SyntacticCast", castSort, Seq(NonTerminal(castSort), Terminal("::" + castSort.localName())), attrs1));
+        prods.add(Production("#SemanticCastTo" + castSort.localName(),  castSort, Seq(NonTerminal(castSort), Terminal(":"  + castSort.localName())), attrs1));
+        prods.add(Production("#InnerCast",     outerSort, Seq(NonTerminal(castSort), Terminal("<:" + castSort.localName())), attrs1));
+        prods.add(Production("#OuterCast",     castSort, Seq(NonTerminal(innerSort), Terminal(":>" + castSort.localName())), attrs1));
         return prods;
     }
 }

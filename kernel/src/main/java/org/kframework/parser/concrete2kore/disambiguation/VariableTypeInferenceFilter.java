@@ -511,7 +511,7 @@ public class VariableTypeInferenceFilter extends SetsGeneralTransformer<ParseFai
             private Either<Set<ParseFailedException>, Term> wrapTermWithCast(Constant c, Sort declared) {
                 Production cast;
                 if (addCast) {
-                    cast = productions.apply(KLabel("#SemanticCastTo" + declared.name())).head();
+                    cast = productions.apply(KLabel("#SemanticCastTo" + declared.localName())).head();
                 } else if (!hasCastAlready) {
                     cast = stream(productions.apply(KLabel("#SyntacticCast"))).filter(p -> p.sort().equals(declared)).findAny().get();
                 } else {
