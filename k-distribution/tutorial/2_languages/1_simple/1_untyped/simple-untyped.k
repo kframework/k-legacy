@@ -56,9 +56,15 @@ intended to be one of the first non-trivial definitions that the new
 user of \K sees.  We recommend the beginner user to first check the
 language definitions discussed in the \K tutorial.} */
 
-
+require "domains.k"
 module SIMPLE-UNTYPED-SYNTAX
-  imports BUILTIN-SYNTAX-HOOKS
+  imports SIMPLE-UNTYPED-COMMON
+  imports DOMAINS-SYNTAX
+  imports ID
+endmodule
+
+module SIMPLE-UNTYPED-COMMON
+    imports DOMAINS-COMMON
 
 /*@ \section{Syntax}
 We start by defining the SIMPLE syntax.  The language constructs discussed
@@ -120,7 +126,7 @@ assignment which is only strict in its second argument (for the same reason as
 the increment). */
 
   syntax Exp ::= Int | Bool | String | Id
-               | "(" Exp ")"             [bracket]
+               | "(" Exp ")"             [strict, bracket]
                | "++" Exp
                > Exp "[" Exps "]"        [strict]
                > Exp "(" Exps ")"        [strict]
@@ -145,7 +151,7 @@ the increment). */
                > left:
                  Exp "&&" Exp            [strict(1), left]
                | Exp "||" Exp            [strict(1), left]
-               > "spawn" Block
+               > "spawn" Block           [strict]
                > Exp "=" Exp             [strict(2), right]
 
 /*@ We also need comma-separated lists of identifiers and of expressions.
@@ -153,9 +159,11 @@ Moreover, we want them to be strict, that is, to evaluate to lists of results
 whenever requested (e.g., when they appear as strict arguments of
 the constructs above). */
 
-  syntax Ids  ::= List{Id,","}
-  syntax Exps ::= List{Exp,","}          [strict]  // automatically hybrid now
-
+  syntax Bottom
+  syntax BottomCommaList ::= List{Bottom,","}
+  syntax Ids  ::= BottomCommaList | List{Id,","}
+  syntax Exps ::= BottomCommaList | Ids
+  syntax Exps ::=  List{Exp,","}         [strict]  // automatically hybrid now
 /*@ \subsection{Statements}
 Most of the statement constructs are standard for imperative languages.
 We syntactically distinguish between empty and non-empty blocks, because we
@@ -239,7 +247,8 @@ endmodule
 
 
 module SIMPLE-UNTYPED
-  imports SIMPLE-UNTYPED-SYNTAX
+  imports SIMPLE-UNTYPED-COMMON
+  imports DOMAINS
 
 /*@ \section{Basic Semantic Infrastructure}
 Before one starts adding semantic rules to a \K definition, one needs to
@@ -270,9 +279,11 @@ languages, we finally tell the tool that values are \K results. */
   syntax Val ::= Int | Bool | String
                | array(Int,Int)
                | lambda(Ids,Stmt)
-  syntax Vals ::= List{Val,","}
   syntax Exp ::= Val
-  syntax KResult ::= Val
+  syntax Vals ::= BottomCommaList
+  syntax Vals ::= List{Val,","}
+  syntax Exps ::= Vals
+  syntax KResult ::= Val | Vals
 
 /*@ The inclusion of values in expressions follows the methodology of
 syntactic definitions (like, e.g., in SOS): extend the syntax of the language
@@ -320,24 +331,20 @@ to the \K tool, as indicated by the \textit{\$PGM} variable, followed by the
   configuration <T color="red">
                   <threads color="orange">
                     <thread multiplicity="*" color="yellow">
-                      <k color="green"> ($PGM:Stmts ~> execute) </k>
-                      <br/>
+                      <k color="green"> `$PGM:Stmts` ~> `execute` </k>
                       <control color="cyan">
                         <fstack color="blue"> .List </fstack>
                         <xstack color="purple"> .List </xstack>
                       </control>
-                      <br/>
                       <env color="violet"> .Map </env>
                       <holds color="black"> .Map </holds>
                       <id color="pink"> 0 </id>
                     </thread>
                   </threads>
-                  <br/>
                   <genv color="pink"> .Map </genv>
                   <store color="white"> .Map </store>
                   <busy color="cyan"> .Set </busy>
                   <terminated color="red"> .Set </terminated>
-                  <br/>
                   <in color="magenta" stream="stdin"> .List </in>
                   <out color="brown" stream="stdout"> .List </out>
                   <nextLoc color="gray"> 0 </nextLoc>
@@ -383,9 +390,8 @@ not mention these: the configuration context of the rule is
 automatically transformed to match the declared configuration
 structure. */
 
-  syntax KItem ::= "undefined"  [latex(\bot)]
-
-  rule <k> var X:Id; => . ...</k>
+  syntax KItem ::= "undefined"
+  rule <k> var X:Id; => .K ...</k>
        <env> Env => Env[X <- L] </env>
        <store>... .Map => L |-> undefined ...</store>
        <nextLoc> L => L +Int 1 </nextLoc>
@@ -409,13 +415,15 @@ declarations. */
 
   context var _:Id[HOLE];
 
-  rule <k> var X:Id[N:Int]; => . ...</k>
+  rule <k> var X:Id[N:Int]; => .K ...</k>
        <env> Env => Env[X <- L] </env>
        <store>... .Map => L |-> array(L +Int 1, N)
-                          (L +Int 1) ... (L +Int N) |-> undefined ...</store>
+                          `L +Int 1` ... `L +Int N` |-> undefined ...</store>
        <nextLoc> L => L +Int 1 +Int N </nextLoc>
     when N >=Int 0
 
+
+  rule  var _:BottomCommaList; => .K        [structural]
 /*@ SIMPLE allows multi-dimensional arrays.  For semantic simplicity, we
 desugar them all into uni-dimensional arrays by code transformation.
 This way, we only need to give semantics to uni-dimensional arrays.
@@ -468,10 +476,10 @@ global variable before declaring a local function).  The type checker of
 SIMPLE, also defined in \K (see \texttt{examples/simple/typed/static}),
 discards programs which do not respect this requirement. */
 
-  rule <k> function F(Xs) S => . ...</k>
-       <env> Env => Env[F <- L] </env>
-       <store>... .Map => L |-> lambda(Xs, S) ...</store>
-       <nextLoc> L => L +Int 1 </nextLoc>
+ rule <k> function F(Xs) S => .K ...</k>
+      <env> Env => Env[F <- L] </env>
+      <store>... .Map => L |-> lambda(Xs, S) ...</store>
+      <nextLoc> L => L +Int 1 </nextLoc>
 
 /*@ When we are done with the first pass (pre-processing), the computation
 cell \textsf{k} contains only the token \texttt{execute} (see the configuration
@@ -493,8 +501,8 @@ that the functions ``see'' each other, allowing for mutual recursion, etc. */
 
   syntax KItem ::= "execute"
   rule <k> execute => main(.Exps); </k>
-       <env> Env </env>
-       <genv> .Map => Env </genv>  [structural]
+        <env> Env </env>
+        <genv> .Map => Env </genv>  [structural]
 
 /*@ \section{Expressions}
 We next define the \K semantics of all the expression constructs. */
@@ -522,9 +530,9 @@ value.  Location values, also defined at the end of the file, are integers
 wrapped with the operation \texttt{loc}, to distinguish them from ordinary
 integers. */
 
-  context ++(HOLE => lvalue(HOLE))
+  context ++`HOLE => lvalue(HOLE)`
   rule <k> ++loc(L) => I +Int 1 ...</k>
-       <store>... L |-> (I => I +Int 1) ...</store>  [increment]
+       <store>... L |-> `I => I +Int 1` ...</store>  [increment]
 
 /*@ \subsection{Arithmetic operators}
 There is nothing special about the following rules.  They rewrite the
@@ -552,6 +560,7 @@ of the two argument values (which is what the equality on $K$ terms does). */
 /*@ The logical negation is clear, but the logical conjunction and disjunction
 are short-circuited: */
 
+//Todo: Fix the ! rule
   rule ! T => notBool(T)
   rule true  && E => E
   rule false && _ => false
@@ -574,10 +583,18 @@ and is defined at the end of the file. */
 // may not be worth, or we may need to come up with a special notation
 // allowing us to enumerate contexts for [anywhere] rules.
   rule V:Val[N1:Int, N2:Int, Vs:Vals] => V[N1][N2, Vs]
-    [structural, anywhere]
+    [structural]
 
   rule array(L,_)[N:Int] => lookup(L +Int N)
-    [structural, anywhere]
+  [structural]
+
+
+// substitute for the anywhere rules
+  rule lvalue(array(L,_)[N:Int] => lookup(L +Int N))
+  [structural]
+
+  rule lvalue(V:Val[N1:Int, N2:Int, Vs:Vals] => V[N1][N2, Vs])
+    [structural]
 
 /*@ \subsection{Size of an array}
 The size of the array is stored in the array reference value, and the
@@ -619,22 +636,22 @@ irrelevant once the function returns).  We add an artificial
 \texttt{nothing} value to the language, which is returned by the
 nulary \texttt{return;} statements. */
 
-  syntax KItem ::=  (Map,K,ControlCellFragment)
+  syntax KItem ::=  (Map,K, List)
 
-  rule <k> lambda(Xs,S)(Vs:Vals) ~> K => mkDecls(Xs,Vs) S return; </k>
+  rule <k> `lambda(Xs,S)(Vs:Vals)` ~> K => mkDecls(Xs,Vs) S return; </k>
        <control>
-         <fstack> .List => ListItem((Env,K,C)) ...</fstack>
-         C
+         <fstack> .List => ListItem((Env,K, XstackList)) ...</fstack>
+         <xstack> XstackList </xstack>
        </control>
        <env> Env => GEnv </env>
        <genv> GEnv </genv>
 
-  rule <k> return(V:Val); ~> _ => V ~> K </k>
-       <control>
-         <fstack> ListItem((Env,K,C)) => .List ...</fstack>
-         (_ => C)
-       </control>
-       <env> _ => Env </env>
+   rule <k> `return(V:Val); ~> _` => `V ~> K` </k>
+        <control>
+          <fstack> ListItem((Env,K, XstackList)) => .List ...</fstack>
+          <xstack> _ => XstackList </xstack>
+        </control>
+        <env> _ => Env </env>
 
   syntax Val ::= "nothing"
   rule return; => return nothing;   [macro]
@@ -661,7 +678,7 @@ The \texttt{read()} expression construct simply evaluates to the next
 input value, at the same time discarding the input value from the
 \textsf{in} cell. */
 
-  rule <k> read() => I ...</k> <in> ListItem(I:Int) => .List ...</in>  [read]
+ rule <k> read() => I ...</k> <in> ListItem(I:Int) => .List ...</in>  [read]
 
 /*@ \subsection{Assignment}
 In SIMPLE, like in C, assignments are expression constructs and not statement
@@ -674,9 +691,9 @@ value.  Thus, we first compute the lvalue of the left-hand-side expression
 that appears in an assignment, and then we do the actual assignment to the
 resulting location: */
 
-  context (HOLE => lvalue(HOLE)) = _
+  context `HOLE => lvalue(HOLE)` = _
 
-  rule <k> loc(L) = V:Val => V ...</k> <store>... L |-> (_ => V) ...</store>
+  rule <k> loc(L) = V:Val => V ...</k> <store>... L |-> `_ => V` ...</store>
     [assignment]
 
 /*@ \section{Statements}
@@ -692,8 +709,8 @@ environment after the block.  This allows us to have a very simple semantics
 for variable declarations, as we did above.  One can make the two rules below
 computational if one wants them to count as computational steps. */
 
-  rule {} => .  [structural]
-  rule <k> { S } => S ~> env(Env) ...</k>  <env> Env </env>  [structural]
+   rule {} => .K  [structural]
+   rule <k> { S } => S ~> env(Env) ...</k>  <env> Env </env>  [structural]
 
 /*@ The basic definition of environment recovery is straightforward and
 given in the section on auxiliary constructs at the end of the file. */
@@ -751,7 +768,7 @@ Expression statements are only used for their side effects, so their result
 value is simply discarded.  Common examples of expression statements are ones
 of the form \texttt{++x;}, \texttt{x=e;}, \texttt{e1[e2]=e3;}, etc. */
 
-  rule _:Val; => .
+  rule _:Val; => .K
 
 /*@ \subsection{Conditional}
 Since the conditional was declared with the \texttt{strict(1)} attribute, we
@@ -782,9 +799,9 @@ evaluated (recall that \texttt{print} is variadic).  We append each of
 its evaluated arguments to the output buffer, and discard the residual
 \texttt{print} statement with an empty list of arguments. */
 
-  rule <k> print(V:Val, Es => Es); ...</k> <out>... .List => ListItem(V) </out>
+  rule <k> print(V:Val, Es); => print(Es); ...</k> <out>... .List => ListItem(V) </out>
     [print]
-  rule print(.Vals); => .  [structural]
+  rule print(.Vals); => .K  [structural]
 
 /*@ \subsection{Exceptions}
 SIMPLE allows parametric exceptions, in that one can throw and catch a
@@ -812,24 +829,24 @@ is thrown to correctly recover the execution context.  This can be easily
 achieved by pushing/popping the entire current control context onto the
 exception stack.  The three rules below modularly do precisely the above. */
 
-  syntax KItem ::= (Id,Stmts,K,Map,ControlCellFragment)
+  syntax KItem ::= (Id,Stmts,K,Map,List)
 
   syntax KItem ::= "popx"
 
-  rule <k> (try S1 catch(X) {S2} => S1 ~> popx) ~> K </k>
+  rule <k> `try S1 catch(X) {S2} => S1 ~> popx` ~> K </k>
        <control>
+         <fstack> C </fstack>
          <xstack> .List => ListItem((X, S2, K, Env, C)) ...</xstack>
-         C
        </control>
        <env> Env </env>
 
-  rule <k> popx => . ...</k>
+  rule <k> popx => .K ...</k>
        <xstack> ListItem(_) => .List ...</xstack>
 
   rule <k> throw V:Val; ~> _ => { var X = V; S2 } ~> K </k>
        <control>
+         <fstack> _ => C </fstack>
          <xstack> ListItem((X, S2, K, Env, C)) => .List ...</xstack>
-         (_ => C)
        </control>
        <env> _ => Env </env>
 
@@ -860,11 +877,11 @@ configuration.  This is part of \K's configuration abstraction mechanism. */
          <k> spawn S => !T:Int ...</k>
          <env> Env </env>
        ...</thread>
-       (. => <thread>...
+       `.Bag => <thread>...
                <k> S </k>
                <env> Env </env>
                <id> !T </id>
-             ...</thread>)
+             ...</thread>`
 
 /*@ \subsubsection{Thread termination}
 Dually to the above, when a thread terminates its assigned computation (the
@@ -880,19 +897,21 @@ added to the \textsf{busy} cell as soon as it is acquired for the first time
 by a thread.  The unique identifier of the terminated thread is also collected
 into the \textsf{terminated} cell, so the \texttt{join} construct knows which
 threads have terminated. */
-
-  rule (<thread>... <k>.</k> <holds>H</holds> <id>T</id> ...</thread> => .)
+  rule `<thread>... <k>.K</k> <holds>H</holds> <id>T</id> ...</thread> => .Bag`
        <busy> Busy => Busy -Set keys(H) </busy>
        <terminated>... .Set => SetItem(T) ...</terminated>
+
+
 
 /*@ \subsubsection{Thread joining}
 Thread joining is now straightforward: all we need to do is to check whether
 the identifier of the thread to be joined is in the \textsf{terminated} cell.
 If yes, then the \texttt{join} statement dissolves and the joining thread
 continues normally; if not, then the joining thread gets stuck. */
-
-  rule <k> join T:Int; => . ...</k>
+  rule <k> join T:Int; => .Bag ...</k>
        <terminated>... SetItem(T) ...</terminated>
+
+
 
 /*@ \subsubsection{Acquire lock}
 There are two cases to distinguish when a thread attempts to acquire a lock
@@ -903,14 +922,14 @@ the side condition of the first rule).\\
 (2) The thread already has the lock, in which case it just increments its
 counter for the lock (the locks are re-entrant).  These two cases are captured
 by the two rules below: */
-
-  rule <k> acquire V:Val; => . ...</k>
+  rule <k> acquire V:Val; => .K ...</k>
        <holds>... .Map => V |-> 0 ...</holds>
-       <busy> Busy (.Set => SetItem(V)) </busy>
-    when (notBool(V in Busy))  [acquire]
+       <busy> Busy `.Set => SetItem(V)` </busy>
+    when `notBool `V in Busy``  [acquire]
 
-  rule <k> acquire V; => . ...</k>
-       <holds>... V:Val |-> (N => N +Int 1) ...</holds>
+  rule <k> acquire V; => .K ...</k>
+       <holds>... V:Val |-> `N => N +Int 1` ...</holds>
+
 
 /*@ \subsubsection{Release lock}
 Similarly, there are two corresponding cases to distinguish when a thread
@@ -920,12 +939,11 @@ is to decrement the lock counter.\\
 (2) The thread holds the lock only once, in which case it needs to remove it
 from its \textsf{holds} cell and also from the the shared \textsf{busy} cell,
 so other threads can acquire it if they need to. */
-
-  rule <k> release V:Val; => . ...</k>
-       <holds>... V |-> (N => N -Int 1) ...</holds>
+  rule <k> release V:Val; => .K ...</k>
+       <holds>... V |-> `N => N -Int 1` ...</holds>
     when N >Int 0
 
-  rule <k> release V; => . ...</k> <holds>... V:Val |-> 0 => .Map ...</holds>
+  rule <k> release V; => .K ...</k> <holds>... V:Val |-> 0 => .Map ...</holds>
        <busy>... SetItem(V) => .Set ...</busy>
 
 /*@ \subsubsection{Rendezvous synchronization}
@@ -943,9 +961,9 @@ since the only cell which can multiply containing a \textsf{k} cell inside is
 the \textsf{thread} cell, the only way to concretize the rule below to the
 actual configuration of SIMPLE is to include each \textsf{k} cell in a
 \textsf{thread} cell. */
+  rule <k> rendezvous V:Val; => .K ...</k>
+       <k> rendezvous V; => .K ...</k>  [rendezvous]
 
-  rule <k> rendezvous V:Val; => . ...</k>
-       <k> rendezvous V; => . ...</k>  [rendezvous]
 
 /*@ \section{Auxiliary declarations and operations}
 In this section we define all the auxiliary constructs used in the
@@ -956,9 +974,9 @@ The \texttt{mkDecls} auxiliary construct turns a list of identifiers
 and a list of values in a sequence of corresponding variable
 declarations. */
 
-  syntax Stmts ::= mkDecls(Ids,Vals)  [function]
-  rule mkDecls((X:Id, Xs:Ids), (V:Val, Vs:Vals)) => var X=V; mkDecls(Xs,Vs)
-  rule mkDecls(.Ids,.Vals) => {}
+   syntax Stmts ::= mkDecls(Ids,Vals)  [function]
+   rule mkDecls(`X:Id, Xs:Ids`, `V:Val, Vs:Vals`) => var X=V; mkDecls(Xs,Vs)
+   rule mkDecls(.Ids,.Vals) => {}
 
 /*@ \subsection{Location lookup}
 The operation below is straightforward.  Note that we tag it with the same
@@ -967,7 +985,7 @@ both rules will be considered transitions when we include the \texttt{lookup}
 tag in the transition option of \texttt{kompile}. */
 
   syntax KItem ::= lookup(Int)
-  rule <k> lookup(L) => V ...</k> <store>... L |-> V:Val ...</store>  [lookup]
+  rule <k> lookup(L) => V ...</k> <store>... `L |-> V:Val` ...</store>  [lookup]
 
 /*@ \subsubsection{Environment recovery}
 We have already discussed the environment recovery auxiliary operation in the
@@ -976,7 +994,7 @@ IMP++ tutorial: */
 // TODO: eliminate the env wrapper, like we did in IMP++
 
   syntax KItem ::= env(Map)
-  rule <k> env(Env) => . ...</k> <env> _ => Env </env>  [structural]
+  rule <k> env(Env) => .K ...</k> <env> _ => Env </env>  [structural]
 
 /*@  While theoretically sufficient, the basic definition for environment
 recovery alone is suboptimal.  Consider a loop \texttt{while (E)S},
@@ -991,7 +1009,7 @@ recovery tasks, we only need to keep the last one.  The elegant rule below
 does precisely that, thus avoiding the unnecessary computation explosion
 problem: */
 
-  rule (env(_) => .) ~> env(_)  [structural]
+  rule `env(_) => .K` ~> env(_)  [structural]
 
 /* In fact, the above follows a common convention in \K for recovery
 operations of cell contents: the meaning of a computation task of the form
@@ -1044,9 +1062,9 @@ The following operation initializes a sequence of locations with the same
 value: */
 
   syntax Map ::= Int "..." Int "|->" K
-    [function, latex({#1}\ldots{#2}\mapsto{#3})]
+    [function]
   rule N...M |-> _ => .Map  when N >Int M
-  rule N...M |-> K => N |-> K (N +Int 1)...M |-> K  when N <=Int M
+  rule N...M |-> K => N |-> K `N +Int 1` ...M |-> K  when N <=Int M
 
 /*@ The semantics of SIMPLE is now complete.  Make sure you kompile the
 definition with the right options in order to generate the desired model.

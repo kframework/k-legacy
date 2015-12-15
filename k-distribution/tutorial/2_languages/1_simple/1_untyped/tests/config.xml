@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (c) 2013-2015 K Team. All Rights Reserved. -->
+<!-- Copyright (c) 2015 K Team. All Rights Reserved. -->
 <tests>
 
   <test definition="simple-untyped"
+        skip="pdf"
         programs="."
         extension="simple"
-        exclude="dekker"
-        results="." >
-        <kompile-option name="--superheat" value="strict" />
-        <kompile-option name="--backend" value="java" />
+        exclude="dekker exceptions_07"
+        results=".">
         <all-programs>
           <krun-option name="--output" value="none" />
         </all-programs>
