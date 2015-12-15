@@ -7,6 +7,7 @@ import org.kframework.compile.LabelInfo;
 import org.kframework.compile.LabelInfoFromModule;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
+import org.kframework.definition.Module;
 import org.kframework.definition.Sentence;
 import org.kframework.utils.errorsystem.KExceptionManager;
 
