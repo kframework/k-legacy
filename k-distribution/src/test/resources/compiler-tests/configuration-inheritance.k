@@ -19,8 +19,8 @@ module C
     imports A
     imports B
 
-    configuration <t> initKCell(Init) initBCell </t>
+    configuration <t> initKCell(Init) initBCell  <c> .K </c> </t>
 
     rule <k> y => foo ...</k> <b> bar => x </b>
-    rule <k> <t>-fragment _ _ </t>-fragment => .K ...</k>
+    rule <k> <t>-fragment _ _ _ </t>-fragment => .K ...</k>
 endmodule
