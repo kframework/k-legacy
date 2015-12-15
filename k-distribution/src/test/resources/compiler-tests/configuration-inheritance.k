@@ -22,4 +22,5 @@ module C
     configuration <t> initKCell(Init) initBCell </t>
 
     rule <k> y => foo ...</k> <b> bar => x </b>
+    rule <k> <t>-fragment _ _ </t>-fragment => .K ...</k>
 endmodule
