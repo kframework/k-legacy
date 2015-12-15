@@ -7,7 +7,9 @@ import org.kframework.builtin.Sorts;
 import org.kframework.compile.ConfigurationInfo;
 import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Definition;
+import org.kframework.definition.DefinitionTransformer;
 import org.kframework.definition.Module;
+import org.kframework.definition.ModuleTransformer;
 import org.kframework.definition.Production;
 import org.kframework.definition.ProductionItem;
 import org.kframework.definition.RegexTerminal;
@@ -16,11 +18,13 @@ import org.kframework.definition.Terminal;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.loader.Constants;
 import org.kframework.kore.Sort;
+import org.kframework.kore.compile.ConvertDataStructureToLookup;
 import org.kframework.kore.convertors.KOREtoKIL;
 import org.kframework.parser.concrete2kore.ParseInModule;
 import scala.collection.Seq;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -141,8 +145,35 @@ public class RuleGrammarGenerator {
         Set<Sentence> extensionProds = new HashSet<>();
         Set<Sentence> disambProds;
 
+        //DefinitionTransformer genExtension = DefinitionTransformer.fromSentenceTransformer(func((m, s) ->
+        //        new ConvertDataStructureToLookup(m, false).convert(s)), "Generate Extension parser");
+        Module mt1 = ModuleTransformer.from((Module m) -> m,"Generate Extension parser").apply(mod);
+        /*Module mt2 = ModuleTransformer.from(new Function<Module, Module> {
+            @Override
+            public Object apply(Object o) {
+                return null;
+            }
+        },"Generate Extension parser").apply(mod);*/
+        Module mt3 = ModuleTransformer.from((Module m) -> {
+            return m;
+        },"Generate Extension parser").apply(mod);
+
+
+
         if (baseK.getModule(AUTO_CASTS).isDefined() && mod.importedModules().contains(baseK.getModule(AUTO_CASTS).get())) { // create the diamond
-            Set<Sentence> temp;
+            Module mt4 = ModuleTransformer.from((Module m) -> {
+                Set<Sentence> newProds = new HashSet<>();
+                for (Sort srt : iterable(mod.definedSorts())) {
+                    if (!isParserSort(srt)) {
+                        // K ::= K "::Sort" | K ":Sort" | K "<:Sort" | K ":>Sort"
+                        newProds.addAll(makeCasts(Sorts.KBott(), Sorts.K(), srt));
+                    }
+                }
+                return Module(m.name(),
+                        org.kframework.Collections.add(baseK.getModule(K).get(), m.imports()),
+                        org.kframework.Collections.addAll(m.localSentences(), immutable(newProds)),
+                        m.att());
+            },"Generate Extension parser").apply(mod);
             for (Sort srt : iterable(mod.definedSorts())) {
                 if (!isParserSort(srt)) {
                     // K ::= K "::Sort" | K ":Sort" | K "<:Sort" | K ":>Sort"
