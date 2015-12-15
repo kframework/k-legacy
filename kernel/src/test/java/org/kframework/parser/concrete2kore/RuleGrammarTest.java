@@ -122,7 +122,7 @@ public class RuleGrammarTest {
     }
 
     // test variable disambiguation when a variable is declared by the user
-    @Test @Ignore // TODO: add back after fixing reference to KBott
+    @Test
     public void test3() {
         String def = "" +
                 "module TEST " +
@@ -139,7 +139,7 @@ public class RuleGrammarTest {
     }
 
     // test variable disambiguation when all variables are being inferred
-    @Test @Ignore // TODO: add back after fixing reference to KBott
+    @Test
     public void test4() {
         String def = "" +
                 "module TEST " +
@@ -202,7 +202,7 @@ public class RuleGrammarTest {
     }
 
     // test cells
-    @Test @Ignore // TODO: add back after fixing reference to K
+    @Test
     public void test9() {
         String def = "" +
                 "module TEST " +
@@ -230,7 +230,7 @@ public class RuleGrammarTest {
     }
 
     // test config cells
-    @Test @Ignore // TODO: add back after fixing reference to K
+    @Test
     public void test11() {
         String def = "" +
                 "module TEST " +
@@ -264,7 +264,7 @@ public class RuleGrammarTest {
     }
 
     // test automatic follow restriction for terminals
-    @Test @Ignore // TODO: add back after fixing reference to K
+    @Test
     public void test14() {
         String def = "" +
                 "module TEST " +
@@ -284,7 +284,7 @@ public class RuleGrammarTest {
     }
 
     // test whitespace
-    @Test @Ignore // TODO: add back after fixing reference to K
+    @Test
     public void test15() {
         String def = "" +
                 "module TEST " +
@@ -376,7 +376,7 @@ public class RuleGrammarTest {
 
     // test inference with complicated ambiguity
     // regression test for issue #1603
-    @Test @Ignore // TODO: add back after fixing reference to KItem
+    @Test
     public void test22() {
         String def = "" +
                 "module TEST\n" +

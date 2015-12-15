@@ -115,7 +115,7 @@ public class RuleGrammarGenerator {
      */
     public Module getRuleGrammar(Module mod) {
         // import RULE-CELLS in order to parse cells specific to rules
-        Module newM = new Module(mod.name() + "-" + RULE_CELLS, Set(mod, baseK.getModule(RULE_CELLS).get()), Set(), Att());
+        Module newM = new Module(mod.name() + "-" + RULE_CELLS, Set(mod, baseK.getModule(K).get(), baseK.getModule(RULE_CELLS).get()), Set(), Att());
         return newM;
     }
 
@@ -128,7 +128,7 @@ public class RuleGrammarGenerator {
      */
     public Module getConfigGrammar(Module mod) {
         // import CONFIG-CELLS in order to parse cells specific to configurations
-        Module newM = new Module(mod.name() + "-" + CONFIG_CELLS, Set(mod, baseK.getModule(CONFIG_CELLS).get()), Set(), Att());
+        Module newM = new Module(mod.name() + "-" + CONFIG_CELLS, Set(mod, baseK.getModule(K).get(), baseK.getModule(CONFIG_CELLS).get()), Set(), Att());
         return newM;
     }
 
@@ -159,27 +159,11 @@ public class RuleGrammarGenerator {
      * @return parser which applies disambiguation filters by default.
      */
     public ParseInModule getCombinedGrammar(Module seedMod) {
-        Set<Sentence> prods = new HashSet<>();
-    // TODO (radum) delete following paragraph
-        //DefinitionTransformer genExtension = DefinitionTransformer.fromSentenceTransformer(func((m, s) ->
-        //        new ConvertDataStructureToLookup(m, false).convert(s)), "Generate Extension parser");
-        Module mt1 = ModuleTransformer.from((Module m) -> m, "Generate Extension parser").apply(seedMod);
-        /*Module mt2 = ModuleTransformer.from(new Function<Module, Module> {
-            @Override
-            public Object apply(Object o) {
-                return null;
-            }
-        },"Generate Extension parser").apply(seedMod);*/
-        Module mt3 = ModuleTransformer.from((Module m) -> {
-            return m;
-        }, "Generate Extension parser").apply(seedMod);
-
-
         /** Extension module is used by the compiler to get information about subsorts and access the definition of casts */
         Module extensionM = ModuleTransformer.from((Module m) -> {
             Set<Sentence> newProds = new HashSet<>();
             if (baseK.getModule(AUTO_CASTS).isDefined() && seedMod.importedModules().contains(baseK.getModule(AUTO_CASTS).get())) { // create the casts
-                for (Sort srt : iterable(seedMod.localSorts())) {
+                for (Sort srt : iterable(m.localSorts())) {
                     if (!isParserSort(srt)) {
                         // K ::= K "::Sort" | K ":Sort" | K "<:Sort" | K ":>Sort"
                         newProds.addAll(makeCasts(Sorts.KBott(), Sorts.K(), srt));
@@ -187,7 +171,7 @@ public class RuleGrammarGenerator {
                 }
             }
             if (baseK.getModule(K_TOP_SORT).isDefined() && seedMod.importedModules().contains(baseK.getModule(K_TOP_SORT).get())) { // create the upper diamond
-                for (Sort srt : iterable(seedMod.localSorts())) {
+                for (Sort srt : iterable(m.localSorts())) {
                     if (!isParserSort(srt)) {
                         // K ::= Sort
                         newProds.add(Production(Sorts.K(), Seq(NonTerminal(srt)), Att()));
@@ -195,7 +179,7 @@ public class RuleGrammarGenerator {
                 }
             }
             if (baseK.getModule(K_BOTTOM_SORT).isDefined() && seedMod.importedModules().contains(baseK.getModule(K_BOTTOM_SORT).get())) { // create the lower diamond
-                for (Sort srt : iterable(seedMod.localSorts())) {
+                for (Sort srt : iterable(m.localSorts())) {
                     if (!isParserSort(srt)) {
                         // Sort ::= KBott
                         newProds.add(Production(srt, Seq(NonTerminal(Sorts.KBott())), Att()));
@@ -208,7 +192,7 @@ public class RuleGrammarGenerator {
                     org.kframework.Collections.add(baseK.getModule(K).get(), m.imports()),
                     org.kframework.Collections.addAll(m.localSentences(), immutable(newProds)),
                     m.att());
-        }, "Generate Extension parser").apply(seedMod);
+        }, "Generate Extension module").apply(seedMod);
 
         // prepare for auto follow restrictions, which needs to be done globally (if necessary)
         Object PRESENT = new Object();
@@ -304,7 +288,7 @@ public class RuleGrammarGenerator {
             }
 
             return Module(m.name(), m.imports(), immutable(newProds), m.att());
-        }, "Generate Disambiguation parser").apply(seedMod);
+        }, "Generate Disambiguation module").apply(extensionM);
 
         /** Parsing module is used to generate the grammar for the kernel of the parser. */
         Module parseM = ModuleTransformer.from((Module m) -> {
@@ -351,7 +335,7 @@ public class RuleGrammarGenerator {
                 return Module(m.name(), m.imports(), immutable(newProds), m.att());
             }
             return m;
-        }, "Generate Parsing parser").apply(disambM);
+        }, "Generate Parsing module").apply(disambM);
 
         return new ParseInModule(seedMod, extensionM, disambM, parseM, this.strict);
     }
