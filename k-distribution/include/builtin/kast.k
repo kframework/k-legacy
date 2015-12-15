@@ -11,6 +11,9 @@ module BASIC-K
   syntax KItem [hook(K.KItem)]
   syntax K     ::= KItem
   syntax KConfigVar
+  syntax KBott
+  syntax KList
+  // here will be automatically added the casts for KLabel, KItem, K and KList
 endmodule
 
 module KSTRING
