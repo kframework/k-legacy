@@ -53,7 +53,9 @@ public class SortCellsTest {
     @Test
     public void testSimpleSplitting() {
         KVariable Y = KVariable("Y", Att().add(Attribute.SORT_KEY, "OptCell"));
+        // `<t>(`<env>`(),X,Y) => X
         K term = KRewrite(cell("<t>", cell("<env>"), KVariable("X"), Y), KVariable("X"));
+        // `<t>`(X,`<env>`(),Y) => `<t>-fragment`(X,noEnvCell(),`.OptCell`())
         K expected = KRewrite(cell("<t>", KVariable("X"), cell("<env>"), Y), cell("<t>-fragment", KVariable("X"), app("noEnvCell"), app(".OptCell")));
         KExceptionManager kem = new KExceptionManager(new GlobalOptions());
         Assert.assertEquals(expected, new SortCells(cfgInfo, labelInfo, kem).sortCells(term));
@@ -67,7 +69,9 @@ public class SortCellsTest {
     @Test
     public void testSortedVar() {
         KVariable Y = KVariable("Y", Att().add(Attribute.SORT_KEY, "OptCell"));
+        // `<t>`(`<env>`(),X,Y)=>Y
         K term = KRewrite(cell("<t>", cell("<env>"), KVariable("X"), Y), Y);
+        // `<t>`(X,`<env>`(),Y)=>Y
         K expected = KRewrite(cell("<t>", KVariable("X"), cell("<env>"), Y), Y);
         KExceptionManager kem = new KExceptionManager(new GlobalOptions());
         Assert.assertEquals(expected, new SortCells(cfgInfo, labelInfo, kem).sortCells(term));
@@ -76,7 +80,9 @@ public class SortCellsTest {
 
     @Test
     public void testUselessVariable() {
+        // `<t>`(`<env>`(),`<k>`(),`<opt>`(),X)
         K term = cell("<t>", cell("<env>"), cell("<k>"), cell("<opt>"), KVariable("X"));
+        // `<t>`(`<k>`(),`<env>`(),`<opt>`())
         K expected = cell("<t>", cell("<k>"), cell("<env>"), cell("<opt>"));
         KExceptionManager kem = new KExceptionManager(new GlobalOptions());
         Assert.assertEquals(expected, new SortCells(cfgInfo, labelInfo, kem).sortCells(term));
@@ -85,7 +91,9 @@ public class SortCellsTest {
 
     @Test
     public void testMultipleSplit() {
+        // `<t>`(X) => Y
         K term = KRewrite(cell("<t>", KVariable("X")), KVariable("Y"));
+        // `<t>`(_0,_1,_2) => Y
         K expected = KRewrite(cell("<t>", KVariable("_0"), KVariable("_1"), KVariable("_2")), KVariable("Y"));
         KExceptionManager kem = new KExceptionManager(new GlobalOptions());
         Assert.assertEquals(expected, new SortCells(cfgInfo, labelInfo, kem).sortCells(term));
@@ -94,7 +102,9 @@ public class SortCellsTest {
 
     @Test
     public void testAddOptCell() {
+        // `<t>`(X,`#cells`()=>`<opt>`())
         K term = cell("<t>", KVariable("X"), KRewrite(cells(), cell("<opt>")));
+        // `<t>`(_0,_1,`.OptCell`()=>`<opt>`())
         K expected = cell("<t>", KVariable("_0"), KVariable("_1"), KRewrite(KApply(KLabel(".OptCell")), cell("<opt>")));
         KExceptionManager kem = new KExceptionManager(new GlobalOptions());
         Assert.assertEquals(expected, new SortCells(cfgInfo, labelInfo, kem).sortCells(term));
@@ -103,7 +113,9 @@ public class SortCellsTest {
 
     @Test
     public void testRemoveOptCell() {
+        // `<t>`(X,`<opt>`()=>`#cells`())
         K term = cell("<t>", KVariable("X"), KRewrite(cell("<opt>"), cells()));
+        // `<t>`(_0,_1,`<opt>`()=>`.OptCell`())
         K expected = cell("<t>", KVariable("_0"), KVariable("_1"), KRewrite(cell("<opt>"), KApply(KLabel(".OptCell"))));
         KExceptionManager kem = new KExceptionManager(new GlobalOptions());
         Assert.assertEquals(expected, new SortCells(cfgInfo, labelInfo, kem).sortCells(term));
@@ -112,7 +124,9 @@ public class SortCellsTest {
 
     @Test
     public void testAddStarCell() {
+        // `<top>`(`#cells`()=>`<t>`(X))
         K term = cell("<top>", KRewrite(cells(), cell("<t>", KVariable("X"))));
+        // `<top>`(`.ThreadCellBag`()=>`<t>`(_0,_1,_2))
         K expected = cell("<top>", KRewrite(KApply(KLabel(".ThreadCellBag")), cell("<t>", KVariable("_0"), KVariable("_1"), KVariable("_2"))));
         KExceptionManager kem = new KExceptionManager(new GlobalOptions());
         Assert.assertEquals(expected, new SortCells(cfgInfo, labelInfo, kem).sortCells(term));
@@ -121,7 +135,9 @@ public class SortCellsTest {
 
     @Test
     public void testRemoveStarCell() {
+        // `<top>`(`<t>`(X)=>`#cells`())
         K term = cell("<top>", KRewrite(cell("<t>", KVariable("X")), cells()));
+        // `<top>`(`<t>`(_0,_1,_2)=>`.ThreadCellBag`())
         K expected = cell("<top>", KRewrite(cell("<t>", KVariable("_0"), KVariable("_1"), KVariable("_2")), KApply(KLabel(".ThreadCellBag"))));
         KExceptionManager kem = new KExceptionManager(new GlobalOptions());
         Assert.assertEquals(expected, new SortCells(cfgInfo, labelInfo, kem).sortCells(term));
@@ -131,7 +147,9 @@ public class SortCellsTest {
 
     @Test
     public void testConcatStarCell() {
+        // `<top>`(Y=>`#cells`(Y,`<t>`(X)))
         K term = cell("<top>", KRewrite(KVariable("Y"), cells(KVariable("Y"), cell("<t>", KVariable("X")))));
+        // `<top>`(Y=>`_ThreadCellBag_`(Y,`<t>`(_0,_1,_2)))
         K expected = cell("<top>", KRewrite(KVariable("Y"), KApply(KLabel("_ThreadCellBag_"), KVariable("Y"), cell("<t>", KVariable("_0"), KVariable("_1"), KVariable("_2")))));
         KExceptionManager kem = new KExceptionManager(new GlobalOptions());
         Assert.assertEquals(expected, new SortCells(cfgInfo, labelInfo, kem).sortCells(term));
@@ -140,7 +158,9 @@ public class SortCellsTest {
 
     @Test
     public void testConcatStarCellEmptyl() {
+        // `<top>`(Y=>`#cells`())
         K term = cell("<top>", KRewrite(KVariable("Y"), cells()));
+        // `<top>`(Y=>`.ThreadCellBag`())
         K expected = cell("<top>", KRewrite(KVariable("Y"), KApply(KLabel(".ThreadCellBag"))));
         KExceptionManager kem = new KExceptionManager(new GlobalOptions());
         Assert.assertEquals(expected, new SortCells(cfgInfo, labelInfo, kem).sortCells(term));
@@ -149,8 +169,11 @@ public class SortCellsTest {
 
     @Test
     public void testCellFragmentCapture1() {
+        // `<top>`(`<t>`(F),`<t>`(`<k>`(Rest=>F~>Rest),F2))
         K term = cell("<top>", cell("<t>", KVariable("F")),
                 cell("<t>", cell("<k>", KRewrite(KSequence(KVariable("Rest")), KSequence(KVariable("F"), KVariable("Rest")))), KVariable("F2")));
+        // `<top>`(`_ThreadCellBag_`(`<t>`(_0,_1,_2),
+        //    `<t>`(`<k>`(Rest=>`<t>-fragment`(_0,_1,_2)~>Rest`),_3,_4)))
         K expected = cell("<top>", app("_ThreadCellBag_",
                 cell("<t>", KVariable("_0"), KVariable("_1"), KVariable("_2")),
                 cell("<t>", cell("<k>", KRewrite(KSequence(KVariable("Rest")),
@@ -164,8 +187,10 @@ public class SortCellsTest {
 
     @Test
     public void testCellFragmentCapture2() {
+        // `<top>`(`<t>`(`<k>`(K),F),`<t>`(`<k>`(Rest=>F~>Rest),F2))
         K term = cell("<top>", cell("<t>", cell("<k>", KVariable("K")), KVariable("F")),
                 cell("<t>", cell("<k>", KRewrite(KSequence(KVariable("Rest")), KSequence(KVariable("F"), KVariable("Rest")))), KVariable("F2")));
+        // `<top>`(`_ThreadCellBag_`(`<t>`(`<k>`(K),_0,_1),`<t>`(`<k>`(Rest)=>`<t>-fragment`(noKCell(),_0,_1)~>Rest),_2,_3)))
         K expected = cell("<top>", app("_ThreadCellBag_",
                 cell("<t>", cell("<k>", KVariable("K")), KVariable("_0"), KVariable("_1")),
                 cell("<t>", cell("<k>", KRewrite(KSequence(KVariable("Rest")),
@@ -179,8 +204,10 @@ public class SortCellsTest {
 
     @Test
     public void testCellFragmentCapture3() {
+        // `<top>`(`<t>`(`<opt>`(O),F),`<t>`(`<k>`(Rest=>F~>Rest),F2))
         K term = cell("<top>", cell("<t>", cell("<opt>", KVariable("O")), KVariable("F")),
                 cell("<t>", cell("<k>", KRewrite(KSequence(KVariable("Rest")), KSequence(KVariable("F"), KVariable("Rest")))), KVariable("F2")));
+        // `<top>`(`_ThreadCellBag_`(`<t>`(_0,_1,`<opt>`(O)),`<t>`(`<k>`(Rest=>`<t>-fragment`(_0,_1,`.OptCell`())~>Rest),_2,_3)))
         K expected = cell("<top>", app("_ThreadCellBag_",
                 cell("<t>", KVariable("_0"), KVariable("_1"), cell("<opt>", KVariable("O"))),
                 cell("<t>", cell("<k>", KRewrite(KSequence(KVariable("Rest")),
@@ -194,8 +221,10 @@ public class SortCellsTest {
 
     @Test
     public void testCellFragmentCapture4() {
+        // `<top>`(`<t>`(`<env>`(E),F),`<t>`(`<k>`(Rest=>F~>Rest),F2))
         K term = cell("<top>", cell("<t>", cell("<env>", KVariable("E")), KVariable("F")),
                 cell("<t>", cell("<k>", KRewrite(KSequence(KVariable("Rest")), KSequence(KVariable("F"), KVariable("Rest")))), KVariable("F2")));
+        // `<top>`(`_ThreadCellBag_`(`<t>`(_0,`<env>`(E),_1),`<t>`(`<k>`(Rest=>`<t>-fragment`(_0,noEnvCell(),_1)~>Rest),_2,_3)))
         K expected = cell("<top>", app("_ThreadCellBag_",
                 cell("<t>", KVariable("_0"), cell("<env>", KVariable("E")), KVariable("_1")),
                 cell("<t>", cell("<k>", KRewrite(KSequence(KVariable("Rest")),
@@ -209,7 +238,9 @@ public class SortCellsTest {
 
     @Test
     public void testFragmentFragmentCapture() {
+        // `<t>-fragment`(noKCell(),F)=>F
         K term = KRewrite(cell("<t>-fragment", app("noKCell"), KVariable("F")), KVariable("F"));
+        // `<t>-fragment`(noKCell(),_0,_1)=>`<t>-fragment`(noKCell(),_0,_1)
         K expected = KRewrite(cell("<t>-fragment", app("noKCell"), KVariable("_0"), KVariable("_1")),
                 cell("<t>-fragment", app("noKCell"), KVariable("_0"), KVariable("_1")));
         KExceptionManager kem = new KExceptionManager(new GlobalOptions());
@@ -219,10 +250,12 @@ public class SortCellsTest {
 
     @Test
     public void testExplicitFragment1() {
+        // `<top>`(`<t>`(`<k>`(Rest=>`<t>-fragment`(X)~>Rest),X))
         K term = cell("<top>", cell("<t>",
                 cell("<k>", KRewrite(KVariable("Rest"),
                         KSequence(app("<t>-fragment", KVariable("X")), KVariable("Rest")))),
                 KVariable("X")));
+        // `<top>`(`<t>`(`<k>`(Rest=>`<t>-fragment`(noKCell(),_0,_1)~>Rest),_0,_1))
         K expected = cell("<top>", cell("<t>",
                 cell("<k>", KRewrite(KVariable("Rest"),
                         KSequence(app("<t>-fragment", app("noKCell"), KVariable("_0"), KVariable("_1")), KVariable("Rest")))),
@@ -239,7 +272,9 @@ public class SortCellsTest {
     public void testBuildFragment1() {
         KVariable E = KVariable("E", Att().add(Attribute.SORT_KEY, "EnvCell"));
         KVariable K = KVariable("K", Att().add(Attribute.SORT_KEY, "KCell"));
+        // `<t>-fragment`(`#cells`(E,K))
         K term = cell("<t>-fragment", app("#cells", E, K));
+        // `<t>-fragment`(K,E,`.OptCell`())
         K expected = cell("<t>-fragment", K, E, app(".OptCell"));
         KExceptionManager kem = new KExceptionManager(new GlobalOptions());
         Assert.assertEquals(expected, new SortCells(cfgInfo, labelInfo, kem).sortCells(term));
@@ -251,7 +286,9 @@ public class SortCellsTest {
     public void testBuildFragment2() {
         KVariable E = KVariable("E", Att().add(Attribute.SORT_KEY, "EnvCellOpt"));
         KVariable K = KVariable("K", Att().add(Attribute.SORT_KEY, "KCellOpt"));
+        // `<t>-fragment`(`#cells`(E,K))
         K term = cell("<t>-fragment", app("#cells", E, K));
+        // `<t>-fragment`(K,E,`.OptCell`())
         K expected = cell("<t>-fragment", K, E, app(".OptCell"));
         KExceptionManager kem = new KExceptionManager(new GlobalOptions());
         Assert.assertEquals(expected, new SortCells(cfgInfo, labelInfo, kem).sortCells(term));
@@ -261,7 +298,9 @@ public class SortCellsTest {
     // Assemble a fragment from literal cells
     @Test
     public void testBuildFragment3() {
+        // `<t>-fragment`(`#cells`(`.OptCell`(),`<k>`(.K)))
         K term = cell("<t>-fragment", app("#cells", app(".OptCell"), cell("<k>", KSequence())));
+        // `<t>-fragment`(`<k>`(.K),noEnvCell(),`.OptCell`())
         K expected = cell("<t>-fragment", cell("<k>", KSequence()), app("noEnvCell"), app(".OptCell"));
         KExceptionManager kem = new KExceptionManager(new GlobalOptions());
         Assert.assertEquals(expected, new SortCells(cfgInfo, labelInfo, kem).sortCells(term));
@@ -272,10 +311,12 @@ public class SortCellsTest {
     // plus some an explicitly-supplied cell.
     @Test
     public void testBuildFragment4() {
+        // `<t>`(`<k>`(capture()=>captured(`<t>-fragment`(`#cells`(`<k>`(.K),Ctx)))),Ctx)
         K term = cell("<t>", cell("<k>", KRewrite(
                 app("capture"),
                 app("captured", app("<t>-fragment", app("#cells", app("<k>", KSequence()), KVariable("Ctx"))))
         )), KVariable("Ctx"));
+        // `<t>`(`<k>`(capture()=>captured(`<t>-fragment`(`<k>`(.K),_0,_1))),_0,_1)
         K expected = cell("<t>", cell("<k>", KRewrite(
                 app("capture"),
                 app("captured", app("<t>-fragment", app("<k>", KSequence()), KVariable("_0"), KVariable("_1")))
@@ -289,10 +330,12 @@ public class SortCellsTest {
     @Test
     public void testBuildFragment5() {
         KVariable K = KVariable("K", Att().add(Attribute.SORT_KEY, "KCellOpt"));
+        // `<t>`(`<k>`(capture(K)=>captured(`<t>-fragment`(`#cells`(K,Ctx)))),Ctx)
         K term = cell("<t>", cell("<k>", KRewrite(
                 app("capture", K),
                 app("captured", app("<t>-fragment", app("#cells", K, KVariable("Ctx"))))
         )), KVariable("Ctx"));
+        // `<t>`(`<k>`(capture(K)=>captured(`<t>-fragment`(K,_0,_1))),_0,_1)
         K expected = cell("<t>", cell("<k>", KRewrite(
                 app("capture", K),
                 app("captured", app("<t>-fragment", K, KVariable("_0"), KVariable("_1")))
@@ -320,7 +363,9 @@ public class SortCellsTest {
 
     @Test
     public void testFragmentBag() {
+        // `<top>`(F,`<t>`(Rest=>F~>Rest))
         K term = cell("<top>", KVariable("F"), cell("<t>", KRewrite(KVariable("Rest"), KSequence(KVariable("F"), KVariable("Rest")))));
+        // `<top>`(`_ThreadCellBag_`(_0,`<t>`(Rest=>`<top>-fragment`(_0,_1)~>Rest)),_1)
         K expected = cell("<top>",
                 app("_ThreadCellBag_", KVariable("_0"),
                         cell("<t>", KRewrite(KVariable("Rest"),
@@ -333,11 +378,13 @@ public class SortCellsTest {
 
     @Test
     public void testFragmentRewrite() {
+        // `<top>`(`<t>`(restore(Ctx)=>Result),`#cells`(_1,`<t>`(Result))=>Ctx)
         K term = cell("<top>",
                 cell("<t>", KRewrite(app("restore", KVariable("Ctx")),
                         KVariable("Result"))),
                 KRewrite(cells(KVariable("_1"), cell("<t>", KVariable("Result"))),
                         KVariable("Ctx")));
+        // `<top>`(`_ThreadCellBag_`(`<t>`(restore(`<top>-fragment`(_0,_2))=>Result),`_ThreadCellBag_`(_3,`<t>`(Result))=>_0),_4=>_2)
         K expected = cell("<top>",
                 app("_ThreadCellBag_",
                         cell("<t>", KRewrite(
@@ -360,12 +407,14 @@ public class SortCellsTest {
      */
     @Test
     public void testPredicateExpansion() {
+        // rule `<t>`(`<env>`(),X,Y)=>X requires isThreadCellFragment(X) ensures #token("true",Bool)
         Rule term = new Rule(KRewrite(cell("<t>", cell("<env>"), KVariable("X"), KVariable("Y", Att().add(Attribute.SORT_KEY, "OptCell"))), KVariable("X"))
                 , app("isThreadCellFragment", KVariable("X"))
                 , BooleanUtils.TRUE
                 , Att());
         K expectedBody = KRewrite(cell("<t>", KVariable("X"), cell("<env>"), KVariable("Y", Att().add(Attribute.SORT_KEY, "OptCell"))),
                 cell("<t>-fragment", KVariable("X"), app("noEnvCell"), app(".OptCell")));
+        // rule `<t>`(X,`<env>`(),Y)=>`<t>-fragment`(X,noEnvCell(),`.OptCell`()) requires `_andBool_`(#token("true",Bool),isKCell(X)) ensures #token("true",Bool)
         Rule expected = new Rule(expectedBody
                 , BooleanUtils.and(BooleanUtils.TRUE, app("isKCell", KVariable("X")))
                 , BooleanUtils.TRUE, Att());
@@ -381,12 +430,14 @@ public class SortCellsTest {
      */
     @Test
     public void testUnrelatedPredicate() {
+        // rule `<t>`(`<env>`(),X,Y)=>X requires isTopCellFragment(X) ensures #token("true",Bool)
         Rule term = new Rule(KRewrite(cell("<t>", cell("<env>"), KVariable("X"), KVariable("Y", Att().add(Attribute.SORT_KEY, "OptCell"))), KVariable("X"))
                 , app("isTopCellFragment", KVariable("X"))
                 , BooleanUtils.TRUE
                 , Att());
         K replacement = app("<t>-fragment", KVariable("X"), app("noEnvCell"), app(".OptCell"));
         K expectedBody = KRewrite(cell("<t>", KVariable("X"), cell("<env>"), KVariable("Y", Att().add(Attribute.SORT_KEY, "OptCell"))), replacement);
+        // rule `<t>`(X,`<env>`(),Y)=>`<t>-fragment`(X,noEnvCell(),`.OptCell`()) requires isTopCellFragment(`<t>-fragment`(X,noEnvCell(),`.OptCell`())) ensures #token("true",Bool)
         Rule expected = new Rule(expectedBody
                 , app("isTopCellFragment", replacement)
                 , BooleanUtils.TRUE, Att());
@@ -403,10 +454,12 @@ public class SortCellsTest {
     public void testMultipleCells() {
         KVariable T1 = KVariable("T1", Att().add(Attribute.SORT_KEY, "ThreadCell"));
         KVariable T2 = KVariable("T2", Att().add(Attribute.SORT_KEY, "ThreadCell"));
+        // `<top>`(F,`<t>`(T),`_ThreadCellBag_`(T1,T2))
         K term = cell("<top>",
                 KVariable("F"),
                 cell("<t>", KVariable("T")),
                 app("_ThreadCellBag_", T1, T2));
+        // `<top>`(`_ThreadCellBag_`(`_ThreadCellBag_`(_0,`<t>`(T)),`_ThreadCellBag_`(T1,T2)),_1)
         K expected = cell("<top>",
                 app("_ThreadCellBag_",
                         app("_ThreadCellBag_", KVariable("_0"), cell("<t>", KVariable("T"))),
