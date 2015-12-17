@@ -79,7 +79,6 @@ endmodule
 
 module RULE-CELLS
   imports KCELLS
-  imports RULE-LISTS
   // if this module is imported, the parser automatically
   // generates, for all productions that have the attribute 'cell' or 'maincell',
   // a production like below:
@@ -87,6 +86,13 @@ module RULE-CELLS
 
   syntax #OptionalDots ::= "..." [klabel(#dots)]
                          | ""    [klabel(#noDots)]
+endmodule
+
+module RULE-PARSER
+  imports RULE-LISTS
+  imports RULE-CELLS
+  // imported in modules which generate rule parsers
+  // TODO: (radumereuta) don't use modules as markers to generate parsers
 endmodule
 
 module CONFIG-CELLS
@@ -162,7 +168,6 @@ module PROGRAM-LISTS
   // if this module is imported, the parser automatically
   // replaces the default productions for lists:
   // Es ::= E "," Es [userList("*"), klabel('_,_)]
-  //      | E        [userList("*")]
   //      | ".Es"    [userList("*"), klabel('.Es)]
   // into a series of productions more suitable for programs:
   // Es#Terminator ::= ""      [klabel('.Es)]
