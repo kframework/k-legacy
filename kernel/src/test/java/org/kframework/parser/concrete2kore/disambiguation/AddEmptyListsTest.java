@@ -89,7 +89,7 @@ public class AddEmptyListsTest {
                     "syntax A ::= B\n" +
                     "syntax As ::= List{A,\",\"}\n" +
                     "syntax Bs ::= List{B,\",\"}\n" +
-                    "syntax As ::= Bs\n" +
+                    "syntax As ::= Bs\n" + // TODO: no longer needed. Fixed in #1891 in master branch
                     "syntax Func ::= f(As) | g(A) | h(Bs)" +
                     "endmodule\n";
 
@@ -100,10 +100,10 @@ public class AddEmptyListsTest {
     public static final KLabel F = KLabel("f");
     public static final KLabel G = KLabel("g");
     public static final KLabel H = KLabel("h");
-    public static final KLabel CAST_A = KLabel("#SemanticCastToA");
-    public static final KLabel CAST_B = KLabel("#SemanticCastToB");
-    public static final KLabel CAST_AS = KLabel("#SemanticCastToAs");
-    public static final KLabel CAST_BS = KLabel("#SemanticCastToBs");
+    public static final KLabel CAST_A = KLabel("#SemanticCastToA@TEST");
+    public static final KLabel CAST_B = KLabel("#SemanticCastToB@TEST");
+    public static final KLabel CAST_AS = KLabel("#SemanticCastToAs@TEST");
+    public static final KLabel CAST_BS = KLabel("#SemanticCastToBs@TEST");
 
     @Test
     public void testEmptyList1() {
@@ -155,7 +155,7 @@ public class AddEmptyListsTest {
 
     @Test
     public void testAnnVar() {
-        parseTerm("V:As", "Func", KApply(CAST_AS, KVariable("V")));
+        parseTerm("V:As", "K", KApply(CAST_AS, KVariable("V")));
     }
 
     @Test
@@ -165,7 +165,7 @@ public class AddEmptyListsTest {
 
     @Test
     public void testArgumentLabeledNil() {
-        parseTerm("f(`.List{\"'_,_\"KList))", "Func", KApply(F, NIL));
+        parseTerm("f(`.List{\"'_,_\"}`(.KList))", "Func", KApply(F, NIL));
     }
 
     @Test
