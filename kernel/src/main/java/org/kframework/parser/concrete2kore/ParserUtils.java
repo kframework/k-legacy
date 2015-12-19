@@ -2,14 +2,21 @@
 package org.kframework.parser.concrete2kore;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.kframework.attributes.Location;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Module;
 import org.kframework.kil.Definition;
 import org.kframework.kil.DefinitionItem;
+import org.kframework.kil.LiterateDefinitionComment;
 import org.kframework.kil.Require;
 import org.kframework.kil.loader.CollectProductionsVisitor;
 import org.kframework.kil.loader.Context;
+import org.kframework.kompile.ConcreteDefinition;
+import org.kframework.kompile.ConcreteModules;
 import org.kframework.kore.K;
+import org.kframework.kore.KItem;
+import org.kframework.kore.KToken;
 import org.kframework.kore.Sort;
 import org.kframework.kore.convertors.KILtoKORE;
 import org.kframework.main.GlobalOptions;
@@ -19,15 +26,16 @@ import org.kframework.parser.outer.Outer;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
+import scala.Option;
+import scala.Tuple2;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.io.Serializable;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import static org.kframework.Collections.*;
 import static org.kframework.definition.Constructors.*;
@@ -87,7 +95,7 @@ public class ParserUtils {
                                     Sort startSymbol,
                                     Source source,
                                     ParseInModule kastModule) {
-        return kastModule.parseString(theTextToParse, startSymbol, source)._1().right().get();
+        return kastModule.parseString(theTextToParse, startSymbol, source)._1().right().get()._1();
     }
 
     /**
@@ -124,11 +132,11 @@ public class ParserUtils {
                 System.out.println("Importing: " + new File(source.source()).getAbsolutePath());
             }
         }
-        List<org.kframework.kil.Module> results = new ArrayList<>();
+        List<org.kframework.kil.Module> resultModules = new ArrayList<>();
 
         for (DefinitionItem di : items) {
             if (di instanceof org.kframework.kil.Module)
-                results.add((org.kframework.kil.Module) di);
+                resultModules.add((org.kframework.kil.Module) di);
             else if (di instanceof Require) {
                 // resolve location of the new file
 
@@ -148,16 +156,16 @@ public class ParserUtils {
                         .filter(file -> file.exists()).findFirst();
 
                 if (definitionFile.isPresent())
-                    results.addAll(slurp(files.loadFromWorkingDirectory(definitionFile.get().getPath()),
-                            Source.apply(definitionFile.get().getAbsolutePath()),
-                            definitionFile.get().getParentFile(),
-                            lookupDirectories));
+                    resultModules.addAll(slurp(files.loadFromWorkingDirectory(definitionFile.get().getPath()),
+                                         Source.apply(definitionFile.get().getAbsolutePath()),
+                                         definitionFile.get().getParentFile(),
+                                         lookupDirectories));
                 else
                     throw KExceptionManager.criticalError("Could not find file: " +
                             definitionFileName + "\nLookup directories:" + allLookupDirectoris, di);
             }
         }
-        return results;
+        return resultModules;
     }
 
     public Set<Module> loadModules(
@@ -166,10 +174,7 @@ public class ParserUtils {
             File currentDirectory,
             List<File> lookupDirectories,
             boolean dropQuote) {
-
-        List<org.kframework.kil.Module> kilModules =
-                slurp(definitionText, source, currentDirectory, lookupDirectories);
-
+        List<org.kframework.kil.Module> kilModules = slurp(definitionText, source, currentDirectory, lookupDirectories);
         Definition def = new Definition();
         def.setItems((List<DefinitionItem>) (Object) kilModules);
 
@@ -181,7 +186,7 @@ public class ParserUtils {
         HashMap<String, Module> koreModules = new HashMap<>();
         HashSet<org.kframework.kil.Module> kilModulesSet = new HashSet<>(kilModules);
 
-        kilModules.stream().forEach(m -> kilToKore.apply(m, kilModulesSet, koreModules));
+        kilModulesSet.forEach(m -> kilToKore.apply(m, kilModulesSet, koreModules));
 
         return new HashSet<>(koreModules.values());
     }
@@ -210,6 +215,35 @@ public class ParserUtils {
         } else {
             syntaxModule = opt.get();
         }
-        return org.kframework.definition.Definition.apply(mainModule, syntaxModule, immutable(modules), Att());
+
+        scala.collection.immutable.List definitionComments = loadComments(source);
+
+        return org.kframework.definition.Definition.apply(mainModule, syntaxModule, immutable(modules),
+                                                          definitionComments, Att());
     }
+
+    private scala.collection.immutable.List loadComments(Source source) {
+        Option<String> pathOpt = Source.unapply(source);
+        assert(pathOpt.isDefined());
+        String path = pathOpt.get();
+        String definitionText = files.loadFromWorkingDirectory(path);
+        List<DefinitionItem> items = Outer.parse(source, definitionText, null);
+        Definition def = new Definition();
+        def.setItems(items);
+
+        Context context = new Context();
+        new CollectProductionsVisitor(context).visitNode(def);
+
+        KILtoKORE kilToKore = new KILtoKORE(context);
+
+        List<LiterateDefinitionComment>
+                literateDefinitionComments = items.stream()
+                .filter(i -> i instanceof LiterateDefinitionComment)
+                .map(di -> (LiterateDefinitionComment) di)
+                .collect(Collectors.toList());
+        scala.collection.immutable.List r = kilToKore.handleLiterationDefintionComments(literateDefinitionComments);
+        return r;
+    }
+
+
 }
