@@ -39,6 +39,7 @@ class TestMeta {
 
   val metad = 'Definition(metamodule, metamodule,
     'Set(metamodule),
+    'List('List()),
     'Att('Set()))
 
 
