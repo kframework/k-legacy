@@ -4,12 +4,14 @@ package org.kframework.definition
 
 import dk.brics.automaton.{BasicAutomata, RegExp, RunAutomaton, SpecialOperations}
 import org.kframework.POSet
+
 import org.kframework.attributes.Att
 import org.kframework.kore.Unapply.{KApply, KLabel}
 import org.kframework.kore._
 import org.kframework.utils.errorsystem.KEMException
 
 import scala.collection.JavaConverters._
+import scala.collection.SortedSet
 
 trait OuterKORE
 
@@ -29,6 +31,7 @@ case class Definition(
   mainModule: Module,
   mainSyntaxModule: Module,
   entryModules: Set[Module],
+  comments : List[DefinitionComment] = List(),
   att: Att = Att())
   extends DefinitionToString with OuterKORE {
 
@@ -41,6 +44,8 @@ case class Definition(
 
   def getModule(name: String): Option[Module] = modules find { case Module(`name`, _, _, _) => true; case _ => false }
 }
+
+case class DefinitionComment(comment: String, att: Att = Att())
 
 case class Module(name: String, imports: Set[Module], localSentences: Set[Sentence], att: Att = Att())
   extends ModuleToString with KLabelMappings with OuterKORE {

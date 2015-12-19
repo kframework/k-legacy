@@ -76,6 +76,7 @@ class DefinitionTransformer(moduleTransformer: Module => Module) extends (Defini
     definition.Definition(
       moduleTransformer(d.mainModule),
       moduleTransformer(d.mainSyntaxModule),
-      d.modules map moduleTransformer)
+      d.modules map moduleTransformer,
+      d.comments)
   }
 }

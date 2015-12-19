@@ -15,7 +15,9 @@ import org.kframework.kore._
 object Constructors {
 
   def Definition(mainModule: Module, syntaxModule: Module, modules: Set[Module]) =
-    definition.Definition(mainModule, syntaxModule, modules)
+    definition.Definition(mainModule, syntaxModule, modules, List.empty)
+  def Definition(mainModule: Module, syntaxModule: Module, modules: Set[Module], comments: List[DefinitionComment]) =
+    definition.Definition(mainModule, syntaxModule, modules, comments)
 
   def Module(name: String, imports: Set[Module], sentences: Set[Sentence], att: attributes.Att) =
     definition.Module(name, imports, sentences, att)
