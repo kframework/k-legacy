@@ -27,6 +27,7 @@ import org.kframework.parser.generator.SDFHelper;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import scala.Enumeration.Value;
 import scala.Tuple2;
+import scala.collection.JavaConversions;
 import scala.collection.Seq;
 
 import java.util.ArrayList;
@@ -81,16 +82,43 @@ public class KILtoKORE extends KILTransformation<Object> {
         HashMap<String, org.kframework.definition.Module> koreModules = new HashMap<>();
         apply(mainModule, kilModules, koreModules);
 
+
         // Set<org.kframework.definition.Module> modules = kilModules.map(i ->
         // apply((Module) i))
         // .collect(Collectors.toSet());
 
         // TODO: handle LiterateDefinitionComments
+        // [EdgarPek] proposal to handle LiterateDefinitionComments
+        List<LiterateDefinitionComment>
+                literateDefinitionComments = d.getItems().stream()
+                                                         .filter(i -> i instanceof LiterateDefinitionComment)
+                                                         .map(di -> (LiterateDefinitionComment) di)
+                                                         .collect(Collectors.toList());
+        scala.collection.immutable.List<org.kframework.definition.DefinitionComment>
+                definitionComments = this.handleLiterationDefintionComments(literateDefinitionComments);
 
         return Definition(
                 koreModules.get(mainModule.getName()),
                 koreModules.get(mainModule.getName()),
-                immutable(new HashSet<>(koreModules.values())));
+                immutable(new HashSet<>(koreModules.values())),
+                definitionComments);
+    }
+
+    public scala.collection.immutable.List handleLiterationDefintionComments(List<LiterateDefinitionComment> di) {
+        List<org.kframework.definition.DefinitionComment>
+                definitionComments = di.stream()
+                                       .map(c -> apply(c))
+                                       .map(r -> (org.kframework.definition.DefinitionComment) r)
+                                       .collect(Collectors.toList());
+        return JavaConversions.asScalaBuffer(definitionComments).toList();
+    }
+
+    public org.kframework.definition.DefinitionComment
+    apply(LiterateDefinitionComment definitionComment) {
+        org.kframework.definition.DefinitionComment result =
+                new org.kframework.definition.DefinitionComment(definitionComment.getValue(),
+                        inner.convertAttributes(definitionComment).add("commenttype", definitionComment.getType().toString()));
+        return result;
     }
 
     public org.kframework.definition.Module apply(Module mainModule, Set<Module> allKilModules,
