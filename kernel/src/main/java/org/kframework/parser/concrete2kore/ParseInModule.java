@@ -82,7 +82,7 @@ public class ParseInModule implements Serializable {
      * @param startSymbol    the start symbol from which to parse.
      * @return the Term representation of the parsed input.
      */
-    public Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>>
+    public Tuple2<Either<Set<ParseFailedException>, Tuple2<K,K>>, Set<ParseFailedException>>
             parseString(String input, Sort startSymbol, Source source) {
         return parseString(input, startSymbol, source, 1, 1);
     }
@@ -95,15 +95,16 @@ public class ParseInModule implements Serializable {
         }
     }
 
-    public Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>>
+    public Tuple2<Either<Set<ParseFailedException>, Tuple2<K, K>>, Set<ParseFailedException>>
         parseString(String input, Sort startSymbol, Source source, int startLine, int startColumn) {
-        final Tuple2<Either<Set<ParseFailedException>, Term>, Set<ParseFailedException>> result
+        final Tuple2<Either<Set<ParseFailedException>, Tuple2<Term, Term>>, Set<ParseFailedException>> result
                 = parseStringTerm(input, startSymbol, source, startLine, startColumn);
-        Either<Set<ParseFailedException>, K> parseInfo;
+        Either<Set<ParseFailedException>, Tuple2<K, K>> parseInfo;
         if (result._1().isLeft()) {
             parseInfo = Left.apply(result._1().left().get());
         } else {
-            parseInfo = Right.apply(TreeNodesToKORE.apply(result._1().right().get()));
+            parseInfo = Right.apply(new Tuple2<>(TreeNodesToKORE.apply(result._1().right().get()._1()),
+                                                 TreeNodesToKORE.apply(result._1().right().get()._2())));
         }
         return new Tuple2<>(parseInfo, result._2());
     }
@@ -122,7 +123,7 @@ public class ParseInModule implements Serializable {
      * @param startColumn
      * @return
      */
-    private Tuple2<Either<Set<ParseFailedException>, Term>, Set<ParseFailedException>>
+    private Tuple2< Either<Set<ParseFailedException>, Tuple2<Term, Term>>, Set<ParseFailedException> >
             parseStringTerm(String input, Sort startSymbol, Source source, int startLine, int startColumn) {
         getGrammar();
 
@@ -144,34 +145,35 @@ public class ParseInModule implements Serializable {
 
         Either<Set<ParseFailedException>, Term> rez = new TreeCleanerVisitor().apply(parsed);
         if (rez.isLeft())
-            return new Tuple2<>(rez, warn);
+            return new Tuple2<>(Left.apply(rez.left().get()), warn);
         rez = new CorrectRewritePriorityVisitor().apply(rez.right().get());
         if (rez.isLeft())
-            return new Tuple2<>(rez, warn);
+            return new Tuple2<>(Left.apply(rez.left().get()), warn);
         rez = new CorrectKSeqPriorityVisitor().apply(rez.right().get());
         if (rez.isLeft())
-            return new Tuple2<>(rez, warn);
+            return new Tuple2<>(Left.apply(rez.left().get()), warn);
         rez = new CorrectCastPriorityVisitor().apply(rez.right().get());
         if (rez.isLeft())
-            return new Tuple2<>(rez, warn);
+            return new Tuple2<>(Left.apply(rez.left().get()), warn);
         rez = new ApplyTypeCheckVisitor(disambModule.subsorts()).apply(rez.right().get());
         if (rez.isLeft())
-            return new Tuple2<>(rez, warn);
+            return new Tuple2<>(Left.apply(rez.left().get()), warn);
         rez = new PriorityVisitor(disambModule.priorities(), disambModule.leftAssoc(), disambModule.rightAssoc()).apply(rez.right().get());
         if (rez.isLeft())
-            return new Tuple2<>(rez, warn);
+            return new Tuple2<>(Left.apply(rez.left().get()), warn);
         Tuple2<Either<Set<ParseFailedException>, Term>, Set<ParseFailedException>> rez2 = new VariableTypeInferenceFilter(disambModule.subsorts(), disambModule.definedSorts(), disambModule.productionsFor(), strict).apply(rez.right().get());
         if (rez2._1().isLeft())
-            return rez2;
+            return new Tuple2<>(Left.apply(rez2._1().left().get()), rez2._2());
         warn = rez2._2();
 
-        Term rez3 = new PreferAvoidVisitor().apply(rez2._1().right().get());
-        rez2 = new AmbFilter().apply(rez3);
+        Term rez3Term = new PreferAvoidVisitor().apply(rez2._1().right().get());
+        rez2 = new AmbFilter().apply(rez3Term);
         warn = new AmbFilter().mergeWarnings(rez2._2(), warn);
         rez2 = new AddEmptyLists(disambModule).apply(rez2._1().right().get());
         warn = new AmbFilter().mergeWarnings(rez2._2(), warn);
-        rez3 = new RemoveBracketVisitor().apply(rez2._1().right().get());
+        rez3Term = new RemoveBracketVisitor().apply(rez2._1().right().get());
+        Term rez2Term = rez2._1().right().get();
 
-        return new Tuple2<>(Right.apply(rez3), warn);
+        return new Tuple2<>(Right.apply(new Tuple2<>(rez3Term, rez2Term)), warn);
     }
 }
