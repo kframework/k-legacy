@@ -185,8 +185,8 @@ public class Kompile {
                 .andThen(generateSortPredicateSyntax)
                 .andThen(func(this::resolveFreshConstants))
                 .andThen(func(AddImplicitComputationCell::transformDefinition))
+                .andThen(func(this::concretizeTransformer))
                 .andThen(new Strategy(kompileOptions.experimental.heatCoolStrategies).addStrategyCellToRulesTransformer())
-                .andThen(func(ConcretizeCells::transformDefinition))
                 .andThen(func(this::addSemanticsModule))
                 .andThen(func(this::addProgramModule))
                 .apply(def);
@@ -228,11 +228,21 @@ public class Kompile {
         return Definition(d.mainModule(), programsModule, immutable(allModules));
     }
 
+    private Definition concretizeTransformer(Definition input) {
+        ConfigurationInfoFromModule configInfo = new ConfigurationInfoFromModule(input.mainModule());
+        LabelInfo labelInfo = new LabelInfoFromModule(input.mainModule());
+        SortInfo sortInfo = SortInfo.fromModule(input.mainModule());
+        return DefinitionTransformer.fromSentenceTransformer(
+                new ConcretizeCells(configInfo, labelInfo, sortInfo, kem)::concretize,
+                "concretizing configuration"
+        ).apply(input);
+    }
+
     private Sentence concretizeSentence(Sentence s, Definition input) {
         ConfigurationInfoFromModule configInfo = new ConfigurationInfoFromModule(input.mainModule());
         LabelInfo labelInfo = new LabelInfoFromModule(input.mainModule());
         SortInfo sortInfo = SortInfo.fromModule(input.mainModule());
-        return new ConcretizeCells(configInfo, labelInfo, sortInfo, input.mainModule()).concretize(s);
+        return new ConcretizeCells(configInfo, labelInfo, sortInfo, kem).concretize(s);
     }
 
     public Module parseModule(CompiledDefinition definition, File definitionFile, boolean dropQuote) {
