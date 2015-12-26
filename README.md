@@ -1,4 +1,7 @@
 <!-- Copyright (c) 2010-2015 K Team. All Rights Reserved. -->
+[![Build Status](http://office.runtimeverification.com:8080/job/k-framework-master/badge/icon)](http://office.runtimeverification.com:8080/job/k-framework-master/)
+[![Join the chat at https://gitter.im/kframework/k](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/kframework/k?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 This is a readme file for the developers.
 
 # Prerequisites
@@ -78,8 +81,10 @@ LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<release>/lib/native/linux32`
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<release>/lib/native/linux64`
 
 ## Eclipse
+_N.B. the Eclipse internal compiler may generate false compilation errors (there are bugs in its support of Scala mixed compilation). We recommend using IntelliJ IDEA if at all possible._
+
 To autogenerate an Eclipse project for K, run `mvn install -DskipKTest; mvn eclipse:eclipse` on the
-command line, and then go into each of the `kore' and `tiny' directories and run `sbt eclipse'.
+command line, and then go into each of the `kore` and `tiny` directories and run `sbt eclipse`.
 Then start eclipse and go to File->Import->General->Existing projects into workspace, and select
 the directory of the installation. You should only add the leaves to the workspace, because
 eclipse does not support hierarchical projects.
@@ -96,7 +101,7 @@ in running the unit tests and checkstyle goals, run `mvn verify -DskipKTest` to
 skip the lengthy `ktest` execution.
 
 # Changing the KORE data structures
-If you need to change the KORE data structures (unless you are a K core developer, you probabably do not), see [Guide-for-changing-the-KORE-data-structures](https://github.com/kframework/k/wiki/Guide-for-changing-the-KORE-data-structures).
+If you need to change the KORE data structures (unless you are a K core developer, you probably do not), see [Guide-for-changing-the-KORE-data-structures](https://github.com/kframework/k/wiki/Guide-for-changing-the-KORE-data-structures).
 
 # Build the final release directory/archives
 Call `mvn install` in the base directory. This will attach an artifact to the local

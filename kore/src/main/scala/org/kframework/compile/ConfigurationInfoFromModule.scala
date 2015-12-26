@@ -11,6 +11,7 @@ import org.kframework.compile.ConfigurationInfo.Multiplicity
 import org.kframework.definition.{Module, NonTerminal, Production}
 import org.kframework.kore._
 import org.kframework.TopologicalSort._
+import collection._
 
 object ConfigurationInfoFromModule
 
@@ -55,7 +56,13 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
 
   private val edgesPoset: POSet[Sort] = POSet(edges)
 
-  private val topCells = cellSorts.filter (l => !edges.map(_._2).contains(l))
+  private val topCellsIncludingStrategyCell = cellSorts.diff(edges.map(_._2))
+
+  private val topCells =
+    if (topCellsIncludingStrategyCell.size > 1)
+      topCellsIncludingStrategyCell.filterNot(_.name == "SCell")
+    else
+      topCellsIncludingStrategyCell
 
   if (topCells.size > 1)
     throw new AssertionError("Too many top cells:" + topCells)
@@ -89,6 +96,8 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
 
   override def getParent(k: Sort): Sort = edges collectFirst { case (p, `k`) => p } get
   override def isCell(k: Sort): Boolean = cellSorts.contains(k)
+  override def isCellCollection(s: Sort): Boolean = cellBagSorts.contains(s)
+  override def isCellLabel(kLabel: KLabel): Boolean = cellLabelsToSorts.contains(kLabel)
   override def isLeafCell(k: Sort): Boolean = !isParentCell(k)
 
   override def getChildren(k: Sort): util.List[Sort] = cellProductions(k).items.filter(_.isInstanceOf[NonTerminal]).map(_.asInstanceOf[NonTerminal].sort).flatMap {s => {
@@ -139,10 +148,13 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
     .map(_._1)
     .headOption
 
-  override def getCellForUnit(unit: KApply): Option[Sort] = cellSorts
-    .map(s => (s, getCellBagSortsOfCell(s)))
-    .filter(_._2.size == 1)
-    .filter(p => KApply(KLabel(cellBagProductions(p._2.head).att.get[String]("unit").get)).equals(unit))
-    .map(_._1)
-    .headOption
+  override def getCellForUnit(unitLabel: KLabel): Option[Sort] = {
+    val unit = KApply(unitLabel)
+    cellSorts
+      .map(s => (s, getCellBagSortsOfCell(s)))
+      .filter(_._2.size == 1)
+      .filter(p => KApply(KLabel(cellBagProductions(p._2.head).att.get[String]("unit").get)).equals(unit))
+      .map(_._1)
+      .headOption
+  }
 }

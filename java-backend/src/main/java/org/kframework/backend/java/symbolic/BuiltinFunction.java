@@ -38,7 +38,7 @@ public class BuiltinFunction {
      * Map of {@link KLabelConstant} representation of builtin (hooked) operations to
      * {@link Method} representation of Java implementation of said operations.
      */
-    private Map<KLabelConstant, MethodHandle> table = new HashMap<>();
+    private final Map<KLabelConstant, MethodHandle> table = new HashMap<>();
 
 
     /**
@@ -70,10 +70,12 @@ public class BuiltinFunction {
                  * exclude hook from evaluation during compilation if the hook is dynamic
                  * in nature (is related to I/O or to meta properties).
                  * */
-                if (stage == Stage.INITIALIZING && entry.getValue().getAttr(Attribute.IMPURE_KEY) != null) {
-                    table.put(KLabelConstant.of(entry.getKey(), definition), throwImpureExceptionHandle);
-                    continue;
-                }
+                // TODO(KORE): removed check to allow the rewrite engine to execute impure functions when the Stage flag is incorrectly set.
+                // this allows impure function to execute statically so we need to figure out an alternate solution soon.
+//                if (stage == Stage.INITIALIZING && entry.getValue().getAttr(Attribute.IMPURE_KEY) != null) {
+//                    table.put(KLabelConstant.of(entry.getKey(), definition), throwImpureExceptionHandle);
+//                    continue;
+//                }
 
                 if (!hookProvider.containsKey(hookAttribute)) {
                     kem.register(new KException(
@@ -113,8 +115,7 @@ public class BuiltinFunction {
         // TODO(YilongL): is reflection/exception really the best way to
         // deal with builtin functions? builtin functions are supposed to be
         // super-fast...
-        Term t = (Term) table.get(label).invokeWithArguments(args);
-        return t;
+        return (Term) table.get(label).invokeWithArguments(args);
     }
 
     /**

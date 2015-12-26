@@ -1,12 +1,10 @@
 // Copyright (c) 2015 K Team. All Rights Reserved.
 package org.kframework.kore.compile;
 
-import org.kframework.compile.utils.MetaK;
 import org.kframework.definition.Context;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
-import org.kframework.kore.K;
-import org.kframework.kore.KVariable;
+import org.kframework.kore.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -14,6 +12,9 @@ import java.util.Set;
 import static org.kframework.kore.KORE.*;
 
 public class ResolveAnonVar {
+
+    public static KVariable ANON_VAR = KVariable("_");
+
     private Set<KVariable> vars = new HashSet<>();
 
     void resetVars() {
@@ -53,20 +54,20 @@ public class ResolveAnonVar {
     }
 
     void gatherVars(K term) {
-        new VisitKORE() {
+        new VisitK() {
             @Override
-            public Void apply(KVariable v) {
+            public void apply(KVariable v) {
                 vars.add(v);
-                return super.apply(v);
+                super.apply(v);
             }
         }.apply(term);
     }
 
     K transform(K term) {
-        return new TransformKORE() {
+        return new TransformK() {
             @Override
             public K apply(KVariable k) {
-                if (k.name().equals(MetaK.Constants.anyVarSymbol)) {
+                if (ANON_VAR.equals(k)) {
                     return newDotVariable();
                 }
                 return super.apply(k);

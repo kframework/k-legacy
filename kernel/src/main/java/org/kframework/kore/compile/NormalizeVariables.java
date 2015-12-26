@@ -4,11 +4,12 @@ package org.kframework.kore.compile;
 import org.kframework.definition.Context;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
-import org.kframework.kore.K;
-import org.kframework.kore.KVariable;
+import org.kframework.kore.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.kframework.definition.Constructors.*;
 import static org.kframework.kore.KORE.*;
@@ -46,7 +47,7 @@ public class NormalizeVariables {
      */
     public K applyNormalization(K denormal, K... normals) {
         Map<KVariable, String> normalization = inferNormalizationFromTerm(normals);
-        return new TransformKORE() {
+        return new TransformK() {
             @Override
             public K apply(KVariable k) {
                 if (normalization.containsKey(k)) {
@@ -60,13 +61,12 @@ public class NormalizeVariables {
     private Map<KVariable, String> inferNormalizationFromTerm(K[] normals) {
         Map<KVariable, String> normalization = new HashMap<>();
         for (K normal : normals) {
-            new VisitKORE() {
+            new VisitK() {
                 @Override
-                public Void apply(KVariable k) {
+                public void apply(KVariable k) {
                     if (k.att().contains("denormal")) {
                         normalization.put(KVariable(k.att().<String>get("denormal").get()), k.name());
                     }
-                    return null;
                 }
             }.apply(normal);
         }
@@ -81,13 +81,13 @@ public class NormalizeVariables {
                 denormal.att());
     }
 
-    public K normalize(K term) {
-        resetVars(term);
+    public K normalize(K term, K... normals) {
+        resetVars(Stream.concat(Stream.of(term), Arrays.stream(normals)).toArray(K[]::new));
         return transform(term);
     }
 
     public K transform(K term) {
-        return new TransformKORE() {
+        return new TransformK() {
             @Override
             public K apply(KVariable k) {
                 return normalize(k);

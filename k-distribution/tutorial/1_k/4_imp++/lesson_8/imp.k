@@ -78,12 +78,7 @@ of a program using the \texttt{search} option of \texttt{krun}.
 */
 
 module IMP-SYNTAX
-imports IMP-COMMON
-imports ID
-endmodule
-
-module IMP-COMMON
-imports DOMAINS-COMMON
+imports DOMAINS-SYNTAX
 
 /*@ \section{Syntax}
 IMP++ adds several syntactic constructs to IMP\@.  Also, since the
@@ -152,7 +147,7 @@ endmodule
 
 
 module IMP
-  imports IMP-COMMON
+  imports IMP-SYNTAX
   imports DOMAINS
 /*@ \section{Semantics}
 We next give the semantics of IMP++\@.  We start by first defining its
@@ -404,6 +399,7 @@ different threads may compete on the output buffer and we want to capture
 all behaviors.  The second rule is structural because we do not want it to
 count as a computational step. */
 
+  syntax KResult ::= Printable
   syntax Printable ::= Int | String
   syntax AExp ::= Printable
   syntax Printables ::= List{Printable,","}

@@ -5,6 +5,7 @@ import org.kframework.definition._
 import org.kframework.kore.{KApply, K, Sort}
 import org.kframework.utils.StringUtil
 import org.kframework.utils.file.JarInfo
+import collection._
 
 /**
  * Created by Edgar Pek on 10/15/15.
@@ -51,35 +52,34 @@ class LatexifyDefinition(d: Definition, ind: String = "") {
 
   // sort comments and modules at the top level, sort sentences inside the modules
   private def handleDefinition() = {
-    val comments = d.comments
     val modules = sortedModules(d.modules)
 
-    traverseByLocation(comments, modules)
+    traverseByLocation(modules)
 
     println("Done with the outer traversing...")
 
   }
 
-  private def traverseByLocation(comments: List[DefinitionComment], modules: List[Module]) : Unit =
-    (comments, modules) match {
-      case (c :: cs, m :: ms) =>
-        val commentLoc = getLocationAtt(c.att)
-        val moduleLoc  = getLocationAtt(m.att)
-        if (commentLoc.compareTo(moduleLoc) < 0) {
-          latexifyDefinitionComment(c)
-          traverseByLocation(cs, modules)
-        } else {
-          latexifyDefinitionModule(m)
-          traverseByLocation(comments, ms)
-        }
-      case (c :: cs, Nil) =>
-        latexifyDefinitionComment(c)
-        traverseByLocation(cs, modules)
-      case (Nil, m :: ms) =>
-        latexifyDefinitionModule(m)
-        traverseByLocation(comments, ms)
-      case (Nil, Nil) =>
-    }
+  private def traverseByLocation(modules: List[Module]) : Unit = ???
+//    (modules) match {
+//      case (m :: ms) =>
+//        val commentLoc: Location = ???
+//        val moduleLoc  = getLocationAtt(m.att)
+//        if (commentLoc.compareTo(moduleLoc) < 0) {
+//          latexifyDefinitionComment(c)
+//          traverseByLocation(cs, modules)
+//        } else {
+//          latexifyDefinitionModule(m)
+//          traverseByLocation(comments, ms)
+//        }
+//      case (c :: cs, Nil) =>
+//        latexifyDefinitionComment(c)
+//        traverseByLocation(cs, modules)
+//      case (Nil, m :: ms) =>
+//        latexifyDefinitionModule(m)
+//        traverseByLocation(comments, ms)
+//      case (Nil, Nil) =>
+//    }
 
   private def latexifyDefinitionModule(module: Module): Unit = {
     println("[DBG] handling current module: " + module.name)
@@ -197,20 +197,21 @@ class LatexifyDefinition(d: Definition, ind: String = "") {
     newLine()
   }
 
-  private def latexifyDefinitionComment(comment: DefinitionComment): Unit = {
-    val ct = getCommentTypeAtt(comment.att)
-    if (ct == CommentTypes.LATEX) {
-      result.append("\\begin{kblock}[text]" + endl)
-      result.append(comment.comment)
-      result.append(endl + "\\end{kblock}" + endl)
-      result.append("%")
-      newLine()
-    } else if (ct == CommentTypes.PREAMBLE) {
-      preamble.append(comment.comment)
-      if (comment.comment.contains("\\title{")) {
-        hasTitle = true
-      }
-    }
+  private def latexifyDefinitionComment: Unit = {
+//    val ct = getCommentTypeAtt(comment.att)
+//    if (ct == CommentTypes.LATEX) {
+//      result.append("\\begin{kblock}[text]" + endl)
+//      result.append(comment.comment)
+//      result.append(endl + "\\end{kblock}" + endl)
+//      result.append("%")
+//      newLine()
+//    } else if (ct == CommentTypes.PREAMBLE) {
+//      preamble.append(comment.comment)
+//      if (comment.comment.contains("\\title{")) {
+//        hasTitle = true
+//      }
+//    }
+    ???
   }
 
   private def sortedSentences(ss: Set[Sentence]): List[Sentence] = {

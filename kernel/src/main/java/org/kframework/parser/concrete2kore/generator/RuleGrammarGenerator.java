@@ -9,22 +9,21 @@ import org.kframework.compile.ConfigurationInfo;
 import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
-import org.kframework.definition.NonTerminal;
 import org.kframework.definition.Production;
 import org.kframework.definition.ProductionItem;
 import org.kframework.definition.RegexTerminal;
 import org.kframework.definition.Sentence;
 import org.kframework.definition.Terminal;
+import org.kframework.definition.UserList;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.loader.Constants;
 import org.kframework.kore.Sort;
-import org.kframework.kore.convertors.KOREtoKIL;
 import org.kframework.parser.concrete2kore.ParseInModule;
-import org.kframework.utils.StringUtil;
-import scala.collection.immutable.List;
-import scala.collection.immutable.Seq;
+import scala.Option;
+import scala.collection.Seq;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -74,6 +73,18 @@ public class RuleGrammarGenerator {
     public static final String PROGRAM_LISTS = "PROGRAM-LISTS";
     public static final String RULE_LISTS = "RULE-LISTS";
 
+    public static final String POSTFIX = "-PROGRAM-PARSING";
+
+    public static final String ID = "ID";
+    public static final String ID_PROGRAM_PARSING = ID + POSTFIX;
+
+    /**
+     * Initialize a grammar generator.
+     * @param baseK A Definition containing a K module giving the syntax of K itself.
+     *              The default K syntax is defined in include/kast.k.
+     * @param strict true if the generated parsers should retain inferred variable
+     *               sorts as sort predicate in the requires clause.
+     */
     public RuleGrammarGenerator(Definition baseK, boolean strict) {
         this.baseK = baseK;
         this.strict = strict;
@@ -92,7 +103,7 @@ public class RuleGrammarGenerator {
      */
     public Module getRuleGrammar(Module mod) {
         // import RULE-CELLS in order to parse cells specific to rules
-        Module newM = new Module(mod.name() + "-" + RULE_CELLS, Set(mod, baseK.getModule(K).get(), baseK.getModule(RULE_CELLS).get()), Set(), null);
+        Module newM = new Module(mod.name() + "-" + RULE_CELLS, Set(mod, baseK.getModule(K).get(), baseK.getModule(RULE_CELLS).get()), Set(), Att());
         return newM;
     }
 
@@ -104,7 +115,7 @@ public class RuleGrammarGenerator {
      */
     public Module getConfigGrammar(Module mod) {
         // import CONFIG-CELLS in order to parse cells specific to configurations
-        Module newM = new Module(mod.name() + "-" + CONFIG_CELLS, Set(mod, baseK.getModule(K).get(), baseK.getModule(CONFIG_CELLS).get()), Set(), null);
+        Module newM = new Module(mod.name() + "-" + CONFIG_CELLS, Set(mod, baseK.getModule(K).get(), baseK.getModule(CONFIG_CELLS).get()), Set(), Att());
         return newM;
     }
 
@@ -115,9 +126,20 @@ public class RuleGrammarGenerator {
      * @return a new module which imports the original user module and a set of marker modules.
      */
     public Module getProgramsGrammar(Module mod) {
-        // import PROGRAM-LISTS so user lists are modified to parse programs
-        Module newM = new Module(mod.name() + "-PROGRAM-LISTS", Set(mod, baseK.getModule(PROGRAM_LISTS).get()), Set(), null);
-        return newM;
+
+        if(mod.name().endsWith(POSTFIX)) {
+            return mod;
+        } else {
+            // import PROGRAM-LISTS so user lists are modified to parse programs
+            scala.collection.Set<Module> modules = Set(mod, baseK.getModule(PROGRAM_LISTS).get());
+
+            if (stream(mod.importedModules()).anyMatch(m -> m.name().equals(ID))) {
+                Module idProgramParsingModule = baseK.getModule(ID_PROGRAM_PARSING).get();
+                modules = add(idProgramParsingModule, modules);
+            }
+
+            return Module.apply(mod.name() + POSTFIX, modules, Set(), Att());
+        }
     }
 
     public static boolean isParserSort(Sort s) {
@@ -190,11 +212,11 @@ public class RuleGrammarGenerator {
                     if (cfgInfo.isLeafCell(p.sort())) {
                         body = p.items().tail().head();
                     } else {
-                        body = NonTerminal(Sort("K"));
+                        body = NonTerminal(Sort("Bag"));
                     }
                     final ProductionItem optDots = NonTerminal(Sort("#OptionalDots"));
                     Seq<ProductionItem> pi = Seq(p.items().head(), optDots, body, optDots, p.items().last());
-                    Production p1 = Production(p.klabel().get().name(), Sort("Cell"), pi, p.att());
+                    Production p1 = Production(p.klabel().get().name(), p.sort(), pi, p.att());
                     Production p2 = Production(Sort("Cell"), Seq(NonTerminal(p.sort())));
                     return Stream.of(p1, p2);
                 }
@@ -222,7 +244,7 @@ public class RuleGrammarGenerator {
                     // rewrite productions to contain follow restrictions for prefix terminals
                     // example _==_ and _==K_ can produce ambiguities. Rewrite the first into _(==(?![K])_
                     // this also takes care of casting and productions that have ":"
-                    List<ProductionItem> items = stream(p.items()).map(pi -> {
+                    Seq<ProductionItem> items = map(pi -> {
                         if (pi instanceof Terminal) {
                             Terminal t = (Terminal) pi;
                             if (t.value().trim().equals(""))
@@ -239,7 +261,7 @@ public class RuleGrammarGenerator {
                             }
                         }
                         return pi;
-                    }).collect(Collections.toList());
+                    }, p.items());
                     if (p.klabel().isDefined())
                         p = Production(p.klabel().get().name(), p.sort(), Seq(items), p.att());
                     else
@@ -265,17 +287,19 @@ public class RuleGrammarGenerator {
             java.util.Set<Sentence> res = new HashSet<>();
             for (UserList ul : UserList.getLists(prods3)) {
                 org.kframework.definition.Production prod1, prod2, prod3, prod4, prod5;
+
+                Att newAtts = ul.attrs.remove("userList");
                 // Es#Terminator ::= "" [klabel('.Es)]
                 prod1 = Production(ul.terminatorKLabel, Sort(ul.sort + "#Terminator"), Seq(Terminal("")),
-                        ul.attrs.add("klabel", ul.terminatorKLabel).add(Constants.ORIGINAL_PRD, ul.pTerminator));
+                        newAtts.add("klabel", ul.terminatorKLabel).add(Constants.ORIGINAL_PRD, ul.pTerminator));
                 // Ne#Es ::= E "," Ne#Es [klabel('_,_)]
                 prod2 = Production(ul.klabel, Sort("Ne#" + ul.sort),
                         Seq(NonTerminal(Sort(ul.childSort)), Terminal(ul.separator), NonTerminal(Sort("Ne#" + ul.sort))),
-                        ul.attrs.add("klabel", ul.klabel).add(Constants.ORIGINAL_PRD, ul.pList));
+                        newAtts.add("klabel", ul.klabel).add(Constants.ORIGINAL_PRD, ul.pList));
                 // Ne#Es ::= E Es#Terminator [klabel('_,_)]
                 prod3 = Production(ul.klabel, Sort("Ne#" + ul.sort),
                         Seq(NonTerminal(Sort(ul.childSort)), NonTerminal(Sort(ul.sort + "#Terminator"))),
-                        ul.attrs.add("klabel", ul.klabel).add(Constants.ORIGINAL_PRD, ul.pList));
+                        newAtts.add("klabel", ul.klabel).add(Constants.ORIGINAL_PRD, ul.pList));
                 // Es ::= Ne#Es
                 prod4 = Production(Sort(ul.sort), Seq(NonTerminal(Sort("Ne#" + ul.sort))));
                 // Es ::= Es#Terminator // if the list is *
@@ -291,7 +315,7 @@ public class RuleGrammarGenerator {
                     res.add(prod5);
                 }
             }
-            res.addAll(prods3.stream().filter(p -> !(p instanceof Production && p.att().contains(KOREtoKIL.USER_LIST_ATTRIBUTE))).collect(Collectors.toSet()));
+            res.addAll(prods3.stream().filter(p -> !(p instanceof Production && (p.att().contains(Att.generatedByListSubsorting()) || p.att().contains(Att.userList())))).collect(Collectors.toSet()));
             parseProds = res;
         }
 
