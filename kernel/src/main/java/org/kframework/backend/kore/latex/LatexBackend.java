@@ -38,7 +38,7 @@ public class LatexBackend extends PosterBackend {
     public void compile(CompiledDefinition compiledDefinition) {
         String endl = System.getProperty("line.separator");
 
-        LatexFilter lf = new LatexFilter(this.options, compiledDefinition.getConcreteDefinition());
+        LatexFilter lf = new LatexFilter(this.options, compiledDefinition.getParsedDefinition());
         lf.visitConcreteDefinition();
 
         files.saveToTemp(STY_FILE, files.loadFromKBase("include/latex/" + STY_FILE));

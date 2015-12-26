@@ -37,21 +37,15 @@ public class ParseCache implements Serializable {
 
     public static class ParsedSentence implements Serializable {
         private final K parse;
-        private final K unflattenedParse;
         private final Set<ParseFailedException> warnings;
 
-        public ParsedSentence(K parse, K unflattenedParse, Set<ParseFailedException> warnings) {
+        public ParsedSentence(K parse, Set<ParseFailedException> warnings) {
             this.parse = parse;
-            this.unflattenedParse = unflattenedParse;
             this.warnings = warnings;
         }
 
         public K getParse() {
             return parse;
-        }
-
-        public K getUnflattenedParse() {
-            return this.unflattenedParse;
         }
 
         public Set<ParseFailedException> getWarnings() {

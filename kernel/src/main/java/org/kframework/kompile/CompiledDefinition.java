@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 
 public class CompiledDefinition implements Serializable {
     public final KompileOptions kompileOptions;
-    private final Definition concreteDefinition;
     private final Definition parsedDefinition;
     public final Definition kompiledDefinition;
     public final Sort programStartSymbol;
@@ -46,13 +45,11 @@ public class CompiledDefinition implements Serializable {
 
 
     public CompiledDefinition(KompileOptions kompileOptions,
-                              Definition concreteDefinition,
                               Definition parsedDefinition,
                               Definition kompiledDefinition,
                               Sort programStartSymbol,
                               KLabel topCellInitializer) {
         this.kompileOptions = kompileOptions;
-        this.concreteDefinition = concreteDefinition;
         this.parsedDefinition = parsedDefinition;
         this.kompiledDefinition = kompiledDefinition;
         this.programStartSymbol = programStartSymbol;
@@ -66,12 +63,6 @@ public class CompiledDefinition implements Serializable {
     public BiFunction<String, Source, K> getProgramParser(KExceptionManager kem) {
         return getParser(programParsingModuleFor(mainSyntaxModuleName(), kem).get(), programStartSymbol, kem);
     }
-
-    /**
-     * The parsed unflattened definition
-     * @return
-     */
-    public Definition getConcreteDefinition() { return this.concreteDefinition;   }
 
     /**
      * The parsed but uncompiled definition
@@ -126,12 +117,12 @@ public class CompiledDefinition implements Serializable {
         ParseInModule parseInModule = new RuleGrammarGenerator(parsedDefinition, kompileOptions.strict()).getCombinedGrammar(module);
 
         return (BiFunction<String, Source, K> & Serializable) (s, source) -> {
-            Tuple2<Either<Set<ParseFailedException>, Tuple2<K, K>>, Set<ParseFailedException>> res = parseInModule.parseString(s, programStartSymbol, source);
+            Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>> res = parseInModule.parseString(s, programStartSymbol, source);
             kem.addAllKException(res._2().stream().map(e -> e.getKException()).collect(Collectors.toSet()));
             if (res._1().isLeft()) {
                 throw res._1().left().get().iterator().next();
             }
-            return TreeNodesToKORE.down(res._1().right().get()._1());
+            return TreeNodesToKORE.down(res._1().right().get());
         };
     }
 

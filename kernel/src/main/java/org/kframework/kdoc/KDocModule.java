@@ -47,8 +47,6 @@ public class KDocModule extends AbstractModule {
         posterBinder.addBinding(Backends.LATEX).to(LatexBackend.class);
         posterBinder.addBinding(Backends.DOC).to(DocumentationBackend.class);
         posterBinder.addBinding(Backends.HTML).to(HtmlBackend.class);
-        posterBinder.addBinding(Backends.UNPARSE).to(UnparserBackend.class);
-        posterBinder.addBinding(Backends.UNFLATTEN).to(UnflattenBackend.class);
 
         MapBinder<String, org.kframework.kore.kdoc.PosterBackend> korePosterBinder = MapBinder.newMapBinder(
                 binder(), String.class, org.kframework.kore.kdoc.PosterBackend.class);
