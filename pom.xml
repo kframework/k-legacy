@@ -16,6 +16,7 @@
     <module>coq-backend</module>
     <module>tiny</module>
     <module>API</module>
+    <module>kdoc</module>
   </modules>
 
   <scm>
