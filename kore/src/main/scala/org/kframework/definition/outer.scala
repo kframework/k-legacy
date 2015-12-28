@@ -50,7 +50,7 @@ case class Definition(
 trait Sorting {
   def computeSubsortPOSet(sentences: Set[Sentence]) = {
     val subsortRelations: Set[(Sort, Sort)] = sentences collect {
-      case Production(endSort, Seq(NonTerminal(startSort)), _) => (startSort, endSort)
+      case Subsort(endSort, startSort, _) => (startSort, endSort)
     }
 
     POSet(subsortRelations)
@@ -69,7 +69,7 @@ trait GeneratingListSubsortProductions extends Sorting {
            l2 <- userLists
            if l1 != l2 && l1.klabel == l2.klabel &&
              subsorts.>(ADT.Sort(l1.childSort), ADT.Sort(l2.childSort))) yield {
-        Production(ADT.Sort(l1.sort), Seq(NonTerminal(ADT.Sort(l2.sort))), Att().add(Att.generatedByListSubsorting))
+        Subsort(ADT.Sort(l1.sort), ADT.Sort(l2.sort), Att().add(Att.generatedByListSubsorting))
       }
 
     listProductions.toSet
@@ -103,8 +103,7 @@ class Module(val name: String, val imports: Set[Module], unresolvedLocalSentence
 
   lazy val productionsFor: Map[KLabel, Set[Production]] =
     productions
-      .collect({ case p if p.klabel != None => p })
-      .groupBy(_.klabel.get)
+      .groupBy(_.klabel)
       .map { case (l, ps) => (l, ps) }
 
   lazy val definedKLabels: Set[KLabel] =
@@ -192,9 +191,9 @@ class Module(val name: String, val imports: Set[Module], unresolvedLocalSentence
     .filter(s => s.name.endsWith("Cell") || s.name.endsWith("CellFragment"))
   }
 
-  lazy val listSorts: Set[Sort] = sentences.collect({ case Production(srt, _, att1) if att1.contains("userList") =>
-    srt
-  })
+//  lazy val listSorts: Set[Sort] = sentences.collect({ case Production(srt, _, att1) if att1.contains("userList") =>
+//    srt
+//  })
 
   lazy val subsorts: POSet[Sort] = computeSubsortPOSet(sentences)
 
@@ -224,7 +223,7 @@ class Module(val name: String, val imports: Set[Module], unresolvedLocalSentence
 
   @transient lazy val freshFunctionFor: Map[Sort, KLabel] =
     productions.groupBy(_.sort).mapValues(_.filter(_.att.contains("freshGenerator")))
-      .filter(_._2.nonEmpty).mapValues(_.map(p => p.klabel.get)).mapValues { set => {
+      .filter(_._2.nonEmpty).mapValues(_.map(p => p.klabel)).mapValues { set => {
       if (set.size > 1)
         throw KEMException.compilerError("Found more than one fresh generator for sort " + sortFor(set.head)
           + ". Found: " + set)
@@ -235,7 +234,7 @@ class Module(val name: String, val imports: Set[Module], unresolvedLocalSentence
 
   // check that non-terminals have a defined sort
   private val nonTerminalsWithUndefinedSort = sentences flatMap {
-    case p@Production(_, items, _) =>
+    case p@Production(_, _, items, _) =>
       val res = items collect { case nt: NonTerminal if !definedSorts.contains(nt.sort) && !usedCellSorts.contains(nt.sort) => nt }
       if (!res.isEmpty)
         throw KEMException.compilerError("Could not find sorts: " + res.asJava, p)
@@ -299,19 +298,18 @@ case class SyntaxSort(sort: Sort, att: Att = Att()) extends Sentence
   def items = Seq()
 }
 
-case class Production(sort: Sort, items: Seq[ProductionItem], att: Att)
+case class Subsort(sort: Sort, superSort: Sort, att: Att)
+  extends Sentence
+
+case class Production(klabel: KLabel, sort: Sort, items: Seq[ProductionItem], att: Att)
   extends Sentence with ProductionToString {
-  lazy val klabel: Option[KLabel] = att.get[String]("klabel") map {org.kframework.kore.KORE.KLabel(_)}
 
   override def equals(that: Any) = that match {
-    case p@Production(`sort`, `items`, _) => this.klabel == p.klabel
+    case Production(`klabel`, `sort`, `items`, _) => true
     case _ => false
   }
 
   override lazy val hashCode: Int = (sort.hashCode() * 31 + items.hashCode()) * 31 + klabel.hashCode()
-
-  def isSyntacticSubsort: Boolean =
-    items.size == 1 && items.head.isInstanceOf[NonTerminal]
 
   def arity: Int = items.count(_.isInstanceOf[NonTerminal])
 
@@ -320,7 +318,7 @@ case class Production(sort: Sort, items: Seq[ProductionItem], att: Att)
 
 object Production {
   def apply(klabel: String, sort: Sort, items: Seq[ProductionItem], att: Att = Att()): Production = {
-    Production(sort, items, att + ("klabel" -> klabel))
+    Production(klabel, sort, items, att)
   }
 
   val kLabelAttribute = "klabel"

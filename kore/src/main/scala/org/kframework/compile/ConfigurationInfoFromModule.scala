@@ -24,20 +24,20 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
   private val cellBagSubsorts: Map[Sort, Set[Sort]] = cellBagProductions.values.map(p => (p.sort, getCellSortsOfCellBag(p.sort))).toMap
   private val cellSorts: Set[Sort] = cellProductions.keySet
   private val cellBagSorts: Set[Sort] = cellBagProductions.keySet
-  private val cellLabels: Map[Sort, KLabel] = cellProductions.mapValues(_.klabel.get)
+  private val cellLabels: Map[Sort, KLabel] = cellProductions.mapValues(_.klabel)
   private val cellLabelsToSorts: Map[KLabel, Sort] = cellLabels.map(_.swap)
 
   private val cellFragmentLabel: Map[String,KLabel] =
     m.productions.filter(_.att.contains("cellFragment"))
-      .map(p => (p.att.get("cellFragment",classOf[String]).get,p.klabel.get)).toMap
+      .map(p => (p.att.get("cellFragment",classOf[String]).get,p.klabel)).toMap
   private val cellAbsentLabel: Map[String,KLabel] =
     m.productions.filter(_.att.contains("cellOptAbsent"))
-      .map (p => (p.att.get("cellOptAbsent",classOf[String]).get,p.klabel.get)).toMap
+      .map (p => (p.att.get("cellOptAbsent",classOf[String]).get,p.klabel)).toMap
 
 
   private val cellInitializer: Map[Sort, KApply] =
     m.productions.filter(p => cellSorts(p.sort) && p.att.contains("initializer"))
-      .map(p => (p.sort, KApply(p.klabel.get))).toMap
+      .map(p => (p.sort, KApply(p.klabel))).toMap
 
   private val edges: Set[(Sort, Sort)] = cellProductions.toList.flatMap { case (s,p) =>
     p.items.flatMap{
@@ -138,13 +138,13 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
   override def getConcat(k: Sort): KLabel = {
     val sorts = getCellBagSortsOfCell(k)
     assert(sorts.size == 1, "Too many cell bags found for cell sort: " + k + ", " + sorts)
-    cellBagProductions(sorts.head).klabel.get
+    cellBagProductions(sorts.head).klabel
   }
 
   override def getCellForConcat(concat: KLabel): Option[Sort] = cellSorts
     .map(s => (s, getCellBagSortsOfCell(s)))
     .filter(_._2.size == 1)
-    .filter(p => cellBagProductions(p._2.head).klabel.get.equals(concat))
+    .filter(p => cellBagProductions(p._2.head).klabel.equals(concat))
     .map(_._1)
     .headOption
 

@@ -17,7 +17,7 @@ object TreeNodesToKORE {
 
   def apply(t: Term): K = t match {
     case c@Constant(s, p) => KToken(s, p.sort, locationToAtt(c.location.get(), c.source.get()))
-    case t@TermCons(items, p) => KApply(p.klabel.get, KList(new util.ArrayList(items).asScala.reverse map apply asJava), locationToAtt(t.location.get(), t.source.get()))
+    case t@TermCons(items, p) => KApply(p.klabel, KList(new util.ArrayList(items).asScala.reverse map apply asJava), locationToAtt(t.location.get(), t.source.get()))
     case Ambiguity(items) => KApply(KLabel("AMB"), KList(items.asScala.toList map apply asJava), Att())
   }
 

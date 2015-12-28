@@ -25,8 +25,8 @@ object Constructors {
   def SyntaxSort(sort: Sort) = definition.SyntaxSort(sort)
   def SyntaxSort(sort: Sort, att: attributes.Att) = definition.SyntaxSort(sort, att)
 
-  def Production(sort: Sort, items: Seq[ProductionItem]) = definition.Production(sort, items, Att())
-  def Production(sort: Sort, items: Seq[ProductionItem], att: attributes.Att) = definition.Production(sort, items, att)
+  def Subsort(sort: Sort, supersort: Sort) = definition.Subsort(sort, supersort, Att())
+  def Subsort(sort: Sort, supersort: Sort, att: attributes.Att) = definition.Subsort(sort, supersort, att)
   def Production(klabel: String, sort: Sort, items: Seq[ProductionItem]) = definition.Production(klabel, sort, items)
   def Production(klabel: String, sort: Sort, items: Seq[ProductionItem], att: attributes.Att) = definition.Production(klabel, sort, items, att)
 
