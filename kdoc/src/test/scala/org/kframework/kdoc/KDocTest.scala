@@ -5,6 +5,6 @@ import Assert._
 
 class KDocTest {
   @Test def simple() {
-    assertEquals("", KDoc("module X endmodule"))
+    assertEquals("", new KDoc("")("module X endmodule"))
   }
 }
