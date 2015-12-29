@@ -7,13 +7,13 @@ import org.kframework.definition.{RegexTerminal, NonTerminal, Terminal, Module}
 import org.kframework.kore.{KORE, K}
 import org.kframework.kore.Unapply._
 
-class KDoc(docStyle: String) {
+class KDoc(docStyle: String, separator: String = " ") {
   private val definitionForEKORE = Definition.from("require \"e-kore.k\"", "E-KORE")
-  private val parser = Parser.from(definitionForEKORE.mainModule)
+  private val outerParser = Parser.from(definitionForEKORE.mainModule)
   private var endl: String = System.getProperty("line.separator")
   var header = "\\nonstopmode" + endl + "\\PassOptionsToPackage{pdftex,usenames,dvipsnames,svgnames,x11names}{xcolor}" + endl + "\\PassOptionsToPackage{pdftex}{hyperref}" + endl + "\\documentclass{article}" + endl + "\\usepackage[" + docStyle + "]{k}" + endl
 
-  val kToLatexForEKORE = new KtoLatex(definitionForEKORE.mainModule)
+  val kToLatexForEKORE = new KtoLatex(definitionForEKORE.mainModule, separator)
 
   def apply(definitionText: String): String = {
     val d = parseDefinition(definitionText)
@@ -21,8 +21,6 @@ class KDoc(docStyle: String) {
   }
 
   private def parseDefinition(definitionText: String): K = {
-    parser.apply(KORE.Sort("KDefinition"), definitionText)._1.get
+    outerParser.apply(KORE.Sort("KDefinition"), definitionText)._1.get
   }
 }
-
-
