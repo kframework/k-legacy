@@ -27,7 +27,7 @@ public class Parser {
     private Parser(Module module) {
         // TODO: remove hack once the frontend is cleaner
         if (module.name().endsWith(RuleGrammarGenerator.RULE_CELLS)) {
-            org.kframework.definition.Definition definitionWithBuiltins = Definition.from("require \"domians.k\"", "K");
+            org.kframework.definition.Definition definitionWithBuiltins = Definition.from("require \"domains.k\"", "K");
             this.parseInModule = new RuleGrammarGenerator(definitionWithBuiltins, true).getCombinedGrammar(module);
         } else {
             this.parseInModule = new ParseInModule(module);

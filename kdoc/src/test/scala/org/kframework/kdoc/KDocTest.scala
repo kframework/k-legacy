@@ -7,8 +7,7 @@ class KDocTest {
   @Test def simple() {
     assertEquals(
       """
-        |\begin{document}  require "domains.k"  begin{module}{ moduleName{ X }  import INT  syntax Foo ::= "x"  rule x => x
-        |  end{module} \end{document}
+        |\begin{document}  require "domains.k"  begin{module}{ moduleName{ X }  import INT  syntax Foo ::= "x"  syntax Foo ::= "y" [ latex ( "specialLatexForY" ) ] rule x => specialLatexForY end{module} \end{document}
       """.stripMargin.trim
       , new KDoc("")(
         """
@@ -16,7 +15,8 @@ class KDocTest {
         | module X
         |   imports INT
         |   syntax Foo ::= "x"
-        |   rule x => x
+        |   syntax Foo ::= "y"  [latex("specialLatexForY")]
+        |   rule x => y
         | endmodule
         """.stripMargin).trim)
   }

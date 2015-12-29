@@ -16,7 +16,7 @@ import org.kframework.definition.Definition;
  */
 
 @API
-public class Compiler {
+public class Kompiler {
     /**
      * Generates the definition appropriate for generating rule parsers.
      */
