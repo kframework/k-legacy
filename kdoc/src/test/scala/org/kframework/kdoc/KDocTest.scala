@@ -7,13 +7,16 @@ class KDocTest {
   @Test def simple() {
     assertEquals(
       """
-        |\begin{document}   begin{module}{ moduleName{ X }  import Y  syntax Foo ::= "x"  end{module} \end{document}
+        |\begin{document}  require "domains.k"  begin{module}{ moduleName{ X }  import INT  syntax Foo ::= "x"  rule x => x
+        |  end{module} \end{document}
       """.stripMargin.trim
       , new KDoc("")(
         """
+        | require "domains.k"
         | module X
-        |   imports Y
+        |   imports INT
         |   syntax Foo ::= "x"
+        |   rule x => x
         | endmodule
         """.stripMargin).trim)
   }
