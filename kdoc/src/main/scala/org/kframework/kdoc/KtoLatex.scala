@@ -1,13 +1,19 @@
 package org.kframework.kdoc
 
-import org.kframework.Definition
-import org.kframework.Parser
 import org.kframework.attributes.Att
 import org.kframework.definition.{RegexTerminal, NonTerminal, Terminal, Module}
 import org.kframework.kore.{KORE, K}
 import org.kframework.kore.Unapply._
 
-class KtoLatex(module: Module, separator: String = " ") {
+/**
+  * Takes a K term with the grammar described by Module module, and unparses it to its latex representation.
+  * For each term:
+  *  - when its production has latex attribute, it uses that attribute for unparsing
+  *  - otherwise, it unparses by concatenating the Production's items with the separator parameter as a separator
+  * @param module
+  * @param separator
+  */
+class KtoLatex(module: Module, separator: String = " ") extends ((K) => String) {
   def apply(k: K): String = k match {
     case KApply(l, children) =>
       val latexAtts = module.productionsFor(l).flatMap(_.att.get[String](Att.latex))
