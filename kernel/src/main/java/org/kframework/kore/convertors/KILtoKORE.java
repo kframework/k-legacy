@@ -13,7 +13,7 @@ import org.kframework.definition.RegexTerminal;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Tag;
 import org.kframework.kil.*;
-import org.kframework.kore.AbstractKORETransformer;
+import org.kframework.kore.AbstractKTransformer;
 import org.kframework.kore.InjectedKLabel;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
@@ -88,8 +88,7 @@ public class KILtoKORE extends KILTransformation<Object> {
 
         return Definition(
                 koreModules.get(mainModule.getName()),
-                koreModules.get(mainModule.getName()),
-                immutable(new HashSet<>(koreModules.values())));
+                immutable(new HashSet<>(koreModules.values())), Att());
     }
 
     public org.kframework.definition.Module apply(Module mainModule, Set<Module> allKilModules,
@@ -172,7 +171,7 @@ public class KILtoKORE extends KILTransformation<Object> {
                     KToken("true", Sorts.Bool()), inner.convertAttributes(r));
         K body = inner.apply(r.getBody());
 
-        AbstractKORETransformer<Set<Tuple2<K, Sort>>> gatherSorts = new AbstractKORETransformer<Set<Tuple2<K, Sort>>>() {
+        AbstractKTransformer<Set<Tuple2<K, Sort>>> gatherSorts = new AbstractKTransformer<Set<Tuple2<K, Sort>>>() {
             @Override
             public Set<Tuple2<K, Sort>> apply(KApply k) {
                 return processChildren(k.klist());
@@ -382,7 +381,7 @@ public class KILtoKORE extends KILTransformation<Object> {
         // Transform list declarations of the form Es ::= List{E, ","} into something representable in kore
         org.kframework.kore.Sort elementSort = apply(userList.getSort());
 
-        org.kframework.attributes.Att attrs = inner.convertAttributes(p).add(KOREtoKIL.USER_LIST_ATTRIBUTE, userList.getListType());
+        org.kframework.attributes.Att attrs = inner.convertAttributes(p).add(Att.userList(), userList.getListType());
         String kilProductionId = "" + System.identityHashCode(p);
         Att attrsWithKilProductionId = attrs.add(KILtoInnerKORE.PRODUCTION_ID, kilProductionId);
         org.kframework.definition.Production prod1, prod3;
