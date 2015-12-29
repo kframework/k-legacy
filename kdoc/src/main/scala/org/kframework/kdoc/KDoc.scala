@@ -8,18 +8,16 @@ import org.kframework.kore.{KORE, K}
 import org.kframework.kore.Unapply._
 
 class KDoc(docStyle: String) {
-  private val definitionForEKore = Definition.from("require \"e-kore.k\"", "E-KORE")
-  private val parser = Parser.from(definitionForEKore.mainModule)
+  private val definitionForEKORE = Definition.from("require \"e-kore.k\"", "E-KORE")
+  private val parser = Parser.from(definitionForEKORE.mainModule)
   private var endl: String = System.getProperty("line.separator")
   var header = "\\nonstopmode" + endl + "\\PassOptionsToPackage{pdftex,usenames,dvipsnames,svgnames,x11names}{xcolor}" + endl + "\\PassOptionsToPackage{pdftex}{hyperref}" + endl + "\\documentclass{article}" + endl + "\\usepackage[" + docStyle + "]{k}" + endl
 
+  val kToLatexForEKORE = new KtoLatex(definitionForEKORE.mainModule)
+
   def apply(definitionText: String): String = {
     val d = parseDefinition(definitionText)
-    List(header, "\\begin{document}", latexify(d), "\\end{document}").mkString(endl)
-  }
-
-  def latexify(k: K): String = k match {
-    case KApply(KLabel("#KDefinition"), children) => ""
+    kToLatexForEKORE(d)
   }
 
   private def parseDefinition(definitionText: String): K = {

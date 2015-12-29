@@ -48,13 +48,15 @@ module OUTER-KORE
                                     KImportList
                                     KSentenceList
                            "endmodule"
-                               [klabel(#KModule), hook(org.kframework.definition.Module)]
+                               [klabel(#KModule), hook(org.kframework.definition.Module),
+                               latex(\\begin{module}{ \\moduleName{ #1 }#2 #3 #4 \\end{module})]
   syntax KModuleList   ::= ""  [klabel(#emptyKModuleList), onlyLabel]
                          | KModuleList KModule
                                [klabel(#KModuleList), assoc, comm, unit(#emptyKModuleList)]
 
   syntax KImport       ::= "imports" KModuleName
-                               [klabel(#KImport), hook(org.kframework.definition.Import)]
+                               [klabel(#KImport), hook(org.kframework.definition.Import), latex(import #1)]
+
   syntax KImportList   ::= ""  [klabel(#emptyKImportList), onlyLabel]
                          | KImportList KImport
                                [klabel(#KImportList), assoc, comm, unit(#emptyKImportList)]
