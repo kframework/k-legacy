@@ -5,6 +5,7 @@ import org.kframework.kil.loader.Context;
 
 public class NonCachingVisitor extends BasicVisitor {
 
+    public NonCachingVisitor() { super(null); }
     public NonCachingVisitor(Context context) {
         super(context);
     }

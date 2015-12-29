@@ -44,7 +44,11 @@ public class CompiledDefinition implements Serializable {
     private transient Map<String, Rule> cachedParsedPatterns;
 
 
-    public CompiledDefinition(KompileOptions kompileOptions, Definition parsedDefinition, Definition kompiledDefinition, Sort programStartSymbol, KLabel topCellInitializer) {
+    public CompiledDefinition(KompileOptions kompileOptions,
+                              Definition parsedDefinition,
+                              Definition kompiledDefinition,
+                              Sort programStartSymbol,
+                              KLabel topCellInitializer) {
         this.kompileOptions = kompileOptions;
         this.parsedDefinition = parsedDefinition;
         this.kompiledDefinition = kompiledDefinition;

@@ -38,7 +38,8 @@ public class KDocModule extends AbstractModule {
 
         Multibinder<Object> optionsBinder = Multibinder.newSetBinder(binder(), Object.class, Options.class);
         optionsBinder.addBinding().to(KDocOptions.class);
-        Multibinder.newSetBinder(binder(), new TypeLiteral<Class<?>>() {}, Options.class);
+        Multibinder.newSetBinder(binder(), new TypeLiteral<Class<?>>() {
+        }, Options.class);
 
         MapBinder<String, PosterBackend> posterBinder = MapBinder.newMapBinder(
                 binder(), String.class, PosterBackend.class);
@@ -46,6 +47,12 @@ public class KDocModule extends AbstractModule {
         posterBinder.addBinding(Backends.LATEX).to(LatexBackend.class);
         posterBinder.addBinding(Backends.DOC).to(DocumentationBackend.class);
         posterBinder.addBinding(Backends.HTML).to(HtmlBackend.class);
+
+        MapBinder<String, org.kframework.kore.kdoc.PosterBackend> korePosterBinder = MapBinder.newMapBinder(
+                binder(), String.class, org.kframework.kore.kdoc.PosterBackend.class);
+        korePosterBinder.addBinding(Backends.HTML).to(org.kframework.backend.kore.html.HtmlBackend.class);
+        korePosterBinder.addBinding(Backends.LATEX).to(org.kframework.backend.kore.latex.LatexBackend.class);
+        korePosterBinder.addBinding(Backends.PDF).to(org.kframework.backend.kore.latex.PdfBackend.class);
     }
 
     @Provides
@@ -61,6 +68,16 @@ public class KDocModule extends AbstractModule {
     @Provides
     PosterBackend getBackend(KDocOptions options, Map<String, PosterBackend> map, KExceptionManager kem) {
         PosterBackend backend = map.get(options.format);
+        if (backend == null) {
+            throw KEMException.criticalError("Invalid poster format: " + options.format
+                    + ". It should be one of " + map.keySet());
+        }
+        return backend;
+    }
+
+    @Provides
+    org.kframework.kore.kdoc.PosterBackend getKoreBackend(KDocOptions options, Map<String, org.kframework.kore.kdoc.PosterBackend> map, KExceptionManager kem) {
+        org.kframework.kore.kdoc.PosterBackend backend = map.get(options.format);
         if (backend == null) {
             throw KEMException.criticalError("Invalid poster format: " + options.format
                     + ". It should be one of " + map.keySet());
