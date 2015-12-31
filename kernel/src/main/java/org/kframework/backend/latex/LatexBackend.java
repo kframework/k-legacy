@@ -22,49 +22,49 @@ public class LatexBackend extends PosterBackend {
     private final KompileOptions options;
 
     @Inject
-    LatexBackend(Stopwatch sw, Context context, KompileOptions options, FileUtil files) {
-        super(sw, context);
+    LatexBackend(Stopwatch sw, KompileOptions options, FileUtil files) {
+        super(sw);
         this.options = options;
         this.files = files;
     }
 
     public LatexBackend(Stopwatch sw, Context context, KompileOptions options, boolean doc, FileUtil files) {
-        this(sw, context, options, files);
+        this(sw, options, files);
         makeDocument = doc;
     }
 
-    public void compile(Definition javaDef) {
-        String endl = System.getProperty("line.separator");
-
-        LatexFilter lf;
-        if(makeDocument) lf = new DocumentationFilter(context);
-        else lf = new LatexFilter(context);
-        lf.visitNode(javaDef);
-
-        files.saveToTemp("k.sty", files.loadFromKBase("include/latex/k.sty"));
-
-        String latexified = "\\nonstopmode" + endl +
-                "\\PassOptionsToPackage{pdftex,usenames,dvipsnames,svgnames,x11names}{xcolor}"+ endl +
-                "\\PassOptionsToPackage{pdftex}{hyperref}"+ endl +
-                "\\documentclass{article}" + endl + "\\usepackage[" + options.docStyle() + "]{k}" + endl;
-        String preamble = lf.getPreamble().toString();
-        latexified += preamble + "\\begin{document}" + endl + lf.getResult() + "\\end{document}" + endl;
-
-        File canonicalFile = options.outerParsing.mainDefinitionFile(files);
-        if(makeDocument) latexFilePath = FilenameUtils.removeExtension(canonicalFile.getName()) + "-doc.tex";
-        else latexFilePath = FilenameUtils.removeExtension(canonicalFile.getName()) + ".tex";
-        files.saveToTemp(latexFilePath, latexified);
-
-        sw.printIntermediate("Latex Generation");
-    }
+//    public void compile(Definition javaDef) {
+//        String endl = System.getProperty("line.separator");
+//
+//        LatexFilter lf;
+//        if(makeDocument) lf = new DocumentationFilter(context);
+//        else lf = new LatexFilter(context);
+//        lf.visitNode(javaDef);
+//
+//        files.saveToTemp("k.sty", files.loadFromKBase("include/latex/k.sty"));
+//
+//        String latexified = "\\nonstopmode" + endl +
+//                "\\PassOptionsToPackage{pdftex,usenames,dvipsnames,svgnames,x11names}{xcolor}"+ endl +
+//                "\\PassOptionsToPackage{pdftex}{hyperref}"+ endl +
+//                "\\documentclass{article}" + endl + "\\usepackage[" + options.docStyle() + "]{k}" + endl;
+//        String preamble = lf.getPreamble().toString();
+//        latexified += preamble + "\\begin{document}" + endl + lf.getResult() + "\\end{document}" + endl;
+//
+//        File canonicalFile = options.outerParsing.mainDefinitionFile(files);
+//        if(makeDocument) latexFilePath = FilenameUtils.removeExtension(canonicalFile.getName()) + "-doc.tex";
+//        else latexFilePath = FilenameUtils.removeExtension(canonicalFile.getName()) + ".tex";
+//        files.saveToTemp(latexFilePath, latexified);
+//
+//        sw.printIntermediate("Latex Generation");
+//    }
 
     public String getLatexFile() {
         return latexFilePath;
     }
 
     @Override
-    public void run(Definition javaDef) {
-            compile(javaDef);
+    public void run() {
+//            compile(javaDef);
             files.copyTempFileToDefinitionDirectory("k.sty");
             files.copyTempFileToDefinitionDirectory(latexFilePath);
     }

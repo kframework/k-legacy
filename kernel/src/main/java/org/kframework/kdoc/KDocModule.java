@@ -7,6 +7,7 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import org.kframework.backend.PosterBackend;
+import org.kframework.backend.latex.LatexBackend;
 import org.kframework.main.FrontEnd;
 import org.kframework.main.GlobalOptions;
 import org.kframework.main.Tool;
@@ -33,6 +34,7 @@ public class KDocModule extends AbstractModule {
 
         MapBinder<String, PosterBackend> posterBinder = MapBinder.newMapBinder(
                 binder(), String.class, PosterBackend.class);
+        posterBinder.addBinding("latex").to(LatexBackend.class);
     }
 
     @Provides
