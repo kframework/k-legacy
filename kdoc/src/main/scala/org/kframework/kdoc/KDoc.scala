@@ -26,7 +26,8 @@ class KDoc(docStyle: String, separator: String = " ") {
   def apply(definitionText: String): String = {
     val metaDefinition = parseDefinition(definitionText)
     val definition = Definition.from(definitionText)
-    kToLatexForEKORE(resolveBubbles(metaDefinition, Kompiler.toRuleParser(definition)))
+    val res = kToLatexForEKORE(resolveBubbles(metaDefinition, Kompiler.toRuleParser(definition)))
+    res//.replaceAll("\\n", System.getProperty("line.separator"))
   }
 
   def resolveBubbles(k: K, definition: org.kframework.definition.Definition) = new TransformK() {

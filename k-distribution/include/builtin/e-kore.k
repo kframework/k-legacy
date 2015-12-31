@@ -35,7 +35,7 @@ module OUTER-KORE
   imports ATTRIBUTES
 
   syntax KDefinition   ::= KRequireList KModuleList
-                               [klabel(#KDefinition), hook(org.kframework.definition.Definition), latex(\begin{document} #1 #2 \end{document})]
+                               [klabel(#KDefinition), hook(org.kframework.definition.Definition), latex(\begin{document}\n#1\n#2\n\end{document})]
 
   syntax KRequire      ::= "require" KString
                                [klabel(#KRequire), hook(org.kframework.definition.Require)]
@@ -48,8 +48,7 @@ module OUTER-KORE
                                     KImportList
                                     KSentenceList
                            "endmodule"
-                               [klabel(#KModule), hook(org.kframework.definition.Module),
-                               latex(\\begin{module}{ \\moduleName{ #1 }#2 #3 #4 \\end{module})]
+                               [klabel(#KModule), hook(org.kframework.definition.Module), latex(\begin{module}{\n\moduleName{#1}\n#2\n#3\n#4\n\end{module})]
   syntax KModuleList   ::= ""  [klabel(#emptyKModuleList), onlyLabel]
                          | KModuleList KModule
                                [klabel(#KModuleList), assoc, comm, unit(#emptyKModuleList)]
