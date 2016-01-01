@@ -358,15 +358,18 @@ public class SortCells {
                         return getSplit(k.klist().items().get(0)).entrySet().stream()
                                 .map(e -> (K) KApply(KLabel("is" + getPredicateSort(e.getKey())), e.getValue()))
                                 .reduce(BooleanUtils.TRUE, BooleanUtils::and);
-                    } else if(k.klabel().name().equals("isBag")
-                            && k.klist().size() == 1
-                            && k.klist().items().get(0) instanceof KVariable) {
-                        KVariable var = (KVariable)k.klist().items().get(0);
-                        VarInfo info = variables.get(var);
-                        if (info != null) {
-                            return info.getSplit(var).entrySet().stream()
-                                    .map(e -> (K) KApply(KLabel("is" + getPredicateSort(e.getKey())), e.getValue()))
-                                    .reduce(BooleanUtils.TRUE, BooleanUtils::and);
+                    } else if(k.klabel().name().equals("isBag")) {
+                        if (k.klist().size() != 1) {
+                            throw KEMException.compilerError("Unexpected isBag predicate not of arity 1 found; cannot compile to sorted cells.", k);
+                        }
+                        if (k.klist().items().get(0) instanceof KVariable) {
+                            KVariable var = (KVariable)k.klist().items().get(0);
+                            VarInfo info = variables.get(var);
+                            if (info != null) {
+                                return info.getSplit(var).entrySet().stream()
+                                        .map(e -> (K) KApply(KLabel("is" + getPredicateSort(e.getKey())), e.getValue()))
+                                        .reduce(BooleanUtils.TRUE, BooleanUtils::and);
+                            }
                         }
                     }
                     return super.apply(k);
