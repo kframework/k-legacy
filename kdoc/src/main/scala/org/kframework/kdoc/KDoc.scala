@@ -27,7 +27,7 @@ class KDoc(docStyle: String, separator: String = " ") {
     val metaDefinition = parseDefinition(definitionText)
     val definition = Definition.from(definitionText)
     val res = kToLatexForEKORE(resolveBubbles(metaDefinition, Kompiler.toRuleParser(definition)))
-    res//.replaceAll("\\n", System.getProperty("line.separator"))
+    res.replace("\\n", System.getProperty("line.separator"))
   }
 
   def resolveBubbles(k: K, definition: org.kframework.definition.Definition) = new TransformK() {
@@ -46,8 +46,10 @@ class KDoc(docStyle: String, separator: String = " ") {
 
     override def apply(k: KToken) = k match {
       case c@KToken(contents, Sort("Bubble")) =>
-        val parsedBubble = currentParser(ADT.Sort("RuleContent"), contents)._1.get
-        currentKToLatex(parsedBubble)
+        currentParser(ADT.Sort("RuleContent"), contents) match {
+          case (Some(parsedBubble), _) => currentKToLatex(parsedBubble)
+          case (_, errs) => throw new RuntimeException("When parsing: "+contents + " got errors:\n"+errs.toString)
+        }
       case other => super.apply(other)
     }
   }.apply(k)

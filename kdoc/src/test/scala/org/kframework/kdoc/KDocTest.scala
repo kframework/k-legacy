@@ -15,8 +15,9 @@ class KDocTest {
         | module X
         |   imports INT
         |   syntax Foo ::= "x"
-        |   syntax Foo ::= "y"  [latex("specialLatexForY")]
-        |   rule x => y
+        |   syntax Foo ::= "y" [latex("specialLatexForY")]
+        |   rule x => y requires x ensures y
+        |   context x requires y
         | endmodule
         """.stripMargin).trim)
   }

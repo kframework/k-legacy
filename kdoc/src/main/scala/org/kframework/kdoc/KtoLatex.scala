@@ -31,18 +31,11 @@ class KtoLatex(module: Module, separator: String = " ") extends ((K) => String) 
             case _ => throw new AssertionError("Too productions for klabel " + l)
           }
         case 1 => // exactly one latex annotation
-          println(latexAtts.head); latexAtts.head
+          latexAtts.head
         case _ => // multiple latex attributes
           throw new AssertionError("Too many latex attributes for klabel " + l)
       }
-      children.zipWithIndex.foldRight(latex) { case ((value, i), res) =>
-        println("res before:"+(" " * x)+res)
-        x += 2
-        val after = res.replaceAll("#" + (i + 1), apply(value))
-        x -= 2
-        println("res after:"+(" " * x)+after)
-          after
-      }
+      children.zipWithIndex.foldRight(latex) { case ((value, i), res) => res.replace("#" + (i + 1), apply(value)) }
     case KToken(s, _) => s
     case KRewrite(l, r) => apply(l) + "\\Rightarrow" + apply(r) //TODO: use kast.k latex annotation
     case KSequence(s) => s map apply mkString "~>"              //TODO: use kast.k latex annotation

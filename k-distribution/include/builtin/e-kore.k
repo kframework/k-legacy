@@ -20,9 +20,9 @@ module ATTRIBUTES
   syntax TC ::= r"[^\\n\\r\\(\\)\\\"]+"         [klabel('TC)]             // dummy klabel
               | "(" TAGCONTENT ")"
 
-  syntax Attr ::= KEY                 [klabel(#TagSimple)]
-                | KEY "(" TAGList ")" [klabel(#TagContent)]
-                | KEY "(" KString ")" [klabel(#TagString)]
+  syntax Attr ::= KEY                 [klabel(#TagSimple), latex(\kattribute{#1})]
+                | KEY "(" TAGList ")" [klabel(#TagContent), latex(\kattribute{#1}(#2))]
+                | KEY "(" KString ")" [klabel(#TagString), latex(\kattribute{#1}(#2))]
 endmodule
 
 // To be used for first-level parsing/pretty-printing of global KORE
@@ -42,42 +42,42 @@ module OUTER-KORE
 
   syntax KRequireList  ::= ""  [klabel(#emptyKRequireList), onlyLabel]
                          | KRequireList KRequire
-                               [klabel(#KRequireList), assoc, comm, unit(#emptyKRequireList)]
+                               [klabel(#KRequireList), assoc, comm, unit(#emptyKRequireList), latex(#1\n#2)]
 
   syntax KModule       ::= "module" KModuleName OptionalAttributes
                                     KImportList
                                     KSentenceList
                            "endmodule"
-                               [klabel(#KModule), hook(org.kframework.definition.Module), latex(\begin{module}{\n\moduleName{#1}\n#2\n#3\n#4\n\end{module})]
+                               [klabel(#KModule), hook(org.kframework.definition.Module), latex(\begin{module}{\n\moduleName{#1}#2\n#3#4\n\end{module})]
   syntax KModuleList   ::= ""  [klabel(#emptyKModuleList), onlyLabel]
                          | KModuleList KModule
                                [klabel(#KModuleList), assoc, comm, unit(#emptyKModuleList)]
 
   syntax KImport       ::= "imports" KModuleName
-                               [klabel(#KImport), hook(org.kframework.definition.Import), latex(import #1)]
+                               [klabel(#KImport), hook(org.kframework.definition.Import), latex(  import #1\n)]
 
   syntax KImportList   ::= ""  [klabel(#emptyKImportList), onlyLabel]
                          | KImportList KImport
-                               [klabel(#KImportList), assoc, comm, unit(#emptyKImportList)]
+                               [klabel(#KImportList), assoc, comm, unit(#emptyKImportList), latex(#1#2)]
 
   syntax KSentenceList ::= ""  [klabel(#emptyKSentenceList), onlyLabel]
                          | KSentenceList KSentence
-                               [klabel(#KSentenceList), assoc, comm, unit(#kemptyKSentenceList)]
+                               [klabel(#KSentenceList), assoc, comm, unit(#kemptyKSentenceList), latex(#1\n#2)]
 
   syntax KSentence ::= "syntax" KSort OptionalAttributes
-                               [klabel(#KSyntaxSort), hook(org.kframework.definition.SyntaxSort)]
+                               [klabel(#KSyntaxSort), hook(org.kframework.definition.SyntaxSort), latex(  \begin{syntaxBlock}\n    #1#2\n  \end{syntaxBlock})]
                      | "syntax" KSort "::=" PrioritySeqBlock
-                               [klabel(#KSyntaxProduction), hook(org.kframework.definition.SyntaxProduction)]
+                               [klabel(#KSyntaxProduction), hook(org.kframework.definition.SyntaxProduction), latex(  \begin{syntaxBlock}\n    #1 ::= #2\n  \end{syntaxBlock})]
                      | "syntax" "priority"   KPrioritySeq OptionalAttributes
-                               [klabel(#KSyntaxPriority), hook(org.kframework.definition.SyntaxPriority)]
+                               [klabel(#KSyntaxPriority), hook(org.kframework.definition.SyntaxPriority), latex(  \begin{syntaxBlock}\n    priority #1#2\n  \end{syntaxBlock})]
                      | "syntax" "priorities" KPrioritySeq OptionalAttributes
-                               [klabel(#KSyntaxPriorities), hook(org.kframework.definition.SyntaxPriority)]
+                               [klabel(#KSyntaxPriorities), hook(org.kframework.definition.SyntaxPriority), latex(  \begin{syntaxBlock}\n    priorities #1#2\n  \end{syntaxBlock})]
                      | "syntax" "left" KNeTagSet OptionalAttributes
-                               [klabel(#KSyntaxLeft), hook(org.kframework.definition.SyntaxPriority)]
+                               [klabel(#KSyntaxLeft), hook(org.kframework.definition.SyntaxPriority), latex(  \begin{syntaxBlock}\n    left #1#2\n  \end{syntaxBlock})]
                      | "syntax" "right" KNeTagSet OptionalAttributes
-                               [klabel(#KSyntaxRight), hook(org.kframework.definition.SyntaxPriority)]
+                               [klabel(#KSyntaxRight), hook(org.kframework.definition.SyntaxPriority), latex(  \begin{syntaxBlock}\n    right #1#2\n  \end{syntaxBlock})]
                      | "syntax" "non-assoc" KNeTagSet OptionalAttributes
-                               [klabel(#KSyntaxNonAssoc), hook(org.kframework.definition.SyntaxPriority)]
+                               [klabel(#KSyntaxNonAssoc), hook(org.kframework.definition.SyntaxPriority), latex(  \begin{syntaxBlock}\n    non-assoc #1#2\n  \end{syntaxBlock})]
 
   syntax KPrioritySeq ::= KPrioritySeq ">" KNeTagSet   [klabel(#KPrioritySeq), assoc]
                         | KNeTagSet
@@ -117,11 +117,11 @@ module OUTER-KORE
                     | Attr
 
   syntax KSentence ::= "configuration" Contents
-                               [klabel(#KConfiguration), hook(org.kframework.definition.Configuration)]
+                               [klabel(#KConfiguration), hook(org.kframework.definition.Configuration), latex(  \kconfig#1)]
                      | "rule"    Contents
-                               [klabel(#KRule), hook(org.kframework.definition.Rule)]
+                               [klabel(#KRule), hook(org.kframework.definition.Rule), latex(  \krule#1)]
                      | "context" Contents
-                               [klabel(#KContext), hook(org.kframework.definition.Context)]
+                               [klabel(#KContext), hook(org.kframework.definition.Context), latex(  \kcontext#1)]
   syntax Contents ::= Bubble                        [klabel(#NoAttrs)]
                     | Bubble KAttributesDeclaration [klabel(#Attrs), prefer]
   // The following can still change
