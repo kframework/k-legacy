@@ -58,8 +58,8 @@ color conventional C-like comments; or (2) Run the \K pre-processor
 We need the predefined substitution module, so we require it with the command
 below.  Then we should make sure that we import its module called SUBSTITUTION
 in our LAMBDA module below. */
-
-require "modules/substitution.k"
+require "domains.k"
+require "substitution.k"
 
 module LAMBDA
   imports SUBSTITUTION
@@ -99,7 +99,7 @@ interleaved) orders.
   syntax Exp ::= Val
                | Exp Exp              [left, strict]
                | "(" Exp ")"          [bracket]
-  syntax Variable ::= Id
+  syntax KVariable ::= Id
   syntax KResult ::= Val
 
 //@ \section{$\beta$-reduction}
