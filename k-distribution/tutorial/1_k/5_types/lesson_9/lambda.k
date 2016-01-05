@@ -1,14 +1,9 @@
 // Copyright (c) 2012-2015 K Team. All Rights Reserved.
-require "domains.k"
 require "unification.k"
 
-module LAMBDA-SYNTAX
-  imports LAMBDA-COMMON
-  imports ID
-endmodule
+module LAMBDA
+  imports UNIFICATION
 
-module LAMBDA-COMMON
-  imports DOMAINS-COMMON
   syntax Exp ::= Int | Bool | Id
                | "(" Exp ")"                      [bracket]
                | Exp Exp                          [strict, left]
@@ -27,13 +22,6 @@ module LAMBDA-COMMON
                 | "(" Type ")"                    [bracket]
 
   syntax Exp ::= Type
-endmodule
-
-module LAMBDA
-  imports LAMBDA-COMMON
-  imports DOMAINS
-  imports UNIFICATION
-
   syntax Variable ::= Id
   syntax KResult ::= Type
 
@@ -48,9 +36,10 @@ module LAMBDA
   rule T1:Type  + T2:Type => T1 = int ~> T2 = int ~> int
   rule T1:Type <= T2:Type => T1 = int ~> T2 = int ~> bool
 
-  rule <k> lambda X:Id . E:Exp => E ~> ?T:Type ~> tenv(TEnv) ...</k>
+  syntax Exp ::= Exp "->" Exp                  [strict]
+  rule <k> lambda X:Id . E => ?T:Type -> E ~> tenv(TEnv) ...</k>
        <tenv> TEnv => TEnv[X <- ?T] </tenv>
-  rule T2:Type ~> T1:Type => T1 -> T2
+
   rule T1:Type T2:Type => T1 = (T2 -> ?T:Type) ~> ?T
   rule if T:Type then T1:Type else T2:Type => T = bool ~> T1 = T2 ~> T1
 
@@ -71,5 +60,5 @@ module LAMBDA
   rule T = T => .
 
   syntax KItem ::= tenv(Map)
-  rule <k> T:Type ~> tenv(TEnv) => T ...</k> <tenv> _ => TEnv </tenv>
+  rule <k> T:Type ~> (tenv(TEnv) => .) ...</k>  <tenv> _ => TEnv </tenv>
 endmodule
