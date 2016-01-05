@@ -56,14 +56,22 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
 
   private val edgesPoset: POSet[Sort] = POSet(edges)
 
-  private val topCells = cellSorts.filter (l => !edges.map(_._2).contains(l))
+  private val topCellsIncludingStrategyCell = cellSorts.diff(edges.map(_._2))
 
-  if (topCells.size > 1)
-    throw new AssertionError("Too many top cells:" + topCells)
+  private val topCells =
+    if (topCellsIncludingStrategyCell.size > 1)
+      topCellsIncludingStrategyCell.filterNot(_.name == "SCell")
+    else
+      topCellsIncludingStrategyCell
 
-  val topCell: Sort = topCells.head
+  lazy val topCell: Sort = {
+    if (topCells.size > 1)
+      throw new AssertionError("Too many top cells:" + topCells)
+
+    topCells.head
+  }
   private val sortedSorts: Seq[Sort] = tsort(edges).toSeq
-  val levels: Map[Sort, Int] = edges.toList.sortWith((l, r) => sortedSorts.indexOf(l._1) < sortedSorts.indexOf(r._1)).foldLeft(Map(topCell -> 0)) {
+  lazy val levels: Map[Sort, Int] = edges.toList.sortWith((l, r) => sortedSorts.indexOf(l._1) < sortedSorts.indexOf(r._1)).foldLeft(Map(topCell -> 0)) {
     case (m: Map[Sort, Int], (from: Sort, to: Sort)) =>
       m + (to -> (m(from) + 1))
   }
