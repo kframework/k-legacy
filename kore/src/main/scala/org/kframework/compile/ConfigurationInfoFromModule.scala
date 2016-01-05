@@ -3,6 +3,7 @@ package org.kframework.compile
 import java.util
 
 import org.kframework.POSet
+import org.kframework.builtin.Sorts
 import org.kframework.kore.KORE.{KLabel, KApply}
 
 import scala.collection.JavaConverters._
@@ -19,6 +20,7 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
 
   private val cellProductions: Map[Sort,Production] =
     m.productions.filter(_.att.contains("cell")).map(p => (p.sort, p)).toMap
+  // TODO (brandon): can all assoc prods can be cell productions? I (radu) had some weird issues where isLeafCell failed
   private val cellBagProductions: Map[Sort,Production] =
     m.productions.filter(_.att.contains("assoc")).map(p => (p.sort, p)).toMap
   private val cellBagSubsorts: Map[Sort, Set[Sort]] = cellBagProductions.values.map(p => (p.sort, getCellSortsOfCellBag(p.sort))).toMap
@@ -47,7 +49,7 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
     }}.toSet
 
   private def getCellSortsOfCellBag(n: Sort): Set[Sort] = {
-    m.definedSorts.filter(m.subsorts.directlyGreaterThan(n, _))
+    m.definedSorts.filter(m.subsorts.directlyGreaterThan(n, _)).filterNot(s => s.equals(Sorts.KBott))
   }
 
   override def getCellBagSortsOfCell(n: Sort): Set[Sort] = {
