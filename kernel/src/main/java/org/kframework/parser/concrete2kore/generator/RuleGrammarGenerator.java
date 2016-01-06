@@ -20,6 +20,7 @@ import org.kframework.definition.UserList;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.loader.Constants;
 import org.kframework.kore.Sort;
+import org.kframework.kore.convertors.KOREtoKIL;
 import org.kframework.parser.concrete2kore.ParseInModule;
 import scala.Option;
 import scala.collection.Seq;
@@ -319,9 +320,9 @@ public class RuleGrammarGenerator {
                         newProds.add(Production(baseK.getModule(SORT_K).get().resolve(Sorts.K()), Seq(NonTerminal(srt)), Att()));
                     }
                 }
-                List<UserList> uLists = UserList.getLists(newProds);
+                java.util.List<UserList> uLists = UserList.getLists(newProds);
                 // eliminate the general list productions
-                newProds = newProds.stream().filter(p -> !(p instanceof Production && p.att().contains(KOREtoKIL.USER_LIST_ATTRIBUTE))).collect(Collectors.toSet());
+                newProds = newProds.stream().filter(p -> !(p instanceof Production && p.att().contains(Att.userList()))).collect(Collectors.toSet());
                 // for each triple, generate a new pattern which works better for parsing lists in programs.
                 for (UserList ul : uLists) {
                     Production prod1, prod2, prod3, prod4, prod5;

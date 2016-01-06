@@ -36,7 +36,6 @@ case class DivergingAttributesForTheSameKLabel(ps: Set[Production])
 
 case class Definition(
                        mainModule: Module,
-                       mainSyntaxModule: Module,
                        entryModules: Set[Module],
                        att: Att = Att())
   extends DefinitionToString with OuterKORE {
@@ -78,8 +77,8 @@ trait GeneratingListSubsortProductions extends Sorting {
       for (l1 <- userLists;
            l2 <- userLists
            if l1 != l2 && l1.klabel == l2.klabel &&
-             subsorts.>(ADT.Sort(l1.childSort), ADT.Sort(l2.childSort))) yield {
-        Production(ADT.Sort(l1.sort), Seq(NonTerminal(ADT.Sort(l2.sort))), Att().add(Att.generatedByListSubsorting))
+             subsorts.>(l1.childSort, l2.childSort)) yield {
+        Production(l1.sort, Seq(NonTerminal(l2.sort)), Att().add(Att.generatedByListSubsorting))
       }
 
     listProductions.toSet
@@ -173,14 +172,11 @@ class Module(val name: String, val imports: Set[Module], unresolvedLocalSentence
     case b: Bubble => b
   }
 
-  val localSentences = localSyntaxSentences ++ localSemanticSentences
+  val afterResolvingSorts = localSyntaxSentences ++ localSemanticSentences
 
-  val sentences: Set[Sentence] = localSentences | (imports flatMap {
-    _.sentences
-  })
   private val importedSentences = imports flatMap {_.sentences}
 
-  val listProductions = computeFromSentences(unresolvedLocalSentences | importedSentences)
+  val listProductions = computeFromSentences(afterResolvingSorts | importedSentences)
 
   val localSentences = unresolvedLocalSentences | listProductions
 
