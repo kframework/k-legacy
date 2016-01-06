@@ -12,7 +12,6 @@ case class ModuleName(s: String) {
 
 trait ModuleQualified {
   val localName: String
-  assert(!localName.contains("@"))
   val moduleName: ModuleName
   def name: String = localName + (if (moduleName != ModuleName.STAR) "@" + moduleName else "")
   override def hashCode = localName.hashCode

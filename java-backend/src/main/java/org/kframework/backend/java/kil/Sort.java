@@ -23,7 +23,7 @@ import org.kframework.utils.errorsystem.KEMException;
  * @author YilongL
  *
  */
-public final class Sort implements MaximalSharing, Serializable, org.kframework.kore.Sort {
+public final class Sort extends org.kframework.kore.AbstractSort implements MaximalSharing, Serializable {
 
     private static final ConcurrentMap<String, Sort> cache = new ConcurrentHashMap<>();
 
@@ -116,11 +116,6 @@ public final class Sort implements MaximalSharing, Serializable, org.kframework.
 
     public org.kframework.kil.Sort toFrontEnd() {
         return org.kframework.kil.Sort.of(name);
-    }
-
-    @Override
-    public int hashCode() {
-        return localName().hashCode();
     }
 
     @Override
