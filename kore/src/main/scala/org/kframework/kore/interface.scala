@@ -47,6 +47,7 @@ trait Sort extends ModuleQualified {
     case other: Sort => name == other.name
     case _ => false
   }
+  override def hashCode = localName.hashCode
 }
 
 trait KCollection {

@@ -65,6 +65,7 @@ public final class Sort implements MaximalSharing, Serializable, org.kframework.
     private final String name;
 
     private final int ordinal;
+    private final String localName;
 
     /**
      * Gets the corresponding {@code Sort} from its {@code String}
@@ -75,7 +76,11 @@ public final class Sort implements MaximalSharing, Serializable, org.kframework.
      * @return the sort
      */
     public static Sort of(String name) {
-        return cache.computeIfAbsent(name, s -> new Sort(s, maxOrdinal.getAndIncrement()));
+        if(name.contains("@")) {
+            String localName = name.split("@")[0];
+            return cache.computeIfAbsent(localName, s -> new Sort(localName, maxOrdinal.getAndIncrement()));
+        } else
+            return cache.computeIfAbsent(name, s -> new Sort(name, maxOrdinal.getAndIncrement()));
     }
 
     public static Sort of(org.kframework.kil.Sort sort) {
@@ -91,7 +96,8 @@ public final class Sort implements MaximalSharing, Serializable, org.kframework.
     }
 
     private Sort(String name, int ordinal) {
-        this.name = name;
+        this.localName = name;
+        this.name = localName + "@" + moduleName();
         this.ordinal = ordinal;
     }
 
@@ -114,7 +120,7 @@ public final class Sort implements MaximalSharing, Serializable, org.kframework.
 
     @Override
     public int hashCode() {
-        return name.hashCode();
+        return localName().hashCode();
     }
 
     @Override
@@ -142,11 +148,11 @@ public final class Sort implements MaximalSharing, Serializable, org.kframework.
 
     @Override
     public ModuleName moduleName() {
-        throw new AssertionError("Unimplemented");
+        return ModuleName.STAR();
     }
 
     @Override
     public String localName() {
-        throw new AssertionError("Unimplemented");
+        return name;
     }
 }
