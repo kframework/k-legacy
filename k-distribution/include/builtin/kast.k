@@ -48,10 +48,12 @@ module KSEQ
   imports KAST
   imports K-TOP-SORT
   syntax KBott ::= ".K"      [klabel(#EmptyK), hook(org.kframework.kore.EmptyK)]
+                 | "."       [klabel(#EmptyK), hook(org.kframework.kore.EmptyK)]
                  | ".::K"    [klabel(#EmptyK), hook(org.kframework.kore.EmptyK)]
                  | K "~>" K  [klabel(#KSequence), left, assoc, unit(#EmptyK), hook(org.kframework.kore.KSequence)]
   syntax left #KSequence
   syntax KBott     ::= "`" K "`"    [bracket]
+                     | "(" K ")"    [bracket]
 endmodule
 
 
@@ -73,6 +75,7 @@ module KCELLS
                | ".Bag"   [klabel(#cells)]
                | ".::Bag" [klabel(#cells)]
                | Cell
+  syntax Bag ::= "(" Bag ")" [bracket]
   syntax K ::= Bag
   syntax Bag ::= KBott
 endmodule

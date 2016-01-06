@@ -6,6 +6,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import org.apache.commons.collections15.ListUtils;
 import org.kframework.Collections;
+import org.kframework.Strategy;
 import org.kframework.attributes.Source;
 import org.kframework.backend.Backends;
 import org.kframework.builtin.BooleanUtils;
@@ -18,7 +19,6 @@ import org.kframework.definition.Context;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
 import org.kframework.definition.Module;
-import org.kframework.definition.ModuleTransformer;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
 import org.kframework.kore.K;
@@ -162,7 +162,6 @@ public class Kompile {
             kem.addAllKException(errors.stream().map(e -> e.exception).collect(Collectors.toList()));
             throw KEMException.compilerError("Had " + errors.size() + " structural errors.");
         }
-
     }
 
     public Function<Definition, Definition> defaultSteps() {
@@ -182,14 +181,14 @@ public class Kompile {
                 .andThen(func(d -> new GenerateSortPredicateSyntax().apply(d)))
                 .andThen(func(this::resolveFreshConstants))
                 .andThen(func(AddImplicitComputationCell::transformDefinition))
+                .andThen(new Strategy(kompileOptions.experimental.heatCoolStrategies).addStrategyCellToRulesTransformer())
                 .andThen(func(ConcretizeCells::transformDefinition))
                 .andThen(func(this::addSemanticsModule))
-                .andThen(func(this::addProgramModule))
                 .apply(def);
     }
 
     public Definition resolveIOStreams(Definition d) {
-        return DefinitionTransformer.from(new ResolveIOStreams(d)::resolve, "resolving io streams").apply(d);
+        return DefinitionTransformer.from(new ResolveIOStreams(d, kem)::resolve, "resolving io streams").apply(d);
     }
 
     public Definition addSemanticsModule(Definition d) {
@@ -206,10 +205,10 @@ public class Kompile {
 
         Module languageParsingModule = Module("LANGUAGE-PARSING",
                 Set(d.mainModule(),
-                        d.mainSyntaxModule(),
-                        d.getModule("K-TERM").get()), Set(), Att());
+                        d.getModule("K-TERM").get(),
+                        d.getModule(RuleGrammarGenerator.ID_PROGRAM_PARSING).get()), Set(), Att());
         allModules.add(languageParsingModule);
-        return Definition(withKSeq, d.mainSyntaxModule(), immutable(allModules));
+        return Definition(withKSeq, immutable(allModules), d.att());
     }
 
     public Definition resolveFreshConstants(Definition input) {
@@ -217,28 +216,21 @@ public class Kompile {
                 .apply(input);
     }
 
-    public Definition addProgramModule(Definition d) {
-        Module programsModule = gen.getProgramsGrammar(d.mainSyntaxModule());
-        java.util.Set<Module> allModules = mutable(d.modules());
-        allModules.add(programsModule);
-        return Definition(d.mainModule(), programsModule, immutable(allModules));
-    }
-
     private Sentence concretizeSentence(Sentence s, Definition input) {
         ConfigurationInfoFromModule configInfo = new ConfigurationInfoFromModule(input.mainModule());
         LabelInfo labelInfo = new LabelInfoFromModule(input.mainModule());
         SortInfo sortInfo = SortInfo.fromModule(input.mainModule());
-        return new ConcretizeCells(configInfo, labelInfo, sortInfo).concretize(s);
+        return new ConcretizeCells(configInfo, labelInfo, sortInfo, input.mainModule()).concretize(s);
     }
 
     public Module parseModule(CompiledDefinition definition, File definitionFile, boolean dropQuote) {
         java.util.Set<Module> modules = parser.loadModules(
                 mutable(definition.getParsedDefinition().modules()),
                 "require " + StringUtil.enquoteCString(definitionFile.getPath()),
-                definitionFile,
+                Source.apply(definitionFile.getAbsolutePath()),
                 definitionFile.getParentFile(),
                 Lists.newArrayList(BUILTIN_DIRECTORY),
-                dropQuote);
+                dropQuote, !kompileOptions.noPrelude);
 
         if (modules.size() != 1) {
             throw KEMException.compilerError("Expected to find a file with 1 module: found " + modules.size() + " instead.");
@@ -287,7 +279,7 @@ public class Kompile {
                 ListUtils.union(kompileOptions.includes.stream()
                                 .map(files::resolveWorkingDirectory).collect(Collectors.toList()),
                         Lists.newArrayList(BUILTIN_DIRECTORY)),
-                dropQuote);
+                dropQuote, !kompileOptions.noPrelude);
 
         boolean hasConfigDecl = stream(definition.mainModule().sentences())
                 .filter(s -> s instanceof Bubble)
@@ -392,7 +384,6 @@ public class Kompile {
                     .flatMap(
                             configDecl -> stream(GenerateSentencesFromConfigDecl.gen(configDecl.body(), configDecl.ensures(), configDecl.att(), parser.getExtensionModule())))
                     .collect(Collections.toSet());
-
 
             Module mapModule;
             if (def.getModule("MAP").isDefined()) {

@@ -66,6 +66,12 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
     else
       topCellsIncludingStrategyCell
 
+  private val topCells =
+    if (topCellsIncludingStrategyCell.size > 1)
+      topCellsIncludingStrategyCell.filterNot(_.name == "SCell")
+    else
+      topCellsIncludingStrategyCell
+
   lazy val topCell: Sort = {
     if (topCells.size > 1)
       throw new AssertionError("Too many top cells:" + topCells)

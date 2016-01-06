@@ -44,7 +44,7 @@ public class TstBackendOnKORE_IT extends AbstractTest {
 
         String actual = KOREToTreeNodes.toString(new AddBrackets(unparsingModule).addBrackets((ProductionReference) KOREToTreeNodes.apply(KOREToTreeNodes.up(unparsingModule, kResult), unparsingModule)));
 
-        assertEquals("Execution failed", "<generatedTop> <k> .::K </k> <state> s |-> 55 n |-> -1 </state> </generatedTop>", actual);
+        assertEquals("Execution failed", "<generatedTop> <k> . </k> <state> s |-> 55 n |-> -1 </state> </generatedTop>", actual);
 
     }
 
@@ -61,8 +61,7 @@ public class TstBackendOnKORE_IT extends AbstractTest {
 
         String actual = KOREToTreeNodes.toString(new AddBrackets(unparsingModule).addBrackets((ProductionReference) KOREToTreeNodes.apply(KOREToTreeNodes.up(unparsingModule, kResult), unparsingModule)));
 
-        assertEquals("Execution failed", "<T> <k> finish ~> .::K </k> </T>", actual);
+        assertEquals("Execution failed", "<T> <k> finish ~> . </k> </T>", actual);
 
     }
-
 }

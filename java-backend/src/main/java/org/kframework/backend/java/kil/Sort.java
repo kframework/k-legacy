@@ -54,6 +54,7 @@ public final class Sort extends org.kframework.kore.AbstractSort implements Maxi
     public static final Sort META_VARIABLE  =   Sort.of("MetaVariable");
 
     public static final Sort VARIABLE       =   Sort.of("Variable");
+    public static final Sort KVARIABLE      =   Sort.of("KVariable");
 
     public static final Sort BOTTOM         =   Sort.of("Bottom");
     public static final Sort SHARP_BOT      =   Sort.of("#Bot");

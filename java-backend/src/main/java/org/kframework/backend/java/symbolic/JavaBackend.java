@@ -2,6 +2,7 @@
 package org.kframework.backend.java.symbolic;
 
 import com.google.inject.Inject;
+import org.kframework.AddConfigurationRecoveryFlags;
 import org.kframework.attributes.Att;
 import org.kframework.backend.java.kore.compile.ExpandMacrosDefinitionTransformer;
 import org.kframework.compile.NormalizeKSeq;
@@ -81,6 +82,7 @@ public class JavaBackend implements Backend {
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::convertKSeqToKApply, "kseq to kapply"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(NormalizeKSeq.self(), "normalize kseq"))
                 .andThen(func(dd -> markRegularRules(dd)))
+                .andThen(DefinitionTransformer.fromSentenceTransformer(new AddConfigurationRecoveryFlags(), "add refers_THIS_CONFIGURATION_marker"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(JavaBackend::markSingleVariables, "mark single variables"))
                 .andThen(new DefinitionTransformer(new MergeRules(KORE.c())))
                 .apply(d);
@@ -120,7 +122,7 @@ public class JavaBackend implements Backend {
     private static K convertKSeqToKApply(K ruleBody) {
         return new TransformK() {
             public K apply(KSequence kseq) {
-                return ((ADT.KSequence) kseq).kApply();
+                return super.apply(((ADT.KSequence) kseq).kApply());
             }
         }.apply(ruleBody);
     }
@@ -148,7 +150,8 @@ public class JavaBackend implements Backend {
 
             TransformK markerAdder = new TransformK() {
                 public K apply(KVariable kvar) {
-                    if (kvar instanceof SortedADT.SortedKVariable && ((SortedADT.SortedKVariable) kvar).sort().equals(KORE.Sort("K")) && varCount.get(kvar) == 1) {
+                    if (kvar instanceof SortedADT.SortedKVariable && ((SortedADT.SortedKVariable) kvar).sort().equals(KORE.Sort("K")) && varCount.get(kvar) == 1
+                            && !kvar.name().equals("THIS_CONFIGURATION")) {
                         return new SortedADT.SortedKVariable("THE_VARIABLE", Att());
                     } else {
                         return kvar;

@@ -4,12 +4,6 @@ require "unification.k"
 require "substitution.k"
 
 module LAMBDA-SYNTAX
-  imports LAMBDA-COMMON
-  imports ID
-endmodule
-
-module LAMBDA-COMMON
-  imports DOMAINS-COMMON
   syntax Exp ::= Int | Bool | Id
                | "(" Exp ")"                      [bracket]
                | Exp Exp                          [strict, left]
@@ -31,8 +25,7 @@ module LAMBDA-COMMON
 endmodule
 
 module LAMBDA
-  imports LAMBDA-COMMON
-  imports DOMAINS
+  imports LAMBDA-SYNTAX
   imports UNIFICATION
   imports SUBSTITUTION
 

@@ -2,12 +2,6 @@
 require "domains.k"
 
 module VARLABEL-SYNTAX
-  imports VARLABEL-COMMON
-  imports DOMAINS-SYNTAX
-endmodule
-
-module VARLABEL-COMMON
-  imports DOMAINS-COMMON
 
   syntax Exp ::= Int "+" Int
                  | Int "-" Int
@@ -19,8 +13,7 @@ endmodule
 
 
 module VARLABEL
-  imports DOMAINS
-  imports VARLABEL-COMMON
+  imports VARLABEL-SYNTAX
 
 
   configuration <T color="yellow">

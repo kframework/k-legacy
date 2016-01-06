@@ -31,15 +31,13 @@ class TestMeta {
     if (x != y) Assert.assertEquals(x.toString, y.toString)
   }
 
-  val m = Module("TEST", Set[Module](), Set[Sentence](Production("Foo", Sort("Foo"), Seq(Terminal("Bar", Seq())))), Att())
-  val d = Definition(m, m, Set(m))
+  val m = Module("TEST", Set(), Set(Production("Foo", Sort("Foo"), Seq(Terminal("Bar", Seq())))))
+  val d = Definition(m, Set(m), Att())
 
   val metamodule = 'Module("TEST", 'Set(),
     'Set('Production("Foo", 'SortLookup("Foo"), 'List('Terminal("Bar")))))
 
-  val metad = 'Definition(metamodule, metamodule,
-    'Set(metamodule),
-    'Att('Set()))
+  val metad = 'Definition(metamodule, 'Set(metamodule), 'Att('Set()))
 
 
   @Ignore
