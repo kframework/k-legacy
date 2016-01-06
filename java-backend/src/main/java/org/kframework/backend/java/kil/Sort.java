@@ -126,7 +126,7 @@ public final class Sort extends org.kframework.kore.AbstractSort implements Maxi
 
     @Override
     public String toString() {
-        return name;
+        return localName;
     }
 
     /**
