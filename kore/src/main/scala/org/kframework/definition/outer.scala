@@ -241,11 +241,6 @@ class Module(val name: String,
 
   val withSameShortName = definedSorts.groupBy(_.asInstanceOf[ADT.Sort].localName).filter(_._2.size > 1)
 
-  if (withSameShortName.nonEmpty) {
-    println(name)
-    println(withSameShortName.mkString("\n"))
-  }
-
   val usedCellSorts: Set[Sort] = productions.flatMap { p => p.items.collect { case NonTerminal(s) => s }
     .filter(s => s.name.endsWith("Cell") || s.name.endsWith("CellFragment"))
   }
