@@ -1,7 +1,12 @@
 // Copyright (c) 2014-2015 K Team. All Rights Reserved.
 requires "domains.k"
 
+module EXP
+    syntax Exp
+endmodule
+
 module A
+    import EXP
     syntax Exp ::= "x" | "y"
     configuration <k> $PGM </k>
 
@@ -9,6 +14,7 @@ module A
 endmodule
 
 module B
+    import EXP
     syntax Exp ::= "foo" | "bar"
     configuration <b> foo </b>
 
