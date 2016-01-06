@@ -447,7 +447,7 @@ public class RuleGrammarTest {
         parseRule("A:Exp, .Exps", def, 0,
                 KApply(KLabel("#ruleNoConditions"),
                         KApply(KLabel("_,_"),
-                                KApply(KLabel("#SemanticCastToExp"), KToken("A", Sort("#KVariable", ModuleName.apply("KSEQ-SYMBOLIC")))),
+                                KApply(KLabel("#SemanticCastToExp@TEST"), KToken("A", Sort("#KVariable", ModuleName.apply("KSEQ-SYMBOLIC")))),
                                 KApply(KLabel(".List{\"'_,_\"}"))
                         )));
         parseProgram("1(1, 1)", def, "Exp", 0, KApply(KLabel("_(_)"),
