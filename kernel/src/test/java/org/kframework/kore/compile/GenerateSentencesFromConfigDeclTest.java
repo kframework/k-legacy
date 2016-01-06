@@ -61,7 +61,7 @@ public class GenerateSentencesFromConfigDeclTest {
     public void testSingleTop() {
         K configuration = cell("threads", Collections.emptyMap(),
                 cell("thread", Collections.singletonMap("multiplicity", "*"),
-                        cells(cell("k", Collections.emptyMap(), KApply(KLabel("#SemanticCastToKItem"), KToken("$PGM", Sorts.KConfigVar()))),
+                        cells(cell("k", Collections.emptyMap(), KApply(KLabel("#SemanticCastToKItem@BASIC-K"), KToken("$PGM", Sorts.KConfigVar()))),
                                 cell("opt", Collections.singletonMap("multiplicity", "?"),
                                         KApply(KLabel(".Opt"))))));
         Module m1 = Module("CONFIG", Set(def.getModule("KSEQ").get()), Set(Production(".Opt", Sort("OptCellContent"), Seq(Terminal("")))), Att());
@@ -120,7 +120,7 @@ public class GenerateSentencesFromConfigDeclTest {
                                                 KApply(KLabel(KLabels.CELLS))), false)),
                         BooleanUtils.TRUE, BooleanUtils.TRUE, initializerAtts),
                 Rule(KRewrite(KApply(KLabel("initKCell"), KVariable("Init")),
-                                IncompleteCellUtils.make(KLabel("<k>"), false, KApply(KLabel("#SemanticCastToKItem"), KApply(KLabel("Map:lookup"),
+                                IncompleteCellUtils.make(KLabel("<k>"), false, KApply(KLabel("#SemanticCastToKItem@BASIC-K"), KApply(KLabel("Map:lookup"),
                                         KVariable("Init"),
                                         KToken("$PGM", Sorts.KConfigVar()))), false)),
                         BooleanUtils.TRUE, BooleanUtils.TRUE, initializerAtts),
