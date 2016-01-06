@@ -946,6 +946,7 @@ module MINT
 endmodule
 
 module CONFIGURATION-PRIMITIVES
+    imports SORT-K
     syntax K ::= "#RESTORE_CONFIGURATION" "(" K ")"  [klabel(#RESTORE_CONFIGURATION)]
 endmodule
 
