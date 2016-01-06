@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
+import org.kframework.definition.ModuleName;
 import org.kframework.definition.RegexTerminal;
 import org.kframework.kompile.Kompile;
 import org.kframework.kore.K;
@@ -446,7 +447,7 @@ public class RuleGrammarTest {
         parseRule("A:Exp, .Exps", def, 0,
                 KApply(KLabel("#ruleNoConditions"),
                         KApply(KLabel("_,_"),
-                                KApply(KLabel("#SemanticCastToExp"), KToken("A", Sort("#KVariable"))),
+                                KApply(KLabel("#SemanticCastToExp"), KToken("A", Sort("#KVariable", ModuleName.apply("KSEQ-SYMBOLIC")))),
                                 KApply(KLabel(".List{\"'_,_\"}"))
                         )));
         parseProgram("1(1, 1)", def, "Exp", 0, KApply(KLabel("_(_)"),

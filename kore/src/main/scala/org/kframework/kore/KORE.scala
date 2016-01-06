@@ -1,5 +1,6 @@
 package org.kframework.kore
 
+import org.kframework.definition.ModuleName
 import org.kframework.{AssocBuilder, CombinerFromBuilder, Collector, attributes}
 import org.kframework.attributes.Att
 
@@ -54,6 +55,7 @@ object KORE extends Constructors[K] with ScalaSugared[K] {
   override def KVariable(name: String, att: Att): KVariable = ADT.KVariable(name, att)
 
   override def Sort(name: String): Sort = ADT.SortLookup(name)
+  def Sort(name: String, moduleName: ModuleName): Sort = ADT.SortLookup(name, moduleName)
 
   override def KToken(s: String, sort: Sort, att: Att): KToken = ADT.KToken(s, sort, att)
 
