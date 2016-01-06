@@ -178,7 +178,7 @@ class Module(val name: String, val imports: Set[Module], unresolvedLocalSentence
 
   val listProductions = computeFromSentences(afterResolvingSorts | importedSentences)
 
-  val localSentences = unresolvedLocalSentences | listProductions
+  val localSentences = afterResolvingSorts | listProductions
 
   val sentences: Set[Sentence] = localSentences | importedSentences
 
