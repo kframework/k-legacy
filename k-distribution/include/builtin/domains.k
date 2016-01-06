@@ -482,6 +482,7 @@ module STRING
 endmodule
 
 module ID-PROGRAM-PARSING
+  imports ID
   syntax Id ::= r"(?<![A-Za-z0-9\\_])[A-Za-z\\_][A-Za-z0-9\\_]*"     [notInRules, token, autoReject]
 endmodule
 
