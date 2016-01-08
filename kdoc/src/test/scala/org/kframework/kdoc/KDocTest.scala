@@ -35,6 +35,6 @@ class KDocTest {
         |   rule x => y requires x ensures y
         |   context x requires y
         | endmodule
-        """.stripMargin).trim)
+        """.stripMargin).split("\n").map(_.replaceAll("\\s+$", "")).mkString("\n"))
   }
 }
