@@ -33,7 +33,10 @@ class KDocTest {
         |   syntax Foo ::= "x"
         |   syntax Foo ::= "y" [latex("specialLatexForY")]
         |   rule x => y requires x ensures y
+        |   rule <k> x => y </k> requires x ensures y
         |   context x requires y
+        |
+        |   configuration <k> x </k>
         | endmodule
         """.stripMargin).split("\n").map(_.replaceAll("\\s+$", "")).mkString("\n"))
   }

@@ -24,6 +24,7 @@ import scala.util.Either;
 import scala.util.Left;
 import scala.util.Right;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -93,6 +94,7 @@ public class ResolveConfig implements UnaryOperator<Module> {
                 inputModule.att());
 
         ParseInModule parser = getParser.apply(module);
+        Set<ParseFailedException> errors = new HashSet<>();
 
         scala.collection.Set<Sentence> configDeclProductions = stream(module.localSentences())
                 .parallel()
@@ -100,21 +102,29 @@ public class ResolveConfig implements UnaryOperator<Module> {
                 .map(b -> (Bubble) b)
                 .filter(b -> b.sentenceType().equals("config"))
                 .map(b -> parseBubble.apply(module, b))
-                .map(contents -> {
-                    KApply configContents = (KApply) contents;
-                    List<K> items = configContents.klist().items();
-                    switch (configContents.klabel().name()) {
-                    case "#ruleNoConditions":
-                        return Configuration(items.get(0), BooleanUtils.TRUE, configContents.att());
-                    case "#ruleEnsures":
-                        return Configuration(items.get(0), items.get(1), configContents.att());
-                    default:
-                        throw KEMException.compilerError("Illegal configuration with requires clause detected.", configContents);
+                .flatMap(contents -> {
+                    if(contents.isRight()) {
+                        KApply configContents = (KApply) contents.right().get();
+                        List<K> items = configContents.klist().items();
+                        switch (configContents.klabel().name()) {
+                        case "#ruleNoConditions":
+                            return Stream.of(Configuration(items.get(0), BooleanUtils.TRUE, configContents.att()));
+                        case "#ruleEnsures":
+                            return Stream.of(Configuration(items.get(0), items.get(1), configContents.att()));
+                        default:
+                            throw KEMException.compilerError("Illegal configuration with requires clause detected.", configContents);
+                        }
+                    } else {
+                        errors.addAll(contents.left().get());
+                        return Stream.empty();
                     }
                 })
                 .flatMap(
                         configDecl -> stream(GenerateSentencesFromConfigDecl.gen(configDecl.body(), configDecl.ensures(), configDecl.att(), parser.getExtensionModule())))
                 .collect(Collections.toSet());
+
+        if(!errors.isEmpty())
+            throw errors.iterator().next();
 
         Module mapModule;
         if (def.getModule("MAP").isDefined()) {
