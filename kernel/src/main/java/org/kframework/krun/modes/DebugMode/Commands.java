@@ -1,4 +1,4 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.krun.modes.DebugMode;
 
 import org.kframework.unparser.OutputModes;
@@ -314,10 +314,14 @@ public class Commands {
             });
         }
 
-        private void print(String printString, Consumer<String> printer) {
+        private void print(byte[] printString, Consumer<byte[]> printer) {
             if (!disableOutput) {
                 printer.accept(printString);
             }
+        }
+
+        private void print(String printString, Consumer<byte[]> printer) {
+            print(printString.getBytes(), printer);
         }
 
         private void displayWatches(List<DebuggerMatchResult> watches, CompiledDefinition compiledDefinition) {

@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
 package org.kframework.backend.coq;
 
 import com.google.inject.Inject;
@@ -32,7 +32,7 @@ public class CoqBackend {
     }
 
     public void run(Definition definition) {
-        final String labelFile = FilenameUtils.removeExtension(options.mainDefinitionFile().getName()) + ".labeled_rules";
+        final String labelFile = FilenameUtils.removeExtension(options.outerParsing.mainDefinitionFile(files).getName()) + ".labeled_rules";
         final String langName = definition.getMainModule().toLowerCase();
         final String domainFile = langName+"_domains.v";
         final String ruleFile = langName+"_rules.v";

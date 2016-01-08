@@ -1,4 +1,4 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework;
 
 import com.google.common.collect.Lists;
@@ -24,7 +24,7 @@ public class Definition {
      * The main module of the definition will be last module defined in the text file.
      */
     public static org.kframework.definition.Definition from(String definitionText) {
-        Pattern pattern = Pattern.compile("module ([A-Z_]*)");
+        Pattern pattern = Pattern.compile("(?:^|\\s)module ([A-Z][A-Z\\-]*)");
         Matcher m = pattern.matcher(definitionText);
         if(!m.find()) {
             throw new RuntimeException("Could not find any module in the definition");
@@ -51,24 +51,24 @@ public class Definition {
      * Parses the text to create a {@link Definition} object.
      */
     public static org.kframework.definition.Definition from(String definitionText, String mainModuleName, Source source, List<File> lookupDirectories) {
-        File tmpDir = Files.createTempDir();
-        File tempDir = new File(tmpDir.getAbsolutePath() + File.pathSeparator + "tempDir");
-        File definitionDir = new File(tmpDir.getAbsolutePath() + File.pathSeparator + "definitionDir");
-        File workingDir = new File(tmpDir.getAbsolutePath() + File.pathSeparator + "workingDir");
-        File kompiledDir = new File(tmpDir.getAbsolutePath() + File.pathSeparator + "kompiledDir");
-        if(!tempDir.mkdir() || !definitionDir.mkdir() || !workingDir.mkdir() || !kompiledDir.mkdir()) {
+        File tempDir = Files.createTempDir();
+        File theFileUtilTempDir = new File(tempDir.getAbsolutePath() + File.pathSeparator + "tempDir");
+        File definitionDir = new File(tempDir.getAbsolutePath() + File.pathSeparator + "definitionDir");
+        File workingDir = new File(tempDir.getAbsolutePath() + File.pathSeparator + "workingDir");
+        File kompiledDir = new File(tempDir.getAbsolutePath() + File.pathSeparator + "kompiledDir");
+        if(!theFileUtilTempDir.mkdir() || !definitionDir.mkdir() || !workingDir.mkdir() || !kompiledDir.mkdir()) {
             throw new AssertionError("Could not create one of the temporary directories");
         }
         GlobalOptions globalOptions = new GlobalOptions();
         KExceptionManager kem = new KExceptionManager(globalOptions);
 
-        FileUtil fileUtil = new FileUtil(tempDir,
+        FileUtil fileUtil = new FileUtil(theFileUtilTempDir,
                 Providers.of(definitionDir),
                 workingDir,
                 Providers.of(kompiledDir),
                 globalOptions,
                 System.getenv());
-        ParserUtils parserUtils = new ParserUtils(fileUtil, kem, globalOptions);
+        ParserUtils parserUtils = new ParserUtils(fileUtil::resolveWorkingDirectory, kem, globalOptions);
 
         org.kframework.definition.Definition definition = parserUtils.loadDefinition(
                 mainModuleName,
@@ -77,7 +77,8 @@ public class Definition {
                 source,
                 workingDir,
                 lookupDirectories,
-                true
+                true,
+                false
         );
 
         return definition;

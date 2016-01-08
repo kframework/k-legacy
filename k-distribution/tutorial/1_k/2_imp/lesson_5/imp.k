@@ -1,5 +1,4 @@
 // Copyright (c) 2014-2015 K Team. All Rights Reserved.
-require "domains.k"
 
 /*!
 \setlength{\parindent}{1em}
@@ -19,7 +18,6 @@ conditional, while loop and sequential composition constructs for statements.
 */
 
 module IMP-SYNTAX
-  imports DOMAINS-SYNTAX
 /*@ \section{Syntax}
 This module defines the syntax of IMP\@.
 Note that \texttt{<=} is sequentially strict and has a \LaTeX\ attribute
@@ -59,7 +57,6 @@ that you write and parse several interesting programs before you move to the
 semantics.  */
 
 module IMP
-  imports DOMAINS
   imports IMP-SYNTAX
 /*@ \section{Semantics}
 This module defines the semantics of IMP\@.
@@ -144,7 +141,7 @@ considering their erasure as computational steps in the resulting transition
 systems.  You can make these rules computational (dropping the attribute
 \texttt{structural}) if you do want these to count as computational steps. */
 
-  rule {} => .K  [structural]
+  rule {} => .   [structural]
   rule {S} => S  [structural]
 
 /*@ \subsubsection{Assignment}
@@ -152,7 +149,7 @@ The assigned variable is updated in the state.  The variable is expected
 to be declared, otherwise the semantics will get stuck.  At the same time,
 the assignment is dissolved. */
 
-  rule <k> X = I:Int; => .K ...</k> <state>... X |-> `_ => I` ...</state>
+  rule <k> X = I:Int; => . ...</k> <state>... X |-> (_ => I) ...</state>
 
 /*@ \subsubsection{Sequential composition}
 Sequential composition is simply structurally translated into \K's
@@ -196,7 +193,7 @@ make the second rule structural, thinking of dissolving the residual
 empty \texttt{int;} declaration as a structural cleanup rather than as
 a computational step. */
 
-  rule <k> int `X,Xs => Xs`;_ </k> <state> Rho:Map (.Map => X|->0) </state>
-      when notBool `X in keys(Rho)`
+  rule <k> int (X,Xs => Xs);_ </k> <state> Rho:Map (.Map => X|->0) </state>
+    when notBool (X in keys(Rho))
   rule int .Ids; S => S  [structural]
 endmodule

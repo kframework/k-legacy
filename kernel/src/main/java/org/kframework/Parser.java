@@ -1,4 +1,4 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework;
 
 import org.kframework.attributes.Source;
@@ -13,6 +13,7 @@ import scala.Tuple2;
 import scala.util.Either;
 import scala.util.control.Exception;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,7 +26,7 @@ public class Parser {
     private final ParseInModule parseInModule;
 
     private Parser(Module module) {
-        // TODO: remove hack once the frontend is cleaner
+        // TODO: remove hack once the frontend is cleaner; also remove the IOException once the hack is cleared
         if (module.name().endsWith(RuleGrammarGenerator.RULE_CELLS)) {
             org.kframework.definition.Definition definitionWithBuiltins = Definition.from("require \"domains.k\"", "K");
             this.parseInModule = new RuleGrammarGenerator(definitionWithBuiltins, true).getCombinedGrammar(module);

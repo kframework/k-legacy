@@ -1,26 +1,29 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.krun;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.attributes.Source;
 import org.kframework.builtin.Sorts;
+import org.kframework.definition.ConfigVars;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
 import org.kframework.kompile.CompiledDefinition;
-import org.kframework.kore.VisitK;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KToken;
 import org.kframework.kore.KVariable;
 import org.kframework.kore.Sort;
-import org.kframework.kore.ToKast;
+import org.kframework.kore.VisitK;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.main.Main;
 import org.kframework.parser.ProductionReference;
+import org.kframework.parser.binary.BinaryParser;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.unparser.AddBrackets;
 import org.kframework.unparser.KOREToTreeNodes;
 import org.kframework.unparser.OutputModes;
+import org.kframework.unparser.ToBinary;
+import org.kframework.unparser.ToKast;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -30,6 +33,7 @@ import org.kframework.utils.koreparser.KoreParser;
 import scala.Tuple2;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -43,6 +47,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static org.kframework.Collections.*;
 import static org.kframework.kore.KORE.*;
 
 /**
@@ -99,6 +104,8 @@ public class KRun {
             if (((List) result).isEmpty()) {
                 System.out.println("true");
             }
+        } else if (result instanceof Integer) {
+            return (Integer)result;
         }
         return 0;
     }
@@ -108,17 +115,19 @@ public class KRun {
         if (searchResult.isEmpty()) {
             outputFile("No Search Results \n", options);
         }
-        int i = 0;
+        int i = 1;
         List<String> results = new ArrayList<>();
         for (Map<? extends KVariable, ? extends K> substitution : searchResult) {
-            StringBuilder sb = new StringBuilder();
-            prettyPrintSubstitution(substitution, result.getParsedRule(), compiledDef, options.output, sb::append);
-            results.add(sb.toString());
+            ByteArrayOutputStream sb = new ByteArrayOutputStream();
+            prettyPrintSubstitution(substitution, result.getParsedRule(), compiledDef, options.output, v -> sb.write(v, 0, v.length));
+            //Note that this is actually unsafe, but we are here assuming that --search is not used with --output binary
+            results.add(new String(sb.toByteArray()));
         }
         Collections.sort(results);
         StringBuilder sb = new StringBuilder();
+        sb.append("Search results:\n\n");
         for (String solution : results) {
-            sb.append("Solution: ").append(i++).append("\n");
+            sb.append("Solution ").append(i++).append(":\n");
             sb.append(solution);
         }
         outputFile(sb.toString(), options);
@@ -157,8 +166,15 @@ public class KRun {
 
     //TODO(dwightguth): use Writer
     public void outputFile(String output, KRunOptions options) {
+        outputFile(output.getBytes(), options);
+    }
+    public void outputFile(byte[] output, KRunOptions options) {
         if (options.outputFile == null) {
-            System.out.print(output);
+            try {
+                System.out.write(output);
+            } catch (IOException e) {
+                throw KEMException.internalError(e.getMessage(), e);
+            }
         } else {
             files.saveToWorkingDirectory(options.outputFile, output);
         }
@@ -192,17 +208,20 @@ public class KRun {
         return compiledDef.parsePatternIfAbsent(files, kem, pattern, source);
     }
 
-    public static void prettyPrint(CompiledDefinition compiledDef, OutputModes output, Consumer<String> print, K result) {
+    public static void prettyPrint(CompiledDefinition compiledDef, OutputModes output, Consumer<byte[]> print, K result) {
         switch (output) {
         case KAST:
-            print.accept(ToKast.apply(result) + "\n");
+            print.accept((ToKast.apply(result) + "\n").getBytes());
             break;
         case NONE:
-            print.accept("");
+            print.accept("".getBytes());
             break;
         case PRETTY:
             Module unparsingModule = compiledDef.getExtensionModule(compiledDef.languageParsingModule());
-            print.accept(unparseTerm(result, unparsingModule) + "\n");
+            print.accept((unparseTerm(result, unparsingModule) + "\n").getBytes());
+            break;
+        case BINARY:
+            print.accept(ToBinary.apply(result));
             break;
         default:
             throw KEMException.criticalError("Unsupported output mode: " + output);
@@ -212,7 +231,7 @@ public class KRun {
     /**
      * Given a substitution, represented by a map of KVariables to K, print the substitution. The printing follows the following format:
      * If Pattern is represented by a single variable, then entire substitution is printed without the pattern, else
-     * variable is printed, followed by --->, and then the substitution corresponding K.
+     * variable is printed, followed by -->, and then the substitution corresponding K.
      *
      * @param subst         A Map from KVariables to K representing the result of a match of a pattern on a configuration.
      * @param parsedPattern The parsed (not compiled) pattern object. The parsed pattern is used to
@@ -223,7 +242,7 @@ public class KRun {
     public static void prettyPrintSubstitution(Map<? extends KVariable, ? extends K> subst,
                                                Rule parsedPattern, CompiledDefinition compiledDefinition,
                                                OutputModes outputModes,
-                                               Consumer<String> print) {
+                                               Consumer<byte[]> print) {
         if (subst.isEmpty()) {
             return;
         }
@@ -243,8 +262,8 @@ public class KRun {
                     prettyPrint(compiledDefinition, outputModes, print, value);
                     return;
                 }
-                prettyPrint(compiledDefinition, outputModes, print, variable);
-                print.accept("---> \n");
+                print.accept(variable.toString().getBytes());
+                print.accept(" -->\n".getBytes());
                 prettyPrint(compiledDefinition, outputModes, print, value);
             }
         }
@@ -253,7 +272,7 @@ public class KRun {
     private K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef) {
         HashMap<KToken, K> output = new HashMap<>();
         for (Map.Entry<String, Pair<String, String>> entry
-                : options.configurationCreation.configVars(compiledDef.languageParsingModule().name()).entrySet()) {
+                : options.configurationCreation.configVars(compiledDef.getParsedDefinition().mainModule().name()).entrySet()) {
             String name = entry.getKey();
             String value = entry.getValue().getLeft();
             String parser = entry.getValue().getRight();
@@ -270,7 +289,26 @@ public class KRun {
             output.put(KToken("$STDIN", Sorts.KConfigVar()), KToken("\"" + stdin + "\"", Sorts.String()));
             output.put(KToken("$IO", Sorts.KConfigVar()), KToken("\"off\"", Sorts.String()));
         }
+        checkConfigVars(output.keySet(), compiledDef);
         return plugConfigVars(compiledDef, output);
+    }
+
+    private void checkConfigVars(Set<KToken> inputConfigVars, CompiledDefinition compiledDef) {
+        Set<KToken> defConfigVars = mutable(new ConfigVars(compiledDef.kompiledDefinition.mainModule()).configVars());
+
+        for (KToken defConfigVar : defConfigVars) {
+            if (!inputConfigVars.contains(defConfigVar)) {
+                throw KEMException.compilerError("Configuration variable missing: " + defConfigVar.s());
+            }
+        }
+
+        for (KToken inputConfigVar : inputConfigVars) {
+            if (!defConfigVars.contains(inputConfigVar)) {
+                if (!inputConfigVar.s().equals("$STDIN") && !inputConfigVar.s().equals("$IO")) {
+                    kem.registerCompilerWarning("User specified configuration variable " + inputConfigVar.s() + " which does not exist.");
+                }
+            }
+        }
     }
 
     public static String getStdinBuffer(boolean ttyStdin) {
@@ -318,7 +356,11 @@ public class KRun {
                     + output.exitCode + "\nStdout:\n" + output.stdout + "\nStderr:\n" + output.stderr));
         }
 
-        String kast = output.stdout != null ? output.stdout : "";
-        return KoreParser.parse(kast, source);
+        byte[] kast = output.stdout != null ? output.stdout : new byte[0];
+        if (BinaryParser.isBinaryKast(kast)) {
+            return BinaryParser.parse(kast);
+        } else {
+            return KoreParser.parse(new String(kast), source);
+        }
     }
 }
