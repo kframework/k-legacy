@@ -7,10 +7,10 @@ import org.kframework.attributes.Source;
 import org.kframework.kore.K;
 import org.kframework.main.GlobalOptions;
 import org.kframework.parser.binary.BinaryParser;
+import org.kframework.parser.kore.KoreParser;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.koreparser.KoreParser;
 
 import java.io.File;
 

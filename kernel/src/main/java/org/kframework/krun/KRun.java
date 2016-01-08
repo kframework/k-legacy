@@ -18,6 +18,7 @@ import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.main.Main;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.binary.BinaryParser;
+import org.kframework.parser.kore.KoreParser;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.unparser.AddBrackets;
 import org.kframework.unparser.KOREToTreeNodes;
@@ -29,7 +30,6 @@ import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.koreparser.KoreParser;
 import scala.Tuple2;
 
 import java.io.BufferedReader;
