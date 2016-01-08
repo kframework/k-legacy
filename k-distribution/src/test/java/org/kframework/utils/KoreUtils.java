@@ -1,4 +1,4 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.utils;
 
 import com.google.inject.Guice;
@@ -61,11 +61,11 @@ public class KoreUtils {
         return new File(KoreUtils.class.getResource(baseName).toURI());
     }
 
-    public KoreUtils(String fileName, String mainModuleName, String mainProgramsModuleName) throws URISyntaxException {
-        this(fileName, mainModuleName, mainProgramsModuleName, false, Sorts.K(), false);
+    public KoreUtils(String fileName, String mainModuleName, String mainProgramsModuleName, boolean noPrelude) throws URISyntaxException {
+        this(fileName, mainModuleName, mainProgramsModuleName, false, Sorts.K(), false, noPrelude);
     }
 
-    public KoreUtils(String fileName, String mainModuleName, String mainProgramsModuleName, boolean search, Sort sort, boolean heatCoolStrategies) throws URISyntaxException {
+    public KoreUtils(String fileName, String mainModuleName, String mainProgramsModuleName, boolean search, Sort sort, boolean heatCoolStrategies, boolean noPrelude) throws URISyntaxException {
         kem = new KExceptionManager(new GlobalOptions());
         File definitionFile = testResource(fileName);
         KompileOptions kompileOptions = new KompileOptions();
@@ -74,6 +74,7 @@ public class KoreUtils {
         globalOptions.warnings = GlobalOptions.Warnings.ALL;
 
         kompileOptions.experimental.heatCoolStrategies = heatCoolStrategies;
+        kompileOptions.outerParsing.noPrelude = noPrelude;
 
         KRunOptions krunOptions = new KRunOptions();
         krunOptions.search = search;
@@ -103,11 +104,11 @@ public class KoreUtils {
         programParser = compiledDef.getProgramParser(kem);
     }
 
-    public K getParsed(String program, Source source) throws IOException, URISyntaxException {
+    public K getParsed(String program, Source source) throws URISyntaxException {
         return getParsed(program, source, null);
     }
 
-    public K getParsed(String program, Source source, String strategy) throws IOException, URISyntaxException {
+    public K getParsed(String program, Source source, String strategy) throws URISyntaxException {
         K parsed = programParser.apply(program, source);
         KRun krun = new KRun(kem, FileUtil.testFileUtil(), true);
 

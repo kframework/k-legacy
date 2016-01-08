@@ -1,4 +1,4 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
 
@@ -23,6 +23,10 @@ public interface KItemRepresentation extends KoreRepresentation, KApply {
     }
 
     default List<K> items() { throw new AssertionError("Unimplemented"); }
+
+    default int size() { throw new AssertionError("Unimplemented"); }
+
+    default Iterable<K> asIterable() { throw new AssertionError("Unimplemented"); }
 
     @Override
     default org.kframework.kore.KLabel klabel() {

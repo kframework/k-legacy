@@ -1,19 +1,16 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.kore.compile;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.kframework.attributes.Att;
-import org.kframework.attributes.Source;
 import org.kframework.builtin.BooleanUtils;
 import org.kframework.builtin.KLabels;
-import org.kframework.builtin.Labels;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
 import org.kframework.definition.Sentence;
-import org.kframework.definition.Terminal;
 import org.kframework.kil.Attribute;
 import org.kframework.kompile.Kompile;
 import org.kframework.kore.K;
@@ -45,7 +42,7 @@ public class GenerateSentencesFromConfigDeclTest {
     public void setUp() {
         String definitionText;
         FileUtil files = FileUtil.testFileUtil();
-        ParserUtils parser = new ParserUtils(files, new KExceptionManager(new GlobalOptions()));
+        ParserUtils parser = new ParserUtils(files::resolveWorkingDirectory, new KExceptionManager(new GlobalOptions()));
         File definitionFile = new File(Kompile.BUILTIN_DIRECTORY.toString() + "/kast.k");
         definitionText = files.loadFromWorkingDirectory(definitionFile.getPath());
 
@@ -54,7 +51,7 @@ public class GenerateSentencesFromConfigDeclTest {
                         definitionFile,
                         definitionFile.getParentFile(),
                         Lists.newArrayList(Kompile.BUILTIN_DIRECTORY),
-                        true);
+                        true, false);
     }
 
     @Test
@@ -78,7 +75,7 @@ public class GenerateSentencesFromConfigDeclTest {
                         Seq(NonTerminal(Sort("ThreadCellBag")), NonTerminal(Sort("ThreadCellBag"))),
                         Att().add("assoc","").add("comm","").add("unit",".ThreadCellBag")
                                 .add("element","ThreadCellBagItem").add("wrapElement","<thread>")
-                                .add("function").add("hook","BAG.concat")),
+                                .add("function").add("avoid").add("hook","BAG.concat")),
                 Production(".ThreadCellBag", Sort("ThreadCellBag"),
                         Seq(Terminal(".ThreadCellBag")),
                         Att().add("function").add("hook","BAG.unit")),

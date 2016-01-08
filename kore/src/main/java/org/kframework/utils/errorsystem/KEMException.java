@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
 package org.kframework.utils.errorsystem;
 
 import org.kframework.attributes.Location;
@@ -40,6 +40,10 @@ public class KEMException extends RuntimeException {
 
     public static KEMException criticalError(String message, Sentence node) {
         return create(ExceptionType.ERROR, KExceptionGroup.CRITICAL, message, null, node.att().getOptional(Location.class).orElse(null), node.att().getOptional(Source.class).orElse(null));
+    }
+
+    public static KEMException criticalError(String message, Throwable e, K node) {
+        return create(ExceptionType.ERROR, KExceptionGroup.CRITICAL, message, e, node.att().getOptional(Location.class).orElse(null), node.att().getOptional(Source.class).orElse(null));
     }
 
     public static KEMException criticalError(String message, K node) {

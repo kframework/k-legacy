@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
 
 package org.kframework.kore.convertors;
 
@@ -72,7 +72,7 @@ public class TstTinyOnKORE_IT {
                 "<top><k>foo</k></top>");
     }
 
-    private void executeTest(String mainModule, String mainSyntaxModule, String programText, String expected) throws URISyntaxException {
+    private void executeTest(String mainModule, String mainSyntaxModule, String programText, String expected) throws URISyntaxException, IOException {
         String filename = "/convertor-tests/" + name.getMethodName() + ".k";
 
         File definitionFile = testResource(filename);

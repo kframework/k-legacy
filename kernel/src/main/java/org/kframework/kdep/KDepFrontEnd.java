@@ -1,15 +1,17 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.kdep;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Module;
 import org.apache.commons.collections15.ListUtils;
+import org.kframework.attributes.Source;
 import org.kframework.kompile.Kompile;
 import org.kframework.main.FrontEnd;
 import org.kframework.main.GlobalOptions;
 import org.kframework.parser.concrete2kore.ParserUtils;
 import org.kframework.utils.Stopwatch;
+import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
@@ -20,6 +22,7 @@ import org.kframework.utils.inject.JCommanderModule.Usage;
 import org.kframework.utils.options.OuterParsingOptions;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -64,7 +67,7 @@ public class KDepFrontEnd extends FrontEnd {
         this.kem = kem;
         this.sw = sw;
         this.files = files;
-        this.parser = new ParserUtils(files, kem, globalOptions);
+        this.parser = new ParserUtils(files::resolveWorkingDirectory, kem, globalOptions);
     }
 
     public static List<Module> getModules() {
@@ -82,12 +85,13 @@ public class KDepFrontEnd extends FrontEnd {
             prelude = "";
         }
 
-        List<org.kframework.kil.Module> modules = parser.slurp(prelude + FileUtil.load(options.mainDefinitionFile(files)),
-                options.mainDefinitionFile(files),
+        List<org.kframework.kil.Module> modules = null;
+        modules = parser.slurp(prelude + FileUtil.load(options.mainDefinitionFile(files)),
+                Source.apply(options.mainDefinitionFile(files).getAbsolutePath()),
                 options.mainDefinitionFile(files).getParentFile(),
                 ListUtils.union(options.includes.stream()
-                        .map(files::resolveWorkingDirectory).collect(Collectors.toList()),
-                Lists.newArrayList(Kompile.BUILTIN_DIRECTORY)));
+                                .map(files::resolveWorkingDirectory).collect(Collectors.toList()),
+                        Lists.newArrayList(Kompile.BUILTIN_DIRECTORY)));
         Set<File> allFiles = modules.stream().map(m -> new File(m.getSource().source())).collect(Collectors.toSet());
         System.out.println(files.resolveWorkingDirectory(".").toURI().relativize(files.resolveKompiled("timestamp").toURI()).getPath() + " : \\");
         for (File file : allFiles) {

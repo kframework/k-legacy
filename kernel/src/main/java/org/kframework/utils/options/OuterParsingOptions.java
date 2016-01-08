@@ -1,4 +1,4 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.utils.options;
 
 import com.beust.jcommander.Parameter;
@@ -11,6 +11,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Provides the options needed for tools to perform outer parsing of definitions from source.
+ *
+ * Used currently by kompile, kdoc, and kdep.
+ */
 public class OuterParsingOptions implements Serializable {
 
     public OuterParsingOptions() {}
@@ -39,6 +44,8 @@ public class OuterParsingOptions implements Serializable {
     @Parameter(names="-I", description="Add a directory to the search path for requires statements.", variableArity = true)
     public List<String> includes = new ArrayList<>();
 
-    @Parameter(names="--no-prelude", description="Do not implicitly require prelude.k.")
+    @Parameter(names="--no-prelude", description="Do not implicitly require prelude.k. It also deactivates automatic inclusion of the DOMAINS and DOMAINS-SYNTAX modules.")
     public boolean noPrelude = false;
+
+
 }

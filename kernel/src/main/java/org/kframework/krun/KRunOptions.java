@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
 package org.kframework.krun;
 
 import com.beust.jcommander.DynamicParameter;
@@ -7,9 +7,10 @@ import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.ParametersDelegate;
 import com.google.inject.Inject;
 import org.apache.commons.lang3.tuple.Pair;
-import org.kframework.unparser.OutputModes;
+import org.kframework.ktest.ExecNames;
 import org.kframework.main.GlobalOptions;
 import org.kframework.rewriter.SearchType;
+import org.kframework.unparser.OutputModes;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.inject.RequestScoped;
 import org.kframework.utils.options.BaseEnumConverter;
@@ -60,24 +61,14 @@ public final class KRunOptions {
         @Parameter(names={"--parser"}, description="Command used to parse programs. Default is \"kast\"")
         public String parser;
 
-        public String parser() {
-            if (parser == null) {
-                if (term()) {
-                    return "kast --parser ground";
-                } else {
-                    return "kast";
-                }
-            } else {
-                return parser;
-            }
-        }
+        private static String kastBinary = ExecNames.getExecutable("kast");
 
         public String parser(String mainModuleName) {
             if (parser == null) {
                 if (term()) {
-                    return "kast -m " + mainModuleName;
+                    return kastBinary + " -m " + mainModuleName;
                 } else {
-                    return "kast";
+                    return kastBinary;
                 }
             } else {
                 return parser;
@@ -93,28 +84,10 @@ public final class KRunOptions {
         @DynamicParameter(names={"--config-var", "-c"}, description="Specify values for variables in the configuration.")
         private Map<String, String> configVars = new HashMap<>();
 
-        public Map<String, Pair<String, String>> configVars() {
-            Map<String, Pair<String, String>> result = new HashMap<>();
-            for (Map.Entry<String, String> entry : configVars.entrySet()) {
-                String cfgParser = "kast --parser ground -e";
-                if (configVarParsers.get(entry.getKey()) != null) {
-                    cfgParser = configVarParsers.get(entry.getKey());
-                }
-                result.put(entry.getKey(), Pair.of(entry.getValue(), cfgParser));
-            }
-            if (!term() && pgm() != null) {
-                if (configVars.containsKey("PGM")) {
-                    throw KEMException.criticalError("Cannot specify both -cPGM and a program to parse.");
-                }
-                result.put("PGM", Pair.of(pgm(), parser()));
-            }
-            return result;
-        }
-
         public Map<String, Pair<String, String>> configVars(String mainModuleName) {
             Map<String, Pair<String, String>> result = new HashMap<>();
             for (Map.Entry<String, String> entry : configVars.entrySet()) {
-                String cfgParser = "kast -m " + mainModuleName + " -e";
+                String cfgParser = kastBinary + " -m " + mainModuleName + " -e";
                 if (configVarParsers.get(entry.getKey()) != null) {
                     cfgParser = configVarParsers.get(entry.getKey());
                 }
@@ -311,5 +284,8 @@ public final class KRunOptions {
         @Parameter(names="--native-library-path", description="Directories to search for native libraries in for linking. Useful in defining rewriter plugins.",
                 listConverter=StringListConverter.class)
         public List<String> nativeLibraryPath = Collections.emptyList();
+
+        @Parameter(names="--profile", description="Run krun multiple times to gather better performance metrics.")
+        public int profile = 1;
     }
 }

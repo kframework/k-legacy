@@ -1,4 +1,4 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 
 package org.kframework.kore.compile;
 
@@ -11,7 +11,7 @@ public class MergeRulesTest {
     @Test
     public void firstTest() throws URISyntaxException {
         String filename = "/convertor-tests/kore_imp.k";
-        KoreUtils utils = new KoreUtils(filename, "IMP", "IMP-SYNTAX");
+        KoreUtils utils = new KoreUtils(filename, "IMP", "IMP-SYNTAX", false);
         System.out.println(utils.compiledDef.executionModule().rules().mkString("\n"));
     }
 }
