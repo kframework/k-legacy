@@ -12,22 +12,24 @@ import com.google.inject.Inject;
 
 public class HtmlBackend extends PosterBackend {
 
+    private final Context context;
     private final FileUtil files;
 
     @Inject
     HtmlBackend(Stopwatch sw, Context context, FileUtil files) {
-        super(sw, context);
+        super(sw);
+        this.context = context;
         this.files = files;
     }
 
     @Override
-    public void run(Definition definition) {
+    public void run() {
         HTMLFilter htmlFilter = new HTMLFilter(context);
-        htmlFilter.visitNode(definition);
+//        htmlFilter.visitNode(definition);
 
         String html = htmlFilter.getHTML();
 
-        files.saveToDefinitionDirectory(FilenameUtils.removeExtension(definition.getMainFile().getName()) + ".html", html);
+//        files.saveToDefinitionDirectory(FilenameUtils.removeExtension(definition.getMainFile().getName()) + ".html", html);
         files.saveToDefinitionDirectory("k-definition.css", files.loadFromKBase("include/html/k-definition.css"));
 
         sw.printIntermediate("Generating HTML");
