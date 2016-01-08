@@ -7,7 +7,23 @@ class KDocTest {
   @Test def simple() {
     assertEquals(
       """
-        |\begin{document}  require "domains.k"  begin{module}{ moduleName{ X }  import INT  syntax Foo ::= "x"  syntax Foo ::= "y" [ latex ( "specialLatexForY" ) ] rule x => specialLatexForY end{module} \end{document}
+        |\begin{document}
+        |
+        |require "domains.k"
+        | \begin{module}{
+        |\moduleName{X}
+        |  import INT
+        |
+        |  \begin{syntaxBlock}
+        |    Foo ::= "x"
+        |  \end{syntaxBlock}
+        |  \begin{syntaxBlock}
+        |    Foo ::= "y" [ \kattribute{latex}("specialLatexForY") ]
+        |  \end{syntaxBlock}
+        |  \krule{x => specialLatexForY}{x}{specialLatexForY}
+        |  \kcontext{x}{specialLatexForY}{}
+        |\end{module}
+        |\end{document}
       """.stripMargin.trim
       , new KDoc("")(
         """

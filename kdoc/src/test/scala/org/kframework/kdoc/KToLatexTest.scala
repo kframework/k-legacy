@@ -37,6 +37,6 @@ class KToLatexTest {
   @Test def withRepetitionInPattern() {
     val tt = parser(xSort, "tt y x x")._1.get
     val actual = kToLatex(tt)
-    assertEquals("\\customTT{customY{x!} customY{x!} x! customY{x!}}", actual)
+    assertEquals("\\customTT{\\customY{x!} \\customY{x!} x! \\customY{x!}}", actual)
   }
 }
