@@ -1,5 +1,5 @@
-// Copyright (c) 2012-2015 K Team. All Rights Reserved.
-require "modules/unification.k"
+// Copyright (c) 2012-2016 K Team. All Rights Reserved.
+require "unification.k"
 
 module LAMBDA
   imports UNIFICATION
@@ -22,7 +22,6 @@ module LAMBDA
                 | "(" Type ")"                    [bracket]
 
   syntax Exp ::= Type
-  syntax Variable ::= Id
   syntax KResult ::= Type
 
   configuration <k color="green"> $PGM:Exp </k>
@@ -36,9 +35,10 @@ module LAMBDA
   rule T1:Type  + T2:Type => T1 = int ~> T2 = int ~> int
   rule T1:Type <= T2:Type => T1 = int ~> T2 = int ~> bool
 
-  rule <k> lambda X:Id . E:Exp => E ~> ?T:Type -> HOLE ~> tenv(TEnv) ...</k>
+  syntax Exp ::= Exp "->" Exp                  [strict]
+  rule <k> lambda X:Id . E => ?T:Type -> E ~> tenv(TEnv) ...</k>
        <tenv> TEnv => TEnv[X <- ?T] </tenv>
-  rule T2:Type ~> T1:Type -> HOLE => T1 -> T2
+
   rule T1:Type T2:Type => T1 = (T2 -> ?T:Type) ~> ?T
   rule if T:Type then T1:Type else T2:Type => T = bool ~> T1 = T2 ~> T1
 
@@ -46,9 +46,9 @@ module LAMBDA
   syntax Type ::= MetaVariable
   rule <k> let X = T:Type in E => E ~> tenv(TEnv) ...</k>
        <tenv> TEnv
-        => TEnv[X <- (forall #metaVariables(T) -Set #metaVariables(tenv(TEnv))) #freezeVariables(T, tenv(TEnv))]
+        => TEnv[X <- (forall #metaKVariables(T) -Set #metaKVariables(tenv(TEnv))) #freezeKVariables(T, tenv(TEnv)):>Type]
        </tenv>
-  rule <k> X:Id => #rename(T, Tvs) ...</k>
+  rule <k> X:Id => #renameMetaKVariables(T, Tvs) ...</k>
        <tenv>... X |-> (forall Tvs) T ...</tenv>
 
   rule letrec F X = E in E' => let F = mu F . lambda X . E in E'        [macro]
