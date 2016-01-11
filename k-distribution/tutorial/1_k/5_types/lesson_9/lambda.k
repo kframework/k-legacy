@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2015 K Team. All Rights Reserved.
+// Copyright (c) 2012-2016 K Team. All Rights Reserved.
 require "unification.k"
 
 module LAMBDA
@@ -22,7 +22,6 @@ module LAMBDA
                 | "(" Type ")"                    [bracket]
 
   syntax Exp ::= Type
-  syntax Variable ::= Id
   syntax KResult ::= Type
 
   configuration <k color="green"> $PGM:Exp </k>
@@ -47,9 +46,9 @@ module LAMBDA
   syntax Type ::= MetaVariable
   rule <k> let X = T:Type in E => E ~> tenv(TEnv) ...</k>
        <tenv> TEnv
-        => TEnv[X <- (forall #metaVariables(T) -Set #metaVariables(tenv(TEnv))) #freezeVariables(T, tenv(TEnv)):>Type]
+        => TEnv[X <- (forall #metaKVariables(T) -Set #metaKVariables(tenv(TEnv))) #freezeKVariables(T, tenv(TEnv)):>Type]
        </tenv>
-  rule <k> X:Id => #rename(T, Tvs) ...</k>
+  rule <k> X:Id => #renameMetaKVariables(T, Tvs) ...</k>
        <tenv>... X |-> (forall Tvs) T ...</tenv>
 
   rule letrec F X = E in E' => let F = mu F . lambda X . E in E'        [macro]
