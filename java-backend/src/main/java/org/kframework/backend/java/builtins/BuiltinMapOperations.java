@@ -173,13 +173,15 @@ public class BuiltinMapOperations {
         return (BuiltinSet) builder.build();
     }
 
-    public static Term values(BuiltinMap map, TermContext context) {
+    public static BuiltinList values(BuiltinMap map, TermContext context) {
         if (!map.isConcreteCollection()) {
             return null;
         }
 
         List<Term> elements = new ArrayList<>(map.getEntries().values());
-        return BuiltinList.builder(context.global()).addAll(elements).build();
+        BuiltinList.Builder builder = BuiltinList.builder(context.global());
+        builder.addItems(elements);
+        return (BuiltinList) builder.build();
     }
 
     public static BoolToken inclusion(BuiltinMap map1, BuiltinMap map2, TermContext context) {

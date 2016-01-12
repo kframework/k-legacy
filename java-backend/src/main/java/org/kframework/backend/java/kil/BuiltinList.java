@@ -1,199 +1,140 @@
 // Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import org.apache.commons.collections4.ListUtils;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Constants;
-import org.kframework.builtin.KLabels;
 import org.kframework.kil.ASTNode;
-import org.kframework.utils.BitSet;
+import org.kframework.kil.DataStructureSort;
+import org.kframework.utils.errorsystem.KEMException;
+import org.kframework.utils.errorsystem.KExceptionManager;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 
 /**
- * Class representing an associative list.
+ * Class representing a list.
+ *
+ * @author: YilongL
  */
-public class BuiltinList extends Collection implements CollectionInternalRepresentation, HasGlobalContext {
+public class BuiltinList extends Collection implements KItemCollection {
 
-    /**
-     * Flattened list of children.
-     */
-    public final ImmutableList<Term> children;
-    public final Sort sort;
-    public final KLabelConstant operatorKLabel;
-    public final KLabelConstant unitKLabel;
+    private enum BaseTermType {
+        VARIABLE, FUNCTION, PATTERN, LIST;
+    }
+
+    private final ImmutableList<Term> elementsLeft;
+    private final ImmutableList<Term> elementsRight;
+    private final ImmutableList<Term> baseTerms;
+    private final ImmutableList<BaseTermType> baseTermTypes;
+    private final ImmutableList<Variable> listVariables;
+
     private final GlobalContext global;
 
-    private final ElementTailSplit elementTailSplits[];
-
     /**
-     * Private constructor used by {@link BuiltinList.Builder}.
+     * Private efficient constructor used by {@link BuiltinList.Builder}.
      */
     private BuiltinList(
-            ImmutableList<Term> children,
-            Sort sort,
-            KLabelConstant operatorKLabel,
-            KLabelConstant unitKLabel,
+            ImmutableList<Term> elementsLeft,
+            ImmutableList<Term> baseTerms,
+            ImmutableList<Term> elementsRight,
+            ImmutableList<BaseTermType> baseTermTypes,
+            ImmutableList<Variable> listVariables,
             GlobalContext global) {
-        super(null, sort.equals(Sort.KSEQUENCE) ? Kind.K : Kind.KITEM);
-        this.children = children;
-        this.sort = sort;
-        this.operatorKLabel = operatorKLabel;
-        this.unitKLabel = unitKLabel;
+        super(computeFrame(baseTerms), Kind.KITEM);
+        this.elementsLeft = elementsLeft;
+        this.elementsRight = elementsRight;
+        this.baseTerms = baseTerms;
+        this.baseTermTypes = baseTermTypes;
+        this.listVariables = listVariables;
         this.global = global;
-
-        elementTailSplits = new ElementTailSplit[children.size()];
     }
 
-    /**
-     * Class representation of the element and the tail components of a list child.
-     * This representation enables efficient matching of head/tail patterns.
-     * A list child can be a list element, a list variable, or a disjunction of list elements and variables.
-     * The element component consists of the element or the elements in the disjunction, combined with their respective bitsets.
-     * The tail component consists of the list variable or the list variables in the disjunction such that the list is empty on the remaining positions,
-     * combined with their respective bitsets.
-     */
-    public static class ElementTailSplit {
-        public final Term element;
-        public final BitSet elementMask;
-        public final Term tail;
-        public final BitSet tailMask;
-        public final BitSet combinedMask;
-
-        private ElementTailSplit(Term element, BitSet elementMask, Term tail, BitSet tailMask) {
-            this.element = element;
-            this.elementMask = elementMask;
-            this.tail = tail;
-            this.tailMask = tailMask;
-            combinedMask = elementMask.clone();
-            combinedMask.or(tailMask);
+    private static Variable computeFrame(List<Term> baseTerms) {
+        if (baseTerms.size() == 1 && baseTerms.get(0) instanceof Variable) {
+            return (Variable) baseTerms.get(0);
+        } else {
+            return null;
         }
     }
 
-    /**
-     * Returns the element component and the tail component of the list child on position index.
-     */
-    public ElementTailSplit splitElementTail(int index, int bitSetLength) {
-        if (elementTailSplits[index] == null) {
-            BitSet emptyListMask = BitSet.apply(bitSetLength);
-            emptyListMask.makeOnes(bitSetLength);
-            for (int i = index + 1; i < children.size(); i++) {
-                if (children.get(i) instanceof RuleAutomatonDisjunction) {
-                    emptyListMask.and(((RuleAutomatonDisjunction) children.get(i)).assocDisjunctionArray[sort.ordinal()].stream()
-                            .filter(p -> p.getLeft().isEmpty())
-                            .map(p -> p.getRight())
-                            .findAny().orElseGet(() -> BitSet.apply(bitSetLength)));
+    private BuiltinList(ImmutableList<Term> elementsLeft, GlobalContext global) {
+        this(elementsLeft,
+             ImmutableList.<Term>of(),
+             ImmutableList.<Term>of(),
+             ImmutableList.<BaseTermType>of(),
+             ImmutableList.<Variable>of(),
+             global);
+    }
 
-                    if (emptyListMask.isEmpty()) {
-                        break;
-                    }
-                } else {
-                    emptyListMask = BitSet.apply(bitSetLength);
-                    break;
-                }
-            }
+    public static Term concatenate(GlobalContext global, Term... lists) {
+        Builder builder = new Builder(global);
+        builder.concatenate(lists);
+        return builder.build();
+    }
 
-            if (isElement(index)) {
-                BitSet elementMask = BitSet.apply(bitSetLength);
-                elementMask.makeOnes(bitSetLength);
-                elementTailSplits[index] = new ElementTailSplit(
-                        children.get(index),
-                        elementMask,
-                        Bottom.BOTTOM,
-                        BitSet.apply(bitSetLength));
-            } else if (isListVariable(children.get(index))) {
-                elementTailSplits[index] = new ElementTailSplit(
-                        Bottom.BOTTOM,
-                        BitSet.apply(bitSetLength),
-                        children.get(index),
-                        emptyListMask);
-            } else if (children.get(index) instanceof RuleAutomatonDisjunction) {
-                RuleAutomatonDisjunction elementAutomatonDisjunction = new RuleAutomatonDisjunction(
-                        ((RuleAutomatonDisjunction) children.get(index)).disjunctions().stream()
-                                .filter(p -> isElement(p.getLeft()))
-                                .collect(Collectors.toList()),
-                        global);
-                BitSet elementMask = BitSet.apply(bitSetLength);
-                elementAutomatonDisjunction.disjunctions().stream()
-                        .map(p -> p.getRight())
-                        .forEach(s -> elementMask.or(s));
+    public boolean contains(Term key) {
+        return elementsLeft.contains(key) || elementsRight.contains(key);
+    }
 
-                RuleAutomatonDisjunction tailAutomatonDisjunction = new RuleAutomatonDisjunction(
-                        ((RuleAutomatonDisjunction) children.get(index)).disjunctions().stream()
-                                .filter(p -> !isElement(p.getLeft()))
-                                .collect(Collectors.toList()),
-                        global);
-                BitSet tailMask = BitSet.apply(bitSetLength);
-                tailAutomatonDisjunction.disjunctions().stream()
-                        .map(p -> p.getRight())
-                        .forEach(s -> tailMask.or(s));
-                tailMask.and(emptyListMask);
+    public List<Term> elements() {
+        return ListUtils.union(elementsLeft, elementsRight);
+    }
 
-                elementTailSplits[index] = new ElementTailSplit(
-                        elementAutomatonDisjunction,
-                        elementMask,
-                        tailAutomatonDisjunction,
-                        tailMask);
-            } else {
-                assert false : "unexpected class type for builtin list " + children.get(index).getClass();
-            }
+    public List<Term> elementsLeft() {
+        return elementsLeft;
+    }
+
+    public List<Term> elementsRight() {
+        return elementsRight;
+    }
+
+    public List<Term> baseTerms() {
+        return baseTerms;
+    }
+
+    public BaseTerm getBaseTerm(int index) {
+        if (index < 0) {
+            index += baseTerms.size();
         }
-
-        return elementTailSplits[index];
-    }
-
-    public boolean isElement(int index) {
-        return isElement(children.get(index));
-    }
-
-    private boolean isElement(Term term) {
-        //assert global.getDefinition().subsorts().isSubsortedEq(sort, term.sort());
-        //TODO: restore the assertion after fixing variables _:K generated fom ...
-        return !(isListVariable(term)
-                || term instanceof BuiltinList
-                || term instanceof RuleAutomatonDisjunction && ((RuleAutomatonDisjunction) term).disjunctions().stream().anyMatch(p -> !isElement(p.getLeft()))
-                || term instanceof KItem && ((KItem) term).kLabel().toString().equals(KLabels.KREWRITE) && !isElement(((KList) ((KItem) term).kList()).get(0)));
-    }
-
-    private boolean isListVariable(Term term) {
-        //TODO: remove Sort.KSEQUENCE case after fixing variables _:K generated fom ...
-        return term instanceof Variable && (term.sort().equals(sort) || term.sort().equals(Sort.KSEQUENCE));
-    }
-
-    public Term range(int beginIndex, int endIndex) {
-        return BuiltinList.builder(sort, operatorKLabel, unitKLabel, global)
-                .addAll(children.subList(beginIndex, endIndex))
-                .build();
-    }
-
-    public boolean contains(Term term) {
-        return children.contains(term);
-    }
-
-    public Term get(int index) {
-        return children.get(index);
-    }
-
-    public int size() {
-        return children.size();
+        return BaseTerm.of(baseTerms.get(index), baseTermTypes.get(index));
     }
 
     @Override
     public ImmutableList<Variable> collectionVariables() {
-        return ImmutableList.copyOf(children.stream().filter(e -> !isElement(e)).map(Variable.class::cast).collect(Collectors.toList()));
+        return listVariables;
+    }
+
+    /**
+     * TODO(YilongL): implement it properly!
+     */
+    public boolean isUnifiableByCurrentAlgorithm() {
+        return true;
+    }
+
+    public static boolean isListUnifiableByCurrentAlgorithm(Term term, Term otherTerm) {
+        return term instanceof BuiltinList
+                && ((BuiltinList) term).isUnifiableByCurrentAlgorithm()
+                && otherTerm instanceof BuiltinList
+                && ((BuiltinList) term).isUnifiableByCurrentAlgorithm();
     }
 
     @Override
     public int concreteSize() {
-        return (int) children.stream().filter(this::isElement).count();
+        return elementsLeft.size() + elementsRight.size();
     }
 
     @Override
     public final boolean isConcreteCollection() {
-        return children.stream().allMatch(this::isElement);
+        return baseTerms.isEmpty();
     }
 
     @Override
@@ -203,7 +144,7 @@ public class BuiltinList extends Collection implements CollectionInternalReprese
 
     @Override
     public Sort sort() {
-        return sort;
+        return Sort.LIST;
     }
 
     @Override
@@ -217,28 +158,31 @@ public class BuiltinList extends Collection implements CollectionInternalReprese
         }
 
         BuiltinList list = (BuiltinList) object;
-        return children.equals(list.children)
-                && sort.equals(list.sort)
-                && operatorKLabel.equals(list.operatorKLabel)
-                && unitKLabel.equals(list.unitKLabel);
+        /* YilongL: the list shall be normalized if the baseTerms is empty;
+         * otherwise, the following equality check would be incorrect */
+        return elementsLeft.equals(list.elementsLeft)
+                && elementsRight.equals(list.elementsRight)
+                && baseTerms.equals(list.baseTerms);
     }
 
     @Override
     protected int computeHash() {
         int hashCode = 1;
-        hashCode = hashCode * Constants.HASH_PRIME + children.hashCode();
+        hashCode = hashCode * Constants.HASH_PRIME + elementsLeft.hashCode();
+        hashCode = hashCode * Constants.HASH_PRIME + elementsRight.hashCode();
+        hashCode = hashCode * Constants.HASH_PRIME + baseTerms.hashCode();
         return hashCode;
     }
 
     @Override
-    public String toString() {
-        return !isEmpty() ?
-                operatorKLabel + "(" + children.stream().map(Term::toString).collect(Collectors.joining(", ")) + ")" :
-                unitKLabel + "()";
-    }
-
-    @Override
     protected boolean computeMutability() {
+        boolean hasCell = false;
+        for (Term term : Iterables.concat(elements(), baseTerms)) {
+            hasCell = hasCell || term.isMutable();
+            if (hasCell) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -252,19 +196,59 @@ public class BuiltinList extends Collection implements CollectionInternalReprese
         return transformer.transform(this);
     }
 
+    public Term get(int index) {
+        if (index >= 0) {
+            return index < elementsLeft.size() ? elementsLeft.get(index) : null;
+        } else {
+            int idx;
+            if (!baseTerms.isEmpty()) {
+                idx = elementsRight.size() + index;
+                return idx >= 0 ? elementsRight.get(idx) : null;
+            } else {
+                idx = elementsLeft.size() + index;
+                return idx >= 0 ? elementsLeft.get(idx) : null;
+            }
+        }
+    }
+
+    @Override
+    public String toString() {
+        return toString(" ", ".List");
+    }
+
+    public String toString(String operator, String identity) {
+        if (!isEmpty()) {
+            return Joiner.on(operator).join(
+                    Joiner.on(operator).join(elementsLeft.stream().map(e -> "ListItem(" + e + ")").collect(Collectors.toList())),
+                    Joiner.on(operator).join(baseTerms),
+                    Joiner.on(operator).join(elementsRight.stream().map(e -> "ListItem(" + e + ")").collect(Collectors.toList())));
+        } else {
+            return identity;
+        }
+    }
+
     @Override
     public List<Term> getKComponents() {
-        return children;
-    }
+        DataStructureSort sort = global.getDefinition().dataStructureSortOf(sort());
 
-    @Override
-    public KLabel constructorLabel() {
-        return operatorKLabel;
-    }
+        ArrayList<Term> components = Lists.newArrayList();
+        Consumer<Term> addElementToComponents = element ->
+                components.add(KItem.of(
+                        KLabelConstant.of(sort.elementLabel(), global.getDefinition()),
+                        KList.singleton(element),
+                        global, element.getSource(), element.getLocation()));
 
-    @Override
-    public Term unit() {
-        return KItem.of(unitKLabel, KList.concatenate(), global);
+        elementsLeft.stream().forEach(addElementToComponents);
+        for (Term term : baseTerms) {
+            if (term instanceof BuiltinList) {
+                components.addAll(((BuiltinList) term).getKComponents());
+            } else {
+                components.add(term);
+            }
+        }
+        elementsRight.stream().forEach(addElementToComponents);
+
+        return components;
     }
 
     @Override
@@ -272,92 +256,245 @@ public class BuiltinList extends Collection implements CollectionInternalReprese
         return global;
     }
 
-    public static Builder builder(Sort sort, KLabelConstant operatorKLabel, KLabelConstant unitKLabel, GlobalContext global) {
-        return new Builder(sort, operatorKLabel, unitKLabel, global);
-    }
-
     public static Builder builder(GlobalContext global) {
-        return builder(
-                Sort.LIST,
-                KLabelConstant.of("_List_", global.getDefinition()),
-                KLabelConstant.of(".List", global.getDefinition()),
-                global);
+        return new Builder(global);
     }
 
-    public static Builder kSequenceBuilder(GlobalContext global) {
-        return builder(
-                Sort.KSEQUENCE,
-                KLabelConstant.of(KLabels.KSEQ, global.getDefinition()),
-                KLabelConstant.of(KLabels.DOTK, global.getDefinition()),
-                global);
+    public static class BaseTerm {
+        private final Term term;
+        private final BaseTermType type;
+
+        public static BaseTerm of(Term term, BaseTermType type) {
+            return new BaseTerm(term, type);
+        }
+
+        private BaseTerm(Term term, BaseTermType type) {
+            this.term = term;
+            this.type = type;
+        }
+
+        public Term term() {
+            return term;
+        }
+
+        public boolean isVariable() {
+            return type == BaseTermType.VARIABLE;
+        }
+
+        public boolean isFunction() {
+            return type == BaseTermType.FUNCTION;
+        }
+
+        public boolean isPattern() {
+            return type == BaseTermType.PATTERN;
+        }
+
+        public boolean isList() {
+            return type == BaseTermType.LIST;
+        }
+
+        public boolean equals(Object object) {
+            if (this == object) {
+                return true;
+            }
+
+            if (!(object instanceof BaseTerm)) {
+                return false;
+            }
+
+            BaseTerm baseTerm = (BaseTerm) object;
+            return term.equals(baseTerm.term) && type.equals(baseTerm.type);
+        }
+
+        public int hashCode() {
+            int hashCode = 1;
+            hashCode = hashCode * Constants.HASH_PRIME + term.hashCode();
+            hashCode = hashCode * Constants.HASH_PRIME + type.hashCode();
+            return hashCode;
+        }
+    }
+
+    private enum BuilderStatus {
+        /**
+         * No base term has been added to the builder.
+         */
+        ELEMENTS_LEFT,
+
+        /**
+         * At least one base term (i.e., function, variable, pattern, or list)
+         * has been added to the builder and no list item has been added since
+         * then.
+         */
+        BASE_TERMS,
+
+        /**
+         * At least one list item has been added to the builder after some base
+         * term.
+         */
+        ELEMENTS_RIGHT;
     }
 
     public static class Builder {
 
-        private final ImmutableList.Builder<Term> childrenBuilder = new ImmutableList.Builder<>();
-        private final Sort sort;
-        private final KLabelConstant operatorKLabel;
-        private final KLabelConstant unitKLabel;
+        private BuilderStatus status = BuilderStatus.ELEMENTS_LEFT;
+
+        /**
+         * List of pending elements that are yet to be decided where to go in
+         * the {@code BuiltinList} to be built. This field is only valid in
+         * {@code BuilderStatus#BASE_TERMS}.
+         */
+        private final List<Term> pendingElements = Lists.newArrayList();
+
+        private final ImmutableList.Builder<Term> elementsLeftBuilder = new ImmutableList.Builder<>();
+        private final ImmutableList.Builder<Term> baseTermsBuilder = new ImmutableList.Builder<>();
+        private final ImmutableList.Builder<Term> elementsRightBuilder = new ImmutableList.Builder<>();
+        private final ImmutableList.Builder<BaseTermType> baseTermTypesBuilder = new ImmutableList.Builder<>();
+        private final ImmutableList.Builder<Variable> listVariablesBuilder = new ImmutableList.Builder<>();
         private final GlobalContext global;
 
-        public Builder(Sort sort, KLabelConstant operatorKLabel, KLabelConstant unitKLabel, GlobalContext global) {
-            this.sort = sort;
-            this.operatorKLabel = operatorKLabel;
-            this.unitKLabel = unitKLabel;
+        public Builder(GlobalContext global) {
             this.global = global;
         }
 
-        public Builder add(Term term) {
-            if (term instanceof BuiltinList && sort.equals(term.sort())
-                    && operatorKLabel.equals(((BuiltinList) term).operatorKLabel)
-                    && unitKLabel.equals(((BuiltinList) term).unitKLabel)) {
-                return addAll(((BuiltinList) term).children);
+        /**
+         * Appends the specified term as a list item, namely
+         * {@code ListItem(term)}, to the end of the list.
+         *
+         * @param term
+         *            the specified term
+         */
+        public void addItem(Term term) {
+            if (status == BuilderStatus.ELEMENTS_LEFT) {
+                elementsLeftBuilder.add(term);
+            } else if (status == BuilderStatus.BASE_TERMS) {
+                status = BuilderStatus.ELEMENTS_RIGHT;
+                elementsRightBuilder.addAll(pendingElements);
+                pendingElements.clear();
+                elementsRightBuilder.add(term);
             } else {
-                //if(!(term instanceof KItem && ((KItem) term).klabel().equals(this.unitKLabel))) // do not add the unit
-                childrenBuilder.add(term);
-                return this;
+                elementsRightBuilder.add(term);
             }
         }
 
-        public Builder addAll(List<Term> terms) {
-            terms.forEach(this::add);
-            return this;
-        }
-
-        public Builder addAll(Term... terms) {
+        public void addItems(List<Term> terms) {
             for (Term term : terms) {
-                add(term);
+                addItem(term);
             }
-            return this;
+        }
+
+        private void addConcatTerm(Term term) {
+            baseTermsBuilder.add(term);
+            if (term instanceof BuiltinList) {
+                baseTermTypesBuilder.add(BaseTermType.LIST);
+            } else if (term instanceof KItem && ((KLabel) ((KItem) term).kLabel()).isPattern()) {
+                baseTermTypesBuilder.add(BaseTermType.PATTERN);
+            } else if (term instanceof KItem && ((KLabel) ((KItem) term).kLabel()).isFunction()) {
+                baseTermTypesBuilder.add(BaseTermType.FUNCTION);
+            } else if (term instanceof Variable) {
+                baseTermTypesBuilder.add(BaseTermType.VARIABLE);
+                listVariablesBuilder.add((Variable) term);
+            } else {
+                throw KExceptionManager.criticalError("unexpected concatenated term" + term, term);
+            }
+        }
+
+        private void addConcatTerms(List<Term> terms) {
+            for (Term term : terms) {
+                addConcatTerm(term);
+            }
+        }
+
+        /**
+         * Concatenates a term of sort List to this builder.
+         */
+        public void concatenate(Term term) {
+            if (!term.sort().equals(Sort.LIST)) {
+                throw KEMException.criticalError("unexpected sort "
+                        + term.sort() + " of concatenated term " + term
+                        + "; expected " + Sort.LIST);
+            }
+
+            if (status == BuilderStatus.ELEMENTS_LEFT) {
+                if (!(term instanceof BuiltinList)) {
+                    status = BuilderStatus.BASE_TERMS;
+                    addConcatTerm(term);
+                } else {
+                    BuiltinList list = (BuiltinList) term;
+                    if (list.isConcreteCollection()) {
+                        addItems(list.elementsLeft);
+                    } else {
+                        addItems(list.elementsLeft);
+                        status = BuilderStatus.BASE_TERMS;
+                        addConcatTerms(list.baseTerms);
+                        pendingElements.addAll(list.elementsRight);
+                    }
+                }
+            } else if (status == BuilderStatus.BASE_TERMS) {
+                if (!(term instanceof BuiltinList)) {
+                    if (!pendingElements.isEmpty()) {
+                        addConcatTerm(new BuiltinList(
+                                ImmutableList.copyOf(pendingElements),
+                                global));
+                        pendingElements.clear();
+                    }
+                    addConcatTerm(term);
+                } else {
+                    BuiltinList list = (BuiltinList) term;
+                    if (list.isConcreteCollection()) {
+                        pendingElements.addAll(list.elementsLeft);
+                    } else {
+                        pendingElements.addAll(list.elementsLeft);
+                        if (!pendingElements.isEmpty()) {
+                            addConcatTerm(new BuiltinList(
+                                    ImmutableList.copyOf(pendingElements),
+                                    global));
+                            pendingElements.clear();
+                        }
+                        addConcatTerms(list.baseTerms);
+                        pendingElements.addAll(list.elementsRight);
+                    }
+                }
+            } else {
+                throw KExceptionManager.criticalError(
+                        "the builder is not allowed to concatencate list terms in "
+                        + BuilderStatus.ELEMENTS_RIGHT, term);
+            }
+        }
+
+        /**
+         * Concatenates terms of sort List to this builder.
+         */
+        public void concatenate(Term... terms) {
+            for (Term term : terms) {
+                concatenate(term);
+            }
+        }
+
+        /**
+         * Concatenates terms of sort List to this builder.
+         */
+        public void concatenate(List<Term> terms) {
+            for (Term term : terms) {
+                concatenate(term);
+            }
         }
 
         public Term build() {
+            if (!pendingElements.isEmpty()) {
+                elementsRightBuilder.addAll(pendingElements);
+                pendingElements.clear();
+            }
+
             BuiltinList builtinList = new BuiltinList(
-                    childrenBuilder.build(),
-                    sort,
-                    operatorKLabel,
-                    unitKLabel,
+                    elementsLeftBuilder.build(),
+                    baseTermsBuilder.build(),
+                    elementsRightBuilder.build(),
+                    baseTermTypesBuilder.build(),
+                    listVariablesBuilder.build(),
                     global);
-            return builtinList.size() == 1 ? builtinList.get(0) : builtinList;
-        }
-    }
-
-    /**
-     * Wraps this element in a {@link SingletonBuiltinList}.
-     * {@link org.kframework.backend.java.symbolic.FastRuleMatcher} is the only class allowed to call this method.
-     */
-    public SingletonBuiltinList upElementToList(Term element) {
-        return new SingletonBuiltinList(element, global, sort, operatorKLabel, unitKLabel);
-    }
-
-    /**
-     * Class representation of a singleton builtin list. This representation is not canonical;
-     * {@link BuiltinList#builder(Sort, KLabelConstant, KLabelConstant, GlobalContext)} returns the element directly as the canonical representation.
-     * {@link org.kframework.backend.java.symbolic.FastRuleMatcher} is the only class allowed to use this class.
-     */
-    public static class SingletonBuiltinList extends BuiltinList {
-        private SingletonBuiltinList(Term child, GlobalContext global, Sort sort, KLabelConstant operatorKLabel, KLabelConstant unitKLabel) {
-            super(ImmutableList.of(child), sort, operatorKLabel, unitKLabel, global);
+            return builtinList.baseTerms().size() == 1 && builtinList.concreteSize() == 0 ?
+                   builtinList.baseTerms().get(0) :
+                   builtinList;
         }
     }
 

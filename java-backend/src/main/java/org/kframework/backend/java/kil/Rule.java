@@ -144,10 +144,10 @@ public class Rule extends JavaSymbolicObject<Rule> {
             Variable listVar = (Variable) lhsOfReadCells.values().iterator().next();
             BuiltinList.Builder streamListBuilder = BuiltinList.builder(global);
             for (Equality eq : lookups.equalities()) {
-                streamListBuilder.add(eq.rightHandSide());
+                streamListBuilder.addItem(eq.rightHandSide());
             }
             if (!(listVar instanceof ConcreteCollectionVariable)) {
-                streamListBuilder.addAll(Variable.getAnonVariable(Sort.LIST));
+                streamListBuilder.concatenate(Variable.getAnonVariable(Sort.LIST));
             }
 
             Term streamList = streamListBuilder.build();

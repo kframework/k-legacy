@@ -2,10 +2,11 @@
 package org.kframework.backend.java.builtins;
 
 import com.google.inject.Inject;
-import org.kframework.backend.java.kil.BuiltinList;
 import org.kframework.backend.java.kil.KItem;
 import org.kframework.backend.java.kil.KLabelConstant;
+import org.kframework.backend.java.kil.KLabelInjection;
 import org.kframework.backend.java.kil.KList;
+import org.kframework.backend.java.kil.KSequence;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
 import org.kframework.krun.RunProcess;
@@ -66,37 +67,45 @@ public class BuiltinIOOperations {
     public Term close(IntToken term, TermContext termContext) {
         try {
             fs.close(term.longValue());
-            return BuiltinList.kSequenceBuilder(termContext.global()).build();
+            return KLabelInjection.injectionOf(KSequence.EMPTY, termContext.global());
         } catch (IOException e) {
-            return processIOException(e.getMessage(), termContext);
+            return KLabelInjection.injectionOf(
+                    processIOException(e.getMessage(), termContext),
+                    termContext.global());
         }
     }
 
     public Term seek(IntToken term1, IntToken term2, TermContext termContext) {
         try {
             fs.get(term1.longValue()).seek(term2.longValue());
-            return BuiltinList.kSequenceBuilder(termContext.global()).build();
+            return KLabelInjection.injectionOf(KSequence.EMPTY, termContext.global());
         } catch (IOException e) {
-            return processIOException(e.getMessage(), termContext);
+            return KLabelInjection.injectionOf(
+                    processIOException(e.getMessage(), termContext),
+                    termContext.global());
         }
     }
 
     public Term putc(IntToken term1, IntToken term2, TermContext termContext) {
         try {
             fs.get(term1.longValue()).putc(term2.unsignedByteValue());
-            return BuiltinList.kSequenceBuilder(termContext.global()).build();
+            return KLabelInjection.injectionOf(KSequence.EMPTY, termContext.global());
         } catch (IOException e) {
-            return processIOException(e.getMessage(), termContext);
+            return KLabelInjection.injectionOf(
+                    processIOException(e.getMessage(), termContext),
+                    termContext.global());
         }
     }
     public Term write(IntToken term1, StringToken term2, TermContext termContext) {
         try {
             fs.get(term1.longValue()).write(term2.byteArrayValue());
-            return BuiltinList.kSequenceBuilder(termContext.global()).build();
+            return KSequence.EMPTY;
         } catch (CharacterCodingException e) {
             throw new IllegalArgumentException(e);
         } catch (IOException e) {
-            return processIOException(e.getMessage(), termContext);
+            return KLabelInjection.injectionOf(
+                    processIOException(e.getMessage(), termContext),
+                    termContext.global());
         }
     }
 

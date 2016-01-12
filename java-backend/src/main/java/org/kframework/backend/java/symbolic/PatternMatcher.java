@@ -228,7 +228,9 @@ public class PatternMatcher extends AbstractUnifier {
     @Override
     public void unify(BuiltinList builtinList, BuiltinList patternList) {
         if (matchOnFunctionSymbol) {
-            addUnificationTask(builtinList.toKore(), patternList.toKore());
+            addUnificationTask(
+                    ((BuiltinList) BuiltinList.concatenate(global, builtinList)).toKore(),
+                    ((BuiltinList) BuiltinList.concatenate(global, patternList)).toKore());
             return;
         }
 

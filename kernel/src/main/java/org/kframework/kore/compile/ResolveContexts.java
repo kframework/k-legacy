@@ -2,7 +2,6 @@
 package org.kframework.kore.compile;
 
 import org.kframework.Collections;
-import org.kframework.definition.Definition;
 import org.kframework.builtin.BooleanUtils;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.Context;
@@ -42,13 +41,8 @@ public class ResolveContexts {
         this.kompileOptions = kompileOptions;
     }
 
-    public Definition resolve(Definition d) {
-        Module transformedMainModule = resolve(d.mainModule());
-        return Definition.apply(transformedMainModule, add(transformedMainModule, minus(d.mainModule(), d.entryModules())), d.att());
-    }
-
     public Module resolve(Module input) {
-        Set<Sentence> rulesToAdd = stream(input.sentences())
+        Set<Sentence> rulesToAdd = stream(input.localSentences())
                 .filter(s -> s instanceof Context)
                 .map(s -> (Context) s)
                 .flatMap(c -> this.resolve(c, input)).collect(Collectors.toCollection(HashSet::new));
@@ -84,15 +78,13 @@ public class ResolveContexts {
         K heated = new VisitK() {
             K heated;
             KVariable holeVar;
-
             public K process(K k) {
                 apply(k);
-                if (heated != null)
+                if(heated != null)
                     return heated;
                 else
                     return holeVar;
             }
-
             @Override
             public void apply(KRewrite k) {
                 heated = k.right();
@@ -140,7 +132,7 @@ public class ResolveContexts {
 
     /**
      * Check validity of context.
-     * <p>
+     *
      * Currently the following conditions are checked:
      * - Contexts must have at least one HOLE.
      * - Contexts must have a single rewrite.
@@ -183,7 +175,6 @@ public class ResolveContexts {
                 }
                 super.apply(k);
             }
-
             // return true when k is either HOLE or #SemanticCastToX(HOLE)
             private boolean isHOLE(K k) {
                 if (k instanceof KApply) {
@@ -195,7 +186,6 @@ public class ResolveContexts {
                     return isHOLEVar(k);
                 }
             }
-
             private boolean isHOLEVar(K k) {
                 return k instanceof KVariable && ((KVariable) k).name().equals("HOLE");
             }

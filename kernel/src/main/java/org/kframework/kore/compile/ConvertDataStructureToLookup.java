@@ -230,7 +230,7 @@ public class ConvertDataStructureToLookup {
                     if (att.contains(Attribute.COMMUTATIVE_KEY)) {
                         if (att.contains(Attribute.IDEMPOTENT_KEY)) {
                             // Set
-                            return convertSet(k, collectionLabel, components, varConstraints);
+                            return convertSet(k, collectionLabel, components);
                         } else {
                             //TODO(dwightguth): differentiate Map and Bag
                             if (att.get(Attribute.HOOK_KEY).get().equals("MAP.concat"))
@@ -243,8 +243,6 @@ public class ConvertDataStructureToLookup {
                         }
                     } else {
                         // List
-                        if (!att.contains(Attribute.HOOK_KEY))
-                            return super.apply(k);
                         return convertList(k, collectionLabel, components);
                     }
                 } else {
@@ -321,18 +319,13 @@ public class ConvertDataStructureToLookup {
                                     KToken(Integer.toString(elementsLeft.size()), Sorts.Int()),
                                     KToken(Integer.toString(elementsRight.size()), Sorts.Int()))));
                         }
-                        KLabel elementWrapper = KLabel(m.attributesFor().apply(collectionLabel).<String>get("element").get());
                         for (int i = 0; i < elementsLeft.size(); i++) {
-                            state.add(KApply(
-                                    KLabel("#match"),
-                                    KApply(elementWrapper, elementsLeft.get(i)),
-                                    KApply(KLabel("List:get"), list, KToken(Integer.toString(i), Sorts.Int()))));
+                            K element = elementsLeft.get(i);
+                            state.add(KApply(KLabel("#match"), element, KApply(KLabel("List:get"), list, KToken(Integer.toString(i), Sorts.Int()))));
                         }
                         for (int i = 0; i < elementsRight.size(); i++) {
-                            state.add(KApply(
-                                    KLabel("#match"),
-                                    KApply(elementWrapper, elementsRight.get(i)),
-                                    KApply(KLabel("List:get"), list, KToken(Integer.toString(i - elementsRight.size()), Sorts.Int()))));
+                            K element = elementsRight.get(i);
+                            state.add(KApply(KLabel("#match"), element, KApply(KLabel("List:get"), list, KToken(Integer.toString(i - elementsRight.size()), Sorts.Int()))));
                         }
                     }
                     if (lhsOf == null) {
@@ -416,7 +409,7 @@ public class ConvertDataStructureToLookup {
              * Set elements without variables become membership checks in the map, whereas Set elements
              * with variables trigger iteration over the set with matching on each element.
              */
-            private K convertSet(KApply k, KLabel collectionLabel, List<K> components, Multiset<KVariable> varConstraints) {
+            private K convertSet(KApply k, KLabel collectionLabel, List<K> components) {
                 if (rhsOf == null) {
                     //left hand side
                     KVariable frame = null;
@@ -459,7 +452,7 @@ public class ConvertDataStructureToLookup {
                         // TODO(dwightguth): choose better between lookup and choice.
                         Multiset<KVariable> vars = HashMultiset.create();
                         gatherVars(element, vars);
-                        if (vars.isEmpty() || (element instanceof KVariable && varConstraints.count(element) != 1)) {
+                        if (vars.isEmpty()) {
                             state.add(KApply(KLabel("Set:in"), element, accum));
                         } else {
                             //set choice

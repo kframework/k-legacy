@@ -31,7 +31,9 @@ public class BottomUpVisitor implements Visitor {
 
     @Override
     public void visit(BuiltinList node) {
-        for (Term t : node.children) t.accept(this);
+        for (Term t : node.elementsLeft()) t.accept(this);
+        for (Term t : node.baseTerms()) t.accept(this);
+        for (Term t : node.elementsRight()) t.accept(this);
     }
 
     @Override

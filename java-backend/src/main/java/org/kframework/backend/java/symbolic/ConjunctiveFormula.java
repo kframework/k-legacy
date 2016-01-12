@@ -512,8 +512,7 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
     }
 
     public boolean isSubstitution() {
-        return equalities.stream().allMatch(e -> e.leftHandSide() instanceof LocalRewriteTerm)
-                && disjunctions.isEmpty();
+        return equalities.isEmpty() && disjunctions.isEmpty();
     }
 
     public ConjunctiveFormula orientSubstitution(Set<Variable> variables) {
