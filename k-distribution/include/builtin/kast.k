@@ -96,6 +96,7 @@ module CONFIG-CELLS
 
   syntax Cell ::= "<" #CellName #CellProperties ">" K "</" #CellName ">" [klabel(#configCell)]
   syntax Cell ::= "<" #CellName "/>" [klabel(#externalCell)]
+  syntax Cell ::= "<br" "/>" [klabel(#breakCell)]
 
   syntax #CellProperties ::= #CellProperty #CellProperties [klabel(#cellPropertyList)]
                            | ""                            [klabel(#cellPropertyListTerminator)]
