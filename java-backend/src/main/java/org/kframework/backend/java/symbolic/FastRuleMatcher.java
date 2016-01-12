@@ -2,7 +2,13 @@
 
 package org.kframework.backend.java.symbolic;
 
+import com.google.common.collect.Sets;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
+import org.kframework.backend.java.kil.BuiltinList;
+import org.kframework.backend.java.kil.BuiltinMap;
+import org.kframework.backend.java.kil.BuiltinSet;
 import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.InnerRHSRewrite;
@@ -21,18 +27,13 @@ import org.kframework.kore.KApply;
 import org.kframework.kore.KLabel;
 import org.kframework.utils.BitSet;
 
-import static org.kframework.Collections.*;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
-
-import com.google.common.collect.Sets;
+import static org.kframework.Collections.*;
 
 /**
  * A very fast interpreted matching implementation based on merging the rules into a decision-tree like structure.
@@ -238,6 +239,8 @@ public class FastRuleMatcher {
             // TODO: make tokens unique?
             return subject.equals(pattern) ? ruleMask : empty;
         } else if (subject instanceof KItem && pattern instanceof Token || subject instanceof Token && pattern instanceof KItem) {
+            return empty;
+        } else if ((subject instanceof BuiltinSet || subject instanceof BuiltinMap || subject instanceof BuiltinList) && pattern instanceof KItem) {
             return empty;
         } else {
             throw new AssertionError("unexpected class at matching: " + subject.getClass());

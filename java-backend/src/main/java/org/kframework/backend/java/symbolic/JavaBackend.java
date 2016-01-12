@@ -75,11 +75,11 @@ public class JavaBackend implements Backend {
         }
 
         return d -> (func((Definition dd) -> kompile.defaultSteps().apply(dd)))
-                .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
-                .andThen(func(dd -> expandMacrosDefinitionTransformer.apply(dd)))
                 .andThen(convertDataStructureToLookup)
+                .andThen(func(dd -> expandMacrosDefinitionTransformer.apply(dd)))
+                .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
-                .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::convertKSeqToKApply, "kseq to kapply"))
+                .andThen(DefinitionTransformer.fromKTranformer(JavaBackend::convertKSeqToKApply, "kseq to kapply"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(NormalizeKSeq.self(), "normalize kseq"))
                 .andThen(func(dd -> markRegularRules(dd)))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new AddConfigurationRecoveryFlags(), "add refers_THIS_CONFIGURATION_marker"))

@@ -70,6 +70,8 @@ module MAP
 
   syntax Bool ::= K "in_keys" "(" Map ")"       [function, hook(MAP.in_keys)]
 
+  rule K:K in_keys(M:Map) => K in keys(M)
+
   /*@ Get a List consisting of all values in the Map: */
   syntax List ::= values(Map)                   [function, hook(MAP.values)]
 

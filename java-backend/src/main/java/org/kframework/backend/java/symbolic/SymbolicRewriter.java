@@ -15,7 +15,20 @@ import org.kframework.backend.java.builtins.FreshOperations;
 import org.kframework.backend.java.builtins.MetaK;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.indexing.RuleIndex;
-import org.kframework.backend.java.kil.*;
+import org.kframework.backend.java.kil.CellCollection;
+import org.kframework.backend.java.kil.CellLabel;
+import org.kframework.backend.java.kil.ConstrainedTerm;
+import org.kframework.backend.java.kil.Definition;
+import org.kframework.backend.java.kil.GlobalContext;
+import org.kframework.backend.java.kil.KItem;
+import org.kframework.backend.java.kil.KLabelConstant;
+import org.kframework.backend.java.kil.KList;
+import org.kframework.backend.java.kil.KSequence;
+import org.kframework.backend.java.kil.Rule;
+import org.kframework.backend.java.kil.Sort;
+import org.kframework.backend.java.kil.Term;
+import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.strategies.TransitionCompositeStrategy;
 import org.kframework.backend.java.util.Coverage;
 import org.kframework.backend.java.util.JavaKRunState;
@@ -26,9 +39,9 @@ import org.kframework.kore.FindK;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.krun.api.KRunState;
+import org.kframework.rewriter.SearchType;
 import org.kframework.utils.BitSet;
 import org.kframework.utils.errorsystem.KEMException;
-import org.kframework.rewriter.SearchType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +55,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author AndreiS
@@ -96,7 +108,6 @@ public class SymbolicRewriter {
         if (afterVariableRename.termContext().global().krunOptions.experimental.statistics) {
             System.err.println("[" + step + ", " + stopwatch + " ]");
         }
-
         return finalState;
     }
 

@@ -2,6 +2,8 @@
 package org.kframework.backend.java.symbolic;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.kframework.attributes.Location;
+import org.kframework.attributes.Source;
 import org.kframework.backend.java.builtins.BitVector;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.FloatToken;
@@ -63,6 +65,7 @@ import java.util.stream.Collectors;
 public abstract class CopyOnWriteTransformer implements Transformer {
 
     private static final String KSEQUENCE_KLABEL = "#KSequence";
+    private static final String EMPTYK_KLABEL = "#EmptyK";
     protected final TermContext context;
 
     public CopyOnWriteTransformer(TermContext context) {
@@ -206,27 +209,39 @@ public abstract class CopyOnWriteTransformer implements Transformer {
     public ASTNode transform(KItem kItem) {
         Term kLabel = (Term) kItem.kLabel().accept(this);
         Term kList = (Term) kItem.kList().accept(this);
-        if (kLabel.toString().equals(KSEQUENCE_KLABEL) && kList instanceof KList) {
-            KList castList = (KList) kList;
-            kList = normalizeKSeqList(castList);
-        }
         if (kLabel != kItem.kLabel() || kList != kItem.kList()) {
-            kItem = KItem.of(kLabel, kList, resolveGlobalContext(kItem), kItem.getSource(), kItem.getLocation());
+            kItem = normalize(kLabel, kList, resolveGlobalContext(kItem), kItem.getSource(), kItem.getLocation());
         }
 
         return kItem;
     }
 
-    private Term normalizeKSeqList(KList kList) {
-        if (kList.size() > 1 && (kList.get(0) instanceof KItem) && ((KItem) (kList.get(0))).klabel().name().equals(KSEQUENCE_KLABEL)) {
-            KItem kSeq = (KItem) (kList.get(0));
-            if (kSeq.kList() instanceof KList) {
-                KList kSeqList = (KList) kSeq.klist();
-                Term rightNormalizedChild = addRightAssoc(kSeqList.get(1), kList.get(1));
-                return KList.concatenate(kSeqList.get(0), rightNormalizedChild);
+    private KItem normalize(Term kLabel, Term kListTerm, GlobalContext globalContext, Source source, Location location) {
+        if (kLabel instanceof KLabelConstant && ((KLabelConstant) kLabel).name().equals(KSEQUENCE_KLABEL)) {
+            if (kListTerm instanceof KList) {
+                KList kList = (KList) kListTerm;
+                if (kList.size() > 1 && (kList.get(0) instanceof KItem)) {
+                    KItem kSeq = (KItem) (kList.get(0));
+                    if (kSeq.klabel().name().equals(KSEQUENCE_KLABEL)) {
+                        if (kSeq.kList() instanceof KList) {
+                            KList kSeqList = (KList) kSeq.klist();
+                            Term rightNormalizedChild = addRightAssoc(kSeqList.get(1), kList.get(1));
+                            return KItem.of(kLabel, KList.concatenate(kSeqList.get(0), rightNormalizedChild), globalContext, source, location);
+                        }
+                    } else if (kSeq.klabel().name().equals(EMPTYK_KLABEL)) {
+                        if (kList.get(1) instanceof KItem) {
+                            KItem secondChild = (KItem) kList.get(1);
+                            if (secondChild.klabel().name().equals(EMPTYK_KLABEL) || secondChild.klabel().name().equals(KSEQUENCE_KLABEL)) {
+                                return secondChild;
+                            } else {
+                                return KItem.of(kLabel, KList.concatenate(kList.get(1), kList.get(0)), globalContext, source, location);
+                            }
+                        }
+                    }
+                }
             }
         }
-        return kList;
+        return KItem.of(kLabel, kListTerm, globalContext, source, location);
     }
 
     private Term addRightAssoc(Term term, Term toBeAdded) {
@@ -243,7 +258,7 @@ public abstract class CopyOnWriteTransformer implements Transformer {
         //construct new KSequence Term
         GlobalContext globalContext = term instanceof HasGlobalContext ?
                 resolveGlobalContext((HasGlobalContext) term) : context.global();
-        return KItem.of(KLabelConstant.of(KSEQUENCE_KLABEL, context.definition()), KList.concatenate(term, toBeAdded),
+        return normalize(KLabelConstant.of(KSEQUENCE_KLABEL, context.definition()), KList.concatenate(term, toBeAdded),
                 globalContext, term.getSource(), term.getLocation());
     }
 
