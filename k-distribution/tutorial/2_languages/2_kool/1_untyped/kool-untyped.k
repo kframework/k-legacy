@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2015 K Team. All Rights Reserved.
+// Copyright (c) 2012-2016 K Team. All Rights Reserved.
 /*!
 \title{KOOL --- Untyped}
 \author{Grigore Ro\c{s}u and Traian Florin \c{S}erb\u{a}nu\c{t}\u{a}
@@ -130,10 +130,7 @@ aspects of the language.  We refer the reader to the untyped SIMPLE
 language for documentation on the the remaining features, because
 those were all borrowed from SIMPLE. */
 
-require "domains.k"
-
 module KOOL-UNTYPED-SYNTAX
-  imports DOMAINS-SYNTAX
 
 /*@ \section{Syntax}
 
@@ -257,7 +254,6 @@ semantics of the additional KOOL constructs. */
 
 module KOOL-UNTYPED
   imports KOOL-UNTYPED-SYNTAX
-  imports DOMAINS
 
 /*@ \subsection{Configuration}
 
@@ -289,7 +285,7 @@ member declarations (\textsf{declarations}).
   configuration <T color="red">
                   <threads color="orange">
                     <thread multiplicity="*" color="yellow">
-                      <k color="green"> `$PGM:Stmts ~> execute` </k>
+                      <k color="green"> $PGM:Stmts ~> execute </k>
                     //<br/> // TODO(KORE): support latex annotations #1799
                       <control color="cyan">
                         <fstack color="blue"> .List </fstack>
@@ -457,11 +453,7 @@ interestingly, the semantics of return stays unchanged. */
 
   context (HOLE => lvalue(HOLE)) = _
 
-  // TODO(KORE): use parenthesis instead of backtick once #1943 is fixed
-  rule <k> loc(L) = V:Val => V ...</k> <store>... L |-> `_ => V` ...</store>
-  /*
   rule <k> loc(L) = V:Val => V ...</k> <store>... L |-> (_ => V) ...</store>
-  */
     [assignment]
 
 
@@ -489,11 +481,7 @@ interestingly, the semantics of return stays unchanged. */
 
   syntax KItem ::= "popx"
 
-  // TODO(KORE): use parenthesis instead of backtick once #1943 is fixed
-  rule <k> `try S1 catch(X) {S2} => S1 ~> popx` ~> K </k>
-  /*
   rule <k> (try S1 catch(X) {S2} => S1 ~> popx) ~> K </k>
-  */
        <control>
          <xstack> .List => ListItem((X, S2, K, Env, C)) ...</xstack>
          C
@@ -529,11 +517,7 @@ from SIMPLE unchanged. */
 
   rule <k> acquire V:Val; => . ...</k>
        <holds>... .Map => V |-> 0 ...</holds>
-       // TODO(KORE): use parenthesis instead of backtick once #1931 is fixed
-       <busy> Busy `.Set => SetItem(V)` </busy>
-       /*
        <busy> Busy (.Set => SetItem(V)) </busy>
-       */
     when (notBool(V in Busy:Set))  [acquire]
 
   rule <k> acquire V; => . ...</k>
@@ -552,11 +536,7 @@ from SIMPLE unchanged. */
 //@ \subsection{Unchanged auxiliary operations from untyped SIMPLE}
 
   syntax Stmts ::= mkDecls(Ids,Vals)  [function]
-  // TODO(KORE): use parenthesis instead of backtick once #1943 is fixed
-  rule mkDecls(`X:Id, Xs:Ids`, `V:Val, Vs:Vals`) => var X=V; mkDecls(Xs,Vs)
-  /*
   rule mkDecls((X:Id, Xs:Ids), (V:Val, Vs:Vals)) => var X=V; mkDecls(Xs,Vs)
-  */
   rule mkDecls(.Ids,.Vals) => {}
 
   // TODO(KORE): clarify sort inferences #1803
@@ -568,11 +548,7 @@ from SIMPLE unchanged. */
 
   syntax KItem ::= env(Map)
   rule <k> env(Env) => . ...</k>  <env> _ => Env </env>  [structural]
-  // TODO(KORE): use parenthesis instead of backtick once #1943 is fixed
-  rule `env(_) => .` ~> env(_)  [structural]
-  /*
   rule (env(_) => .) ~> env(_)  [structural]
-  */
   // TODO: How can we make sure that the second rule above applies before the first one?
   //       Probably we'll deal with this using strategies, eventually.
 
@@ -592,7 +568,7 @@ from SIMPLE unchanged. */
     [function, latex({#1}\ldots{#2}\mapsto{#3})]
   rule N...M |-> _ => .Map  when N >Int M
   // TODO(KORE): drop bracket #1935
-  rule N...M |-> K => N |-> K `(N +Int 1)...M |-> K`  when N <=Int M
+  rule N...M |-> K => (N |-> K) (N +Int 1)...M |-> K  when N <=Int M
   /*
   rule N...M |-> K => N |-> K (N +Int 1)...M |-> K  when N <=Int M
   */
@@ -718,7 +694,7 @@ corresponding cells: */
   syntax KItem ::= ClassBody(K, K)
   rule <k> class Class1 extends Class2 { S } => . ...</k>
        // TODO(KORE): classes hack to avoid not having AC -- see 2230bb3947c34b34b09e44eaa2ea2dfbd46b31cf
-       <classes>... `.Map => Class1 |-> ClassBody(Class2, S)`
+       <classes>... (.Map => Class1 |-> ClassBody(Class2, S))
        /*
        <classes>... (.Bag => <class>
                             <className> Class1 </className>
@@ -776,7 +752,7 @@ refer to it (see rule above). */
   syntax KItem ::= (Id,EnvCell) // TODO: used to be ListItem; explain this
 
   // TODO(KORE): drop bracket #1935
-  rule <k> `new Class:Id(Vs:Vals) ~> K`
+  rule <k> (new Class:Id(Vs:Vals) ~> K)
   /*
   rule <k> new Class:Id(Vs:Vals) ~> K
   */
@@ -805,7 +781,7 @@ members (both fields and methods) of that class. */
   rule <k> create(Class:Id)
            => create(Class1) ~> setCrntClass(Class) ~> S ~> addEnvLayer ...</k>
        // TODO(KORE): classes hack to avoid not having AC -- see 2230bb3947c34b34b09e44eaa2ea2dfbd46b31cf
-       <classes>...`Class |-> ClassBody(Class1:Id, S)`...</classes>
+       <classes>...(Class |-> ClassBody(Class1:Id, S))...</classes>
        [structural]
        /*
        <className> Class </className>
@@ -903,7 +879,7 @@ invocations see the entire object, as needed for dynamic method dispatch. */
     => lookupMember(<envStack> ListItem((Class,EnvC)) EStack </envStack>, X)
     [structural]
   rule objectClosure(<crntClass> Class:Id </crntClass>
-                     <envStack> ListItem((Class':Id,_)) => .List ...</envStack>)
+                     <envStack> ListItem((Class':Id,_::EnvCell)) => .List ...</envStack>)
        . X:Id
     when Class =/=K Class'  [structural]
 
@@ -913,11 +889,11 @@ invocations see the entire object, as needed for dynamic method dispatch. */
     [structural]*/
   rule <k> super . X => lookupMember(<envStack>EStack</envStack>, X) ...</k>
        <crntClass> Class:Id </crntClass>
-       <envStack> ListItem((Class,_)) EStack </envStack>
+       <envStack> ListItem((Class,_::EnvCell)) EStack </envStack>
     [structural]
   rule <k> super . X ...</k>
        <crntClass> Class </crntClass>
-       <envStack> ListItem((Class':Id,_)) => .List ...</envStack>
+       <envStack> ListItem((Class':Id,_::EnvCell)) => .List ...</envStack>
     when Class =/=K Class'  [structural]
 
 /*@\subsubsection{Method invocation}
@@ -958,16 +934,16 @@ method call or the array access.  */
 /*  rule <k> (super . X
             => lookupMember(<envStack>EStack</envStack>,X))(_:Exps)...</k>
        <crntClass> Class </crntClass>
-       <envStack>... (Class,_) EStack </envStack>
+       <envStack>... (Class,_::EnvCell) EStack </envStack>
     [structural]*/
   rule <k> (super . X
             => lookupMember(<envStack>EStack</envStack>,X))(_:Exps)...</k>
        <crntClass> Class </crntClass>
-       <envStack> ListItem((Class,_)) EStack </envStack>
+       <envStack> ListItem((Class,_::EnvCell)) EStack </envStack>
     [structural]
   rule <k> (super . X)(_:Exps) ...</k>
        <crntClass> Class </crntClass>
-       <envStack> ListItem((Class':Id,_)) => .List ...</envStack>
+       <envStack> ListItem((Class':Id,_::EnvCell)) => .List ...</envStack>
     when Class =/=K Class'  [structural]
 
   // TODO(KORE): fix getKLabel #1801 and context issue #1802
@@ -999,10 +975,10 @@ desired class.  It returns \texttt{true} iff it can find the class,
 otherwise it returns \texttt{false}; it only gets stuck when its first
 argument does not evaluate to an object.  */
 
-  rule objectClosure(<envStack> ListItem((C,_)) ...</envStack> _)
+  rule objectClosure(<envStack> ListItem((C,_::EnvCell)) ...</envStack> _)
        instanceOf C => true
 
-  rule objectClosure(<envStack> ListItem((C::Id,_)) => .List ...</envStack> _)
+  rule objectClosure(<envStack> ListItem((C,_::EnvCell)) => .List ...</envStack> _)
        instanceOf C'  when C =/=K C'  [structural]
 //TODO: remove the sort cast ::Id of C above, when sort inference bug fixed
 
@@ -1056,7 +1032,7 @@ member's location based on the current class of the object. */
               => lookupMember(<envStack> ListItem((Class,EnvC)) EStack </envStack>,
                               X))  [structural]
   rule lvalue(objectClosure(<crntClass> Class </crntClass>
-                            <envStack> ListItem((Class':Id,_)) => .List ...</envStack>)
+                            <envStack> ListItem((Class':Id,_::EnvCell)) => .List ...</envStack>)
               . X)
     when Class =/=K Class'  [structural]
 
