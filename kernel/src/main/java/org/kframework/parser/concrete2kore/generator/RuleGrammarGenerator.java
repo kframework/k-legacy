@@ -177,7 +177,7 @@ public class RuleGrammarGenerator {
             for (Sort srt : iterable(mod.definedSorts())) {
                 if (!isParserSort(srt)) {
                     // K ::= Sort
-                    prods.add(Production(Sorts.K(), Seq(NonTerminal(srt)), Att()));
+                    prods.add(Production(Sorts.K(), Seq(NonTerminal(srt)), Att().add(Att.generatedByAutomaticSubsorting())));
                 }
             }
         }
@@ -186,7 +186,7 @@ public class RuleGrammarGenerator {
             for (Sort srt : iterable(mod.definedSorts())) {
                 if (!isParserSort(srt)) {
                     // Sort ::= KBott
-                    prods.add(Production(srt, Seq(NonTerminal(Sorts.KBott())), Att()));
+                    prods.add(Production(srt, Seq(NonTerminal(Sorts.KBott())), Att().add(Att.generatedByAutomaticSubsorting())));
                 }
             }
         }
