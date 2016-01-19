@@ -7,7 +7,7 @@
       programs="../../../programs"
       extension="fun"
       results="." >
-     <kompile-option name="--superstrict" value="strict" />
+     <kompile-option name="--transition" value="strict" />
      <kompile-option name="--backend" value="java" />
      <all-programs>
         <krun-option name="--pattern" value="&lt;k&gt; V:K &lt;/k&gt;" />
@@ -25,7 +25,7 @@
       programs="../../../programs"
       extension="fun"
       results="." >
-     <kompile-option name="--superstrict" value="strict" />
+     <kompile-option name="--transition" value="strict" />
      <kompile-option name="--backend" value="java" />
      <all-programs>
         <krun-option name="--pattern" value="&lt;k&gt; V:K &lt;/k&gt;" />
