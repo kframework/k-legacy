@@ -72,9 +72,9 @@ public class TreeCleanerVisitor extends SetsTransformerWithErrors<ParseFailedExc
                     && !tc.production().att().contains(Att.allowChainSubsort())
                     && !parent.production().att().contains(Att.allowChainSubsort())
                     && (tc.production().att().contains(Att.generatedByAutomaticSubsorting()) || parent.production().att().contains(Att.generatedByAutomaticSubsorting()))) {
-                String msg = "Unexpected error, please report! Generated subsorts are not allowed as a child of another subsort," +
-                        "\nparent: " + parent.production().toString() +
-                        "\n" + "child:  " + tc.production().toString();
+                String msg = "Unexpected error, please report! Generated subsorts are not allowed as a child of a user subsort." +
+                        "\nParent: " + parent.production().toString() +
+                        "\nChild:  " + tc.production().toString();
                 return Left.apply(Sets.newHashSet(new ParseFailedException(new KException(
                         KException.ExceptionType.ERROR, KException.KExceptionGroup.INTERNAL,
                         msg, tc.source().get(), tc.location().get()))));
