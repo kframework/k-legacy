@@ -329,7 +329,7 @@ a constructor for function types:  */
                 | "(" Type ")"                             [bracket]
                 | TypeVar
                 //| TypeName            [klabel('TypeName), onlyLabel]
-                //| Type TypeName  [klabel('Type-TypeName), onlyLabel]
+                | Type TypeName  [klabel('Type-TypeName), onlyLabel]
                 | "(" Types ")" TypeName                    [prefer]
   syntax Types ::= List{Type,","}
 
@@ -488,7 +488,7 @@ value, but we do not need that level of detail here), and also that
 a function/closure value that expects the second, list argument): */
 
   syntax Val ::= "cons" | "[" Vals "]"
-//  rule isVal(cons V:Val) => true
+  rule isVal(cons V:Val) => true
   rule cons V:Val [Vs:Vals] => [V,Vs]
 
 
@@ -677,7 +677,8 @@ above. */
                  | bindMap(Map)
                  | bind(Names)
 
-//  rule bindTo(Xs:Names,Vs:Vals) => bindMap(getMatching(Xs,Vs))
+  rule (. => getMatchingAux(Xs,Vs)) ~> bindTo(Xs:Names,Vs:Vals)
+  rule matchResult(M:Map) ~> bindTo(_:Names, _:Vals) => bindMap(M)
 
   rule bindMap(.Map) => .  [structural]
   rule <k> bindMap((X:Name |-> V:Val => .Map) _:Map) ...</k>
@@ -712,6 +713,7 @@ and of expressions in a binding, respectively. */
 
   /* Extra kore stuff */
   syntax KResult ::= Vals
+  syntax Exps ::= Names
 
   /* Matching */
   syntax MatchResult ::= getMatching(Exp, Val)                      [function]
@@ -719,41 +721,26 @@ and of expressions in a binding, respectively. */
                        | mergeMatching(MatchResult, MatchResult)    [function]
                        | matchResult(Map)
                        | "matchFailure"
-                       | matchError(K, K)
 
-  rule getMatching(C:ConstructorName(Es:Exps), C:ConstructorName(Vs:Vals))
-    => getMatchingAux(Es, Vs)
-  rule getMatching(C1:ConstructorName(Es:Exps), C2:ConstructorName(Vs:Vals))
-    => matchFailure
-    requires C1 =/=K C2
+  rule getMatching(C:ConstructorName(Es:Exps), C(Vs:Vals)) => getMatchingAux(Es, Vs)
+  rule getMatching([Es:Exps], [Vs:Vals])                   => getMatchingAux(Es, Vs)
+  rule getMatching(C:ConstructorName, C) => matchResult(.Map)
+  rule getMatching(B:Bool, B)            => matchResult(.Map)
+  rule getMatching(I:Int, I)             => matchResult(.Map)
+  rule getMatching(S:String, S)          => matchResult(.Map)
   rule getMatching(N:Name, V:Val) => matchResult(N |-> V)
-  rule getMatching(K1, K2) => matchError(K1, K2)        [owise]
+  rule getMatching(_, _) => matchFailure        [owise]
 
-  rule getMatchingAux((E:Exp, Es:Exps), (V:Val, Vs:Vals))
-    => mergeMatching(getMatching(E, V), getMatchingAux(Es, Vs))
-  rule getMatchingAux(.Exps, .Vals)
-    => matchResult(.Map)
-  rule getMatchingAux((_:Exp, _:Exps), .Vals)
-    => matchFailure
-  rule getMatchingAux(.Exps, (_:Val, _:Vals))
-    => matchFailure
+  rule getMatchingAux((E:Exp, Es:Exps), (V:Val, Vs:Vals)) => mergeMatching(getMatching(E, V), getMatchingAux(Es, Vs))
+  rule getMatchingAux(.Exps, .Vals)                       => matchResult(.Map)
+  rule getMatchingAux(_, _) => matchFailure     [owise]
 
-  rule mergeMatching(matchResult(M1:Map), matchResult(M2:Map))
-    => #if intersectSet(keys(M1), keys(M2)) ==K .Set #then
-         matchResult(M1 M2)
-       #else
-         matchFailure
-       #fi
+  rule mergeMatching(matchResult(M1:Map), matchResult(M2:Map)) => matchResult(M1 M2)
+    requires intersectSet(keys(M1), keys(M2)) ==K .Set
+  //rule mergeMatching(_, _) => matchFailure      [owsie]
   rule mergeMatching(matchResult(_:Map), matchFailure) => matchFailure
   rule mergeMatching(matchFailure, matchResult(_:Map)) => matchFailure
   rule mergeMatching(matchFailure, matchFailure)       => matchFailure
-  //rule mergeMatching(K1, K2) => matchError(K1, K2)      [owsie]
-  rule mergeMatching(matchError(K1, K2), matchResult(_)) => matchError(K1, K2)
-  rule mergeMatching(matchError(K1, K2), matchFailure  ) => matchError(K1, K2)
-  rule mergeMatching(matchResult(_), matchError(K1, K2)) => matchError(K1, K2)
-  rule mergeMatching(matchFailure,   matchError(K1, K2)) => matchError(K1, K2)
-  rule mergeMatching(matchError(K1, K2), matchError(K3, K3))
-    => matchError(matchError(K1, K2), matchError(K3, K3))
 
 /*@ Besides the generic decomposition rules for patterns and values,
 we also want to allow \texttt{[head|tail]} matching for lists, so we add
@@ -761,15 +748,4 @@ the following custom pattern decomposition rule: */
 
   rule getMatching([H:Exp | T:Exp], [V:Val, Vs:Vals])
     => getMatchingAux((H, T), (V, [Vs]))
-  rule getMatching([_:Exp | _:Exp], [.Vals])
-    => matchFailure
-
-  rule getMatching([E:Exp, Es:Exps], [V:Val, Vs:Vals])
-    => getMatchingAux((E, [Es]), (V, [Vs]))
-  rule getMatching([.Exps], [.Vals])
-    => matchResult(.Map)
-  rule getMatching([E:Exp, Es:Exps], [.Vals])
-    => matchFailure
-  rule getMatching([.Exps], [V:Val, Vs:Vals])
-    => matchFailure
 endmodule
