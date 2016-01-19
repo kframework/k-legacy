@@ -1,5 +1,60 @@
 <!-- Copyright (c) 2014-2015 K Team. All Rights Reserved. -->
 
+# K Framework 4.0 #
+
+K 4.0 is a major release which brings significant improvements in the overall software 
+architecture of the K framework, as well as a few new features:
+
+ - **KORE of K:** It is much easier to interact programmatically with K via KORE. KORE is a distillation
+   of the essential features of the full K language into an equally-powerful, but much
+   smaller, language.
+ - **New parser:** The SDF-based parser has been phased out in favor of a completely new 
+   parser developed by the K team. The new parser is faster to initialize, and allows 
+   users full control over not only the syntax of the language they define, but also
+   the syntax of K itself. This makes it easier to overcome issues with the K syntax
+   conflicting with the defined language.
+ - **New compiler:** The K compiler has been completely rewritten to work only over the 
+   new KORE representation. Thus, the compiler only uses features that are also available
+   to third-parties wanting to interact with K programmatically.
+ - **Faster search:** The Java backend has a new decision-tree based matcher which delivers
+   much better search performance.
+ - **Rewriting strategies (experimental):** K now supports non-traversal [Stratego-style](http://releases.strategoxt.org/strategoxt-manual/unstable/manual/chunk-part/stratego-language.html#stratego-rewriting-strategies) rewriting strategies. While the
+   default strategy language is inspired by Stratego, our system gives users full control
+   over defining their own strategy language, and allows integration with the K 
+   verification machinery.
+   
+## KORE ##
+
+ - KORE is a subset of K which can still express, more verbosely if needed, anything that 
+   can be expressed in the full K language. 
+ - The AST syntax part of KORE is defined by  [k-distribution/include/builtin/kast.k](https://github.com/kframework/k/blob/master/k-distribution/include/builtin/kast.k) and is fully-editable by the user. If some part of it
+   conflicts with the defined language, the user can simply change it to avoid the conflict.
+
+## New Parser ##
+
+  - TODO: Radu
+
+## New Compiler ##
+
+ - The K compiler has been completely rewritten and is now much smaller.
+ - All compiler passes are KORE-to-KORE, which means they can be easily mixed into new
+   custom compilers.
+   
+## Java Backend ##
+
+ - TODO: Andrei
+
+## Rewriting strategies (experimental) ##
+
+ - We have added experimental support for top-level (i.e., non-traversal) rewriting strategies. 
+ - The rewriting language is defined in K and can be modified by the user. See the `STRATEGY` and `BASIC-STRATEGY` modules in [k-distribution/include/builtin/domains.k](https://github.com/kframework/k/blob/master/k-distribution/include/builtin/domains.k). `STRATEGY` gives the basic support for defining
+   strategy languages and is not meant to be modified by the user (though it can be). `BASIC-STRATEGY` is one example of a strategy language implemented on top of `STRATEGY`, and also acts as the default strategy language.
+
+## Other ##
+
+ - K 4.0 no longer has support for automatically generating documentation, i.e., `kdoc`. Support
+   will be added soon to the `master` branch and will be included in K 4.1.
+
 # K Framework 3.6 #
 
 ## General ##
