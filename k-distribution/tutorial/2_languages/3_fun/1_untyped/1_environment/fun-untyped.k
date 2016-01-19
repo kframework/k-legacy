@@ -515,35 +515,33 @@ how the pre-defined pattern matching works before proceeding.
 The best way to do that is to consult
 \texttt{k/include/modules/pattern-matching.k}. */
 
-/*@ To set up the pattern matching mechanism we need to specify what K
-terms act as variables (for pattern matching, substitution, etc.).
-This is currently done my subsorting those terms to the builtin
-\texttt{Variable} sort.  In our case, we only want to allow the
-\texttt{Name} identifiers to act as variables for pattern matching;
-note that the \texttt{ConstructorName} identifiers are {\em not}
-variables (they construct data values): */
-
-  syntax Variable ::= Name
-
-///*@ We distinguish two cases when the closure is applied.
-//If the first pattern matches, then we pick the first case: switch to
-//the closed environment, get the matching map and bind all its
-//variables, and finally evaluate the function body of the first case,
-//making sure that the environment is properly recovered afterwards.
-//If the first pattern does not match, then we drop it and thus move on
-//to the next one. */
+///*@ To set up the pattern matching mechanism we need to specify what K
+//terms act as variables (for pattern matching, substitution, etc.).
+//This is currently done my subsorting those terms to the builtin
+//\texttt{Variable} sort.  In our case, we only want to allow the
+//\texttt{Name} identifiers to act as variables for pattern matching;
+//note that the \texttt{ConstructorName} identifiers are {\em not}
+//variables (they construct data values): */
 //
+//  syntax Variable ::= Name
+
+/*@ We distinguish two cases when the closure is applied.
+If the first pattern matches, then we pick the first case: switch to
+the closed environment, get the matching map and bind all its
+variables, and finally evaluate the function body of the first case,
+making sure that the environment is properly recovered afterwards.
+If the first pattern does not match, then we drop it and thus move on
+to the next one. */
+
+  rule (. => getMatching(P, V)) ~> closure(_, P->_ | _) V:Val
+  rule <k> matchResult(M:Map) ~> closure(Rho, _->E | _) _
+           => bindMap(M) ~> E ~> env(Rho') ...</k>
+       <env> Rho' => Rho </env>
+  rule (matchFailure => .) ~> closure(_, (_->_ | Cs:Cases => Cs)) _
 //  rule <k> closure(Rho, P->E | _) V:Val
 //           => bindMap(getMatching(P,V)) ~> E ~> env(Rho') ...</k>
 //       <env> Rho' => Rho </env>  when isMatching(P,V)
 //  rule closure(_, (P->_ | Cs:Cases => Cs)) V:Val  when notBool isMatching(P,V)
-//
-///*@ Besides the generic decomposition rules for patterns and values,
-//we also want to allow \texttt{[head|tail]} matching for lists, so we add
-//the following custom pattern decomposition rule: */
-//
-//  rule decomposeMatching(([H:Exp|T:Exp] => H,T),
-//                         ([V:Val,Vs:Vals] => V,[Vs]))
 
 
 /*@ \subsection{Let and Letrec}
@@ -712,4 +710,66 @@ and of expressions in a binding, respectively. */
   rule exps(.Bindings) => .Exps
   rule exps(_:Name=E and Bs) => E,exps(Bs)
 
+  /* Extra kore stuff */
+  syntax KResult ::= Vals
+
+  /* Matching */
+  syntax MatchResult ::= getMatching(Exp, Val)                      [function]
+                       | getMatchingAux(Exps, Vals)                 [function]
+                       | mergeMatching(MatchResult, MatchResult)    [function]
+                       | matchResult(Map)
+                       | "matchFailure"
+                       | matchError(K, K)
+
+  rule getMatching(C:ConstructorName(Es:Exps), C:ConstructorName(Vs:Vals))
+    => getMatchingAux(Es, Vs)
+  rule getMatching(C1:ConstructorName(Es:Exps), C2:ConstructorName(Vs:Vals))
+    => matchFailure
+    requires C1 =/=K C2
+  rule getMatching(N:Name, V:Val) => matchResult(N |-> V)
+  rule getMatching(K1, K2) => matchError(K1, K2)        [owise]
+
+  rule getMatchingAux((E:Exp, Es:Exps), (V:Val, Vs:Vals))
+    => mergeMatching(getMatching(E, V), getMatchingAux(Es, Vs))
+  rule getMatchingAux(.Exps, .Vals)
+    => matchResult(.Map)
+  rule getMatchingAux((_:Exp, _:Exps), .Vals)
+    => matchFailure
+  rule getMatchingAux(.Exps, (_:Val, _:Vals))
+    => matchFailure
+
+  rule mergeMatching(matchResult(M1:Map), matchResult(M2:Map))
+    => #if intersectSet(keys(M1), keys(M2)) ==K .Set #then
+         matchResult(M1 M2)
+       #else
+         matchFailure
+       #fi
+  rule mergeMatching(matchResult(_:Map), matchFailure) => matchFailure
+  rule mergeMatching(matchFailure, matchResult(_:Map)) => matchFailure
+  rule mergeMatching(matchFailure, matchFailure)       => matchFailure
+  //rule mergeMatching(K1, K2) => matchError(K1, K2)      [owsie]
+  rule mergeMatching(matchError(K1, K2), matchResult(_)) => matchError(K1, K2)
+  rule mergeMatching(matchError(K1, K2), matchFailure  ) => matchError(K1, K2)
+  rule mergeMatching(matchResult(_), matchError(K1, K2)) => matchError(K1, K2)
+  rule mergeMatching(matchFailure,   matchError(K1, K2)) => matchError(K1, K2)
+  rule mergeMatching(matchError(K1, K2), matchError(K3, K3))
+    => matchError(matchError(K1, K2), matchError(K3, K3))
+
+/*@ Besides the generic decomposition rules for patterns and values,
+we also want to allow \texttt{[head|tail]} matching for lists, so we add
+the following custom pattern decomposition rule: */
+
+  rule getMatching([H:Exp | T:Exp], [V:Val, Vs:Vals])
+    => getMatchingAux((H, T), (V, [Vs]))
+  rule getMatching([_:Exp | _:Exp], [.Vals])
+    => matchFailure
+
+  rule getMatching([E:Exp, Es:Exps], [V:Val, Vs:Vals])
+    => getMatchingAux((E, [Es]), (V, [Vs]))
+  rule getMatching([.Exps], [.Vals])
+    => matchResult(.Map)
+  rule getMatching([E:Exp, Es:Exps], [.Vals])
+    => matchFailure
+  rule getMatching([.Exps], [V:Val, Vs:Vals])
+    => matchFailure
 endmodule
