@@ -328,8 +328,8 @@ a constructor for function types:  */
                 | Type "-->" Type                            [right]
                 | "(" Type ")"                             [bracket]
                 | TypeVar
-                //| TypeName            [klabel('TypeName), onlyLabel]
-                | Type TypeName  [klabel('Type-TypeName), onlyLabel]
+                | TypeName            [klabel(TypeName), onlyLabel]
+                | Type TypeName  [klabel(Type-TypeName), onlyLabel]
                 | "(" Types ")" TypeName                    [prefer]
   syntax Types ::= List{Type,","}
 
@@ -382,8 +382,8 @@ so we can easily recognize them when we debug or trace the semantics. */
     => callcc (fun $k -> (fun throw -> E)(fun X -> $k E'))   [macro]
 
 //@ For uniformity, we reduce all types to their general form:
-//  rule 'TypeName(Tn:TypeName) => (.TypeVars) Tn              [macro]
-//  rule 'Type-TypeName(T:Type,,Tn:TypeName) => (T) Tn         [macro]
+  rule TypeName(Tn:TypeName) => (.TypeVars) Tn              [macro]
+  rule Type-TypeName(T:Type,,Tn:TypeName) => (T) Tn         [macro]
 
 //@ The dynamic semantics ignores all the type declarations:
 
