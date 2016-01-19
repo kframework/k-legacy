@@ -42,7 +42,12 @@ architecture of the K framework, as well as a few new features:
    
 ## Java Backend ##
 
- - TODO: Andrei
+ - The Java backend contains a new pattern matcher which uses a decision tree to compute all rewritting successors of a configuration
+   in a single step. 
+   The new implementation replaces the previous rule-index based implementation, and no distion is made anymore (TODO: add names of command line parameters) between the symbolic and the pattern matching backend. 
+   In terms of speed, the new implemeentation is as fast for execution and significantly faster for search.
+ - The new `--superstrict` option replaces `--superheat` and `--supercool`.
+ - TODO(Andrei): add anything else you consider important
 
 ## Rewriting strategies (experimental) ##
 
