@@ -2,12 +2,4 @@ Search results:
 
 Solution 1:
 V:K -->
-fun (#1 -> (fun (#2 -> (fun (#3 -> (fun (x -> (fun (x -> fun (y -> x))) ((fun 
-  (x -> fun (y -> x))) x))) ((fun (x -> (fun (x -> fun (y -> x))) ((fun (x -> 
-  fun (y -> x))) x))) #3))) ((fun (#3 -> (fun (x -> (fun (x -> fun (y -> x))) 
-  ((fun (x -> fun (y -> x))) x))) ((fun (x -> (fun (x -> fun (y -> x))) ((fun 
-  (x -> fun (y -> x))) x))) #3))) #2))) ((fun (#2 -> (fun (#3 -> (fun (x -> (
-  fun (x -> fun (y -> x))) ((fun (x -> fun (y -> x))) x))) ((fun (x -> (fun (x
-   -> fun (y -> x))) ((fun (x -> fun (y -> x))) x))) #3))) ((fun (#3 -> (fun (
-  x -> (fun (x -> fun (y -> x))) ((fun (x -> fun (y -> x))) x))) ((fun (x -> (
-  fun (x -> fun (y -> x))) ((fun (x -> fun (y -> x))) x))) #3))) #2))) #1))
+fun ( ( #1 -> ( ( fun ( ( #2 -> ( ( fun ( ( #3 -> ( ( fun ( ( x -> ( ( fun ( ( x -> fun ( ( y -> x ) | .TypeCases ) ) | .TypeCases ) ) ( ( fun ( ( x -> fun ( ( y -> x ) | .TypeCases ) ) | .TypeCases ) ) x ) ) ) | .TypeCases ) ) ( ( fun ( ( x -> ( ( fun ( ( x -> fun ( ( y -> x ) | .TypeCases ) ) | .TypeCases ) ) ( ( fun ( ( x -> fun ( ( y -> x ) | .TypeCases ) ) | .TypeCases ) ) x ) ) ) | .TypeCases ) ) #3 ) ) ) | .TypeCases ) ) ( ( fun ( ( #3 -> ( ( fun ( ( x -> ( ( fun ( ( x -> fun ( ( y -> x ) | .TypeCases ) ) | .TypeCases ) ) ( ( fun ( ( x -> fun ( ( y -> x ) | .TypeCases ) ) | .TypeCases ) ) x ) ) ) | .TypeCases ) ) ( ( fun ( ( x -> ( ( fun ( ( x -> fun ( ( y -> x ) | .TypeCases ) ) | .TypeCases ) ) ( ( fun ( ( x -> fun ( ( y -> x ) | .TypeCases ) ) | .TypeCases ) ) x ) ) ) | .TypeCases ) ) #3 ) ) ) | .TypeCases ) ) #2 ) ) ) | .TypeCases ) ) ( ( fun ( ( #2 -> ( ( fun ( ( #3 -> ( ( fun ( ( x -> ( ( fun ( ( x -> fun ( ( y -> x ) | .TypeCases ) ) | .TypeCases ) ) ( ( fun ( ( x -> fun ( ( y -> x ) | .TypeCases ) ) | .TypeCases ) ) x ) ) ) | .TypeCases ) ) ( ( fun ( ( x -> ( ( fun ( ( x -> fun ( ( y -> x ) | .TypeCases ) ) | .TypeCases ) ) ( ( fun ( ( x -> fun ( ( y -> x ) | .TypeCases ) ) | .TypeCases ) ) x ) ) ) | .TypeCases ) ) #3 ) ) ) | .TypeCases ) ) ( ( fun ( ( #3 -> ( ( fun ( ( x -> ( ( fun ( ( x -> fun ( ( y -> x ) | .TypeCases ) ) | .TypeCases ) ) ( ( fun ( ( x -> fun ( ( y -> x ) | .TypeCases ) ) | .TypeCases ) ) x ) ) ) | .TypeCases ) ) ( ( fun ( ( x -> ( ( fun ( ( x -> fun ( ( y -> x ) | .TypeCases ) ) | .TypeCases ) ) ( ( fun ( ( x -> fun ( ( y -> x ) | .TypeCases ) ) | .TypeCases ) ) x ) ) ) | .TypeCases ) ) #3 ) ) ) | .TypeCases ) ) #2 ) ) ) | .TypeCases ) ) #1 ) ) ) | .TypeCases )

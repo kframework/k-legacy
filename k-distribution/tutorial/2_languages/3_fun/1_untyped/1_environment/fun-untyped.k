@@ -523,7 +523,7 @@ The best way to do that is to consult
 //note that the \texttt{ConstructorName} identifiers are {\em not}
 //variables (they construct data values): */
 //
-//  syntax Variable ::= Name
+//  syntax KVariable ::= Name
 
 /*@ We distinguish two cases when the closure is applied.
 If the first pattern matches, then we pick the first case: switch to

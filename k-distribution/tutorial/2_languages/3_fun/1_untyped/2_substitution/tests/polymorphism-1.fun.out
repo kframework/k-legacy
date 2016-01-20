@@ -2,4 +2,4 @@ Search results:
 
 Solution 1:
 V:K -->
-fun (x -> x)
+fun ( ( x -> x ) | .TypeCases )
