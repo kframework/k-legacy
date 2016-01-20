@@ -56,6 +56,7 @@ classpath and therefore all backends.
 ## Environment
 
 In order for K to run correctly in an IDE, it is necessary that the correct environment variables be set.
+You need to replace `<release>` with a path to `k-distribution/target/release/k` in your source tree.
 
 ### Mac OS X
 
