@@ -3,6 +3,7 @@ package org.kframework.parser.concrete2kore.disambiguation;
 
 import com.google.common.collect.Sets;
 import org.kframework.attributes.Att;
+import org.kframework.parser.Ambiguity;
 import org.kframework.parser.KList;
 import org.kframework.parser.SetsTransformerWithErrors;
 import org.kframework.parser.Term;
@@ -62,6 +63,10 @@ public class TreeCleanerVisitor extends SetsTransformerWithErrors<ParseFailedExc
 
         public TreeCleanerVisitor2(TermCons parent) {
             this.parent = parent;
+        }
+
+        public Either<java.util.Set<ParseFailedException>, Term> apply(Ambiguity tc) {
+            return mapChildrenWithClone(tc)._1();
         }
 
         public Either<java.util.Set<ParseFailedException>, Term> apply(TermCons tc) {
