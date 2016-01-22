@@ -11,8 +11,8 @@ endmodule
 module BASIC-K
   imports SORT-K
   syntax KLabel
-  syntax KItem [hook(K.KItem)]
-  syntax K     ::= KItem
+  syntax KItem            [hook(K.KItem)]
+  syntax K     ::= KItem  [allowChainSubsort]
   syntax KConfigVar
 endmodule
 
@@ -27,7 +27,7 @@ module KAST
   syntax KBott ::= "#token" "(" KString "," KString ")"  [klabel(#KToken), hook(org.kframework.kore.KToken)]
                  | "#klabel" "(" KLabel ")"              [klabel(#WrappedKLabel), hook(org.kframework.kore.meta.WrappedKLabel)]
                  | KLabel "(" KList ")"                  [klabel(#KApply), hook(org.kframework.kore.KApply)]
-  syntax KItem ::= KBott
+  syntax KItem ::= KBott                                 [allowChainSubsort]
 
   syntax KLabel ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\n\r])+`" [token, hook(org.kframework.kore.KLabel)]
                   | r"(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9]*"               [token, hook(org.kframework.kore.KLabel), autoReject]

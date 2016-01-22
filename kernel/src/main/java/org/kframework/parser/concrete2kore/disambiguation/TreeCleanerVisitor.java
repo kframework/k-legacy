@@ -22,25 +22,22 @@ import java.util.Set;
 public class TreeCleanerVisitor extends SetsTransformerWithErrors<ParseFailedException> {
     @Override
     public Either<Set<ParseFailedException>, Term> apply(TermCons tc) {
-        Either<Set<ParseFailedException>, Term> vis;
         if (tc.production().isSyntacticSubsort()) {
             // eliminating syntactic subsort
-            Either<java.util.Set<ParseFailedException>, Term> rez =
-                    new TreeCleanerVisitor2(tc).apply(tc.get(0));
+            Either<java.util.Set<ParseFailedException>, Term> rez = new TreeCleanerVisitor2(tc).apply(tc.get(0));
             if (rez.isLeft())
                 return rez;
             if (tc.production().klabel().isEmpty())
-                vis = apply(tc.get(0));
-            else
-                vis = super.apply(tc);
-        } else if (!tc.production().att().contains("bracket") && tc.production().klabel().isEmpty()) {
+                return apply(rez.right().get());
+        } else {
+            int a = 1 + 2;
+        }
+        if (!tc.production().att().contains("bracket") && tc.production().klabel().isEmpty()) {
             return Left.apply(Sets.newHashSet(new ParseFailedException(new KException(
                     KException.ExceptionType.ERROR, KException.KExceptionGroup.INNER_PARSER,
                     "Only subsort productions are allowed to have no #klabel attribute", tc.source().get(), tc.location().get()))));
-        } else {
-            vis = super.apply(tc);
         }
-        return vis;
+        return super.apply(tc);
     }
 
     /**
