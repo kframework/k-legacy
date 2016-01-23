@@ -166,22 +166,20 @@ public class BuiltinMapOperations {
         builder.addAll(map.getEntries().keySet());
         if (!map.isConcreteCollection()) {
             builder.add(KItem.of(
-                    KLabelConstant.of("'keys", context.definition()),
+                    KLabelConstant.of("keys", context.definition()),
                     KList.concatenate(BuiltinMap.concatenate(context.global(), map.baseTerms())),
                     context.global()));
         }
         return (BuiltinSet) builder.build();
     }
 
-    public static BuiltinList values(BuiltinMap map, TermContext context) {
+    public static Term values(BuiltinMap map, TermContext context) {
         if (!map.isConcreteCollection()) {
             return null;
         }
 
         List<Term> elements = new ArrayList<>(map.getEntries().values());
-        BuiltinList.Builder builder = BuiltinList.builder(context.global());
-        builder.addItems(elements);
-        return (BuiltinList) builder.build();
+        return BuiltinList.builder(context.global()).addAll(elements).build();
     }
 
     public static BoolToken inclusion(BuiltinMap map1, BuiltinMap map2, TermContext context) {

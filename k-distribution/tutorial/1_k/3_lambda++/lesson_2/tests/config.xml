@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (c) 2013-2014 K Team. All Rights Reserved. -->
+<!-- Copyright (c) 2013-2016 K Team. All Rights Reserved. -->
+
 <tests>
 
   <include file="../../../1_lambda/lesson_1/tests/config.xml"
            exclude="omega"
            results=".">
-    <kompile-option name="--superheat"
+<!-- The next line should not be needed ... -->
+    <kompile-option name="--syntax-module" value="LAMBDA" />
+    <kompile-option name="--transition"
                     value="strict" />
-    <kompile-option name="--backend" value="java" />
-<!-- Grigore: explain the superheat option above -->
+<!-- Grigore: explain the superstrict option above -->
+<!-- Grigore: we may want to use this option also in lambda -->
   </include>
 
 </tests>

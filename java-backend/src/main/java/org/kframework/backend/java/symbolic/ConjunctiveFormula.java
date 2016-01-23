@@ -512,7 +512,8 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
     }
 
     public boolean isSubstitution() {
-        return equalities.isEmpty() && disjunctions.isEmpty();
+        return equalities.stream().allMatch(e -> e.leftHandSide() instanceof LocalRewriteTerm)
+                && disjunctions.isEmpty();
     }
 
     public ConjunctiveFormula orientSubstitution(Set<Variable> variables) {
@@ -716,7 +717,7 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
 
     @Override
     public KLabel constructorLabel() {
-        return KLabelConstant.of("'_andBool_", global.getDefinition());
+        return KLabelConstant.of("_andBool_", global.getDefinition());
     }
 
     @Override

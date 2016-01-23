@@ -27,7 +27,10 @@ import org.kframework.kore.compile.ResolveIOStreams;
 import org.kframework.kore.compile.ResolveSemanticCasts;
 import org.kframework.kore.compile.ResolveStrict;
 import org.kframework.kore.compile.SortInfo;
+import org.kframework.kore.compile.checks.CheckConfigurationCells;
 import org.kframework.kore.compile.checks.CheckRHSVariables;
+import org.kframework.kore.compile.checks.CheckSortTopUniqueness;
+import org.kframework.kore.compile.checks.CheckStreams;
 import org.kframework.main.GlobalOptions;
 import org.kframework.parser.concrete2kore.ParserUtils;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
@@ -90,13 +93,13 @@ public class Kompile {
         this.parser = new ParserUtils(files::resolveWorkingDirectory, kem, global);
         List<File> lookupDirectories = kompileOptions.outerParsing.includes.stream().map(files::resolveWorkingDirectory).collect(Collectors.toList());
         this.definitionParsing = new DefinitionParsing(
-                lookupDirectories, kompileOptions.strict(), kompileOptions.outerParsing.noPrelude, kem,
+                lookupDirectories, kompileOptions.strict(), kem,
                 parser, cacheParses, files.resolveKompiled("cache.bin"), !kompileOptions.outerParsing.noPrelude);
         this.sw = sw;
     }
 
-    public CompiledDefinition run(File definitionFile, String mainModuleName, String mainProgramsModuleName, Sort programStartSymbol) {
-        return run(definitionFile, mainModuleName, mainProgramsModuleName, programStartSymbol, defaultSteps());
+    public CompiledDefinition run(File definitionFile, String mainModuleName, String mainProgramsModuleName) {
+        return run(definitionFile, mainModuleName, mainProgramsModuleName, defaultSteps());
     }
 
     /**
@@ -108,8 +111,8 @@ public class Kompile {
      * @param programStartSymbol
      * @return
      */
-    public CompiledDefinition run(File definitionFile, String mainModuleName, String mainProgramsModuleName, Sort programStartSymbol, Function<Definition, Definition> pipeline) {
-        Definition parsedDef = parseDefinition(definitionFile, mainModuleName, mainProgramsModuleName, true);
+    public CompiledDefinition run(File definitionFile, String mainModuleName, String mainProgramsModuleName, Function<Definition, Definition> pipeline) {
+        Definition parsedDef = parseDefinition(definitionFile, mainModuleName, mainProgramsModuleName);
         sw.printIntermediate("Parse definition [" + definitionParsing.parsedBubbles.get() + "/" + (definitionParsing.parsedBubbles.get() + definitionParsing.cachedBubbles.get()) + " rules]");
 
         checkDefinition(parsedDef);
@@ -119,14 +122,11 @@ public class Kompile {
 
         ConfigurationInfoFromModule configInfo = new ConfigurationInfoFromModule(kompiledDefinition.mainModule());
 
-        return new CompiledDefinition(kompileOptions, parsedDef, kompiledDefinition, programStartSymbol, configInfo.getDefaultCell(configInfo.topCell()).klabel());
+        return new CompiledDefinition(kompileOptions, parsedDef, kompiledDefinition, configInfo.getDefaultCell(configInfo.topCell()).klabel());
     }
 
-    public Definition parseDefinition(File definitionFile, String mainModuleName, String mainProgramsModule, boolean dropQuote) {
-        Definition parsedDefinition = definitionParsing.parseDefinition(definitionFile, mainModuleName, mainProgramsModule, dropQuote);
-        Definition afterResolvingConfigBubbles = definitionParsing.resolveConfigBubbles(parsedDefinition);
-        Definition afterResolvingAllOtherBubbles = definitionParsing.resolveNonConfigBubbles(afterResolvingConfigBubbles);
-        return afterResolvingAllOtherBubbles;
+    public Definition parseDefinition(File definitionFile, String mainModuleName, String mainProgramsModule) {
+        return definitionParsing.parseDefinitionAndResolveBubbles(definitionFile, mainModuleName, mainProgramsModule);
     }
 
     public Definition resolveIOStreams(Definition d) {
@@ -135,8 +135,7 @@ public class Kompile {
 
     public Function<Definition, Definition> defaultSteps() {
         DefinitionTransformer resolveStrict = DefinitionTransformer.from(new ResolveStrict(kompileOptions)::resolve, "resolving strict and seqstrict attributes");
-        DefinitionTransformer resolveContexts = DefinitionTransformer.from(new ResolveContexts(kompileOptions)::resolve, "resolving context sentences");
-        DefinitionTransformer resolveHeatCoolAttribute = DefinitionTransformer.fromSentenceTransformer(new ResolveHeatCoolAttribute()::resolve, "resolving heat and cool attributes");
+        DefinitionTransformer resolveHeatCoolAttribute = DefinitionTransformer.fromSentenceTransformer(new ResolveHeatCoolAttribute(new HashSet<>(kompileOptions.transition))::resolve, "resolving heat and cool attributes");
         DefinitionTransformer resolveAnonVars = DefinitionTransformer.fromSentenceTransformer(new ResolveAnonVar()::resolve, "resolving \"_\" vars");
         DefinitionTransformer resolveSemanticCasts =
                 DefinitionTransformer.fromSentenceTransformer(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve, "resolving semantic casts");
@@ -145,7 +144,7 @@ public class Kompile {
         return def -> func(this::resolveIOStreams)
                 .andThen(resolveStrict)
                 .andThen(resolveAnonVars)
-                .andThen(resolveContexts)
+                .andThen(func(d -> new ResolveContexts(kompileOptions).resolve(d)))
                 .andThen(resolveHeatCoolAttribute)
                 .andThen(resolveSemanticCasts)
                 .andThen(generateSortPredicateSyntax)
@@ -169,6 +168,12 @@ public class Kompile {
     private void checkDefinition(Definition parsedDef) {
         CheckRHSVariables checkRHSVariables = new CheckRHSVariables(errors);
         stream(parsedDef.modules()).forEach(m -> stream(m.localSentences()).forEach(checkRHSVariables::check));
+
+        stream(parsedDef.modules()).forEach(m -> stream(m.localSentences()).forEach(new CheckConfigurationCells(errors, m)::check));
+
+        stream(parsedDef.modules()).forEach(m -> stream(m.localSentences()).forEach(new CheckSortTopUniqueness(errors, m)::check));
+
+        stream(parsedDef.modules()).forEach(m -> stream(m.localSentences()).forEach(new CheckStreams(errors, m)::check));
 
         if (!errors.isEmpty()) {
             kem.addAllKException(errors.stream().map(e -> e.exception).collect(Collectors.toList()));
@@ -208,8 +213,8 @@ public class Kompile {
                 .apply(parsedRule);
     }
 
-    public Module parseModule(CompiledDefinition definition, File definitionFile, boolean dropQuote) {
-        return definitionParsing.parseModule(definition, definitionFile, dropQuote, !kompileOptions.outerParsing.noPrelude);
+    public Module parseModule(CompiledDefinition definition, File definitionFile) {
+        return definitionParsing.parseModule(definition, definitionFile, !kompileOptions.outerParsing.noPrelude);
     }
 
     private Sentence concretizeSentence(Sentence s, Definition input) {

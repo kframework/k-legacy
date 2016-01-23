@@ -52,7 +52,7 @@ public class RuleGrammarTest {
                         definitionFile,
                         definitionFile.getParentFile(),
                         Lists.newArrayList(Kompile.BUILTIN_DIRECTORY),
-                        true, false);
+                        false);
 
         return new RuleGrammarGenerator(baseK, true);
     }
@@ -222,7 +222,7 @@ public class RuleGrammarTest {
                 "syntax KCell ::= \"<k>\" K \"</k>\" [klabel(<k>), cell] " +
                 "syntax StateCell ::= \"<state>\" K \"</state>\" [klabel(<state>), cell] " +
                 "endmodule";
-        parseRule("<T> <k>...1+2*3...</k> `<state> A => .::K ...</state> => .::Bag` ...</T>", def, 1, false);
+        parseRule("<T> <k>...1+2*3...</k> (<state> A => .::K ...</state> => .::Bag) ...</T>", def, 1, false);
     }
 
     // test rule cells
@@ -247,7 +247,7 @@ public class RuleGrammarTest {
                 "| r\"[0-9]+\" [token] " +
                 "syntax K " +
                 "endmodule";
-        parseConfig("<T multiplicity=\"*\"> <k> 1+2*3 </k> `<state> A => .::K </state> => .::Bag` </T>", def, 1, false);
+        parseConfig("<T multiplicity=\"*\"> <k> 1+2*3 </k> (<state> A => .::K </state> => .::Bag) </T>", def, 1, false);
     }
 
     // test variable disambiguation when all variables are being inferred
@@ -447,21 +447,21 @@ public class RuleGrammarTest {
                 KApply(KLabel("#ruleNoConditions"),
                         KApply(KLabel("_,_"),
                                 KApply(KLabel("#SemanticCastToExp"), KToken("A", Sort("#KVariable"))),
-                                KApply(KLabel(".List{\"'_,_\"}"))
+                                KApply(KLabel(".List{\"_,_\"}"))
                         )));
         parseProgram("1(1, 1)", def, "Exp", 0, KApply(KLabel("_(_)"),
                 KApply(KLabel("1")),
                 KApply(KLabel("_,_"), KApply(KLabel("1")), // Ne#Es ::= E "," Ne#Es [klabel('_,_)]
                         KApply(KLabel("_,_"), KApply(KLabel("1")), // Ne#Es ::= E Es#Terminator [klabel('_,_)]
-                                KApply(KLabel(".List{\"'_,_\"}")))) // Es#Terminator ::= "" [klabel('.Es)]
+                                KApply(KLabel(".List{\"_,_\"}")))) // Es#Terminator ::= "" [klabel('.Es)]
         ));
         parseProgram("1()", def, "Exp", 0, KApply(KLabel("_(_)"),
                 KApply(KLabel("1")),
-                KApply(KLabel(".List{\"'_,_\"}")) // Es#Terminator ::= "" [klabel('.Es)]
+                KApply(KLabel(".List{\"_,_\"}")) // Es#Terminator ::= "" [klabel('.Es)]
         ));
         parseProgram("", def, "NeInts", 0, true);
         parseProgram("1", def, "NeInts", 0, KApply(KLabel("_,_"),
                 KApply(KLabel("1")), // Ne#Es ::= E Es#Terminator [klabel('_,_)]
-                KApply(KLabel(".List{\"'_,_\"}"))));
+                KApply(KLabel(".List{\"_,_\"}"))));
     }
 }

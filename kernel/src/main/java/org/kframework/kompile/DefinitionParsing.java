@@ -62,7 +62,6 @@ public class DefinitionParsing {
     private final File cacheFile;
     private boolean autoImportDomains;
 
-    private boolean noPrelude;
     private final KExceptionManager kem;
     private final ParserUtils parser;
     private final boolean cacheParses;
@@ -76,14 +75,12 @@ public class DefinitionParsing {
     public DefinitionParsing(
             List<File> lookupDirectories,
             boolean isStrict,
-            boolean noPrelude,
             KExceptionManager kem,
             ParserUtils parser,
             boolean cacheParses,
             File cacheFile,
             boolean autoImportDomains) {
         this.lookupDirectories = lookupDirectories;
-        this.noPrelude = noPrelude;
         this.kem = kem;
         this.parser = parser;
         this.cacheParses = cacheParses;
@@ -93,14 +90,14 @@ public class DefinitionParsing {
         this.isStrict = isStrict;
     }
 
-    public Module parseModule(CompiledDefinition definition, File definitionFile, boolean dropQuote, boolean autoImportDomains) {
+    public Module parseModule(CompiledDefinition definition, File definitionFile, boolean autoImportDomains) {
         java.util.Set<Module> modules = parser.loadModules(
                 mutable(definition.getParsedDefinition().modules()),
                 "require " + StringUtil.enquoteCString(definitionFile.getPath()),
                 Source.apply(definitionFile.getAbsolutePath()),
                 definitionFile.getParentFile(),
                 Lists.newArrayList(Kompile.BUILTIN_DIRECTORY),
-                dropQuote, autoImportDomains);
+                autoImportDomains);
 
         if (modules.size() != 1) {
             throw KEMException.compilerError("Expected to find a file with 1 module: found " + modules.size() + " instead.");
@@ -126,29 +123,45 @@ public class DefinitionParsing {
         gen = new RuleGrammarGenerator(definition.getParsedDefinition(), isStrict);
         Module parsedMod = resolveNonConfigBubbles(modWithConfig, gen);
 
+        saveCachesAndReportParsingErrors();
+        return parsedMod;
+    }
+
+    private void saveCachesAndReportParsingErrors() {
+        saveCaches();
+        throwExceptionIfThereAreErrors();
+    }
+
+    private void saveCaches() {
         if (cacheParses) {
             loader.saveOrDie(cacheFile, caches);
         }
+    }
+
+    public Definition parseDefinitionAndResolveBubbles(File definitionFile, String mainModuleName, String mainProgramsModule) {
+        Definition parsedDefinition = parseDefinition(definitionFile, mainModuleName, mainProgramsModule);
+        Definition afterResolvingConfigBubbles = resolveConfigBubbles(parsedDefinition);
+        Definition afterResolvingAllOtherBubbles = resolveNonConfigBubbles(afterResolvingConfigBubbles);
+        saveCachesAndReportParsingErrors();
+        return afterResolvingAllOtherBubbles;
+    }
+
+    private void throwExceptionIfThereAreErrors() {
         if (!errors.isEmpty()) {
             kem.addAllKException(errors.stream().map(e -> e.exception).collect(Collectors.toList()));
             throw KEMException.compilerError("Had " + errors.size() + " parsing errors.");
         }
-        return parsedMod;
     }
 
-    public Definition parseDefinition(File definitionFile, String mainModuleName, String mainProgramsModule, boolean dropQuote) {
-        String prelude = Kompile.REQUIRE_PRELUDE_K;
-        if (this.noPrelude) {
-            prelude = "";
-        }
+    public Definition parseDefinition(File definitionFile, String mainModuleName, String mainProgramsModule) {
         Definition definition = parser.loadDefinition(
                 mainModuleName,
-                mainProgramsModule, prelude + FileUtil.load(definitionFile),
+                mainProgramsModule, FileUtil.load(definitionFile),
                 definitionFile,
                 definitionFile.getParentFile(),
                 ListUtils.union(lookupDirectories,
                         Lists.newArrayList(Kompile.BUILTIN_DIRECTORY)),
-                dropQuote, autoImportDomains);
+                autoImportDomains);
         return definition;
     }
 
@@ -189,19 +202,16 @@ public class DefinitionParsing {
         gen = new RuleGrammarGenerator(definitionWithConfigBubble, isStrict);
         Definition defWithConfig = DefinitionTransformer.from(resolveConfig, "parsing configurations").apply(definitionWithConfigBubble);
 
-        if (cacheParses) {
-            loader.saveOrDie(cacheFile, caches);
-        }
-        if (!errors.isEmpty()) {
-            kem.addAllKException(errors.stream().map(e -> e.exception).collect(Collectors.toList()));
-            throw KEMException.compilerError("Had " + errors.size() + " parsing errors.");
-        }
         return defWithConfig;
     }
 
     Map<String, ParseCache> caches;
-    java.util.Set<KEMException> errors;
+    private java.util.Set<KEMException> errors;
     RuleGrammarGenerator gen;
+
+    public java.util.Set<KEMException> errors() {
+        return errors;
+    }
 
     public Definition resolveNonConfigBubbles(Definition defWithConfig) {
         RuleGrammarGenerator gen = new RuleGrammarGenerator(defWithConfig, isStrict);

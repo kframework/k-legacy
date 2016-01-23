@@ -59,7 +59,7 @@ public class AddEmptyListsTest {
                         definitionFile,
                         definitionFile.getParentFile(),
                         Lists.newArrayList(Kompile.BUILTIN_DIRECTORY),
-                        true, false);
+                        false);
 
         return new RuleGrammarGenerator(baseK, true);
     }
@@ -93,7 +93,7 @@ public class AddEmptyListsTest {
                     "syntax K ::= f(As) | g(A) | h(Bs)" +
                     "endmodule\n";
 
-    public static final KApply NIL = KApply(KLabel(".List{\"'_,_\"}"));
+    public static final KApply NIL = KApply(KLabel(".List{\"_,_\"}"));
     public static final KLabel CONS = KLabel("_,_");
     public static final KApply A = KApply(KLabel("alabel"));
     public static final KApply B = KApply(KLabel("blabel"));
@@ -146,11 +146,11 @@ public class AddEmptyListsTest {
     @Test
     public void testLabedFunConcreteArgument() {
         parseTerm("`f`(.As)", "K", KApply(F, NIL));
-        parseTerm("`f`(`a,a`)", "K", KApply(F, KApply(CONS, A, KApply(CONS, A, NIL))));
-        parseTerm("`f`(`a,.As`)", "K", KApply(F, KApply(CONS, A, NIL)));
-        parseTerm("`f`(`a,b`)", "K", KApply(F, KApply(CONS, A, KApply(CONS, B, NIL))));
-        parseTerm("`f`(`b,.Bs`)", "K", KApply(F, KApply(CONS, B, NIL)));
-        parseTerm("`f`(`b,b`)", "K", KApply(F, KApply(CONS, B, KApply(CONS, B, NIL))));
+        parseTerm("`f`((a,a))", "K", KApply(F, KApply(CONS, A, KApply(CONS, A, NIL))));
+        parseTerm("`f`((a,.As))", "K", KApply(F, KApply(CONS, A, NIL)));
+        parseTerm("`f`((a,b))", "K", KApply(F, KApply(CONS, A, KApply(CONS, B, NIL))));
+        parseTerm("`f`((b,.Bs))", "K", KApply(F, KApply(CONS, B, NIL)));
+        parseTerm("`f`((b,b))", "K", KApply(F, KApply(CONS, B, KApply(CONS, B, NIL))));
     }
 
     @Test
@@ -165,7 +165,7 @@ public class AddEmptyListsTest {
 
     @Test
     public void testArgumentLabeledNil() {
-        parseTerm("f(`.List{\"'_,_\"}`(.KList))", "K", KApply(F, NIL));
+        parseTerm("f(`.List{\"_,_\"}`(.KList))", "K", KApply(F, NIL));
     }
 
     @Test
@@ -181,7 +181,7 @@ public class AddEmptyListsTest {
 
     @Test
     public void testArgumentLabeledNilSub1() {
-        parseTerm("h(`.List{\"'_,_\"}`(.KList))", "K", KApply(H, NIL));
+        parseTerm("h(`.List{\"_,_\"}`(.KList))", "K", KApply(H, NIL));
     }
 
     @Test
