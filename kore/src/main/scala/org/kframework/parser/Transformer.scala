@@ -49,6 +49,11 @@ abstract class ChildrenMapping[E, W] {
    * replace the children of the current element with the correct transformed children.
    */
   def mapChildren(t: HasChildren): (Either[E, Term], W) = {
+    def f(t:HasChildren, newTerms:List[Term]): Term = t.replaceChildren(newTerms.asJava)
+    doTheMapping(t, f)
+  }
+
+  def doTheMapping(t: HasChildren, f: (HasChildren, List[Term]) => Term) = {
     val allResults1 = t.items.asScala.map(applyTerm) // visit all children
     val allResults = allResults1 flatMap {
         case (Right(Ambiguity(items)), warns) => immutable(items) map { t => (Right(t): Either[E, Term], warns) }
@@ -64,11 +69,14 @@ abstract class ChildrenMapping[E, W] {
         (Left(mergedErrors), mergedWarnings)
       case List((term, w)) => (Right(term), w)
       case l =>
-        val (newTerms, warnings) = l.unzip
-        (Right(t.replaceChildren(newTerms.asJava)), warnings.foldLeft(warningUnit)(mergeWarnings))
+        val (newTerms: List[Term], warnings) = l.unzip
+        (Right(f(t, newTerms)), warnings.foldLeft(warningUnit)(mergeWarnings))
     }
   }
 
+  def mapChildrenWithClone(t: HasChildren): (Either[E, Term], W) = {
+    doTheMapping(t, (t: HasChildren, newTerms:List[Term]) => t.map(newTerms.asJava))
+  }
   /**
    * Merges the set of problematic (i.e., Left) results.
    */
