@@ -110,8 +110,7 @@ the wrapper in the generated documentation, we associate it an
 //@ \subsection{Types}
 
   syntax Type ::= "void" | "int" | "bool" | "string"
-                | Id      // TODO: switch to next once #2112 fixed
-//                | Id                     [klabel("class")]  // see next
+                | Id                     [klabel("class"), avoid]  // see next
                 | class(Id)         // explicit KOOL class type
                 | Type "[" "]"
                 > Types "->" Type

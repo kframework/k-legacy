@@ -106,6 +106,8 @@ object Att {
   val topRule = "topRule"
   val userList = "userList"
   val generatedByListSubsorting = "generatedByListSubsorting"
+  val generatedByAutomaticSubsorting = "generatedByAutomaticSubsorting"
+  val allowChainSubsort = "allowChainSubsort"
   val generatedBy = "generatedBy"
   val ClassFromUp = "classType"
   val Location = "location"
