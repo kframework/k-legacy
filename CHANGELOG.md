@@ -32,7 +32,7 @@ architecture of the K framework, as well as a few new features:
 
 ## New Parser ##
 
-The syntax specification for the new parser has evolved from K3.6, based on SDF, with minor changes:
+The new parser is not based on SDF anymore. Still, there are only minor changes from the way syntax was specified in K 3.6:
   - Tokens have been reworked. Now any production can create a constant/token, by adding the `token` attribute.
     This allows for context free tokens, instead of just regular ones.
   - `noAutoReject` has been replaced with autoReject, and the default behavior reversed.
