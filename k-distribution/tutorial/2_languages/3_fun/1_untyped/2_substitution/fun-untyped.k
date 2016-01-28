@@ -91,8 +91,8 @@ module FUN-UNTYPED-COMMON
                 | Type "-->" Type                            [right]
                 | "(" Type ")"                             [bracket]
                 | TypeVar
-//                | TypeName            [klabel(TypeName), onlyLabel]
-                | Type TypeName  [klabel(Type-TypeName), onlyLabel]
+                | TypeName             [klabel(TypeName), onlyLabel]
+                | Type TypeName   [klabel(Type-TypeName), onlyLabel]
                 | "(" Types ")" TypeName                    [prefer]
   syntax Types ::= List{Type,","}
 
