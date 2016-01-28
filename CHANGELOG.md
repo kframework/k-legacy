@@ -32,7 +32,24 @@ architecture of the K framework, as well as a few new features:
 
 ## New Parser ##
 
-  - TODO: Radu
+The syntax specification for the new parser has evolved from K3.6, based on SDF, with minor changes:
+  - Tokens have been reworked. Now any production can create a constant/token, by adding the `token` attribute.
+    This allows for context free tokens, instead of just regular ones.
+  - `noAutoReject` has been replaced with autoReject, and the default behavior reversed.
+    If `autoReject` is specified, then all terminals from all productions (taking modularity into account)
+	will be matched against the currently parsed constant. If it matches, the parse fails.
+	This is an easy way to implement keyword rejection.
+  - Manual token rejection has been reworked, now it is an attribute on a `token` production, instead of a sort.
+    It takes a regular expression `reject2(<regex>)`, and it can extend `autoReject`.
+  - `Token{<sdf lex>}` has been replaced with `r"<regex>"`
+Example:
+```
+syntax Exp ::= "if" Exp "then" Exp r"(?!else)" // if_then, not followed by else
+syntax Id ::= r"(?<![A-Za-z0-9\\_])[A-Za-z\\_][A-Za-z0-9\\_]*" [token, autoReject]
+syntax BubbleItem ::= r"[^ \t\n\r]" [token, reject2("rule|syntax|endmodule|configuration|context")]
+```
+The syntax for the regular expressions can be found here: [Regex Language](http://www.brics.dk/automaton/doc/index.html)
+A more detailed description of parsing with K4 can be found at: [Regex Language](https://github.com/kframework/k/wiki/Syntax-specification-for-the-new-parser)
 
 ## New Compiler ##
 
