@@ -5,11 +5,12 @@ import org.kframework.attributes.Att
 import org.kframework.definition.{Module, Rule, Sentence}
 import org.kframework.kore.SortedADT.SortedKVariable
 import org.kframework.kore._
+import collection.JavaConverters._
 
 
 /**
- * Compiler pass for merging the rules as expected by FastRuleMatcher
- */
+  * Compiler pass for merging the rules as expected by FastRuleMatcher
+  */
 class AssocCommToAssoc(c: Constructors[K]) extends (Module => Module) {
 
   import c._
@@ -24,15 +25,37 @@ class AssocCommToAssoc(c: Constructors[K]) extends (Module => Module) {
 
   def apply(s: Sentence)(implicit m: Module): List[Sentence] = s match {
     //TODO(AndreiS): handle AC in requires and ensures
-    case r: Rule => apply(r.body) map {Rule(_, r.requires, r.ensures, r.att)}
+    case r: Rule =>
+      val newBodies = apply(r.body)
+      val substitutionOfVariables: Map[KVariable, K] = new FoldK[Map[KVariable, K]]() {
+        type E = Map[KVariable, K]
+        val unit: E = Map()
+
+        def merge(a: E, b: E) = a ++ b
+
+        override def apply(k: KRewrite): E = apply(k.left)
+        override def apply(k: KApply) =
+          merge(if(isAssocComm(k.klabel))
+            computeSubstitution(k.klabel, k.items.asScala.toList)
+          else
+            unit, super.apply(k))
+      }.apply(r.body)
+      val substitute = new TransformK() {
+        override def apply(v: KVariable) = substitutionOfVariables.getOrElse(v, v)
+      }
+      newBodies
+        .map(substitute)
+        .map {Rule(_, r.requires, r.ensures, r.att)}
+
+//      if(substitutionOfVariables.nonEmpty) {
+//        println(newBodies)
+//        println(substitutionOfVariables)
+//      }
     case _ => List(s)
   }
 
   def apply(k: K)(implicit m: Module): List[K] = k match {
     case Unapply.KApply(label: KLabel, children: List[K]) if isAssocComm(label) =>
-      convert(label, children)
-    case Unapply.KRewrite(Unapply.KApply(label: KLabel, children: List[K]), right: K) if isAssocComm(label) =>
-      //TODO(AndreiS): right is not always normalized, despite being normal right after NormalizeAssoc
       convert(label, children)
     case Unapply.KApply(label: KLabel, children: List[K]) =>
       crossProduct(children map apply) map {label(_: _*)}
@@ -73,12 +96,26 @@ class AssocCommToAssoc(c: Constructors[K]) extends (Module => Module) {
         elements.toList.permutations.toList
     }
 
-    frameOption match {
-      case Some(v: KVariable) if v.name.startsWith("DotVar") =>
-        (v, label((0 to elements.size) map {dotVariable(opSort, _)}: _*))
+    convertedChildren flatMap { cs => crossProduct(cs map apply) } map {label(_: _*)}
+  }
+
+  def computeSubstitution(label: KLabel, children: List[K])(implicit m: Module): Map[KVariable, K] = {
+    val opSort: Sort = m.signatureFor(label).head._2
+
+    val (elements: Seq[K], nonElements: Seq[K]) = children partition {
+      case v: SortedKVariable => m.subsorts.lessThanEq(v.sort, opSort);
+      case _ => true
     }
 
-    convertedChildren flatMap { cs => crossProduct(cs map apply) } map {label(_: _*)}
+    assert(nonElements.size <= 1)
+    assert(nonElements.headOption forall { case v: KVariable => v.name.equals("THE_VARIABLE") || v.name.startsWith("DotVar") })
+    val frameOption = nonElements.headOption
+
+    frameOption match {
+      case Some(v: KVariable) if v.name.startsWith("DotVar") =>
+        Map(v -> label((0 to elements.size) map {dotVariable(opSort, _)}: _*))
+      case _ => Map()
+    }
   }
 
   def substituteFrame(k: K, name: String, substitute: K): K = k match {
