@@ -7,7 +7,6 @@ import org.kframework.kore.SortedADT.SortedKVariable
 import org.kframework.kore._
 import collection.JavaConverters._
 
-
 /**
   * Compiler pass for merging the rules as expected by FastRuleMatcher
   */
