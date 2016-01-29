@@ -126,20 +126,14 @@ public class RuleGrammarGenerator {
      * @return a new module which imports the original user module and a set of marker modules.
      */
     public Module getProgramsGrammar(Module mod) {
+        // import PROGRAM-LISTS so user lists are modified to parse programs
+        scala.collection.Set<Module> modules = Set(mod, baseK.getModule(PROGRAM_LISTS).get());
 
-        if(mod.name().endsWith(POSTFIX)) {
-            return mod;
-        } else {
-            // import PROGRAM-LISTS so user lists are modified to parse programs
-            scala.collection.Set<Module> modules = Set(mod, baseK.getModule(PROGRAM_LISTS).get());
-
-            if (stream(mod.importedModules()).anyMatch(m -> m.name().equals(ID))) {
-                Module idProgramParsingModule = baseK.getModule(ID_PROGRAM_PARSING).get();
-                modules = add(idProgramParsingModule, modules);
-            }
-
-            return Module.apply(mod.name() + POSTFIX, modules, Set(), Att());
+        if(!mod.name().endsWith(POSTFIX) && stream(mod.importedModules()).anyMatch(m -> m.name().equals(ID))) {
+            Module idProgramParsingModule = baseK.getModule(ID_PROGRAM_PARSING).get();
+            modules = add(idProgramParsingModule, modules);
         }
+        return Module.apply(mod.name() + POSTFIX, modules, Set(), Att());
     }
 
     public static boolean isParserSort(Sort s) {

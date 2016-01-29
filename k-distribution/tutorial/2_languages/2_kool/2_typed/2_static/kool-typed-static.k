@@ -105,9 +105,6 @@ static semantics of KOOL using the modified programs.  To avoid seeing
 the wrapper in the generated documentation, we associate it an
 ``invisibility'' latex attribute below.  */
 
-  syntax TypeId ::= "Object" [token] | "Main" [token]
-  syntax String ::= TypeId2String ( TypeId )    [function, hook(STRING.token2string)]
-
 //@ \subsection{Types}
 
   syntax Type ::= "void" | "int" | "bool" | "string"
@@ -118,9 +115,6 @@ the wrapper in the generated documentation, we associate it an
                 | "(" Type ")"           [bracket]
 
   syntax TypeId
-
-  syntax Id ::= TypeId2Id(TypeId)                                   [function]
-  rule TypeId2Id(X:TypeId) => String2Id(TypeId2String(X))
 
   syntax Types ::= List{Type,","}
 
@@ -211,8 +205,7 @@ endmodule
 module KOOL-TYPED-STATIC-PROGRAM-PARSING
     imports KOOL-TYPED-STATIC-SYNTAX
     imports ID-PROGRAM-PARSING
-//    syntax TypeId ::= r"(?<![A-Za-z0-9\\_])[A-Za-z\\_][A-Za-z0-9\\_]*"    [notInRules, token, autoReject, avoid]
-    syntax TypeId ::= "C"
+    syntax TypeId ::= r"(?<![A-Za-z0-9\\_])[A-Za-z\\_][A-Za-z0-9\\_]*"    [token, autoReject]
 endmodule
 
 /*@ \section{Static semantics}
@@ -284,6 +277,11 @@ in the class extends relation. */
                   </classes>
                 </T>
                 <out color="brown" stream="stdout"> .List </out>
+
+  syntax TypeId ::= "Object" [token] | "Main" [token]
+  syntax String ::= TypeId2String ( TypeId )    [function, hook(STRING.token2string)]
+  syntax Id ::= TypeId2Id(TypeId)                                   [function]
+  rule TypeId2Id(X:TypeId) => String2Id(TypeId2String(X))
 
 /*@ \subsection{Unchanged semantics from statically typed SIMPLE}
 
