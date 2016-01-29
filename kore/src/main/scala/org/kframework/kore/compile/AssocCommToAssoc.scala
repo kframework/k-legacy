@@ -30,10 +30,10 @@ class AssocCommToAssoc(c: Constructors[K]) extends (Module => Module) {
 
   def apply(k: K)(implicit m: Module): List[K] = k match {
     case Unapply.KApply(label: KLabel, children: List[K]) if isAssocComm(label) =>
-      convert(label, children, None)
+      convert(label, children)
     case Unapply.KRewrite(Unapply.KApply(label: KLabel, children: List[K]), right: K) if isAssocComm(label) =>
       //TODO(AndreiS): right is not always normalized, despite being normal right after NormalizeAssoc
-      convert(label, children, Some(right))
+      convert(label, children)
     case Unapply.KApply(label: KLabel, children: List[K]) =>
       crossProduct(children map apply) map {label(_: _*)}
     case Unapply.KRewrite(left: K, right: K) =>
@@ -47,7 +47,7 @@ class AssocCommToAssoc(c: Constructors[K]) extends (Module => Module) {
     att.contains(Att.assoc) && att.contains(Att.comm)
   }
 
-  def convert(label: KLabel, children: List[K], rightOption: Option[K])(implicit m: Module): List[K] = {
+  def convert(label: KLabel, children: List[K])(implicit m: Module): List[K] = {
     val opSort: Sort = m.signatureFor(label).head._2
 
     val (elements: Seq[K], nonElements: Seq[K]) = children partition {
@@ -73,22 +73,12 @@ class AssocCommToAssoc(c: Constructors[K]) extends (Module => Module) {
         elements.toList.permutations.toList
     }
 
-    val convertedRightOption: Option[K] = rightOption match {
-      case Some(right) =>
-        frameOption match {
-          case Some(v: KVariable) if v.name.startsWith("DotVar") =>
-            //TODO(AndreiS): substitute in the entire rule, not just locally
-            Some(substituteFrame(right, v.name, label((0 to elements.size) map {dotVariable(opSort, _)}: _*)))
-          case _ => Some(right)
-        }
-      case None => None
+    frameOption match {
+      case Some(v: KVariable) if v.name.startsWith("DotVar") =>
+        (v, label((0 to elements.size) map {dotVariable(opSort, _)}: _*))
     }
 
-    val results = convertedChildren flatMap { cs => crossProduct(cs map apply) } map {label(_: _*)}
-    convertedRightOption match {
-      case Some(convertedRight) => results map {KRewrite(_, convertedRight, Att())}
-      case None => results
-    }
+    convertedChildren flatMap { cs => crossProduct(cs map apply) } map {label(_: _*)}
   }
 
   def substituteFrame(k: K, name: String, substitute: K): K = k match {
