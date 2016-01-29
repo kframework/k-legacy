@@ -103,7 +103,7 @@ declare class types accordingly.  The modified programs can be found
 in \texttt{kool/typed/static/programs}.  So make sure you execute the
 static semantics of KOOL using the modified programs.  To avoid seeing
 the wrapper in the generated documentation, we associate it an
-``invisibility'' latex attribute below. */
+``invisibility'' latex attribute below.  */
 
   syntax Id ::= "Object" [token] | "Main" [token]
 
