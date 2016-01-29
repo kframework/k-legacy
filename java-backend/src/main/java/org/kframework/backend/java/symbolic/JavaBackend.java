@@ -94,7 +94,6 @@ public class JavaBackend implements Backend {
                 .andThen(DefinitionTransformer.fromSentenceTransformer(JavaBackend::markSingleVariables, "mark single variables"))
                 .andThen(DefinitionTransformer.from(new AssocCommToAssoc(KORE.c()), "convert assoc/comm to assoc"))
                 .andThen(DefinitionTransformer.from(new MergeRules(KORE.c()), "generate matching automaton"))
-                .andThen(DefinitionTransformer.fromKTransformerWithModuleInfo(new KTokenVariablesToTrueVariables(), "ktoken variables to true variables"))
                 .apply(d);
     }
 
