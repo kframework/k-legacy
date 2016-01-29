@@ -1,5 +1,5 @@
 <!-- Copyright (c) 2010-2016 K Team. All Rights Reserved. -->
-[![Build Status](http://office.runtimeverification.com:8080/job/k-framework-master/badge/icon)](http://office.runtimeverification.com:8080/job/k-framework-master/)
+[ ![Codeship Status for kframework/k](https://codeship.com/projects/51591a00-a8f8-0133-7b85-7a8c162db443/status?branch=master)](https://codeship.com/projects/130795)
 [![Join the chat at https://gitter.im/kframework/k](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/kframework/k?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This is a readme file for the developers.
