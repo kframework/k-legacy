@@ -124,6 +124,10 @@ public class CompiledDefinition implements Serializable {
     public Option<Module> programParsingModuleFor(String moduleName, KExceptionManager kem) {
         RuleGrammarGenerator gen = new RuleGrammarGenerator(parsedDefinition, kompileOptions.strict());
 
+        if(moduleName.endsWith(RuleGrammarGenerator.POSTFIX)) {
+            return parsedDefinition.getModule(moduleName);
+        }
+
         Option<Module> userProgramParsingModule = parsedDefinition.getModule(moduleName + RuleGrammarGenerator.POSTFIX);
         if (userProgramParsingModule.isDefined()) {
             kem.registerInternalHiddenWarning("Module " + userProgramParsingModule.get().name() + " is user-defined.");

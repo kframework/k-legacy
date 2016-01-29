@@ -67,7 +67,7 @@ public class KompileOptions implements Serializable {
 
     public String syntaxModule(FileUtil files) {
         if (syntaxModule == null) {
-            return mainModule(files) + "-SYNTAX";
+            return mainModule(files) + "-PROGRAM-PARSING";
         }
         return syntaxModule;
     }
