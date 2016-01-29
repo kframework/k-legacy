@@ -5,3 +5,5 @@ jdk:
 
 script: 
   "mvn verify"
+
+sudo: false
