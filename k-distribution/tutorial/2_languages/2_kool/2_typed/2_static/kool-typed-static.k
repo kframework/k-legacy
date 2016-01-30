@@ -202,7 +202,7 @@ the wrapper in the generated documentation, we associate it an
 endmodule
 
 
-module KOOL-TYPED-STATIC-PROGRAM-PARSING
+module KOOL-TYPED-STATIC-SYNTAX-PROGRAM-PARSING
     imports KOOL-TYPED-STATIC-SYNTAX
     imports ID-PROGRAM-PARSING
     syntax TypeId ::= r"(?<![A-Za-z0-9\\_])[A-Za-z\\_][A-Za-z0-9\\_]*"    [token, autoReject]
