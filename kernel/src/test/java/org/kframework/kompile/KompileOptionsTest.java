@@ -77,7 +77,7 @@ public class KompileOptionsTest {
     @Test
     public void testDefaultSyntaxModuleName() {
         parse("--main-module", "BAR", "foo.k");
-        assertEquals("BAR-SYNTAX", options.syntaxModule(files));
+        assertEquals("BAR-PROGRAM-PARSING", options.syntaxModule(files));
     }
 
     @Test
