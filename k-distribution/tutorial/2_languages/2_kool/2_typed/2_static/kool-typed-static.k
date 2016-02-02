@@ -125,7 +125,7 @@ the wrapper in the generated documentation, we associate it an
 
   syntax Decl ::= Type Exps ";" [avoid]
                 | Type Id "(" Params ")" Block
-                | "class" TypeId Block
+                | "class" TypeId Block                          [klabel(BUMBUM)]
                 | "class" TypeId "extends" TypeId Block
 
 //@ \subsection{Expressions}
@@ -284,8 +284,6 @@ in the class extends relation. */
   rule TypeId2Id(X:TypeId) => String2Id(TypeId2String(X))
 
 /*@ \subsection{Unchanged semantics from statically typed SIMPLE}
-
-  rule class C:TypeId S => class C extends Object S
 
 The syntax and rules below are borrowed unchanged from statically
 typed SIMPLE, so we do not discuss them much here. */
@@ -552,6 +550,8 @@ instance of this rule). */
 // There seems to be some error with the configuration concretization,
 // as the rule below does not work when rewriting . to both the task
 // and the class cells; I had to include two separate . rewrites
+
+  rule class C:TypeId S => class C extends Object S
 
 // TODO: the following fails krun; see #2117
   rule <task> <k> class C:TypeId extends C':TypeId { S:Stmts } => stmt ...</k> </task>
