@@ -105,16 +105,16 @@ static semantics of KOOL using the modified programs.  To avoid seeing
 the wrapper in the generated documentation, we associate it an
 ``invisibility'' latex attribute below.  */
 
+  syntax Id ::= "Object" [token] | "Main" [token]
+
 //@ \subsection{Types}
 
   syntax Type ::= "void" | "int" | "bool" | "string"
-                | TypeId                [klabel("class"), avoid]
-                | class(TypeId)         // explicit KOOL class type
+                | Id                     [klabel("class"), avoid]  // see next
+                | class(Id)         // explicit KOOL class type
                 | Type "[" "]"
                 > Types "->" Type
                 | "(" Type ")"           [bracket]
-
-  syntax TypeId
 
   syntax Types ::= List{Type,","}
 
@@ -125,8 +125,8 @@ the wrapper in the generated documentation, we associate it an
 
   syntax Decl ::= Type Exps ";" [avoid]
                 | Type Id "(" Params ")" Block
-                | "class" TypeId Block                          [klabel(BUMBUM)]
-                | "class" TypeId "extends" TypeId Block
+                | "class" Id Block
+                | "class" Id "extends" Id Block
 
 //@ \subsection{Expressions}
 
@@ -135,9 +135,9 @@ the wrapper in the generated documentation, we associate it an
                | "super"
                | "(" Exp ")"             [bracket]
                | "++" Exp
-               | Exp "instanceOf" TypeId [strict(1)]
-               | "(" TypeId ")" Exp          [strict(2)]
-               | "new" TypeId "(" Exps ")"   [strict(2)]
+               | Exp "instanceOf" Id     [strict(1)]
+               | "(" Id ")" Exp          [strict(2)]
+               | "new" Id "(" Exps ")"   [strict(2)]
                | Exp "." Id              [strict(1)]
                > Exp "[" Exps "]"        [strict]
                > Exp "(" Exps ")"        [strict]
@@ -166,6 +166,7 @@ the wrapper in the generated documentation, we associate it an
                > Exp "=" Exp             [strict(2), right]
 
   syntax Exps ::= List{Exp,","}          [strict]
+
 
 //@ \subsection{Statements}
 
@@ -199,14 +200,10 @@ the wrapper in the generated documentation, we associate it an
   rule T:Type E1:Exp, E2:Exp, Es:Exps; => T E1; T E2, Es;               [macro]
   rule T:Type X:Id = E; => T X; X = E;                                  [macro]
 
+  rule class C:Id S => class C extends Object S
+
 endmodule
 
-
-module KOOL-TYPED-STATIC-SYNTAX-PROGRAM-PARSING
-    imports KOOL-TYPED-STATIC-SYNTAX
-    imports ID-PROGRAM-PARSING
-    syntax TypeId ::= r"(?<![A-Za-z0-9\\_])[A-Za-z\\_][A-Za-z0-9\\_]*"    [token, autoReject]
-endmodule
 
 /*@ \section{Static semantics}
 We first discuss the configuration, then give the static semantics
@@ -277,11 +274,6 @@ in the class extends relation. */
                   </classes>
                 </T>
                 <out color="brown" stream="stdout"> .List </out>
-
-  syntax TypeId ::= "Object" [token] | "Main" [token]
-  syntax String ::= TypeId2String ( TypeId )    [function, hook(STRING.token2string)]
-  syntax Id ::= TypeId2Id(TypeId)                                   [function]
-  rule TypeId2Id(X:TypeId) => String2Id(TypeId2String(X))
 
 /*@ \subsection{Unchanged semantics from statically typed SIMPLE}
 
@@ -372,7 +364,7 @@ typed SIMPLE, so we do not discuss them much here. */
 //@\subsubsection{Unchanged auxiliary operations from dynamically typed SIMPLE}
 
   syntax Stmts ::= mkDecls(Params)  [function]
-  rule mkDecls((T:Type X:Id), Ps:Params) => T X; mkDecls(Ps)
+  rule mkDecls(T:Type X:Id, Ps:Params) => T X; mkDecls(Ps)
   rule mkDecls(.Params) => {}
 
 // We would like to say the following instead of the predicate rule below:
@@ -442,11 +434,11 @@ at the end of this module). */
 
   rule <k> T:Type X:Id; => stuck(T X;) ...</k>
        <ctenvT>... X |-> _ ...</ctenvT>
-       <inClass> C:TypeId </inClass>
+       <inClass> C:Id </inClass>
 //       <br/>
        <out>... .List => ListItem("Member \"" +String Id2String(X)
                               +String "\" declared twice in class \""
-                              +String TypeId2String(C) +String "\"!\n") </out>
+                              +String Id2String(C) +String "\"!\n") </out>
     [structural]
 
 
@@ -551,10 +543,8 @@ instance of this rule). */
 // as the rule below does not work when rewriting . to both the task
 // and the class cells; I had to include two separate . rewrites
 
-  rule class C:TypeId S => class C extends Object S
-
 // TODO: the following fails krun; see #2117
-  rule <task> <k> class C:TypeId extends C':TypeId { S:Stmts } => stmt ...</k> </task>
+  rule <task> <k> class C:Id extends C':Id { S:Stmts } => stmt ...</k> </task>
        (.Bag => <class>...
                <className> C </className>
                <extends> C' </extends>
@@ -572,7 +562,7 @@ instance of this rule). */
 syntax Type ::= "stmtStop"
 
   rule <tasks>...
-       <task> <k> class C:TypeId extends C':TypeId { S:Stmts } => stmtStop ...</k> </task>
+       <task> <k> class C:Id extends C':Id { S:Stmts } => stmtStop ...</k> </task>
        (.Bag => <task>
                 <k> checkType(class(C')) ~> S </k>
                 <inClass> C </inClass>
@@ -595,7 +585,7 @@ syntax Type ::= "stmtStop"
           <className> C </className>
           <className> C </className>
         ...</T> => .Bag)
-       <out>... .List => ListItem("Class \"" +String TypeId2String(C)
+       <out>... .List => ListItem("Class \"" +String Id2String(C)
                                   +String "\" declared twice!\n") </out>
     [structural]
 
@@ -620,7 +610,7 @@ checks for cycles. */
           <className> C </className>
           <extendsAll>... SetItem(C) ...</extendsAll>
         ...</T> => .Bag)
-       <out>... .List => ListItem("Class \"" +String TypeId2String(C)
+       <out>... .List => ListItem("Class \"" +String Id2String(C)
                                   +String "\" is in a cycle!\n") </out>
     [inheritance-cycle]
 
@@ -635,7 +625,7 @@ succeeds, meaning that it types to \texttt{stmt}, then we discard the
 the new object.  The auxiliary \texttt{discard} operation is defined
 also at the end of this module. */
 
-  rule new C:TypeId(Ts:Types) => class(C) . TypeId2Id(C) (Ts) ~> discard ~> class(C)
+  rule new C:Id(Ts:Types) => class(C) . C (Ts) ~> discard ~> class(C)
 
 
 /*@ \subsubsection{Self reference}
@@ -644,7 +634,7 @@ The typing rule for \texttt{this} is straightforward: reduce to the
 current class type. */
 
   rule <k> this => class(C) ...</k>
-       <inClass> C:TypeId </inClass>
+       <inClass> C:Id </inClass>
 
 
 /*@ \subsubsection{Super}
@@ -654,9 +644,9 @@ Note that for typing concerns, super can be considered as an object
 (recall that this was not the case in the dynamic semantics). */
 
    rule <k> super => class(C') ...</k>
-        <inClass> C:TypeId </inClass>
+        <inClass> C:Id </inClass>
         <className> C </className>
-        <extends> C':TypeId </extends>
+        <extends> C':Id </extends>
 
 
 /*@ \subsubsection{Object member access}
@@ -704,22 +694,22 @@ wait.  Finally, the sixth rule below reports an error when the
 // OLD approach:
 //  rule ltype(E:Exp . X:Id) => E . X  [structural]
 
-  rule <k> class(C:TypeId) . X:Id => T ...</k>
+  rule <k> class(C:Id) . X:Id => T ...</k>
        <className> C </className>
        <ctenv>... X |-> T:Type ...</ctenv>
 
-  rule <k> class(C1:TypeId => C2) . X:Id ...</k>
+  rule <k> class(C1:Id => C2) . X:Id ...</k>
        <className> C1 </className>
-       <extends> C2:TypeId </extends>
+       <extends> C2:Id </extends>
        <ctenv> Rho </ctenv>
     when notBool(X in keys(Rho))  [structural]
 
   rule <k> class(Object) . X:Id => stuck(class(Object) . X) ...</k>
-       <inClass> C:TypeId </inClass>
+       <inClass> C:Id </inClass>
 //      <br/>
        <out>... .List => ListItem("Member \"" +String Id2String(X)
                               +String "\" not declared! (see class \""
-                              +String TypeId2String(C) +String "\")\n") </out>
+                              +String Id2String(C) +String "\")\n") </out>
     [structural]
 
 
@@ -731,15 +721,15 @@ do some basic upcasting and downcasting checks, to reject casts which
 will absolutely fail.  However, dynamic semantics or implementations
 of the language need to insert runtime checks for downcasting to be safe. */
 
-  rule class(C1:TypeId) instanceOf C2:TypeId => bool
-  rule (C:TypeId) class(C) => class(C)
-  rule <k> (C2:TypeId) class(C1:TypeId) => class(C2) ...</k>
+  rule class(C1:Id) instanceOf C2:Id => bool
+  rule (C:Id) class(C) => class(C)
+  rule <k> (C2:Id) class(C1:Id) => class(C2) ...</k>
        <className> C1 </className>
        <extendsAll>...SetItem(C2)...</extendsAll>    // upcast
-  rule <k> (C2:TypeId) class(C1:TypeId) => class(C2) ...</k>
+  rule <k> (C2:Id) class(C1:Id) => class(C2) ...</k>
        <className> C2 </className>
        <extendsAll>...SetItem(C1)...</extendsAll>    // downcast
-  rule <k> (C2) class(C1:TypeId) => stuck((C2) class(C1)) ...</k>
+  rule <k> (C2) class(C1:Id) => stuck((C2) class(C1)) ...</k>
        <class>...
          <className> C1 </className>
          <extendsAll> S1 </extendsAll>
@@ -748,8 +738,8 @@ of the language need to insert runtime checks for downcasting to be safe. */
          <className> C2 </className>
          <extendsAll> S2 </extendsAll>
        ...</class>
-       <out>... .List => ListItem("Classes \"" +String TypeId2String(C1)
-                              +String "\" and \"" +String TypeId2String(C2)
+       <out>... .List => ListItem("Classes \"" +String Id2String(C1)
+                              +String "\" and \"" +String Id2String(C2)
                               +String "\" are incompatible!\n") </out>
     when notBool(C1 in S2) andBool notBool(C2 in S1)
     [transition]
@@ -788,7 +778,7 @@ the \textsf{tasks} cell has been removed. */
   rule (<task>
           <k> stmt </k>
           <ctenvT> Rho </ctenvT>
-          <inClass> C:TypeId </inClass>
+          <inClass> C:Id </inClass>
         </task> => .Bag)
         <className> C </className>
         (.Bag => <ctenv> Rho </ctenv>)
@@ -819,7 +809,7 @@ The subclass relation introduces a subtyping relation.  */
 
   rule checkSubtype(T:Type, T) => .  [structural]
 
-  rule <k> checkSubtype(class(C:TypeId), class(C':TypeId)) => . ...</k>
+  rule <k> checkSubtype(class(C:Id), class(C':Id)) => . ...</k>
        <className> C </className>
        <extendsAll>... SetItem(C') ...</extendsAll>  [structural]
 
@@ -851,7 +841,7 @@ check that the types used in the program actually exists */
   rule checkType(bool) => .  [structural]
   rule checkType(string) => .  [structural]
   rule checkType(void) => .  [structural]
-  rule <k> checkType(class(C:TypeId)) => . ...</k> <className> C </className>
+  rule <k> checkType(class(C:Id)) => . ...</k> <className> C </className>
     [structural]
   rule checkType(class(Object)) => .  [structural]
   rule checkType(Ts:Types -> T:Type) => checkType(T,Ts)  [structural]
@@ -868,16 +858,16 @@ below can only be function types.  See the definition of
 \texttt{checkSubtype} on function types at the end of this module (it
 is co-variant in the codomain and contra-variant in the domain). */
 
-  syntax KItem ::= checkMethod(Id,Type,TypeId)
+  syntax KItem ::= checkMethod(Id,Type,Id)
 
-  rule <k> checkMethod(F:Id, T:Type, C:TypeId) => checkSubtype(T, T') ...</k>
+  rule <k> checkMethod(F:Id, T:Type, C:Id) => checkSubtype(T, T') ...</k>
        <className> C </className>
        <ctenv>... F |-> T':Type ...</ctenv>
     [structural]
 
-  rule <k> checkMethod(F:Id, T:Type, (C:TypeId => C')) ...</k>
+  rule <k> checkMethod(F:Id, T:Type, (C:Id => C')) ...</k>
        <className> C </className>
-       <extends> C':TypeId </extends>
+       <extends> C':Id </extends>
        <ctenv> Rho </ctenv>
     when notBool(F in keys(Rho))  [structural]
 
