@@ -130,6 +130,9 @@ the wrapper in the generated documentation, we associate it an
 
 //@ \subsection{Expressions}
 
+  syntax FieldReference ::= Exp "." Id          [strict(1)]
+  syntax ArrayReference ::= Exp "[" Exps "]"    [strict]
+
   syntax Exp ::= Int | Bool | String | Id
                | "this"
                | "super"
@@ -138,8 +141,8 @@ the wrapper in the generated documentation, we associate it an
                | Exp "instanceOf" Id     [strict(1)]
                | "(" Id ")" Exp          [strict(2)]
                | "new" Id "(" Exps ")"   [strict(2)]
-               | Exp "." Id              [strict(1)]
-               > Exp "[" Exps "]"        [strict]
+               | FieldReference
+               > ArrayReference
                > Exp "(" Exps ")"        [strict]
                | "-" Exp                 [strict]
                | "sizeOf" "(" Exp ")"    [strict]
@@ -371,7 +374,8 @@ typed SIMPLE, so we do not discuss them much here. */
 //  syntax LValue ::= Id | Exp "[" Exps "]"
 // but unfortunately that currently generates some ambiguous parsings.
   syntax LValue ::= Id
-  rule isLValue(_:Exp[_:Exps]) => true
+                  | FieldReference
+                  | ArrayReference
 
   syntax Exp ::= ltype(Exp)
 // We would like to say:
@@ -685,11 +689,6 @@ wait.  Finally, the sixth rule below reports an error when the
   rule <k> X:Id => this . X ...</k>
        <tenv> Rho </tenv>
     when notBool(X in keys(Rho))
-
-// We would like to say the following instead of the predicate rule below:
-//  syntax LValue ::= Exp "." Id
-// but unfortunately that currently generates some ambiguous parsings.
-  rule isLValue(_:Exp . _:Id) => true
 
 // OLD approach:
 //  rule ltype(E:Exp . X:Id) => E . X  [structural]
