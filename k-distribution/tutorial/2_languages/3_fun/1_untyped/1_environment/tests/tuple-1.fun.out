@@ -2,4 +2,4 @@ Search results:
 
 Solution 1:
 V:K -->
-closure ( .Map , Triple ( x, y, z ) -> y )
+closure ( .Map , ( Triple ( x , ( y , ( z , .Exps ) ) ) -> y ) | .TypeCases )

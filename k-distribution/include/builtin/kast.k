@@ -1,5 +1,8 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 
+// 'allowChainSubsort' is used internally by the rule parser to better control what subsorts
+// are allowed to chain with automatic subsorts like K ::= Exp and Exp ::= KBott
+
 // Module defining only the sorts K and KString, useful for modularity
 module SORT-K
   syntax K [hook(K.K)]
@@ -8,8 +11,8 @@ endmodule
 module BASIC-K
   imports SORT-K
   syntax KLabel
-  syntax KItem [hook(K.KItem)]
-  syntax K     ::= KItem
+  syntax KItem            [hook(K.KItem)]
+  syntax K     ::= KItem  [allowChainSubsort]
   syntax KConfigVar
 endmodule
 
@@ -24,13 +27,13 @@ module KAST
   syntax KBott ::= "#token" "(" KString "," KString ")"  [klabel(#KToken), hook(org.kframework.kore.KToken)]
                  | "#klabel" "(" KLabel ")"              [klabel(#WrappedKLabel), hook(org.kframework.kore.meta.WrappedKLabel)]
                  | KLabel "(" KList ")"                  [klabel(#KApply), hook(org.kframework.kore.KApply)]
-  syntax KItem ::= KBott
+  syntax KItem ::= KBott                                 [allowChainSubsort]
 
   syntax KLabel ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\n\r])+`" [token, hook(org.kframework.kore.KLabel)]
                   | r"(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9]*"               [token, hook(org.kframework.kore.KLabel), autoReject]
                        // something that doesn't collide with meta-variables
 
-  syntax KList ::= K
+  syntax KList ::= K                 [allowChainSubsort]
                  | ".KList"          [klabel(#EmptyKList), hook(org.kframework.kore.EmptyKList)]
                  | ".::KList"        [klabel(#EmptyKList), hook(org.kframework.kore.EmptyKList)]
                  | KList "," KList   [klabel(#KList), left, assoc, unit(#EmptyKList), hook(org.kframework.kore.KList), prefer]
@@ -58,9 +61,9 @@ module KSEQ-SYMBOLIC
   imports KSEQ
   syntax #KVariable ::= r"(?<![A-Za-z0-9_\\$!\\?])(\\!|\\?)?([A-Z][A-Za-z0-9'_]*|_)"   [token, autoReject, hook(org.kframework.kore.KVariable)]
   syntax KConfigVar ::= r"(?<![A-Za-z0-9_\\$!\\?])(\\$)([A-Z][A-Za-z0-9'_]*)"          [token, autoReject]
-  syntax KBott      ::= #KVariable
-  syntax KBott      ::= KConfigVar
-  syntax KLabel     ::= #KVariable
+  syntax KBott      ::= #KVariable [allowChainSubsort]
+  syntax KBott      ::= KConfigVar [allowChainSubsort]
+  syntax KLabel     ::= #KVariable [allowChainSubsort]
 endmodule
 
 module KCELLS
@@ -70,7 +73,7 @@ module KCELLS
   syntax Bag ::= Bag Bag  [left, assoc, klabel(#cells), unit(#cells)]
                | ".Bag"   [klabel(#cells)]
                | ".::Bag" [klabel(#cells)]
-               | Cell
+               | Cell     [allowChainSubsort]
   syntax Bag ::= "(" Bag ")" [bracket]
   syntax K ::= Bag
   syntax Bag ::= KBott
@@ -106,7 +109,7 @@ endmodule
 module REQUIRES-ENSURES
   imports BASIC-K
 
-  syntax RuleContent ::= K                                 [klabel("#ruleNoConditions")]
+  syntax RuleContent ::= K                                 [klabel("#ruleNoConditions"), allowChainSubsort]
                        | K "requires" K                    [klabel("#ruleRequires")]
                        | K "when" K                        [klabel("#ruleRequires")]
                        | K "ensures"  K                    [klabel("#ruleEnsures")]
