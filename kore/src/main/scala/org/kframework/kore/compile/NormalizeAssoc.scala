@@ -9,14 +9,13 @@ import org.kframework.kore._
 /**
  * Compiler pass flattening associative collections
  */
-class NormalizeAssoc(c: Constructors[K]) extends (Module => Module) {
+class NormalizeAssoc(c: Constructors[K]) extends ((Module, Sentence )=> Sentence) {
 
   import c._
 
-  override def apply(m: Module): Module = Module(m.name, m.imports, m.localSentences map {apply(_)(m)}, m.att)
-
-  def apply(s: Sentence)(implicit m: Module): Sentence = s match {
-    case r: Rule => Rule(apply(r.body), apply(r.requires), apply(r.ensures), r.att)
+  def apply(m: Module, s: Sentence): Sentence = s match {
+    case r: Rule =>
+      Rule(apply(r.body)(m), apply(r.requires)(m), apply(r.ensures)(m), r.att)
     case _ => s
   }
 

@@ -124,20 +124,25 @@ public class CompiledDefinition implements Serializable {
     public Option<Module> programParsingModuleFor(String moduleName, KExceptionManager kem) {
         RuleGrammarGenerator gen = new RuleGrammarGenerator(parsedDefinition, kompileOptions.strict());
 
-        Option<Module> userProgramParsingModule = parsedDefinition.getModule(moduleName + RuleGrammarGenerator.POSTFIX);
-        if (userProgramParsingModule.isDefined()) {
-            kem.registerInternalHiddenWarning("Module " + userProgramParsingModule.get().name() + " is user-defined.");
-            return userProgramParsingModule;
+        Option<Module> moduleOption;
+
+        if(moduleName.endsWith(RuleGrammarGenerator.POSTFIX)) {
+            moduleOption = parsedDefinition.getModule(moduleName);
         } else {
-            Option<Module> moduleOption = parsedDefinition.getModule(moduleName);
-            Option<Module> programParsingModuleOption = moduleOption.isDefined() ?
-                    Option.apply(gen.getProgramsGrammar(moduleOption.get())) :
-                    Option.empty();
-            if (programParsingModuleOption.isDefined()) {
-                kem.registerInternalHiddenWarning("Module " + programParsingModuleOption.get().name() + " has been automatically generated.");
+            moduleOption = parsedDefinition.getModule(moduleName + RuleGrammarGenerator.POSTFIX);
+            if (moduleOption.isDefined()) {
+                kem.registerInternalHiddenWarning("Module " + moduleOption.get().name() + " is user-defined.");
+            } else {
+                moduleOption = parsedDefinition.getModule(moduleName);
+                if (moduleOption.isDefined()) {
+                    kem.registerInternalHiddenWarning("Module " + moduleOption.get().name() + " has been automatically generated.");
+                }
             }
-            return programParsingModuleOption;
         }
+        Option<Module> programParsingModuleOption = moduleOption.isDefined() ?
+                Option.apply(gen.getProgramsGrammar(moduleOption.get())) :
+                Option.empty();
+        return programParsingModuleOption;
     }
 
     public Module languageParsingModule() { return languageParsingModule; }
