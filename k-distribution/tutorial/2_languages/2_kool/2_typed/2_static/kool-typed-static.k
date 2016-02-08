@@ -371,9 +371,6 @@ typed SIMPLE, so we do not discuss them much here. */
   rule mkDecls(T:Type X:Id, Ps:Params) => T X; mkDecls(Ps)
   rule mkDecls(.Params) => {}
 
-// We would like to say the following instead of the predicate rule below:
-//  syntax LValue ::= Id | Exp "[" Exps "]"
-// but unfortunately that currently generates some ambiguous parsings.
   syntax LValue ::= Id
                   | FieldReference
                   | ArrayReference
