@@ -2,60 +2,40 @@ Search results:
 
 Solution 1:
 Solution:Map -->
-A:Term |-> jim (  )
-B:Term |-> john (  )
-X:Term |-> david (  )
+X:Term |-> david A:Term |-> jim B:Term |-> john
 
 Solution 2:
 Solution:Map -->
-A:Term |-> nathan (  )
-B:Term |-> david (  )
-X:Term |-> jim (  )
+X:Term |-> david A:Term |-> nathan B:Term |-> john
 
 Solution 3:
 Solution:Map -->
-A:Term |-> nathan (  )
-B:Term |-> david (  )
-X:Term |-> steve (  )
+X:Term |-> david A:Term |-> steve B:Term |-> john
 
 Solution 4:
 Solution:Map -->
-A:Term |-> nathan (  )
-B:Term |-> jim (  )
-X:Term |-> steve (  )
+X:Term |-> jim A:Term |-> nathan B:Term |-> david
 
 Solution 5:
 Solution:Map -->
-A:Term |-> nathan (  )
-B:Term |-> john (  )
-X:Term |-> david (  )
+X:Term |-> jim A:Term |-> nathan B:Term |-> john
 
 Solution 6:
 Solution:Map -->
-A:Term |-> nathan (  )
-B:Term |-> john (  )
-X:Term |-> jim (  )
+X:Term |-> jim A:Term |-> steve B:Term |-> david
 
 Solution 7:
 Solution:Map -->
-A:Term |-> nathan (  )
-B:Term |-> john (  )
-X:Term |-> steve (  )
+X:Term |-> jim A:Term |-> steve B:Term |-> john
 
 Solution 8:
 Solution:Map -->
-A:Term |-> steve (  )
-B:Term |-> david (  )
-X:Term |-> jim (  )
+X:Term |-> steve A:Term |-> nathan B:Term |-> david
 
 Solution 9:
 Solution:Map -->
-A:Term |-> steve (  )
-B:Term |-> john (  )
-X:Term |-> david (  )
+X:Term |-> steve A:Term |-> nathan B:Term |-> jim
 
 Solution 10:
 Solution:Map -->
-A:Term |-> steve (  )
-B:Term |-> john (  )
-X:Term |-> jim (  )
+X:Term |-> steve A:Term |-> nathan B:Term |-> john
