@@ -243,7 +243,10 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
             return variableTable.get(key);
         }
 
-        Variable var = new Variable(freshRules && !name.equals(THE_VARIABLE) ? "R_" + name : name, sort, variableTable.size());
+        Variable var = new Variable(
+                freshRules && !name.equals(THE_VARIABLE) && !name.equals(KLabels.THIS_CONFIGURATION) ? "R_" + name : name,
+                sort,
+                variableTable.size());
         var.setAttributes(new KOREtoKIL().convertAttributes(att));
         variableTable.put(key, var);
         return var;
