@@ -609,7 +609,7 @@ checks for cycles. */
          <extendsAll> SetItem(C) Cs:Set (.Set => SetItem(C')) </extendsAll>
        ...</class>
        <class>... <className>C</className> <extends>C'</extends> ...</class>
-    when notBool(C' in SetItem(C) Cs)  [structural]
+    when notBool(C' in (SetItem(C) Cs))  [structural]
 
   rule (<T>...
           <className> C </className>
