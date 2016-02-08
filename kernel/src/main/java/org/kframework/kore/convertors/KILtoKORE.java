@@ -115,7 +115,7 @@ public class KILtoKORE extends KILTransformation<Object> {
         // the K builtin directory. This is a regression from K3.6
         boolean isPredefined = mainModule.getSource().source().contains("builtin");
         if (autoImportDomains && !isPredefined) {
-            if (mainModule.getName().endsWith("-SYNTAX")) {
+            if (mainModule.getName().endsWith("-SYNTAX") || mainModule.getName().endsWith("-PROGRAM-PARSING")) {
                 importedModuleNames.add(new Import("DOMAINS-SYNTAX"));
             } else {
                 importedModuleNames.add(new Import("DOMAINS"));

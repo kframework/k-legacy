@@ -136,6 +136,7 @@ public class KRun {
         for (String solution : results) {
             sb.append("Solution ").append(i++).append(":\n");
             sb.append(solution);
+            sb.append("\n");
         }
         outputFile(sb.toString(), options);
     }
