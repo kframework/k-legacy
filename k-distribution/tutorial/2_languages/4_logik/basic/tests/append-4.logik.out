@@ -19,3 +19,4 @@ L1:Term |-> ( cons ( V0 , ( nil , .Terms ) ) ) L2:Term |-> L2 L3:Term |-> ( cons
 Solution 5:
 Solution:Map -->
 L1:Term |-> nil L2:Term |-> L2 L3:Term |-> ( cons ( a , ( L2 , .Terms ) ) )
+
