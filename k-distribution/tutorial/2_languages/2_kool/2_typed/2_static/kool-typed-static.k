@@ -141,8 +141,6 @@ the wrapper in the generated documentation, we associate it an
                | Exp "instanceOf" Id     [strict(1)]
                | "(" Id ")" Exp          [strict(2)]
                | "new" Id "(" Exps ")"   [strict(2)]
-               | FieldReference
-               > ArrayReference
                > Exp "(" Exps ")"        [strict]
                | "-" Exp                 [strict]
                | "sizeOf" "(" Exp ")"    [strict]
@@ -167,6 +165,9 @@ the wrapper in the generated documentation, we associate it an
                | Exp "||" Exp            [strict, left]
                > "spawn" Block  // not strict: to check return and exceptions
                > Exp "=" Exp             [strict(2), right]
+
+  syntax Exp ::= FieldReference | ArrayReference
+  syntax priority _._ > _[_] > _(_)
 
   syntax Exps ::= List{Exp,","}          [strict]
 
