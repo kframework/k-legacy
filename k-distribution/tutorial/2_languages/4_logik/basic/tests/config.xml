@@ -6,7 +6,7 @@
       definition="logik.k"
       programs="."
       extension="logik"
-      exclude="append-6 reverse-slow-1 reverse-slow-2 reverse-slow-3 reverse-fast-1 reverse-fast-2 reverse-fast-3 reverse-fast-palindromes-1 reverse-slow-palindromes-1 takeout-1 takeout-2"
+      exclude="append-6"
       results="." >
       <kompile-option name="--backend" value="java" />
       <all-programs>

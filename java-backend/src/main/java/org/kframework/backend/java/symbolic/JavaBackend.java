@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import org.kframework.AddConfigurationRecoveryFlags;
 import org.kframework.attributes.Att;
 import org.kframework.backend.java.kore.compile.ExpandMacrosDefinitionTransformer;
+import org.kframework.builtin.KLabels;
 import org.kframework.compile.AddBottomSortForListsWithIdenticalLabels;
 import org.kframework.compile.NormalizeKSeq;
 import org.kframework.compile.ConfigurationInfoFromModule;
@@ -161,7 +162,7 @@ public class JavaBackend implements Backend {
             TransformK markerAdder = new TransformK() {
                 public K apply(KVariable kvar) {
                     if (kvar instanceof SortedADT.SortedKVariable && ((SortedADT.SortedKVariable) kvar).sort().equals(KORE.Sort("K")) && varCount.get(kvar) == 1
-                            && !kvar.name().equals("THIS_CONFIGURATION")) {
+                            && !kvar.name().equals(KLabels.THIS_CONFIGURATION)) {
                         return new SortedADT.SortedKVariable("THE_VARIABLE", Att());
                     } else {
                         return kvar;
