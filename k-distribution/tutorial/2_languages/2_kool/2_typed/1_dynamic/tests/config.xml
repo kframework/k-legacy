@@ -5,7 +5,7 @@
   <test definition="kool-typed-dynamic.k"
         programs="../../programs/"
         extension="kool"
-        exclude="cycle cast-2"
+        exclude="cycle"
         skip="pdf"
         results="." >
         <all-programs>
