@@ -6,6 +6,7 @@
       definition="kool-typed-static.k"
       programs="../../programs"
       extension="kool"
+      exclude="return-object"
       results="." >
       <kompile-option name="--transition" value="inheritance-cycle" />
       <all-programs>

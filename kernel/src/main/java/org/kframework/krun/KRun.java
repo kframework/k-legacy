@@ -121,7 +121,7 @@ public class KRun {
                 .collect(Collectors.toSet());
         outputFile("Search results:\n\n", options);
         if (searchResult.isEmpty()) {
-            outputFile("No Search Results \n", options);
+            outputFile("No search results \n", options);
         }
         int i = 1;
         List<String> results = new ArrayList<>();
