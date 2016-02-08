@@ -18,7 +18,7 @@ class UnparseTest {
   }
 
   @Test def InjectedKLabel() {
-    Assert.assertEquals("#klabel(foo)",ToKast(InjectedKLabel('foo, Att())))
+    Assert.assertEquals("#klabel(foo)",ToKast(ADT.InjectedKLabel('foo, Att())))
   }
 
   @Test def EmptyApp() {
@@ -64,7 +64,7 @@ class UnparseTest {
   @Test def testKeywords(): Unit = {
     Assert.assertEquals("#a(.KList)~>`#klabel`(.KList)~>#klabel(test)~>`#token`(.KList)~>#token(\"1\",\"Int\")",
       ToKast(KSequence(KLabel("#a")(),
-        KLabel("#klabel")(), InjectedKLabel(KLabel("test"),Att()),
+        KLabel("#klabel")(), ADT.InjectedKLabel(KLabel("test"),Att()),
         KLabel("#token")(),  KToken("1", Sort("Int")))))
   }
 }
