@@ -43,7 +43,7 @@ object TreeNodesToKORE {
       KApply(downKLabel(items(0)),
         KList(downList(Assoc.flatten(KLabel("#KList"), items.tail, KLabel("#EmptyKList")))), t.att)
 
-    case t@KApply(KLabel("#WrappedKLabel"), items) =>
+    case t@KApply(KLabel("#InjectedKLabel"), items) =>
       InjectedKLabel(downKLabel(items(0)), t.att)
 
     case t@KApply(KLabel("#KToken"), items) =>

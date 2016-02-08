@@ -17,7 +17,7 @@ class UnparseTest {
     Assert.assertEquals("`_+_`",ToKast(KLabel("_+_")))
   }
 
-  @Test def WrappedKLabel() {
+  @Test def InjectedKLabel() {
     Assert.assertEquals("#klabel(foo)",ToKast(InjectedKLabel('foo, Att())))
   }
 

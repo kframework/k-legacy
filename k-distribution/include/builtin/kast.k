@@ -25,7 +25,7 @@ module KAST
   imports BASIC-K
   imports KSTRING
   syntax KBott ::= "#token" "(" KString "," KString ")"  [klabel(#KToken), hook(org.kframework.kore.KToken)]
-                 | "#klabel" "(" KLabel ")"              [klabel(#WrappedKLabel), hook(org.kframework.kore.meta.WrappedKLabel)]
+                 | "#klabel" "(" KLabel ")"              [klabel(#InjectedKLabel), hook(org.kframework.kore.InjectedKLabel)]
                  | KLabel "(" KList ")"                  [klabel(#KApply), hook(org.kframework.kore.KApply)]
   syntax KItem ::= KBott                                 [allowChainSubsort]
 
