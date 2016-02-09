@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2012-2015 K Team. All Rights Reserved. -->
+<!-- Copyright (c) 2012-2016 K Team. All Rights Reserved. -->
 Here are instructions for installing K from the release zip/tgz archive.
 
 1. Prerequisites:
