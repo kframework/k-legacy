@@ -3,6 +3,7 @@ package org.kframework.backend.java.symbolic;
 
 import com.google.common.collect.HashMultimap;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kframework.backend.java.builtins.BoolToken;
@@ -46,7 +47,7 @@ public class UseSMTTest {
         when(tc.global()).thenReturn(global);
     }
 
-    @Test
+    @Test @Ignore
     public void testGetModel() {
         System.err.println(System.getProperty("java.library.path"));
         BuiltinMap.Builder builder = new BuiltinMap.Builder(tc.global());

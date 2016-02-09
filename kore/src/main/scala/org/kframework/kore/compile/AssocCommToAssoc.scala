@@ -126,7 +126,7 @@ class AssocCommToAssoc(c: Constructors[K]) extends (Module => Module) {
   def crossProduct[T](lls: List[List[T]]): List[List[T]] = {
     lls match {
       case (head: List[T]) :: (tail: List[List[T]]) =>
-        for {(x: T) <- head; (xs: List[T]) <- crossProduct(tail)} yield x :: xs
+        for {x <- head; (xs: List[T]) <- crossProduct(tail)} yield x :: xs
       case List() => List(List())
     }
   }
