@@ -6,7 +6,7 @@
     <parent>
         <artifactId>parent</artifactId>
         <groupId>org.kframework.k</groupId>
-        <version>4.0-beta4-SNAPSHOT</version>
+        <version>4.0-beta-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
