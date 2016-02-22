@@ -103,17 +103,20 @@ object DefinitionTransformer {
 
   def from(f: Module => Module, name: String): DefinitionTransformer = DefinitionTransformer(f, name)
 
-  def apply(f: Module => Module): DefinitionTransformer = new DefinitionTransformer(f)
+  def apply(f: ModuleTransformer): DefinitionTransformer = new DefinitionTransformer(f)
 
   def apply(f: Module => Module, name: String): DefinitionTransformer = new DefinitionTransformer(ModuleTransformer(f, name))
 }
 
-class DefinitionTransformer(moduleTransformer: Module => Module) extends (Definition => Definition) {
+class DefinitionTransformer(moduleTransformer: ModuleTransformer) extends (Definition => Definition) {
   override def apply(d: Definition): Definition = {
-    definition.Definition(
-      moduleTransformer(d.mainModule),
-      d.entryModules map moduleTransformer,
-      d.att)
+    //    definition.Definition(
+    //      moduleTransformer(d.mainModule),
+    //      d.entryModules map moduleTransformer,
+    //      d.att)
+    // commented above such that the regular transformer behaves like the SelectiveDefinitionTransformer
+    // this avoids a bug in the configuration concretization functionality
+    new SelectiveDefinitionTransformer(moduleTransformer).apply(d)
   }
 }
 
@@ -124,7 +127,7 @@ class SelectiveDefinitionTransformer(moduleTransformer: ModuleTransformer) exten
   override def apply(d: Definition): Definition = {
     definition.Definition(
       moduleTransformer(d.mainModule),
-      d.entryModules map { m => moduleTransformer.memoization.getOrElse(m, m) },
+      d.entryModules map { m => moduleTransformer.memoization.getOrElse(m, m) }, // the trick is that any memoized modules have already been transformed
       d.att)
   }
 }
