@@ -125,6 +125,11 @@ class DefinitionTransformer(moduleTransformer: ModuleTransformer) extends (Defin
   */
 class SelectiveDefinitionTransformer(moduleTransformer: ModuleTransformer) extends (Definition => Definition) {
   override def apply(d: Definition): Definition = {
+    // Cosmin: the two lines below are a hack to make sure the two modules are processed by the pass regardless of
+    // them not being reachable from the main module
+    // I think the right fix would be to explicitly import them when needed
+    d.getModule("STDIN-STREAM").foreach(moduleTransformer)
+    d.getModule("STDOUT-STREAM").foreach(moduleTransformer)
     definition.Definition(
       moduleTransformer(d.mainModule),
       d.entryModules map { m => moduleTransformer.memoization.getOrElse(m, m) }, // the trick is that any memoized modules have already been transformed
