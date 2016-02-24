@@ -125,6 +125,7 @@ object Att {
   val syntaxModule = "syntaxModule"
   val variable = "variable"
   val sort = "sort"
+  val klabel = "klabel"
 
   def generatedByAtt(c: Class[_]) = Att().add(Att.generatedBy, c.getName)
 }
