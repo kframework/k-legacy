@@ -11,9 +11,7 @@ import org.kframework.utils.errorsystem.ParseFailedException;
 import scala.Option;
 import scala.Tuple2;
 import scala.util.Either;
-import scala.util.control.Exception;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -28,7 +26,7 @@ public class Parser {
     private Parser(Module module) {
         // TODO: remove hack once the frontend is cleaner; also remove the IOException once the hack is cleared
         if (module.name().endsWith(RuleGrammarGenerator.RULE_CELLS)) {
-            org.kframework.definition.Definition definitionWithBuiltins = Definition.from("require \"domians.k\"", "K");
+            org.kframework.definition.Definition definitionWithBuiltins = DefinitionParser.from("require \"domians.k\"", "K");
             this.parseInModule = new RuleGrammarGenerator(definitionWithBuiltins, true).getCombinedGrammar(module);
         } else {
             this.parseInModule = new ParseInModule(module);

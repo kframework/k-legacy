@@ -17,7 +17,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @API
-public class Definition {
+public class DefinitionParser {
 
     /**
      * Parses the text to create a {@link Definition} object.

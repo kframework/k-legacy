@@ -8,10 +8,10 @@ import static org.junit.Assert.*;
 import static org.kframework.Collections.*;
 import static org.kframework.kore.KORE.*;
 
-public class DefinitionTest {
+public class DefinitionParserTest {
     @Test
     public void testFrom() throws Exception {
-        org.kframework.definition.Definition actual = Definition.from("module X endmodule");
+        org.kframework.definition.Definition actual = DefinitionParser.from("module X endmodule");
         Module mod = Module.apply("X", Set());
         assertEquals(org.kframework.definition.Definition.apply(mod, Set(mod), Att()), actual);
     }
