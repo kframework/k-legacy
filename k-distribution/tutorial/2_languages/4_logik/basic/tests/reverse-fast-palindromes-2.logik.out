@@ -2,6 +2,5 @@ Search results:
 
 Solution 1:
 Solution:Map -->
-A:Term |-> A:Term
-B:Term |-> B:Term
-C:Term |-> A
+A:Term |-> V0 B:Term |-> V1 C:Term |-> V0
+

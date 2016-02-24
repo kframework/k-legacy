@@ -2,4 +2,4 @@ Search results:
 
 Solution 1:
 V:K -->
-closure ( .Map , x -> x )
+closure ( .Map , ( x -> x ) | .TypeCases )

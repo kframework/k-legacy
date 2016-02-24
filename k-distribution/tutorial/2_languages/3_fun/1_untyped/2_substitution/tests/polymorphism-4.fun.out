@@ -2,4 +2,4 @@ Search results:
 
 Solution 1:
 V:K -->
-fun (x -> (fun ([ y ] -> y)) [ x ])
+fun ( ( x -> ( ( fun ( ( [ y , .Exps ] -> y ) | .TypeCases ) ) [ x , .Exps ] ) ) | .TypeCases )

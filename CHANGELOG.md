@@ -1,4 +1,82 @@
-<!-- Copyright (c) 2014-2015 K Team. All Rights Reserved. -->
+<!-- Copyright (c) 2014-2016 K Team. All Rights Reserved. -->
+
+# K Framework 4.0 #
+
+K 4.0 is a major release which brings significant improvements in the overall software 
+architecture of the K framework, as well as a few new features:
+
+ - **KORE of K:** It is much easier to interact programmatically with K via KORE. KORE is a distillation
+   of the essential features of the full K language into an equally-powerful, but much
+   smaller, language.
+ - **New parser:** The SDF-based parser has been phased out in favor of a completely new 
+   parser developed by the K team. The new parser is faster to initialize, and allows 
+   users full control over not only the syntax of the language they define, but also
+   the syntax of K itself. This makes it easier to overcome issues with the K syntax
+   conflicting with the defined language.
+ - **New compiler:** The K compiler has been completely rewritten to work only over the 
+   new KORE representation. Thus, the compiler only uses features that are also available
+   to third-parties wanting to interact with K programmatically.
+ - **Faster search:** The Java backend has a new decision-tree based matcher which delivers
+   much better search performance.
+ - **Rewriting strategies (experimental):** K now supports non-traversal [Stratego-style](http://releases.strategoxt.org/strategoxt-manual/unstable/manual/chunk-part/stratego-language.html#stratego-rewriting-strategies) rewriting strategies. While the
+   default strategy language is inspired by Stratego, our system gives users full control
+   over defining their own strategy language, and allows integration with the K 
+   verification machinery.
+   
+## KORE ##
+
+ - KORE is a subset of K which can still express, more verbosely if needed, anything that 
+   can be expressed in the full K language. 
+ - The AST syntax part of KORE is defined by  [k-distribution/include/builtin/kast.k](https://github.com/kframework/k/blob/master/k-distribution/include/builtin/kast.k) and is fully-editable by the user. If some part of it
+   conflicts with the defined language, the user can simply change it to avoid the conflict.
+
+## New Parser ##
+
+The new parser is not based on SDF anymore. Still, there are only minor changes from the way syntax was specified in K 3.6:
+  - Tokens have been reworked. Now any production can create a constant/token, by adding the `token` attribute.
+    This allows for context free tokens, instead of just regular ones.
+  - `noAutoReject` has been replaced with autoReject, and the default behavior reversed.
+    If `autoReject` is specified, then all terminals from all productions (taking modularity into account)
+	will be matched against the currently parsed constant. If it matches, the parse fails.
+	This is an easy way to implement keyword rejection.
+  - Manual token rejection has been reworked, now it is an attribute on a `token` production, instead of a sort.
+    It takes a regular expression `reject2(<regex>)`, and it can extend `autoReject`.
+  - `Token{<sdf lex>}` has been replaced with `r"<regex>"`
+Example:
+```
+syntax Exp ::= "if" Exp "then" Exp r"(?!else)" // if_then, not followed by else
+syntax Id ::= r"(?<![A-Za-z0-9\\_])[A-Za-z\\_][A-Za-z0-9\\_]*" [token, autoReject]
+syntax BubbleItem ::= r"[^ \t\n\r]" [token, reject2("rule|syntax|endmodule|configuration|context")]
+```
+The syntax for the regular expressions can be found here: [Regex Language](http://www.brics.dk/automaton/doc/index.html)
+A more detailed description of parsing with K4 can be found at: [Regex Language](https://github.com/kframework/k/wiki/Syntax-specification-for-the-new-parser)
+
+## New Compiler ##
+
+ - The K compiler has been completely rewritten and is now much smaller.
+ - All compiler passes are KORE-to-KORE, which means they can be easily mixed into new
+   custom compilers.
+   
+## Java Backend ##
+
+ - The Java backend contains a new pattern matcher which uses a decision tree to compute all rewritting successors of a configuration
+   in a single step. 
+   The new implementation replaces the previous rule-index based implementation, and no distion is made anymore (TODO: add names of command line parameters) between the symbolic and the pattern matching backend. 
+   In terms of speed, the new implemeentation is as fast for execution and significantly faster for search.
+ - The new `--superstrict` option replaces `--superheat` and `--supercool`.
+ - TODO(Andrei): add anything else you consider important
+
+## Rewriting strategies (experimental) ##
+
+ - We have added experimental support for top-level (i.e., non-traversal) rewriting strategies. 
+ - The rewriting language is defined in K and can be modified by the user. See the `STRATEGY` and `BASIC-STRATEGY` modules in [k-distribution/include/builtin/domains.k](https://github.com/kframework/k/blob/master/k-distribution/include/builtin/domains.k). `STRATEGY` gives the basic support for defining
+   strategy languages and is not meant to be modified by the user (though it can be). `BASIC-STRATEGY` is one example of a strategy language implemented on top of `STRATEGY`, and also acts as the default strategy language.
+
+## Other ##
+
+ - K 4.0 no longer has support for automatically generating documentation, i.e., `kdoc`. Support
+   will be added soon to the `master` branch and will be included in K 4.1.
+
 
 # K Framework 3.6 #
 

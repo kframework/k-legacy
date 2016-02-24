@@ -24,6 +24,7 @@ trait ProductionReference extends Term {
 trait HasChildren {
   def items: Iterable[Term]
   def replaceChildren(newChildren: Collection[Term]): Term
+  def map(newChildren: Collection[Term]): Term
 }
 
 case class Constant private(value: String, production: Production) extends ProductionReference {
@@ -38,8 +39,9 @@ case class TermCons private(items: PStack[Term], production: Production)
 
   def replaceChildren(newChildren: Collection[Term]) = TermCons(ConsPStack.from(newChildren), production, location, source)
   override def toString() = production.klabel.getOrElse("NOKLABEL") + "(" + (new ArrayList(items).asScala.reverse mkString ",") + ")"
+  def map(newChildren: Collection[Term]) = TermCons(ConsPStack.from(newChildren), production, location, source)
 
-  override lazy val hashCode: Int = scala.runtime.ScalaRunTime._hashCode(TermCons.this);
+  override lazy val hashCode: Int = production.hashCode
 }
 
 case class Ambiguity(items: Set[Term])
@@ -48,6 +50,7 @@ case class Ambiguity(items: Set[Term])
     items.clear(); items.addAll(newChildren);
     this
   }
+  def map(newChildren: Collection[Term]) = Ambiguity(new HashSet[Term](newChildren))
   override def toString() = "amb(" + (items.asScala mkString ",") + ")"
   
 }
@@ -63,6 +66,7 @@ case class KList(items: PStack[Term])
     KList(newItems, location, source)
   }
   def replaceChildren(newChildren: Collection[Term]) = KList(ConsPStack.from(newChildren), location, source)
+  def map(newChildren: Collection[Term]) = KList(ConsPStack.from(newChildren), location, source)
   override def toString() = "[" + (new ArrayList(items).asScala.reverse mkString ",") + "]"
   override lazy val hashCode: Int = scala.runtime.ScalaRunTime._hashCode(KList.this);
 }

@@ -106,6 +106,8 @@ object Att {
   val topRule = "topRule"
   val userList = "userList"
   val generatedByListSubsorting = "generatedByListSubsorting"
+  val generatedByAutomaticSubsorting = "generatedByAutomaticSubsorting"
+  val allowChainSubsort = "allowChainSubsort"
   val generatedBy = "generatedBy"
   val ClassFromUp = "classType"
   val Location = "location"
@@ -124,6 +126,7 @@ object Att {
   val latex = "latex"
   val variable = "variable"
   val sort = "sort"
+  val klabel = "klabel"
 
   def generatedByAtt(c: Class[_]) = Att().add(Att.generatedBy, c.getName)
 }
