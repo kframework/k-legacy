@@ -9,14 +9,14 @@ import org.kframework.kore.Unapply.KApply
 import org.kframework.kore.Unapply.KLabel
 import org.kframework.kore.Unapply.KToken
 import org.kframework.kore.Unapply.Sort
-import org.kframework.{Kompiler, Definition, Parser}
+import org.kframework.{Kompiler, DefinitionParser, Parser}
 import org.kframework.definition.{RegexTerminal, NonTerminal, Terminal, Module}
 import org.kframework.kore._
 import org.kframework.kore.Unapply._
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator
 
 class KDoc(docStyle: String, separator: String = " ") {
-  private val definitionForEKORE = Definition.from("require \"e-kore.k\"", "E-KORE")
+  private val definitionForEKORE = DefinitionParser.from("require \"e-kore.k\"", "E-KORE")
   private val outerParser = Parser.from(definitionForEKORE.mainModule)
   private var endl: String = System.getProperty("line.separator")
   var header = "\\nonstopmode" + endl + "\\PassOptionsToPackage{pdftex,usenames,dvipsnames,svgnames,x11names}{xcolor}" + endl + "\\PassOptionsToPackage{pdftex}{hyperref}" + endl + "\\documentclass{article}" + endl + "\\usepackage[" + docStyle + "]{k}" + endl
@@ -25,7 +25,7 @@ class KDoc(docStyle: String, separator: String = " ") {
 
   def apply(definitionText: String): String = {
     val metaDefinition = parseDefinition(definitionText)
-    val definition = Definition.from(definitionText)
+    val definition = DefinitionParser.from(definitionText)
     val resolvedConfigs = Kompiler.configurationSentencesToSyntaxAndRules(definition)
     val andAddedTheRuleParsingModules = Kompiler.toRuleParser(resolvedConfigs)
     val res = kToLatexForEKORE(resolveBubbles(metaDefinition, andAddedTheRuleParsingModules))
