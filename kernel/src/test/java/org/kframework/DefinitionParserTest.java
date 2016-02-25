@@ -15,7 +15,7 @@ import static org.kframework.definition.Constructors.*;
 public class DefinitionParserTest {
     @Test
     public void testEmpty() throws Exception {
-        Definition actual = DefinitionParser.from("module X endmodule");
+        Definition actual = DefinitionParser.from("require \"domains.k\" module X endmodule");
         Module expected = Module("X", Set());
         assertEquals(Definition(expected, Set(expected), Att()), actual);
     }

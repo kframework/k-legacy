@@ -88,17 +88,17 @@ public class KDepFrontEnd extends FrontEnd {
                         .map(files::resolveWorkingDirectory).collect(Collectors.toList()),
                 Lists.newArrayList(Kompile.BUILTIN_DIRECTORY));
 
+        lookupDirectories.add(0, options.mainDefinitionFile(files).getParentFile());
+
         // load builtin files if needed first
         if (!options.noPrelude) {
             modules.addAll(parser.slurp(Kompile.REQUIRE_PRELUDE_K,
                     source,
-                    currentDirectory,
                     lookupDirectories));
         }
 
         modules.addAll(parser.slurp(FileUtil.load(options.mainDefinitionFile(files)),
                 source,
-                currentDirectory,
                 lookupDirectories));
         Set<File> allFiles = modules.stream().map(m -> new File(m.getSource().source())).collect(Collectors.toSet());
         System.out.println(files.resolveWorkingDirectory(".").toURI().relativize(files.resolveKompiled("timestamp").toURI()).getPath() + " : \\");

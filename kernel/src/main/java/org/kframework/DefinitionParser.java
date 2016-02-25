@@ -6,6 +6,7 @@ import com.google.common.io.Files;
 import com.google.inject.util.Providers;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Definition;
+import org.kframework.kompile.DefinitionParsing;
 import org.kframework.kompile.Kompile;
 import org.kframework.main.GlobalOptions;
 import org.kframework.parser.concrete2kore.ParserUtils;
@@ -62,7 +63,7 @@ public class DefinitionParser {
         }
         GlobalOptions globalOptions = new GlobalOptions();
         KExceptionManager kem = new KExceptionManager(globalOptions);
-
+//
         FileUtil fileUtil = new FileUtil(theFileUtilTempDir,
                 Providers.of(definitionDir),
                 workingDir,
@@ -71,15 +72,8 @@ public class DefinitionParser {
                 System.getenv());
         ParserUtils parserUtils = new ParserUtils(fileUtil::resolveWorkingDirectory, kem, globalOptions);
 
-        org.kframework.definition.Definition definition = parserUtils.loadDefinition(
-                mainModuleName,
-                mainModuleName,
-                definitionText,
-                source,
-                workingDir,
-                lookupDirectories,
-                false
-        );
+        DefinitionParsing definitionParsing = new DefinitionParsing(lookupDirectories, true, kem, parserUtils, false, null, false);
+        Definition definition = definitionParsing.parseDefinitionAndResolveBubbles(definitionText, mainModuleName, mainModuleName, source, lookupDirectories);
 
         return definition;
     }

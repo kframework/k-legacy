@@ -95,8 +95,7 @@ public class DefinitionParsing {
                 mutable(definition.getParsedDefinition().modules()),
                 "require " + StringUtil.enquoteCString(definitionFile.getPath()),
                 Source.apply(definitionFile.getAbsolutePath()),
-                definitionFile.getParentFile(),
-                Lists.newArrayList(Kompile.BUILTIN_DIRECTORY),
+                Lists.newArrayList(Kompile.BUILTIN_DIRECTORY, definitionFile.getParentFile()),
                 autoImportDomains);
 
         if (modules.size() != 1) {
@@ -139,7 +138,17 @@ public class DefinitionParsing {
     }
 
     public Definition parseDefinitionAndResolveBubbles(File definitionFile, String mainModuleName, String mainProgramsModule) {
-        Definition parsedDefinition = parseDefinition(definitionFile, mainModuleName, mainProgramsModule);
+
+        List<File> allLookupDirectories = ListUtils.union(
+                lookupDirectories,
+                Lists.newArrayList(Kompile.BUILTIN_DIRECTORY));
+        allLookupDirectories.add(0, definitionFile.getParentFile());
+
+        return parseDefinitionAndResolveBubbles(FileUtil.load(definitionFile), mainModuleName, mainProgramsModule, Source.apply(definitionFile.toString()), allLookupDirectories);
+    }
+
+    public Definition parseDefinitionAndResolveBubbles(String definitionString, String mainModuleName, String mainProgramsModule, Source source, List<File> allLookupDirectories) {
+        Definition parsedDefinition = parseDefinition(definitionString, mainModuleName, mainProgramsModule, source, allLookupDirectories);
         Definition afterResolvingConfigBubbles = resolveConfigBubbles(parsedDefinition);
         Definition afterResolvingAllOtherBubbles = resolveNonConfigBubbles(afterResolvingConfigBubbles);
         saveCachesAndReportParsingErrors();
@@ -153,14 +162,13 @@ public class DefinitionParsing {
         }
     }
 
-    public Definition parseDefinition(File definitionFile, String mainModuleName, String mainProgramsModule) {
+    public Definition parseDefinition(String definitionString, String mainModuleName, String mainProgramsModule, Source source, List<File> allLookupDirectories) {
+
         Definition definition = parser.loadDefinition(
                 mainModuleName,
-                mainProgramsModule, FileUtil.load(definitionFile),
-                definitionFile,
-                definitionFile.getParentFile(),
-                ListUtils.union(lookupDirectories,
-                        Lists.newArrayList(Kompile.BUILTIN_DIRECTORY)),
+                mainProgramsModule, definitionString,
+                source,
+                allLookupDirectories,
                 autoImportDomains);
         return definition;
     }

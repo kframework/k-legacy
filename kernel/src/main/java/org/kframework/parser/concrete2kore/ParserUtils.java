@@ -114,7 +114,6 @@ public class ParserUtils {
     public List<org.kframework.kil.Module> slurp(
             String definitionText,
             Source source,
-            File currentDirectory,
             List<File> lookupDirectories) {
         List<DefinitionItem> items = Outer.parse(source, definitionText, null);
         if (options.verbose) {
@@ -130,10 +129,7 @@ public class ParserUtils {
 
                 String definitionFileName = ((Require) di).getValue();
 
-                ArrayList<File> allLookupDirectoris = new ArrayList<>(lookupDirectories);
-                allLookupDirectoris.add(0, currentDirectory);
-
-                Optional<File> definitionFile = allLookupDirectoris.stream()
+                Optional<File> definitionFile = lookupDirectories.stream()
                         .map(lookupDirectory -> {
                             if (new File(definitionFileName).isAbsolute()) {
                                 return new File(definitionFileName);
@@ -143,15 +139,17 @@ public class ParserUtils {
                         })
                         .filter(file -> file.exists()).findFirst();
 
+                ArrayList<File> allLookupDirectoris = new ArrayList<>(lookupDirectories);
+                allLookupDirectoris.add(0, definitionFile.get().getParentFile());
+
                 if (definitionFile.isPresent()) {
                     results.addAll(slurp(loadDefinitionText(definitionFile.get()),
                             Source.apply(definitionFile.get().getAbsolutePath()),
-                            definitionFile.get().getParentFile(),
-                            lookupDirectories));
+                            allLookupDirectoris));
                 }
                 else
                     throw KExceptionManager.criticalError("Could not find file: " +
-                            definitionFileName + "\nLookup directories:" + allLookupDirectoris, di);
+                            definitionFileName + "\nLookup directories:" + lookupDirectories, di);
             }
         }
         return results;
@@ -169,12 +167,11 @@ public class ParserUtils {
             Set<Module> previousModules,
             String definitionText,
             Source source,
-            File currentDirectory,
             List<File> lookupDirectories,
             boolean autoImportDomains) {
 
         List<org.kframework.kil.Module> kilModules =
-                slurp(definitionText, source, currentDirectory, lookupDirectories);
+                slurp(definitionText, source, lookupDirectories);
 
         Definition def = new Definition();
         def.setItems((List<DefinitionItem>) (Object) kilModules);
@@ -203,9 +200,12 @@ public class ParserUtils {
             File currentDirectory,
             List<File> lookupDirectories,
             boolean autoImportDomains) {
+        ArrayList<File> allLookupDirectories = new ArrayList<>();
+        allLookupDirectories.addAll(lookupDirectories);
+        allLookupDirectories.add(currentDirectory);
         return loadDefinition(mainModuleName, syntaxModuleName, definitionText,
                 Source.apply(source.getAbsolutePath()),
-                currentDirectory, lookupDirectories, autoImportDomains);
+                allLookupDirectories, autoImportDomains);
     }
 
     public org.kframework.definition.Definition loadDefinition(
@@ -213,13 +213,12 @@ public class ParserUtils {
             String syntaxModuleName,
             String definitionText,
             Source source,
-            File currentDirectory,
             List<File> lookupDirectories,
             boolean autoImportDomains) {
         Set<Module> previousModules = new HashSet<>();
         if (autoImportDomains)
-            previousModules.addAll(loadModules(new HashSet<>(), Kompile.REQUIRE_PRELUDE_K, source, currentDirectory, lookupDirectories, false));
-        Set<Module> modules = loadModules(previousModules, definitionText, source, currentDirectory, lookupDirectories, autoImportDomains);
+            previousModules.addAll(loadModules(new HashSet<>(), Kompile.REQUIRE_PRELUDE_K, source, lookupDirectories, false));
+        Set<Module> modules = loadModules(previousModules, definitionText, source, lookupDirectories, autoImportDomains);
         modules.addAll(previousModules); // add the previous modules, since load modules is not additive
         Optional<Module> opt = modules.stream().filter(m -> m.name().equals(mainModuleName)).findFirst();
         if (!opt.isPresent()) {
