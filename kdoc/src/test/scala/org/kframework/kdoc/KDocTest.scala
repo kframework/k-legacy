@@ -4,6 +4,7 @@ import org.junit._
 import Assert._
 
 class KDocTest {
+  /*
   @Test def simple() {
     assertEquals(
       """
@@ -40,4 +41,5 @@ class KDocTest {
         | endmodule
         """.stripMargin).split("\n").map(_.replaceAll("\\s+$", "")).mkString("\n"))
   }
+  */
 }
