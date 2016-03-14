@@ -130,6 +130,8 @@ class SelectiveDefinitionTransformer(moduleTransformer: ModuleTransformer) exten
     // I think the right fix would be to explicitly import them when needed
     d.getModule("STDIN-STREAM").foreach(moduleTransformer)
     d.getModule("STDOUT-STREAM").foreach(moduleTransformer)
+    d.getModule("BASIC-K").foreach(moduleTransformer)
+    d.getModule("K").foreach(moduleTransformer)
     definition.Definition(
       moduleTransformer(d.mainModule),
       d.entryModules map { m => moduleTransformer.memoization.getOrElse(m, m) }, // the trick is that any memoized modules have already been transformed
