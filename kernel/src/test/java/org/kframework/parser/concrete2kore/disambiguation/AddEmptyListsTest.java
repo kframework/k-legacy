@@ -1,4 +1,4 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.parser.concrete2kore.disambiguation;
 
 import com.google.common.collect.Lists;
@@ -50,7 +50,7 @@ public class AddEmptyListsTest {
     private RuleGrammarGenerator makeRuleGrammarGenerator() {
         String definitionText;
         FileUtil files = FileUtil.testFileUtil();
-        ParserUtils parser = new ParserUtils(files, new KExceptionManager(new GlobalOptions()));
+        ParserUtils parser = new ParserUtils(files::resolveWorkingDirectory, new KExceptionManager(new GlobalOptions()));
         File definitionFile = new File(Kompile.BUILTIN_DIRECTORY.toString() + "/kast.k");
         definitionText = files.loadFromWorkingDirectory(definitionFile.getPath());
 
@@ -59,7 +59,7 @@ public class AddEmptyListsTest {
                         definitionFile,
                         definitionFile.getParentFile(),
                         Lists.newArrayList(Kompile.BUILTIN_DIRECTORY),
-                        true, false);
+                        false);
 
         return new RuleGrammarGenerator(baseK, true);
     }
@@ -93,7 +93,7 @@ public class AddEmptyListsTest {
                     "syntax Func ::= f(As) | g(A) | h(Bs)" +
                     "endmodule\n";
 
-    public static final KApply NIL = KApply(KLabel(".List{\"'_,_\"}"));
+    public static final KApply NIL = KApply(KLabel(".List{\"_,_\"}"));
     public static final KLabel CONS = KLabel("_,_");
     public static final KApply A = KApply(KLabel("alabel"));
     public static final KApply B = KApply(KLabel("blabel"));
@@ -140,17 +140,17 @@ public class AddEmptyListsTest {
     @Ignore("BUG: need to also propagate correct sorts to arguments of labeled application")
     @Test
     public void testLabeledFunSingleItem() {
-        parseTerm("`f`(a)", "Func", KApply(F, KApply(CONS, A, NIL)));
+        parseTerm("`f`(a)", "K", KApply(F, KApply(CONS, A, NIL)));
     }
 
     @Test
     public void testLabedFunConcreteArgument() {
-        parseTerm("`f`(.As)", "Func", KApply(F, NIL));
-        parseTerm("`f`(`a,a`)", "Func", KApply(F, KApply(CONS, A, KApply(CONS, A, NIL))));
-        parseTerm("`f`(`a,.As`)", "Func", KApply(F, KApply(CONS, A, NIL)));
-        parseTerm("`f`(`a,b`)", "Func", KApply(F, KApply(CONS, A, KApply(CONS, B, NIL))));
-        parseTerm("`f`(`b,.Bs`)", "Func", KApply(F, KApply(CONS, B, NIL)));
-        parseTerm("`f`(`b,b`)", "Func", KApply(F, KApply(CONS, B, KApply(CONS, B, NIL))));
+        parseTerm("`f`(.As)", "K", KApply(F, NIL));
+        parseTerm("`f`((a,a))", "K", KApply(F, KApply(CONS, A, KApply(CONS, A, NIL))));
+        parseTerm("`f`((a,.As))", "K", KApply(F, KApply(CONS, A, NIL)));
+        parseTerm("`f`((a,b))", "K", KApply(F, KApply(CONS, A, KApply(CONS, B, NIL))));
+        parseTerm("`f`((b,.Bs))", "K", KApply(F, KApply(CONS, B, NIL)));
+        parseTerm("`f`((b,b))", "K", KApply(F, KApply(CONS, B, KApply(CONS, B, NIL))));
     }
 
     @Test
@@ -165,7 +165,7 @@ public class AddEmptyListsTest {
 
     @Test
     public void testArgumentLabeledNil() {
-        parseTerm("f(`.List{\"'_,_\"}`(.KList))", "Func", KApply(F, NIL));
+        parseTerm("f(`.List{\"_,_\"}`(.KList))", "K", KApply(F, NIL));
     }
 
     @Test
@@ -181,7 +181,7 @@ public class AddEmptyListsTest {
 
     @Test
     public void testArgumentLabeledNilSub1() {
-        parseTerm("h(`.List{\"'_,_\"}`(.KList))", "Func", KApply(H, NIL));
+        parseTerm("h(`.List{\"_,_\"}`(.KList))", "K", KApply(H, NIL));
     }
 
     @Test

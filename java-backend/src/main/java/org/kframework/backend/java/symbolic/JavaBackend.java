@@ -1,21 +1,25 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
 import com.google.inject.Inject;
 import org.kframework.AddConfigurationRecoveryFlags;
 import org.kframework.attributes.Att;
 import org.kframework.backend.java.kore.compile.ExpandMacrosDefinitionTransformer;
+import org.kframework.builtin.KLabels;
+import org.kframework.compile.AddBottomSortForListsWithIdenticalLabels;
 import org.kframework.compile.NormalizeKSeq;
 import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Constructors;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
+import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.ADT;
+import org.kframework.kore.KToken;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
@@ -23,9 +27,12 @@ import org.kframework.kore.KORE;
 import org.kframework.kore.KSequence;
 import org.kframework.kore.KVariable;
 import org.kframework.kore.SortedADT;
+import org.kframework.kore.compile.AssocCommToAssoc;
 import org.kframework.kore.compile.Backend;
 import org.kframework.kore.compile.ConvertDataStructureToLookup;
+import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.kore.compile.MergeRules;
+import org.kframework.kore.compile.NormalizeAssoc;
 import org.kframework.kore.compile.RewriteToTop;
 import org.kframework.kore.TransformK;
 import org.kframework.main.GlobalOptions;
@@ -76,7 +83,10 @@ public class JavaBackend implements Backend {
 
         return d -> (func((Definition dd) -> kompile.defaultSteps().apply(dd)))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
+                .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
+                .andThen(DefinitionTransformer.from(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))
                 .andThen(func(dd -> expandMacrosDefinitionTransformer.apply(dd)))
+                .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(convertDataStructureToLookup)
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::convertKSeqToKApply, "kseq to kapply"))
@@ -84,7 +94,8 @@ public class JavaBackend implements Backend {
                 .andThen(func(dd -> markRegularRules(dd)))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new AddConfigurationRecoveryFlags(), "add refers_THIS_CONFIGURATION_marker"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(JavaBackend::markSingleVariables, "mark single variables"))
-                .andThen(new DefinitionTransformer(new MergeRules(KORE.c())))
+                .andThen(DefinitionTransformer.from(new AssocCommToAssoc(KORE.c()), "convert assoc/comm to assoc"))
+                .andThen(DefinitionTransformer.from(new MergeRules(KORE.c()), "generate matching automaton"))
                 .apply(d);
     }
 
@@ -151,7 +162,7 @@ public class JavaBackend implements Backend {
             TransformK markerAdder = new TransformK() {
                 public K apply(KVariable kvar) {
                     if (kvar instanceof SortedADT.SortedKVariable && ((SortedADT.SortedKVariable) kvar).sort().equals(KORE.Sort("K")) && varCount.get(kvar) == 1
-                            && !kvar.name().equals("THIS_CONFIGURATION")) {
+                            && !kvar.name().equals(KLabels.THIS_CONFIGURATION)) {
                         return new SortedADT.SortedKVariable("THE_VARIABLE", Att());
                     } else {
                         return kvar;

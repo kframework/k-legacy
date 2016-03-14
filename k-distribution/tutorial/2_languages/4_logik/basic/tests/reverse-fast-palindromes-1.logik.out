@@ -2,20 +2,21 @@ Search results:
 
 Solution 1:
 Solution:Map -->
-L:Term |-> cons ( _0:Term, cons ( _0, nil ) )
+L:Term |-> ( cons ( V0 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) )
 
 Solution 2:
 Solution:Map -->
-L:Term |-> cons ( _0:Term, cons ( _1:Term, cons ( _0, nil ) ) )
+L:Term |-> ( cons ( V0 , ( cons ( V1 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) , .Terms ) ) )
 
 Solution 3:
 Solution:Map -->
-L:Term |-> cons ( _0:Term, cons ( _1:Term, cons ( _1, cons ( _0, nil ) ) ) )
+L:Term |-> ( cons ( V0 , ( cons ( V1 , ( cons ( V1 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) , .Terms ) ) , .Terms ) ) )
 
 Solution 4:
 Solution:Map -->
-L:Term |-> cons ( _0:Term, nil )
+L:Term |-> ( cons ( V0 , ( nil , .Terms ) ) )
 
 Solution 5:
 Solution:Map -->
 L:Term |-> nil
+

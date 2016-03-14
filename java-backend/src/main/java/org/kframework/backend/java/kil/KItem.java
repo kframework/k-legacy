@@ -1,9 +1,10 @@
-// Copyright (c) 2013-2015 K Team. All Rights Reserved.
+// Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import org.kframework.attributes.Att;
 import org.kframework.attributes.Location;
 import org.kframework.attributes.Source;
 import org.kframework.backend.java.builtins.BoolToken;
@@ -417,7 +418,7 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                         Term[] arguments = kList.getContents().toArray(new Term[kList.getContents().size()]);
                         Term result = builtins.get().invoke(context, kLabelConstant, arguments);
                         if (result != null) {
-                            return result;
+                            return result.evaluate(context);
                         }
                     } catch (ClassCastException e) {
                     // DISABLE EXCEPTION CHECKSTYLE

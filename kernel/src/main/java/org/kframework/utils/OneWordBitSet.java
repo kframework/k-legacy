@@ -1,6 +1,8 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 
 package org.kframework.utils;
+
+import java.util.stream.Collectors;
 
 /**
  * {@link BitSet} implementation backed by a single work.
@@ -92,6 +94,11 @@ public class OneWordBitSet implements BitSet<OneWordBitSet> {
     @Override
     public OneWordBitSet clone() {
         return new OneWordBitSet(word);
+    }
+
+    @Override
+    public String toString() {
+        return "{ " +  stream().mapToObj(i -> Integer.toString(i)).collect(Collectors.joining(", ")) + "}";
     }
 
 }

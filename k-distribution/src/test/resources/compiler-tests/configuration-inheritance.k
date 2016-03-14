@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
 requires "domains.k"
 
 module EXP
@@ -26,6 +26,15 @@ module C
     imports B
 
     configuration <t> initKCell(Init) initBCell </t>
+
+    rule <k> y => foo ...</k> <b> bar => x </b>
+endmodule
+
+module D
+    imports A
+    imports B
+
+    configuration <t> initKCell(Init) initBCell <c> initBCell </c> </t>
 
     rule <k> y => foo ...</k> <b> bar => x </b>
 endmodule

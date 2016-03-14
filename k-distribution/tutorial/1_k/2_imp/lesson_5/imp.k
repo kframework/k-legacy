@@ -1,5 +1,4 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
-require "domains.k"
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
 
 /*!
 \setlength{\parindent}{1em}
@@ -112,7 +111,7 @@ There is nothing special about these, but recall that \K's configuration
 abstraction mechanism is at work here!  That means that the rewrites in the
 rules below all happen at the beginning of the \textsf{k} cell.  */
 
-  rule I1 / I2 => I1 /Int I2  when I2 =/=Int 0
+  rule I1 / I2 => I1 /Int I2  requires I2 =/=Int 0
   rule I1 + I2 => I1 +Int I2
 
 /*@ \subsection{Boolean expressions}
@@ -142,7 +141,7 @@ considering their erasure as computational steps in the resulting transition
 systems.  You can make these rules computational (dropping the attribute
 \texttt{structural}) if you do want these to count as computational steps. */
 
-  rule {} => .K  [structural]
+  rule {} => .   [structural]
   rule {S} => S  [structural]
 
 /*@ \subsubsection{Assignment}
@@ -150,7 +149,7 @@ The assigned variable is updated in the state.  The variable is expected
 to be declared, otherwise the semantics will get stuck.  At the same time,
 the assignment is dissolved. */
 
-  rule <k> X = I:Int; => .K ...</k> <state>... X |-> `_ => I` ...</state>
+  rule <k> X = I:Int; => . ...</k> <state>... X |-> (_ => I) ...</state>
 
 /*@ \subsubsection{Sequential composition}
 Sequential composition is simply structurally translated into \K's
@@ -194,7 +193,7 @@ make the second rule structural, thinking of dissolving the residual
 empty \texttt{int;} declaration as a structural cleanup rather than as
 a computational step. */
 
-  rule <k> int `X,Xs => Xs`;_ </k> <state> Rho:Map (.Map => X|->0) </state>
-      when notBool `X in keys(Rho)`
+  rule <k> int (X,Xs => Xs);_ </k> <state> Rho:Map (.Map => X|->0) </state>
+    requires notBool (X in keys(Rho))
   rule int .Ids; S => S  [structural]
 endmodule

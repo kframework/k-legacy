@@ -32,7 +32,7 @@ public class TstBackendOnKORE_IT extends AbstractTest {
     }
 
     @Test
-    public void kore_imp() throws IOException, URISyntaxException {
+    public void kore_imp() throws URISyntaxException {
         String filename = "/convertor-tests/" + name.getMethodName() + ".k";
         KoreUtils utils = new KoreUtils(filename, "IMP", "IMP-SYNTAX", kem);
 
@@ -49,7 +49,7 @@ public class TstBackendOnKORE_IT extends AbstractTest {
     }
 
     @Test
-    public void kore_varlabel() throws IOException, URISyntaxException {
+    public void kore_varlabel() throws URISyntaxException {
         String filename = "/convertor-tests/" + name.getMethodName() + ".k";
         KoreUtils utils = new KoreUtils(filename, "VARLABEL", "VARLABEL-SYNTAX", kem);
 
@@ -61,7 +61,7 @@ public class TstBackendOnKORE_IT extends AbstractTest {
 
         String actual = KOREToTreeNodes.toString(new AddBrackets(unparsingModule).addBrackets((ProductionReference) KOREToTreeNodes.apply(KOREToTreeNodes.up(unparsingModule, kResult), unparsingModule)));
 
-        assertEquals("Execution failed", "<T> <k> finish ~> . </k> </T>", actual);
+        assertEquals("Execution failed", "<T> <k> finish </k> </T>", actual);
 
     }
 }

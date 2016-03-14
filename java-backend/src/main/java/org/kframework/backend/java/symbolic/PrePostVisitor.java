@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2015 K Team. All Rights Reserved.
+// Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
 import org.kframework.backend.java.builtins.*;
@@ -35,9 +35,7 @@ public class PrePostVisitor implements Visitor {
         preVisitor.resetProceed();
         node.accept(preVisitor);
         if (!preVisitor.isProceed()) return;
-        for (Term t : node.elementsLeft()) t.accept(this);
-        for (Term t : node.baseTerms()) t.accept(this);
-        for (Term t : node.elementsRight()) t.accept(this);
+        for (Term t : node.children) t.accept(this);
         node.accept(postVisitor);
     }
 

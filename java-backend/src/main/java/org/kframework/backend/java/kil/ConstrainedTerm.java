@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2015 K Team. All Rights Reserved.
+// Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
 import java.util.Collections;
@@ -233,6 +233,7 @@ public class ConstrainedTerm extends JavaSymbolicObject {
             /* OPTIMIZATION: if no narrowing happens, the constraint remains unchanged;
              * thus, there is no need to check satisfiability or expand patterns */
             boolean isMatching = candidate.isMatching(variables);
+
             if (!isMatching && solution.checkUnsat()) {
                 continue;
             }

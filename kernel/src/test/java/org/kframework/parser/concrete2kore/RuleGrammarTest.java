@@ -14,6 +14,7 @@ import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
 import org.kframework.definition.ModuleName;
 import org.kframework.definition.RegexTerminal;
+import org.kframework.kompile.DefinitionParsing;
 import org.kframework.kompile.Kompile;
 import org.kframework.kore.K;
 import org.kframework.kore.Sort;
@@ -33,7 +34,7 @@ import java.util.Set;
 import static org.kframework.kore.KORE.*;
 
 public class RuleGrammarTest {
-    private final static Sort startSymbol = Kompile.START_SYMBOL;
+    private final static Sort startSymbol = DefinitionParsing.START_SYMBOL;
     private RuleGrammarGenerator gen;
 
     @Before
@@ -44,7 +45,7 @@ public class RuleGrammarTest {
     public RuleGrammarGenerator makeRuleGrammarGenerator() {
         String definitionText;
         FileUtil files = FileUtil.testFileUtil();
-        ParserUtils parser = new ParserUtils(files, new KExceptionManager(new GlobalOptions()));
+        ParserUtils parser = new ParserUtils(files::resolveWorkingDirectory, new KExceptionManager(new GlobalOptions()));
         File definitionFile = new File(Kompile.BUILTIN_DIRECTORY.toString() + "/kast.k");
         definitionText = files.loadFromWorkingDirectory(definitionFile.getPath());
 
@@ -53,7 +54,7 @@ public class RuleGrammarTest {
                         definitionFile,
                         definitionFile.getParentFile(),
                         Lists.newArrayList(Kompile.BUILTIN_DIRECTORY),
-                        true, false);
+                        false);
 
         return new RuleGrammarGenerator(baseK, true);
     }
@@ -223,7 +224,7 @@ public class RuleGrammarTest {
                 "syntax KCell ::= \"<k>\" K \"</k>\" [klabel(<k>), cell] " +
                 "syntax StateCell ::= \"<state>\" K \"</state>\" [klabel(<state>), cell] " +
                 "endmodule";
-        parseRule("<T> <k>...1+2*3...</k> `<state> A => .::K ...</state> => .::Bag` ...</T>", def, 1, false);
+        parseRule("<T> <k>...1+2*3...</k> (<state> A => .::K ...</state> => .::Bag) ...</T>", def, 1, false);
     }
 
     // test rule cells
@@ -248,7 +249,7 @@ public class RuleGrammarTest {
                 "| r\"[0-9]+\" [token] " +
                 "syntax K " +
                 "endmodule";
-        parseConfig("<T multiplicity=\"*\"> <k> 1+2*3 </k> `<state> A => .::K </state> => .::Bag` </T>", def, 1, false);
+        parseConfig("<T multiplicity=\"*\"> <k> 1+2*3 </k> (<state> A => .::K </state> => .::Bag) </T>", def, 1, false);
     }
 
     // test variable disambiguation when all variables are being inferred
@@ -454,15 +455,15 @@ public class RuleGrammarTest {
                 KApply(KLabel("1")),
                 KApply(KLabel("_,_"), KApply(KLabel("1")), // Ne#Es ::= E "," Ne#Es [klabel('_,_)]
                         KApply(KLabel("_,_"), KApply(KLabel("1")), // Ne#Es ::= E Es#Terminator [klabel('_,_)]
-                                KApply(KLabel(".List{\"'_,_\"}")))) // Es#Terminator ::= "" [klabel('.Es)]
+                                KApply(KLabel(".List{\"_,_\"}")))) // Es#Terminator ::= "" [klabel('.Es)]
         ));
         parseProgram("1()", def, "Exp", 0, KApply(KLabel("_(_)"),
                 KApply(KLabel("1")),
-                KApply(KLabel(".List{\"'_,_\"}")) // Es#Terminator ::= "" [klabel('.Es)]
+                KApply(KLabel(".List{\"_,_\"}")) // Es#Terminator ::= "" [klabel('.Es)]
         ));
         parseProgram("", def, "NeInts", 0, true);
         parseProgram("1", def, "NeInts", 0, KApply(KLabel("_,_"),
                 KApply(KLabel("1")), // Ne#Es ::= E Es#Terminator [klabel('_,_)]
-                KApply(KLabel(".List{\"'_,_\"}"))));
+                KApply(KLabel(".List{\"_,_\"}"))));
     }
 }

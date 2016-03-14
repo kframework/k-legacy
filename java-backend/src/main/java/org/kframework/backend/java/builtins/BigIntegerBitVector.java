@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.builtins;
 
 import org.kframework.backend.java.kil.BuiltinList;
@@ -273,10 +273,10 @@ public final class BigIntegerBitVector extends BitVector<BigInteger> {
     }
 
     private BuiltinList getBuiltinList(BigInteger result, boolean overflow, TermContext context) {
-        BuiltinList.Builder builder = BuiltinList.builder(context.global());
-        builder.addItem(BitVector.of(result, bitwidth));
-        builder.addItem(BoolToken.of(overflow));
-        return (BuiltinList) builder.build();
+        return (BuiltinList) BuiltinList.builder(context.global())
+                .add(BitVector.of(result, bitwidth))
+                .add(BoolToken.of(overflow))
+                .build();
     }
 
 }

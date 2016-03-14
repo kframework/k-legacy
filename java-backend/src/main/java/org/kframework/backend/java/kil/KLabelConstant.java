@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2015 K Team. All Rights Reserved.
+// Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
 import com.google.common.collect.ImmutableMultimap;
@@ -267,7 +267,8 @@ public class KLabelConstant extends KLabel implements MaximalSharing, org.kframe
             Multimap<Integer, Integer> binder = productionAttributes.getAttr(Attribute.Key.get(
                     new TypeToken<Multimap<Integer, Integer>>() {},
                     Names.named("binder")));
-            return binder == null ? ImmutableMultimap.of(0, 1) : binder;
+            assert signatures.size() == 1;
+            return binder == null ? ImmutableMultimap.of(0, signatures.iterator().next().parameters().size() - 1) : binder;
         } else {
             return null;
         }

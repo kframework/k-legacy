@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2015 K Team. All Rights Reserved.
+// Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.kil;
 
 import org.kframework.kil.loader.Constants;
@@ -43,7 +43,7 @@ public class ListTerminator extends Term {
     @Override
     public String toString() {
         if (separator != null && sort.equals(Sort.K)) {
-            return "'.List`{" + StringUtil.enquoteCString(StringUtil.escapeMaude(separator)) + "`}(.KList)";
+            return ".List`{" + StringUtil.enquoteCString(StringUtil.escapeMaude(separator)) + "`}(.KList)";
         } else {
         return "." + sort;
     }

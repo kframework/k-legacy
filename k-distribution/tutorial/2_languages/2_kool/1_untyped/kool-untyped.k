@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2015 K Team. All Rights Reserved.
+// Copyright (c) 2012-2016 K Team. All Rights Reserved.
 /*!
 \title{KOOL --- Untyped}
 \author{Grigore Ro\c{s}u and Traian Florin \c{S}erb\u{a}nu\c{t}\u{a}
@@ -130,8 +130,6 @@ aspects of the language.  We refer the reader to the untyped SIMPLE
 language for documentation on the the remaining features, because
 those were all borrowed from SIMPLE. */
 
-require "domains.k"
-
 module KOOL-UNTYPED-SYNTAX
 
 /*@ \section{Syntax}
@@ -198,13 +196,9 @@ for the KOOL object-oriented constructs.
                > "spawn" Block
                > Exp "=" Exp             [strict(2), right]
 
-  // TODO(KORE): drop klabel once issues #1913 are fixed
-  syntax Ids  ::= List{Id,","}           [klabel(_,_::Ids)]
-  /*
   syntax Ids  ::= List{Id,","}
-  */
-  syntax Exps ::= List{Exp,","}          [strict]
 
+  syntax Exps ::= List{Exp,","}          [strict]
 
   syntax Block ::= "{" "}"
                 | "{" Stmts "}"
@@ -287,7 +281,7 @@ member declarations (\textsf{declarations}).
   configuration <T color="red">
                   <threads color="orange">
                     <thread multiplicity="*" color="yellow">
-                      <k color="green"> `$PGM:Stmts ~> execute` </k>
+                      <k color="green"> $PGM:Stmts ~> execute </k>
                     //<br/> // TODO(KORE): support latex annotations #1799
                       <control color="cyan">
                         <fstack color="blue"> .List </fstack>
@@ -314,15 +308,11 @@ member declarations (\textsf{declarations}).
                   <nextLoc color="gray"> 0 </nextLoc>
                 //<br/> // TODO(KORE): support latex annotations #1799
                   <classes color="Fuchsia">        // KOOL
-                     // TODO(KORE): hack to avoid not having AC -- see 2230bb3947c34b34b09e44eaa2ea2dfbd46b31cf
-                     .Map
-                     /*
                      <class multiplicity="*" color="Fuchsia">
                         <className color="Fuchsia"> Main </className>
                         <extends color="Fuchsia"> Object </extends>
                         <declarations color="Fuchsia"> .K </declarations>
                      </class>
-                     */
                   </classes>
                 </T>
 
@@ -455,11 +445,7 @@ interestingly, the semantics of return stays unchanged. */
 
   context (HOLE => lvalue(HOLE)) = _
 
-  // TODO(KORE): use parenthesis instead of backtick once #1943 is fixed
-  rule <k> loc(L) = V:Val => V ...</k> <store>... L |-> `_ => V` ...</store>
-  /*
   rule <k> loc(L) = V:Val => V ...</k> <store>... L |-> (_ => V) ...</store>
-  */
     [assignment]
 
 
@@ -487,11 +473,7 @@ interestingly, the semantics of return stays unchanged. */
 
   syntax KItem ::= "popx"
 
-  // TODO(KORE): use parenthesis instead of backtick once #1943 is fixed
-  rule <k> `try S1 catch(X) {S2} => S1 ~> popx` ~> K </k>
-  /*
   rule <k> (try S1 catch(X) {S2} => S1 ~> popx) ~> K </k>
-  */
        <control>
          <xstack> .List => ListItem((X, S2, K, Env, C)) ...</xstack>
          C
@@ -527,11 +509,7 @@ from SIMPLE unchanged. */
 
   rule <k> acquire V:Val; => . ...</k>
        <holds>... .Map => V |-> 0 ...</holds>
-       // TODO(KORE): use parenthesis instead of backtick once #1931 is fixed
-       <busy> Busy `.Set => SetItem(V)` </busy>
-       /*
        <busy> Busy (.Set => SetItem(V)) </busy>
-       */
     when (notBool(V in Busy:Set))  [acquire]
 
   rule <k> acquire V; => . ...</k>
@@ -550,11 +528,7 @@ from SIMPLE unchanged. */
 //@ \subsection{Unchanged auxiliary operations from untyped SIMPLE}
 
   syntax Stmts ::= mkDecls(Ids,Vals)  [function]
-  // TODO(KORE): use parenthesis instead of backtick once #1943 is fixed
-  rule mkDecls(`X:Id, Xs:Ids`, `V:Val, Vs:Vals`) => var X=V; mkDecls(Xs,Vs)
-  /*
   rule mkDecls((X:Id, Xs:Ids), (V:Val, Vs:Vals)) => var X=V; mkDecls(Xs,Vs)
-  */
   rule mkDecls(.Ids,.Vals) => {}
 
   // TODO(KORE): clarify sort inferences #1803
@@ -566,11 +540,7 @@ from SIMPLE unchanged. */
 
   syntax KItem ::= env(Map)
   rule <k> env(Env) => . ...</k>  <env> _ => Env </env>  [structural]
-  // TODO(KORE): use parenthesis instead of backtick once #1943 is fixed
-  rule `env(_) => .` ~> env(_)  [structural]
-  /*
   rule (env(_) => .) ~> env(_)  [structural]
-  */
   // TODO: How can we make sure that the second rule above applies before the first one?
   //       Probably we'll deal with this using strategies, eventually.
 
@@ -589,11 +559,7 @@ from SIMPLE unchanged. */
   syntax Map ::= Int "..." Int "|->" K
     [function, latex({#1}\ldots{#2}\mapsto{#3})]
   rule N...M |-> _ => .Map  when N >Int M
-  // TODO(KORE): drop bracket #1935
-  rule N...M |-> K => N |-> K `(N +Int 1)...M |-> K`  when N <=Int M
-  /*
   rule N...M |-> K => N |-> K (N +Int 1)...M |-> K  when N <=Int M
-  */
 
 
 /*@ \subsection{Changes to the existing untyped SIMPLE semantics}
@@ -713,17 +679,12 @@ environment. */
 Initially, the classes forming the program are moved into their
 corresponding cells: */
 
-  syntax KItem ::= ClassBody(K, K)
   rule <k> class Class1 extends Class2 { S } => . ...</k>
-       // TODO(KORE): classes hack to avoid not having AC -- see 2230bb3947c34b34b09e44eaa2ea2dfbd46b31cf
-       <classes>... `.Map => Class1 |-> ClassBody(Class2, S)`
-       /*
        <classes>... (.Bag => <class>
                             <className> Class1 </className>
                             <extends> Class2 </extends>
                             <declarations> S </declarations>
                         </class>)
-       */
        ...</classes>  [structural]
 
 /*@ \subsubsection{Method declaration}
@@ -773,11 +734,7 @@ refer to it (see rule above). */
 
   syntax KItem ::= (Id,EnvCell) // TODO: used to be ListItem; explain this
 
-  // TODO(KORE): drop bracket #1935
-  rule <k> `new Class:Id(Vs:Vals) ~> K`
-  /*
   rule <k> new Class:Id(Vs:Vals) ~> K
-  */
            => create(Class) ~> storeObj ~> Class(Vs); return this; </k>
        <env> Env => .Map </env>
        <nextLoc> L:Int => L +Int 1 </nextLoc>
@@ -802,14 +759,9 @@ members (both fields and methods) of that class. */
 
   rule <k> create(Class:Id)
            => create(Class1) ~> setCrntClass(Class) ~> S ~> addEnvLayer ...</k>
-       // TODO(KORE): classes hack to avoid not having AC -- see 2230bb3947c34b34b09e44eaa2ea2dfbd46b31cf
-       <classes>...`Class |-> ClassBody(Class1:Id, S)`...</classes>
-       [structural]
-       /*
        <className> Class </className>
        <extends> Class1:Id </extends>
        <declarations> S </declarations>  [structural]
-       */
 
   rule <k> create(Object) => . ...</k>  [structural]
 
@@ -968,7 +920,7 @@ method call or the array access.  */
        <envStack> ListItem((Class':Id,_::EnvCell)) => .List ...</envStack>
     when Class =/=K Class'  [structural]
 
-  // TODO(KORE): fix getKLabel #1801 and context issue #1802
+  // TODO(KORE): fix getKLabel #1801
   rule (A:Exp(B:Exps))(C:Exps) => A(B) ~> #freezerFunCall(C)
   rule (A:Exp[B:Exps])(C:Exps) => A[B] ~> #freezerFunCall(C)
   rule V:Val ~> #freezerFunCall(C:Exps) => V(C)

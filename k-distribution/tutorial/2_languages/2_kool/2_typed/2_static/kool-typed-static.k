@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2015 K Team. All Rights Reserved.
+// Copyright (c) 2012-2016 K Team. All Rights Reserved.
 /*@
 \title{KOOL --- Typed --- Static}
 \author{Grigore Ro\c{s}u and Traian Florin \c{S}erb\u{a}nu\c{t}\u{a}
@@ -110,7 +110,7 @@ the wrapper in the generated documentation, we associate it an
 //@ \subsection{Types}
 
   syntax Type ::= "void" | "int" | "bool" | "string"
-                | Id                     [klabel("'class")]  // see next
+                | Id                     [klabel("class"), avoid]  // see next
                 | class(Id)         // explicit KOOL class type
                 | Type "[" "]"
                 > Types "->" Type
@@ -130,6 +130,9 @@ the wrapper in the generated documentation, we associate it an
 
 //@ \subsection{Expressions}
 
+  syntax FieldReference ::= Exp "." Id          [strict(1)]
+  syntax ArrayReference ::= Exp "[" Exps "]"    [strict]
+
   syntax Exp ::= Int | Bool | String | Id
                | "this"
                | "super"
@@ -138,8 +141,6 @@ the wrapper in the generated documentation, we associate it an
                | Exp "instanceOf" Id     [strict(1)]
                | "(" Id ")" Exp          [strict(2)]
                | "new" Id "(" Exps ")"   [strict(2)]
-               | Exp "." Id              [strict(1)]
-               > Exp "[" Exps "]"        [strict]
                > Exp "(" Exps ")"        [strict]
                | "-" Exp                 [strict]
                | "sizeOf" "(" Exp ")"    [strict]
@@ -164,6 +165,9 @@ the wrapper in the generated documentation, we associate it an
                | Exp "||" Exp            [strict, left]
                > "spawn" Block  // not strict: to check return and exceptions
                > Exp "=" Exp             [strict(2), right]
+
+  syntax Exp ::= FieldReference | ArrayReference
+  syntax priority _._ > _[_] > _(_)
 
   syntax Exps ::= List{Exp,","}          [strict]
 
@@ -263,7 +267,7 @@ in the class extends relation. */
                       <inClass multiplicity="?" color="Fuchsia"> .K </inClass>
                     </task>
                   </tasks>
-                  <br/>
+//                  <br/>
                   <classes color="Fuchsia">
                     <class multiplicity="*">
                       <className color="Fuchsia"> Object </className>
@@ -285,6 +289,7 @@ typed SIMPLE, so we do not discuss them much here. */
   syntax Type ::= BlockOrStmtType
   syntax Block ::= BlockOrStmtType
   syntax KResult ::= Type
+                   | Types  // TODO: should not be needed
 
 
   context _:Type _:>Exp[HOLE:>Exps];
@@ -293,7 +298,7 @@ typed SIMPLE, so we do not discuss them much here. */
   rule T:Type E:Exp[.Types]; => T E;          [structural]
 
 
-  rule <task>... <k> _:BlockOrStmtType </k> <tenv> _ </tenv> ...</task> => .
+  rule <task>... <k> _:BlockOrStmtType </k> <tenv> _ </tenv> ...</task> => .Bag
 
 
   rule _:Int => int
@@ -344,8 +349,8 @@ typed SIMPLE, so we do not discuss them much here. */
 
   rule {} => block
 
-  rule <task> <k> {S} => block ...</k> <tenv> Rho </tenv> R </task>
-       (. => <task> <k> S </k> <tenv> Rho </tenv> R </task>)
+  rule <task> <k> {S:Stmts} => block ...</k> <tenv> Rho </tenv> R </task>
+       (.Bag => <task> <k> S </k> <tenv> Rho </tenv> R </task>)
 
   rule _:Type; => stmt
   rule if (bool) block else block => stmt
@@ -366,11 +371,9 @@ typed SIMPLE, so we do not discuss them much here. */
   rule mkDecls(T:Type X:Id, Ps:Params) => T X; mkDecls(Ps)
   rule mkDecls(.Params) => {}
 
-// We would like to say the following instead of the predicate rule below:
-//  syntax LValue ::= Id | Exp "[" Exps "]"
-// but unfortunately that currently generates some ambiguous parsings.
   syntax LValue ::= Id
-  rule isLValue(_:Exp[_:Exps]) => true
+                  | FieldReference
+                  | ArrayReference
 
   syntax Exp ::= ltype(Exp)
 // We would like to say:
@@ -434,7 +437,7 @@ at the end of this module). */
   rule <k> T:Type X:Id; => stuck(T X;) ...</k>
        <ctenvT>... X |-> _ ...</ctenvT>
        <inClass> C:Id </inClass>
-       <br/>
+//       <br/>
        <out>... .List => ListItem("Member \"" +String Id2String(X)
                               +String "\" declared twice in class \""
                               +String Id2String(C) +String "\"!\n") </out>
@@ -460,13 +463,13 @@ for example, inside other methods). */
   rule <k> T:Type F:Id(Ps:Params) S
         => checkMethod(F, getTypes(Ps)->T, C')
            ~> getTypes(Ps)->T F; ...</k>
-       <br/>
+//       <br/>
        <inClass> C </inClass>
        <ctenvT> _ </ctenvT> // to ensure we are in a class pass
        <className> C </className>
        <extends> C' </extends>
-       <br/>
-       (. => <task>
+//       <br/>
+       (.Bag => <task>
                <k> mkDecls(Ps) S </k>
                <inClass> C </inClass>
                <tenv> .Map </tenv>
@@ -514,10 +517,10 @@ type correctly. */
 The spawned cell needs to also be passed the parent's class. */
 // explain why
 
-  rule <k> spawn S => int ...</k>
+  rule <k> spawn S:Block => int ...</k>
        <tenv> Rho </tenv>
        <inClass> C </inClass>
-       (. => <task>
+       (.Bag => <task>
                <k> S </k>
                <tenv> Rho </tenv>
                <inClass> C </inClass>
@@ -542,24 +545,48 @@ instance of this rule). */
 // as the rule below does not work when rewriting . to both the task
 // and the class cells; I had to include two separate . rewrites
 
-  rule <task> <k> class C:Id extends C':Id { S } => stmt ...</k> </task>
-       (. => <class>...
+// TODO: the following fails krun; see #2117
+  rule <task> <k> class C:Id extends C':Id { S:Stmts } => stmt ...</k> </task>
+       (.Bag => <class>...
                <className> C </className>
                <extends> C' </extends>
              ...</class>)
-       <br/>
-       (. => <task>
+//       <br/>
+       (.Bag => <task>
                 <k> checkType(class(C')) ~> S </k>
                 <inClass> C </inClass>
                 <ctenvT> .Map </ctenvT>
-             </task>)  [structural]
+             </task>)
+    [structural]
+
+// You may want to try the thing below, but that failed, too
+/*
+syntax Type ::= "stmtStop"
+
+  rule <tasks>...
+       <task> <k> class C:Id extends C':Id { S:Stmts } => stmtStop ...</k> </task>
+       (.Bag => <task>
+                <k> checkType(class(C')) ~> S </k>
+                <inClass> C </inClass>
+                <ctenvT> .Map </ctenvT>
+             </task>)
+       ...</tasks>
+       <classes>...
+       .Bag => <class>...
+               <className> C </className>
+               <extends> C' </extends>
+             ...</class>
+       ...</classes>
+//       <br/>
+  [structural]
+*/
 
 //@ \paragraph{Check for unique class names}
 
   rule (<T>...
           <className> C </className>
           <className> C </className>
-        ...</T> => .)
+        ...</T> => .Bag)
        <out>... .List => ListItem("Class \"" +String Id2String(C)
                                   +String "\" declared twice!\n") </out>
     [structural]
@@ -579,12 +606,12 @@ checks for cycles. */
          <extendsAll> SetItem(C) Cs:Set (.Set => SetItem(C')) </extendsAll>
        ...</class>
        <class>... <className>C</className> <extends>C'</extends> ...</class>
-    when notBool(C' in SetItem(C) Cs)  [structural]
+    when notBool(C' in (SetItem(C) Cs))  [structural]
 
   rule (<T>...
           <className> C </className>
           <extendsAll>... SetItem(C) ...</extendsAll>
-        ...</T> => .)
+        ...</T> => .Bag)
        <out>... .List => ListItem("Class \"" +String Id2String(C)
                                   +String "\" is in a cycle!\n") </out>
     [inheritance-cycle]
@@ -661,11 +688,6 @@ wait.  Finally, the sixth rule below reports an error when the
        <tenv> Rho </tenv>
     when notBool(X in keys(Rho))
 
-// We would like to say the following instead of the predicate rule below:
-//  syntax LValue ::= Exp "." Id
-// but unfortunately that currently generates some ambiguous parsings.
-  rule isLValue(_:Exp . _:Id) => true
-
 // OLD approach:
 //  rule ltype(E:Exp . X:Id) => E . X  [structural]
 
@@ -681,7 +703,7 @@ wait.  Finally, the sixth rule below reports an error when the
 
   rule <k> class(Object) . X:Id => stuck(class(Object) . X) ...</k>
        <inClass> C:Id </inClass>
-       <br/>
+//      <br/>
        <out>... .List => ListItem("Member \"" +String Id2String(X)
                               +String "\" not declared! (see class \""
                               +String Id2String(C) +String "\")\n") </out>
@@ -742,7 +764,7 @@ the \textsf{tasks} cell has been removed. */
 // make sure that the class main and the method main() are declared.
 
   rule <task> <k> stmt => new Main(.Exps); </k>
-              (. => <tenv> .Map </tenv>
+              (.Bag => <tenv> .Map </tenv>
                     <return> void </return>
                     <inClass> Main </inClass>)
        </task>
@@ -754,9 +776,9 @@ the \textsf{tasks} cell has been removed. */
           <k> stmt </k>
           <ctenvT> Rho </ctenvT>
           <inClass> C:Id </inClass>
-        </task> => .)
+        </task> => .Bag)
         <className> C </className>
-        (. => <ctenv> Rho </ctenv>)
+        (.Bag => <ctenv> Rho </ctenv>)
     [structural]
 
 // discard method task when done
@@ -764,12 +786,12 @@ the \textsf{tasks} cell has been removed. */
   rule <task>...
          <k> stmt </k>
          <tenv> _ </tenv>  // only to ensure that this is a method task
-       ...</task> => .
+       ...</task> => .Bag
     [structural]
 
 // cleanup tasks and output a success message when done
 
-  rule (<T>... <tasks> .Bag </tasks> ...</T> => .)
+  rule (<T>... <tasks> .Bag </tasks> ...</T> => .Bag)
        <out>... .List => ListItem("Type checked!\n") </out>
     [structural]
 

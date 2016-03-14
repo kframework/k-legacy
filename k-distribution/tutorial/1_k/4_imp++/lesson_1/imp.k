@@ -1,9 +1,11 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
+
 module IMP-SYNTAX
   syntax AExp  ::= Int | String | Id
                  | "++" Id
                  | "read" "(" ")"
-                 > AExp "/" AExp              [left, strict]
+                 // remove division tag when we have proper search strategies
+                 > AExp "/" AExp              [left, strict, division]
                  > AExp "+" AExp              [left, strict]
                  | "(" AExp ")"               [bracket]
   syntax BExp  ::= Bool
@@ -19,13 +21,13 @@ module IMP-SYNTAX
                    Block "else" Block         [strict(1)]
                  | "while" "(" BExp ")" Block
                  | "int" Ids ";"
-                 | "print" "(" AExps ")" ";"  [strict]
+                 | "print" "(" AExps ")" ";"
                  | "halt" ";"
                  > "spawn" Stmt
                  > Stmt Stmt                  [left]
 
   syntax Ids   ::= List{Id,","}
-  syntax AExps ::= List{AExp,","}             [seqstrict]
+  syntax AExps ::= List{AExp,","}
 endmodule
 
 
@@ -40,7 +42,7 @@ module IMP
 
 // AExp
   rule <k> X:Id => I ...</k> <state>... X |-> I ...</state>
-  rule I1 / I2 => I1 /Int I2  when I2 =/=Int 0
+  rule I1 / I2 => I1 /Int I2  requires I2 =/=Int 0
   rule I1 + I2 => I1 +Int I2
 // BExp
   rule I1 <= I2 => I1 <=Int I2
@@ -57,8 +59,8 @@ module IMP
   rule if (false) _ else S => S
   rule while (B) S => if (B) {S while (B) S} else {}  [structural]
 
-  rule <k> int (X,Xs => Xs);...</k>
+  rule <k> int (X,Xs => Xs); ...</k>
        <state> Rho (.Map => X |-> 0) </state>
-    when notBool (X in keys(Rho))
+    requires notBool (X in keys(Rho))
   rule int .Ids; => .  [structural]
 endmodule

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<!-- Copyright (c) 2014-2015 K Team. All Rights Reserved. -->
+<!-- Copyright (c) 2014-2016 K Team. All Rights Reserved. -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.kframework.k</groupId>
   <artifactId>parent</artifactId>
   <packaging>pom</packaging>
-  <version>4.0-beta4-SNAPSHOT</version>
+  <version>4.0-beta</version>
   <name>K Framework Tool Parent</name>
 
   <modules>
@@ -39,18 +39,6 @@
       <releases><enabled>false</enabled></releases>
     </repository>
   </repositories>
-  <distributionManagement>
-    <repository>
-      <id>runtime-verification</id>
-      <name>Runtime Verification Repository</name>
-      <url>http://office.runtimeverification.com:8888/repository/internal</url>
-    </repository>
-    <snapshotRepository>
-      <id>runtime-verification.snapshots</id>
-      <name>Runtime Verification Snapshot Repository</name>
-      <url>http://office.runtimeverification.com:8888/repository/snapshots</url>
-    </snapshotRepository>
-  </distributionManagement>
 
   <properties>
     <base>master</base>

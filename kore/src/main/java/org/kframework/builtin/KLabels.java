@@ -1,4 +1,4 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 
 package org.kframework.builtin;
 
@@ -25,4 +25,5 @@ public class KLabels {
 
     public static final String GENERATED_TOP_CELL = "generatedTop";
     public static final String THIS_CONFIGURATION = "THIS_CONFIGURATION";
+    public static final String MAP_LOOKUP = "Map:lookup";
 }

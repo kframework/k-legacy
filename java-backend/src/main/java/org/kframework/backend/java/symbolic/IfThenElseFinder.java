@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2015 K Team. All Rights Reserved.
+// Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
 import org.kframework.backend.java.kil.JavaSymbolicObject;
@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class IfThenElseFinder extends PrePostVisitor {
     final List<KItem> result;
-    private final String IF_THEN_ELSE_LABEL="'#if_#then_#else_#fi";
+    private final String IF_THEN_ELSE_LABEL="#if_#then_#else_#fi";
 
     public IfThenElseFinder() {
         result = new ArrayList<>();

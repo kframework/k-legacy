@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.builtins;
 
 import org.kframework.backend.java.builtins.primitives.Ints;
@@ -254,10 +254,10 @@ public class Int32Token extends BitVector<Integer> {
 
     private static BuiltinList makeBuiltinListOfOverflowArithmeticResult(
             OverflowArithmeticResult<Integer> result, TermContext context) {
-        BuiltinList.Builder builder = BuiltinList.builder(context.global());
-        builder.addItem(Int32Token.of(result.value));
-        builder.addItem(BoolToken.of(result.overflow));
-        return (BuiltinList) builder.build();
+        return (BuiltinList) BuiltinList.builder(context.global())
+                .add(Int32Token.of(result.value))
+                .add(BoolToken.of(result.overflow))
+                .build();
     }
 
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2015 K Team. All Rights Reserved.
+// Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
 import java.util.Iterator;
@@ -193,5 +193,10 @@ public abstract class KCollection extends Collection implements Iterable<Term>, 
 
     public int size() {
         return items().size();
+    }
+
+    @Override
+    public Iterable<? extends K> asIterable() {
+        return this;
     }
 }

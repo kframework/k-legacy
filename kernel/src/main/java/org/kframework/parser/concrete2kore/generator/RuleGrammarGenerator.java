@@ -1,4 +1,4 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.parser.concrete2kore.generator;
 
 import org.apache.commons.collections4.trie.PatriciaTrie;
@@ -149,20 +149,14 @@ public class RuleGrammarGenerator {
      * @return a new module which imports the original user module and a set of marker modules.
      */
     public Module getProgramsGrammar(Module mod) {
+        // import PROGRAM-LISTS so user lists are modified to parse programs
+        scala.collection.Set<Module> modules = Set(mod, baseK.getModule(PROGRAM_LISTS).get());
 
-        if(mod.name().endsWith(POSTFIX)) {
-            return mod;
-        } else {
-            // import PROGRAM-LISTS so user lists are modified to parse programs
-            scala.collection.Set<Module> modules = Set(mod, baseK.getModule(PROGRAM_LISTS).get());
-
-            if (stream(mod.importedModules()).anyMatch(m -> m.name().equals(ID))) {
-                Module idProgramParsingModule = baseK.getModule(ID_PROGRAM_PARSING).get();
-                modules = add(idProgramParsingModule, modules);
-            }
-
-            return Module.apply(mod.name() + POSTFIX, modules, Set(), Att());
+        if(!mod.name().endsWith(POSTFIX) && stream(mod.importedModules()).anyMatch(m -> m.name().equals(ID))) {
+            Module idProgramParsingModule = baseK.getModule(ID_PROGRAM_PARSING).get();
+            modules = add(idProgramParsingModule, modules);
         }
+        return Module.apply(mod.name() + POSTFIX, modules, Set(), Att());
     }
 
     public static boolean isParserSort(Sort s) {
@@ -194,7 +188,7 @@ public class RuleGrammarGenerator {
                 for (Sort srt : iterable(m.localSorts())) {
                     if (!isParserSort(srt)) {
                         // K ::= Sort
-                        newProds.add(Production(Sorts.K(), Seq(NonTerminal(srt)), Att()));
+                        newProds.add(Production(Sorts.K(), Seq(NonTerminal(srt)), Att().add(Att.generatedByAutomaticSubsorting())));
                     }
                 }
             }
@@ -202,7 +196,7 @@ public class RuleGrammarGenerator {
                 for (Sort srt : iterable(m.localSorts())) {
                     if (!isParserSort(srt)) {
                         // Sort ::= KBott
-                        newProds.add(Production(srt, Seq(NonTerminal(Sorts.KBott())), Att()));
+                        newProds.add(Production(srt, Seq(NonTerminal(Sorts.KBott())), Att().add(Att.generatedByAutomaticSubsorting())));
                     }
                 }
             }

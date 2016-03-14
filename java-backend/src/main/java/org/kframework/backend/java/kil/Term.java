@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2015 K Team. All Rights Reserved.
+// Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
 import org.kframework.attributes.Att;
@@ -209,7 +209,7 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
     public abstract boolean equals(Object object);
 
     public Att att() {
-        return new KILtoInnerKORE(null, true).convertAttributes(this);
+        return new KILtoInnerKORE(null).convertAttributes(this);
     }
 
     public Location location() { return getLocation(); }

@@ -1,6 +1,8 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 
 package org.kframework.utils;
+
+import java.util.stream.Collectors;
 
 /**
  * {@link BitSet} implementation backed by four words. Faster than using the JDK {@link java.util.BitSet}.
@@ -199,6 +201,11 @@ public class FourWordBitSet implements BitSet<FourWordBitSet> {
     @Override
     public FourWordBitSet clone() {
         return new FourWordBitSet(word0, word1, word2, word3);
+    }
+
+    @Override
+    public String toString() {
+        return "{ " +  stream().mapToObj(i -> Integer.toString(i)).collect(Collectors.joining(", ")) + "}";
     }
 
 }

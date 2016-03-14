@@ -106,15 +106,27 @@ object Att {
   val topRule = "topRule"
   val userList = "userList"
   val generatedByListSubsorting = "generatedByListSubsorting"
+  val generatedByAutomaticSubsorting = "generatedByAutomaticSubsorting"
+  val allowChainSubsort = "allowChainSubsort"
+  val generatedBy = "generatedBy"
   val ClassFromUp = "classType"
   val Location = "location"
   val Function = "function"
+  val transition = "transition"
   val heat = "heat"
   val cool = "cool"
   val stuck = "#STUCK"
   val refers_THIS_CONFIGURATION = "refers_THIS_CONFIGURATION"
   val refers_RESTORE_CONFIGURATION = "refers_RESTORE_CONFIGURATION"
+  val assoc = "assoc"
+  val comm = "comm"
+  val unit = "unit"
+  val bag = "bag"
   val syntaxModule = "syntaxModule"
+  val variable = "variable"
+  val sort = "sort"
+
+  def generatedByAtt(c: Class[_]) = Att().add(Att.generatedBy, c.getName)
 }
 
 trait AttributesToString {

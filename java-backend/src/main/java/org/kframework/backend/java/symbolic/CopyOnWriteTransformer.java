@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2015 K Team. All Rights Reserved.
+// Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -353,21 +353,15 @@ public abstract class CopyOnWriteTransformer implements Transformer {
     @Override
     public ASTNode transform(BuiltinList builtinList) {
         boolean changed = false;
-        BuiltinList.Builder builder = BuiltinList.builder(resolveGlobalContext(builtinList));
-        for (Term term : builtinList.elementsLeft()) {
+        BuiltinList.Builder builder = BuiltinList.builder(
+                builtinList.sort,
+                builtinList.operatorKLabel,
+                builtinList.unitKLabel,
+                resolveGlobalContext(builtinList));
+        for (Term term : builtinList.children) {
             Term transformedTerm = (Term) term.accept(this);
             changed = changed || (transformedTerm != term);
-            builder.addItem(transformedTerm);
-        }
-        for (Term term : builtinList.baseTerms()) {
-            Term transformedTerm = (Term) term.accept(this);
-            changed = changed || (transformedTerm != term);
-            builder.concatenate(transformedTerm);
-        }
-        for (Term term : builtinList.elementsRight()) {
-            Term transformedTerm = (Term) term.accept(this);
-            changed = changed || (transformedTerm != term);
-            builder.addItem(transformedTerm);
+            builder.add(transformedTerm);
         }
         return changed ? builder.build() : builtinList;
     }

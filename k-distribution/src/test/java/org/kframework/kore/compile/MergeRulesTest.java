@@ -15,6 +15,6 @@ public class MergeRulesTest extends AbstractTest {
     public void firstTest() throws URISyntaxException {
         String filename = "/convertor-tests/kore_imp.k";
         KoreUtils utils = new KoreUtils(filename, "IMP", "IMP-SYNTAX", kem);
-        System.out.println(utils.compiledDef.executionModule().rules().mkString("\n"));
+        //System.out.println(utils.compiledDef.executionModule().rules().mkString("\n"));
     }
 }

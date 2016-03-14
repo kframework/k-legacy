@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2015 K Team. All Rights Reserved.
+// Copyright (c) 2012-2016 K Team. All Rights Reserved.
 package org.kframework.krun;
 
 import com.google.common.collect.ImmutableList;
@@ -88,6 +88,12 @@ public class KRunFrontEnd extends FrontEnd {
     public int run() {
         scope.enter(kompiledDir.get());
         try {
+            for (int i = 0; i < krunOptions.experimental.profile - 1; i++) {
+                new KRun(kem, files, tty.stdin).run(compiledDef.get(),
+                        krunOptions,
+                        initializeRewriter.get(),
+                        executionMode.get());
+            }
             return new KRun(kem, files, tty.stdin).run(compiledDef.get(),
                     krunOptions,
                     initializeRewriter.get(),

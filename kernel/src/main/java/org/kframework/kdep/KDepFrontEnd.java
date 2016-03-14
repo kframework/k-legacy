@@ -1,4 +1,4 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.kdep;
 
 import com.google.common.collect.Lists;
@@ -11,6 +11,7 @@ import org.kframework.main.FrontEnd;
 import org.kframework.main.GlobalOptions;
 import org.kframework.parser.concrete2kore.ParserUtils;
 import org.kframework.utils.Stopwatch;
+import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
@@ -18,22 +19,25 @@ import org.kframework.utils.inject.CommonModule;
 import org.kframework.utils.inject.JCommanderModule;
 import org.kframework.utils.inject.JCommanderModule.ExperimentalUsage;
 import org.kframework.utils.inject.JCommanderModule.Usage;
+import org.kframework.utils.options.OuterParsingOptions;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * Frontend for kdep tool.
- *
+ * <p>
  * kdep is designed to generate a Makefile that contains the dependencies
  * that kompile has on files when you run it. This can be used in order to ensure that if any
  * of the files required by a k definition are changed, the makefile will rerun kompile.
- *
+ * <p>
  * Example Makefile snippet:
- *
+ * <p>
  * <pre>
  *     .depend:
  *             kdep definition.k -d "directory" -I includes > .depend
@@ -43,7 +47,7 @@ import java.util.stream.Collectors;
  */
 public class KDepFrontEnd extends FrontEnd {
 
-    private final KDepOptions options;
+    private final OuterParsingOptions options;
     private final KExceptionManager kem;
     private final Stopwatch sw;
     private final FileUtil files;
@@ -51,7 +55,7 @@ public class KDepFrontEnd extends FrontEnd {
 
     @Inject
     public KDepFrontEnd(
-            KDepOptions options,
+            OuterParsingOptions options,
             KExceptionManager kem,
             GlobalOptions globalOptions,
             @Usage String usage,
@@ -64,7 +68,7 @@ public class KDepFrontEnd extends FrontEnd {
         this.kem = kem;
         this.sw = sw;
         this.files = files;
-        this.parser = new ParserUtils(files, kem, options.global);
+        this.parser = new ParserUtils(files::resolveWorkingDirectory, kem, globalOptions);
     }
 
     public static List<Module> getModules() {
@@ -77,17 +81,25 @@ public class KDepFrontEnd extends FrontEnd {
 
     @Override
     protected int run() {
-        String prelude = Kompile.REQUIRE_PRELUDE_K;
-        if (options.noPrelude) {
-            prelude = "";
+        List<org.kframework.kil.Module> modules = new ArrayList<>();
+        Source source = Source.apply(options.mainDefinitionFile(files).getAbsolutePath());
+        File currentDirectory = options.mainDefinitionFile(files).getParentFile();
+        List<File> lookupDirectories = ListUtils.union(options.includes.stream()
+                        .map(files::resolveWorkingDirectory).collect(Collectors.toList()),
+                Lists.newArrayList(Kompile.BUILTIN_DIRECTORY));
+
+        // load builtin files if needed first
+        if (!options.noPrelude) {
+            modules.addAll(parser.slurp(Kompile.REQUIRE_PRELUDE_K,
+                    source,
+                    currentDirectory,
+                    lookupDirectories));
         }
 
-        List<org.kframework.kil.Module> modules = parser.slurp(prelude + FileUtil.load(options.mainDefinitionFile()),
-                Source.apply(options.mainDefinitionFile().getAbsolutePath()),
-                options.mainDefinitionFile().getParentFile(),
-                ListUtils.union(options.includes.stream()
-                        .map(files::resolveWorkingDirectory).collect(Collectors.toList()),
-                Lists.newArrayList(Kompile.BUILTIN_DIRECTORY)));
+        modules.addAll(parser.slurp(FileUtil.load(options.mainDefinitionFile(files)),
+                source,
+                currentDirectory,
+                lookupDirectories));
         Set<File> allFiles = modules.stream().map(m -> new File(m.getSource().source())).collect(Collectors.toSet());
         System.out.println(files.resolveWorkingDirectory(".").toURI().relativize(files.resolveKompiled("timestamp").toURI()).getPath() + " : \\");
         for (File file : allFiles) {

@@ -1,35 +1,40 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.krun;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.attributes.Source;
 import org.kframework.builtin.Sorts;
+import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
 import org.kframework.kompile.CompiledDefinition;
-import org.kframework.kore.VisitK;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KToken;
 import org.kframework.kore.KVariable;
 import org.kframework.kore.Sort;
-import org.kframework.kore.ToKast;
+import org.kframework.kore.VisitK;
+import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.main.Main;
 import org.kframework.parser.ProductionReference;
+import org.kframework.parser.binary.BinaryParser;
+import org.kframework.parser.kore.KoreParser;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.unparser.AddBrackets;
 import org.kframework.unparser.KOREToTreeNodes;
 import org.kframework.unparser.OutputModes;
+import org.kframework.unparser.ToBinary;
+import org.kframework.unparser.ToKast;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.koreparser.KoreParser;
 import scala.Tuple2;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -42,7 +47,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import static org.kframework.Collections.*;
 import static org.kframework.kore.KORE.*;
 
 /**
@@ -69,6 +76,9 @@ public class KRun {
         } else {
             program = parseConfigVars(options, compiledDef);
         }
+
+        program = new KTokenVariablesToTrueVariables()
+                .apply(compiledDef.kompiledDefinition.getModule(compiledDef.mainSyntaxModuleName()).get(), program);
 
 
         Rewriter rewriter = rewriterGenerator.apply(compiledDef.executionModule());
@@ -99,28 +109,34 @@ public class KRun {
             if (((List) result).isEmpty()) {
                 System.out.println("true");
             }
+        } else if (result instanceof Integer) {
+            return (Integer) result;
         }
         return 0;
     }
 
     private void printSearchResult(SearchResult result, KRunOptions options, CompiledDefinition compiledDef) {
-        List<? extends Map<? extends KVariable, ? extends K>> searchResult = ((SearchResult) result).getSearchList();
+        Set<Map<? extends KVariable, ? extends K>> searchResult = ((SearchResult) result).getSearchList().stream()
+                .map(subst -> filterAnonymousVariables(subst, result.getParsedRule()))
+                .collect(Collectors.toSet());
+        outputFile("Search results:\n\n", options);
         if (searchResult.isEmpty()) {
-            outputFile("No Search Results \n", options);
+            outputFile("No search results \n", options);
         }
         int i = 1;
         List<String> results = new ArrayList<>();
         for (Map<? extends KVariable, ? extends K> substitution : searchResult) {
-            StringBuilder sb = new StringBuilder();
-            prettyPrintSubstitution(substitution, result.getParsedRule(), compiledDef, options.output, sb::append);
-            results.add(sb.toString());
+            ByteArrayOutputStream sb = new ByteArrayOutputStream();
+            prettyPrintSubstitution(substitution, result.getParsedRule(), compiledDef, options.output, v -> sb.write(v, 0, v.length));
+            //Note that this is actually unsafe, but we are here assuming that --search is not used with --output binary
+            results.add(new String(sb.toByteArray()));
         }
         Collections.sort(results);
         StringBuilder sb = new StringBuilder();
-        sb.append("Search results:\n\n");
         for (String solution : results) {
             sb.append("Solution ").append(i++).append(":\n");
             sb.append(solution);
+            sb.append("\n");
         }
         outputFile(sb.toString(), options);
     }
@@ -158,8 +174,16 @@ public class KRun {
 
     //TODO(dwightguth): use Writer
     public void outputFile(String output, KRunOptions options) {
+        outputFile(output.getBytes(), options);
+    }
+
+    public void outputFile(byte[] output, KRunOptions options) {
         if (options.outputFile == null) {
-            System.out.print(output);
+            try {
+                System.out.write(output);
+            } catch (IOException e) {
+                throw KEMException.internalError(e.getMessage(), e);
+            }
         } else {
             files.saveToWorkingDirectory(options.outputFile, output);
         }
@@ -193,17 +217,20 @@ public class KRun {
         return compiledDef.parsePatternIfAbsent(files, kem, pattern, source);
     }
 
-    public static void prettyPrint(CompiledDefinition compiledDef, OutputModes output, Consumer<String> print, K result) {
+    public static void prettyPrint(CompiledDefinition compiledDef, OutputModes output, Consumer<byte[]> print, K result) {
         switch (output) {
         case KAST:
-            print.accept(ToKast.apply(result) + "\n");
+            print.accept((ToKast.apply(result) + "\n").getBytes());
             break;
         case NONE:
-            print.accept("");
+            print.accept("".getBytes());
             break;
         case PRETTY:
             Module unparsingModule = compiledDef.getExtensionModule(compiledDef.languageParsingModule());
-            print.accept(unparseTerm(result, unparsingModule) + "\n");
+            print.accept((unparseTerm(result, unparsingModule) + "\n").getBytes());
+            break;
+        case BINARY:
+            print.accept(ToBinary.apply(result));
             break;
         default:
             throw KEMException.criticalError("Unsupported output mode: " + output);
@@ -224,31 +251,40 @@ public class KRun {
     public static void prettyPrintSubstitution(Map<? extends KVariable, ? extends K> subst,
                                                Rule parsedPattern, CompiledDefinition compiledDefinition,
                                                OutputModes outputModes,
-                                               Consumer<String> print) {
-        if (subst.isEmpty()) {
-            return;
+                                               Consumer<byte[]> print) {
+        if(subst.isEmpty()) {
+            print.accept("Empty substitution\n".getBytes());
+        } else {
+            subst.entrySet().forEach(e -> {
+                if (parsedPattern.body() instanceof KVariable) {
+                    assert e.getKey().name().equals(parsedPattern.body().toString());
+                    prettyPrint(compiledDefinition, outputModes, print, e.getValue());
+                    return;
+                }
+                print.accept(e.getKey().toString().getBytes());
+                print.accept(" -->\n".getBytes());
+                prettyPrint(compiledDefinition, outputModes, print, e.getValue());
+            });
         }
+    }
+
+    /**
+     * Returns a new substitution containing only the keys occurring in the pattern.
+     */
+    public static Map<KVariable, K> filterAnonymousVariables(Map<? extends KVariable, ? extends K> substitution, Rule parsedPattern) {
         List<String> varList = new ArrayList<>();
         new VisitK() {
             @Override
             public void apply(KVariable k) {
-                    /* Not Observing reflexivity Rule requires comparison by name */
+                /* Not Observing reflexivity Rule requires comparison by name */
                 varList.add(k.name());
                 super.apply(k);
             }
         }.apply(parsedPattern.body());
-        for (KVariable variable : subst.keySet()) {
-            if (varList.contains(variable.name())) {
-                K value = subst.get(variable);
-                if (parsedPattern.body() instanceof KVariable) {
-                    prettyPrint(compiledDefinition, outputModes, print, value);
-                    return;
-                }
-                print.accept(variable.toString());
-                print.accept(" -->\n");
-                prettyPrint(compiledDefinition, outputModes, print, value);
-            }
-        }
+
+        return substitution.entrySet().stream()
+                .filter(e -> varList.contains(e.getKey().name()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef) {
@@ -258,8 +294,7 @@ public class KRun {
             String name = entry.getKey();
             String value = entry.getValue().getLeft();
             String parser = entry.getValue().getRight();
-            // TODO(dwightguth): start symbols
-            Sort sort = Sorts.K();
+            Sort sort = compiledDef.programStartSymbol;
             K configVar = externalParse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), compiledDef);
             output.put(KToken("$" + name, Sorts.KConfigVar()), configVar);
         }
@@ -271,7 +306,26 @@ public class KRun {
             output.put(KToken("$STDIN", Sorts.KConfigVar()), KToken("\"" + stdin + "\"", Sorts.String()));
             output.put(KToken("$IO", Sorts.KConfigVar()), KToken("\"off\"", Sorts.String()));
         }
+        checkConfigVars(output.keySet(), compiledDef);
         return plugConfigVars(compiledDef, output);
+    }
+
+    private void checkConfigVars(Set<KToken> inputConfigVars, CompiledDefinition compiledDef) {
+        Set<KToken> defConfigVars = mutable(new ConfigurationInfoFromModule(compiledDef.kompiledDefinition.mainModule()).configVars());
+
+        for (KToken defConfigVar : defConfigVars) {
+            if (!inputConfigVars.contains(defConfigVar)) {
+                throw KEMException.compilerError("Configuration variable missing: " + defConfigVar.s());
+            }
+        }
+
+        for (KToken inputConfigVar : inputConfigVars) {
+            if (!defConfigVars.contains(inputConfigVar)) {
+                if (!inputConfigVar.s().equals("$STDIN") && !inputConfigVar.s().equals("$IO")) {
+                    kem.registerCompilerWarning("User specified configuration variable " + inputConfigVar.s() + " which does not exist.");
+                }
+            }
+        }
     }
 
     public static String getStdinBuffer(boolean ttyStdin) {
@@ -316,10 +370,14 @@ public class KRun {
 
         if (output.exitCode != 0) {
             throw new ParseFailedException(new KException(KException.ExceptionType.ERROR, KException.KExceptionGroup.CRITICAL, "Parser returned a non-zero exit code: "
-                    + output.exitCode + "\nStdout:\n" + output.stdout + "\nStderr:\n" + output.stderr));
+                    + output.exitCode + "\nStdout:\n" + new String(output.stdout) + "\nStderr:\n" + new String(output.stderr)));
         }
 
-        String kast = output.stdout != null ? output.stdout : "";
-        return KoreParser.parse(kast, source);
+        byte[] kast = output.stdout != null ? output.stdout : new byte[0];
+        if (BinaryParser.isBinaryKast(kast)) {
+            return BinaryParser.parse(kast);
+        } else {
+            return KoreParser.parse(new String(kast), source);
+        }
     }
 }

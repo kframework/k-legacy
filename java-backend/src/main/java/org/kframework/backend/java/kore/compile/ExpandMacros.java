@@ -1,4 +1,4 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.kore.compile;
 
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
@@ -138,7 +138,7 @@ public class ExpandMacros {
         }
         TermContext tc = TermContext.builder(rewriter.rewritingContext).build();
         //Term t = new KOREtoBackendKIL(tc).convert(term).evaluate(tc);
-        Term t = new MacroExpander(tc, kem).processTerm(new KOREtoBackendKIL(rewriter.module, rewriter.definition, tc.global(), false, false).convert(term));
+        Term t = new MacroExpander(tc, kem).processTerm(new KOREtoBackendKIL(rewriter.module, rewriter.definition, tc.global(), false).convert(term));
         return new KtoKORE().apply(t);
     }
 

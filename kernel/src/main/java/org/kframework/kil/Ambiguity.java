@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
 package org.kframework.kil;
 
 import com.google.common.collect.Sets;
@@ -34,7 +34,7 @@ public class Ambiguity extends Collection {
         if (content.length() > 1)
             content = content.substring(0, content.length() - 1);
 
-        return "'amb(" + content + ")";
+        return "amb(" + content + ")";
     }
 
     @Override

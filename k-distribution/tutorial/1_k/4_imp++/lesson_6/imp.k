@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
+
 module IMP-SYNTAX
   syntax AExp  ::= Int | String | Id
                  | "++" Id
@@ -19,13 +20,13 @@ module IMP-SYNTAX
                    Block "else" Block         [strict(1)]
                  | "while" "(" BExp ")" Block
                  | "int" Ids ";"
-                 | "print" "(" AExps ")" ";"  [strict]
+                 | "print" "(" AExps ")" ";"
                  | "halt" ";"
                  > "spawn" Stmt
                  > Stmt Stmt                  [left]
 
-  syntax Ids   ::= List{Id,","}               [strict]
-  syntax AExps ::= List{AExp,","}             [strict]
+  syntax Ids   ::= List{Id,","}
+  syntax AExps ::= List{AExp,","}
 endmodule
 
 
@@ -54,7 +55,7 @@ module IMP
        <store>... N |-> (I => I +Int 1) ...</store>  [increment]
   rule <k> read() => I ...</k>
        <in> ListItem(I:Int) => .List ...</in>  [read]
-  rule I1 / I2 => I1 /Int I2  when I2 =/=Int 0
+  rule I1 / I2 => I1 /Int I2  requires I2 =/=Int 0
   rule I1 + I2 => I1 +Int I2
   rule Str1 + Str2 => Str1 +String Str2
 // BExp
@@ -81,7 +82,10 @@ module IMP
   rule int .Ids; => .  [structural]
 
   syntax Printable ::= Int | String
+/* currently it is necessary to subsort Printable to AExp,
+  but future K should be able to infer that automatically. */
   syntax AExp ::= Printable
+  context print(HOLE:AExp, AEs:AExps);
   rule <k> print(P:Printable,AEs => AEs); ...</k>
        <out>... .List => ListItem(P) </out>  [print]
   rule print(.AExps); => .  [structural]
@@ -89,6 +93,7 @@ module IMP
   rule <k> halt; ~> _ => . </k>
 
   rule <k> spawn S => . ...</k> <env> Rho </env>
-       (. => <thread>... <k> S </k> <env> Rho </env> ...</thread>)
-  rule <thread>... <k> . </k> ...</thread> => .  [structural]
+       (.Bag => <thread>... <k> S </k> <env> Rho </env> ...</thread>)
+
+  rule <thread>... <k> . </k> ...</thread> => .Bag  [structural]
 endmodule

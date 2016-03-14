@@ -34,11 +34,15 @@ object ADT {
 
   case class KApply[KK <: K](klabel: kore.KLabel, klist: kore.KList, att: Att = Att()) extends kore.KApply {
     def items = klist.items
+    def size = klist.size
+    def asIterable = klist.asIterable
   }
 
   class KSequence private(val elements: List[K], val att: Att = Att()) extends kore.KSequence {
     val items: java.util.List[K] = elements.asJava
-    val kApply: kore.KApply = items.asScala reduceRightOption { (a, b) => KLabelLookup(KLabels.KSEQ)(a, b) } getOrElse {KLabelLookup(KLabels.DOTK)()} match {
+    val size: Int = elements.size
+    val asIterable: java.lang.Iterable[K] = new org.kframework.List(elements)
+    lazy val kApply: kore.KApply = items.asScala reduceRightOption { (a, b) => KLabelLookup(KLabels.KSEQ)(a, b) } getOrElse {KLabelLookup(KLabels.DOTK)()} match {
       case k: kore.KApply => k
       case x => KLabelLookup(KLabels.KSEQ)(x, KLabelLookup(KLabels.DOTK)())
     }
@@ -52,6 +56,11 @@ object ADT {
   }
 
   object KSequence {
+    private val emptyAtt = Att()
+
+    def raw(elements: scala.collection.immutable.List[K]): KSequence =
+      new KSequence(elements, emptyAtt)
+
     def apply(elements: List[K], att: Att = Att()): KSequence =
       new KSequence(elements.foldLeft(List[K]()) {
         case (sum, s: KSequence) => sum ++ s.items.asScala
@@ -104,6 +113,8 @@ object ADT {
     def items: java.util.List[K] = elements.asJava
 
     def iterator: Iterator[K] = elements.iterator
+    lazy val size = elements.size
+    lazy val asIterable = new org.kframework.List(elements)
   }
 
   case class KRewrite(left: kore.K, right: kore.K, att: Att = Att()) extends kore.KRewrite

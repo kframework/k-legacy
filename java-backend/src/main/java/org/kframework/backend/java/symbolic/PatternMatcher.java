@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
 import com.google.common.collect.ImmutableSet;
@@ -228,9 +228,7 @@ public class PatternMatcher extends AbstractUnifier {
     @Override
     public void unify(BuiltinList builtinList, BuiltinList patternList) {
         if (matchOnFunctionSymbol) {
-            addUnificationTask(
-                    ((BuiltinList) BuiltinList.concatenate(global, builtinList)).toKore(),
-                    ((BuiltinList) BuiltinList.concatenate(global, patternList)).toKore());
+            addUnificationTask(builtinList.toKore(), patternList.toKore());
             return;
         }
 

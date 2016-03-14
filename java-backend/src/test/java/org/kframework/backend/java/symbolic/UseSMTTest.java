@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
 import com.google.common.collect.HashMultimap;
@@ -47,7 +47,7 @@ public class UseSMTTest {
         when(tc.global()).thenReturn(global);
     }
 
-    @Ignore @Test
+    @Test @Ignore
     public void testGetModel() {
         System.err.println(System.getProperty("java.library.path"));
         BuiltinMap.Builder builder = new BuiltinMap.Builder(tc.global());

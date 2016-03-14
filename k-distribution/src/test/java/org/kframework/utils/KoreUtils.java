@@ -1,4 +1,4 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.utils;
 
 import com.google.inject.Guice;
@@ -74,13 +74,13 @@ public class KoreUtils {
         globalOptions.warnings = GlobalOptions.Warnings.ALL;
 
         kompileOptions.experimental.heatCoolStrategies = heatCoolStrategies;
-        kompileOptions.noPrelude = noPrelude;
+        kompileOptions.outerParsing.noPrelude = noPrelude;
 
         KRunOptions krunOptions = new KRunOptions();
         krunOptions.search = search;
 
         Kompile kompile = new Kompile(kompileOptions, FileUtil.testFileUtil(), kem, false);
-        compiledDef = kompile.run(definitionFile, mainModuleName, mainProgramsModuleName, sort,
+        compiledDef = kompile.run(definitionFile, mainModuleName, mainProgramsModuleName,
                 new JavaBackend(kem, FileUtil.testFileUtil(), globalOptions, kompileOptions).steps(kompile));
 
         requestScope = new SimpleScope();
@@ -104,11 +104,11 @@ public class KoreUtils {
         programParser = compiledDef.getProgramParser(this.kem);
     }
 
-    public K getParsed(String program, Source source) throws IOException, URISyntaxException {
+    public K getParsed(String program, Source source) throws URISyntaxException {
         return getParsed(program, source, null);
     }
 
-    public K getParsed(String program, Source source, String strategy) throws IOException, URISyntaxException {
+    public K getParsed(String program, Source source, String strategy) throws URISyntaxException {
         K parsed = programParser.apply(program, source);
         KRun krun = new KRun(kem, FileUtil.testFileUtil(), true);
 

@@ -1,8 +1,7 @@
-// Copyright (c) 2013-2015 K Team. All Rights Reserved.
+// Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -42,7 +41,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author AndreiS
@@ -51,9 +49,12 @@ public class SymbolicRewriter {
 
     private final JavaExecutionOptions javaOptions;
     private final TransitionCompositeStrategy strategy;
+    private final List<String> transitions;
     private final Stopwatch stopwatch = Stopwatch.createUnstarted();
     private final KOREtoBackendKIL constructor;
     private boolean transition;
+    private final Set<ConstrainedTerm> superheated = Sets.newHashSet();
+    private final Set<ConstrainedTerm> newSuperheated = Sets.newHashSet();
     private final RuleIndex ruleIndex;
     private final KRunState.Counter counter;
     private final Map<ConstrainedTerm, Set<Rule>> subject2DisabledRules = new HashMap<>();
@@ -74,8 +75,10 @@ public class SymbolicRewriter {
         this.ruleIndex = definition.getIndex();
         this.counter = counter;
         this.strategy = new TransitionCompositeStrategy(kompileOptions.transition);
+        this.transitions = kompileOptions.transition;
         this.useFastRewriting = !kompileOptions.experimental.koreProve;
-        this.theFastMatcher = new FastRuleMatcher(global, allRuleBits.length());
+        this.theFastMatcher = new FastRuleMatcher(global, definition.ruleTable.size());
+        this.transition = useFastRewriting;
     }
 
     public KRunState rewrite(ConstrainedTerm constrainedTerm, int bound) {
@@ -225,20 +228,27 @@ public class SymbolicRewriter {
         throw new UnsupportedOperationException();
     }
 
+    private Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term> getRewrites(ConjunctiveFormula constraint) {
+        return constraint.equalities().stream()
+                .filter(e -> e.leftHandSide() instanceof LocalRewriteTerm)
+                .map(Equality::leftHandSide)
+                .map(LocalRewriteTerm.class::cast)
+                .collect(Collectors.toMap(e -> e.path, e -> e.rewriteRHS));
+    }
 
     private List<ConstrainedTerm> fastComputeRewriteStep(ConstrainedTerm subject, boolean computeOne) {
         List<ConstrainedTerm> results = new ArrayList<>();
         if (definition.automaton == null) {
             return results;
         }
-        List<Triple<ConjunctiveFormula, Boolean, Integer>> matches = theFastMatcher.mainMatch(
+        List<Triple<ConjunctiveFormula, Boolean, Integer>> matches = theFastMatcher.matchRulePattern(
                 subject,
                 definition.automaton.leftHandSide(),
                 allRuleBits,
                 computeOne,
+                transitions,
                 subject.termContext());
         for (Triple<ConjunctiveFormula, Boolean, Integer> triple : matches) {
-            assert triple.getLeft().isSubstitution();
             Rule rule = definition.ruleTable.get(triple.getRight());
             Substitution<Variable, Term> substitution =
                     rule.containsAttribute(Att.refers_THIS_CONFIGURATION()) ?
@@ -248,7 +258,7 @@ public class SymbolicRewriter {
             // start the optimized substitution
 
             // get a map from AST paths to (fine-grained, inner) rewrite RHSs
-            Map<scala.collection.immutable.List<Integer>, Term> rewrites = theFastMatcher.getRewrite(triple.getRight());
+            Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term> rewrites = getRewrites(triple.getLeft());
 
             assert (rewrites.size() > 0);
 
@@ -274,8 +284,16 @@ public class SymbolicRewriter {
 
             theNew = restoreConfigurationIfNecessary(subject, rule, theNew);
 
-            results.add(new ConstrainedTerm(theNew, subject.termContext()));
-            //results.add(buildResult(rule, triple.getLeft(), subject.term(), true, subject.termContext()));
+            ConstrainedTerm result = new ConstrainedTerm(theNew, subject.termContext());
+
+            /* TODO(AndreiS): remove this hack for super strictness after strategies work */
+            if (rule.containsAttribute(Att.heat()) && transitions.stream().anyMatch(rule::containsAttribute)) {
+                newSuperheated.add(result);
+            } else if (rule.containsAttribute(Att.cool()) && transitions.stream().anyMatch(rule::containsAttribute) && superheated.contains(subject)) {
+                continue;
+            }
+
+            results.add(result);
         }
 
         if (results.isEmpty()) {
@@ -309,7 +327,7 @@ public class SymbolicRewriter {
                 @Override
                 public ASTNode transform(KItem kItem) {
                     if (kItem.kLabel() instanceof KLabelConstant && ((KLabelConstant) kItem.kLabel()).name().equals("#RESTORE_CONFIGURATION")) {
-                        return KItem.of(KLabelConstant.of(KLabels.DOTK, definition), KList.EMPTY, subject.termContext().global());
+                        return BuiltinList.kSequenceBuilder(subject.termContext().global()).build();
                     } else {
                         return super.transform(kItem);
                     }
@@ -341,14 +359,26 @@ public class SymbolicRewriter {
      * goes down the path on the subject to find the rewrite place, does the substitution, and reconstructs the term
      * on its way up
      */
-    private Term buildRHS(Term subject, Substitution<Variable, Term> substitution, scala.collection.immutable.List<Integer> path, Term rhs, TermContext context) {
+    private Term buildRHS(Term subject, Substitution<Variable, Term> substitution, scala.collection.immutable.List<Pair<Integer, Integer>> path, Term rhs, TermContext context) {
         if (path.isEmpty()) {
             return rhs.substituteAndEvaluate(substitution, context);
         } else {
-            KItem kItemSubject = (KItem) subject;
-            List<Term> newContents = new ArrayList<>(((KList) kItemSubject.kList()).getContents());
-            newContents.set(path.head(), buildRHS(newContents.get(path.head()), substitution, (scala.collection.immutable.List<Integer>) path.tail(), rhs, context));
-            return KItem.of(kItemSubject.kLabel(), KList.concatenate(newContents), context.global()).applyAnywhereRules(false, context);
+            if (subject instanceof KItem) {
+                KItem kItemSubject = (KItem) subject;
+                List<Term> newContents = new ArrayList<>(((KList) kItemSubject.kList()).getContents());
+                newContents.set(path.head().getLeft(), buildRHS(newContents.get(path.head().getLeft()), substitution, (scala.collection.immutable.List<Pair<Integer, Integer>>) path.tail(), rhs, context));
+                return KItem.of(kItemSubject.kLabel(), KList.concatenate(newContents), context.global()).applyAnywhereRules(false, context);
+            } else if (subject instanceof BuiltinList) {
+                BuiltinList builtinListSubject = (BuiltinList) subject;
+                List<Term> newContents = new ArrayList<>(builtinListSubject.children);
+                newContents.set(path.head().getLeft(), buildRHS(newContents.get(path.head().getLeft()), substitution, (scala.collection.immutable.List<Pair<Integer, Integer>>) path.tail(), rhs, context));
+                return BuiltinList
+                        .builder(builtinListSubject.sort, builtinListSubject.operatorKLabel, builtinListSubject.unitKLabel, builtinListSubject.globalContext())
+                        .addAll(newContents)
+                        .build();
+            } else {
+                throw new AssertionError("unexpected rewrite in subject: " + subject);
+            }
         }
     }
 
@@ -356,29 +386,44 @@ public class SymbolicRewriter {
      * goes down each of the the paths on the subject to find the rewrite place, does the substitution,
      * and reconstructs the term on its way up
      */
-    private Term buildRHS(Term subject, Substitution<Variable, Term> substitution, List<Pair<scala.collection.immutable.List<Integer>, Term>> rewrites, TermContext context) {
+    private Term buildRHS(Term subject, Substitution<Variable, Term> substitution, List<Pair<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>> rewrites, TermContext context) {
         if (rewrites.size() == 1 && rewrites.get(0).getLeft().isEmpty()) {
             return rewrites.get(0).getRight().substituteAndEvaluate(substitution, context);
         }
 
-        KItem kItemSubject = (KItem) subject;
+        Map<Pair<Integer, Integer>, List<Pair<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>>> commonPath = rewrites.stream().collect(Collectors.groupingBy(rw -> rw.getLeft().head()));
 
-        Map<Integer, List<Pair<scala.collection.immutable.List<Integer>, Term>>> commonPath = rewrites.stream().collect(Collectors.groupingBy(rw -> rw.getLeft().head()));
-
-        List<Term> contents = ((KList) kItemSubject.kList()).getContents();
+        List<Term> contents;
+        if (subject instanceof KItem) {
+            contents = ((KList) ((KItem) subject).kList()).getContents();
+        } else if (subject instanceof BuiltinList) {
+            contents = ((BuiltinList) subject).children;
+        } else {
+            throw new AssertionError("unexpected rewrite in subject: " + subject);
+        }
         List<Term> newContents = new ArrayList<>();
 
         for (int i = 0; i < contents.size(); i++) {
-            if (commonPath.containsKey(i)) {
-                List<Pair<scala.collection.immutable.List<Integer>, Term>> theInnerRewrites = commonPath.get(i).stream().map(p -> Pair.of(
-                        (scala.collection.immutable.List<Integer>) p.getLeft().tail(), p.getRight())).collect(Collectors.toList());
+            Pair<Integer, Integer> pair = Pair.of(i, i + 1);
+            if (commonPath.containsKey(pair)) {
+                List<Pair<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>> theInnerRewrites = commonPath.get(pair).stream().map(p -> Pair.of(
+                        (scala.collection.immutable.List<Pair<Integer, Integer>>) p.getLeft().tail(), p.getRight())).collect(Collectors.toList());
                 newContents.add(buildRHS(contents.get(i), substitution, theInnerRewrites, context));
             } else {
                 newContents.add(contents.get(i));
             }
         }
 
-        return KItem.of(kItemSubject.kLabel(), KList.concatenate(newContents), context.global()).applyAnywhereRules(false, context);
+        if (subject instanceof KItem) {
+            return KItem.of(((KItem) subject).kLabel(), KList.concatenate(newContents), context.global()).applyAnywhereRules(false, context);
+        } else if (subject instanceof BuiltinList) {
+            return BuiltinList
+                    .builder(((BuiltinList) subject).sort, ((BuiltinList) subject).operatorKLabel, ((BuiltinList) subject).unitKLabel, ((BuiltinList) subject).globalContext())
+                    .addAll(newContents)
+                    .build();
+        } else {
+            throw new AssertionError("unexpected rewrite in subject: " + subject);
+        }
     }
 
     private List<ConstrainedTerm> computeRewriteStepByRule(ConstrainedTerm subject, Rule rule) {
@@ -478,17 +523,18 @@ public class SymbolicRewriter {
      * the pattern to the terms they unify with. Adds as many search results
      * up to the bound as were found, and returns {@code true} if the bound has been reached.
      */
-    private static boolean addSearchResult(
-            List<Substitution<Variable, Term>> searchResults,
-            ConstrainedTerm initialTerm,
+    private boolean addSearchResult(
+            HashSet<Substitution<Variable, Term>> searchResults,
+            ConstrainedTerm subject,
             Rule pattern,
             int bound) {
-        assert Sets.intersection(initialTerm.term().variableSet(),
-                initialTerm.constraint().substitution().keySet()).isEmpty();
-        List<Substitution<Variable, Term>> discoveredSearchResults = PatternMatcher.match(
-                initialTerm.term(),
-                pattern,
-                initialTerm.termContext());
+        assert Sets.intersection(subject.term().variableSet(),
+                subject.constraint().substitution().keySet()).isEmpty();
+        assert pattern.requires().stream().allMatch(BoolToken.TRUE::equals) && pattern.lookups().getKComponents().isEmpty();
+        List<Substitution<Variable, Term>> discoveredSearchResults = FastRuleMatcher.match(
+                subject.term(),
+                pattern.leftHandSide(),
+                subject.termContext());
         for (Substitution<Variable, Term> searchResult : discoveredSearchResults) {
             searchResults.add(searchResult);
             if (searchResults.size() == bound) {
@@ -506,7 +552,7 @@ public class SymbolicRewriter {
      * @param searchType  defines when we will attempt to match the pattern
      * @return a list of substitution mappings for results that matched the pattern
      */
-    public List<Substitution<Variable, Term>> search(
+    public Set<Substitution<Variable, Term>> search(
             Term initialTerm,
             Rule pattern,
             int bound,
@@ -515,7 +561,7 @@ public class SymbolicRewriter {
             TermContext context) {
         stopwatch.start();
 
-        List<Substitution<Variable, Term>> searchResults = Lists.newArrayList();
+        HashSet<Substitution<Variable, Term>> searchResults = Sets.newHashSet();
         Set<ConstrainedTerm> visited = Sets.newHashSet();
 
         ConstrainedTerm initCnstrTerm = new ConstrainedTerm(initialTerm, context);
@@ -553,6 +599,9 @@ public class SymbolicRewriter {
         int step;
     label:
         for (step = 0; !queue.isEmpty(); ++step) {
+            superheated.clear();
+            superheated.addAll(newSuperheated);
+            newSuperheated.clear();
             for (Map.Entry<ConstrainedTerm, Integer> entry : queue.entrySet()) {
                 ConstrainedTerm term = entry.getKey();
                 Integer currentDepth = entry.getValue();
@@ -599,12 +648,12 @@ public class SymbolicRewriter {
             System.err.println("[" + visited.size() + "states, " + step + "steps, " + stopwatch + "]");
         }
 
-        List<Substitution<Variable, Term>> adaptedResults = searchResults.stream().map(r -> {
+        Set<Substitution<Variable, Term>> adaptedResults = searchResults.stream().map(r -> {
             RenameAnonymousVariables renameAnonymousVariables = new RenameAnonymousVariables();
             Substitution<Variable, Term> subs = new HashMapSubstitution();
             r.forEach((k, v) -> subs.plus(renameAnonymousVariables.getRenamedVariable(k), renameAnonymousVariables.apply(v)));
             return subs;
-        }).collect(Collectors.toList());
+        }).collect(Collectors.toSet());
 
         return adaptedResults;
     }

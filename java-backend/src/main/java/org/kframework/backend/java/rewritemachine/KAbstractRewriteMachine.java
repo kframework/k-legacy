@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.rewritemachine;
 
 import com.google.common.collect.Lists;
@@ -140,15 +140,9 @@ public class KAbstractRewriteMachine {
                 Constructor constructor = instruction.constructor();
                 switch (constructor.type()) {
                 case BUILTIN_LIST:
-                    BuiltinList.Builder builder = BuiltinList.builder(global);
+                    BuiltinList.Builder builder = BuiltinList.builder(constructor.assocListSort, constructor.assocListOperator, constructor.assocListUnit, global);
                     for (int i = 0; i < constructor.size1(); i++) {
-                        builder.addItem(stack.pop());
-                    }
-                    for (int i = 0; i < constructor.size2(); i++) {
-                        builder.concatenate(stack.pop());
-                    }
-                    for (int i = 0; i < constructor.size3(); i++) {
-                        builder.addItem(stack.pop());
+                        builder.add(stack.pop());
                     }
                     stack.push(builder.build());
                     break;

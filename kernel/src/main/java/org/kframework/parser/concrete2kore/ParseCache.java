@@ -1,4 +1,4 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.parser.concrete2kore;
 
 import org.kframework.definition.Module;
@@ -36,7 +36,7 @@ public class ParseCache implements Serializable {
     }
 
     public static class ParsedSentence implements Serializable {
-        private final K parse;
+        private K parse;
         private final Set<ParseFailedException> warnings;
 
         public ParsedSentence(K parse, Set<ParseFailedException> warnings) {

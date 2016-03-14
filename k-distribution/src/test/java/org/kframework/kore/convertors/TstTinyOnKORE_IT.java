@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
 
 package org.kframework.kore.convertors;
 
@@ -72,13 +72,13 @@ public class TstTinyOnKORE_IT {
                 "<top><k>foo</k></top>");
     }
 
-    private void executeTest(String mainModule, String mainSyntaxModule, String programText, String expected) throws URISyntaxException {
+    private void executeTest(String mainModule, String mainSyntaxModule, String programText, String expected) throws URISyntaxException, IOException {
         String filename = "/convertor-tests/" + name.getMethodName() + ".k";
 
         File definitionFile = testResource(filename);
         KExceptionManager kem = new KExceptionManager(new GlobalOptions());
         try {
-            CompiledDefinition compiledDef = new Kompile(new KompileOptions(), FileUtil.testFileUtil(), kem, false).run(definitionFile, mainModule, mainSyntaxModule, Sorts.K());
+            CompiledDefinition compiledDef = new Kompile(new KompileOptions(), FileUtil.testFileUtil(), kem, false).run(definitionFile, mainModule, mainSyntaxModule);
 
             Module module = compiledDef.executionModule();
             BiFunction<String, Source, K> programParser = compiledDef.getProgramParser(kem);

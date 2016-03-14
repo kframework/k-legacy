@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
 package org.kframework.kil;
 
 import static org.junit.Assert.*;
@@ -17,7 +17,7 @@ public class ListBuiltinTest {
     @Before
     public void setUp() {
         listSort = new DataStructureSort(
-                "List", Sort.LIST, "'_List_", "'ListItem", "'.List", new HashMap<String, String>());
+                "List", Sort.LIST, "_List_", "ListItem", ".List", new HashMap<String, String>());
     }
 
     @Test

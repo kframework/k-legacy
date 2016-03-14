@@ -2,6 +2,7 @@ package org.kframework.kore
 
 import org.kframework.attributes._
 import org.kframework.definition.ModuleQualified
+import org.kframework.unparser.Unparse
 
 /**
  * This file contains all inner KORE interfaces.
@@ -55,6 +56,8 @@ abstract class AbstractSort extends Sort
 
 trait KCollection {
   def items: java.util.List[K]
+  def size: Int
+  def asIterable: java.lang.Iterable[_ <: K]
   def stream: java.util.stream.Stream[K] = items.stream()
 
   override def equals(that: Any): Boolean =
@@ -68,7 +71,6 @@ trait KCollection {
 }
 
 trait KList extends KCollection {
-  def size: Int = items.size
 }
 
 trait KApply extends KItem with KCollection {

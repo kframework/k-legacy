@@ -1,4 +1,4 @@
-// Copyright (c) 2015 K Team. All Rights Reserved.
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 require "kast.k"
 
 module DOMAINS-SYNTAX
@@ -32,7 +32,7 @@ module MAP
 
   /*@ Construct a new Map consisting of key/value pairs of two Maps (the keys of
    the two Maps are assumed disjoint) */
-  syntax Map ::= Map Map                        [left, function, hook(MAP.concat), klabel('_Map_), assoc, comm, unit(.Map), element(_|->_)]
+  syntax Map ::= Map Map                        [left, function, hook(MAP.concat), klabel(_Map_), assoc, comm, unit(.Map), element(_|->_)]
   /*@  Construct an empty Map */
   syntax Map ::= ".Map"                         [function, hook(MAP.unit), latex(\dotCt{Map})]
                // breaks klabel uniqueness
@@ -42,7 +42,8 @@ module MAP
    is on the left and the value is on the right */
   syntax Map ::= K "|->" K                      [function, hook(MAP.element), latex({#1}\mapsto{#2})]
 
-  syntax priorities '_|->_ > '_Map_ '.Map
+  syntax priorities _|->_ > _Map_ .Map
+  syntax non-assoc _|->_
 
   /*@ Retrieve the value associated with the given key */
   syntax K ::= Map "[" K "]"                    [function, hook(MAP.lookup), klabel(Map:lookup)]
@@ -74,7 +75,7 @@ module MAP
   syntax List ::= values(Map)                   [function, hook(MAP.values)]
 
   /*@ Get the Map size (number of key/value pairs) */
-  syntax Int ::= size(Map)                      [function, hook(MAP.size), klabel('sizeMap)]
+  syntax Int ::= size(Map)                      [function, hook(MAP.size), klabel(sizeMap)]
 
   /*@ Check map inclusion */
   syntax Bool ::= Map "<=Map" Map               [function, hook(MAP.inclusion)]
@@ -94,7 +95,7 @@ module SET
    of unique items). */
 
   /*@ Construct a new Set as the union of two different sets ($A \cup B$) */
-  syntax Set ::= Set Set                  [left, function, hook(SET.concat), klabel('_Set_), assoc, comm, unit(.Set), idem, element(SetItem)]
+  syntax Set ::= Set Set                  [left, function, hook(SET.concat), klabel(_Set_), assoc, comm, unit(.Set), idem, element(SetItem)]
   /*@ Construct an empty Set */
   syntax Set ::= ".Set"                   [function, hook(SET.unit), latex(\dotCt{Set})]
                //| "."
@@ -167,12 +168,12 @@ module LIST
 
   /*@ Construct a new List as the concatenation of two Lists. This is similar to
    the append "@" operation in many functional programming languages. */
-  syntax List ::= List List               [left, function, hook(LIST.concat), klabel('_List_), smtlib(smt_seq_concat), assoc, unit(.List), element(ListItem)]
+  syntax List ::= List List               [left, function, hook(LIST.concat), klabel(_List_), smtlib(smt_seq_concat), assoc, unit(.List), element(ListItem)]
   /*@ Construct an empty List: */
   syntax List ::= ".List"                 [function, hook(LIST.unit), smtlib(smt_seq_nil), latex(\dotCt{List})]
                 //| "."
   /*@ Construct a singleton List (a list with only  one element) */
-  syntax List ::= ListItem(K)             [function, hook(LIST.element), smtlib(smt_seq_elem)]
+  syntax List ::= ListItem(K)             [smtlib(smt_seq_elem)]
 
   /*@ Get an element form the List by index. Positive indices mean from the
    beginning (0 is the first element), and negative indices mean from the end
@@ -183,10 +184,10 @@ module LIST
   syntax List ::= range(List, Int, Int)   [function, hook(LIST.range), klabel(List:range)]
 
   /*@ Check element membership in the given list */
-  syntax Bool ::= K "in" List             [function, hook(LIST.in), klabel('_inList_)]
+  syntax Bool ::= K "in" List             [function, hook(LIST.in), klabel(_inList_)]
 
   /*@ Get the list length */
-  syntax Int ::= size(List)               [function, hook(LIST.size), klabel ('sizeList), smtlib(smt_seq_len)]
+  syntax Int ::= size(List)               [function, hook(LIST.size), klabel (sizeList), smtlib(smt_seq_len)]
 endmodule
 
 module BOOL-SYNTAX
@@ -228,7 +229,7 @@ module BOOL
   rule false xorBool B:Bool => B:Bool
   rule B:Bool xorBool false => B:Bool
   rule B:Bool xorBool B:Bool => false
-  rule B1:Bool xorBool B2:Bool => notBool `B1 ==Bool B2`
+  rule B1:Bool xorBool B2:Bool => notBool (B1 ==Bool B2)
 
   rule true orBool _:Bool => true
   rule _:Bool orBool true => true
@@ -245,7 +246,7 @@ module BOOL
   rule _:Bool impliesBool true => true
   rule B:Bool impliesBool false => notBool B
 
-  rule B1:Bool =/=Bool B2:Bool => notBool `B1 ==Bool B2`
+  rule B1:Bool =/=Bool B2:Bool => notBool (B1 ==Bool B2)
 
 endmodule
 
@@ -288,12 +289,12 @@ module INT
                | absInt ( Int )                 [function, smtlib(int_abs), hook(INT.abs)]
   syntax Int ::= "(" Int ")" [bracket]
 
-  rule I1:Int divInt I2:Int => `I1 -Int `I1 modInt I2`` /Int I2
+  rule I1:Int divInt I2:Int => (I1 -Int (I1 modInt I2)) /Int I2
   requires I2 =/=Int 0
   rule
     I1:Int modInt I2:Int
   =>
-    ``I1 %Int absInt(I2)` +Int absInt(I2)` %Int absInt(I2)
+    ((I1 %Int absInt(I2)) +Int absInt(I2)) %Int absInt(I2)
   requires I2 =/=Int 0
 
   syntax Bool ::= Int "<=Int" Int         [function, left, smtlib(<=), latex({#1}\mathrel{\leq_{\scriptstyle\it Int}}{#2}), hook(INT.le)]
@@ -305,8 +306,8 @@ module INT
                 | Int "dividesInt" Int    [function]
 
   rule I1:Int ==Int I2:Int => I1 ==K I2
-  rule I1:Int =/=Int I2:Int => notBool `I1 ==Int I2`
-  rule `I1:Int dividesInt I2:Int` => `I2 %Int I1` ==Int 0
+  rule I1:Int =/=Int I2:Int => notBool (I1 ==Int I2)
+  rule (I1:Int dividesInt I2:Int) => (I2 %Int I1) ==Int 0
 
   syntax Int ::= freshInt(Int)    [freshGenerator, function]
   rule freshInt(I:Int) => I
@@ -378,7 +379,7 @@ module FLOAT
                 | Float "=/=Float" Float      [function, left, smtlib((not (== #1 #2))), latex({#1}\mathrel{\neq_{\scriptstyle\it Float}}{#2})]
 
 
-  rule F1:Float =/=Float F2:Float => notBool `F1 ==Float F2`
+  rule F1:Float =/=Float F2:Float => notBool (F1 ==Float F2)
 
   syntax Float ::= Int2Float(Int, Int, Int)    [function, latex({\\it{}Int2Float}), hook(FLOAT.int2float)]
   syntax Int ::= Float2Int(Float)    [function, latex({\\it{}Float2Int}), hook(FLOAT.float2int)]
@@ -440,7 +441,7 @@ module STRING
   syntax Int ::= "countAllOccurrences" "(" String "," String ")"            [function, hook(STRING.countAllOccurrences)]
 
   syntax Bool ::= String "=/=String" String      [function, left, hook(STRING.ne)]
-  rule S1:String =/=String S2:String => notBool `S1 ==String S2`
+  rule S1:String =/=String S2:String => notBool (S1 ==String S2)
   rule S1:String ==String S2:String => S1 ==K S2
 
   syntax Bool ::= String  "<String" String [function, hook(STRING.lt)]
@@ -451,9 +452,9 @@ module STRING
   syntax String ::= categoryChar(String)       [function, hook(STRING.category)]
                   | directionalityChar(String) [function, hook(STRING.directionality)]
 
-  rule S1:String <=String S2:String => notBool `S2 <String S1`
+  rule S1:String <=String S2:String => notBool (S2 <String S1)
   rule S1:String >String S2:String => S2 <String S1
-  rule S1:String >=String S2:String => notBool `S1 <String S2`
+  rule S1:String >=String S2:String => notBool (S1 <String S2)
 
   rule findChar(S1:String, S2:String, I:Int) => #if findString(S1, substrString(S2, 0, 1), I) ==Int -1 #then findChar(S1, substrString(S2, 1, lengthString(S2)), I) #else #if findChar(S1, substrString(S2, 1, lengthString(S2)), I) ==Int -1 #then findString(S1, substrString(S2, 0, 1), I) #else minInt(findString(S1, substrString(S2, 0, 1), I), findChar(S1, substrString(S2, 1, lengthString(S2)), I)) #fi #fi requires S2 =/=String ""
   rule findChar(_, "", _) => -1
@@ -508,7 +509,7 @@ module K-EQUAL
                 | K "=/=K" K          [function, smtlib(distinct), hook(KEQUAL.ne), latex({#1}\mathrel{\neq_K}{#2}), notEqualEqualK]
 
   syntax priorities equalEqualK notEqualEqualK > boolOperation
-  rule K1:K =/=K K2:K => notBool `K1 ==K K2`
+  rule K1:K =/=K K2:K => notBool (K1 ==K K2)
 
   rule K1:Bool ==Bool K2:Bool => K1 ==K K2
 
@@ -608,7 +609,7 @@ module STDIN-STREAM
   // when we reach whitespace, if it parses create a ListItem
   rule [stdinParseString]:
        <stdin>
-       `ListItem(#parseInput("String", Delimiters:String)) => ListItem(S)`
+       (ListItem(#parseInput("String", Delimiters:String)) => ListItem(S))
        ListItem(#buffer(S:String => ""))
        _:List
        </stdin>
@@ -618,8 +619,8 @@ module STDIN-STREAM
   // a hack: handle the case when we read integers without the help of the IO server
   rule [stdinParseInt]:
        <stdin>
-       `ListItem(#parseInput("Int", Delimiters:String))
-       => ListItem(String2Int(substrString(S, 0, findChar(S, Delimiters, 0))))`
+       (ListItem(#parseInput("Int", Delimiters:String))
+       => ListItem(String2Int(substrString(S, 0, findChar(S, Delimiters, 0)))))
        ListItem(#buffer(S:String => substrString(S,findChar(S, Delimiters, 0) +Int 1, lengthString(S))))
        _:List
        </stdin>
@@ -629,8 +630,8 @@ module STDIN-STREAM
 
   rule [stdinParseArbitrarySort]:
        <stdin>
-       `ListItem(#parseInput(Sort:String, Delimiters:String))
-       => ListItem(#parse(substrString(S, 0, findChar(S, Delimiters, 0)), Sort))`
+       (ListItem(#parseInput(Sort:String, Delimiters:String))
+       => ListItem(#parse(substrString(S, 0, findChar(S, Delimiters, 0)), Sort)))
        ListItem(#buffer(S:String => substrString(S,findChar(S, Delimiters, 0) +Int 1, lengthString(S))))
        _:List
        </stdin>
@@ -667,7 +668,7 @@ module STDIN-STREAM
   // have a way to specify such patterns.
   rule [stdinUnblock]:
        <stdin>
-         `.List => ListItem(#parseInput(?Sort:String, ?Delimiters:String))`
+         (.List => ListItem(#parseInput(?Sort:String, ?Delimiters:String)))
          ListItem(#buffer(_:String))
          ...
        </stdin>
@@ -677,7 +678,7 @@ module STDIN-STREAM
   syntax Stream ::= "#noIO"
 
   rule ListItem(#buffer(_))
-       `ListItem(#noIO) ListItem(#istream(_:Int)) => .List` [stdin]
+       (ListItem(#noIO) ListItem(#istream(_:Int)) => .List) [stdin]
   */
 
 endmodule
@@ -695,7 +696,7 @@ module STDOUT-STREAM
        ListItem(#ostream(_))
        ListItem(_)
        ListItem(#buffer(Buffer:String => Buffer +String Float2String(F)))
-       `ListItem(F:Float) => .List`
+       (ListItem(F:Float) => .List)
        _:List
        </stdout>
        // [stdout, stderr]
@@ -705,7 +706,7 @@ module STDOUT-STREAM
        ListItem(#ostream(_))
        ListItem(_)
        ListItem(#buffer(Buffer:String => Buffer +String Int2String(I)))
-       `ListItem(I:Int) => .List`
+       (ListItem(I:Int) => .List)
        _:List
        </stdout>
        // [stdout, stderr]
@@ -715,7 +716,7 @@ module STDOUT-STREAM
        ListItem(#ostream(_))
        ListItem(_)
        ListItem(#buffer(Buffer:String => Buffer +String S))
-       `ListItem(S:String) => .List`
+       (ListItem(S:String) => .List)
        _:List
        </stdout>
        // [stdout, stderr]
@@ -724,7 +725,7 @@ module STDOUT-STREAM
   // Send first char from the buffer to the server
   rule [stdoutWrite]:
        <stdout>
-       ListItem(#ostream(`.K => #write(N, S)` ~> N:Int))
+       ListItem(#ostream((.K => #write(N, S)) ~> N:Int))
        ListItem("on")
        ListItem(#buffer(S:String => ""))
        _:List
@@ -736,16 +737,16 @@ module STDOUT-STREAM
   syntax Stream ::= "#noIO"
 
   rule ListItem(#buffer(Buffer:String => Buffer +String Float2String(F)))
-       `ListItem(F:Float) => .List`
+       (ListItem(F:Float) => .List)
        _:List [stdout, stderr]
   rule ListItem(#buffer(Buffer:String => Buffer +String Int2String(I)))
-       `ListItem(I:Int) => .List`
+       (ListItem(I:Int) => .List)
        _:List [stdout, stderr]
   rule ListItem(#buffer(Buffer:String => Buffer +String S))
-       `ListItem(S:String) => .List`
+       (ListItem(S:String) => .List)
        _:List [stdout, stderr]
 
-  rule `ListItem(#ostream(_:Int)) ListItem(#noIO) => .List`
+  rule (ListItem(#ostream(_:Int)) ListItem(#noIO) => .List)
        ListItem(#buffer(_))
        _:List [stdout, stderr]
   */
@@ -789,10 +790,10 @@ module MINT
                | smaxMInt(Int)    [function]
                | uminMInt(Int)    [function]
                | umaxMInt(Int)    [function]
-  rule sminMInt(N:Int) => 0 -Int `1 <<Int `N -Int 1``
-  rule smaxMInt(N:Int) => `1 <<Int `N -Int 1`` -Int 1
+  rule sminMInt(N:Int) => 0 -Int (1 <<Int (N -Int 1))
+  rule smaxMInt(N:Int) => (1 <<Int (N -Int 1)) -Int 1
   rule uminMInt(_:Int) => 0
-  rule umaxMInt(N:Int) => `1 <<Int N` -Int 1
+  rule umaxMInt(N:Int) => (1 <<Int N) -Int 1
 
   /*@
    * Functions checking whether a given integer can be represented on as signed
@@ -935,7 +936,7 @@ module MINT
     digitsOfMInt(MI:MInt, N:Int, M:Int)
   =>
     digitsOfMInt(MI, N, M -Int 1)
-    ListItem(extractMInt(MI, N *Int `M -Int 1`, N *Int M))
+    ListItem(extractMInt(MI, N *Int (M -Int 1), N *Int M))
   when M >Int 0
   rule digitsOfMInt(_:MInt, _:Int, 0) => .List
 
@@ -994,7 +995,7 @@ module BASIC-STRATEGY
     rule <s> if true then B:Strategy else C:Strategy => B ...</s>
     rule <s> if false then B:Strategy else C:Strategy => C ...</s>
 
-    rule <s> if A:Strategy then B:Strategy else C:Strategy => `A ~> #FROZEN(THIS_CONFIGURATION:K) ~> if #SHOLE then B else C` ...</s> when notBool(isBool(A))
+    rule <s> if A:Strategy then B:Strategy else C:Strategy => (A ~> #FROZEN(THIS_CONFIGURATION:K) ~> if #SHOLE then B else C) ...</s> when notBool(isBool(A))
     rule <s> A:Bool ~> if #SHOLE then B:Strategy else C:Strategy => if A then B else C ...</s>
 
     rule <s> false ~> #FROZEN(CONFIGURATION:K) => #RESTORE_CONFIGURATION(CONFIGURATION) ~> false  ...</s>

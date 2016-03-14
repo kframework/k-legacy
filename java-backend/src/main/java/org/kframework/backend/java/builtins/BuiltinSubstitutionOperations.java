@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// Copyright (c) 2014-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.builtins;
 
 
@@ -21,8 +21,16 @@ public class BuiltinSubstitutionOperations {
         return KLabelInjection.injectionOf(UserSubstitutionTransformer.userSubstitution(Collections.singletonMap(variable, substitute), term, context), context.global());
     }
 
-    public static Term userSubstitutionKore(Term term, Term substitute, Term variable, TermContext context) {
+    public static Term userSingletonSubstitutionKore(Term term, Term substitute, Term variable, TermContext context) {
         return UserSubstitutionTransformer.userSubstitution(Collections.singletonMap(variable, substitute), term, context);
+    }
+
+    public static Term userSubstitutionKore(Term term, BuiltinMap substitution, TermContext context) {
+        if (!substitution.isConcreteCollection()) {
+            throw new IllegalArgumentException();
+        }
+
+        return UserSubstitutionTransformer.userSubstitution(substitution.getEntries(), term, context);
     }
 
 }
