@@ -6,6 +6,7 @@ import org.kframework.builtin.BooleanUtils;
 import org.kframework.definition.Bubble;
 import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
+import org.kframework.definition.ModuleName;
 import org.kframework.definition.Sentence;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
@@ -51,7 +52,7 @@ class ResolveConfig implements UnaryOperator<Module> {
 
         Set<Sentence> importedConfigurationSortsSubsortedToCell = stream(inputModule.productions())
                 .filter(p -> p.att().contains("cell"))
-                .map(p -> Production(Sort("Cell"), Seq(NonTerminal(p.sort())))).collect(Collections.toSet());
+                .map(p -> Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())))).collect(Collections.toSet());
 
         Module module = Module(inputModule.name(), (Set<Module>) inputModule.imports(),
                 (Set<Sentence>) inputModule.localSentences().$bar(importedConfigurationSortsSubsortedToCell),

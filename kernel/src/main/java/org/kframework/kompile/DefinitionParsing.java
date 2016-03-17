@@ -12,6 +12,7 @@ import org.kframework.definition.Context;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
 import org.kframework.definition.Module;
+import org.kframework.definition.ModuleName;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
 import org.kframework.kore.K;
@@ -55,7 +56,7 @@ import static org.kframework.kore.KORE.*;
  * @cos refactored this code out of Kompile but none (or close to none) of it was originally written by him.
  */
 public class DefinitionParsing {
-    public static final Sort START_SYMBOL = Sort("RuleContent");
+    public static final Sort START_SYMBOL = Sort("RuleContent", ModuleName.apply("REQUIRES-ENSURES"));
     private final File cacheFile;
     private boolean autoImportDomains;
 

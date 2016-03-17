@@ -10,6 +10,7 @@ import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
 import org.kframework.definition.Module;
+import org.kframework.definition.ModuleName;
 import org.kframework.definition.ModuleTransformer;
 import org.kframework.definition.Production;
 import org.kframework.definition.ProductionItem;
@@ -27,7 +28,7 @@ import scala.collection.Seq;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.stream.*;
 import java.util.stream.Stream;
 
 import static org.kframework.Collections.*;
@@ -57,8 +58,8 @@ public class RuleGrammarGenerator {
         kSorts.add(Sorts.KLabel());
         kSorts.add(Sorts.KList());
         kSorts.add(Sorts.KItem());
-        kSorts.add(Sort("RuleContent"));
-        kSorts.add(Sort("KConfigVar"));
+        kSorts.add(Sort("RuleContent", ModuleName.apply("REQUIRES-ENSURES")));
+        kSorts.add(Sorts.KConfigVar());
         kSorts.add(Sorts.KString());
     }
 
@@ -238,18 +239,34 @@ public class RuleGrammarGenerator {
                         }
                         final ProductionItem optDots = NonTerminal(Sort("#OptionalDots"));
                         Seq<ProductionItem> pi = Seq(p.items().head(), optDots, body, optDots, p.items().last());
-                        Production p1 = Production(p.klabel().get().name(), Sort("Cell"), pi, p.att());
-                        Production p2 = Production(Sort("Cell"), Seq(NonTerminal(p.sort())));
+                        Production p1 = Production(p.klabel().get().name(), Sort("Cell", ModuleName.apply("KCELLS")), pi, p.att());
+                        Production p2 = Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())));
                         return Stream.of(p1, p2);
                     }
                     if (s instanceof Production && (s.att().contains("cellFragment"))) {
                         Production p = (Production) s;
-                        Production p1 = Production(Sort("Cell"), Seq(NonTerminal(p.sort())));
+                        Production p1 = Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())));
                         return Stream.of(p, p1);
                     }
                     return Stream.of(s);
                 }).collect(Collectors.toSet());
                 m = Module(m.name(), org.kframework.Collections.add(baseK.getModule(RULE_CELLS).get(), m.imports()), immutable(newProds), m.att());
+            }
+
+            // configurations can be declared on multiple modules, so make sure to subsort previously declared cells to Cell
+            if (baseK.getModule(CONFIG_CELLS).isDefined() && seedMod.importedModules().contains(baseK.getModule(CONFIG_CELLS).get())) {
+                Set<Sentence> newProds = stream(m.localSentences()).flatMap(s -> {
+                    if (s instanceof Production && s.att().contains("initializer")) {
+                        Production p = (Production) s;
+                        // assuming that productions tagged with 'cell' start and end with terminals, and only have non-terminals in the middle
+                        assert p.items().head() instanceof Terminal || p.items().head() instanceof RegexTerminal;
+                        final ProductionItem body;
+                        Production p1 = Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())));
+                        return Stream.of(s, p1);
+                    }
+                    return Stream.of(s);
+                }).collect(Collectors.toSet());
+                m = Module(m.name(), org.kframework.Collections.add(baseK.getModule(CONFIG_CELLS).get(), m.imports()), immutable(newProds), m.att());
             }
 
             if (baseK.getModule(AUTO_FOLLOW).isDefined() && seedMod.importedModules().contains(baseK.getModule(AUTO_FOLLOW).get())) {
