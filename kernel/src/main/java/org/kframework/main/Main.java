@@ -54,8 +54,10 @@ public class Main {
                 System.out.println("keq: " + Arrays.toString(args2));
                 int result = 0;
 
+                /*
                 CompiledDefinition compiledDef = null;
                 KRun.run(compiledDef);
+                 */
 
                 AnsiConsole.systemUninstall();
                 System.exit(result);

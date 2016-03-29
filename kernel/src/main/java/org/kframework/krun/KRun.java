@@ -5,8 +5,8 @@ import com.google.inject.Provider;
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
-import org.kframework.backend.java.symbolic.InitializeRewriter;
-import org.kframework.backend.java.symbolic.JavaExecutionOptions;
+//import org.kframework.backend.java.symbolic.InitializeRewriter;
+//import org.kframework.backend.java.symbolic.JavaExecutionOptions;
 import org.kframework.builtin.Sorts;
 import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
@@ -76,6 +76,7 @@ public class KRun {
         this.ttyStdin = ttyStdin;
     }
 
+    /*
     public static RewriterResult run(CompiledDefinition compiledDef) {
 
         GlobalOptions globalOptions = new GlobalOptions();
@@ -111,6 +112,7 @@ public class KRun {
 
         return result;
     }
+     */
 
     // org.kframework.main.FrontEnd#main
     // org.kframework.krun.KRunFrontEnd#run
@@ -336,7 +338,7 @@ public class KRun {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private static K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef, KExceptionManager kem, FileUtil files, boolean ttyStdin) {
+    public static K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef, KExceptionManager kem, FileUtil files, boolean ttyStdin) {
         HashMap<KToken, K> output = new HashMap<>();
         for (Map.Entry<String, Pair<String, String>> entry
                 : options.configurationCreation.configVars(compiledDef.getParsedDefinition().mainModule().name()).entrySet()) {
