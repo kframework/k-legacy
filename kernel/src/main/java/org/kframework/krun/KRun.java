@@ -123,7 +123,7 @@ public class KRun {
             program = externalParse(options.configurationCreation.parser(compiledDef.executionModule().name()),
                     pgmFileName, compiledDef.programStartSymbol, Source.apply("<parameters>"), compiledDef, files);
         } else {
-            program = parseConfigVars(options, compiledDef, kem, files, ttyStdin);
+            program = parseConfigVars(options, compiledDef, kem, files, ttyStdin, null);
         }
 
         program = new KTokenVariablesToTrueVariables()
@@ -338,7 +338,7 @@ public class KRun {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    public static K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef, KExceptionManager kem, FileUtil files, boolean ttyStdin) {
+    public static K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef, KExceptionManager kem, FileUtil files, boolean ttyStdin, K pgm) {
         HashMap<KToken, K> output = new HashMap<>();
         for (Map.Entry<String, Pair<String, String>> entry
                 : options.configurationCreation.configVars(compiledDef.getParsedDefinition().mainModule().name()).entrySet()) {
@@ -356,6 +356,9 @@ public class KRun {
             String stdin = getStdinBuffer(ttyStdin);
             output.put(KToken("$STDIN", Sorts.KConfigVar()), KToken("\"" + stdin + "\"", Sorts.String()));
             output.put(KToken("$IO", Sorts.KConfigVar()), KToken("\"off\"", Sorts.String()));
+        }
+        if (pgm != null) {
+            output.put(KToken("$PGM", Sorts.KConfigVar()), pgm);
         }
         checkConfigVars(output.keySet(), compiledDef, kem);
         return plugConfigVars(compiledDef, output);
