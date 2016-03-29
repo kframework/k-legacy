@@ -1,5 +1,5 @@
 // Copyright (c) 2016 K Team. All Rights Reserved.
-package org.kframework.api;
+package org.kframework;
 
 import com.google.inject.Provider;
 import org.kframework.RewriterResult;
@@ -47,22 +47,27 @@ public class KRunAPI {
         K program = KRun.parseConfigVars(krunOptions, compiledDef, kem, files, ttyStdin);
 
         Rewriter rewriter = (InitializeRewriter.SymbolicRewriterGlue)
-                new InitializeRewriter(
-                        fs,
-                        javaExecutionOptions,
-                        globalOptions,
-                        kem,
-                        kompileOptions.experimental.smt,
-                        hookProvider,
-                        kompileOptions,
-                        krunOptions,
-                        files,
-                        initializeDefinition)
-                        .apply(compiledDef.executionModule());
+            new InitializeRewriter(
+                fs,
+                javaExecutionOptions,
+                globalOptions,
+                kem,
+                kompileOptions.experimental.smt,
+                hookProvider,
+                kompileOptions,
+                krunOptions,
+                files,
+                initializeDefinition)
+            .apply(compiledDef.executionModule());
 
         RewriterResult result = rewriter.execute(program, null);
 
         return result;
+    }
+
+    public static void main(String[] args) {
+        CompiledDefinition compiledDef = null;
+        run(compiledDef);
     }
 
 }
