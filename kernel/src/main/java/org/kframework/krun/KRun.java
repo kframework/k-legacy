@@ -1,13 +1,18 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.krun;
 
+import com.google.inject.Provider;
 import org.apache.commons.lang3.tuple.Pair;
+import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
+import org.kframework.backend.java.symbolic.InitializeRewriter;
+import org.kframework.backend.java.symbolic.JavaExecutionOptions;
 import org.kframework.builtin.Sorts;
 import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
 import org.kframework.kompile.CompiledDefinition;
+import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KToken;
@@ -15,7 +20,10 @@ import org.kframework.kore.KVariable;
 import org.kframework.kore.Sort;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
+import org.kframework.krun.api.io.FileSystem;
+import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import org.kframework.krun.modes.ExecutionMode;
+import org.kframework.main.GlobalOptions;
 import org.kframework.main.Main;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.binary.BinaryParser;
@@ -37,6 +45,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.invoke.MethodHandle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -67,14 +76,52 @@ public class KRun {
         this.ttyStdin = ttyStdin;
     }
 
+    public static RewriterResult run(CompiledDefinition compiledDef) {
+
+        GlobalOptions globalOptions = new GlobalOptions();
+        KompileOptions kompileOptions = new KompileOptions();
+        KRunOptions krunOptions = new KRunOptions();
+        JavaExecutionOptions javaExecutionOptions = new JavaExecutionOptions();
+
+        KExceptionManager kem = new KExceptionManager(globalOptions);
+        FileUtil files = FileUtil.testFileUtil();
+        boolean ttyStdin = false;
+
+        FileSystem fs = new PortableFileSystem(kem, files);
+        Map<String, Provider<MethodHandle>> hookProvider = new HashMap<>();
+        InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
+
+        K program = parseConfigVars(krunOptions, compiledDef, kem, files, ttyStdin);
+
+        Rewriter rewriter = (InitializeRewriter.SymbolicRewriterGlue)
+            new InitializeRewriter(
+                fs,
+                javaExecutionOptions,
+                globalOptions,
+                kem,
+                kompileOptions.experimental.smt,
+                hookProvider,
+                kompileOptions,
+                krunOptions,
+                files,
+                initializeDefinition)
+            .apply(compiledDef.executionModule());
+
+        RewriterResult result = rewriter.execute(program, null);
+
+        return result;
+    }
+
+    // org.kframework.main.FrontEnd#main
+    // org.kframework.krun.KRunFrontEnd#run
     public int run(CompiledDefinition compiledDef, KRunOptions options, Function<Module, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
         String pgmFileName = options.configurationCreation.pgm();
         K program;
         if (options.configurationCreation.term()) {
             program = externalParse(options.configurationCreation.parser(compiledDef.executionModule().name()),
-                    pgmFileName, compiledDef.programStartSymbol, Source.apply("<parameters>"), compiledDef);
+                    pgmFileName, compiledDef.programStartSymbol, Source.apply("<parameters>"), compiledDef, files);
         } else {
-            program = parseConfigVars(options, compiledDef);
+            program = parseConfigVars(options, compiledDef, kem, files, ttyStdin);
         }
 
         program = new KTokenVariablesToTrueVariables()
@@ -83,6 +130,8 @@ public class KRun {
 
         Rewriter rewriter = rewriterGenerator.apply(compiledDef.executionModule());
 
+        // org.kframework.krun.modes.KRunExecutionMode.execute()
+        // org.kframework.backend.java.symbolic.ProofExecutionMode.execute()
         Object result = executionMode.execute(program, rewriter, compiledDef);
 
         if (result instanceof K) {
@@ -287,7 +336,7 @@ public class KRun {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef) {
+    private static K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef, KExceptionManager kem, FileUtil files, boolean ttyStdin) {
         HashMap<KToken, K> output = new HashMap<>();
         for (Map.Entry<String, Pair<String, String>> entry
                 : options.configurationCreation.configVars(compiledDef.getParsedDefinition().mainModule().name()).entrySet()) {
@@ -295,7 +344,7 @@ public class KRun {
             String value = entry.getValue().getLeft();
             String parser = entry.getValue().getRight();
             Sort sort = compiledDef.programStartSymbol;
-            K configVar = externalParse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), compiledDef);
+            K configVar = externalParse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), compiledDef, files);
             output.put(KToken("$" + name, Sorts.KConfigVar()), configVar);
         }
         if (options.io()) {
@@ -306,11 +355,11 @@ public class KRun {
             output.put(KToken("$STDIN", Sorts.KConfigVar()), KToken("\"" + stdin + "\"", Sorts.String()));
             output.put(KToken("$IO", Sorts.KConfigVar()), KToken("\"off\"", Sorts.String()));
         }
-        checkConfigVars(output.keySet(), compiledDef);
+        checkConfigVars(output.keySet(), compiledDef, kem);
         return plugConfigVars(compiledDef, output);
     }
 
-    private void checkConfigVars(Set<KToken> inputConfigVars, CompiledDefinition compiledDef) {
+    private static void checkConfigVars(Set<KToken> inputConfigVars, CompiledDefinition compiledDef, KExceptionManager kem) {
         Set<KToken> defConfigVars = mutable(new ConfigurationInfoFromModule(compiledDef.kompiledDefinition.mainModule()).configVars());
 
         for (KToken defConfigVar : defConfigVars) {
@@ -350,7 +399,7 @@ public class KRun {
         return buffer + "\n";
     }
 
-    public KApply plugConfigVars(CompiledDefinition compiledDef, Map<KToken, K> output) {
+    public static KApply plugConfigVars(CompiledDefinition compiledDef, Map<KToken, K> output) {
         return KApply(compiledDef.topCellInitializer, output.entrySet().stream().map(e -> KApply(KLabel("_|->_"), e.getKey(), e.getValue())).reduce(KApply(KLabel(".Map")), (a, b) -> KApply(KLabel("_Map_"), a, b)));
     }
 
@@ -360,7 +409,7 @@ public class KRun {
                         KOREToTreeNodes.apply(KOREToTreeNodes.up(test, input), test)));
     }
 
-    public K externalParse(String parser, String value, Sort startSymbol, Source source, CompiledDefinition compiledDef) {
+    public static K externalParse(String parser, String value, Sort startSymbol, Source source, CompiledDefinition compiledDef, FileUtil files) {
         List<String> tokens = new ArrayList<>(Arrays.asList(parser.split(" ")));
         tokens.add(value);
         Map<String, String> environment = new HashMap<>();

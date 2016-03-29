@@ -81,6 +81,11 @@ public class SymbolicRewriter {
         this.transition = useFastRewriting;
     }
 
+    // org.kframework.main.FrontEnd#main
+    // org.kframework.krun.KRunFrontEnd#run
+    // org.kframework.krun.KRun#run
+    // org.kframework.krun.modes.KRunExecutionMode#execute
+    // org.kframework.backend.java.symbolic.InitializeRewriter.SymbolicRewriterGlue#execute
     public KRunState rewrite(ConstrainedTerm constrainedTerm, int bound) {
         stopwatch.start();
         int step = 0;
