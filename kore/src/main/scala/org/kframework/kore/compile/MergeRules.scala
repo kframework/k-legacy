@@ -1,7 +1,7 @@
 package org.kframework.kore.compile
 
 import org.kframework.attributes.Att
-import org.kframework.builtin.KLabels
+import org.kframework.builtin.{KLabels, Sorts}
 import org.kframework.definition.{Module, Rule}
 import org.kframework.kore._
 
@@ -37,7 +37,7 @@ class MergeRules(c: Constructors[K]) extends (Module => Module) {
 
     if (topRules.nonEmpty) {
 
-      val newBody = pushDisjunction(topRules map { r => (convertKRewriteToKApply(r.body), isRulePredicate(r.hashCode)) })(m)
+      val newBody = pushDisjunction(topRules map { r => (convertKRewriteToKApply(r.body), isRulePredicate(KToken(r.hashCode.toString, Sorts.K, Att()))) })(m)
       //      val newRequires = makeOr((topRules map whatever(_.requires) map { case (a, b) => and(a, b) }).toSeq: _*)
       //val automatonRule = Rule(newBody, newRequires, TrueToken, Att().add("automaton"))
       val automatonRule = Rule(newBody, TrueToken, TrueToken, Att().add("automaton"))
