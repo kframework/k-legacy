@@ -3,9 +3,12 @@ package org.kframework;
 
 import com.google.inject.Provider;
 import org.kframework.RewriterResult;
+import org.kframework.attributes.Source;
 import org.kframework.backend.java.symbolic.InitializeRewriter;
 import org.kframework.backend.java.symbolic.JavaExecutionOptions;
+import org.kframework.definition.Definition;
 import org.kframework.kompile.CompiledDefinition;
+import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.K;
 import org.kframework.krun.KRun;
@@ -17,6 +20,7 @@ import org.kframework.rewriter.Rewriter;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 
+import java.io.File;
 import java.lang.invoke.MethodHandle;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,7 +70,13 @@ public class KRunAPI {
     }
 
     public static void main(String[] args) {
-        CompiledDefinition compiledDef = null;
+        GlobalOptions globalOptions = new GlobalOptions();
+        KompileOptions kompileOptions = new KompileOptions();
+
+        KExceptionManager kem = new KExceptionManager(globalOptions);
+
+        Definition d = DefinitionParser.from("require \"domains.k\" module X endmodule");
+        CompiledDefinition compiledDef = Kompile.run(d, kompileOptions, kem);
         run(compiledDef);
     }
 

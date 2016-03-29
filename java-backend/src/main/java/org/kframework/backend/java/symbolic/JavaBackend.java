@@ -76,12 +76,12 @@ public class JavaBackend implements Backend {
         ExpandMacrosDefinitionTransformer expandMacrosDefinitionTransformer = new ExpandMacrosDefinitionTransformer(kem, files, globalOptions, kompileOptions);
 
         if (kompile.kompileOptions.experimental.koreProve) {
-            return kompile.defaultSteps()
+            return kompile.defaultSteps(kompile.kompileOptions, kompile.kem)
                     .andThen(expandMacrosDefinitionTransformer::apply)
                     .andThen(convertDataStructureToLookup::apply);
         }
 
-        return d -> (func((Definition dd) -> kompile.defaultSteps().apply(dd)))
+        return d -> (func((Definition dd) -> kompile.defaultSteps(kompile.kompileOptions, kompile.kem).apply(dd)))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(DefinitionTransformer.from(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))
