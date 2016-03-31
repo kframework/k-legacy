@@ -20,9 +20,7 @@ import org.kframework.rewriter.Rewriter;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 
-import java.io.File;
 import java.lang.invoke.MethodHandle;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -47,7 +45,7 @@ public class KRunAPI {
         boolean ttyStdin = false;
 
         FileSystem fs = new PortableFileSystem(kem, files);
-        Map<String, Provider<MethodHandle>> hookProvider = new HashMap<>();
+        Map<String, Provider<MethodHandle>> hookProvider = HookProvider.get(kem); // new HashMap<>();
         InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
 
         BiFunction<String, Source, K> programParser = compiledDef.getProgramParser(kem);
