@@ -229,6 +229,10 @@ public class KRun {
     }
 
     public void outputFile(byte[] output, KRunOptions options) {
+        outputFile(output, options, files);
+    }
+
+    public static void outputFile(byte[] output, KRunOptions options, FileUtil files) {
         if (options.outputFile == null) {
             try {
                 System.out.write(output);

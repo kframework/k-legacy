@@ -14,8 +14,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-/*
- Copied from org.kframework.backend.java.symbolic.JavaSymbolicCommonModule
+/**
+ * HookProvider
+ *
+ * Copied from org.kframework.backend.java.symbolic.JavaSymbolicCommonModule
  */
 public class HookProvider {
 

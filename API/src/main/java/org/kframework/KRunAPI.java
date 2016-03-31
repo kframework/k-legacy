@@ -29,7 +29,7 @@ import static org.kframework.Collections.*;
 import static org.kframework.kore.KORE.*;
 
 /**
- * The KORE-based KRun
+ * KRunAPI
  */
 public class KRunAPI {
 
@@ -74,7 +74,9 @@ public class KRunAPI {
     public static void main(String[] args) {
         GlobalOptions globalOptions = new GlobalOptions();
         KompileOptions kompileOptions = new KompileOptions();
+        KRunOptions krunOptions = new KRunOptions();
         KExceptionManager kem = new KExceptionManager(globalOptions);
+        FileUtil files = FileUtil.testFileUtil();
 
         // kompile
         Definition d = DefinitionParser.from("require \"domains.k\" module A syntax KItem ::= \"run\" endmodule");
@@ -82,6 +84,10 @@ public class KRunAPI {
 
         // krun
         RewriterResult result = run(compiledDef, "run", null);
+
+        // print output
+        // from org.kframework.krun.KRun.run()
+        KRun.prettyPrint(compiledDef, krunOptions.output, s -> KRun.outputFile(s, krunOptions, files), result.k());
 
         return;
     }
