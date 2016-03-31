@@ -63,10 +63,16 @@ public class SymbolicRewriter {
     private final BitSet allRuleBits;
 
     private final boolean useFastRewriting;
+    private final boolean api;
 
     @Inject
     public SymbolicRewriter(GlobalContext global, KompileOptions kompileOptions, JavaExecutionOptions javaOptions,
                             KRunState.Counter counter, KOREtoBackendKIL constructor) {
+        this(global, kompileOptions, javaOptions, counter, constructor, false);
+    }
+
+    public SymbolicRewriter(GlobalContext global, KompileOptions kompileOptions, JavaExecutionOptions javaOptions,
+                            KRunState.Counter counter, KOREtoBackendKIL constructor, boolean api) {
         this.constructor = constructor;
         this.definition = global.getDefinition();
         this.allRuleBits = BitSet.apply(definition.ruleTable.size());
@@ -79,6 +85,7 @@ public class SymbolicRewriter {
         this.useFastRewriting = !kompileOptions.experimental.koreProve;
         this.theFastMatcher = new FastRuleMatcher(global, definition.ruleTable.size());
         this.transition = useFastRewriting;
+        this.api = api;
     }
 
     // org.kframework.main.FrontEnd#main
@@ -109,7 +116,7 @@ public class SymbolicRewriter {
     }
 
     private List<ConstrainedTerm> computeRewriteStep(ConstrainedTerm constrainedTerm, int step, boolean computeOne) {
-        return useFastRewriting ?
+        return (useFastRewriting && !api) ?
                 fastComputeRewriteStep(constrainedTerm, computeOne) :
                 slowComputeRewriteStep(constrainedTerm, step, computeOne);
     }

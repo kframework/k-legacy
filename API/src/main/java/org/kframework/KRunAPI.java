@@ -67,7 +67,7 @@ public class KRunAPI {
                 initializeDefinition)
             .apply(compiledDef.executionModule());
 
-        RewriterResult result = ((InitializeRewriter.SymbolicRewriterGlue) rewriter).execute(program, Optional.ofNullable(depth));
+        RewriterResult result = ((InitializeRewriter.SymbolicRewriterGlue) rewriter).execute(program, Optional.ofNullable(depth), true);
 
         return result;
     }
