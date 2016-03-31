@@ -20,6 +20,7 @@ import org.kframework.rewriter.Rewriter;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 
+import java.io.File;
 import java.lang.invoke.MethodHandle;
 import java.util.Map;
 import java.util.Optional;
@@ -78,12 +79,19 @@ public class KRunAPI {
         KExceptionManager kem = new KExceptionManager(globalOptions);
         FileUtil files = FileUtil.testFileUtil();
 
+        if (args.length < 2) {
+            System.out.println("usage: <def> <pgm>");
+            return;
+        }
+        String def = FileUtil.load(new File(args[0])); // "require \"domains.k\" module A syntax KItem ::= \"run\" endmodule"
+        String pgm = FileUtil.load(new File(args[1])); // "run"
+
         // kompile
-        Definition d = DefinitionParser.from("require \"domains.k\" module A syntax KItem ::= \"run\" endmodule");
+        Definition d = DefinitionParser.from(def);
         CompiledDefinition compiledDef = Kompile.run(d, kompileOptions, kem);
 
         // krun
-        RewriterResult result = run(compiledDef, "run", null);
+        RewriterResult result = run(compiledDef, pgm, null);
 
         // print output
         // from org.kframework.krun.KRun.run()
