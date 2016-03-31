@@ -126,7 +126,9 @@ public class Kompile {
     }
 
     public static CompiledDefinition run(Definition parsedDef, KompileOptions kompileOptions, KExceptionManager kem) {
-        // checkDefinition(parsedDef);
+        /* TODO: enable checking
+        checkDefinition(parsedDef);
+         */
 
         Definition kompiledDefinition = defaultSteps(kompileOptions, kem).apply(parsedDef);
 
