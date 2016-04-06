@@ -2,8 +2,8 @@ package org.kframework.attributes
 
 import org.kframework.builtin.Sorts
 import org.kframework.kore.Unapply._
-import org.kframework.kore.{KApply, K, KORE}
-import org.kframework.meta.{Up, Down}
+import org.kframework.kore.{K, KApply, KORE, Sort}
+import org.kframework.meta.{Down, Up}
 
 import scala.collection.JavaConverters._
 import collection._
@@ -42,6 +42,8 @@ case class Att(att: Set[K]) extends AttributesToString {
       case None => java.util.Optional.empty[T]()
     }
 
+  def getOptional[T](label: TypedKey[T]): java.util.Optional[T] = getOptional[T](label.key)
+
   def getOptional[T](label: String, cls: Class[T]): java.util.Optional[T] =
     get[T](label, cls) match {
       case Some(s) => java.util.Optional.of(s);
@@ -66,7 +68,7 @@ case class Att(att: Set[K]) extends AttributesToString {
 
   def +(k: String): Att = add(KORE.KApply(KORE.KLabel(k), KORE.KList(), Att()))
 
-  def +(kv: (String, Any)): Att = add(KORE.KApply(KORE.KLabel(kv._1), KORE.KList(Att.up(kv._2)), Att()))
+  def +[T](kv: (String, T)): Att = add(KORE.KApply(KORE.KLabel(kv._1), KORE.KList(Att.up(kv._2)), Att()))
 
   def ++(that: Att) = new Att(att ++ that.att)
 
@@ -77,7 +79,9 @@ case class Att(att: Set[K]) extends AttributesToString {
 
   def add(k: String): Att = this + k
 
-  def add(key: String, value: Any): Att = this + (key -> value)
+  def add[T](key: String, value: T): Att = this + (key -> value)
+
+  def add[T](key: TypedKey[T], value: T): Att = this + (key.key -> value)
 
   def stream = att.asJava.stream
 
@@ -89,6 +93,8 @@ case class Att(att: Set[K]) extends AttributesToString {
 }
 
 trait KeyWithType
+
+case class TypedKey[T](key: String)
 
 object Att {
   @annotation.varargs def apply(atts: K*): Att = Att(atts.toSet)
@@ -124,7 +130,7 @@ object Att {
   val bag = "bag"
   val syntaxModule = "syntaxModule"
   val variable = "variable"
-  val sort = "sort"
+  val sort = TypedKey[Sort]("sort")
 
   def generatedByAtt(c: Class[_]) = Att().add(Att.generatedBy, c.getName)
 }
