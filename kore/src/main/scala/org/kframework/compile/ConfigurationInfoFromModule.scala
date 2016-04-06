@@ -168,7 +168,7 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
   lazy val configVars: Set[KToken] = {
     val transformer = new FoldK[Set[KToken]] {
       override def apply(k: KToken): Set[KToken] = {
-        if (k.sort.name == "KConfigVar") Set(k) else unit
+        if (k.sort == Sorts.KConfigVar) Set(k) else unit
       }
       def unit = Set()
       def merge(set1: Set[KToken], set2: Set[KToken]) = set1 | set2
