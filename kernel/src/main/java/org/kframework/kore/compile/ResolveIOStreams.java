@@ -3,6 +3,7 @@ package org.kframework.kore.compile;
 
 import org.kframework.attributes.Location;
 import org.kframework.builtin.KLabels;
+import org.kframework.builtin.Sorts;
 import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
 import org.kframework.definition.Production;
@@ -24,6 +25,7 @@ import scala.Tuple2;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.kframework.Collections.*;
@@ -244,11 +246,11 @@ public class ResolveIOStreams {
         KLabel userCellLabel = streamProduction.klabel().get(); // <in>
 
         // find rules with currently supported matching patterns
-        java.util.Set<Tuple2<Rule, String>> rules = new HashSet<>();
+        java.util.Set<Tuple2<Rule, Sort>> rules = new HashSet<>();
         for (Sentence s : sentences) {
             if (s instanceof Rule) {
                 Rule rule = (Rule) s;
-                java.util.List<String> sorts = isSupportingRulePatternAndGetSortNameOfCast(streamProduction, rule);
+                java.util.List<Sort> sorts = isSupportingRulePatternAndGetSortNameOfCast(streamProduction, rule);
                 assert sorts.size() <= 1;
                 if (sorts.size() == 1) {
                     rules.add(Tuple2.apply(rule, sorts.get(0)));
@@ -258,9 +260,9 @@ public class ResolveIOStreams {
 
         // generate additional unblocking rules for each of the above rules
         java.util.Set<Sentence> newSentences = new HashSet<>();
-        for (Tuple2<Rule, String> r : rules) {
+        for (Tuple2<Rule, Sort> r : rules) {
             Rule rule = r._1();
-            String sort = r._2();
+            Sort sort = r._2();
 
             K body = new TransformK() {
                 @Override
@@ -297,17 +299,17 @@ public class ResolveIOStreams {
      *        ...
      *      </in>
      */
-    private java.util.List<String> isSupportingRulePatternAndGetSortNameOfCast(Production streamProduction, Rule rule) {
+    private java.util.List<Sort> isSupportingRulePatternAndGetSortNameOfCast(Production streamProduction, Rule rule) {
         KLabel userCellLabel = streamProduction.klabel().get(); // <in>
 
-        java.util.List<String> sorts = new ArrayList<>();
+        java.util.List<Sort> sorts = new ArrayList<>();
         new VisitK() {
             @Override
             public void apply(KApply k) {
                 if (k.klabel().name().equals(userCellLabel.name())) {
-                    String sort = wellformedAndGetSortNameOfCast(k.klist());
-                    if (!sort.isEmpty()) {
-                        sorts.add(sort);
+                    Optional<Sort> sort = wellformedAndGetSortNameOfCast(k.klist());
+                    if (sort.isPresent()) {
+                        sorts.add(sort.get());
                     } else {
                         if (k.att().get(Location.class).isDefined()) { // warning only for user-provided rules
                             kem.registerCompilerWarning("Unsupported matching pattern in stdin stream cell." +
@@ -331,7 +333,7 @@ public class ResolveIOStreams {
              * which comes from, e.g.,:
              *   <in> ListItem(V:Int) => .List ... </in>
              */
-            private String wellformedAndGetSortNameOfCast(KList klist) {
+            private Optional<Sort> wellformedAndGetSortNameOfCast(KList klist) {
                 try {
                     if (klist.size() == 3) {
                         KApply k1 = (KApply) klist.items().get(0);
@@ -348,14 +350,14 @@ public class ResolveIOStreams {
                                 KApply k2li = (KApply) k2l.klist().items().get(0);
                                 if (k2li.klabel().name().startsWith("#SemanticCastTo") && k2li.klist().size() == 1 &&
                                         k2li.klist().items().get(0) instanceof KVariable) {
-                                    return ResolveSemanticCasts.getSortNameOfCast(k2li); // k2li.klabel().name().substring("#SemanticCastTo".length());
+                                    return Optional.of(ResolveSemanticCasts.getSortNameOfCast(k2li));
                                 }
                             }
                         }
                     }
                 } catch (ClassCastException ignored) {
                 }
-                return "";
+                return Optional.empty();
             }
         }.apply(rule.body());
 
@@ -374,7 +376,7 @@ public class ResolveIOStreams {
      *        ...
      *      </in>
      */
-    private K getUnblockRuleBody(Production streamProduction, String sort) {
+    private K getUnblockRuleBody(Production streamProduction, Sort sort) {
         String streamName = streamProduction.att().<String>get("stream").get();
         assert streamName.equals("stdin"); // stdin
         String builtinCellLabel = "<" + streamName + ">"; // <stdin>
@@ -389,16 +391,16 @@ public class ResolveIOStreams {
         return new TransformK() {
             @Override
             public K apply(KApply k) {
-                if (k.klabel().name().equals("#SemanticCastToString") && k.klist().size() == 1) {
+                if (k.klabel().name().startsWith("#SemanticCastToString") && k.klist().size() == 1) {
                     K i = k.klist().items().get(0);
                     if (i instanceof KVariable) {
                         KVariable x = (KVariable) i;
                         switch (x.name()) {
                         case "?Sort":
-                            return KToken("\"" + sort + "\"", Sort("String"));
+                            return KToken("\"" + sort + "\"", Sorts.String());
                         case "?Delimiters":
                             // TODO(Daejun): support `delimiter` attribute in stream cell
-                            return KToken("\" \\n\\t\\r\"", Sort("String"));
+                            return KToken("\" \\n\\t\\r\"", Sorts.String());
                         default:
                             // fall through
                         }

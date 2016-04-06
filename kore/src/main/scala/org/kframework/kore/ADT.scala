@@ -1,6 +1,6 @@
 package org.kframework.kore
 
-import org.kframework.builtin.KLabels
+import org.kframework.builtin.{Sorts, KLabels}
 import org.kframework.kore
 import org.kframework.attributes._
 import org.kframework.utils.errorsystem.KEMException
@@ -128,7 +128,7 @@ object SortedADT {
   case class SortedKVariable(name: String, att: Att = Att()) extends kore.KVariable {
     def apply(ks: K*) = ADT.KApply(this, ADT.KList(ks.toList))
 
-    val sort: Sort = ADT.SortLookup(att.getOptional[String]("sort").orElse("K"))
+    val sort: Sort = att.getOptional[Sort](Att.sort).orElse(Sorts.K)
 
     override def equals(other: Any) = other match {
       case v: SortedKVariable => name == v.name && sort == v.sort

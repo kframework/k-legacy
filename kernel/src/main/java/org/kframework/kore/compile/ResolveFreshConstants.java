@@ -9,6 +9,7 @@ import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
 import org.kframework.kil.Attribute;
+import org.kframework.kore.Sort;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
@@ -59,11 +60,11 @@ public class ResolveFreshConstants {
 
     private K addSideCondition(K requires) {
         Optional<KApply> sideCondition = freshVars.stream().map(k -> {
-            Optional<String> s = k.att().<String>getOptional(Attribute.SORT_KEY);
+            Optional<Sort> s = k.att().<Sort>getOptional(Attribute.SORT_KEY);
             if (!s.isPresent()) {
                 throw KEMException.compilerError("Fresh constant used without a declared sort.", k);
             }
-            return KApply(KLabel("#match"), k, KApply(KLabel("#fresh"), KToken(StringUtil.enquoteKString(s.get()), Sorts.String())));
+            return KApply(KLabel("#match"), k, KApply(KLabel("#fresh"), KToken(StringUtil.enquoteKString(s.get().toString()), Sorts.String())));
         }).reduce(BooleanUtils::and);
         if (!sideCondition.isPresent()) {
             return requires;
