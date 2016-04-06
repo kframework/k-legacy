@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.kore.compile;
 
+import org.kframework.attributes.Att;
 import org.kframework.builtin.BooleanUtils;
 import org.kframework.definition.Context;
 import org.kframework.definition.Rule;
@@ -95,7 +96,7 @@ public class ResolveSemanticCasts {
                     K child = v.klist().items().get(0);
                     if (child instanceof KVariable) {
                         KVariable var = (KVariable) child;
-                        varToTypedVar.put(var, KVariable(var.name(), var.att().add(Attribute.SORT_KEY, getSortNameOfCast(v))));
+                        varToTypedVar.put(var, KVariable(var.name(), var.att().add(Att.sort(), getSortNameOfCast(v))));
                     }
                 }
                 super.apply(v);

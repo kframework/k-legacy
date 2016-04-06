@@ -299,7 +299,10 @@ public class KOREtoKIL implements Function<Definition, org.kframework.kil.Defini
             if (a instanceof KApply) {
                 KApply attr = (KApply) a;
                 KLabel key = attr.klabel();
-                if (!key.equals(KLabel("Location")) && !key.equals(KLabel("Source")) && !key.equals(KLabel("org.kframework.attributes.Location")) && !key.equals(KLabel("org.kframework.attributes.Source"))) { // ignoring location
+
+                if (key.name().equals(Att.sort().key())) {
+                    kilAttributes.add(Attribute.of("sort", koreAtt.get(Att.sort()).get().name()));
+                } else if (!key.equals(KLabel("Location")) && !key.equals(KLabel("Source")) && !key.equals(KLabel("org.kframework.attributes.Location")) && !key.equals(KLabel("org.kframework.attributes.Source"))) { // ignoring location
                     // information
                     KList klist = attr.klist();
                     if (klist.size() == 1 && klist.items().get(0) instanceof KToken) {

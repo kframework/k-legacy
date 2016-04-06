@@ -7,6 +7,7 @@ import org.kframework.meta.{Down, Up}
 
 import scala.collection.JavaConverters._
 import collection._
+import scala.reflect.ClassTag
 
 
 case class Att(att: Set[K]) extends AttributesToString {
@@ -34,6 +35,8 @@ case class Att(att: Set[K]) extends AttributesToString {
           getK(key).map(Att.down).map {_.asInstanceOf[T]}.get
       }
 
+  def get[T](key: TypedKey[T]): Option[T] = get[T](key.key)
+
   def get[T](cls: Class[T]): Option[T] = get(cls.getName, cls)
 
   def getOptional[T](label: String): java.util.Optional[T] =
@@ -42,7 +45,7 @@ case class Att(att: Set[K]) extends AttributesToString {
       case None => java.util.Optional.empty[T]()
     }
 
-  def getOptional[T](label: TypedKey[T]): java.util.Optional[T] = getOptional[T](label.key)
+  def getOptional[T](key: TypedKey[T]): java.util.Optional[T] = getOptional[T](key.key)
 
   def getOptional[T](label: String, cls: Class[T]): java.util.Optional[T] =
     get[T](label, cls) match {
@@ -56,6 +59,8 @@ case class Att(att: Set[K]) extends AttributesToString {
       case None => java.util.Optional.empty[T]()
     }
 
+  def contains(key: TypedKey[_]): Boolean = contains(key.key)
+
   def contains(label: String): Boolean =
     att exists {
       case KApply(KLabel(`label`), _) => true
@@ -68,7 +73,15 @@ case class Att(att: Set[K]) extends AttributesToString {
 
   def +(k: String): Att = add(KORE.KApply(KORE.KLabel(k), KORE.KList(), Att()))
 
-  def +[T](kv: (String, T)): Att = add(KORE.KApply(KORE.KLabel(kv._1), KORE.KList(Att.up(kv._2)), Att()))
+  def +[T](kv: (String, T)): Att = {
+    val predefinedKey = Att.keyMap.get(kv._1)
+    if(predefinedKey.isDefined) {
+      if (!predefinedKey.get.keyClass.isAssignableFrom(kv._2.getClass)) {
+        throw new AssertionError("Attribute of unexpected type. Expected " + predefinedKey.get.keyClass + " but got " + kv._2.getClass +".")
+      }
+    }
+    add(KORE.KApply(KORE.KLabel(kv._1), KORE.KList(Att.up(kv._2)), Att()))
+  }
 
   def ++(that: Att) = new Att(att ++ that.att)
 
@@ -89,12 +102,17 @@ case class Att(att: Set[K]) extends AttributesToString {
 
   def remove(k: String): Att = new Att(att filter { case KApply(KLabel(`k`), _) => false; case _ => true })
 
+  def remove(k: TypedKey[_]): Att = remove(k.key)
+
   override lazy val hashCode: Int = scala.runtime.ScalaRunTime._hashCode(Att.this);
 }
 
 trait KeyWithType
 
-case class TypedKey[T](key: String)
+case class TypedKey[T: ClassTag](key: String) {
+  import scala.reflect._
+  val keyClass: Class[_] = classTag[T].runtimeClass
+}
 
 object Att {
   @annotation.varargs def apply(atts: K*): Att = Att(atts.toSet)
@@ -131,6 +149,10 @@ object Att {
   val syntaxModule = "syntaxModule"
   val variable = "variable"
   val sort = TypedKey[Sort]("sort")
+
+  val keyMap = Map(
+    "sort" -> sort
+  )
 
   def generatedByAtt(c: Class[_]) = Att().add(Att.generatedBy, c.getName)
 }

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.kore.compile;
 
+import org.kframework.attributes.Att;
 import org.kframework.builtin.BooleanUtils;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.Context;
@@ -60,7 +61,7 @@ public class ResolveFreshConstants {
 
     private K addSideCondition(K requires) {
         Optional<KApply> sideCondition = freshVars.stream().map(k -> {
-            Optional<Sort> s = k.att().<Sort>getOptional(Attribute.SORT_KEY);
+            Optional<Sort> s = k.att().getOptional(Att.sort());
             if (!s.isPresent()) {
                 throw KEMException.compilerError("Fresh constant used without a declared sort.", k);
             }

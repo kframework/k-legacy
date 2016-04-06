@@ -375,7 +375,7 @@ public class RuleGrammarGenerator {
 
     private Set<Sentence> makeCasts(Sort outerSort, Sort innerSort, Sort castSort) {
         Set<Sentence> prods = new HashSet<>();
-        Att attrs1 = Att().add(Attribute.SORT_KEY, castSort.name());
+        Att attrs1 = Att().add(Att.sort(), castSort);
         // annotations with :Sort@MODULE
         prods.add(Production("#SyntacticCast", castSort, Seq(NonTerminal(castSort), Terminal("::" + castSort.name())), attrs1));
         prods.add(Production("#SemanticCastTo" + castSort.name(), castSort, Seq(NonTerminal(castSort), Terminal(":" + castSort.name())), attrs1));
