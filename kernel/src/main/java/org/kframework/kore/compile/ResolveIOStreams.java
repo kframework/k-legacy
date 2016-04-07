@@ -205,7 +205,7 @@ public class ResolveIOStreams {
                 }
             } else if (s instanceof Production) {
                 Production production = (Production) s;
-                if (production.sort().name().equals("Stream")) {
+                if (production.sort().localName().equals("Stream")) { // production.sort().name().equals("Stream@K-IO")
                     sentences.add(production);
                 }
             }
