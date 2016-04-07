@@ -609,7 +609,7 @@ module STDIN-STREAM
   // when we reach whitespace, if it parses create a ListItem
   rule [stdinParseString]:
        <stdin>
-       (ListItem(#parseInput("String", Delimiters:String)) => ListItem(S))
+       (ListItem(#parseInput("String@STRING-SYNTAX", Delimiters:String)) => ListItem(S))
        ListItem(#buffer(S:String => ""))
        _:List
        </stdin>
@@ -619,7 +619,7 @@ module STDIN-STREAM
   // a hack: handle the case when we read integers without the help of the IO server
   rule [stdinParseInt]:
        <stdin>
-       (ListItem(#parseInput("Int", Delimiters:String))
+       (ListItem(#parseInput("Int@INT-SYNTAX", Delimiters:String))
        => ListItem(String2Int(substrString(S, 0, findChar(S, Delimiters, 0)))))
        ListItem(#buffer(S:String => substrString(S,findChar(S, Delimiters, 0) +Int 1, lengthString(S))))
        _:List
@@ -636,8 +636,8 @@ module STDIN-STREAM
        _:List
        </stdin>
     requires findChar(S, Delimiters, 0) =/=Int -1
-       andBool Sort =/=String "String"
-       andBool Sort =/=String "Int"
+       andBool Sort =/=String "String@STRING-SYNTAX"
+       andBool Sort =/=String "Int@INT-SYNTAX"
        andBool lengthString(S) >Int 1 // [stdin]
        [stream]
 
@@ -648,7 +648,7 @@ module STDIN-STREAM
        _:List
        </stdin>
     requires findChar(S, Delimiters, 0) =/=Int -1
-       andBool Sort =/=String "String"
+       andBool Sort =/=String "String@STRING-SYNTAX"
        andBool lengthString(S) <=Int 1 // [stdin]
        [stream]
 
