@@ -296,6 +296,7 @@ public class KRun {
             String parser = entry.getValue().getRight();
             Sort sort = compiledDef.configurationVariableDefaultSorts.get("$" + name);
             assert sort != null: "Could not find configuration variable: $" + name;
+            
             K configVar = externalParse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), compiledDef);
             output.put(KToken("$" + name, Sorts.KConfigVar()), configVar);
         }
