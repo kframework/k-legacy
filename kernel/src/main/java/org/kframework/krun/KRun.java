@@ -294,7 +294,8 @@ public class KRun {
             String name = entry.getKey();
             String value = entry.getValue().getLeft();
             String parser = entry.getValue().getRight();
-            Sort sort = compiledDef.programStartSymbol;
+            Sort sort = compiledDef.configurationVariableDefaultSorts.get("$" + name);
+            assert sort != null: "Could not find configuration variable: $" + name;
             K configVar = externalParse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), compiledDef);
             output.put(KToken("$" + name, Sorts.KConfigVar()), configVar);
         }
