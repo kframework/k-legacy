@@ -32,13 +32,16 @@ class Up[K <: kore.K](cons: Constructors[K] with ScalaSugared[K], imports: Set[S
 
       case o: Associativity.Value => cons.KToken(o.toString, cons.Sort("Associativity"), Att())
       case o: java.io.File => cons.KToken(o.toString, cons.Sort("File"), Att())
-        
+
       // Fallback to reflection
       case o: Product =>
         val elements = o.productIterator.toList
         val klist = cons.KList(elements map apply asJava)
         cons.KApply(cons.KLabel(processName(o.getClass().getName)), klist,
           Att() +(Att.ClassFromUp.toString(), o.getClass().getName()))
+
+      // K stuff
+      case s: Sort => s.name
     }
   }
 

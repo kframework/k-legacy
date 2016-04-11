@@ -2,7 +2,7 @@ package org.kframework.attributes
 
 import org.kframework.builtin.Sorts
 import org.kframework.kore.Unapply._
-import org.kframework.kore.{K, KApply, KORE, Sort}
+import org.kframework.kore.{KApply, Sort, _}
 import org.kframework.meta.{Down, Up}
 
 import scala.collection.JavaConverters._
@@ -67,26 +67,23 @@ case class Att(att: Set[K]) extends AttributesToString {
       case z => false
     }
 
-  def +(o: Any) = new Att(att + Att.up(o))
-
   def +(k: K): Att = new Att(att + k)
 
   def +(k: String): Att = add(KORE.KApply(KORE.KLabel(k), KORE.KList(), Att()))
 
   def +[T](kv: (String, T)): Att = {
     val predefinedKey = Att.keyMap.get(kv._1)
-    if(predefinedKey.isDefined) {
+    if (predefinedKey.isDefined) {
       if (!predefinedKey.get.keyClass.isAssignableFrom(kv._2.getClass)) {
-        throw new AssertionError("Attribute of unexpected type. Expected " + predefinedKey.get.keyClass + " but got " + kv._2.getClass +".")
+        throw new AssertionError("Attribute of unexpected type. Expected " + predefinedKey.get.keyClass + " but got " + kv._2.getClass + ".")
       }
     }
-    add(KORE.KApply(KORE.KLabel(kv._1), KORE.KList(Att.up(kv._2)), Att()))
+    add(Att.up(kv._1, kv._2))
   }
 
   def ++(that: Att) = new Att(att ++ that.att)
 
   // nice methods for Java
-  def add(o: Any): Att = this + o
 
   def add(k: K): Att = this + k
 
@@ -109,8 +106,10 @@ case class Att(att: Set[K]) extends AttributesToString {
 
 trait KeyWithType
 
-case class TypedKey[T: ClassTag](key: String) {
+case class TypedKey[T: ClassTag](key: String, up: T => K, down: K => Option[T]) {
+
   import scala.reflect._
+
   val keyClass: Class[_] = classTag[T].runtimeClass
 }
 
@@ -118,8 +117,23 @@ object Att {
   @annotation.varargs def apply(atts: K*): Att = Att(atts.toSet)
 
   val includes = Set("scala.collection.immutable", "org.kframework.attributes")
-  val down = Down(includes)
-  val up = new Up(KORE, includes)
+  val defaultDown = Down(includes)
+
+  def down(k: K) = {
+    val downedPossibilities = keyMap.values.flatMap(_.down(k))
+    downedPossibilities.size match {
+      case 0 => defaultDown(k)
+      case 1 => downedPossibilities.head
+      case _ => throw new AssertionError("Too many ways to interpret this K as an attribute.")
+    }
+  }
+
+  val defaultUp = new Up(KORE, includes)
+  def up(key: String, value: Any) = {
+    val upFunction: Any => K = keyMap.get(key).map(_.up.asInstanceOf[Any => K]).getOrElse(defaultUp)
+
+    KORE.KApply(KORE.KLabel(key), List(upFunction(value)))
+  }
 
   implicit def asK(key: String, value: String) =
     KORE.KApply(KORE.KLabel(key), KORE.KList(List(KORE.KToken(value, Sorts.KString, Att())).asJava), Att())
@@ -148,9 +162,14 @@ object Att {
   val bag = "bag"
   val syntaxModule = "syntaxModule"
   val variable = "variable"
-  val sort = TypedKey[Sort]("sort")
+  val sort = TypedKey[Sort]("sort", {
+    s: Sort => KORE.KToken(s.name, Sorts.String)
+  }, {
+    case KApply(KLabel("sort"), List(v)) => Some(KORE.Sort(v.asInstanceOf[KToken].s))
+    case _ => None
+  })
 
-  val keyMap = Map(
+  val keyMap : Map[String, TypedKey[_]] = Map(
     "sort" -> sort
   )
 
