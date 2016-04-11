@@ -195,7 +195,7 @@ class MatcherTest extends AbstractTest {
         And(Y -> 5, Z -> KSeq(), X -> 5),
         And(X -> '+(), Z -> KSeq(), Y -> '+(5, 5)))
       , pattern.matchAll(foo,
-        And(liftBool(SortPredicate(Sorts.KSeq, Z)), liftBool(SortPredicate(Sorts.Int, X)))))
+        And(liftBool(SortPredicate(Sorts.KBott, Z)), liftBool(SortPredicate(Sorts.Int, X)))))
   }
 
   // failed after modularization
@@ -208,7 +208,7 @@ class MatcherTest extends AbstractTest {
         And(Y -> 5, Z -> KSeq(), X -> 5),
         And(X -> '+(), Z -> KSeq(), Y -> '+(5, 5)))
       , pattern.matchAll(foo,
-        And(liftBool(SortPredicate(Sorts.KSeq, Z)), liftBool(SortPredicate(Sorts.Int, X)))))
+        And(liftBool(SortPredicate(Sorts.KBott, Z)), liftBool(SortPredicate(Sorts.Int, X)))))
   }
 
   //

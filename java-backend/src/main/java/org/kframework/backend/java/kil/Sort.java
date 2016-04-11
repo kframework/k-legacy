@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.collections4.trie.PatriciaTrie;
 
 import com.google.common.collect.ImmutableSet;
+import org.kframework.builtin.Sorts;
 import org.kframework.definition.ModuleName;
 import org.kframework.utils.errorsystem.KEMException;
 
@@ -33,32 +34,28 @@ public final class Sort extends org.kframework.kore.AbstractSort implements Maxi
     public static final AtomicInteger maxOrdinal = new AtomicInteger(0);
 
 
-    public static final Sort KITEM          =   Sort.of("KItem");
-    public static final Sort KSEQUENCE      =   Sort.of("K");
-    public static final Sort KLIST          =   Sort.of("KList");
-    public static final Sort KLABEL         =   Sort.of("KLabel");
-    public static final Sort KRESULT        =   Sort.of("KResult");
+    public static final Sort KITEM          =   Sort.of(Sorts.KItem().name());
+    public static final Sort KSEQUENCE      =   Sort.of(Sorts.K().name());
+    public static final Sort KLIST          =   Sort.of(Sorts.KList().name());
+    public static final Sort KLABEL         =   Sort.of(Sorts.KLabel().name());
+    public static final Sort KRESULT        =   Sort.of(Sorts.KResult().name());
 
-    public static final Sort BAG            =   Sort.of("Bag");
-    public static final Sort BAG_ITEM       =   Sort.of("BagItem");
-    public static final Sort LIST           =   Sort.of("List");
-    public static final Sort MAP            =   Sort.of("Map");
-    public static final Sort SET            =   Sort.of("Set");
+    public static final Sort BAG            =   Sort.of("Bag@KCELLS");
+    public static final Sort LIST           =   Sort.of("List@LIST");
+    public static final Sort MAP            =   Sort.of("Map@MAP");
+    public static final Sort SET            =   Sort.of("Set@SET");
 
-    public static final Sort INT            =   Sort.of("Int");
-    public static final Sort BOOL           =   Sort.of("Bool");
-    public static final Sort FLOAT          =   Sort.of("Float");
-    public static final Sort CHAR           =   Sort.of("Char");
-    public static final Sort STRING         =   Sort.of("String");
-    public static final Sort BIT_VECTOR     =   Sort.of("MInt");
-    public static final Sort META_VARIABLE  =   Sort.of("MetaVariable");
+    public static final Sort INT            =   Sort.of("Int@INT-SYNTAX");
+    public static final Sort BOOL           =   Sort.of("Bool@BOOL-SYNTAX");
+    public static final Sort FLOAT          =   Sort.of("Float@FLOAT-SYNTAX");
+    public static final Sort STRING         =   Sort.of("String@STRING-SYNTAX");
+    public static final Sort BIT_VECTOR     =   Sort.of("MInt@MINT");
+    public static final Sort META_VARIABLE  =   Sort.of("MetaVariable@BACKEND_ONLY");
 
-    public static final Sort VARIABLE       =   Sort.of("Variable");
-    public static final Sort KVARIABLE      =   Sort.of("KVariable");
+    public static final Sort KVARIABLE      =   Sort.of("KVariable@BACKEND_ONLY");
 
-    public static final Sort BOTTOM         =   Sort.of("Bottom");
-    public static final Sort SHARP_BOT      =   Sort.of("#Bot");
-    public static final Sort MGU            =   Sort.of("Mgu");
+    public static final Sort BOTTOM         =   Sort.of("Bottom@BACKEND_ONLY");
+    public static final Sort MGU            =   Sort.of("Mgu@BACKEND_ONLY");
 
     /**
      * {@code String} representation of this {@code Sort}.
@@ -66,7 +63,6 @@ public final class Sort extends org.kframework.kore.AbstractSort implements Maxi
     private final String name;
 
     private final int ordinal;
-    private final String localName;
 
     /**
      * Gets the corresponding {@code Sort} from its {@code String}
@@ -77,11 +73,9 @@ public final class Sort extends org.kframework.kore.AbstractSort implements Maxi
      * @return the sort
      */
     public static Sort of(String name) {
-        if(name.contains("@")) {
-            String localName = name.split("@")[0];
-            return cache.computeIfAbsent(localName, s -> new Sort(localName, maxOrdinal.getAndIncrement()));
-        } else
-            return cache.computeIfAbsent(name, s -> new Sort(name, maxOrdinal.getAndIncrement()));
+        if(!name.contains("@"))
+            throw new AssertionError("Backend should only get fully qulified sorts, but got: " + name);
+        return cache.computeIfAbsent(name, s -> new Sort(name, maxOrdinal.getAndIncrement()));
     }
 
     public static Sort of(org.kframework.kil.Sort sort) {
@@ -97,8 +91,7 @@ public final class Sort extends org.kframework.kore.AbstractSort implements Maxi
     }
 
     private Sort(String name, int ordinal) {
-        this.localName = name;
-        this.name = localName + "@" + moduleName();
+        this.name = name;
         this.ordinal = ordinal;
     }
 
@@ -126,7 +119,7 @@ public final class Sort extends org.kframework.kore.AbstractSort implements Maxi
 
     @Override
     public String toString() {
-        return localName;
+        return name;
     }
 
     /**

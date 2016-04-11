@@ -16,6 +16,7 @@ module BASIC-K
   syntax KConfigVar
   syntax KBott
   syntax KList
+  syntax KResult
   // here will be automatically added the casts for KLabel, KItem, K and KList
 endmodule
 

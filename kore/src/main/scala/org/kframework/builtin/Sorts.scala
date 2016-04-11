@@ -2,29 +2,26 @@
 
 package org.kframework.builtin
 
+import org.kframework.definition.ModuleName
 import org.kframework.kore.ADT
 import org.kframework.kore.KORE.Sort
 
 object Sorts {
-  val KString = Sort("KString")
-  val String = Sort("String")
+  val KString    = Sort("KString", ModuleName("KSTRING"))
+  val String     = Sort("String", ModuleName("STRING-SYNTAX"))
+  val Bool       = Sort("Bool", ModuleName("BOOL-SYNTAX"))
+  val Int        = Sort("Int", ModuleName("INT-SYNTAX"))
+  val Float      = Sort("Float", ModuleName("FLOAT-SYNTAX"))
+  val K          = Sort("K", ModuleName("SORT-K"))
+  val KBott      = Sort("KBott", ModuleName("BASIC-K"))
+  val KVariable  = Sort("#KVariable", ModuleName("KSEQ-SYMBOLIC"))
+  val KItem      = Sort("KItem", ModuleName("BASIC-K"))
+  val KLabel     = Sort("KLabel", ModuleName("BASIC-K"))
+  val KList      = Sort("KList", ModuleName("BASIC-K"))
+  val KConfigVar = Sort("KConfigVar", ModuleName("BASIC-K"))
+  val Id         = Sort("Id", ModuleName("ID"))
+  val KResult    = Sort("KResult", ModuleName("BASIC-K"))
 
-  val KBool = Sort("KBool")
-  val Bool = Sort("Bool")
-
-  val Int = Sort("Int")
-  val File = Sort("File")
-  val Float = Sort("Float")
-
-  val K = Sort("K")
-  val KBott = Sort("KBott")
-  val KVariable = Sort("#KVariable")
-  val KItem = Sort("KItem")
-  val KLabel = Sort("KLabel")
-  val KList = Sort("KList")
-  val KToken = Sort("KToken")
-  val KConfigVar = Sort("KConfigVar")
-
-  val Id = ADT.SortLookup("Id")
-  val KSeq = ADT.SortLookup("KSequence")
+  val KSeq       = ADT.SortLookup("KSequence@???")
+  val KBool      = Sort("KBool@???")
 }

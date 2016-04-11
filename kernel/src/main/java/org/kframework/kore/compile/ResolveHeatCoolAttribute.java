@@ -7,6 +7,7 @@ import org.kframework.definition.Context;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
 import org.kframework.kil.Attribute;
+import org.kframework.kil.Sort;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
@@ -40,7 +41,7 @@ public class ResolveHeatCoolAttribute {
     }
 
     private K transform(K requires, Att att) {
-        String sort = att.<String>getOptional("result").orElse("KResult");
+        String sort = att.<String>getOptional("result").orElse(Sort.KRESULT.getName());
         KApply predicate = KApply(KLabel("is" + sort), KVariable("HOLE"));
         if (att.contains("heat")) {
             return BooleanUtils.and(requires, BooleanUtils.not(predicate));

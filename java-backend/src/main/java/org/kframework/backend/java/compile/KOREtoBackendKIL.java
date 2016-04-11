@@ -79,7 +79,6 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
         return Sort.of(name);
     }
 
-    @Override
     public <KK extends org.kframework.kore.K> KList KList(List<KK> items) {
         return (KList) KCollection.upKind(
                 KList.concatenate(items.stream().map(this::convert).collect(Collectors.toList())),

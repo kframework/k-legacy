@@ -21,7 +21,7 @@ trait AbstractTest {
       Seq(NonTerminal(Sorts.Bool), NonTerminal(Sorts.Bool)), Att() + ("hook" -> "#BOOL:_andBool_")),
     Production("_orBool_", Sorts.Bool,
       Seq(NonTerminal(Sorts.Bool), NonTerminal(Sorts.Bool)), Att() + ("hook" -> "#BOOL:_orBool_")),
-    Production("#KSequence", Sorts.KSeq, Seq(), Att() + "assoc"),
+    Production("#KSequence", Sorts.KBott, Seq(), Att() + "assoc"),
     Production("foo", String, Seq(), Att()),
     Production("bar", String, Seq(), Att()),
     Production("+", Int, Seq(), Att() + "assoc"),

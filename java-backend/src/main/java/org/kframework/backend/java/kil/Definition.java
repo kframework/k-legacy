@@ -103,7 +103,6 @@ public class Definition extends JavaSymbolicObject {
             Sort.BOOL,
             Sort.INT,
             Sort.FLOAT,
-            Sort.CHAR,
             Sort.STRING,
             Sort.LIST,
             Sort.SET,
@@ -243,9 +242,6 @@ public class Definition extends JavaSymbolicObject {
                 new Subsorts(module),
                 ImmutableSet.<Sort>builder()
                         .addAll(TOKEN_SORTS)
-                        .add(Sort.of("#Int"))
-                        .add(Sort.of("#String"))
-                        .add(Sort.of("#Id"))
                         .build(),
                 getDataStructureSorts(module),
                 signaturesBuilder.build(),
@@ -508,7 +504,7 @@ public class Definition extends JavaSymbolicObject {
     }
 
     public DataStructureSort dataStructureSortOf(Sort sort) {
-        return definitionData.dataStructureSorts.get(Sort(sort.name()));
+        return definitionData.dataStructureSorts.get(sort);
     }
 
     public Map<Sort, String> freshFunctionNames() {
