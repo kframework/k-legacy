@@ -42,6 +42,8 @@ case class Definition(
 
   val modules = entryModules flatMap allModules
 
+  assert(modules.map(m => m.name).size == modules.size)
+
   assert(modules.contains(mainModule))
 
   def getModule(name: String): Option[Module] = modules find { case m: Module => m.name == name; case _ => false }
