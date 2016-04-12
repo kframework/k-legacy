@@ -31,6 +31,7 @@ import org.kframework.kil.Attributes;
 import org.kframework.kil.DataStructureSort;
 import org.kframework.kil.Production;
 import org.kframework.kil.loader.Context;
+import org.kframework.kore.KORE;
 import org.kframework.kore.convertors.KOREtoKIL;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -504,7 +505,7 @@ public class Definition extends JavaSymbolicObject {
     }
 
     public DataStructureSort dataStructureSortOf(Sort sort) {
-        return definitionData.dataStructureSorts.get(sort);
+        return definitionData.dataStructureSorts.get(KORE.Sort(sort.name()));
     }
 
     public Map<Sort, String> freshFunctionNames() {
