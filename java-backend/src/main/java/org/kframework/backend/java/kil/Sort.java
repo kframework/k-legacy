@@ -52,7 +52,7 @@ public final class Sort extends org.kframework.kore.AbstractSort implements Maxi
     public static final Sort BIT_VECTOR     =   Sort.of("MInt@MINT");
     public static final Sort META_VARIABLE  =   Sort.of("MetaVariable@BACKEND_ONLY");
 
-    public static final Sort KVARIABLE      =   Sort.of("KVariable@BACKEND_ONLY");
+    public static final Sort KVARIABLE      =   Sort.of("KVariable@SUBSTITUTION");
 
     public static final Sort BOTTOM         =   Sort.of("Bottom@BACKEND_ONLY");
     public static final Sort MGU            =   Sort.of("Mgu@BACKEND_ONLY");
