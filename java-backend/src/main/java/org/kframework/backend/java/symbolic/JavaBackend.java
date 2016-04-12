@@ -20,6 +20,7 @@ import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.ADT;
 import org.kframework.kore.KToken;
+import org.kframework.kore.Sort;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
@@ -38,6 +39,7 @@ import org.kframework.kore.TransformK;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
+import scala.Option;
 
 import static scala.compat.java8.JFunction.*;
 
@@ -75,6 +77,26 @@ public class JavaBackend implements Backend {
         DefinitionTransformer convertDataStructureToLookup = DefinitionTransformer.fromSentenceTransformer(func((m, s) -> new ConvertDataStructureToLookup(m, false).convert(s)), "convert data structures to lookups");
         ExpandMacrosDefinitionTransformer expandMacrosDefinitionTransformer = new ExpandMacrosDefinitionTransformer(kem, files, globalOptions, kompileOptions);
 
+        DefinitionTransformer moduleQualifySortPredicates = DefinitionTransformer.fromKTransformerWithModuleInfo((Module m, K k) -> {
+            return new TransformK() {
+                @Override
+                public K apply(KApply kk) {
+                    KApply k = (KApply) super.apply(kk);
+                    if (!k.klabel().name().startsWith("is"))
+                        return k;
+
+                    Sort possibleSort = KORE.Sort(k.klabel().name().substring("is".length()));
+                    Option<ADT.Sort> resolvedSort = m.sortResolver().get(possibleSort);
+
+                    if (resolvedSort.isDefined()) {
+                        return KORE.KApply(KORE.KLabel("is" + resolvedSort.get().name()), k.klist());
+                    } else {
+                        return k;
+                    }
+                }
+            }.apply(k);
+        }, "Module-qualify sort predicates");
+
         if (kompile.kompileOptions.experimental.koreProve) {
             return kompile.defaultSteps()
                     .andThen(expandMacrosDefinitionTransformer::apply)
@@ -85,6 +107,7 @@ public class JavaBackend implements Backend {
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(DefinitionTransformer.from(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))
+                .andThen(moduleQualifySortPredicates)
                 .andThen(func(dd -> expandMacrosDefinitionTransformer.apply(dd)))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(convertDataStructureToLookup)
@@ -96,6 +119,7 @@ public class JavaBackend implements Backend {
                 .andThen(DefinitionTransformer.fromSentenceTransformer(JavaBackend::markSingleVariables, "mark single variables"))
                 .andThen(DefinitionTransformer.from(new AssocCommToAssoc(KORE.c()), "convert assoc/comm to assoc"))
                 .andThen(DefinitionTransformer.from(new MergeRules(KORE.c()), "generate matching automaton"))
+                .andThen(moduleQualifySortPredicates)
                 .apply(d);
     }
 
