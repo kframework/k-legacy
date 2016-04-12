@@ -494,7 +494,7 @@ module ID
 
   syntax String ::= Id2String ( Id )    [function, hook(STRING.token2string)]
   syntax Id ::= String2Id ( String )    [function]
-  rule String2Id(S:String) => #parseToken("Id", S)
+  rule String2Id(S:String) => #parseToken("Id@ID", S)
 
   syntax Id ::= freshId(Int)    [freshGenerator, function]
   rule freshId(I:Int) => String2Id("_" +String Int2String(I))
