@@ -35,7 +35,7 @@ case class Att(att: Set[K]) extends AttributesToString {
           getK(key).map(Att.down).map {_.asInstanceOf[T]}.get
       }
 
-  def get[T](key: TypedKey[T]): Option[T] = get[T](key.key)
+  def get[T](key: TypedKey[T]): Option[T] = getK(key.key) flatMap key.down
 
   def get[T](cls: Class[T]): Option[T] = get(cls.getName, cls)
 
@@ -45,7 +45,8 @@ case class Att(att: Set[K]) extends AttributesToString {
       case None => java.util.Optional.empty[T]()
     }
 
-  def getOptional[T](key: TypedKey[T]): java.util.Optional[T] = getOptional[T](key.key)
+  def getOptional[T](key: TypedKey[T]): java.util.Optional[T] =
+    get[T](key).map(java.util.Optional.of[T]).getOrElse(java.util.Optional.empty[T]())
 
   def getOptional[T](label: String, cls: Class[T]): java.util.Optional[T] =
     get[T](label, cls) match {
@@ -169,7 +170,7 @@ object Att {
     case _ => None
   })
 
-  val keyMap : Map[String, TypedKey[_]] = Map(
+  val keyMap: Map[String, TypedKey[_]] = Map(
     "sort" -> sort
   )
 
