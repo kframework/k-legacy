@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2016 K Team. All Rights Reserved.
-module TEST [Location(#token("3",Int),#token("1",Int),#token("5",Int),#token("9",Int)) Source(#token("src/test/resources/convertor-tests/syntaxWithAttributes.k",KString))]
-  syntax Foo@TEST [Location(#token("4",Int),#token("3",Int),#token("4",Int),#token("24",Int)) Source(#token("src/test/resources/convertor-tests/syntaxWithAttributes.k",KString)) some(#token("foo",AttributeValue))]
+// Copyright (c) 2016 K Team. All Rights Reserved.
+module TEST [Location(#token("3",Int@INT-SYNTAX),#token("1",Int@INT-SYNTAX),#token("5",Int@INT-SYNTAX),#token("9",Int@INT-SYNTAX)) Source(#token("src/test/resources/convertor-tests/syntaxWithAttributes.k",KString@KSTRING))]
+  syntax Foo@TEST [Location(#token("4",Int@INT-SYNTAX),#token("3",Int@INT-SYNTAX),#token("4",Int@INT-SYNTAX),#token("24",Int@INT-SYNTAX)) Source(#token("src/test/resources/convertor-tests/syntaxWithAttributes.k",KString@KSTRING)) some(#token("foo",AttributeValue))]
 endmodule

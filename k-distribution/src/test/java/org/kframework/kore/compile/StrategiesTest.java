@@ -83,5 +83,4 @@ public class StrategiesTest {
 
         assertEquals("Execution failed", expected, actual);
     }
-
 }
