@@ -1,42 +1,42 @@
 Search results:
 
 Solution 1:
-Solution:Map -->
-X:Term |-> david A:Term |-> jim B:Term |-> john
+Solution:Map@MAP -->
+X:Term@LOGIK-COMMO |-> david A:Term@LOGIK-COMMO |-> jim B:Term@LOGIK-COMMO |-> john
 
 Solution 2:
-Solution:Map -->
-X:Term |-> david A:Term |-> nathan B:Term |-> john
+Solution:Map@MAP -->
+X:Term@LOGIK-COMMO |-> david A:Term@LOGIK-COMMO |-> nathan B:Term@LOGIK-COMMO |-> john
 
 Solution 3:
-Solution:Map -->
-X:Term |-> david A:Term |-> steve B:Term |-> john
+Solution:Map@MAP -->
+X:Term@LOGIK-COMMO |-> david A:Term@LOGIK-COMMO |-> steve B:Term@LOGIK-COMMO |-> john
 
 Solution 4:
-Solution:Map -->
-X:Term |-> jim A:Term |-> nathan B:Term |-> david
+Solution:Map@MAP -->
+X:Term@LOGIK-COMMO |-> jim A:Term@LOGIK-COMMO |-> nathan B:Term@LOGIK-COMMO |-> david
 
 Solution 5:
-Solution:Map -->
-X:Term |-> jim A:Term |-> nathan B:Term |-> john
+Solution:Map@MAP -->
+X:Term@LOGIK-COMMO |-> jim A:Term@LOGIK-COMMO |-> nathan B:Term@LOGIK-COMMO |-> john
 
 Solution 6:
-Solution:Map -->
-X:Term |-> jim A:Term |-> steve B:Term |-> david
+Solution:Map@MAP -->
+X:Term@LOGIK-COMMO |-> jim A:Term@LOGIK-COMMO |-> steve B:Term@LOGIK-COMMO |-> david
 
 Solution 7:
-Solution:Map -->
-X:Term |-> jim A:Term |-> steve B:Term |-> john
+Solution:Map@MAP -->
+X:Term@LOGIK-COMMO |-> jim A:Term@LOGIK-COMMO |-> steve B:Term@LOGIK-COMMO |-> john
 
 Solution 8:
-Solution:Map -->
-X:Term |-> steve A:Term |-> nathan B:Term |-> david
+Solution:Map@MAP -->
+X:Term@LOGIK-COMMO |-> steve A:Term@LOGIK-COMMO |-> nathan B:Term@LOGIK-COMMO |-> david
 
 Solution 9:
-Solution:Map -->
-X:Term |-> steve A:Term |-> nathan B:Term |-> jim
+Solution:Map@MAP -->
+X:Term@LOGIK-COMMO |-> steve A:Term@LOGIK-COMMO |-> nathan B:Term@LOGIK-COMMO |-> jim
 
 Solution 10:
-Solution:Map -->
-X:Term |-> steve A:Term |-> nathan B:Term |-> john
+Solution:Map@MAP -->
+X:Term@LOGIK-COMMO |-> steve A:Term@LOGIK-COMMO |-> nathan B:Term@LOGIK-COMMO |-> john
 
