@@ -2,6 +2,9 @@
 package org.kframework.backend.java.symbolic;
 
 import com.google.inject.Inject;
+import org.kframework.attributes.Att;
+import org.kframework.definition.Definition;
+import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.RewriterResult;
 import org.kframework.compile.ConfigurationInfo;
@@ -27,6 +30,7 @@ import org.kframework.main.GlobalOptions;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
+import scala.collection.Set;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -64,6 +68,16 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
         String proofFile = options.experimental.prove;
         Kompile kompile = new Kompile(compiledDefinition.kompileOptions, globalOptions, files, kem, sw, false);
         Module mod = kompile.parseModule(compiledDefinition, files.resolveWorkingDirectory(proofFile).getAbsoluteFile());
+
+        Set<Module> alsoIncluded = Stream.of("K-TERM", "K-REFLECTION", RuleGrammarGenerator.ID_PROGRAM_PARSING)
+                .map(module -> compiledDefinition.getParsedDefinition().getModule(module).get())
+                .collect(org.kframework.Collections.toSet());
+
+        mod = new JavaBackend(kem, files, globalOptions, compiledDefinition.kompileOptions)
+                .stepsForProverRules(kompile)
+                .apply(Definition.apply(mod, org.kframework.Collections.add(mod, alsoIncluded), Att.apply()))
+                .getModule(mod.name()).get();
+
         RewriterResult executionResult = rewriter.execute(k, Optional.<Integer>empty());
 
         ConfigurationInfo configurationInfo = new ConfigurationInfoFromModule(compiledDefinition.executionModule());
@@ -127,12 +141,13 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
         };
 
         List<Rule> rules = stream(mod.localRules())
+                .filter(r -> r.toString().contains("spec.k"))
                 .map(r -> new Rule(
                         cellPlaceholderSubstitutionApplication.apply(r.body()),
                         cellPlaceholderSubstitutionApplication.apply(r.requires()),
                         cellPlaceholderSubstitutionApplication.apply(r.ensures()),
                         r.att()))
-                .map(r -> kompile.compileRule(compiledDefinition, r))
+                //.map(r -> kompile.compileRule(compiledDefinition, r))
                 .collect(Collectors.toList());
         return rewriter.prove(rules);
     }

@@ -15,6 +15,8 @@ import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.util.JavaKRunState;
+import org.kframework.compile.NormalizeKSeq;
+import org.kframework.definition.DefinitionTransformer;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
 import org.kframework.kil.Attribute;
@@ -33,6 +35,7 @@ import org.kframework.utils.inject.Builtins;
 import org.kframework.utils.inject.DefinitionScoped;
 import org.kframework.utils.inject.RequestScoped;
 import org.kframework.utils.options.SMTOptions;
+import scala.Function1;
 import scala.Tuple2;
 import scala.collection.JavaConversions;
 
@@ -43,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 /**
@@ -169,7 +173,26 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
             TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
             List<org.kframework.backend.java.kil.Rule> javaRules = rules.stream()
+                    .map(r -> transform(JavaBackend::ADTKVariableToSortedVariable, r))
+                    .map(r -> transform(JavaBackend::convertKSeqToKApply, r))
+                    .map(r -> transform(NormalizeKSeq.self(), r))
                     .map(r -> converter.convert(Optional.<Module>empty(), r))
+                    .map(r -> new org.kframework.backend.java.kil.Rule(
+                            r.label(),
+                            r.leftHandSide().evaluate(termContext),
+                            r.rightHandSide().evaluate(termContext),
+                            r.requires(),
+                            r.ensures(),
+                            r.freshConstants(),
+                            r.freshVariables(),
+                            r.lookups(),
+                            r.isCompiledForFastRewriting(),
+                            r.lhsOfReadCell(),
+                            r.rhsOfWriteCell(),
+                            r.cellsToCopy(),
+                            r.matchingInstructions(),
+                            r,
+                            termContext.global()))
                     .collect(Collectors.toList());
             List<org.kframework.backend.java.kil.Rule> allRules = javaRules.stream()
                     .map(r -> r.renameVariables())
@@ -187,6 +210,14 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
                     .map(ConstrainedTerm::term)
                     .map(t -> (KItem) t)
                     .collect(Collectors.toList());
+        }
+
+        private Rule transform(Function<K, K> f, Rule r) {
+            return Rule.apply(f.apply(r.body()), f.apply(r.requires()), f.apply(r.ensures()), r.att());
+        }
+
+        private Rule transform(Function1<K, K> f, Rule r) {
+            return Rule.apply(f.apply(r.body()), f.apply(r.requires()), f.apply(r.ensures()), r.att());
         }
 
     }

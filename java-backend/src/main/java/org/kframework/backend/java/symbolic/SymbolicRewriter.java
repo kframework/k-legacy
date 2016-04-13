@@ -76,7 +76,7 @@ public class SymbolicRewriter {
         this.counter = counter;
         this.strategy = new TransitionCompositeStrategy(kompileOptions.transition);
         this.transitions = kompileOptions.transition;
-        this.useFastRewriting = !kompileOptions.experimental.koreProve;
+        this.useFastRewriting = true;
         this.theFastMatcher = new FastRuleMatcher(global, definition.ruleTable.size());
         this.transition = useFastRewriting;
     }
@@ -708,7 +708,7 @@ public class SymbolicRewriter {
                     }
                 }
 
-                List<ConstrainedTerm> results = slowComputeRewriteStep(term, step, false);
+                List<ConstrainedTerm> results = fastComputeRewriteStep(term, false);
                 if (results.isEmpty()) {
                     /* final term */
                     proofResults.add(term);

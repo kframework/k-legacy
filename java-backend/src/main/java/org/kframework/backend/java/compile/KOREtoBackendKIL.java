@@ -127,7 +127,8 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
         Optional<String> assocKLabelForUnit = getAssocKLabelForUnit(klabel);
         if (assocKLabelForUnit.isPresent()) {
             BuiltinList.Builder builder = BuiltinList.builder(
-                    Sort.of(module.productionsFor().get(klabel).get().head().sort().name()),
+                    //Sort.of(module.productionsFor().get(klabel).get().head().sort().name()),
+                    Sort.of(stream(module.productionsFor().toStream()).filter(t -> t._1.name().equals(assocKLabelForUnit.get())).findAny().get()._2.head().sort().name()),
                     KLabelConstant.of(assocKLabelForUnit.get(), global.getDefinition()),
                     (KLabelConstant) convertedKLabel,
                     global);
