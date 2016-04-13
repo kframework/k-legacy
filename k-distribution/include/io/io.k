@@ -14,6 +14,7 @@ module K-IO
                  | "#tell" "(" Int ")" [function, hook(IO.tell), impure]
                  | "#getc" "(" Int ")"             [function, hook(IO.getc), impure]
                  | "#read" "(" Int "," Int ")"    [function, hook(IO.read), impure]
+                 | "#getTime"                [function, hook(IO.getTime), impure]
 
   syntax K ::= "#close" "(" Int ")" [function, hook(IO.close), impure]
              | "#seek" "(" Int "," Int ")" [function, hook(IO.seek), impure]

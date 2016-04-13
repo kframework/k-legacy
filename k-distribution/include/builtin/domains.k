@@ -544,6 +544,7 @@ module K-IO
                | "#open" "(" String "," String ")" [function, hook(IO.open), impure]
                | "#tell" "(" Int ")" [function, hook(IO.tell), impure]
                | "#getc" "(" Int ")"             [function, hook(IO.getc), impure]
+               | "#getTime"                [function, hook(IO.getTime), impure]
   syntax String ::= "#read" "(" Int "," Int ")"    [function, hook(IO.read), impure]
 
   syntax K ::= "#close" "(" Int ")" [function, hook(IO.close), impure]
