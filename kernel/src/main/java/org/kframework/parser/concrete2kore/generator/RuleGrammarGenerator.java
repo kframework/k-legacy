@@ -177,7 +177,7 @@ public class RuleGrammarGenerator {
         /** Extension module is used by the compiler to get information about subsorts and access the definition of casts */
         Module extensionM = ModuleTransformer.from((Module m) -> {
             Set<Sentence> newProds = new HashSet<>();
-            if (baseK.getModule(AUTO_CASTS).isDefined() && seedMod.importedModules().contains(baseK.getModule(AUTO_CASTS).get())) { // create the casts
+            if (baseK.getModule(AUTO_CASTS).isDefined() && seedMod.importedModules().exists(func(m1 -> m1.name().equals(AUTO_CASTS)))) { // create the casts
                 for (Sort srt : iterable(m.localSorts())) {
                     if (!isParserSort(srt)) {
                         // K ::= K "::Sort" | K ":Sort" | K "<:Sort" | K ":>Sort"
@@ -185,7 +185,7 @@ public class RuleGrammarGenerator {
                     }
                 }
             }
-            if (baseK.getModule(K_TOP_SORT).isDefined() && seedMod.importedModules().contains(baseK.getModule(K_TOP_SORT).get())) { // create the upper diamond
+            if (baseK.getModule(K_TOP_SORT).isDefined() && seedMod.importedModules().exists(func(m1 -> m1.name().equals(K_TOP_SORT)))) { // create the upper diamond
                 for (Sort srt : iterable(m.localSorts())) {
                     if (!isParserSort(srt)) {
                         // K ::= Sort
@@ -193,7 +193,7 @@ public class RuleGrammarGenerator {
                     }
                 }
             }
-            if (baseK.getModule(K_BOTTOM_SORT).isDefined() && seedMod.importedModules().contains(baseK.getModule(K_BOTTOM_SORT).get())) { // create the lower diamond
+            if (baseK.getModule(K_BOTTOM_SORT).isDefined() && seedMod.importedModules().exists(func(m1 -> m1.name().equals(K_BOTTOM_SORT)))) { // create the lower diamond
                 for (Sort srt : iterable(m.localSorts())) {
                     if (!isParserSort(srt)) {
                         // Sort ::= KBott
@@ -223,7 +223,7 @@ public class RuleGrammarGenerator {
                     ? new ConfigurationInfoFromModule(extensionM)
                     : null;
 
-            if (baseK.getModule(RULE_CELLS).isDefined() && seedMod.importedModules().contains(baseK.getModule(RULE_CELLS).get()) &&
+            if (baseK.getModule(RULE_CELLS).isDefined() && seedMod.importedModules().exists(func(m1 -> m1.name().equals(RULE_CELLS))) &&
                     cfgInfo != null) { // prepare cell productions for rule parsing
                 Set<Sentence> newProds = stream(m.localSentences()).flatMap(s -> {
                     if (s instanceof Production && (s.att().contains("cell"))) {
@@ -254,7 +254,7 @@ public class RuleGrammarGenerator {
             }
 
             // configurations can be declared on multiple modules, so make sure to subsort previously declared cells to Cell
-            if (baseK.getModule(CONFIG_CELLS).isDefined() && seedMod.importedModules().contains(baseK.getModule(CONFIG_CELLS).get())) {
+            if (baseK.getModule(CONFIG_CELLS).isDefined() && seedMod.importedModules().exists(func(m1 -> m1.name().equals(CONFIG_CELLS)))) {
                 Set<Sentence> newProds = stream(m.localSentences()).flatMap(s -> {
                     if (s instanceof Production && s.att().contains("initializer")) {
                         Production p = (Production) s;
@@ -269,7 +269,7 @@ public class RuleGrammarGenerator {
                 m = Module(m.name(), org.kframework.Collections.add(baseK.getModule(CONFIG_CELLS).get(), m.imports()), immutable(newProds), m.att());
             }
 
-            if (baseK.getModule(AUTO_FOLLOW).isDefined() && seedMod.importedModules().contains(baseK.getModule(AUTO_FOLLOW).get())) {
+            if (baseK.getModule(AUTO_FOLLOW).isDefined() && seedMod.importedModules().exists(func(m1 -> m1.name().equals(AUTO_FOLLOW)))) {
                 Set<Sentence> newProds = stream(m.localSentences()).map(s -> {
                     if (s instanceof Production) {
                         Production p = (Production) s;
@@ -307,7 +307,7 @@ public class RuleGrammarGenerator {
                 m = Module(m.name(), m.imports(), immutable(newProds), m.att());
             }
 
-            if (baseK.getModule(RULE_LISTS).isDefined() && seedMod.importedModules().contains(baseK.getModule(RULE_LISTS).get())) {
+            if (baseK.getModule(RULE_LISTS).isDefined() && seedMod.importedModules().exists(func(m1 -> m1.name().equals(RULE_LISTS)))) {
                 Set<Sentence> newProds = mutable(m.localSentences());
                 for (UserList ul : UserList.getLists(newProds)) {
                     org.kframework.definition.Production prod1;
@@ -322,7 +322,7 @@ public class RuleGrammarGenerator {
 
         /** Parsing module is used to generate the grammar for the kernel of the parser. */
         Module parseM = ModuleTransformer.from((Module m) -> {
-            if (baseK.getModule(PROGRAM_LISTS).isDefined() && seedMod.importedModules().contains(baseK.getModule(PROGRAM_LISTS).get())) {
+            if (baseK.getModule(PROGRAM_LISTS).isDefined() && seedMod.importedModules().exists(func(m1 -> m1.name().equals(PROGRAM_LISTS)))) {
                 Set<Sentence> newProds = mutable(m.localSentences());
                 // if no start symbol has been defined in the configuration, then use K
                 for (Sort srt : iterable(m.localSorts())) {
