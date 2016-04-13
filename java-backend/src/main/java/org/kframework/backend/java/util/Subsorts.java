@@ -175,9 +175,9 @@ public class Subsorts implements Serializable {
             if (candidate == null) {
                 candidate = bound;
             } else {
-                if (inRelation(candidate, bound, direction)) {
+                if (inRelation(bound, candidate, direction)) {
                     candidate = bound;
-                } else if (!inRelation(bound, candidate, direction)) {
+                } else if (!inRelation(candidate, bound, direction)) {
                     /* no relation between bound and candidate; none of them is the top element */
                     candidate = null;
                 }
@@ -186,7 +186,7 @@ public class Subsorts implements Serializable {
         /* if there is a top element, it must be candidate */
         if (candidate != null) {
             for (Sort bound : bounds) {
-                if (bound != candidate && !inRelation(bound, candidate, direction)) {
+                if (candidate != bound && !inRelation(candidate, bound, direction)) {
                     candidate = null;
                     break;
                 }
