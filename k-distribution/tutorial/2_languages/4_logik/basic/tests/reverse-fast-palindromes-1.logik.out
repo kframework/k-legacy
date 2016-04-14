@@ -2,21 +2,21 @@ Search results:
 
 Solution 1:
 Solution:Map@MAP -->
-L:Term@LOGIK-COMMO |-> ( cons ( V0 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) )
+L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) )
 
 Solution 2:
 Solution:Map@MAP -->
-L:Term@LOGIK-COMMO |-> ( cons ( V0 , ( cons ( V1 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) , .Terms ) ) )
+L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( V1 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) , .Terms ) ) )
 
 Solution 3:
 Solution:Map@MAP -->
-L:Term@LOGIK-COMMO |-> ( cons ( V0 , ( cons ( V1 , ( cons ( V1 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) , .Terms ) ) , .Terms ) ) )
+L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( V1 , ( cons ( V1 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) , .Terms ) ) , .Terms ) ) )
 
 Solution 4:
 Solution:Map@MAP -->
-L:Term@LOGIK-COMMO |-> ( cons ( V0 , ( nil , .Terms ) ) )
+L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( nil , .Terms ) ) )
 
 Solution 5:
 Solution:Map@MAP -->
-L:Term@LOGIK-COMMO |-> nil
+L:Term@LOGIK-COMMON |-> nil
 

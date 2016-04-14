@@ -14,7 +14,7 @@ L1:Term@LOGIK-COMMO@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( V1 , ( nil , .Terms 
 
 Solution 4:
 Solution:Map@MAP -->
-L1:Term@LOGIK-COMMO |-> ( cons ( V0 , ( nil , .Terms ) ) ) L2:Term@LOGIK-COMMO@LOGIK-COMMON |-> L2 L3:Term@LOGIK-COMMO@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( a , ( L2 , .Terms ) ) , .Terms ) ) )
+L1:Term@LOGIK-COMMON |-> ( cons ( V0 , ( nil , .Terms ) ) ) L2:Term@LOGIK-COMMO@LOGIK-COMMON |-> L2 L3:Term@LOGIK-COMMO@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( a , ( L2 , .Terms ) ) , .Terms ) ) )
 
 Solution 5:
 Solution:Map@MAP -->

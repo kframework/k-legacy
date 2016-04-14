@@ -2,9 +2,9 @@ Search results:
 
 Solution 1:
 Solution:Map@MAP -->
-L:Term@LOGIK-COMMO |-> ( cons ( a , ( cons ( b , ( nil , .Terms ) ) , .Terms ) ) )
+L:Term@LOGIK-COMMON |-> ( cons ( a , ( cons ( b , ( nil , .Terms ) ) , .Terms ) ) )
 
 Solution 2:
 Solution:Map@MAP -->
-L:Term@LOGIK-COMMO |-> ( cons ( b , ( cons ( a , ( nil , .Terms ) ) , .Terms ) ) )
+L:Term@LOGIK-COMMON |-> ( cons ( b , ( cons ( a , ( nil , .Terms ) ) , .Terms ) ) )
 

@@ -2,41 +2,41 @@ Search results:
 
 Solution 1:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMO |-> david A:Term@LOGIK-COMMO |-> jim B:Term@LOGIK-COMMO |-> john
+X:Term@LOGIK-COMMON |-> david A:Term@LOGIK-COMMON |-> jim B:Term@LOGIK-COMMON |-> john
 
 Solution 2:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMO |-> david A:Term@LOGIK-COMMO |-> nathan B:Term@LOGIK-COMMO |-> john
+X:Term@LOGIK-COMMON |-> david A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> john
 
 Solution 3:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMO |-> david A:Term@LOGIK-COMMO |-> steve B:Term@LOGIK-COMMO |-> john
+X:Term@LOGIK-COMMON |-> david A:Term@LOGIK-COMMON |-> steve B:Term@LOGIK-COMMON |-> john
 
 Solution 4:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMO |-> jim A:Term@LOGIK-COMMO |-> nathan B:Term@LOGIK-COMMO |-> david
+X:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> david
 
 Solution 5:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMO |-> jim A:Term@LOGIK-COMMO |-> nathan B:Term@LOGIK-COMMO |-> john
+X:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> john
 
 Solution 6:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMO |-> jim A:Term@LOGIK-COMMO |-> steve B:Term@LOGIK-COMMO |-> david
+X:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> steve B:Term@LOGIK-COMMON |-> david
 
 Solution 7:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMO |-> jim A:Term@LOGIK-COMMO |-> steve B:Term@LOGIK-COMMO |-> john
+X:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> steve B:Term@LOGIK-COMMON |-> john
 
 Solution 8:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMO |-> steve A:Term@LOGIK-COMMO |-> nathan B:Term@LOGIK-COMMO |-> david
+X:Term@LOGIK-COMMON |-> steve A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> david
 
 Solution 9:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMO |-> steve A:Term@LOGIK-COMMO |-> nathan B:Term@LOGIK-COMMO |-> jim
+X:Term@LOGIK-COMMON |-> steve A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> jim
 
 Solution 10:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMO |-> steve A:Term@LOGIK-COMMO |-> nathan B:Term@LOGIK-COMMO |-> john
+X:Term@LOGIK-COMMON |-> steve A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> john
 
