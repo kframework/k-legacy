@@ -5,9 +5,6 @@ module SUBSTITUTION
 
   // used for user-defined substitution only
   syntax KVariable
-  syntax MetaVariable
-  syntax Bottom
-  syntax Mgu
 
   syntax K ::= K "[" K "/" K "]"  [function, hook(SUBSTITUTION.userSingletonSubstitutionKore), impure]
   syntax K ::= K "[" Map "]"      [function, hook(SUBSTITUTION.userSubstitutionKore), impure]

@@ -18,6 +18,10 @@ module BASIC-K
   syntax KList
   syntax KResult
   // here will be automatically added the casts for KLabel, KItem, K and KList
+
+  // used by the backend
+  syntax MetaVariable
+  syntax Bottom
 endmodule
 
 module KSTRING
