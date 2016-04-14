@@ -50,12 +50,12 @@ public final class Sort extends org.kframework.kore.AbstractSort implements Maxi
     public static final Sort FLOAT          =   Sort.of("Float@FLOAT-SYNTAX");
     public static final Sort STRING         =   Sort.of("String@STRING-SYNTAX");
     public static final Sort BIT_VECTOR     =   Sort.of("MInt@MINT");
-    public static final Sort META_VARIABLE  =   Sort.of("MetaVariable@BACKEND_ONLY");
+    public static final Sort META_VARIABLE  =   Sort.of("MetaVariable@SUBSTITUTION");
 
     public static final Sort KVARIABLE      =   Sort.of("KVariable@SUBSTITUTION");
 
-    public static final Sort BOTTOM         =   Sort.of("Bottom@BACKEND_ONLY");
-    public static final Sort MGU            =   Sort.of("Mgu@BACKEND_ONLY");
+    public static final Sort BOTTOM         =   Sort.of("Bottom@SUBSTITUTION");
+    public static final Sort MGU            =   Sort.of("Mgu@SUBSTITUTION");
 
     /**
      * {@code String} representation of this {@code Sort}.
