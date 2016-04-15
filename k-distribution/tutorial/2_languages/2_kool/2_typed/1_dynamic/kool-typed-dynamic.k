@@ -154,6 +154,15 @@ hold the expected return type of the invoked method.  That is because
 we want to dynamically check that the value that a method returns has
 the expected type. */
 
+  // the syntax declarations below are required because the sorts are
+  // referenced directly by a production and, because of the way KIL to KORE
+  // is implemented, the configuration syntax is not available yet
+  // should simply work once KIL is removed completely
+  syntax EnvCell
+  syntax ControlCellFragment
+  syntax EnvStackCell
+  syntax CrntObjCellFragment
+
   configuration <T color="red">
                   <threads color="orange">
                     <thread multiplicity="*" color="yellow">
