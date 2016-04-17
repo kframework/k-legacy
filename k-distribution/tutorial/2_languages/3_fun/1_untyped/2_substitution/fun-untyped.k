@@ -197,7 +197,7 @@ module FUN-UNTYPED
   rule if false then _ else E => E
 
   syntax Val ::= "cons" | "[" Vals "]"
-  rule isVal(cons V:Val) => true
+  rule isVal@FUN-UNTYPED(cons V:Val) => true
   rule cons V:Val [Vs:Vals] => [V,Vs]
 
   syntax Val ::= ConstructorName
