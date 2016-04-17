@@ -41,9 +41,7 @@ case class SymbolResolver[L <: ModuleQualified, S <: ResolvedSymbol](val moduleN
       case Some(s) => None
     }
 
-  val memoizedLookupImported = collection.mutable.Map[L, Option[S]]()
-
-  def lookupInImported(ll: L): Option[S] = memoizedLookupImported.getOrElseUpdate(ll, {
+  def lookupInImported(ll: L): Option[S] = {
     val l = makeL(ll.localName, starify(ll.moduleName))
 
     val importedSymbols: Set[S] = imported flatMap { sr => sr.get(l) }
@@ -53,7 +51,7 @@ case class SymbolResolver[L <: ModuleQualified, S <: ResolvedSymbol](val moduleN
     }
 
     importedSymbols.headOption
-  })
+  }
 
   val defined: Set[S] = definedLookups flatMap tryToDefine
 
