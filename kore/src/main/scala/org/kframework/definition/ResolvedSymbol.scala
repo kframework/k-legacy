@@ -56,10 +56,14 @@ case class SymbolResolver[L <: ModuleQualified, S <: ResolvedSymbol](val moduleN
 
   val defined: Set[S] = definedLookups flatMap tryToDefine
 
-  def get(l: L): Option[S] = defined
-    .find(s => s.localName == l.localName && (s.moduleName == l.moduleName || starify(l.moduleName) == ModuleName.STAR))
-    // TODO: remove "|| starify(l.moduleName) == ModuleName.STAR)" when frontend steps are cleaner
-    .orElse(lookupInImported(l))
+  val memoized = collection.mutable.Map[L, Option[S]]()
+
+  def get(l: L): Option[S] = memoized.getOrElseUpdate(l,
+    defined
+      .find(s => s.localName == l.localName && (s.moduleName == l.moduleName || starify(l.moduleName) == ModuleName.STAR))
+      // TODO: remove "|| starify(l.moduleName) == ModuleName.STAR)" when frontend steps are cleaner
+      .orElse(lookupInImported(l))
+  )
 
   def apply(l: L): S = get(l).getOrElse(
     throw new AssertionError("While defining module " + this.thisNamespace + ": Could not find symbol " + l))
