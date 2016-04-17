@@ -41,8 +41,9 @@ case class SymbolResolver[L <: ModuleQualified, S <: ResolvedSymbol](val moduleN
       case Some(s) => None
     }
 
+  val memoizedLookupImported = collection.mutable.Map[L, Option[S]]()
 
-  def lookupInImported(ll: L): Option[S] = {
+  def lookupInImported(ll: L): Option[S] = memoizedLookupImported.getOrElseUpdate(ll, {
     val l = makeL(ll.localName, starify(ll.moduleName))
 
     val importedSymbols: Set[S] = imported flatMap { sr => sr.get(l) }
@@ -52,18 +53,18 @@ case class SymbolResolver[L <: ModuleQualified, S <: ResolvedSymbol](val moduleN
     }
 
     importedSymbols.headOption
-  }
+  })
 
   val defined: Set[S] = definedLookups flatMap tryToDefine
 
-  val memoized = collection.mutable.Map[L, Option[S]]()
+  val memoizedGet = collection.mutable.Map[L, Option[S]]()
 
-  def get(l: L): Option[S] = memoized.getOrElseUpdate(l,
+  def get(l: L): Option[S] = memoizedGet.getOrElseUpdate(l, {
     defined
       .find(s => s.localName == l.localName && (s.moduleName == l.moduleName || starify(l.moduleName) == ModuleName.STAR))
       // TODO: remove "|| starify(l.moduleName) == ModuleName.STAR)" when frontend steps are cleaner
       .orElse(lookupInImported(l))
-  )
+  })
 
   def apply(l: L): S = get(l).getOrElse(
     throw new AssertionError("While defining module " + this.thisNamespace + ": Could not find symbol " + l))
