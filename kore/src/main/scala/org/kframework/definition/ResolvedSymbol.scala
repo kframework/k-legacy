@@ -46,12 +46,7 @@ case class SymbolResolver[L <: ModuleQualified, S <: ResolvedSymbol](val moduleN
       case Some(s) => None
     }
 
-
   def lookupInImported(ll: L): Option[S] = {
-    Foo.x += 1
-    if(Foo.x % 10e3 == 0)
-      println(Foo.x)
-
     val l = makeL(ll.localName, starify(ll.moduleName))
 
     val importedSymbols: Set[S] = imported flatMap { sr => sr.get(l) }
