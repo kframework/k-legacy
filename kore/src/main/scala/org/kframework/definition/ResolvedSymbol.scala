@@ -1,6 +1,7 @@
 package org.kframework.definition
 
 import collection._
+import JavaConverters._
 
 object ModuleName {
   val STAR = ModuleName("*")
@@ -20,6 +21,10 @@ trait ModuleQualified {
 trait LookupSymbol extends ModuleQualified
 
 trait ResolvedSymbol extends ModuleQualified
+
+object Foo {
+  var x = 0L
+}
 
 case class SymbolResolver[L <: ModuleQualified, S <: ResolvedSymbol](val moduleName: String, imported: Set[SymbolResolver[L, S]], definedLookups: Set[L])
                                                                     (implicit makeL: (String, ModuleName) => L, makeS: (String, ModuleName) => S)
@@ -41,7 +46,12 @@ case class SymbolResolver[L <: ModuleQualified, S <: ResolvedSymbol](val moduleN
       case Some(s) => None
     }
 
+
   def lookupInImported(ll: L): Option[S] = {
+    Foo.x += 1
+    if(Foo.x % 10e3 == 0)
+      println(Foo.x)
+
     val l = makeL(ll.localName, starify(ll.moduleName))
 
     val importedSymbols: Set[S] = imported flatMap { sr => sr.get(l) }
@@ -55,11 +65,16 @@ case class SymbolResolver[L <: ModuleQualified, S <: ResolvedSymbol](val moduleN
 
   val defined: Set[S] = definedLookups flatMap tryToDefine
 
-  def get(l: L): Option[S] =
+  val memoizedGet = new java.util.concurrent.ConcurrentHashMap[L, Option[S]]().asScala
+
+  // do not replace with getOrElseUpdate as this way avoids a
+  // Scala compiler bug which eliminates the call-by-name memoization when it shouldn't
+  def get(l: L): Option[S] = memoizedGet.getOrElseUpdate(l, {
     defined
       .find(s => s.localName == l.localName && (s.moduleName == l.moduleName || starify(l.moduleName) == ModuleName.STAR))
       // TODO: remove "|| starify(l.moduleName) == ModuleName.STAR)" when frontend steps are cleaner
       .orElse(lookupInImported(l))
+  })
 
   def apply(l: L): S = get(l).getOrElse(
     throw new AssertionError("While defining module " + this.thisNamespace + ": Could not find symbol " + l))
