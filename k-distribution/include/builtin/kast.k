@@ -38,7 +38,7 @@ module KAST
   syntax KItem ::= KBott                                 [allowChainSubsort]
 
   syntax KLabel ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\n\r])+`" [token, hook(org.kframework.kore.KLabel)]
-                  | r"(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9]*"               [token, hook(org.kframework.kore.KLabel), autoReject]
+                  | r"(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"               [token, hook(org.kframework.kore.KLabel), autoReject]
                        // something that doesn't collide with meta-variables
 
   syntax KList ::= K                 [allowChainSubsort]
