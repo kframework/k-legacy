@@ -2,41 +2,40 @@ Search results:
 
 Solution 1:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMON |-> david A:Term@LOGIK-COMMON |-> jim B:Term@LOGIK-COMMON |-> john
+B:Term@LOGIK-COMMON |-> david A:Term@LOGIK-COMMON |-> nathan X:Term@LOGIK-COMMON |-> jim
 
 Solution 2:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMON |-> david A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> john
+B:Term@LOGIK-COMMON |-> david A:Term@LOGIK-COMMON |-> nathan X:Term@LOGIK-COMMON |-> steve
 
 Solution 3:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMON |-> david A:Term@LOGIK-COMMON |-> steve B:Term@LOGIK-COMMON |-> john
+B:Term@LOGIK-COMMON |-> david A:Term@LOGIK-COMMON |-> steve X:Term@LOGIK-COMMON |-> jim
 
 Solution 4:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> david
+B:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> nathan X:Term@LOGIK-COMMON |-> steve
 
 Solution 5:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> john
+B:Term@LOGIK-COMMON |-> john A:Term@LOGIK-COMMON |-> jim X:Term@LOGIK-COMMON |-> david
 
 Solution 6:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> steve B:Term@LOGIK-COMMON |-> david
+B:Term@LOGIK-COMMON |-> john A:Term@LOGIK-COMMON |-> nathan X:Term@LOGIK-COMMON |-> david
 
 Solution 7:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> steve B:Term@LOGIK-COMMON |-> john
+B:Term@LOGIK-COMMON |-> john A:Term@LOGIK-COMMON |-> nathan X:Term@LOGIK-COMMON |-> jim
 
 Solution 8:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMON |-> steve A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> david
+B:Term@LOGIK-COMMON |-> john A:Term@LOGIK-COMMON |-> nathan X:Term@LOGIK-COMMON |-> steve
 
 Solution 9:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMON |-> steve A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> jim
+B:Term@LOGIK-COMMON |-> john A:Term@LOGIK-COMMON |-> steve X:Term@LOGIK-COMMON |-> david
 
 Solution 10:
 Solution:Map@MAP -->
-X:Term@LOGIK-COMMON |-> steve A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> john
-
+B:Term@LOGIK-COMMON |-> john A:Term@LOGIK-COMMON |-> steve X:Term@LOGIK-COMMON |-> jim
