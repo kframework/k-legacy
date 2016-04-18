@@ -12,7 +12,9 @@ import org.kframework.compile.LabelInfoFromModule;
 import org.kframework.definition.Constructors;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
+import org.kframework.definition.HybridMemoizingModuleTransformer;
 import org.kframework.definition.Module;
+import org.kframework.definition.ModuleTransformer;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
 import org.kframework.kore.Sort;
@@ -130,11 +132,11 @@ public class Kompile {
     }
 
     public Definition resolveIOStreams(Definition d) {
-        return DefinitionTransformer.from(new ResolveIOStreams(d, kem)::resolve, "resolving io streams").apply(d);
+        return DefinitionTransformer.fromHybrid(new ResolveIOStreams(d, kem)::resolve, "resolving io streams").apply(d);
     }
 
     public Function<Definition, Definition> defaultSteps() {
-        DefinitionTransformer resolveStrict = DefinitionTransformer.from(new ResolveStrict(kompileOptions)::resolve, "resolving strict and seqstrict attributes");
+        DefinitionTransformer resolveStrict = DefinitionTransformer.fromHybrid(new ResolveStrict(kompileOptions)::resolve, "resolving strict and seqstrict attributes");
         DefinitionTransformer resolveHeatCoolAttribute = DefinitionTransformer.fromSentenceTransformer(new ResolveHeatCoolAttribute(new HashSet<>(kompileOptions.transition))::resolve, "resolving heat and cool attributes");
         DefinitionTransformer resolveAnonVars = DefinitionTransformer.fromSentenceTransformer(new ResolveAnonVar()::resolve, "resolving \"_\" vars");
         DefinitionTransformer resolveSemanticCasts =
@@ -201,7 +203,7 @@ public class Kompile {
     }
 
     public Definition resolveFreshConstants(Definition input) {
-        return DefinitionTransformer.from(new ResolveFreshConstants(input)::resolve, "resolving !Var variables")
+        return DefinitionTransformer.fromHybrid(new ResolveFreshConstants(input)::resolve, "resolving !Var variables")
                 .apply(input);
     }
 

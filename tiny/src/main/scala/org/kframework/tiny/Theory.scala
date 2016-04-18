@@ -19,7 +19,7 @@ case class FreeTheory(val module: Module) extends Theory {
 }
 
 class TheoryWithFunctions(val module: Module) extends Theory {
-  val moduleWithOnlyFunctions = ModuleTransformer(m => Module(
+  val moduleWithOnlyFunctions = ModuleTransformer.fromHybrid((m: Module) => Module(
     m.name, m.imports, m.localSentences.filter({
       case r: org.kframework.definition.Rule =>
         r.body match {

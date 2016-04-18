@@ -5,7 +5,9 @@ import org.kframework.Collections;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
+import org.kframework.definition.HybridMemoizingModuleTransformer;
 import org.kframework.definition.Module;
+import org.kframework.definition.ModuleTransformer;
 import org.kframework.definition.Production;
 import org.kframework.definition.Sentence;
 import org.kframework.kil.Attribute;
@@ -40,6 +42,6 @@ public class GenerateSortPredicateSyntax implements UnaryOperator<Definition> {
 
     @Override
     public Definition apply(Definition definition) {
-        return DefinitionTransformer.from(m -> gen(m, definition.getModule("BOOL-SYNTAX").get()), "adding sort predicate productions").apply(definition);
+        return DefinitionTransformer.fromHybrid(m -> gen(m, definition.getModule("BOOL-SYNTAX").get()), "adding sort predicate productions").apply(definition);
     }
 }

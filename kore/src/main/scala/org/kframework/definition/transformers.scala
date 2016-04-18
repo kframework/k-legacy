@@ -4,43 +4,46 @@ package org.kframework.definition
 
 import java.util.function.BiFunction
 
-import org.kframework.attributes.{Source, Location}
+import org.kframework.attributes.{Location, Source}
 import org.kframework.definition
 import org.kframework.kore.K
 import org.kframework.utils.errorsystem.KEMException
+import sun.awt.CausedFocusEvent.Cause
+
 
 object ModuleTransformer {
-  def from(f: java.util.function.UnaryOperator[Module], name: String): ModuleTransformer = ModuleTransformer(f(_), name)
-
-  def fromSentenceTransformer(f: java.util.function.UnaryOperator[Sentence], name: String): ModuleTransformer =
+  def fromSentenceTransformer(f: java.util.function.UnaryOperator[Sentence], name: String): HybridMemoizingModuleTransformer =
     fromSentenceTransformer((m: Module, s: Sentence) => f(s), name)
 
-  def fromSentenceTransformer(f: (Module, Sentence) => Sentence, name: String): ModuleTransformer =
-    ModuleTransformer(m => {
-      val newSentences = m.localSentences map { s =>
-        try {
-          f(m, s)
-        } catch {
-          case e: KEMException =>
-            e.exception.addTraceFrame("while executing phase \"" + name + "\" on sentence at"
-              + "\n\t" + s.att.get(classOf[Source]).map(_.toString).getOrElse("<none>")
-              + "\n\t" + s.att.get(classOf[Location]).map(_.toString).getOrElse("<none>"))
-            throw e
+  def fromSentenceTransformer(f: (Module, Sentence) => Sentence, passName: String): HybridMemoizingModuleTransformer =
+    new HybridMemoizingModuleTransformer {
+      override def processHybridModule(m: Module): Module = {
+        val newSentences = m.localSentences map { s =>
+          try {
+            f(m, s)
+          } catch {
+            case e: KEMException =>
+              e.exception.addTraceFrame("while executing phase \"" + name + "\" on sentence at"
+                + "\n\t" + s.att.get(classOf[Source]).map(_.toString).getOrElse("<none>")
+                + "\n\t" + s.att.get(classOf[Location]).map(_.toString).getOrElse("<none>"))
+              throw e
+          }
         }
+        if (newSentences != m.localSentences)
+          Module(m.name, m.imports, newSentences, m.att)
+        else
+          m
       }
-      if (newSentences != m.localSentences)
-        Module(m.name, m.imports, newSentences, m.att)
-      else
-        m
-    }, name)
+      override val name: String = passName
+    }
 
-  def fromRuleBodyTranformer(f: java.util.function.UnaryOperator[K], name: String): ModuleTransformer =
+  def fromRuleBodyTranformer(f: java.util.function.UnaryOperator[K], name: String): HybridMemoizingModuleTransformer =
     fromSentenceTransformer(_ match { case r: Rule => r.copy(body = f(r.body)); case s => s }, name)
 
-  def fromRuleBodyTranformer(f: K => K, name: String): ModuleTransformer =
+  def fromRuleBodyTranformer(f: K => K, name: String): HybridMemoizingModuleTransformer =
     fromSentenceTransformer(_ match { case r: Rule => r.copy(body = f(r.body)); case s => s }, name)
 
-  def fromKTransformerWithModuleInfo(ff: Module => K => K, name: String): ModuleTransformer =
+  def fromKTransformerWithModuleInfo(ff: Module => K => K, name: String): HybridMemoizingModuleTransformer =
     fromSentenceTransformer((module, sentence) => {
       val f: K => K = ff(module)
       sentence match {
@@ -50,31 +53,79 @@ object ModuleTransformer {
       }
     }, name)
 
-  def fromKTransformer(f: K => K, name: String): ModuleTransformer =
+  def fromKTransformer(f: K => K, name: String): HybridMemoizingModuleTransformer =
     fromKTransformerWithModuleInfo((m: Module) => f, name)
 
-  def apply(f: Module => Module, name: String): ModuleTransformer = f match {
-    case f: ModuleTransformer => f
-    case _ => new ModuleTransformer(f, name)
+  def fromHybrid(f: Module => Module, name: String): HybridMemoizingModuleTransformer = {
+    val lName = name
+    new HybridMemoizingModuleTransformer {
+      override def processHybridModule(hybridModule: Module): Module = f(hybridModule)
+      override val name: String = lName
+    }
+  }
+
+  def fromHybrid(f: java.util.function.UnaryOperator[Module], name: String): HybridMemoizingModuleTransformer = fromHybrid(m => f(m), name)
+}
+
+class ModuleTransformerException(moduleTransformerName: String, cause: Throwable) extends Exception(cause) {
+  override def toString = moduleTransformerName + " : " + cause.toString
+}
+
+/**
+  * Any overriding class should call wrapExceptions to make sure its
+  * errors are correctly wrapped in a ModuleTransformerException
+  */
+abstract class ModuleTransformer extends (Module => Module) {
+  val name: String = this.getClass.getName
+  def wrapExceptions(f: => Module): Module = try {
+    f
+  } catch {
+    case e: ModuleTransformerException => throw e
+    case e: Throwable => throw new ModuleTransformerException(name, e)
   }
 }
 
 /**
-  * Transform all modules, transforming each module after its imports.
-  * The f function take a module with all the imported modules already transformed, and changes the current module.
+  * A module transformer with memoization
   */
-class ModuleTransformer(f: Module => Module, name: String) extends (Module => Module) {
+trait MemoizingModuleTransformer extends ModuleTransformer {
   val memoization = collection.concurrent.TrieMap[Module, Module]()
 
-  override def apply(input: Module): Module = {
-    memoization.getOrElseUpdate(input, {
-      var newImports = input.imports map this
-      if (newImports != input.imports)
-        f(Module(input.name, newImports, input.localSentences, input.att))
-      else
-        f(input)
-    })
-  }
+  override def apply(input: Module): Module =
+    wrapExceptions(memoization.getOrElseUpdate(input, {processModule(input)}))
+
+  def processModule(inputModule: Module): Module
+}
+
+/**
+  * Marker trait for a ModuleTransformer having access to the entire original definition
+  */
+trait WithInputDefinition {
+  val inputDefinition: Definition
+}
+
+/**
+  * The processHybridModule function take a module with all the imported modules already transformed,
+  * and uses it to create the updated module.
+  *
+  * Natural to use but a bit risky as the "hybrid" module may not be consistent.
+  */
+trait HybridModuleTransformer extends ModuleTransformer {
+  def apply(input: Module): Module = wrapExceptions({
+    val newImports = input.imports map this
+    if (newImports != input.imports)
+      processHybridModule(Module(input.name, newImports, input.localSentences, input.att))
+    else
+      processHybridModule(input)
+  })
+
+  def processHybridModule(hybridModule: Module): Module
+}
+
+trait HybridMemoizingModuleTransformer extends MemoizingModuleTransformer with HybridModuleTransformer {
+  override def apply(input: Module): Module = super[MemoizingModuleTransformer].apply(input)
+
+  def processModule(inputModule: Module): Module = super[HybridModuleTransformer].apply(inputModule)
 }
 
 object DefinitionTransformer {
@@ -99,21 +150,21 @@ object DefinitionTransformer {
   def fromKTransformerWithModuleInfo(f: BiFunction[Module, K, K], name: String): DefinitionTransformer =
     fromKTransformerWithModuleInfo((m, k) => f(m, k), name)
 
-  def from(f: java.util.function.UnaryOperator[Module], name: String): DefinitionTransformer = DefinitionTransformer(f(_), name)
+  def fromHybrid(f: java.util.function.UnaryOperator[Module], name: String): DefinitionTransformer = DefinitionTransformer(ModuleTransformer.fromHybrid(f, name))
 
-  def from(f: Module => Module, name: String): DefinitionTransformer = DefinitionTransformer(f, name)
+  def fromHybrid(f: Module => Module, name: String): DefinitionTransformer = DefinitionTransformer(ModuleTransformer.fromHybrid(f, name))
 
-  def apply(f: ModuleTransformer): DefinitionTransformer = new DefinitionTransformer(f)
+  def apply(f: HybridMemoizingModuleTransformer): DefinitionTransformer = new DefinitionTransformer(f)
 
-  def apply(f: Module => Module, name: String): DefinitionTransformer = new DefinitionTransformer(ModuleTransformer(f, name))
+  //  def apply(f: Module => Module, name: String): DefinitionTransformer = new DefinitionTransformer(ModuleTransformer(f, name))
 }
 
-class DefinitionTransformer(moduleTransformer: ModuleTransformer) extends (Definition => Definition) {
+class DefinitionTransformer(moduleTransformer: MemoizingModuleTransformer) extends (Definition => Definition) {
   override def apply(d: Definition): Definition = {
-    //    definition.Definition(
-    //      moduleTransformer(d.mainModule),
-    //      d.entryModules map moduleTransformer,
-    //      d.att)
+//    definition.Definition(
+//      moduleTransformer(d.mainModule),
+//      d.entryModules map moduleTransformer,
+//      d.att)
     // commented above such that the regular transformer behaves like the SelectiveDefinitionTransformer
     // this avoids a bug in the configuration concretization functionality
     new SelectiveDefinitionTransformer(moduleTransformer).apply(d)
@@ -123,7 +174,7 @@ class DefinitionTransformer(moduleTransformer: ModuleTransformer) extends (Defin
 /**
   * Only transforms modules which are reachable from mainModule or mainSyntaxModule
   */
-class SelectiveDefinitionTransformer(moduleTransformer: ModuleTransformer) extends (Definition => Definition) {
+class SelectiveDefinitionTransformer(moduleTransformer: MemoizingModuleTransformer) extends (Definition => Definition) {
   override def apply(d: Definition): Definition = {
     // Cosmin: the two lines below are a hack to make sure the two modules are processed by the pass regardless of
     // them not being reachable from the main module

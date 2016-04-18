@@ -11,8 +11,10 @@ import org.kframework.definition.Bubble;
 import org.kframework.definition.Context;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
+import org.kframework.definition.HybridMemoizingModuleTransformer;
 import org.kframework.definition.Module;
 import org.kframework.definition.ModuleName;
+import org.kframework.definition.ModuleTransformer;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
 import org.kframework.kore.K;
@@ -172,7 +174,7 @@ public class DefinitionParsing {
 
         Definition definitionWithConfigBubble;
         if (!hasConfigDecl) {
-            definitionWithConfigBubble = DefinitionTransformer.from(mod -> {
+            definitionWithConfigBubble = DefinitionTransformer.fromHybrid(mod -> {
                 if (mod == definition.mainModule()) {
                     java.util.Set<Module> imports = mutable(mod.imports());
                     imports.add(definition.getModule("DEFAULT-CONFIGURATION").get());
@@ -198,7 +200,7 @@ public class DefinitionParsing {
 
         ResolveConfig resolveConfig = new ResolveConfig(definitionWithConfigBubble, isStrict, this::parseBubble, this::getParser);
         gen = new RuleGrammarGenerator(definitionWithConfigBubble, isStrict);
-        Definition defWithConfig = DefinitionTransformer.from(resolveConfig, "parsing configurations").apply(definitionWithConfigBubble);
+        Definition defWithConfig = DefinitionTransformer.fromHybrid(resolveConfig, "parsing configurations").apply(definitionWithConfigBubble);
 
         return defWithConfig;
     }
@@ -213,7 +215,7 @@ public class DefinitionParsing {
 
     public Definition resolveNonConfigBubbles(Definition defWithConfig) {
         RuleGrammarGenerator gen = new RuleGrammarGenerator(defWithConfig, isStrict);
-        Definition parsedDef = DefinitionTransformer.from(m -> this.resolveNonConfigBubbles(m, gen), "parsing rules").apply(defWithConfig);
+        Definition parsedDef = DefinitionTransformer.fromHybrid(m -> this.resolveNonConfigBubbles(m, gen), "parsing rules").apply(defWithConfig);
         return parsedDef;
     }
 

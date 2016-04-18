@@ -5,11 +5,11 @@ import java.util
 import java.util.Optional
 
 import org.kframework.builtin.Sorts
-import org.kframework.definition.{Module, ModuleTransformer}
+import org.kframework.definition.{HybridMemoizingModuleTransformer, Module, ModuleTransformer}
 import org.kframework.kore.Unapply.KLabel
 import org.kframework.kore.{KApply, Unapply}
 import org.kframework.rewriter.SearchType
-import org.kframework.{rewriter, RewriterResult, definition, kore}
+import org.kframework.{RewriterResult, definition, kore, rewriter}
 
 import scala.collection.parallel.ParIterable
 
@@ -34,7 +34,7 @@ object SimpleIndex extends (K => Option[Symbol]) {
 }
 
 class FullTinyRewriter(module: definition.Module) extends rewriter.Rewriter {
-  val moduleWithoutFunctions = ModuleTransformer(m => Module(
+  val moduleWithoutFunctions = ModuleTransformer.fromHybrid((m: Module) => Module(
     m.name, m.imports, m.localSentences.filter({
       case r: org.kframework.definition.Rule =>
         r.body match {

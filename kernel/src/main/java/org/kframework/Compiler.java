@@ -2,6 +2,7 @@
 package org.kframework;
 
 import org.kframework.definition.DefinitionTransformer;
+import org.kframework.definition.HybridMemoizingModuleTransformer;
 import org.kframework.definition.Module;
 import org.kframework.definition.ModuleTransformer;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
@@ -27,7 +28,7 @@ public class Compiler {
      */
     public static Definition toRuleParser(Definition d) {
         RuleGrammarGenerator rgg = new RuleGrammarGenerator(d, true);
-        return DefinitionTransformer.from(rgg::getRuleGrammar, "toRuleParser").apply(d);
+        return DefinitionTransformer.fromHybrid(rgg::getRuleGrammar, "toRuleParser").apply(d);
     }
 
     /**
@@ -36,7 +37,7 @@ public class Compiler {
      */
     public static Definition toGenericAbstractConfigurationParser(Definition d) {
         RuleGrammarGenerator rgg = new RuleGrammarGenerator(d, true);
-        return DefinitionTransformer.from(rgg::getConfigGrammar, "toGenericAbstractConfigurationParser").apply(d);
+        return DefinitionTransformer.fromHybrid(rgg::getConfigGrammar, "toGenericAbstractConfigurationParser").apply(d);
     }
 
 }

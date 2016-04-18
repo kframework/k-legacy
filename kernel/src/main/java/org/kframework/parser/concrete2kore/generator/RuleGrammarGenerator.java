@@ -9,6 +9,7 @@ import org.kframework.compile.ConfigurationInfo;
 import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
+import org.kframework.definition.HybridMemoizingModuleTransformer;
 import org.kframework.definition.Module;
 import org.kframework.definition.ModuleName;
 import org.kframework.definition.ModuleTransformer;
@@ -95,7 +96,7 @@ public class RuleGrammarGenerator {
      *               sorts as sort predicate in the requires clause.
      */
     public RuleGrammarGenerator(Definition baseK, boolean strict) {
-        this.baseK = DefinitionTransformer.from((Module m) -> {
+        this.baseK = DefinitionTransformer.fromHybrid((Module m) -> {
             if (!m.name().equals(BASIC_K))
                 return m;
             Set<Sentence> castProds = new HashSet<>();
@@ -175,7 +176,7 @@ public class RuleGrammarGenerator {
      */
     public ParseInModule getCombinedGrammar(Module seedMod) {
         /** Extension module is used by the compiler to get information about subsorts and access the definition of casts */
-        Module extensionM = ModuleTransformer.from((Module m) -> {
+        Module extensionM = ModuleTransformer.fromHybrid((Module m) -> {
             Set<Sentence> newProds = new HashSet<>();
             if (baseK.getModule(AUTO_CASTS).isDefined() && seedMod.importedModules().exists(func(m1 -> m1.name().equals(AUTO_CASTS)))) { // create the casts
                 for (Sort srt : iterable(m.localSorts())) {
@@ -217,7 +218,7 @@ public class RuleGrammarGenerator {
         }));
 
         /** Disambiguation module is used by the parser to have an easier way of disambiguating parse trees. */
-        Module disambM = ModuleTransformer.from((Module m) -> {
+        Module disambM = ModuleTransformer.fromHybrid((Module m) -> {
             // make sure a configuration actually exists, otherwise ConfigurationInfoFromModule explodes.
             final ConfigurationInfo cfgInfo = m.localSentences().exists(func(p -> p instanceof Production && p.att().contains("cell")))
                     ? new ConfigurationInfoFromModule(extensionM)
@@ -321,7 +322,7 @@ public class RuleGrammarGenerator {
         }, "Generate Disambiguation module").apply(extensionM);
 
         /** Parsing module is used to generate the grammar for the kernel of the parser. */
-        Module parseM = ModuleTransformer.from((Module m) -> {
+        Module parseM = ModuleTransformer.fromHybrid((Module m) -> {
             if (baseK.getModule(PROGRAM_LISTS).isDefined() && seedMod.importedModules().exists(func(m1 -> m1.name().equals(PROGRAM_LISTS)))) {
                 Set<Sentence> newProds = mutable(m.localSentences());
                 // if no start symbol has been defined in the configuration, then use K
