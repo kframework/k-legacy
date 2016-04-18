@@ -278,6 +278,16 @@ member declarations (\textsf{declarations}).
 \end{itemize}
 */
 
+  // the syntax declarations below are required because the sorts are
+  // referenced directly by a production and, because of the way KIL to KORE
+  // is implemented, the configuration syntax is not available yet
+  // should simply work once KIL is removed completely
+  // check other definitions for this hack as well
+  syntax EnvCell
+  syntax ControlCellFragment
+  syntax EnvStackCell
+  syntax CrntObjCellFragment
+
   configuration <T color="red">
                   <threads color="orange">
                     <thread multiplicity="*" color="yellow">
