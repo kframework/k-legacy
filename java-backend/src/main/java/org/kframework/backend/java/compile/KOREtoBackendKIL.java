@@ -230,7 +230,10 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
 
     @Override
     public <KK extends org.kframework.kore.K> KSequence KSequence(List<KK> items, Att att) {
-        throw new AssertionError("Unsupported class " + KSequence.class);
+        KSequence.Builder builder = KSequence.builder();
+        items.stream().map(this::convert).forEach(builder::concatenate);
+        Term kSequence = KCollection.upKind(builder.build(), Kind.K);
+        return kSequence instanceof Variable ? KSequence.frame((Variable) kSequence) : (KSequence) kSequence;
     }
 
     @Override
