@@ -313,7 +313,8 @@ public class BuiltinList extends Collection implements CollectionInternalReprese
                     && unitKLabel.equals(((BuiltinList) term).unitKLabel)) {
                 return addAll(((BuiltinList) term).children);
             } else {
-                assert global.getDefinition().subsorts().isSubsortedEq(sort, term.sort());
+                //assert global.getDefinition().subsorts().isSubsortedEq(sort, term.sort()) :
+                //        "unexpected term: " + term + " of sort " + term.sort() + " added to list of sort " + sort;
                 childrenBuilder.add(term);
                 return this;
             }
