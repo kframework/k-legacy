@@ -4,6 +4,8 @@ package org.kframework.backend.java.symbolic;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Multisets;
 import org.kframework.attributes.Att;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
@@ -24,7 +26,6 @@ import org.kframework.backend.java.kil.Token;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.builtin.KLabels;
 import org.kframework.kore.KApply;
-import org.kframework.kore.KLabel;
 import org.kframework.utils.BitSet;
 
 import static org.kframework.Collections.*;
@@ -32,12 +33,16 @@ import static org.kframework.Collections.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
 
 import com.google.common.collect.Sets;
 
@@ -57,6 +62,15 @@ public class FastRuleMatcher {
 
     private final GlobalContext global;
 
+    private boolean patternFold = false;
+    private boolean partialSimplification = false;
+    private boolean continuousSimplification = true;
+    private TermContext context;
+
+    public static ConjunctiveFormula unify(Term term, Term otherTerm, TermContext context) {
+        return new FastRuleMatcher(context.global(), 1).unifyEquality(term, otherTerm, false, false, true, context);
+    }
+
     public static List<Substitution<Variable, Term>> match(Term subject, Term pattern, TermContext context) {
         return new FastRuleMatcher(context.global(), 1).matchSinglePattern(subject, pattern, context);
     }
@@ -73,10 +87,11 @@ public class FastRuleMatcher {
      * @return a list of constraints tagged with the Integer identifier of the rule they belong to and
      * with a Boolean which is true if the rule matched.
      */
-    public List<Triple<ConjunctiveFormula, Boolean, Integer>> matchRulePattern(
+    public List<RuleMatchResult> matchRulePattern(
             ConstrainedTerm subject,
             Term pattern,
             BitSet ruleMask,
+            boolean narrowing,
             boolean computeOne,
             List<String> transitions,
             TermContext context) {
@@ -86,10 +101,12 @@ public class FastRuleMatcher {
 
         BitSet theMatchingRules = match(subject.term(), pattern, ruleMask, List());
 
-        List<Triple<ConjunctiveFormula, Boolean, Integer>> structuralResults = new ArrayList<>();
-        List<Triple<ConjunctiveFormula, Boolean, Integer>> transitionResults = new ArrayList<>();
+        List<RuleMatchResult> structuralResults = new ArrayList<>();
+        List<RuleMatchResult> transitionResults = new ArrayList<>();
         for (int i = theMatchingRules.nextSetBit(0); i >= 0; i = theMatchingRules.nextSetBit(i + 1)) {
             Rule rule = global.getDefinition().ruleTable.get(i);
+            Pair<Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>, ConjunctiveFormula> rewritesConstraintPair = splitRewrites(constraints[i]);
+            ConjunctiveFormula constraint = rewritesConstraintPair.getRight();
             // TODO(YilongL): remove TermContext from the signature once
             // ConstrainedTerm doesn't hold a TermContext anymore
             /* TODO(AndreiS): remove this hack for super strictness after strategies work */
@@ -100,7 +117,7 @@ public class FastRuleMatcher {
                 patternConstraint = patternConstraint.addAll(rule.requires());
             }
             List<Pair<ConjunctiveFormula, Boolean>> ruleResults = ConstrainedTerm.evaluateConstraints(
-                    constraints[i],
+                    constraint,
                     subject.constraint(),
                     patternConstraint,
                     Sets.union(getLeftHandSide(pattern, i).variableSet(), patternConstraint.variableSet()).stream()
@@ -108,22 +125,75 @@ public class FastRuleMatcher {
                             .collect(Collectors.toSet()),
                     context);
             for (Pair<ConjunctiveFormula, Boolean> pair : ruleResults) {
+                RuleMatchResult result = new RuleMatchResult(pair.getLeft(), pair.getRight(), rewritesConstraintPair.getLeft(), i);
                 if (transitions.stream().anyMatch(rule::containsAttribute)) {
-                    transitionResults.add(Triple.of(pair.getLeft(), pair.getRight(), i));
+                    transitionResults.add(result);
                 } else {
-                    structuralResults.add(Triple.of(pair.getLeft(), pair.getRight(), i));
+                    structuralResults.add(result);
                 }
             }
         }
 
         if (!structuralResults.isEmpty()) {
-            return structuralResults.subList(0, 1);
+            return narrowing ? structuralResults : structuralResults.subList(0, 1);
         } else if (computeOne && !transitionResults.isEmpty()) {
             return transitionResults.subList(0, 1);
         } else {
             return transitionResults;
         }
+    }
 
+    public static class RuleMatchResult {
+        public final ConjunctiveFormula constraint;
+        public final boolean isMatching;
+        public final Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term> rewrites;
+        public final int ruleIndex;
+
+        private RuleMatchResult(
+                ConjunctiveFormula constraint,
+                boolean isMatching,
+                Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term> rewrites,
+                int ruleIndex) {
+            this.constraint = constraint;
+            this.isMatching = isMatching;
+            this.rewrites = rewrites;
+            this.ruleIndex = ruleIndex;
+        }
+    }
+
+    private Pair<Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>, ConjunctiveFormula> splitRewrites(ConjunctiveFormula constraint) {
+        Map<Boolean, List<Equality>> split = constraint.equalities().stream()
+                .collect(Collectors.partitioningBy(e -> e.leftHandSide() instanceof LocalRewriteTerm));
+        Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term> rewrites = split.get(true).stream()
+                .map(Equality::leftHandSide)
+                .map(LocalRewriteTerm.class::cast)
+                .collect(Collectors.toMap(e -> e.path, e -> e.rewriteRHS));
+        ConjunctiveFormula pureConstraint = ConjunctiveFormula.of(
+                constraint.substitution(),
+                PersistentUniqueList.from(split.get(false)),
+                constraint.disjunctions(),
+                constraint.globalContext());
+        return Pair.of(rewrites, pureConstraint);
+    }
+
+    /**
+     * Matches the subject against the pattern. The pattern does not contain any disjunctions.
+     */
+    public ConjunctiveFormula unifyEquality(Term subject, Term pattern, boolean patternFold, boolean partialSimplification, boolean continuousSimplification, TermContext context) {
+        this.patternFold = patternFold;
+        this.partialSimplification = partialSimplification;
+        this.continuousSimplification = continuousSimplification;
+        this.context = context;
+        constraints[0] = ConjunctiveFormula.of(global);
+        empty = BitSet.apply(ruleCount);
+        BitSet one = BitSet.apply(1);
+        one.makeOnes(1);
+        BitSet theMatchingRules = match(subject, pattern, one, List());
+        if (theMatchingRules.get(0)) {
+            return constraints[0];
+        } else {
+            return ConjunctiveFormula.of(global).add(unificationFailureLeftHandSide, unificationFailureRightHandSide).simplify();
+        }
     }
 
     /**
@@ -150,6 +220,16 @@ public class FastRuleMatcher {
 
     private BitSet match(Term subject, Term pattern, BitSet ruleMask, scala.collection.immutable.List<Pair<Integer, Integer>> path) {
         assert !ruleMask.isEmpty();
+
+        // if the pattern is a variable, try to add its binding to the current solution
+        if (pattern instanceof Variable) {
+            return addSubstitution((Variable) pattern, subject, ruleMask);
+        }
+
+        if (subject.isSymbolic()) {
+            return addUnification(subject, pattern, ruleMask, path);
+        }
+
         if (pattern instanceof RuleAutomatonDisjunction) {
             RuleAutomatonDisjunction automatonDisjunction = (RuleAutomatonDisjunction) pattern;
             BitSet returnSet = BitSet.apply(ruleCount);
@@ -200,12 +280,7 @@ public class FastRuleMatcher {
             return theNewMask;
         }
 
-        // if the pattern is a variable, try to add its binding to the current solution
-        if (pattern instanceof Variable) {
-            return addSubstitution((Variable) pattern, subject, ruleMask);
-        }
-
-        if (subject.isSymbolic() || pattern.isSymbolic()) {
+        if (pattern.isSymbolic()) {
             return addUnification(subject, pattern, ruleMask, path);
         }
 
@@ -217,15 +292,14 @@ public class FastRuleMatcher {
         }
 
         if (subject instanceof KItem && pattern instanceof KItem) {
-            KItem kitemPattern = (KItem) pattern;
             KLabelConstant subjectKLabel = (KLabelConstant) ((KItem) subject).kLabel();
-            KLabel patternKLabel = ((KItem) pattern).klabel();
-            if (!(patternKLabel instanceof Variable) && subjectKLabel != patternKLabel) {
+            KLabelConstant patternKLabel = (KLabelConstant) ((KItem) pattern).klabel();
+            if (subjectKLabel != patternKLabel) {
                 return empty;
             }
 
             KList subjectKList = (KList) ((KItem) subject).kList();
-            KList patternKList = (KList) kitemPattern.kList();
+            KList patternKList = (KList) ((KItem) pattern).kList();
             int size = subjectKList.size();
 
             if (size != patternKList.size()) {
@@ -234,7 +308,7 @@ public class FastRuleMatcher {
 
             // main loop matching the klist
             for (int i = 0; i < size; ++i) {
-                BitSet childrenDontCareRuleMaskForPosition = kitemPattern.getChildrenDontCareRuleMaskForPosition(i);
+                BitSet childrenDontCareRuleMaskForPosition = ((KItem) pattern).getChildrenDontCareRuleMaskForPosition(i);
                 // continue if the pattern under this position only contains "don't care" variables
                 if (childrenDontCareRuleMaskForPosition != null && ruleMask.subset(childrenDontCareRuleMaskForPosition)) {
                     continue;
@@ -245,12 +319,12 @@ public class FastRuleMatcher {
                     return ruleMask;
                 }
             }
-            if (patternKLabel instanceof Variable) {
-                addSubstitution((Variable) patternKLabel, ((KItem) subject).kLabel(), ruleMask);
-            }
+
             return ruleMask;
         } else if (subject instanceof BuiltinList && pattern instanceof BuiltinList) {
             return matchAssoc((BuiltinList) subject, 0, (BuiltinList) pattern, 0, ruleMask, path);
+        } else if (subject instanceof BuiltinMap && pattern instanceof BuiltinMap) {
+            return unifyMapModuloPatternFolding((BuiltinMap) subject, (BuiltinMap) pattern, ruleMask, path);
         } else if (subject instanceof Token && pattern instanceof Token) {
             // TODO: make tokens unique?
             return subject.equals(pattern) ? ruleMask : empty;
@@ -290,7 +364,7 @@ public class FastRuleMatcher {
      */
     private BitSet matchAssoc(BuiltinList subject, int subjectIndex, BuiltinList pattern, int patternIndex, BitSet ruleMask, scala.collection.immutable.List<Pair<Integer, Integer>> path) {
         assert subject.sort.equals(pattern.sort);
-        assert subject.isConcreteCollection();
+        //assert subject.isConcreteCollection();
 
         /* match prefix of elements in subject and pattern */
         if (subjectIndex == subject.size() && patternIndex == pattern.size()) {
@@ -351,7 +425,7 @@ public class FastRuleMatcher {
                 ruleMask = matchAssoc(subject, i, pattern, patternIndex + 1, ruleMask, path);
 
                 ruleMask.stream().forEach(j -> {
-                    if (!constraints[j].simplify().isFalse()) {
+                    if (!constraints[j].isFalse()) {
                         nestedConstraints.put(j, constraints[j]);
                     }
                 });
@@ -368,7 +442,10 @@ public class FastRuleMatcher {
             if (conjunctions.size() != 1) {
                 constraints[i] = constraints[i].add(new DisjunctiveFormula(conjunctions, global));
             } else {
-                constraints[i] = constraints[i].add(conjunctions.iterator().next()).simplify();
+                constraints[i] = constraints[i].add(conjunctions.iterator().next());
+                if (continuousSimplification) {
+                    constraints[i] = constraints[i].simplify();
+                }
             }
             if (!constraints[i].isFalse()) {
                 ruleMask.set(i);
@@ -393,7 +470,10 @@ public class FastRuleMatcher {
         }
 
         for (int i = ruleMask.nextSetBit(0); i >= 0; i = ruleMask.nextSetBit(i + 1)) {
-            constraints[i] = constraints[i].add(variable, term).simplify();
+            constraints[i] = constraints[i].add(variable, term);
+            if (continuousSimplification) {
+                constraints[i] = constraints[i].simplify();
+            }
             if (constraints[i].isFalse()) {
                 ruleMask.clear(i);
             }
@@ -407,7 +487,10 @@ public class FastRuleMatcher {
             Term leftHandSide = getLeftHandSide(pattern, i);
             Term rightHandSide = getRightHandSide(pattern, i);
 
-            constraints[i] = constraints[i].add(subject, leftHandSide).simplify();
+            constraints[i] = constraints[i].add(subject, leftHandSide);
+            if (continuousSimplification) {
+                constraints[i] = constraints[i].simplify();
+            }
             if (constraints[i].isFalse()) {
                 ruleMask.clear(i);
                 continue;
@@ -444,7 +527,8 @@ public class FastRuleMatcher {
     }
 
     private Term getRightHandSide(Term pattern, int i) {
-        return (Term) pattern.accept(new CopyOnWriteTransformer(null) {
+        boolean[] hasRewrite = {false};
+        Term result = (Term) pattern.accept(new CopyOnWriteTransformer(null) {
             @Override
             public Term transform(RuleAutomatonDisjunction ruleAutomatonDisjunction) {
                 return (Term) ruleAutomatonDisjunction.disjunctions().stream()
@@ -460,9 +544,176 @@ public class FastRuleMatcher {
                     return (Term) super.transform(kItem);
                 }
 
+                hasRewrite[0] = true;
                 return ((InnerRHSRewrite) kItem.klist().items().get(1)).theRHS[i];
             }
         });
+        return hasRewrite[0] ? result : null;
+    }
+
+    private BitSet unifyMapModuloPatternFolding(BuiltinMap map, BuiltinMap otherMap, BitSet ruleMask, scala.collection.immutable.List<Pair<Integer, Integer>> path) {
+        if (!patternFold) {
+            return unifyMap(map, otherMap, ruleMask, path);
+        }
+
+        Set<BuiltinMap> foldedMaps = Sets.newLinkedHashSet();
+        foldedMaps.add(map);
+        Queue<BuiltinMap> queue = new LinkedList<>();
+        queue.add(map);
+        while (!queue.isEmpty()) {
+            BuiltinMap candidate = queue.remove();
+            for (Rule rule : global.getDefinition().patternFoldingRules()) {
+                for (Substitution<Variable, Term> substitution : PatternMatcher.match(candidate, rule, context)) {
+                    BuiltinMap result = (BuiltinMap) rule.rightHandSide().substituteAndEvaluate(substitution, context);
+                    if (foldedMaps.add(result)) {
+                        queue.add(result);
+
+                        ConjunctiveFormula resultConstraint = FastRuleMatcher.unify(result, otherMap, context).simplify();
+                        if (resultConstraint.isFalse()) {
+                            continue;
+                        }
+
+                        /* since here we have a non-deterministic choice to make, we only make
+                         * a choice if it eliminates all map equalities */
+                        if (!resultConstraint.hasMapEqualities()) {
+                            constraints[0] = constraints[0].add(resultConstraint);
+                            if (continuousSimplification) {
+                                constraints[0] = constraints[0].simplify();
+                            }
+                            return ruleMask;
+                        }
+                    }
+                }
+            }
+        }
+
+        /* no folding occurred */
+        if (foldedMaps.size() == 1) {
+            return unifyMap(map, otherMap, ruleMask, path);
+        }
+
+        /* made no progress */
+        return addUnification(map, otherMap, ruleMask, path);
+    }
+
+    private BitSet unifyMap(BuiltinMap map, BuiltinMap otherMap, BitSet ruleMask, scala.collection.immutable.List<Pair<Integer, Integer>> path) {
+        assert map.collectionFunctions().isEmpty() && otherMap.collectionFunctions().isEmpty();
+
+        Map<Term, Term> entries = map.getEntries();
+        Map<Term, Term> otherEntries = otherMap.getEntries();
+        Set<Term> commonKeys = Sets.intersection(map.getEntries().keySet(), otherEntries.keySet());
+        Map<Term, Term> remainingEntries = new HashMap<>();
+        Map<Term, Term> otherRemainingEntries = new HashMap<>();
+        for (Term key : commonKeys) {
+            match(entries.get(key), otherEntries.get(key), ruleMask, path);
+        }
+        for (Term key : entries.keySet()) {
+            if (!commonKeys.contains(key)) {
+                remainingEntries.put(key, entries.get(key));
+            }
+        }
+        for (Term key : otherEntries.keySet()) {
+            if (!commonKeys.contains(key)) {
+                otherRemainingEntries.put(key, otherEntries.get(key));
+            }
+        }
+
+        Multiset<KItem> patterns = map.collectionPatterns();
+        Multiset<KItem> otherPatterns = otherMap.collectionPatterns();
+        Set<KItem> unifiedPatterns = new HashSet<>();
+        Set<KItem> otherUnifiedPatterns = new HashSet<>();
+        List<KItem> remainingPatterns = new ArrayList<>();
+        List<KItem> otherRemainingPatterns = new ArrayList<>();
+        for (KItem pattern : patterns) {
+            for (KItem otherPattern : otherPatterns) {
+                if (pattern.kLabel().equals(otherPattern.kLabel())
+                        && pattern.getPatternInput().equals(otherPattern.getPatternInput())) {
+                    List<Term> patternOutput = pattern.getPatternOutput();
+                    List<Term> otherPatternOutput = otherPattern.getPatternOutput();
+                    for (int i = 0; i < patternOutput.size(); ++i) {
+                        match(patternOutput.get(i), otherPatternOutput.get(i), ruleMask, path);
+                    }
+                    unifiedPatterns.add(pattern);
+                    otherUnifiedPatterns.add(otherPattern);
+                }
+            }
+        }
+        for (KItem pattern : patterns) {
+            if (!unifiedPatterns.contains(pattern)) {
+                remainingPatterns.add(pattern);
+            }
+        }
+        for (KItem otherPattern : otherPatterns) {
+            if (!otherUnifiedPatterns.contains(otherPattern)) {
+                otherRemainingPatterns.add(otherPattern);
+            }
+        }
+
+        Multiset<Variable> variables = map.collectionVariables();
+        Multiset<Variable> otherVariables = otherMap.collectionVariables();
+        Multiset<Variable> commonVariables = Multisets.intersection(variables, otherVariables);
+        Multiset<Variable> remainingVariables = Multisets.difference(variables, commonVariables);
+        Multiset<Variable> otherRemainingVariables = Multisets.difference(otherVariables, commonVariables);
+
+        if (remainingEntries.isEmpty()
+                && remainingPatterns.isEmpty()
+                && remainingVariables.isEmpty()
+                && !otherRemainingEntries.isEmpty()) {
+            //fail(map, otherMap);
+            return empty;
+        }
+        if (otherRemainingEntries.isEmpty()
+                && otherRemainingPatterns.isEmpty()
+                && otherRemainingVariables.isEmpty()
+                && !remainingEntries.isEmpty()) {
+            //fail(map, otherMap);
+            return empty;
+        }
+
+        BuiltinMap.Builder builder = BuiltinMap.builder(global);
+        builder.putAll(remainingEntries);
+        builder.concatenate(remainingPatterns.toArray(new Term[remainingPatterns.size()]));
+        builder.concatenate(remainingVariables.toArray(new Term[remainingVariables.size()]));
+        Term remainingMap = builder.build();
+
+        BuiltinMap.Builder otherBuilder = BuiltinMap.builder(global);
+        otherBuilder.putAll(otherRemainingEntries);
+        otherBuilder.concatenate(otherRemainingPatterns.toArray(new Term[otherRemainingPatterns.size()]));
+        otherBuilder.concatenate(otherRemainingVariables.toArray(new Term[otherRemainingVariables.size()]));
+        Term otherRemainingMap = otherBuilder.build();
+
+        if (!(remainingMap instanceof BuiltinMap && ((BuiltinMap) remainingMap).isEmpty())
+                || !(otherRemainingMap instanceof BuiltinMap && ((BuiltinMap) otherRemainingMap).isEmpty())) {
+            if (remainingMap instanceof Variable || otherRemainingMap instanceof Variable || partialSimplification) {
+                // map equality resolved or partial simplification enabled
+                return addUnification(remainingMap, otherRemainingMap, ruleMask, path);
+            } else {
+                /* unable to dissolve the entire map equality; thus, we need to
+                 * preserve the original map terms for pattern folding */
+                return addUnification(map, otherMap, ruleMask, path);
+            }
+        }
+
+        return ruleMask;
+    }
+
+    /**
+     * Left-hand side of a minimal equality causing this unification to fail.
+     * Must be set if this unification fails.
+     */
+    private Term unificationFailureLeftHandSide = BoolToken.TRUE;
+    /**
+     * Right-hand side of a minimal equality causing this unification to fail.
+     * Must be set if this unification fails.
+     */
+    private Term unificationFailureRightHandSide = BoolToken.FALSE;
+
+    public Term unificationFailureLeftHandSide() {
+        return unificationFailureLeftHandSide;
+    }
+
+    public Term unificationFailureRightHandSide() {
+        return unificationFailureRightHandSide;
     }
 
 }

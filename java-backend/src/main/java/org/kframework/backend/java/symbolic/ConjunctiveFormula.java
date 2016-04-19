@@ -357,11 +357,9 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
                 } else {
                     if (equality.isSimplifiableByCurrentAlgorithm()) {
                         // (decompose + conflict)*
-                        SymbolicUnifier unifier = new SymbolicUnifier(
-                                patternFolding,
-                                partialSimplification,
-                                context);
-                        if (!unifier.symbolicUnify(leftHandSide, rightHandSide)) {
+                        FastRuleMatcher unifier = new FastRuleMatcher(global, 1);
+                        ConjunctiveFormula unificationConstraint = unifier.unifyEquality(leftHandSide, rightHandSide, patternFolding, partialSimplification, false, context);
+                        if (unificationConstraint.isFalse()) {
                             return falsify(
                                     substitution,
                                     equalities,
@@ -371,14 +369,16 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
                                             unifier.unificationFailureRightHandSide(),
                                             global));
                         }
+
                         // TODO(AndreiS): fix this in a general way
-                        if (unifier.constraint().equalities.contains(equality)) {
+                        if (unificationConstraint.equalities.contains(equality)) {
                             pendingEqualities = pendingEqualities.plus(equality);
                             continue;
                         }
-                        equalities = equalities.plusAll(i + 1, unifier.constraint().equalities);
-                        equalities = equalities.plusAll(i + 1, unifier.constraint().substitution.equalities(global));
-                        disjunctions = disjunctions.plusAll(unifier.constraint().disjunctions);
+
+                        equalities = equalities.plusAll(i + 1, unificationConstraint.equalities);
+                        equalities = equalities.plusAll(i + 1, unificationConstraint.substitution.equalities(global));
+                        disjunctions = disjunctions.plusAll(unificationConstraint.disjunctions);
                     } else if (leftHandSide instanceof Variable
                             && !rightHandSide.variableSet().contains(leftHandSide)) {
                         // eliminate
