@@ -155,6 +155,7 @@ function body encounters an explicit \texttt{return} statement. */
   // should simply work once KIL is removed completely
   // check other definitions for this hack as well
 
+  syntax ControlCell
   syntax ControlCellFragment
 
   configuration <T color="red">

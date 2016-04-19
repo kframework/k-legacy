@@ -323,6 +323,7 @@ to the \K tool, as indicated by the \textit{\$PGM} variable, followed by the
   // should simply work once KIL is removed completely
   // check other definitions for this hack as well
 
+  syntax ControlCell
   syntax ControlCellFragment
 
   configuration <T color="red">
