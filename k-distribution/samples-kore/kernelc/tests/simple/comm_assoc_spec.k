@@ -1,6 +1,4 @@
 // Copyright (c) 2014-2016 K Team. All Rights Reserved.
-require "../../kernelc.k"
-
 module COMM-ASSOC-SPEC
   imports KERNELC
 
@@ -11,5 +9,7 @@ rule
   =>
     tv(int, 1)
   ...</k>
+  <in> IN:List </in>
+  <out> OUT:List </out>
 
 endmodule
