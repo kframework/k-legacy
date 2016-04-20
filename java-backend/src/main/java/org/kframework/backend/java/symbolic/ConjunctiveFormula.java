@@ -379,6 +379,24 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
                         equalities = equalities.plusAll(i + 1, unificationConstraint.equalities);
                         equalities = equalities.plusAll(i + 1, unificationConstraint.substitution.equalities(global));
                         disjunctions = disjunctions.plusAll(unificationConstraint.disjunctions);
+                    } else if (leftHandSide instanceof Variable && rightHandSide instanceof Variable
+                            && leftHandSide.sort().equals(rightHandSide.sort())) {
+                        // eliminate: special case when both the left-hand-side and the right-hand-side can be eliminated
+                        ImmutableMapSubstitution<Variable, Term> eliminationSubstitution;
+                        if (leftHandSide.toString().compareTo(rightHandSide.toString()) < 0) {
+                            eliminationSubstitution = ImmutableMapSubstitution.singleton((Variable) leftHandSide, rightHandSide);
+                        } else {
+                            eliminationSubstitution = ImmutableMapSubstitution.singleton((Variable) rightHandSide, leftHandSide);
+                        }
+
+                        substitution = ImmutableMapSubstitution.composeAndEvaluate(
+                                substitution,
+                                eliminationSubstitution,
+                                context);
+                        change = true;
+                        if (substitution.isFalse(global)) {
+                            return falsify(substitution, equalities, disjunctions, equality);
+                        }
                     } else if (leftHandSide instanceof Variable
                             && !rightHandSide.variableSet().contains(leftHandSide)) {
                         // eliminate
