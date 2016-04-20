@@ -183,9 +183,15 @@ class SelectiveDefinitionTransformer(moduleTransformer: MemoizingModuleTransform
     d.getModule("STDOUT-STREAM").foreach(moduleTransformer)
     d.getModule("BASIC-K").foreach(moduleTransformer)
     d.getModule("K").foreach(moduleTransformer)
+    d.getModule("RULE-PARSER").foreach(moduleTransformer)
+    d.getModule("CONFIG-CELLS").foreach(moduleTransformer)
+    val newMainModule = moduleTransformer(d.mainModule)
+    val newEntryModules = d.entryModules flatMap moduleTransformer.memoization.get
+    val newEntryModuleNames = newEntryModules.map(_.name)
+
     definition.Definition(
-      moduleTransformer(d.mainModule),
-      d.entryModules map { m => moduleTransformer.memoization.getOrElse(m, m) }, // the trick is that any memoized modules have already been transformed
+      newMainModule,
+      newEntryModules, // the trick is that any memoized modules have already been transformed
       d.att)
   }
 }
