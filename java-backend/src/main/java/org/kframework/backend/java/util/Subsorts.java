@@ -186,7 +186,7 @@ public class Subsorts implements Serializable {
         /* if there is a top element, it must be candidate */
         if (candidate != null) {
             for (Sort bound : bounds) {
-                if (candidate != bound && !inRelation(bound, candidate, direction)) {
+                if (bound != candidate && !inRelation(bound, candidate, direction)) {
                     candidate = null;
                     break;
                 }
