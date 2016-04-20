@@ -3,13 +3,16 @@ package org.kframework.backend.java.kil;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.kframework.backend.java.symbolic.ConjunctiveFormula;
 import org.kframework.backend.java.symbolic.DisjunctiveFormula;
+import org.kframework.backend.java.symbolic.Equality;
 import org.kframework.backend.java.symbolic.FastRuleMatcher;
 import org.kframework.backend.java.symbolic.PatternExpander;
+import org.kframework.backend.java.symbolic.PersistentUniqueList;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Constants;
@@ -18,6 +21,7 @@ import org.kframework.kil.ASTNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 
 
 /**
@@ -170,7 +174,7 @@ public class ConstrainedTerm extends JavaSymbolicObject {
      * @param constrainedTerm another constrained term
      * @return solutions to the unification problem
      */
-    public List<Pair<ConjunctiveFormula, Boolean>> unify(
+    public List<Triple<ConjunctiveFormula, Boolean, Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>>> unify(
             ConstrainedTerm constrainedTerm,
             Set<Variable> variables) {
         /* unify the subject term and the pattern term without considering those associated constraints */
@@ -191,7 +195,7 @@ public class ConstrainedTerm extends JavaSymbolicObject {
                 context);
     }
 
-    public static List<Pair<ConjunctiveFormula, Boolean>> evaluateConstraints(
+    public static List<Triple<ConjunctiveFormula, Boolean, Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>>> evaluateConstraints(
             ConjunctiveFormula constraint,
             ConjunctiveFormula subjectConstraint,
             ConjunctiveFormula patternConstraint,
@@ -208,11 +212,13 @@ public class ConstrainedTerm extends JavaSymbolicObject {
                 .filter(c -> !c.isFalse())
                 .collect(Collectors.toList());
 
-        List<Pair<ConjunctiveFormula, Boolean>> solutions = Lists.newArrayList();
+        List<Triple<ConjunctiveFormula, Boolean, Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>>> solutions = Lists.newArrayList();
         for (ConjunctiveFormula candidate : candidates) {
             candidate = candidate.orientSubstitution(variables);
 
-            ConjunctiveFormula solution = candidate.addAndSimplify(subjectConstraint, context);
+            Pair<Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>, ConjunctiveFormula> pair = ConstrainedTerm.splitRewrites(candidate);
+
+            ConjunctiveFormula solution = pair.getRight().addAndSimplify(subjectConstraint, context);
             if (solution.isFalse()) {
                 continue;
             }
@@ -226,10 +232,25 @@ public class ConstrainedTerm extends JavaSymbolicObject {
             }
 
             assert solution.disjunctions().isEmpty();
-            solutions.add(Pair.of(solution, isMatching));
+            solutions.add(Triple.of(solution, isMatching, pair.getLeft()));
         }
 
         return solutions;
+    }
+
+    private static Pair<Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>, ConjunctiveFormula> splitRewrites(ConjunctiveFormula constraint) {
+        Map<Boolean, List<Equality>> split = constraint.equalities().stream()
+                .collect(Collectors.partitioningBy(e -> e.leftHandSide() instanceof LocalRewriteTerm));
+        Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term> rewrites = split.get(true).stream()
+                .map(Equality::leftHandSide)
+                .map(LocalRewriteTerm.class::cast)
+                .collect(Collectors.toMap(e -> e.path, e -> e.rewriteRHS));
+        ConjunctiveFormula pureConstraint = ConjunctiveFormula.of(
+                constraint.substitution(),
+                PersistentUniqueList.from(split.get(false)),
+                constraint.disjunctions(),
+                constraint.globalContext());
+        return Pair.of(rewrites, pureConstraint);
     }
 
     @Override

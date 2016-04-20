@@ -2,10 +2,6 @@
 
 package org.kframework.backend.java.symbolic;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.Multisets;
 import org.kframework.attributes.Att;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
@@ -43,7 +39,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Multisets;
 import com.google.common.collect.Sets;
 
 /**
@@ -105,8 +106,6 @@ public class FastRuleMatcher {
         List<RuleMatchResult> transitionResults = new ArrayList<>();
         for (int i = theMatchingRules.nextSetBit(0); i >= 0; i = theMatchingRules.nextSetBit(i + 1)) {
             Rule rule = global.getDefinition().ruleTable.get(i);
-            Pair<Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>, ConjunctiveFormula> rewritesConstraintPair = splitRewrites(constraints[i]);
-            ConjunctiveFormula constraint = rewritesConstraintPair.getRight();
             // TODO(YilongL): remove TermContext from the signature once
             // ConstrainedTerm doesn't hold a TermContext anymore
             /* TODO(AndreiS): remove this hack for super strictness after strategies work */
@@ -116,16 +115,16 @@ public class FastRuleMatcher {
             } else {
                 patternConstraint = patternConstraint.addAll(rule.requires());
             }
-            List<Pair<ConjunctiveFormula, Boolean>> ruleResults = ConstrainedTerm.evaluateConstraints(
-                    constraint,
+            List<Triple<ConjunctiveFormula, Boolean, Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>>> ruleResults = ConstrainedTerm.evaluateConstraints(
+                    constraints[i],
                     subject.constraint(),
                     patternConstraint,
                     Sets.union(getLeftHandSide(pattern, i).variableSet(), patternConstraint.variableSet()).stream()
                             .filter(v -> !v.name().equals(KOREtoBackendKIL.THE_VARIABLE))
                             .collect(Collectors.toSet()),
                     context);
-            for (Pair<ConjunctiveFormula, Boolean> pair : ruleResults) {
-                RuleMatchResult result = new RuleMatchResult(pair.getLeft(), pair.getRight(), rewritesConstraintPair.getLeft(), i);
+            for (Triple<ConjunctiveFormula, Boolean, Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>> triple : ruleResults) {
+                RuleMatchResult result = new RuleMatchResult(triple.getLeft(), triple.getMiddle(), triple.getRight(), i);
                 if (transitions.stream().anyMatch(rule::containsAttribute)) {
                     transitionResults.add(result);
                 } else {
@@ -159,21 +158,6 @@ public class FastRuleMatcher {
             this.rewrites = rewrites;
             this.ruleIndex = ruleIndex;
         }
-    }
-
-    private Pair<Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>, ConjunctiveFormula> splitRewrites(ConjunctiveFormula constraint) {
-        Map<Boolean, List<Equality>> split = constraint.equalities().stream()
-                .collect(Collectors.partitioningBy(e -> e.leftHandSide() instanceof LocalRewriteTerm));
-        Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term> rewrites = split.get(true).stream()
-                .map(Equality::leftHandSide)
-                .map(LocalRewriteTerm.class::cast)
-                .collect(Collectors.toMap(e -> e.path, e -> e.rewriteRHS));
-        ConjunctiveFormula pureConstraint = ConjunctiveFormula.of(
-                constraint.substitution(),
-                PersistentUniqueList.from(split.get(false)),
-                constraint.disjunctions(),
-                constraint.globalContext());
-        return Pair.of(rewrites, pureConstraint);
     }
 
     /**
