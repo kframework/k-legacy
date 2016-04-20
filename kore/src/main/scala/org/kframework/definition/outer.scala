@@ -44,6 +44,10 @@ case class Definition(
 
   val modules = entryModules flatMap allModules
 
+  if(!(modules.map(m => m.name).size == modules.size)) {
+    throw new AssertionError("Found different modules with the same name")
+  }
+
   assert(modules.contains(mainModule))
 
   def getModule(name: String): Option[Module] = modules find { case m: Module => m.name == name; case _ => false }
@@ -183,6 +187,10 @@ case class Module(val name: String, val imports: Set[Module], unresolvedLocalSen
   lazy val importedModules: Set[Module] = imports | (imports flatMap {
     _.importedModules
   })
+
+  if(!(importedModules.map(m => m.name).size == importedModules.size)) {
+    throw new AssertionError("Found different modules with the same name")
+  }
 
   val productions: Set[Production] = sentences collect { case p: Production => p }
 
