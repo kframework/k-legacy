@@ -90,10 +90,11 @@ module KERNELC-SYNTAX
     > left: Expression "&&" Expression                  [prefer]
     > left: Expression "||" Expression
     > right: Expression "?" Expression ":" Expression
-  syntax Constant ::= Int
-                    | Float
+  syntax Constant ::= Primitive
                     | "NULL"
                     | String
+  syntax Primitive ::= Int
+                     | Float
   syntax Expressions ::= List{Expression, ","}          [seqstrict]
 
   syntax Id ::= "main"   [token]
