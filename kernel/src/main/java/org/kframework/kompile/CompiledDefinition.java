@@ -9,9 +9,6 @@ import org.kframework.builtin.Sorts;
 import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
-import org.kframework.kore.ADT;
-import org.kframework.kore.FoldK;
-import org.kframework.kore.FoldKIntoSet;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KLabel;
@@ -22,7 +19,6 @@ import org.kframework.kore.VisitK;
 import org.kframework.parser.TreeNodesToKORE;
 import org.kframework.parser.concrete2kore.ParseInModule;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
-import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.file.FileUtil;
@@ -33,14 +29,12 @@ import scala.util.Either;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * A class representing a compiled definition. It has everything needed for executing and parsing programs.
@@ -122,8 +116,6 @@ public class CompiledDefinition implements Serializable {
      * {@link RuleGrammarGenerator#POSTFIX}. In latter case, it uses the user-defined module.
      */
     public Option<Module> programParsingModuleFor(String moduleName, KExceptionManager kem) {
-        RuleGrammarGenerator gen = new RuleGrammarGenerator(parsedDefinition, kompileOptions.strict());
-
         Option<Module> moduleOption;
 
         if(moduleName.endsWith(RuleGrammarGenerator.POSTFIX)) {
@@ -140,7 +132,7 @@ public class CompiledDefinition implements Serializable {
             }
         }
         Option<Module> programParsingModuleOption = moduleOption.isDefined() ?
-                Option.apply(gen.getProgramsGrammar(moduleOption.get())) :
+                Option.apply(RuleGrammarGenerator.getProgramsGrammar(moduleOption.get(), kompiledDefinition)) :
                 Option.empty();
         return programParsingModuleOption;
     }
@@ -155,7 +147,7 @@ public class CompiledDefinition implements Serializable {
      */
 
     public BiFunction<String, Source, K> getParser(Module module, Sort programStartSymbol, KExceptionManager kem) {
-        ParseInModule parseInModule = new RuleGrammarGenerator(parsedDefinition, kompileOptions.strict()).getCombinedGrammar(module);
+        ParseInModule parseInModule = RuleGrammarGenerator.getCombinedGrammar(module, kompileOptions.strict());
 
         return (BiFunction<String, Source, K> & Serializable) (s, source) -> {
             Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>> res = parseInModule.parseString(s, programStartSymbol, source);
@@ -168,7 +160,7 @@ public class CompiledDefinition implements Serializable {
     }
 
     public Module getExtensionModule(Module module) {
-        return new RuleGrammarGenerator(kompiledDefinition, kompileOptions.strict()).getCombinedGrammar(module).getExtensionModule();
+        return RuleGrammarGenerator.getCombinedGrammar(module, kompileOptions.strict()).getExtensionModule();
     }
 
     public Rule compilePatternIfAbsent(FileUtil files, KExceptionManager kem, String pattern, Source source) {

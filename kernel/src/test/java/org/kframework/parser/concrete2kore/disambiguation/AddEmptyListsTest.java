@@ -1,7 +1,6 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.parser.concrete2kore.disambiguation;
 
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -15,12 +14,9 @@ import org.kframework.kompile.Kompile;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KLabel;
-import org.kframework.main.GlobalOptions;
 import org.kframework.parser.TreeNodesToKORE;
 import org.kframework.parser.concrete2kore.ParseInModule;
-import org.kframework.parser.concrete2kore.ParserUtils;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
-import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.file.FileUtil;
 import scala.Tuple2;
@@ -39,29 +35,12 @@ public class AddEmptyListsTest {
 
     @Before
     public void setUp() throws Exception {
-        RuleGrammarGenerator gen = makeRuleGrammarGenerator();
-        Module test = ParserUtils.parseMainModuleOuterSyntax(DEF, Source.apply("AddEmptyListsTest test definition"), "TEST");
-        parser = gen.getCombinedGrammar(gen.getRuleGrammar(test));
-    }
-
-    /*
-     * Return a RuleGrammarGenerator which uses the default K syntax as loaded from kast.k
-     */
-    private RuleGrammarGenerator makeRuleGrammarGenerator() {
-        String definitionText;
         FileUtil files = FileUtil.testFileUtil();
-        ParserUtils parser = new ParserUtils(files::resolveWorkingDirectory, new KExceptionManager(new GlobalOptions()));
         File definitionFile = new File(Kompile.BUILTIN_DIRECTORY.toString() + "/kast.k");
-        definitionText = files.loadFromWorkingDirectory(definitionFile.getPath());
-
-        Definition baseK =
-                parser.loadDefinition("K", "K", definitionText,
-                        definitionFile,
-                        definitionFile.getParentFile(),
-                        Lists.newArrayList(Kompile.BUILTIN_DIRECTORY),
-                        false);
-
-        return new RuleGrammarGenerator(baseK, true);
+        String baseKText = files.loadFromWorkingDirectory(definitionFile.getPath());
+        Definition baseK = org.kframework.Definition.from(baseKText + DEF, "TEST");
+        Module test = baseK.getModule("TEST").get();
+        parser = RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getRuleGrammar(test, baseK), true);
     }
 
     private void parseTerm(String term, String sort, K expected) {

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.unparser;
 
-import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.kframework.attributes.Source;
@@ -10,48 +9,30 @@ import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
 import org.kframework.kompile.Kompile;
 import org.kframework.kore.K;
-import org.kframework.main.GlobalOptions;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.TreeNodesToKORE;
 import org.kframework.parser.concrete2kore.ParseInModule;
 import org.kframework.parser.concrete2kore.ParserUtils;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
-import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.file.FileUtil;
 import scala.Tuple2;
 import scala.util.Either;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Set;
 
 import static org.junit.Assert.*;
 
 public class AddBracketsTest {
 
-    private RuleGrammarGenerator gen;
+    private String baseKText;
 
     @Before
-    public void setUp() throws  Exception{
-        gen = makeRuleGrammarGenerator();
-    }
-
-    public RuleGrammarGenerator makeRuleGrammarGenerator() {
-        String definitionText;
+    public void setUp() throws Exception {
         FileUtil files = FileUtil.testFileUtil();
-        ParserUtils parser = new ParserUtils(files::resolveWorkingDirectory, new KExceptionManager(new GlobalOptions()));
         File definitionFile = new File(Kompile.BUILTIN_DIRECTORY.toString() + "/kast.k");
-        definitionText = files.loadFromWorkingDirectory(definitionFile.getPath());
-
-        Definition baseK =
-                parser.loadDefinition("K", "K", definitionText,
-                        definitionFile,
-                        definitionFile.getParentFile(),
-                        Lists.newArrayList(Kompile.BUILTIN_DIRECTORY),
-                        false);
-
-        return new RuleGrammarGenerator(baseK, true);
+        baseKText = files.loadFromWorkingDirectory(definitionFile.getPath());
     }
 
     private Module parseModule(String def) {
@@ -95,8 +76,9 @@ public class AddBracketsTest {
     }
 
     private void unparserTest(String def, String pgm) {
-        Module test = parseModule(def);
-        ParseInModule parser = gen.getCombinedGrammar(gen.getProgramsGrammar(test));
+        Definition baseK = RuleGrammarGenerator.autoGenerateBaseKCasts(org.kframework.Definition.from(baseKText + def, "TEST"));
+        Module test = baseK.getModule("TEST").get();
+        ParseInModule parser = RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getRuleGrammar(test, baseK), true);
         K parsed = parseTerm(pgm, parser);
         String unparsed = unparseTerm(parsed, test);
         assertEquals(pgm, unparsed);

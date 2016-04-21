@@ -62,8 +62,7 @@ public class GenerateSentencesFromConfigDeclTest {
                                 cell("opt", Collections.singletonMap("multiplicity", "?"),
                                         KApply(KLabel(".Opt"))))));
         Module m1 = Module("CONFIG", Set(def.getModule("KSEQ").get()), Set(Production(".Opt", Sort("OptCellContent"), Seq(Terminal("")))), Att());
-        RuleGrammarGenerator parserGen = new RuleGrammarGenerator(def, true);
-        Module m = parserGen.getCombinedGrammar(parserGen.getConfigGrammar(m1)).getExtensionModule();
+        Module m = RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getConfigGrammar(m1, def), true).getExtensionModule();
         Set<Sentence> gen = GenerateSentencesFromConfigDecl.gen(configuration, BooleanUtils.FALSE, Att(), m);
         Att initializerAtts = Att().add("initializer");
         Att productionAtts = initializerAtts.add("function");
