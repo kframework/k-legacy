@@ -8,7 +8,7 @@ import org.kframework.attributes.{Location, Source}
 import org.kframework.definition
 import org.kframework.kore.K
 import org.kframework.utils.errorsystem.KEMException
-import sun.awt.CausedFocusEvent.Cause
+import collection.JavaConverters._
 
 
 object ModuleTransformer {
@@ -90,9 +90,16 @@ abstract class ModuleTransformer extends (Module => Module) {
   */
 trait MemoizingModuleTransformer extends ModuleTransformer {
   val memoization = collection.concurrent.TrieMap[Module, Module]()
+  val currentProcessedModules = new java.util.concurrent.LinkedBlockingDeque[Module]()
 
-  override def apply(input: Module): Module =
-    wrapExceptions(memoization.getOrElseUpdate(input, {processModule(input)}))
+  override def apply(input: Module): Module = {
+    if (currentProcessedModules.contains(input))
+      throw new AssertionError("Found a cycle on: " + input.name + " with chain: " + currentProcessedModules.asScala.map(_.name).toList.reverse.mkString(" -> "))
+    currentProcessedModules.push(input)
+    val res = wrapExceptions(memoization.getOrElseUpdate(input, {processModule(input)}))
+    currentProcessedModules.pop()
+    res
+  }
 
   def processModule(inputModule: Module): Module
 }
@@ -122,7 +129,7 @@ trait HybridModuleTransformer extends ModuleTransformer {
   def processHybridModule(hybridModule: Module): Module
 }
 
-trait HybridMemoizingModuleTransformer extends MemoizingModuleTransformer with HybridModuleTransformer {
+abstract class HybridMemoizingModuleTransformer extends MemoizingModuleTransformer with HybridModuleTransformer {
   override def apply(input: Module): Module = super[MemoizingModuleTransformer].apply(input)
 
   def processModule(inputModule: Module): Module = super[HybridModuleTransformer].apply(inputModule)
@@ -161,10 +168,10 @@ object DefinitionTransformer {
 
 class DefinitionTransformer(moduleTransformer: MemoizingModuleTransformer) extends (Definition => Definition) {
   override def apply(d: Definition): Definition = {
-//    definition.Definition(
-//      moduleTransformer(d.mainModule),
-//      d.entryModules map moduleTransformer,
-//      d.att)
+    //    definition.Definition(
+    //      moduleTransformer(d.mainModule),
+    //      d.entryModules map moduleTransformer,
+    //      d.att)
     // commented above such that the regular transformer behaves like the SelectiveDefinitionTransformer
     // this avoids a bug in the configuration concretization functionality
     new SelectiveDefinitionTransformer(moduleTransformer).apply(d)

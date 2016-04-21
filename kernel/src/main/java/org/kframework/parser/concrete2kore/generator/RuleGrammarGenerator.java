@@ -88,8 +88,8 @@ public class RuleGrammarGenerator {
     /**
      * Initialize a grammar generator.
      *
-     * @param baseK  A Definition containing a K module giving the syntax of K itself.
-     *               The default K syntax is defined in include/kast.k.
+     * @param baseK A Definition containing a K module giving the syntax of K itself.
+     *              The default K syntax is defined in include/kast.k.
      */
     public static Definition autoGenerateBaseKCasts(Definition baseK) {
         return DefinitionTransformer.fromHybrid((Module m) -> {
@@ -147,7 +147,7 @@ public class RuleGrammarGenerator {
         // import PROGRAM-LISTS so user lists are modified to parse programs
         scala.collection.Set<Module> modules = Set(mod, baseK.getModule(PROGRAM_LISTS).get(), baseK.getModule(SORT_K).get());
 
-        if(!mod.name().endsWith(POSTFIX) && stream(mod.importedModules()).anyMatch(m -> m.name().equals(ID))) {
+        if (!mod.name().endsWith(POSTFIX) && stream(mod.importedModules()).anyMatch(m -> m.name().equals(ID))) {
             Module idProgramParsingModule = baseK.getModule(ID_PROGRAM_PARSING).get();
             modules = add(idProgramParsingModule, modules);
         }
@@ -168,8 +168,14 @@ public class RuleGrammarGenerator {
      * @return parser which applies disambiguation filters by default.
      */
     public static ParseInModule getCombinedGrammar(Module seedMod, boolean strict) {
-        /** Extension module is used by the compiler to get information about subsorts and access the definition of casts */
-        Module extensionM = ModuleTransformer.fromHybrid((Module m) -> {
+        Module extensionM = getExtensionModule(seedMod);
+        Module disambM = genDisambModule(extensionM);
+        Module parseM = genParserModule(disambM);
+        return new ParseInModule(seedMod, extensionM, disambM, parseM, strict);
+    }
+
+    private static Module getExtensionModule(Module seedMod) { /** Extension module is used by the compiler to get information about subsorts and access the definition of casts */
+        return ModuleTransformer.fromHybrid((Module m) -> {
             Set<Sentence> newProds = new HashSet<>();
             if (seedMod.importedModules().exists(func(m1 -> m1.name().equals(AUTO_CASTS)))) { // create the casts
                 for (Sort srt : iterable(m.localSorts())) {
@@ -199,11 +205,72 @@ public class RuleGrammarGenerator {
                 return m;
             return Module(m.name(),
                     m.imports(),
-                    org.kframework.Collections.addAll(m.localSentences(), immutable(newProds)),
+                    Collections.addAll(m.localSentences(), immutable(newProds)),
                     m.att());
         }, "Generate Extension module").apply(seedMod);
+    }
 
-        // prepare for auto follow restrictions, which needs to be done globally (if necessary)
+    private static Module genParserModule(Module disambM) { /** Parsing module is used to generate the grammar for the kernel of the parser. */
+        return (new HybridMemoizingModuleTransformer() {
+
+            @Override
+            public Module processHybridModule(Module hybridModule) {
+
+                Module m = hybridModule;
+
+                if (disambM.importedModules().exists(func(m1 -> m1.name().equals(PROGRAM_LISTS)))) {
+                    Set<Sentence> newProds = mutable(m.localSentences());
+                    // if no start symbol has been defined in the configuration, then use K
+                    for (Sort srt : iterable(m.localSorts())) {
+                        if (!kSorts.contains(srt) && !m.listSorts().contains(srt)) {
+                            // K ::= Sort
+                            newProds.add(Production(Sorts.K(), Seq(NonTerminal(srt)), Att()));
+                        }
+                    }
+                    java.util.List<UserList> uLists = UserList.getLists(newProds);
+                    // eliminate the general list productions
+                    newProds = newProds.stream().filter(p -> !(p instanceof Production && p.att().contains(Att.userList()))).collect(Collectors.toSet());
+                    // for each triple, generate a new pattern which works better for parsing lists in programs.
+                    for (UserList ul : uLists) {
+                        Production prod1, prod2, prod3, prod4, prod5;
+
+                        Att newAtts = ul.attrs.remove("userList");
+                        // Es#Terminator ::= "" [klabel('.Es)]
+                        prod1 = Production(ul.terminatorKLabel, Sort(ul.sort.localName() + "#Terminator"), Seq(Terminal("")),
+                                newAtts.add("klabel", ul.terminatorKLabel).add(Constants.ORIGINAL_PRD, ul.pTerminator));
+                        // Ne#Es ::= E "," Ne#Es [klabel('_,_)]
+                        prod2 = Production(ul.klabel, Sort("Ne#" + ul.sort.localName()),
+                                Seq(NonTerminal(ul.childSort), Terminal(ul.separator), NonTerminal(Sort("Ne#" + ul.sort.localName()))),
+                                newAtts.add("klabel", ul.klabel).add(Constants.ORIGINAL_PRD, ul.pList));
+                        // Ne#Es ::= E Es#Terminator [klabel('_,_)]
+                        prod3 = Production(ul.klabel, Sort("Ne#" + ul.sort.localName()),
+                                Seq(NonTerminal(ul.childSort), NonTerminal(Sort(ul.sort.localName() + "#Terminator"))),
+                                newAtts.add("klabel", ul.klabel).add(Constants.ORIGINAL_PRD, ul.pList));
+                        // Es ::= Ne#Es
+                        prod4 = Production(ul.sort, Seq(NonTerminal(Sort("Ne#" + ul.sort.localName()))));
+                        // Es ::= Es#Terminator // if the list is *
+                        prod5 = Production(ul.sort, Seq(NonTerminal(Sort(ul.sort.localName() + "#Terminator"))));
+
+                        newProds.add(prod1);
+                        newProds.add(prod2);
+                        newProds.add(prod3);
+                        newProds.add(prod4);
+                        newProds.add(SyntaxSort(Sort(ul.sort.localName() + "#Terminator")));
+                        newProds.add(SyntaxSort(Sort("Ne#" + ul.sort.localName())));
+                        if (!ul.nonEmpty) {
+                            newProds.add(prod5);
+                        }
+                    }
+
+                    Module sortKModule = apply(disambM.importedModules().find(func(m1 -> m1.name().equals(SORT_K))).get());
+                    return Module(m.name(), Collections.add(sortKModule, m.imports()), immutable(newProds), m.att());
+                }
+                return m;
+            }
+        }).apply(disambM);
+    }
+
+    private static Module genDisambModule(Module extensionM) {// prepare for auto follow restrictions, which needs to be done globally (if necessary)
         Object PRESENT = new Object();
         PatriciaTrie<Object> terminals = new PatriciaTrie<>(); // collect all terminals so we can do automatic follow restriction for prefix terminals
         mutable(extensionM.productions()).stream().forEach(p -> stream(p.items()).forEach(i -> {
@@ -211,164 +278,116 @@ public class RuleGrammarGenerator {
         }));
 
         /** Disambiguation module is used by the parser to have an easier way of disambiguating parse trees. */
-        Module disambM = ModuleTransformer.fromHybrid((Module m) -> {
-            // make sure a configuration actually exists, otherwise ConfigurationInfoFromModule explodes.
-            final ConfigurationInfo cfgInfo = m.localSentences().exists(func(p -> p instanceof Production && p.att().contains("cell")))
-                    ? new ConfigurationInfoFromModule(extensionM)
-                    : null;
+        return (new HybridMemoizingModuleTransformer() {
 
-            if (seedMod.importedModules().exists(func(m1 -> m1.name().equals(RULE_CELLS))) &&
-                    cfgInfo != null) { // prepare cell productions for rule parsing
-                Module ruleCells = seedMod.importedModules().find(func(m1 -> m1.name().equals(RULE_CELLS))).get();
-                Set<Sentence> newProds = stream(m.localSentences()).flatMap(s -> {
-                    if (s instanceof Production && (s.att().contains("cell"))) {
-                        Production p = (Production) s;
-                        // assuming that productions tagged with 'cell' start and end with terminals, and only have non-terminals in the middle
-                        assert p.items().head() instanceof Terminal || p.items().head() instanceof RegexTerminal;
-                        assert p.items().last() instanceof Terminal || p.items().last() instanceof RegexTerminal;
-                        final ProductionItem body;
-                        if (cfgInfo.isLeafCell(p.sort())) {
-                            body = p.items().tail().head();
-                        } else {
-                            body = NonTerminal(Sort("Bag"));
-                        }
-                        final ProductionItem optDots = NonTerminal(Sort("#OptionalDots"));
-                        Seq<ProductionItem> pi = Seq(p.items().head(), optDots, body, optDots, p.items().last());
-                        Production p1 = Production(p.klabel().get().name(), Sort("Cell", ModuleName.apply("KCELLS")), pi, p.att());
-                        Production p2 = Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())));
-                        return Stream.of(p1, p2);
-                    }
-                    if (s instanceof Production && (s.att().contains("cellFragment"))) {
-                        Production p = (Production) s;
-                        Production p1 = Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())));
-                        return Stream.of(p, p1);
-                    }
-                    return Stream.of(s);
-                }).collect(Collectors.toSet());
-                m = Module(m.name(), org.kframework.Collections.add(ruleCells, m.imports()), immutable(newProds), m.att());
-            }
+            @Override
+            public Module processHybridModule(Module hybridModule) {
 
-            // configurations can be declared on multiple modules, so make sure to subsort previously declared cells to Cell
-            if (seedMod.importedModules().exists(func(m1 -> m1.name().equals(CONFIG_CELLS)))) {
-                Module configCells = seedMod.importedModules().find(func(m1 -> m1.name().equals(CONFIG_CELLS))).get();
-                Set<Sentence> newProds = stream(m.localSentences()).flatMap(s -> {
-                    if (s instanceof Production && s.att().contains("initializer")) {
-                        Production p = (Production) s;
-                        // assuming that productions tagged with 'cell' start and end with terminals, and only have non-terminals in the middle
-                        assert p.items().head() instanceof Terminal || p.items().head() instanceof RegexTerminal;
-                        final ProductionItem body;
-                        Production p1 = Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())));
-                        return Stream.of(s, p1);
-                    }
-                    return Stream.of(s);
-                }).collect(Collectors.toSet());
-                m = Module(m.name(), org.kframework.Collections.add(configCells, m.imports()), immutable(newProds), m.att());
-            }
+                Module m = hybridModule;
+                // make sure a configuration actually exists, otherwise ConfigurationInfoFromModule explodes.
+                final ConfigurationInfo cfgInfo = m.localSentences().exists(func(p -> p instanceof Production && p.att().contains("cell")))
+                        ? new ConfigurationInfoFromModule(extensionM)
+                        : null;
 
-            if (seedMod.importedModules().exists(func(m1 -> m1.name().equals(AUTO_FOLLOW)))) {
-                Set<Sentence> newProds = stream(m.localSentences()).map(s -> {
-                    if (s instanceof Production) {
-                        Production p = (Production) s;
-                        if (p.sort().name().startsWith("#"))
-                            return p; // don't do anything for such productions since they are advanced features
-                        // rewrite productions to contain follow restrictions for prefix terminals
-                        // example _==_ and _==K_ can produce ambiguities. Rewrite the first into _(==(?![K])_
-                        // this also takes care of casting and productions that have ":"
-                        Seq<ProductionItem> items = map(pi -> {
-                            if (pi instanceof Terminal) {
-                                Terminal t = (Terminal) pi;
-                                if (t.value().trim().equals(""))
-                                    return pi;
-                                Set<String> follow = new HashSet<>();
-                                terminals.prefixMap(t.value()).keySet().stream().filter(biggerString -> !t.value().equals(biggerString))
-                                        .forEach(biggerString -> {
-                                            String ending = biggerString.substring(t.value().length());
-                                            follow.add(ending);
-                                        });
-                                // add follow restrictions for the characters that might produce ambiguities
-                                if (!follow.isEmpty()) {
-                                    return Terminal.apply(t.value(), follow.stream().collect(toList()));
-                                }
+                if (extensionM.importedModules().exists(func(m1 -> m1.name().equals(RULE_CELLS))) &&
+                        cfgInfo != null) { // prepare cell productions for rule parsing
+                    Module ruleCells = apply(extensionM.importedModules().find(func(m1 -> m1.name().equals(RULE_CELLS))).get());
+                    Set<Sentence> newProds = stream(m.localSentences()).flatMap(s -> {
+                        if (s instanceof Production && (s.att().contains("cell"))) {
+                            Production p = (Production) s;
+                            // assuming that productions tagged with 'cell' start and end with terminals, and only have non-terminals in the middle
+                            assert p.items().head() instanceof Terminal || p.items().head() instanceof RegexTerminal;
+                            assert p.items().last() instanceof Terminal || p.items().last() instanceof RegexTerminal;
+                            final ProductionItem body;
+                            if (cfgInfo.isLeafCell(p.sort())) {
+                                body = p.items().tail().head();
+                            } else {
+                                body = NonTerminal(Sort("Bag"));
                             }
-                            return pi;
-                        }, p.items());
-                        if (p.klabel().isDefined())
-                            p = Production(p.klabel().get().name(), p.sort(), Seq(items), p.att());
-                        else
-                            p = Production(p.sort(), Seq(items), p.att());
-                        return p;
-                    }
-                    return s;
-                }).collect(Collectors.toSet());
-                m = Module(m.name(), m.imports(), immutable(newProds), m.att());
-            }
-
-            if (seedMod.importedModules().exists(func(m1 -> m1.name().equals(RULE_LISTS)))) {
-                Set<Sentence> newProds = mutable(m.localSentences());
-                for (UserList ul : UserList.getLists(newProds)) {
-                    org.kframework.definition.Production prod1;
-                    // Es ::= E
-                    prod1 = Production(ul.sort, Seq(NonTerminal(ul.childSort)));
-                    newProds.add(prod1);
-                }
-                m = Module(m.name(), m.imports(), immutable(newProds), m.att());
-            }
-            return m;
-        }, "Generate Disambiguation module").apply(extensionM);
-
-        /** Parsing module is used to generate the grammar for the kernel of the parser. */
-        Module parseM = ModuleTransformer.fromHybrid((Module m) -> {
-            if (seedMod.importedModules().exists(func(m1 -> m1.name().equals(PROGRAM_LISTS)))) {
-                Set<Sentence> newProds = mutable(m.localSentences());
-                // if no start symbol has been defined in the configuration, then use K
-                for (Sort srt : iterable(m.localSorts())) {
-                    if (!kSorts.contains(srt) && !m.listSorts().contains(srt)) {
-                        // K ::= Sort
-                        newProds.add(Production(Sorts.K(), Seq(NonTerminal(srt)), Att()));
-                    }
-                }
-                java.util.List<UserList> uLists = UserList.getLists(newProds);
-                // eliminate the general list productions
-                newProds = newProds.stream().filter(p -> !(p instanceof Production && p.att().contains(Att.userList()))).collect(Collectors.toSet());
-                // for each triple, generate a new pattern which works better for parsing lists in programs.
-                for (UserList ul : uLists) {
-                    Production prod1, prod2, prod3, prod4, prod5;
-
-                    Att newAtts = ul.attrs.remove("userList");
-                    // Es#Terminator ::= "" [klabel('.Es)]
-                    prod1 = Production(ul.terminatorKLabel, Sort(ul.sort.localName() + "#Terminator"), Seq(Terminal("")),
-                            newAtts.add("klabel", ul.terminatorKLabel).add(Constants.ORIGINAL_PRD, ul.pTerminator));
-                    // Ne#Es ::= E "," Ne#Es [klabel('_,_)]
-                    prod2 = Production(ul.klabel, Sort("Ne#" + ul.sort.localName()),
-                            Seq(NonTerminal(ul.childSort), Terminal(ul.separator), NonTerminal(Sort("Ne#" + ul.sort.localName()))),
-                            newAtts.add("klabel", ul.klabel).add(Constants.ORIGINAL_PRD, ul.pList));
-                    // Ne#Es ::= E Es#Terminator [klabel('_,_)]
-                    prod3 = Production(ul.klabel, Sort("Ne#" + ul.sort.localName()),
-                            Seq(NonTerminal(ul.childSort), NonTerminal(Sort(ul.sort.localName() + "#Terminator"))),
-                            newAtts.add("klabel", ul.klabel).add(Constants.ORIGINAL_PRD, ul.pList));
-                    // Es ::= Ne#Es
-                    prod4 = Production(ul.sort, Seq(NonTerminal(Sort("Ne#" + ul.sort.localName()))));
-                    // Es ::= Es#Terminator // if the list is *
-                    prod5 = Production(ul.sort, Seq(NonTerminal(Sort(ul.sort.localName() + "#Terminator"))));
-
-                    newProds.add(prod1);
-                    newProds.add(prod2);
-                    newProds.add(prod3);
-                    newProds.add(prod4);
-                    newProds.add(SyntaxSort(Sort(ul.sort.localName() + "#Terminator")));
-                    newProds.add(SyntaxSort(Sort("Ne#" + ul.sort.localName())));
-                    if (!ul.nonEmpty) {
-                        newProds.add(prod5);
-                    }
+                            final ProductionItem optDots = NonTerminal(Sort("#OptionalDots"));
+                            Seq<ProductionItem> pi = Seq(p.items().head(), optDots, body, optDots, p.items().last());
+                            Production p1 = Production(p.klabel().get().name(), Sort("Cell", ModuleName.apply("KCELLS")), pi, p.att());
+                            Production p2 = Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())));
+                            return Stream.of(p1, p2);
+                        }
+                        if (s instanceof Production && (s.att().contains("cellFragment"))) {
+                            Production p = (Production) s;
+                            Production p1 = Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())));
+                            return Stream.of(p, p1);
+                        }
+                        return Stream.of(s);
+                    }).collect(Collectors.toSet());
+                    m = Module(m.name(), Collections.add(ruleCells, m.imports()), immutable(newProds), m.att());
                 }
 
-                Module sortKModule = seedMod.importedModules().find(func(m1 -> m1.name().equals(SORT_K))).get();
-                return Module(m.name(), Collections.add(sortKModule, m.imports()), immutable(newProds), m.att());
-            }
-            return m;
-        }, "Generate Parsing module").apply(disambM);
+                // configurations can be declared on multiple modules, so make sure to subsort previously declared cells to Cell
+                if (extensionM.importedModules().exists(func(m1 -> m1.name().equals(CONFIG_CELLS))) && !hybridModule.name().equals(CONFIG_CELLS)) {
+                    Module configCells = apply(extensionM.importedModules().find(func(m1 -> m1.name().equals(CONFIG_CELLS))).get());
+                    Set<Sentence> newProds = stream(m.localSentences()).flatMap(s -> {
+                        if (s instanceof Production && s.att().contains("initializer")) {
+                            Production p = (Production) s;
+                            // assuming that productions tagged with 'cell' start and end with terminals, and only have non-terminals in the middle
+                            assert p.items().head() instanceof Terminal || p.items().head() instanceof RegexTerminal;
+                            final ProductionItem body;
+                            Production p1 = Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())));
+                            return Stream.of(s, p1);
+                        }
+                        return Stream.of(s);
+                    }).collect(Collectors.toSet());
+                    m = Module(m.name(), Collections.add(configCells, m.imports()), immutable(newProds), m.att());
+                }
 
-        return new ParseInModule(seedMod, extensionM, disambM, parseM, strict);
+                if (extensionM.importedModules().exists(func(m1 -> m1.name().equals(AUTO_FOLLOW)))) {
+                    Set<Sentence> newProds = stream(m.localSentences()).map(s -> {
+                        if (s instanceof Production) {
+                            Production p = (Production) s;
+                            if (p.sort().name().startsWith("#"))
+                                return p; // don't do anything for such productions since they are advanced features
+                            // rewrite productions to contain follow restrictions for prefix terminals
+                            // example _==_ and _==K_ can produce ambiguities. Rewrite the first into _(==(?![K])_
+                            // this also takes care of casting and productions that have ":"
+                            Seq<ProductionItem> items = map(pi -> {
+                                if (pi instanceof Terminal) {
+                                    Terminal t = (Terminal) pi;
+                                    if (t.value().trim().equals(""))
+                                        return pi;
+                                    Set<String> follow = new HashSet<>();
+                                    terminals.prefixMap(t.value()).keySet().stream().filter(biggerString -> !t.value().equals(biggerString))
+                                            .forEach(biggerString -> {
+                                                String ending = biggerString.substring(t.value().length());
+                                                follow.add(ending);
+                                            });
+                                    // add follow restrictions for the characters that might produce ambiguities
+                                    if (!follow.isEmpty()) {
+                                        return Terminal.apply(t.value(), follow.stream().collect(toList()));
+                                    }
+                                }
+                                return pi;
+                            }, p.items());
+                            if (p.klabel().isDefined())
+                                p = Production(p.klabel().get().name(), p.sort(), Seq(items), p.att());
+                            else
+                                p = Production(p.sort(), Seq(items), p.att());
+                            return p;
+                        }
+                        return s;
+                    }).collect(Collectors.toSet());
+                    m = Module(m.name(), m.imports(), immutable(newProds), m.att());
+                }
+
+                if (extensionM.importedModules().exists(func(m1 -> m1.name().equals(RULE_LISTS)))) {
+                    Set<Sentence> newProds = mutable(m.localSentences());
+                    for (UserList ul : UserList.getLists(newProds)) {
+                        Production prod1;
+                        // Es ::= E
+                        prod1 = Production(ul.sort, Seq(NonTerminal(ul.childSort)));
+                        newProds.add(prod1);
+                    }
+                    m = Module(m.name(), m.imports(), immutable(newProds), m.att());
+                }
+                return m;
+            }
+        }).apply(extensionM);
     }
 
     private static Set<Sentence> makeCasts(Sort outerSort, Sort innerSort, Sort castSort) {

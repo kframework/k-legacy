@@ -189,7 +189,7 @@ case class Module(val name: String, val imports: Set[Module], unresolvedLocalSen
   })
 
   if(!(importedModules.map(m => m.name).size == importedModules.size)) {
-    throw new AssertionError("Found different modules with the same name: " + m.name)
+    throw new AssertionError("Found different modules with the same name")
   }
 
   val productions: Set[Production] = sentences collect { case p: Production => p }
