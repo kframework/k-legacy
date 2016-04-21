@@ -478,6 +478,33 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
     public ImmutableMapSubstitution<Variable, Term> getSubstitution(Variable variable, Term term) {
         if (RewriteEngineUtils.isSubsortedEq(variable, term, global.getDefinition())) {
             return ImmutableMapSubstitution.singleton(variable, term);
+        } else if (term instanceof KItem && ((KItem) term).kLabel() instanceof KLabelConstant && ((KItem) term).kList() instanceof KList
+                && ((KLabelConstant) ((KItem) term).kLabel()).isConstructor()
+                && ((KList) ((KItem) term).kList()).getContents().stream().allMatch(Variable.class::isInstance)) {
+            // hack for special case of order-sorted unification
+            KItem kItem = (KItem) term;
+            KLabelConstant kLabelConstant = (KLabelConstant) kItem.kLabel();
+            KList kList = (KList) kItem.kList();
+            List<Sort> sorts = kItem.possibleSorts().stream()
+                    .filter(s -> global.getDefinition().subsorts().isSubsortedEq(variable.sort(), s))
+                    .collect(Collectors.toList());
+            if (sorts.size() != 1) {
+                return null;
+            }
+            SortSignature signature = kLabelConstant.signatures().stream()
+                    .filter(s -> global.getDefinition().subsorts().isSubsortedEq(variable.sort(), s.result()))
+                    .findAny().get();
+            ImmutableMapSubstitution<Variable, Term> substitution = ImmutableMapSubstitution.empty();
+            for (int i = 0; i < kList.size(); i++) {
+                substitution = substitution.plus((Variable) kList.get(i), Variable.getAnonVariable(signature.parameters().get(i)));
+                if (substitution == null) {
+                    return null;
+                }
+            }
+            substitution = substitution.plus(
+                    variable,
+                    KItem.of(kLabelConstant, KList.concatenate(substitution.keySet().stream().collect(Collectors.toList())), global));
+            return substitution;
         } else if (term instanceof Variable) {
             if (RewriteEngineUtils.isSubsortedEq(term, variable, global.getDefinition())) {
                 return ImmutableMapSubstitution.singleton((Variable) term, variable);
@@ -634,7 +661,7 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
                 continue;
             }
 
-            if (!impliesSMT(left,right, rightOnlyVariables)) {
+            if (!impliesSMT(left, right, rightOnlyVariables)) {
                 if (global.globalOptions.debug) {
                     System.err.println("Failure!");
                 }
@@ -658,7 +685,7 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
                 Maps.difference(constraint.substitution, substitution).entriesInCommon().keySet());
         Predicate<Equality> inConstraint = equality -> !equalities().contains(equality)
                 && !equalities().contains(new Equality(equality.rightHandSide(), equality.leftHandSide(), global));
-        PersistentUniqueList<Equality> simplifiedEqualities= PersistentUniqueList.from(
+        PersistentUniqueList<Equality> simplifiedEqualities = PersistentUniqueList.from(
                 constraint.equalities().stream().filter(inConstraint).collect(Collectors.toList()));
         ConjunctiveFormula simplifiedConstraint = ConjunctiveFormula.of(
                 simplifiedSubstitution,
