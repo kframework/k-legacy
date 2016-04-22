@@ -481,7 +481,12 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
         } else if (term instanceof KItem && ((KItem) term).kLabel() instanceof KLabelConstant && ((KItem) term).kList() instanceof KList
                 && ((KLabelConstant) ((KItem) term).kLabel()).isConstructor()
                 && ((KList) ((KItem) term).kList()).getContents().stream().allMatch(Variable.class::isInstance)) {
-            // hack for special case of order-sorted unification
+            /**
+             * Hack for a special case of order-sorted unification. If the term is an overloaded klabel applied to a klist of variables,
+             * and the sort of the term if too generic (i.e. not equal or subsorted to the sort of the variable),
+             * then it may be possible that one of the overloaded signatures may give the term a sort compatible with that of the variable.
+             * In that case, the variables in the klist are substituted with variables of the appropriate sorts.
+             */
             KItem kItem = (KItem) term;
             KLabelConstant kLabelConstant = (KLabelConstant) kItem.kLabel();
             KList kList = (KList) kItem.kList();

@@ -169,10 +169,9 @@ public class ConstrainedTerm extends JavaSymbolicObject {
     }
 
     /**
-     * Unifies this constrained term with another constrained term.
-     *
-     * @param constrainedTerm another constrained term
-     * @return solutions to the unification problem
+     * Unifies this constrained term with another constrained term. Returns a list of solutions for the unification problem.
+     * Each solution is a triple of (1) the unification constraint, (2) whether the constraint is a matching of the variables of the argument constrainedTerm,
+     * and (3) the inner rewrites from the constrainedTerm.
      */
     public List<Triple<ConjunctiveFormula, Boolean, Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>>> unify(
             ConstrainedTerm constrainedTerm,
@@ -238,6 +237,11 @@ public class ConstrainedTerm extends JavaSymbolicObject {
         return solutions;
     }
 
+    /**
+     * Splits the constraint into the rewrites and the "pure" constraint.
+     * {@link FastRuleMatcher} encodes the information about the inner rewrites (path to rewrite and what to rewrite to) as a boolean predicate in the constraint.
+     * This method method reverses the encoding.
+     */
     private static Pair<Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>, ConjunctiveFormula> splitRewrites(ConjunctiveFormula constraint) {
         Map<Boolean, List<Equality>> split = constraint.equalities().stream()
                 .collect(Collectors.partitioningBy(e -> e.leftHandSide() instanceof LocalRewriteTerm));
