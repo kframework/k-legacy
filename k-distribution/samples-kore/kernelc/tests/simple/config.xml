@@ -23,13 +23,11 @@
       <krun-option name="--smt_prelude" value="../../include/z3/basic.smt2" />
       <krun-option name="--z3-executable" />
     </program>
-<!--
     <program name="sum_iterative.c">
-      <krun-option name="-/-prove" value="tests/simple/sum_iterative_spec.k" />
-      <krun-option name="-/-smt_prelude" value="../../include/z3/basic.smt2" />
-      <krun-option name="-/-z3-executable" />
+      <krun-option name="--prove" value="tests/simple/sum_iterative_spec.k" />
+      <krun-option name="--smt_prelude" value="../../include/z3/basic.smt2" />
+      <krun-option name="--z3-executable" />
     </program>
--->
     <program name="sum_recursive.c">
       <krun-option name="--prove" value="tests/simple/sum_recursive_spec.k" />
       <krun-option name="--smt_prelude" value="../../include/z3/basic.smt2" />
