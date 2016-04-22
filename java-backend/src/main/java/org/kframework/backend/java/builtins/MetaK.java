@@ -17,6 +17,7 @@ import org.kframework.kil.ASTNode;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 
 /**
@@ -40,9 +41,18 @@ public class MetaK {
      *         {@code null}
      */
     public static BoolToken unifiable(Term term1, Term term2, TermContext context) {
-        ConjunctiveFormula constraint = ConjunctiveFormula.of(context.global())
-                .add(term1, term2)
-                .simplify(context);
+        ConjunctiveFormula constraint = ConjunctiveFormula.of(context.global());
+        if (term1 instanceof KList && term2 instanceof KList) {
+            if (((KList) term1).size() != ((KList) term2).size()) {
+                return null;
+            }
+            for (int i = 0; i < ((KList) term1).size(); i++) {
+                constraint = constraint.add(((KList) term1).get(i), ((KList) term2).get(i));
+            }
+        } else {
+            constraint = constraint.add(term1, term2);
+        }
+        constraint = constraint.simplify(context);
         if (constraint.isFalse()) {
             return BoolToken.FALSE;
         }

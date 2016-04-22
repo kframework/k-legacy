@@ -5,6 +5,7 @@ import org.kframework.backend.java.kil.BuiltinList;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -285,8 +286,11 @@ public final class BuiltinBitVectorOperations {
             IntToken count,
             TermContext context) {
         if (bitwidth.intValue() > 0 && bitwidth.intValue() * count.intValue() <= term.bitwidth) {
+            List<Term> digits = ((List<BitVector>) term.toDigits(bitwidth.intValue(), count.intValue())).stream()
+                    .map(t -> BuiltinListOperations.wrapListItem(t, context))
+                    .collect(Collectors.toList());
             return BuiltinList.builder(context.global())
-                    .addAll(term.toDigits(bitwidth.intValue(), count.intValue()))
+                    .addAll(digits)
                     .build();
         } else {
             return null;

@@ -19,14 +19,20 @@ public interface KItemRepresentation extends KoreRepresentation, KApply {
     }
 
     default Stream<K> stream() {
-        throw new AssertionError("Unimplemented");
+        return items().stream();
     }
 
-    default List<K> items() { throw new AssertionError("Unimplemented"); }
+    default List<K> items() {
+        return klist().items();
+    }
 
-    default int size() { throw new AssertionError("Unimplemented"); }
+    default int size() {
+        return items().size();
+    }
 
-    default Iterable<K> asIterable() { throw new AssertionError("Unimplemented"); }
+    default Iterable<K> asIterable() {
+        return items();
+    }
 
     @Override
     default org.kframework.kore.KLabel klabel() {

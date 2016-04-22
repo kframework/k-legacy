@@ -178,7 +178,9 @@ public class BuiltinMapOperations {
             return null;
         }
 
-        List<Term> elements = new ArrayList<>(map.getEntries().values());
+        List<Term> elements = map.getEntries().values().stream()
+                .map(t -> BuiltinListOperations.wrapListItem(t, context))
+                .collect(Collectors.toList());
         return BuiltinList.builder(context.global()).addAll(elements).build();
     }
 

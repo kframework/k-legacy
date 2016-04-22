@@ -127,7 +127,8 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
         Optional<String> assocKLabelForUnit = getAssocKLabelForUnit(klabel);
         if (assocKLabelForUnit.isPresent()) {
             BuiltinList.Builder builder = BuiltinList.builder(
-                    Sort.of(module.productionsFor().get(klabel).get().head().sort().name()),
+                    //Sort.of(module.productionsFor().get(klabel).get().head().sort().name()),
+                    Sort.of(stream(module.productionsFor().toStream()).filter(t -> t._1.name().equals(assocKLabelForUnit.get())).findAny().get()._2.head().sort().name()),
                     KLabelConstant.of(assocKLabelForUnit.get(), global.getDefinition()),
                     (KLabelConstant) convertedKLabel,
                     global);
@@ -228,11 +229,10 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
     }
 
     @Override
-    public <KK extends org.kframework.kore.K> KSequence KSequence(List<KK> items, Att att) {
+    public <KK extends org.kframework.kore.K> Term KSequence(List<KK> items, Att att) {
         KSequence.Builder builder = KSequence.builder();
         items.stream().map(this::convert).forEach(builder::concatenate);
-        Term kSequence = KCollection.upKind(builder.build(), Kind.K);
-        return kSequence instanceof Variable ? KSequence.frame((Variable) kSequence) : (KSequence) kSequence;
+        return builder.build();
     }
 
     @Override

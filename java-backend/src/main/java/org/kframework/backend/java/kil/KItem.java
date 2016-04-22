@@ -417,7 +417,7 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                     try {
                         Term[] arguments = kList.getContents().toArray(new Term[kList.getContents().size()]);
                         Term result = builtins.get().invoke(context, kLabelConstant, arguments);
-                        if (result != null) {
+                        if (result != null && !result.equals(kItem)) {
                             return result.evaluate(context);
                         }
                     } catch (ClassCastException e) {
@@ -557,7 +557,7 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                                                 .add(rule.lookups())
                                                 .addAll(rule.requires()),
                                         context);
-                                if (!subject.unify(pattern, null, null, null).isEmpty()) {
+                                if (!subject.unify(pattern, null).isEmpty()) {
                                     return kItem;
                                 }
                             }
