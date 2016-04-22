@@ -124,6 +124,7 @@ windows release of the K framework, run `mvn install -P windows -P x86 -DskipTes
 To view the platform being used by a particular build, run the `mvn help:active-profiles` target.
 
 # Troubleshooting
+
 Common error messages:
 
 -  `Error: JAVA_HOME not found in your environment.
