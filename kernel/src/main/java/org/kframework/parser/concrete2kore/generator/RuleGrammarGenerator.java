@@ -214,11 +214,8 @@ public class RuleGrammarGenerator {
         return (new HybridMemoizingModuleTransformer() {
 
             @Override
-            public Module processHybridModule(Module hybridModule) {
-
-                Module m = hybridModule;
-
-                if (disambM.importedModules().exists(func(m1 -> m1.name().equals(PROGRAM_LISTS)))) {
+            public Module processHybridModule(Module m) {
+                if (disambM.importedModules().exists(func(m1 -> m1.name().equals(PROGRAM_LISTS))) && !m.name().equals(SORT_K)) {
                     Set<Sentence> newProds = mutable(m.localSentences());
                     // if no start symbol has been defined in the configuration, then use K
                     for (Sort srt : iterable(m.localSorts())) {
@@ -281,9 +278,8 @@ public class RuleGrammarGenerator {
         return (new HybridMemoizingModuleTransformer() {
 
             @Override
-            public Module processHybridModule(Module hybridModule) {
-
-                Module m = hybridModule;
+            public Module processHybridModule(Module m) {
+                final String mName = m.name();
                 // make sure a configuration actually exists, otherwise ConfigurationInfoFromModule explodes.
                 final ConfigurationInfo cfgInfo = m.localSentences().exists(func(p -> p instanceof Production && p.att().contains("cell")))
                         ? new ConfigurationInfoFromModule(extensionM)
@@ -291,50 +287,58 @@ public class RuleGrammarGenerator {
 
                 if (extensionM.importedModules().exists(func(m1 -> m1.name().equals(RULE_CELLS))) &&
                         cfgInfo != null) { // prepare cell productions for rule parsing
-                    Module ruleCells = apply(extensionM.importedModules().find(func(m1 -> m1.name().equals(RULE_CELLS))).get());
-                    Set<Sentence> newProds = stream(m.localSentences()).flatMap(s -> {
-                        if (s instanceof Production && (s.att().contains("cell"))) {
-                            Production p = (Production) s;
-                            // assuming that productions tagged with 'cell' start and end with terminals, and only have non-terminals in the middle
-                            assert p.items().head() instanceof Terminal || p.items().head() instanceof RegexTerminal;
-                            assert p.items().last() instanceof Terminal || p.items().last() instanceof RegexTerminal;
-                            final ProductionItem body;
-                            if (cfgInfo.isLeafCell(p.sort())) {
-                                body = p.items().tail().head();
-                            } else {
-                                body = NonTerminal(Sort("Bag"));
+                    // avoid creating cycles in module inclusion
+                    Module ruleCellsOriginal = apply(extensionM.importedModules().find(func(m1 -> m1.name().equals(RULE_CELLS))).get());
+                    if (!m.name().equals(RULE_CELLS) && !ruleCellsOriginal.importedModules().exists(func(m1 -> m1.name().equals(mName)))) {
+                        Module ruleCells = apply(ruleCellsOriginal);
+                        Set<Sentence> newProds = stream(m.localSentences()).flatMap(s -> {
+                            if (s instanceof Production && (s.att().contains("cell"))) {
+                                Production p = (Production) s;
+                                // assuming that productions tagged with 'cell' start and end with terminals, and only have non-terminals in the middle
+                                assert p.items().head() instanceof Terminal || p.items().head() instanceof RegexTerminal;
+                                assert p.items().last() instanceof Terminal || p.items().last() instanceof RegexTerminal;
+                                final ProductionItem body;
+                                if (cfgInfo.isLeafCell(p.sort())) {
+                                    body = p.items().tail().head();
+                                } else {
+                                    body = NonTerminal(Sort("Bag"));
+                                }
+                                final ProductionItem optDots = NonTerminal(Sort("#OptionalDots"));
+                                Seq<ProductionItem> pi = Seq(p.items().head(), optDots, body, optDots, p.items().last());
+                                Production p1 = Production(p.klabel().get().name(), Sort("Cell", ModuleName.apply("KCELLS")), pi, p.att());
+                                Production p2 = Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())));
+                                return Stream.of(p1, p2);
                             }
-                            final ProductionItem optDots = NonTerminal(Sort("#OptionalDots"));
-                            Seq<ProductionItem> pi = Seq(p.items().head(), optDots, body, optDots, p.items().last());
-                            Production p1 = Production(p.klabel().get().name(), Sort("Cell", ModuleName.apply("KCELLS")), pi, p.att());
-                            Production p2 = Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())));
-                            return Stream.of(p1, p2);
-                        }
-                        if (s instanceof Production && (s.att().contains("cellFragment"))) {
-                            Production p = (Production) s;
-                            Production p1 = Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())));
-                            return Stream.of(p, p1);
-                        }
-                        return Stream.of(s);
-                    }).collect(Collectors.toSet());
-                    m = Module(m.name(), Collections.add(ruleCells, m.imports()), immutable(newProds), m.att());
+                            if (s instanceof Production && (s.att().contains("cellFragment"))) {
+                                Production p = (Production) s;
+                                Production p1 = Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())));
+                                return Stream.of(p, p1);
+                            }
+                            return Stream.of(s);
+                        }).collect(Collectors.toSet());
+                        m = Module(m.name(), Collections.add(ruleCells, m.imports()), immutable(newProds), m.att());
+                    }
                 }
 
                 // configurations can be declared on multiple modules, so make sure to subsort previously declared cells to Cell
-                if (extensionM.importedModules().exists(func(m1 -> m1.name().equals(CONFIG_CELLS))) && !hybridModule.name().equals(CONFIG_CELLS)) {
-                    Module configCells = apply(extensionM.importedModules().find(func(m1 -> m1.name().equals(CONFIG_CELLS))).get());
-                    Set<Sentence> newProds = stream(m.localSentences()).flatMap(s -> {
-                        if (s instanceof Production && s.att().contains("initializer")) {
-                            Production p = (Production) s;
-                            // assuming that productions tagged with 'cell' start and end with terminals, and only have non-terminals in the middle
-                            assert p.items().head() instanceof Terminal || p.items().head() instanceof RegexTerminal;
-                            final ProductionItem body;
-                            Production p1 = Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())));
-                            return Stream.of(s, p1);
-                        }
-                        return Stream.of(s);
-                    }).collect(Collectors.toSet());
-                    m = Module(m.name(), Collections.add(configCells, m.imports()), immutable(newProds), m.att());
+                if (extensionM.importedModules().exists(func(m1 -> m1.name().equals(CONFIG_CELLS))) && !m.name().equals(CONFIG_CELLS)) {
+                    Module configCellsOriginal = extensionM.importedModules().find(func(m1 -> m1.name().equals(CONFIG_CELLS))).get();
+                    // avoid creating cyrcles in imports
+                    if (!m.name().equals(CONFIG_CELLS) && !configCellsOriginal.importedModules().exists(func(m1 -> m1.name().equals(mName)))) {
+                        Module configCells = apply(configCellsOriginal);
+                        Set<Sentence> newProds = stream(m.localSentences()).flatMap(s -> {
+                            if (s instanceof Production && s.att().contains("initializer")) {
+                                Production p = (Production) s;
+                                // assuming that productions tagged with 'cell' start and end with terminals, and only have non-terminals in the middle
+                                assert p.items().head() instanceof Terminal || p.items().head() instanceof RegexTerminal;
+                                final ProductionItem body;
+                                Production p1 = Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())));
+                                return Stream.of(s, p1);
+                            }
+                            return Stream.of(s);
+                        }).collect(Collectors.toSet());
+                        m = Module(m.name(), Collections.add(configCells, m.imports()), immutable(newProds), m.att());
+                    }
                 }
 
                 if (extensionM.importedModules().exists(func(m1 -> m1.name().equals(AUTO_FOLLOW)))) {

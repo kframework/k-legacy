@@ -136,7 +136,7 @@ public class DefinitionParsing {
     }
 
     public Definition parseDefinitionAndResolveBubbles(File definitionFile, String mainModuleName, String mainProgramsModule) {
-        Definition parsedDefinition = parseDefinition(definitionFile, mainModuleName, mainProgramsModule);
+        Definition parsedDefinition = RuleGrammarGenerator.autoGenerateBaseKCasts(parseDefinition(definitionFile, mainModuleName, mainProgramsModule));
         Definition afterResolvingConfigBubbles = resolveConfigBubbles(parsedDefinition);
         Definition afterResolvingAllOtherBubbles = resolveNonConfigBubbles(afterResolvingConfigBubbles);
         saveCachesAndReportParsingErrors();
