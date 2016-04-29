@@ -1,6 +1,4 @@
 // Copyright (c) 2014-2016 K Team. All Rights Reserved.
-require "kernelc.k"
-
 module AVL-SPEC
   imports KERNELC
 
@@ -13,6 +11,8 @@ rule
     tv(int, ?B:Int)
   ...</k>
   <heap>... htree(TP)(T:Tree) ...</heap>
+  <in> IN:List </in>
+  <out> OUT:List </out>
 requires avl(T)
 ensures (?B =/=K 0) ==K (V inIntSet tree_keys(T))
 endmodule
