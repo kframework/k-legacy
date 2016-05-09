@@ -180,10 +180,10 @@ public class ConvertDataStructureToLookup {
     }
 
     private int counter = 0;
-    KVariable newDotVariable() {
+    KVariable newDotVariable(Sort sort) {
         KVariable newLabel;
         do {
-            newLabel = KVariable("_" + (counter++));
+            newLabel = KVariable("_" + (counter++), Att().add("sort", sort.name()));
         } while (vars.contains(newLabel));
         vars.add(newLabel);
         return newLabel;
@@ -304,7 +304,7 @@ public class ConvertDataStructureToLookup {
                         }
                         list = Lists.reverse(elementsLeft).stream().map(e -> (K)KApply(elementLabel, e)).reduce(tail, (res, el) -> KApply(collectionLabel, el, res));
                     } else {
-                        list = newDotVariable();
+                        list = newDotVariable(m.productionsFor().get(collectionLabel).get().head().sort());
                         // Ctx[ListItem(5) Frame ListItem(X) ListItem(foo(Y))] => Ctx [L]
                         // requires Frame := range(L, 1, 2)
                         // andBool 5 := L[0]
@@ -383,7 +383,7 @@ public class ConvertDataStructureToLookup {
                             }
                         }
                     }
-                    KVariable map = newDotVariable();
+                    KVariable map = newDotVariable(m.productionsFor().get(collectionLabel).get().head().sort());
                     // K1,Ctx[K1 |-> K2 K3] => K1,Ctx[M] requires K3 := M[K1<-undef] andBool K1 := choice(M) andBool K2 := M[K1]
                     if (frame != null) {
                         state.add(KApply(KLabel("#match"), frame, elements.keySet().stream().reduce(map, (a1, a2) -> KApply(KLabel("_[_<-undef]"), a1, a2))));
@@ -451,7 +451,7 @@ public class ConvertDataStructureToLookup {
                             }
                         }
                     }
-                    KVariable set = newDotVariable();
+                    KVariable set = newDotVariable(m.productionsFor().get(collectionLabel).get().head().sort());
                     K accum = set;
                     // Ctx[SetItem(K1) K2] => Ctx[S] requires K1 := choice(S) andBool K2 := S -Set SetItem(K1)
                     // Ctx[SetItem(5) SetItem(6) K] => Ctx[S] requires 5 in S andBool 6 in S andBool K := S -Set SetItem(5) SetItem(6)

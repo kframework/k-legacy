@@ -62,7 +62,12 @@ public class RuleAutomatonDisjunction extends Term implements HasGlobalContext {
         super(Kind.KITEM);
         this.global = global;
         disjunctions = Collections.unmodifiableList(children);
-        sort = global.getDefinition().subsorts().getLUBSort(disjunctions.stream().map(p -> p.getLeft().sort()).collect(Collectors.toSet()));
+        Sort lubSort = global.getDefinition().subsorts().getLUBSort(disjunctions.stream().map(p -> p.getLeft().sort()).collect(Collectors.toSet()));
+        if (lubSort != null) {
+            sort = lubSort;
+        } else {
+            sort = Sort.KITEM;
+        }
 
         kItemDisjunctionsArray = new Pair[KLabelConstant.maxOrdinal.get()];
         varKItemDisjunctionsMap = new HashMap<>();
@@ -124,6 +129,7 @@ public class RuleAutomatonDisjunction extends Term implements HasGlobalContext {
 
     /**
      * Given a variable KLabel, return all the KItems associated with that KLabel
+     *
      * @return Return a list of pattern + bitset pairs, or null if no pattern with given arity exists.
      */
     public List<Pair<KItem, BitSet>> getKItemPatternByArity(int arity) {
