@@ -385,6 +385,15 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
                 null,
                 oldRule,
                 global);
+        /* rename variables in function, anywhere, and pattern rules to avoid name conflicts
+        with automaton variables and with each other */
+        if (backendKILRule.containsAttribute(Attribute.FUNCTION_KEY)
+                || backendKILRule.containsAttribute(Attribute.ANYWHERE_KEY)
+                ||backendKILRule.containsAttribute(Attribute.PATTERN_KEY)
+                || backendKILRule.containsAttribute(Attribute.PATTERN_FOLDING_KEY)) {
+            backendKILRule = backendKILRule.renameVariables();
+        }
+
         return backendKILRule;
     }
 
