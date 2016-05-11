@@ -1,6 +1,7 @@
 // Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
+import org.kframework.backend.java.builtins.BitVector;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.FloatToken;
 import org.kframework.backend.java.builtins.IntToken;
@@ -29,6 +30,9 @@ public abstract class Token extends Term implements KoreRepresentation, Immutabl
             return FloatToken.of(value);
         } else if (sort.equals(StringToken.SORT)) {
             return StringToken.of(StringUtil.unquoteKString(value));
+        } else if (sort.equals(BitVector.SORT)) {
+            String[] values = value.split("'");
+            return BitVector.of(Long.parseLong(values[1]), Integer.parseInt(values[0]));
         } else {
             return UninterpretedToken.of(sort, value);
         }
