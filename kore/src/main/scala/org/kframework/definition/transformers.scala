@@ -103,6 +103,7 @@ trait MemoizingModuleTransformer extends ModuleTransformer {
 
   protected def processModule(inputModule: Module): Module
 }
+abstract class AbstractMemoizingModuleTransformer extends MemoizingModuleTransformer
 
 /**
   * Marker trait for a ModuleTransformer having access to the entire original definition
