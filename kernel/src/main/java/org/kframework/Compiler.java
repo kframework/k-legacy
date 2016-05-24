@@ -25,7 +25,7 @@ public class Compiler {
      * Generates the definition containing the modules appropriate for generating rule parsers.
      */
     public static Definition toRuleParser(Definition d) {
-        return DefinitionTransformer.fromHybrid((Module m) -> RuleGrammarGenerator.getRuleGrammar(m, d), "toRuleParser").apply(d);
+        return DefinitionTransformer.fromHybrid((Module m) -> RuleGrammarGenerator.getRuleGrammar(m, s -> d.getModule(s).get()), "toRuleParser").apply(d);
     }
 
     /**
@@ -33,7 +33,7 @@ public class Compiler {
      * with the exact cell labels not known apriori.
      */
     public static Definition toGenericAbstractConfigurationParser(Definition d) {
-        return DefinitionTransformer.fromHybrid((Module m) -> RuleGrammarGenerator.getRuleGrammar(m, d), "toGenericAbstractConfigurationParser").apply(d);
+        return DefinitionTransformer.fromHybrid((Module m) -> RuleGrammarGenerator.getRuleGrammar(m, s -> d.getModule(s).get()), "toGenericAbstractConfigurationParser").apply(d);
     }
 
 }

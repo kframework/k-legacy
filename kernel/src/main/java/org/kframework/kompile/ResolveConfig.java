@@ -86,7 +86,7 @@ class ResolveConfig implements UnaryOperator<Module> {
         if (def.getModule("MAP").isDefined()) {
             mapModule = def.getModule("MAP").get();
         } else {
-            throw KEMException.compilerError("Module Map must be visible at the configuration declaration, in module " + module.name());
+            throw KEMException.compilerError("Module MAP must be visible at the configuration declaration, in module " + module.name());
         }
         return Module(module.name(), (Set<Module>) module.imports().$bar(Set(mapModule)),
                 (Set<Sentence>) module.localSentences().$bar(configDeclProductions),

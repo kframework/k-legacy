@@ -63,7 +63,7 @@ public class GenerateSentencesFromConfigDeclTest {
                                         KApply(KLabel(".Opt"))))));
         Module m1 = Module("CONFIG", Set(def.getModule("KSEQ").get()), Set(Production(".Opt", Sort("OptCellContent"), Seq(Terminal("")))), Att());
         Definition d = Definition(m1, add(m1, def.modules()), Att());
-        Module m = RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getConfigGrammar(m1, d), true).getExtensionModule();
+        Module m = RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getConfigGrammar(m1, s -> d.getModule(s).get()), true).getExtensionModule();
         Set<Sentence> gen = GenerateSentencesFromConfigDecl.gen(configuration, BooleanUtils.FALSE, Att(), m);
         Att initializerAtts = Att().add("initializer");
         Att productionAtts = initializerAtts.add("function");

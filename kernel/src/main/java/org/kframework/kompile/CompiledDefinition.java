@@ -132,7 +132,7 @@ public class CompiledDefinition implements Serializable {
             }
         }
         Option<Module> programParsingModuleOption = moduleOption.isDefined() ?
-                Option.apply(RuleGrammarGenerator.getProgramsGrammar(moduleOption.get(), kompiledDefinition)) :
+                Option.apply(RuleGrammarGenerator.getProgramsGrammar(moduleOption.get(), parsedDefinition)) :
                 Option.empty();
         return programParsingModuleOption;
     }

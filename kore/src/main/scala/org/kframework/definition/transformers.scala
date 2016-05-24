@@ -9,7 +9,7 @@ import org.kframework.definition
 import org.kframework.kore.K
 import org.kframework.utils.errorsystem.KEMException
 import collection.JavaConverters._
-
+import collection._
 
 object ModuleTransformer {
   def fromSentenceTransformer(f: java.util.function.UnaryOperator[Sentence], name: String): HybridMemoizingModuleTransformer =
@@ -101,7 +101,7 @@ trait MemoizingModuleTransformer extends ModuleTransformer {
     res
   }
 
-  def processModule(inputModule: Module): Module
+  protected def processModule(inputModule: Module): Module
 }
 
 /**
@@ -126,13 +126,27 @@ trait HybridModuleTransformer extends ModuleTransformer {
       processHybridModule(input)
   })
 
-  def processHybridModule(hybridModule: Module): Module
+  protected def processHybridModule(hybridModule: Module): Module
 }
+
+abstract class BasicModuleTransformer extends MemoizingModuleTransformer {
+  def processModule(input: Module): Module = wrapExceptions({
+    process(input, input.imports map this)
+  })
+
+  protected def process(inputModule: Module, alreadyProcessedImports: Set[Module]): Module
+}
+
+abstract class WithInputDefinitionModuleTransformer(inputDefinition: Definition) extends BasicModuleTransformer {
+  def apply(moduleName: String): Module = this(inputDefinition.getModule(moduleName).get)
+  def outputDefinition = new DefinitionTransformer(this).apply(inputDefinition)
+}
+
 
 abstract class HybridMemoizingModuleTransformer extends MemoizingModuleTransformer with HybridModuleTransformer {
   override def apply(input: Module): Module = super[MemoizingModuleTransformer].apply(input)
 
-  def processModule(inputModule: Module): Module = super[HybridModuleTransformer].apply(inputModule)
+  protected def processModule(inputModule: Module): Module = super[HybridModuleTransformer].apply(inputModule)
 }
 
 object DefinitionTransformer {
@@ -163,6 +177,8 @@ object DefinitionTransformer {
 
   def apply(f: HybridMemoizingModuleTransformer): DefinitionTransformer = new DefinitionTransformer(f)
 
+  def fromWithInputDefinitionTransformerClass(c: Class[_]): (Definition => Definition) = (d: Definition) => c.getConstructor(classOf[Definition]).newInstance(d).asInstanceOf[WithInputDefinitionModuleTransformer].outputDefinition
+
   //  def apply(f: Module => Module, name: String): DefinitionTransformer = new DefinitionTransformer(ModuleTransformer(f, name))
 }
 
@@ -186,13 +202,10 @@ class SelectiveDefinitionTransformer(moduleTransformer: MemoizingModuleTransform
     // Cosmin: the two lines below are a hack to make sure the modules are processed by the pass regardless of
     // them not being reachable from the main module
     // I think the right fix would be to explicitly import them when needed
-    d.getModule("STDIN-STREAM").foreach(moduleTransformer)
-    d.getModule("STDOUT-STREAM").foreach(moduleTransformer)
-    d.getModule("BASIC-K").foreach(moduleTransformer)
-    d.getModule("K").foreach(moduleTransformer)
-    d.getModule("RULE-PARSER").foreach(moduleTransformer)
-    d.getModule("CONFIG-CELLS").foreach(moduleTransformer)
-    d.getModule("PROGRAM-LISTS").foreach(moduleTransformer)
+    List("STDIN-STREAM", "STDOUT-STREAM", "BASIC-K", "K", "RULE-PARSER", "CONFIG-CELLS",
+      "PROGRAM-LISTS", "K-TERM", "ID-PROGRAM-PARSING", "LANGUAGE-PARSING", "MAP")
+        .foreach(d.getModule(_).foreach(moduleTransformer))
+
     val newMainModule = moduleTransformer(d.mainModule)
     val newEntryModules = d.entryModules flatMap moduleTransformer.memoization.get
     val newEntryModuleNames = newEntryModules.map(_.name)

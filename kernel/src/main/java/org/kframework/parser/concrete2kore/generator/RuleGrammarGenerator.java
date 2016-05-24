@@ -29,6 +29,7 @@ import scala.collection.Seq;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.*;
 import java.util.stream.Stream;
 
@@ -114,10 +115,9 @@ public class RuleGrammarGenerator {
      * @param mod The user defined module from which to start.
      * @return a new module which imports the original user module and a set of marker modules.
      */
-    public static Module getRuleGrammar(Module mod, Definition baseK) {
-        assert baseK.modules().contains(mod);
+    public static Module getRuleGrammar(Module mod, Function<String, Module> getProcessedModule) {
         // import RULE-CELLS in order to parse cells specific to rules
-        Module newM = new Module(mod.name() + "-" + RULE_PARSER, Set(mod, baseK.getModule(K).get(), baseK.getModule(RULE_PARSER).get()), Set(), Att());
+        Module newM = new Module(mod.name() + "-" + RULE_PARSER, Set(mod, getProcessedModule.apply(K), getProcessedModule.apply(RULE_PARSER)), Set(), Att());
         return newM;
     }
 
@@ -128,10 +128,9 @@ public class RuleGrammarGenerator {
      * @param mod The user defined module from which to start.
      * @return a new module which imports the original user module and a set of marker modules.
      */
-    public static Module getConfigGrammar(Module mod, Definition baseK) {
-        assert baseK.modules().contains(mod);
+    public static Module getConfigGrammar(Module mod, Function<String, Module> getProcessedModule) {
         // import CONFIG-CELLS in order to parse cells specific to configurations
-        Module newM = new Module(mod.name() + "-" + CONFIG_CELLS, Set(mod, baseK.getModule(K).get(), baseK.getModule(CONFIG_CELLS).get()), Set(), Att());
+        Module newM = new Module(mod.name() + "-" + CONFIG_CELLS, Set(mod, getProcessedModule.apply(K), getProcessedModule.apply(CONFIG_CELLS)), Set(), Att());
         return newM;
     }
 

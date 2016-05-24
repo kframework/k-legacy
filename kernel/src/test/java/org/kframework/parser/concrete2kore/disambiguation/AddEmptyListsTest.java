@@ -40,7 +40,7 @@ public class AddEmptyListsTest {
         String baseKText = files.loadFromWorkingDirectory(definitionFile.getPath());
         Definition baseK = org.kframework.Definition.from(baseKText + DEF, "TEST");
         Module test = baseK.getModule("TEST").get();
-        parser = RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getRuleGrammar(test, baseK), true);
+        parser = RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getRuleGrammar(test, s -> baseK.getModule(s).get()), true);
     }
 
     private void parseTerm(String term, String sort, K expected) {

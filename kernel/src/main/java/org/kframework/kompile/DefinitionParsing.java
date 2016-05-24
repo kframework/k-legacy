@@ -11,6 +11,7 @@ import org.kframework.definition.Bubble;
 import org.kframework.definition.Context;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
+import org.kframework.definition.HybridMemoizingModuleTransformer;
 import org.kframework.definition.Module;
 import org.kframework.definition.ModuleName;
 import org.kframework.definition.Rule;
@@ -42,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -118,7 +120,7 @@ public class DefinitionParsing {
         ResolveConfig resolveConfig = new ResolveConfig(definition.getParsedDefinition(), isStrict, this::parseBubble, this::getParser);
         Module modWithConfig = resolveConfig.apply(module);
 
-        Module parsedMod = resolveNonConfigBubbles(modWithConfig, definition.getParsedDefinition(), isStrict);
+        Module parsedMod = resolveNonConfigBubbles(modWithConfig, s -> definition.getParsedDefinition().getModule(s).get(), isStrict);
 
         saveCachesAndReportParsingErrors();
         return parsedMod;
@@ -209,17 +211,24 @@ public class DefinitionParsing {
     }
 
     public Definition resolveNonConfigBubbles(Definition defWithConfig) {
-        Definition parsedDef = DefinitionTransformer.fromHybrid(m -> this.resolveNonConfigBubbles(m, defWithConfig, isStrict), "parsing rules").apply(defWithConfig);
+        HybridMemoizingModuleTransformer resolveNonConfigBubbles = new HybridMemoizingModuleTransformer() {
+            @Override
+            public Module processHybridModule(Module hybridModule) {
+                return resolveNonConfigBubbles(hybridModule, s -> apply(defWithConfig.getModule(s).get()), isStrict);
+            }
+        };
+
+        Definition parsedDef = new DefinitionTransformer(resolveNonConfigBubbles).apply(defWithConfig);
         return parsedDef;
     }
 
-    private Module resolveNonConfigBubbles(Module module, Definition def, boolean isStrict) {
+    private Module resolveNonConfigBubbles(Module module, Function<String, Module> getProcessedModule, boolean isStrict) {
         if (stream(module.localSentences())
                 .filter(s -> s instanceof Bubble)
                 .map(b -> (Bubble) b)
                 .filter(b -> !b.sentenceType().equals("config")).count() == 0)
             return module;
-        Module ruleParserModule = RuleGrammarGenerator.getRuleGrammar(module, def);
+        Module ruleParserModule = RuleGrammarGenerator.getRuleGrammar(module, getProcessedModule);
 
         ParseCache cache = loadCache(ruleParserModule);
         ParseInModule parser = RuleGrammarGenerator.getCombinedGrammar(cache.getModule(), isStrict);
@@ -248,7 +257,7 @@ public class DefinitionParsing {
 
     public Rule parseRule(CompiledDefinition compiledDef, String contents, Source source) {
         errors = java.util.Collections.synchronizedSet(Sets.newHashSet());
-        java.util.Set<K> res = performParse(new HashMap<>(), RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getRuleGrammar(compiledDef.executionModule(), compiledDef.kompiledDefinition), isStrict),
+        java.util.Set<K> res = performParse(new HashMap<>(), RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getRuleGrammar(compiledDef.executionModule(), s -> compiledDef.kompiledDefinition.getModule(s).get()), isStrict),
                 new Bubble("rule", contents, Att().add("contentStartLine", 1).add("contentStartColumn", 1).add("Source", source.source())))
                 .collect(Collectors.toSet());
         if (!errors.isEmpty()) {
@@ -305,13 +314,13 @@ public class DefinitionParsing {
     }
 
     private Stream<? extends K> parseBubble(Module module, Bubble b) {
-        ParseCache cache = loadCache(RuleGrammarGenerator.getConfigGrammar(module, definitionWithConfigBubble));
+        ParseCache cache = loadCache(RuleGrammarGenerator.getConfigGrammar(module, s -> definitionWithConfigBubble.getModule(s).get()));
         ParseInModule parser = RuleGrammarGenerator.getCombinedGrammar(cache.getModule(), isStrict);
         return performParse(cache.getCache(), parser, b);
     }
 
     private ParseInModule getParser(Module module) {
-        ParseCache cache = loadCache(RuleGrammarGenerator.getConfigGrammar(module, definitionWithConfigBubble));
+        ParseCache cache = loadCache(RuleGrammarGenerator.getConfigGrammar(module, s -> definitionWithConfigBubble.getModule(s).get()));
         return RuleGrammarGenerator.getCombinedGrammar(cache.getModule(), isStrict);
     }
 

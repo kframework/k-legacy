@@ -148,7 +148,7 @@ public class Kompile {
                 .andThen(func(d -> new ResolveContexts(kompileOptions).resolve(d)))
                 .andThen(resolveHeatCoolAttribute)
                 .andThen(resolveSemanticCasts)
-                .andThen(func(d -> new GenerateSortPredicateSyntax().apply(d)))
+                .andThen(DefinitionTransformer.fromWithInputDefinitionTransformerClass(GenerateSortPredicateSyntax.class))
                 .andThen(func(this::resolveFreshConstants))
                 .andThen(func(AddImplicitComputationCell::transformDefinition))
                 .andThen(new Strategy(kompileOptions.experimental.heatCoolStrategies).addStrategyCellToRulesTransformer())
