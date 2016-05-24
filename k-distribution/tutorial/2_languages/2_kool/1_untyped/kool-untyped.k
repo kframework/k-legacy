@@ -285,6 +285,7 @@ member declarations (\textsf{declarations}).
   // check other definitions for this hack as well
   syntax EnvCell
   syntax ControlCellFragment
+  syntax ControlCell
   syntax EnvStackCell
   syntax CrntObjCellFragment
 
