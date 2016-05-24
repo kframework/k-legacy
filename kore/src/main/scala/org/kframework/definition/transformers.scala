@@ -203,7 +203,7 @@ class SelectiveDefinitionTransformer(moduleTransformer: MemoizingModuleTransform
     // them not being reachable from the main module
     // I think the right fix would be to explicitly import them when needed
     List("STDIN-STREAM", "STDOUT-STREAM", "BASIC-K", "K", "RULE-PARSER", "CONFIG-CELLS",
-      "PROGRAM-LISTS", "K-TERM", "ID-PROGRAM-PARSING", "LANGUAGE-PARSING", "MAP")
+      "PROGRAM-LISTS", "K-TERM", "ID-PROGRAM-PARSING", "LANGUAGE-PARSING", "MAP", "DEFAULT-CONFIGURATION")
         .foreach(d.getModule(_).foreach(moduleTransformer))
 
     val newMainModule = moduleTransformer(d.mainModule)
