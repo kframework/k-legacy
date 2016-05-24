@@ -184,13 +184,13 @@ object DefinitionTransformer {
 
 class DefinitionTransformer(moduleTransformer: MemoizingModuleTransformer) extends (Definition => Definition) {
   override def apply(d: Definition): Definition = {
-    //    definition.Definition(
-    //      moduleTransformer(d.mainModule),
-    //      d.entryModules map moduleTransformer,
-    //      d.att)
+        definition.Definition(
+          moduleTransformer(d.mainModule),
+          d.entryModules map moduleTransformer,
+          d.att)
     // commented above such that the regular transformer behaves like the SelectiveDefinitionTransformer
     // this avoids a bug in the configuration concretization functionality
-    new SelectiveDefinitionTransformer(moduleTransformer).apply(d)
+//    new SelectiveDefinitionTransformer(moduleTransformer).apply(d)
   }
 }
 
