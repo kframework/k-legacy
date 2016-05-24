@@ -122,8 +122,8 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
   override def getCellLabel(k: Sort): KLabel = cellLabels(k)
   override def getCellSort(kLabel: KLabel): Sort = cellLabelsToSorts(kLabel)
 
-  override def getCellFragmentLabel(k : Sort): KLabel = cellFragmentLabel(k.name)
-  override def getCellAbsentLabel(k: Sort): KLabel = cellAbsentLabel(k.name)
+  override def getCellFragmentLabel(k : Sort): KLabel = cellFragmentLabel(k.localName)
+  override def getCellAbsentLabel(k: Sort): KLabel = cellAbsentLabel(k.localName)
 
   override def getRootCell: Sort = topCell
   override def getComputationCell: Sort = mainCell
