@@ -12,8 +12,12 @@ import collection.JavaConverters._
 import collection._
 
 object ModuleTransformer {
-  def fromSentenceTransformer(f: java.util.function.UnaryOperator[Sentence], name: String): HybridMemoizingModuleTransformer =
-    fromSentenceTransformer((m: Module, s: Sentence) => f(s), name)
+  def fromSentenceTransformer(f: java.util.function.UnaryOperator[Sentence], name: String): MemoizingModuleTransformer =
+    new BasicModuleTransformer {
+      override protected def process(inputModule: Module, alreadyProcessedImports: Set[Module]): Module = {
+        Module(inputModule.name, alreadyProcessedImports, inputModule.localSentences.map(x => f(x)))
+      }
+    }
 
   def fromSentenceTransformer(f: (Module, Sentence) => Sentence, passName: String): HybridMemoizingModuleTransformer =
     new HybridMemoizingModuleTransformer {
@@ -37,10 +41,10 @@ object ModuleTransformer {
       override val name: String = passName
     }
 
-  def fromRuleBodyTranformer(f: java.util.function.UnaryOperator[K], name: String): HybridMemoizingModuleTransformer =
+  def fromRuleBodyTranformer(f: java.util.function.UnaryOperator[K], name: String): MemoizingModuleTransformer =
     fromSentenceTransformer(_ match { case r: Rule => r.copy(body = f(r.body)); case s => s }, name)
 
-  def fromRuleBodyTranformer(f: K => K, name: String): HybridMemoizingModuleTransformer =
+  def fromRuleBodyTranformer(f: K => K, name: String): MemoizingModuleTransformer =
     fromSentenceTransformer(_ match { case r: Rule => r.copy(body = f(r.body)); case s => s }, name)
 
   def fromKTransformerWithModuleInfo(ff: Module => K => K, name: String): HybridMemoizingModuleTransformer =
@@ -103,6 +107,7 @@ trait MemoizingModuleTransformer extends ModuleTransformer {
 
   protected def processModule(inputModule: Module): Module
 }
+
 abstract class AbstractMemoizingModuleTransformer extends MemoizingModuleTransformer
 
 /**
@@ -139,7 +144,7 @@ abstract class BasicModuleTransformer extends MemoizingModuleTransformer {
 }
 
 abstract class WithInputDefinitionModuleTransformer(inputDefinition: Definition) extends BasicModuleTransformer {
-  def apply(moduleName: String): Module = this(inputDefinition.getModule(moduleName).get)
+  def apply(moduleName: String): Module = this (inputDefinition.getModule(moduleName).get)
   def outputDefinition = new DefinitionTransformer(this).apply(inputDefinition)
 }
 
@@ -152,16 +157,16 @@ abstract class HybridMemoizingModuleTransformer extends MemoizingModuleTransform
 
 object DefinitionTransformer {
   def fromSentenceTransformer(f: java.util.function.UnaryOperator[Sentence], name: String): DefinitionTransformer =
-    DefinitionTransformer(ModuleTransformer.fromSentenceTransformer(f, name))
+    new DefinitionTransformer(ModuleTransformer.fromSentenceTransformer(f, name))
 
   def fromSentenceTransformer(f: (Module, Sentence) => Sentence, name: String): DefinitionTransformer =
     DefinitionTransformer(ModuleTransformer.fromSentenceTransformer(f, name))
 
   def fromRuleBodyTranformer(f: java.util.function.UnaryOperator[K], name: String): DefinitionTransformer =
-    DefinitionTransformer(ModuleTransformer.fromRuleBodyTranformer(f, name))
+    new DefinitionTransformer(ModuleTransformer.fromRuleBodyTranformer(f, name))
 
   def fromRuleBodyTranformer(f: K => K, name: String): DefinitionTransformer =
-    DefinitionTransformer(ModuleTransformer.fromRuleBodyTranformer(f, name))
+    new DefinitionTransformer(ModuleTransformer.fromRuleBodyTranformer(f, name))
 
   def fromKTransformer(f: K => K, name: String): DefinitionTransformer =
     DefinitionTransformer(ModuleTransformer.fromKTransformer(f, name))
@@ -206,7 +211,7 @@ class SelectiveDefinitionTransformer(moduleTransformer: MemoizingModuleTransform
     List("STDIN-STREAM", "STDOUT-STREAM", "BASIC-K", "K", "RULE-PARSER", "CONFIG-CELLS",
       "PROGRAM-LISTS", "K-TERM", "ID-PROGRAM-PARSING", "LANGUAGE-PARSING", "MAP", "DEFAULT-CONFIGURATION",
       "K-REFLECTION")
-        .foreach(d.getModule(_).foreach(moduleTransformer))
+      .foreach(d.getModule(_).foreach(moduleTransformer))
 
     d.entryModules
       .filter(m => m.name.endsWith("-PROGRAM-PARSING") || m.name.endsWith("-SYNTAX"))

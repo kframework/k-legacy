@@ -411,7 +411,7 @@ case class SyntaxSort(sort: Sort, att: Att = Att()) extends SyntaxSentence
 
 case class Production(sort: Sort, items: Seq[ProductionItem], att: Att)
   extends SyntaxSentence with ProductionToString {
-  lazy val klabel: Option[KLabel] = att.get[String]("klabel") map {org.kframework.kore.KORE.KLabel(_)}
+  lazy val klabel: Option[KLabel] = att.get[String]("klabel") map org.kframework.kore.KORE.KLabel
 
   override def equals(that: Any) = that match {
     case p@Production(`sort`, `items`, _) => this.klabel == p.klabel
