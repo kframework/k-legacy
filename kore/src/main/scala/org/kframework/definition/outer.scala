@@ -44,8 +44,8 @@ case class Definition(
 
   val modules = entryModules flatMap allModules
 
-  if(!(modules.map(m => m.name).size == modules.size)) {
-    throw new AssertionError("Found different modules with the same name")
+  for (m1 <- modules; m2 <- modules if m1.name == m2.name && m1 != m2) {
+    throw new AssertionError("In definition, found different modules with the same name: " + m1)
   }
 
   assert(modules.contains(mainModule))
@@ -188,8 +188,8 @@ case class Module(val name: String, val imports: Set[Module], unresolvedLocalSen
     _.importedModules
   })
 
-  if(!(importedModules.map(m => m.name).size == importedModules.size)) {
-    throw new AssertionError("Found different modules with the same name")
+  for (m1 <- importedModules; m2 <- importedModules if m1.name == m2.name && m1 != m2) {
+    throw new AssertionError("While creating module, found different modules with the same name: " + m1)
   }
 
   val productions: Set[Production] = sentences collect { case p: Production => p }
