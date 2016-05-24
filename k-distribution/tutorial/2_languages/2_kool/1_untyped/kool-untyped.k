@@ -743,7 +743,7 @@ shortly).  The location where the object will be stored is also made
 available in the \textsf{crntObj} cell, so that method closures can
 refer to it (see rule above). */
 
-  syntax KItem ::= (Id,EnvCell) // TODO: used to be ListItem; explain this
+  syntax KItem ::= "envStackFrame" "(" Id "," EnvCell ")"
 
   rule <k> new Class:Id(Vs:Vals) ~> K
            => create(Class) ~> storeObj ~> Class(Vs); return this; </k>
@@ -753,7 +753,7 @@ refer to it (see rule above). */
        <control> C
          <crntObj> Obj
                    => <crntClass> Object </crntClass>
-                      <envStack> ListItem((Object, <env>.Map</env>)) </envStack>
+                      <envStack> ListItem(envStackFrame(Object, <env>.Map</env>)) </envStack>
                       <location> L </location>
          </crntObj>
          <fstack> .List => ListItem((Env, K, C <crntObj> Obj </crntObj>)) ...</fstack>
@@ -796,7 +796,7 @@ empty). */
   rule <k> addEnvLayer => . ...</k>
        <env> Env => .Map </env>
        <crntClass> Class:Id </crntClass>
-       <envStack> .List => ListItem((Class, <env>Env</env>)) ...</envStack>
+       <envStack> .List => ListItem(envStackFrame(Class, <env>Env</env>)) ...</envStack>
     [structural]
 
 /*@ The following operation stores the created object at the location
@@ -853,32 +853,32 @@ invocations see the entire object, as needed for dynamic method dispatch. */
 // Maybe also improve it a bit.
 
 /*  rule objectClosure(<crntClass> Class:Id </crntClass>
-                     <envStack>... (Class,EnvC) EStack </envStack>)
+                     <envStack>... envStackFrame(Class,EnvC) EStack </envStack>)
        . X:Id
-    => lookupMember(<envStack> (Class,EnvC) EStack </envStack>, X)
+    => lookupMember(<envStack> envStackFrame(Class,EnvC) EStack </envStack>, X)
     [structural]*/
 
   rule objectClosure(<crntClass> Class:Id </crntClass>
-                     <envStack> ListItem((Class,EnvC:EnvCell)) EStack </envStack>)
+                     <envStack> ListItem(envStackFrame(Class,EnvC:EnvCell)) EStack </envStack>)
        . X:Id
-    => lookupMember(<envStack> ListItem((Class,EnvC)) EStack </envStack>, X)
+    => lookupMember(<envStack> ListItem(envStackFrame(Class,EnvC)) EStack </envStack>, X)
     [structural]
   rule objectClosure(<crntClass> Class:Id </crntClass>
-                     <envStack> ListItem((Class':Id,_::EnvCell)) => .List ...</envStack>)
+                     <envStack> ListItem(envStackFrame(Class':Id,_::EnvCell)) => .List ...</envStack>)
        . X:Id
     when Class =/=K Class'  [structural]
 
 /*  rule <k> super . X => lookupMember(<envStack>EStack</envStack>, X) ...</k>
        <crntClass> Class </crntClass>
-       <envStack>... (Class,EnvC) EStack </envStack>
+       <envStack>... envStackFrame(Class,EnvC) EStack </envStack>
     [structural]*/
   rule <k> super . X => lookupMember(<envStack>EStack</envStack>, X) ...</k>
        <crntClass> Class:Id </crntClass>
-       <envStack> ListItem((Class,_::EnvCell)) EStack </envStack>
+       <envStack> ListItem(envStackFrame(Class,_::EnvCell)) EStack </envStack>
     [structural]
   rule <k> super . X ...</k>
        <crntClass> Class </crntClass>
-       <envStack> ListItem((Class':Id,_::EnvCell)) => .List ...</envStack>
+       <envStack> ListItem(envStackFrame(Class':Id,_::EnvCell)) => .List ...</envStack>
     when Class =/=K Class'  [structural]
 
 /*@\subsubsection{Method invocation}
@@ -919,16 +919,16 @@ method call or the array access.  */
 /*  rule <k> (super . X
             => lookupMember(<envStack>EStack</envStack>,X))(_:Exps)...</k>
        <crntClass> Class </crntClass>
-       <envStack>... (Class,_::EnvCell) EStack </envStack>
+       <envStack>... envStackFrame(Class,_::EnvCell) EStack </envStack>
     [structural]*/
   rule <k> (super . X
             => lookupMember(<envStack>EStack</envStack>,X))(_:Exps)...</k>
        <crntClass> Class </crntClass>
-       <envStack> ListItem((Class,_::EnvCell)) EStack </envStack>
+       <envStack> ListItem(envStackFrame(Class,_::EnvCell)) EStack </envStack>
     [structural]
   rule <k> (super . X)(_:Exps) ...</k>
        <crntClass> Class </crntClass>
-       <envStack> ListItem((Class':Id,_::EnvCell)) => .List ...</envStack>
+       <envStack> ListItem(envStackFrame(Class':Id,_::EnvCell)) => .List ...</envStack>
     when Class =/=K Class'  [structural]
 
   // TODO(KORE): fix getKLabel #1801
@@ -960,10 +960,10 @@ desired class.  It returns \texttt{true} iff it can find the class,
 otherwise it returns \texttt{false}; it only gets stuck when its first
 argument does not evaluate to an object.  */
 
-  rule objectClosure(<envStack> ListItem((C,_::EnvCell)) ...</envStack> _)
+  rule objectClosure(<envStack> ListItem(envStackFrame(C,_::EnvCell)) ...</envStack> _)
        instanceOf C => true
 
-  rule objectClosure(<envStack> ListItem((C,_::EnvCell)) => .List ...</envStack> _)
+  rule objectClosure(<envStack> ListItem(envStackFrame(C,_::EnvCell)) => .List ...</envStack> _)
        instanceOf C'  when C =/=K C'  [structural]
 //TODO: remove the sort cast ::Id of C above, when sort inference bug fixed
 
@@ -1007,17 +1007,17 @@ member's location based on the current class of the object. */
   context lvalue((HOLE . _)<:Exp)
 
 /*  rule lvalue(objectClosure(<crntClass> C </crntClass>
-                            <envStack>... (C,EnvC) EStack </envStack>)
+                            <envStack>... envStackFrame(C,EnvC) EStack </envStack>)
               . X
-              => lookupMember(<envStack> (C,EnvC) EStack </envStack>,
+              => lookupMember(<envStack> envStackFrame(C,EnvC) EStack </envStack>,
                               X))  [structural]*/
   rule lvalue(objectClosure(<crntClass> Class </crntClass>
-                            <envStack> ListItem((Class,EnvC:EnvCell)) EStack </envStack>)
+                            <envStack> ListItem(envStackFrame(Class,EnvC:EnvCell)) EStack </envStack>)
               . X
-              => lookupMember(<envStack> ListItem((Class,EnvC)) EStack </envStack>,
+              => lookupMember(<envStack> ListItem(envStackFrame(Class,EnvC)) EStack </envStack>,
                               X))  [structural]
   rule lvalue(objectClosure(<crntClass> Class </crntClass>
-                            <envStack> ListItem((Class':Id,_::EnvCell)) => .List ...</envStack>)
+                            <envStack> ListItem(envStackFrame(Class':Id,_::EnvCell)) => .List ...</envStack>)
               . X)
     when Class =/=K Class'  [structural]
 
@@ -1033,14 +1033,14 @@ starting with the most concrete class and going up in the hierarchy. */
   syntax KItem ::= lookupMember(EnvStackCell,Id)  [function]
   */
 
-//  rule lookupMember(<envStack> (_, <env>... X|->L ...</env>) ...</envStack>, X)
+//  rule lookupMember(<envStack> envStackFrame(_, <env>... X|->L ...</env>) ...</envStack>, X)
 //    => lookup(L)
-  rule lookupMember(<envStack> ListItem((_, <env>... X|->L ...</env>)) ...</envStack>, X)
+  rule lookupMember(<envStack> ListItem(envStackFrame(_, <env>... X|->L ...</env>)) ...</envStack>, X)
     => lookup(L)
 
-//  rule lookupMember(<envStack> (_, <env> Env </env>) => .List ...</envStack>, X)
+//  rule lookupMember(<envStack> envStackFrame(_, <env> Env </env>) => .List ...</envStack>, X)
 //    when notBool(X in keys(Env))
-  rule lookupMember(<envStack> ListItem((_, <env> Env </env>)) Rest </envStack>, X) =>
+  rule lookupMember(<envStack> ListItem(envStackFrame(_, <env> Env </env>)) Rest </envStack>, X) =>
        lookupMember(<envStack> Rest </envStack>, X)
     when notBool(X in keys(Env))
 //TODO: beautify the above
