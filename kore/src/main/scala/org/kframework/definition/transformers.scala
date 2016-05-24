@@ -208,6 +208,8 @@ class SelectiveDefinitionTransformer(moduleTransformer: MemoizingModuleTransform
       "K-REFLECTION")
         .foreach(d.getModule(_).foreach(moduleTransformer))
 
+    d.entryModules.filter(_.name.startsWith("-PROGRAM-PARSING")).foreach(moduleTransformer)
+
     val newMainModule = moduleTransformer(d.mainModule)
     val newEntryModules = d.entryModules flatMap moduleTransformer.memoization.get
     val newEntryModuleNames = newEntryModules.map(_.name)
