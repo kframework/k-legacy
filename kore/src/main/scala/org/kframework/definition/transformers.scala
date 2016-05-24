@@ -200,7 +200,7 @@ class DefinitionTransformer(moduleTransformer: MemoizingModuleTransformer) exten
   */
 class SelectiveDefinitionTransformer(moduleTransformer: MemoizingModuleTransformer) extends (Definition => Definition) {
   override def apply(d: Definition): Definition = {
-    // Cosmin: the two lines below are a hack to make sure the modules are processed by the pass regardless of
+    // TODO: Cosmin: the two lines below are a hack to make sure the modules are processed by the pass regardless of
     // them not being reachable from the main module
     // I think the right fix would be to explicitly import them when needed
     List("STDIN-STREAM", "STDOUT-STREAM", "BASIC-K", "K", "RULE-PARSER", "CONFIG-CELLS",
@@ -208,7 +208,9 @@ class SelectiveDefinitionTransformer(moduleTransformer: MemoizingModuleTransform
       "K-REFLECTION")
         .foreach(d.getModule(_).foreach(moduleTransformer))
 
-    d.entryModules.filter(_.name.startsWith("-PROGRAM-PARSING")).foreach(moduleTransformer)
+    d.entryModules
+      .filter(m => m.name.endsWith("-PROGRAM-PARSING") || m.name.endsWith("-SYNTAX"))
+      .foreach(moduleTransformer)
 
     val newMainModule = moduleTransformer(d.mainModule)
     val newEntryModules = d.entryModules flatMap moduleTransformer.memoization.get
