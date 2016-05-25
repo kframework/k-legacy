@@ -145,6 +145,7 @@ KOOL-specific constructs.  */
 
 module KOOL-TYPED-DYNAMIC
   imports KOOL-TYPED-DYNAMIC-SYNTAX
+  imports KCELLS
 
 /*@ \subsection{Configuration}
 The configuration of dynamically typed KOOL is almost identical to
@@ -419,10 +420,8 @@ Like in untyped KOOL. */
 The only change to untyped KOOL's values is that method closures are
 now typed (their first argument holds their type): */
 
- syntax Val ::= objectClosure(CrntObjCellFragment)
+ syntax Val ::= objectClosure(Bag) // TODO: change Bag into CrntObjCellFragment once issue #1842 is fixed
               | methodClosure(Type,Id,Int,Params,Stmt)
- // TODO(KORE): drop the additional production once parsing issue #1842 is fixed
-              | objectClosure(K)
 
 /*@ The type held by a method clossure will be the entire type of the
 method, not only its result type like the lambda-closure of typed
@@ -443,9 +442,7 @@ current status of the \textsf{return} cell and then pop it when the
 method returns.  We have to do the same with the current object
 environment, so we group them together in the stack frame.  */
 
-  syntax KItem ::= (Map,K,ControlCellFragment)
- // TODO(KORE): drop the additional production once parsing issue #1842 is fixed
-                 | (Map,K,K)
+  syntax KItem ::= (Map, K, Bag) // TODO: change Bag into ControlCellFragment once issue #1842 is fixed
 
   rule <k> methodClosure(_->T,Class,OL,Ps,S)(Vs:Vals) ~> K
            => mkDecls(Ps,Vs) S return; </k>
@@ -504,9 +501,7 @@ values are allowed to be stored in each location.  */
 Exceptions are propagated now until a catch that can handle them is
 encountered. */
 
-  syntax KItem ::= (Param,Stmt,K,Map,ControlCellFragment)
- // TODO(KORE): drop the additional production once parsing issue #1842 is fixed
-                 | (Param,Stmt,K,Map,K)
+  syntax KItem ::= (Param, Stmt, K, Map, Bag) // TODO: change Bag into ControlCellFragment once issue #1842 is fixed
   syntax KItem ::= "popx"
 
   rule <k> (try S1 catch(P) S2 => S1 ~> popx) ~> K </k>
@@ -586,7 +581,7 @@ order to be recovered after the creation of the new object.  Only the
 first rule below needs to be changed; the others are identical to
 those in untyped KOOL. */
 
-  syntax KItem ::= (Id,EnvCell)
+  syntax KItem ::= (Id, Bag) // TODO: change Bag into EnvCell once issue #1842 is fixed
 
   rule <k> new Class:Id(Vs:Vals) ~> K
            => create(Class) ~> (storeObj ~> ((Class(Vs)); return this;)) </k>
@@ -779,7 +774,7 @@ Like in untyped KOOL. */
 
 Like in untyped KOOL. */
 
-  syntax Exp ::= lookupMember(EnvStackCell,Id)  [function]
+  syntax Exp ::= lookupMember(Bag,Id)  [function] // TODO: change Bag into EnvStackCell once issue #1842 is fixed
 
   rule lookupMember(<envStack> ListItem((_, <env>... X |-> L ...</env>))
                     ...</envStack>, X) => lookup(L)
