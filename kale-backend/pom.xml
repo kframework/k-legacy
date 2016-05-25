@@ -23,7 +23,7 @@
     <dependency>
       <groupId>org.kframework.kale</groupId>
       <artifactId>kale_2.11</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <version>0.1.4-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
