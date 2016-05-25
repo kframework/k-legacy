@@ -255,8 +255,8 @@ public class Int32Token extends BitVector<Integer> {
     private static BuiltinList makeBuiltinListOfOverflowArithmeticResult(
             OverflowArithmeticResult<Integer> result, TermContext context) {
         return (BuiltinList) BuiltinList.builder(context.global())
-                .add(Int32Token.of(result.value))
-                .add(BoolToken.of(result.overflow))
+                .add(BuiltinListOperations.wrapListItem(Int32Token.of(result.value), context))
+                .add(BuiltinListOperations.wrapListItem(BoolToken.of(result.overflow), context))
                 .build();
     }
 

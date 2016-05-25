@@ -153,7 +153,7 @@ public class BuiltinList extends Collection implements CollectionInternalReprese
         //assert global.getDefinition().subsorts().isSubsortedEq(sort, term.sort());
         //TODO: restore the assertion after fixing variables _:K generated fom ...
         return !(isListVariable(term)
-                || term instanceof BuiltinList
+                || term instanceof BuiltinList && ((BuiltinList) term).sort.equals(sort)
                 || term instanceof RuleAutomatonDisjunction && ((RuleAutomatonDisjunction) term).disjunctions().stream().anyMatch(p -> !isElement(p.getLeft()))
                 || term instanceof KItem && ((KItem) term).kLabel().toString().equals(KLabels.KREWRITE) && !isElement(((KList) ((KItem) term).kList()).get(0)));
     }
@@ -313,7 +313,8 @@ public class BuiltinList extends Collection implements CollectionInternalReprese
                     && unitKLabel.equals(((BuiltinList) term).unitKLabel)) {
                 return addAll(((BuiltinList) term).children);
             } else {
-                //if(!(term instanceof KItem && ((KItem) term).klabel().equals(this.unitKLabel))) // do not add the unit
+                //assert global.getDefinition().subsorts().isSubsortedEq(sort, term.sort()) :
+                //        "unexpected term: " + term + " of sort " + term.sort() + " added to list of sort " + sort;
                 childrenBuilder.add(term);
                 return this;
             }

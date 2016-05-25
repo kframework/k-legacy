@@ -1,6 +1,4 @@
 // Copyright (c) 2014-2016 K Team. All Rights Reserved.
-require "../../kernelc.k"
-
 module MULTIPLICATION-BY-ADDITION-SPEC
   imports KERNELC
 
@@ -11,5 +9,7 @@ rule
   =>
     tv(int, X *Int Y)
   ...</k>
+  <in> IN:List </in>
+  <out> OUT:List </out>
 
 endmodule

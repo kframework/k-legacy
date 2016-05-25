@@ -274,8 +274,8 @@ public final class BigIntegerBitVector extends BitVector<BigInteger> {
 
     private BuiltinList getBuiltinList(BigInteger result, boolean overflow, TermContext context) {
         return (BuiltinList) BuiltinList.builder(context.global())
-                .add(BitVector.of(result, bitwidth))
-                .add(BoolToken.of(overflow))
+                .add(BuiltinListOperations.wrapListItem(BitVector.of(result, bitwidth), context))
+                .add(BuiltinListOperations.wrapListItem(BoolToken.of(overflow), context))
                 .build();
     }
 

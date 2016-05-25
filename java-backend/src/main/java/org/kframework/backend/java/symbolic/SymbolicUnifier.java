@@ -40,11 +40,11 @@ public class SymbolicUnifier extends AbstractUnifier {
 
     private final GlobalContext global;
 
-    public SymbolicUnifier(TermContext context) {
+    private SymbolicUnifier(TermContext context) {
         this(false, false, context);
     }
 
-    public SymbolicUnifier(boolean patternFold, boolean partialSimpl, TermContext context) {
+    private SymbolicUnifier(boolean patternFold, boolean partialSimpl, TermContext context) {
         super(context);
         this.global = context.global();
         this.constraint = ConjunctiveFormula.of(global);
@@ -59,14 +59,14 @@ public class SymbolicUnifier extends AbstractUnifier {
     /**
      * Unifies two given terms. Returns true if the unification succeeds.
      */
-    public boolean symbolicUnify(Term term, Term otherTerm) {
+    private boolean symbolicUnify(Term term, Term otherTerm) {
         return symbolicUnify(term, otherTerm, ConjunctiveFormula.of(global));
     }
 
     /**
      * Unifies two given terms. Returns true if the unification succeeds.
      */
-    public boolean symbolicUnify(Term term, Term otherTerm, ConjunctiveFormula constraint) {
+    private boolean symbolicUnify(Term term, Term otherTerm, ConjunctiveFormula constraint) {
         this.constraint = constraint;
         addUnificationTask(term, otherTerm);
         return unify();
@@ -314,15 +314,14 @@ public class SymbolicUnifier extends AbstractUnifier {
                     if (foldedMaps.add(result)) {
                         queue.add(result);
 
-                        SymbolicUnifier unifier = new SymbolicUnifier(termContext);
-                        if (!unifier.symbolicUnify(result, otherMap)) {
+                        ConjunctiveFormula resultConstraint = FastRuleMatcher.unify(result, otherMap, termContext).simplify();
+                        if (resultConstraint.isFalse()) {
                             continue;
                         }
-                        ConjunctiveFormula resultConstraint = unifier.constraint().simplify(termContext);
 
                         /* since here we have a non-deterministic choice to make, we only make
                          * a choice if it eliminates all map equalities */
-                        if (!resultConstraint.hasMapEqualities() && !resultConstraint.isFalse()) {
+                        if (!resultConstraint.hasMapEqualities()) {
                             constraint = constraint.add(resultConstraint);
                             return;
                         }

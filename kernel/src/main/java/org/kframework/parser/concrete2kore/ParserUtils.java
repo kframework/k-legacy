@@ -186,7 +186,7 @@ public class ParserUtils {
         KILtoKORE kilToKore = new KILtoKORE(context, false, autoImportDomains);
 
         HashMap<String, Module> koreModules = new HashMap<>();
-        koreModules.putAll(previousModules.stream().collect(Collectors.toMap(Module::name, m -> m)));
+        koreModules.putAll(previousModules.stream().collect(Collectors.toMap(Module::name, m -> m, (a, b) -> a)));
         HashSet<org.kframework.kil.Module> kilModulesSet = new HashSet<>(kilModules);
 
         kilModules.stream().forEach(m -> kilToKore.apply(m, kilModulesSet, koreModules));

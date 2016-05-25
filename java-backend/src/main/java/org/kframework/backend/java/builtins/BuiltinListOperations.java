@@ -5,11 +5,15 @@ import com.google.common.collect.ImmutableList;
 import org.kframework.backend.java.kil.Bottom;
 import org.kframework.backend.java.kil.BuiltinList;
 import org.kframework.backend.java.kil.DataStructures;
+import org.kframework.backend.java.kil.KItem;
+import org.kframework.backend.java.kil.KLabelConstant;
+import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.Kind;
 import org.kframework.backend.java.kil.Sort;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.kil.Variable;
+import org.kframework.kil.DataStructureSort;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -141,6 +145,13 @@ public class BuiltinListOperations {
                 return Bottom.BOTTOM;
             }
         }
+    }
+
+    public static KItem wrapListItem(Term element, TermContext context) {
+        return KItem.of(
+                KLabelConstant.of(DataStructureSort.DEFAULT_LIST_ITEM_LABEL, context.definition()),
+                KList.singleton(element),
+                context.global());
     }
 
 }
