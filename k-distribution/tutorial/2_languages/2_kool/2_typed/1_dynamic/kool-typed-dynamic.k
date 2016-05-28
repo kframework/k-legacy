@@ -420,7 +420,7 @@ Like in untyped KOOL. */
 The only change to untyped KOOL's values is that method closures are
 now typed (their first argument holds their type): */
 
- syntax Val ::= objectClosure(Bag) // TODO: change Bag into CrntObjCellFragment once issue #1842 is fixed
+ syntax Val ::= objectClosure(K)
               | methodClosure(Type,Id,Int,Params,Stmt)
 
 /*@ The type held by a method clossure will be the entire type of the
@@ -447,7 +447,7 @@ environment, so we group them together in the stack frame.  */
   rule <k> methodClosure(_->T,Class,OL,Ps,S)(Vs:Vals) ~> K
            => mkDecls(Ps,Vs) S return; </k>
        <env> Env => .Map </env>
-       <store>... OL |-> objectClosure(<crntClass>_</crntClass> Obj)...</store>
+       <store>... OL |-> objectClosure(<crntObj><crntClass>_</crntClass> Obj</crntObj>)...</store>
      //<br/> // TODO(KORE): support latex annotations #1799
        <control>
           C
@@ -626,14 +626,14 @@ those in untyped KOOL. */
 
   rule <k> storeObj => . ...</k>
        <crntObj> Obj (<location> L:Int </location> => .Bag) </crntObj>
-       <store>... .Map => L |-> objectClosure(Obj) ...</store>
+       <store>... .Map => L |-> objectClosure(<crntObj> Obj </crntObj>) ...</store>
 
 
 /*@ \subsubsection{Self reference}
 
 Like in untyped KOOL. */
 
-  rule <k> this => objectClosure(Obj) ...</k>
+  rule <k> this => objectClosure(<crntObj> Obj </crntObj>) ...</k>
        <crntObj> Obj </crntObj>
 
 
@@ -646,18 +646,18 @@ Like in untyped KOOL. */
 
   context HOLE . _::Id requires (HOLE =/=K super)
 
-/*  rule objectClosure(<crntClass> Class:Id </crntClass>
-                     <envStack>... ListItem((Class,EnvC:EnvCell)) EStack </envStack>)
+/*  rule objectClosure(<crntObj> <crntClass> Class:Id </crntClass>
+                     <envStack>... ListItem((Class,EnvC:EnvCell)) EStack </envStack> </crntObj>)
        . X:Id
     => lookupMember(<envStack> ListItem((Class,EnvC)) EStack </envStack>, X)
     [structural]*/
-  rule objectClosure(<crntClass> Class:Id </crntClass>
-                     <envStack> ListItem((Class,EnvC:EnvCell)) EStack </envStack>)
+  rule objectClosure(<crntObj> <crntClass> Class:Id </crntClass>
+                     <envStack> ListItem((Class,EnvC:EnvCell)) EStack </envStack> </crntObj>)
        . X:Id
     => lookupMember(<envStack> ListItem((Class,EnvC)) EStack </envStack>, X)
     [structural]
-  rule objectClosure(<crntClass> Class:Id </crntClass>
-                     <envStack> (ListItem((Class':Id,EnvC:EnvCell)) => .List) EStack </envStack>)
+  rule objectClosure(<crntObj> <crntClass> Class:Id </crntClass>
+                     <envStack> (ListItem((Class':Id,EnvC:EnvCell)) => .List) EStack </envStack> </crntObj>)
        . X:Id
     requires Class =/=K Class' [structural]
 
@@ -688,7 +688,7 @@ The method lookup is the same as in untyped KOOL.  */
 
   context HOLE._::Id(_) requires HOLE =/=K super
 
-  rule (objectClosure(Obj:Bag <envStack> EStack </envStack>) . X
+  rule (objectClosure(<crntObj> Obj:Bag <envStack> EStack </envStack> </crntObj>) . X
     => lookupMember(<envStack> EStack </envStack>, X:Id))(_:Exps)  [structural]
 
 /*  rule <k> (super . X
@@ -724,13 +724,13 @@ The method lookup is the same as in untyped KOOL.  */
 
 Like in untyped KOOL.  */
 
-  rule objectClosure(<envStack> ListItem((C,_::EnvCell)) ...</envStack> _)
+  rule objectClosure(<crntObj> <envStack> ListItem((C,_::EnvCell)) ...</envStack> _ </crntObj>)
        instanceOf C => true
 
-  rule objectClosure(<envStack> ListItem((C::Id,_::EnvCell)) => .List ...</envStack> _)
+  rule objectClosure(<crntObj> <envStack> ListItem((C::Id,_::EnvCell)) => .List ...</envStack> _ </crntObj>)
        instanceOf C'  requires C =/=K C'  [structural]
 
-  rule objectClosure(<envStack> .List </envStack> _) instanceOf _ => false
+  rule objectClosure(<crntObj> <envStack> .List </envStack> _ </crntObj>) instanceOf _ => false
 
 
 /*@ \subsubsection{Cast}
@@ -738,9 +738,9 @@ Like in untyped KOOL.  */
 Unlike in untyped KOOL, in typed KOOL we actually check that the object
 can indeed be cast to the claimed type. */
 
-  rule (C:Id) objectClosure(<crntClass> _ </crntClass> Obj)
-    => objectClosure(Obj) instanceOf C ~> true?
-       ~> objectClosure(<crntClass> C </crntClass> Obj)
+  rule (C:Id) objectClosure(<crntObj> <crntClass> Irrelevant </crntClass> Obj </crntObj>)
+    => objectClosure(<crntObj> Obj <crntClass> Irrelevant </crntClass> </crntObj>) instanceOf C ~> true?
+       ~> objectClosure(<crntObj> <crntClass> C </crntClass> Obj </crntObj>)
 
 
 /*@ \subsection{KOOL-specific auxiliary declarations and operations}
@@ -754,18 +754,18 @@ Like in untyped KOOL. */
 
   context lvalue((HOLE . _)<:Exp)
 
-/*  rule lvalue(objectClosure(<crntClass> C </crntClass>
-                            <envStack>... ListItem((C,EnvC:EnvCell)) EStack </envStack>)
+/*  rule lvalue(objectClosure(<crntObj> <crntClass> C </crntClass>
+                            <envStack>... ListItem((C,EnvC:EnvCell)) EStack </envStack> </crntObj>)
               . X
               => lookupMember(<envStack> ListItem((C,EnvC)) EStack </envStack>,
                               X))  [structural]*/
-  rule lvalue(objectClosure(<crntClass> C:Id </crntClass>
-                            <envStack> ListItem((C,EnvC:EnvCell)) EStack </envStack>)
+  rule lvalue(objectClosure(<crntObj> <crntClass> C:Id </crntClass>
+                            <envStack> ListItem((C,EnvC:EnvCell)) EStack </envStack> </crntObj>)
               . X
               => lookupMember(<envStack> ListItem((C,EnvC)) EStack </envStack>,
                               X))  [structural]
-  rule lvalue(objectClosure(<crntClass> C </crntClass>
-                            <envStack> (ListItem((C',EnvC:EnvCell)) => .List) EStack </envStack>)
+  rule lvalue(objectClosure(<crntObj> <crntClass> C </crntClass>
+                            <envStack> (ListItem((C',EnvC:EnvCell)) => .List) EStack </envStack> </crntObj>)
               . X)
     requires C =/=K C' [structural]
 
@@ -790,7 +790,7 @@ Like in untyped KOOL. */
 
 //@ \subsubsection{\texttt{typeOf} for the additional values}
 
-  rule typeOf(objectClosure(_ <crntClass> C </crntClass>)) => C
+  rule typeOf(objectClosure(<crntObj> _ <crntClass> C </crntClass> </crntObj>)) => C
   rule typeOf(methodClosure(T:Type,_,_,Ps:Params,_)) => T
 
 
@@ -827,8 +827,8 @@ the subtype relation above. */
 
   syntax Val ::= unsafeCast(Val,Type)  [function]
 
-  rule unsafeCast(objectClosure(<crntClass>_</crntClass> Obj), C:Id)
-    => objectClosure(<crntClass> C </crntClass> Obj)
+  rule unsafeCast(objectClosure(<crntObj> <crntClass>_</crntClass> Obj </crntObj>), C:Id)
+    => objectClosure(<crntObj> <crntClass> C </crntClass> Obj </crntObj>)
 
   rule unsafeCast(methodClosure(T',C,OL,Ps,S), T) => methodClosure(T,C,OL,Ps,S)
 
