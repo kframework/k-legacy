@@ -613,7 +613,7 @@ Before we can define the semantics of method application (previously
 called function application in SIMPLE), we need to add two more values
 to the language, namely object and method closures: */
 
-  syntax Val ::= objectClosure(CrntObjCell)
+  syntax Val ::= objectClosure(K)
                | methodClosure(Id,Int,Ids,Stmt)
 
 /*@  An object value consists of an \texttt{objectClosure}-wrapped bag
@@ -656,7 +656,6 @@ with the unchanged semantics of SIMPLE above.  */
           <fstack> .List => ListItem((Env, K, C <crntObj> Obj' </crntObj>))
           ...</fstack>
           <crntObj> Obj' => <crntClass> Class </crntClass> Obj </crntObj>
-       </control>
        </control>
 
 
@@ -743,7 +742,7 @@ shortly).  The location where the object will be stored is also made
 available in the \textsf{crntObj} cell, so that method closures can
 refer to it (see rule above). */
 
-  syntax KItem ::= "envStackFrame" "(" Id "," EnvCell ")"
+  syntax KItem ::= "envStackFrame" "(" Id "," K ")"
 
   rule <k> new Class:Id(Vs:Vals) ~> K
            => create(Class) ~> storeObj ~> Class(Vs); return this; </k>
@@ -752,7 +751,7 @@ refer to it (see rule above). */
      //<br/> // TODO(KORE): support latex annotations #1799
        <control> C
          <crntObj> Obj
-                   => <crntClass> Object </crntClass>
+                   => <crntClass> Object:Id </crntClass>
                       <envStack> ListItem(envStackFrame(Object, <env>.Map</env>)) </envStack>
                       <location> L </location>
          </crntObj>
@@ -1028,7 +1027,7 @@ It searches for the given member in the given environment stack,
 starting with the most concrete class and going up in the hierarchy. */
 
   // TODO(KORE): clarify sort inferences #1803
-  syntax Exp ::= lookupMember(EnvStackCell,Id)  [function]
+  syntax Exp ::= lookupMember(K,Id)  [function]
   /*
   syntax KItem ::= lookupMember(EnvStackCell,Id)  [function]
   */
