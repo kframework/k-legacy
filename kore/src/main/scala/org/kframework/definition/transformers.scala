@@ -15,7 +15,16 @@ object ModuleTransformer {
   def fromSentenceTransformer(f: java.util.function.UnaryOperator[Sentence], name: String): MemoizingModuleTransformer =
     new BasicModuleTransformer {
       override protected def process(inputModule: Module, alreadyProcessedImports: Set[Module]): Module = {
-        Module(inputModule.name, alreadyProcessedImports, inputModule.localSentences.map(x => f(x)))
+        Module(inputModule.name, alreadyProcessedImports, inputModule.localSentences.map(s => try {
+          f(s)
+        } catch {
+          case e: KEMException =>
+            if (e.exception.getLocation == null)
+              throw new KEMException(e.exception.copy(s.att.get(classOf[Location]).orNull))
+            else
+              throw e
+        }
+        ))
       }
     }
 
