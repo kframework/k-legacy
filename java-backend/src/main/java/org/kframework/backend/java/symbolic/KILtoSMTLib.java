@@ -58,10 +58,6 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
             Sort.of("MINT-LIST@MIntSeq"),
             Sort.of("FLOAT-LIST@FloatSeq"),
             Sort.of("STRING-LIST@StringSeq"));
-    public static final ImmutableSet<Sort> RESERVED_Z3_SORTS = ImmutableSet.of(
-            Sort.LIST,
-            Sort.SET,
-            Sort.of("Seq"));
     public static final ImmutableSet<String> SMTLIB_BUILTIN_FUNCTIONS = ImmutableSet.of(
             "forall",
             "exists",
@@ -267,10 +263,6 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
         }
         for (Variable variable : variables) {
             sorts.add(renameSort(variable.sort()));
-        }
-
-        if (!Sets.intersection(sorts, RESERVED_Z3_SORTS).isEmpty()) {
-            throw new UnsupportedOperationException("do not use sorts " + RESERVED_Z3_SORTS);
         }
 
         StringBuilder sb = new StringBuilder();
