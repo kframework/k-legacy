@@ -20,6 +20,7 @@ import org.kframework.backend.java.kil.Sort;
 import org.kframework.backend.java.kil.SortSignature;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.Variable;
+import org.kframework.builtin.Sorts;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.NonTerminal;
@@ -47,16 +48,16 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
             Sort.BOOL,
             Sort.INT,
             Sort.BIT_VECTOR,
-            Sort.of("Float"),
-            Sort.of("String"),
-            Sort.of("IntSet"),
-            Sort.of("MIntSet"),
-            Sort.of("FloatSet"),
-            Sort.of("StringSet"),
-            Sort.of("IntSeq"),
-            Sort.of("MIntSeq"),
-            Sort.of("FloatSeq"),
-            Sort.of("StringSeq"));
+            Sort.of(Sorts.Float().name()),
+            Sort.of(Sorts.String().name()),
+            Sort.of("INT-SET@IntSet"),
+            Sort.of("MINT-SET@MIntSet"),
+            Sort.of("FLOAT-SET@FloatSet"),
+            Sort.of("STRING-SET@StringSet"),
+            Sort.of("INT-LIST@IntSeq"),
+            Sort.of("MINT-LIST@MIntSeq"),
+            Sort.of("FLOAT-LIST@FloatSeq"),
+            Sort.of("STRING-LIST@StringSeq"));
     public static final ImmutableSet<Sort> RESERVED_Z3_SORTS = ImmutableSet.of(
             Sort.LIST,
             Sort.SET,
@@ -286,11 +287,11 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
             sb.append(" (");
             List<String> childrenSorts = new ArrayList<>();
             for (Sort sort : kLabel.signatures().iterator().next().parameters()) {
-                childrenSorts.add(renameSort(sort).name());
+                childrenSorts.add(renameSort(sort).localName());
             }
             Joiner.on(" ").appendTo(sb, childrenSorts);
             sb.append(") ");
-            sb.append(renameSort(kLabel.signatures().iterator().next().result()).name());
+            sb.append(renameSort(kLabel.signatures().iterator().next().result()).localName());
             sb.append(")\n");
         }
 
@@ -382,7 +383,7 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
             Pair<Integer, Integer> pair = FloatToken.getExponentAndSignificandOrDie(node);
             return "(_ FP " + pair.getLeft() + " " + pair.getRight() + ")";
         } else {
-            return s.name();
+            return s.localName();
         }
     }
 
