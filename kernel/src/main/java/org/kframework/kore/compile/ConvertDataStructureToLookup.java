@@ -398,7 +398,7 @@ public class ConvertDataStructureToLookup {
                         }
                         state.add(KApply(KLabel("#match"), element.getValue(), KApply(KLabel("Map:lookup"), map, element.getKey())));
                     }
-                    if (lhsOf == null) {
+                    if (lhsOf == null && RewriteToTop.hasRewrite(k)) {
                         // An outermost map may contain nested rewrites, so the term
                         // is translated into a rewrite from compiled match into the original right-hand side.
                         return KRewrite(map, infer(RewriteToTop.toRight(k), collectionLabel));

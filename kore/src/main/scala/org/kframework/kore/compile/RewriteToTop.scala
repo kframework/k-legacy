@@ -14,6 +14,13 @@ object RewriteToTop {
     case other => other
   }
 
+  def hasRewrite(k: K): Boolean = k match {
+    case t: KRewrite => true
+    case t: KApply => immutable(t.klist.items).foldLeft(false)((b,k) => b || hasRewrite(k))
+    case t: KSequence => immutable(t.items).foldLeft(false)((b,k) => b || hasRewrite(k))
+    case other => false
+  }
+
   def toRight(rewrite: K): K = rewrite match {
     case t: KRewrite => t.right
     case t: KApply => KApply(t.klabel, immutable(t.klist.items) map toRight, t.att)
