@@ -54,4 +54,7 @@ module IMP
   rule <k> int (X,Xs => Xs);_ </k> <state> Rho:Map (.Map => X|->0) </state>
     requires notBool (X in keys(Rho))
   rule int .Ids; S => S  [structural]
+
+  syntax Id ::= "n"     [token]
+              | "sum"   [token]
 endmodule
