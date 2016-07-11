@@ -35,11 +35,11 @@ import static org.kframework.definition.Constructors.Att;
 import static org.kframework.definition.Constructors.*;
 import static org.kframework.kore.KORE.*;
 
-public class ResolveContexts {
+public class ConvertContextsToHeatCoolRules {
 
     private final KompileOptions kompileOptions;
 
-    public ResolveContexts(KompileOptions kompileOptions) {
+    public ConvertContextsToHeatCoolRules(KompileOptions kompileOptions) {
         this.kompileOptions = kompileOptions;
     }
 

@@ -20,7 +20,7 @@ import org.kframework.kore.compile.AddImplicitComputationCell;
 import org.kframework.kore.compile.ConcretizeCells;
 import org.kframework.kore.compile.GenerateSortPredicateSyntax;
 import org.kframework.kore.compile.ResolveAnonVar;
-import org.kframework.kore.compile.ResolveContexts;
+import org.kframework.kore.compile.ConvertContextsToHeatCoolRules;
 import org.kframework.kore.compile.ResolveFreshConstants;
 import org.kframework.kore.compile.ResolveHeatCoolAttribute;
 import org.kframework.kore.compile.ResolveIOStreams;
@@ -41,7 +41,6 @@ import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -134,17 +133,17 @@ public class Kompile {
     }
 
     public Function<Definition, Definition> defaultSteps() {
-        DefinitionTransformer resolveStrict = DefinitionTransformer.from(new ResolveStrict(kompileOptions)::resolve, "resolving strict and seqstrict attributes");
+        DefinitionTransformer convertStrictToContexts = DefinitionTransformer.from(new ResolveStrict(kompileOptions)::resolve, "resolving strict and seqstrict attributes");
         DefinitionTransformer resolveHeatCoolAttribute = DefinitionTransformer.fromSentenceTransformer(new ResolveHeatCoolAttribute(new HashSet<>(kompileOptions.transition))::resolve, "resolving heat and cool attributes");
-        DefinitionTransformer resolveAnonVars = DefinitionTransformer.fromSentenceTransformer(new ResolveAnonVar()::resolve, "resolving \"_\" vars");
+        DefinitionTransformer convertAnonVarsToNamedVars = DefinitionTransformer.fromSentenceTransformer(new ResolveAnonVar()::resolve, "resolving \"_\" vars");
         DefinitionTransformer resolveSemanticCasts =
                 DefinitionTransformer.fromSentenceTransformer(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve, "resolving semantic casts");
         DefinitionTransformer generateSortPredicateSyntax = DefinitionTransformer.from(new GenerateSortPredicateSyntax()::gen, "adding sort predicate productions");
 
         return def -> func(this::resolveIOStreams)
-                .andThen(resolveStrict)
-                .andThen(resolveAnonVars)
-                .andThen(func(d -> new ResolveContexts(kompileOptions).resolve(d)))
+                .andThen(convertStrictToContexts)
+                .andThen(convertAnonVarsToNamedVars)
+                .andThen(func(d -> new ConvertContextsToHeatCoolRules(kompileOptions).resolve(d)))
                 .andThen(resolveHeatCoolAttribute)
                 .andThen(resolveSemanticCasts)
                 .andThen(generateSortPredicateSyntax)
