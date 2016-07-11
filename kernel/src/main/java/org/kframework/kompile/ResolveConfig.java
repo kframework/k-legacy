@@ -13,6 +13,7 @@ import org.kframework.kore.compile.GenerateSentencesFromConfigDecl;
 import org.kframework.parser.concrete2kore.ParseInModule;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.utils.errorsystem.KEMException;
+import scala.Function1;
 import scala.collection.Set;
 
 import java.util.List;
@@ -28,7 +29,7 @@ import static org.kframework.kore.KORE.Sort;
 /**
  * Expands configuration declaration to KORE productions and rules.
  */
-class ResolveConfig implements UnaryOperator<Module> {
+class ResolveConfig implements Function1<Module, Module> {
     private final Definition def;
     private final boolean isStrict;
     private final BiFunction<Module, Bubble, Stream<? extends K>> parseBubble;
