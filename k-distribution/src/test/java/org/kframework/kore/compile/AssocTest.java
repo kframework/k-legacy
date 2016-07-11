@@ -11,7 +11,6 @@ import org.kframework.definition.Rule;
 import org.kframework.kore.K;
 import org.kframework.kore.KORE;
 import org.kframework.kore.KVariable;
-import org.kframework.kore.convertors.TstTinyOnKORE_IT;
 import org.kframework.parser.ProductionReference;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.rewriter.SearchType;
@@ -36,7 +35,7 @@ public class AssocTest {
     public TestName name = new TestName();
 
     protected File testResource(String baseName) throws URISyntaxException {
-        return new File(TstTinyOnKORE_IT.class.getResource(baseName).toURI());
+        return new File(AssocTest.class.getResource(baseName).toURI());
     }
 
     @Test

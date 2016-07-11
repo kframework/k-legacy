@@ -25,7 +25,7 @@ public class TstBackendOnKORE_IT {
     public TestName name = new TestName();
 
     protected File testResource(String baseName) throws URISyntaxException {
-        return new File(TstTinyOnKORE_IT.class.getResource(baseName).toURI());
+        return new File(TstBackendOnKORE_IT.class.getResource(baseName).toURI());
     }
 
     @Test
