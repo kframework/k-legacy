@@ -84,7 +84,8 @@ public class BuiltinFunction {
                     continue;
                 }
 
-                table.put(KLabelConstant.of(entry.getKey(), definition), hookProvider.get(hookAttribute).get());
+                MethodHandle methodHandle = hookProvider.get(hookAttribute).get();
+                table.put(KLabelConstant.of(entry.getKey(), definition), methodHandle);
             }
         }
     }
