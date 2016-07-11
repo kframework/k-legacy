@@ -61,6 +61,8 @@ object Collections {
   def toAssociativeSet[T]: Collector[T, Set[T]] =
     Collector(() => new CombinerFromBuilder(
       new AssocBuilder[T, Set[T], Set[T]](new SetBuilder(Set()))))
+
+  def func[T](f: T => T): T => T = f
 }
 
 class CombinerFromBuilder[T, R <: {def iterator : Iterator[T]}](protected[this] val b: Builder[T, R]) extends
