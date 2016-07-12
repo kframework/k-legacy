@@ -39,6 +39,7 @@ import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
+import scala.Function1;
 
 import java.io.File;
 import java.util.HashSet;
@@ -49,7 +50,6 @@ import java.util.stream.Collectors;
 
 import static org.kframework.Collections.*;
 import static org.kframework.definition.Constructors.*;
-import static scala.compat.java8.JFunction.func;
 
 /**
  * The new compilation pipeline. Everything is just wired together and will need clean-up once we deside on design.
@@ -129,29 +129,29 @@ public class Kompile {
     }
 
     public Definition resolveIOStreams(Definition d) {
-        return DefinitionTransformer.from(new ResolveIOStreams(d, kem)::resolve, "resolving io streams").apply(d);
+        return DefinitionTransformer.fromUnary(new ResolveIOStreams(d, kem)::resolve, "resolving io streams").apply(d);
     }
 
     public Function<Definition, Definition> defaultSteps() {
-        DefinitionTransformer convertStrictToContexts = DefinitionTransformer.from(new ResolveStrict(kompileOptions)::resolve, "resolving strict and seqstrict attributes");
+        DefinitionTransformer convertStrictToContexts = DefinitionTransformer.fromUnary(new ResolveStrict(kompileOptions)::resolve, "resolving strict and seqstrict attributes");
         DefinitionTransformer resolveHeatCoolAttribute = DefinitionTransformer.fromSentenceTransformer(new ResolveHeatCoolAttribute(new HashSet<>(kompileOptions.transition))::resolve, "resolving heat and cool attributes");
         DefinitionTransformer convertAnonVarsToNamedVars = DefinitionTransformer.fromSentenceTransformer(new ResolveAnonVar()::resolve, "resolving \"_\" vars");
         DefinitionTransformer resolveSemanticCasts =
                 DefinitionTransformer.fromSentenceTransformer(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve, "resolving semantic casts");
-        DefinitionTransformer generateSortPredicateSyntax = DefinitionTransformer.from(new GenerateSortPredicateSyntax()::gen, "adding sort predicate productions");
+        DefinitionTransformer generateSortPredicateSyntax = DefinitionTransformer.fromUnary(new GenerateSortPredicateSyntax()::gen, "adding sort predicate productions");
 
-        return def -> func(this::resolveIOStreams)
+        return def -> asScalaFunc(this::resolveIOStreams)
                 .andThen(convertStrictToContexts)
                 .andThen(convertAnonVarsToNamedVars)
-                .andThen(func(d -> new ConvertContextsToHeatCoolRules(kompileOptions).resolve(d)))
+                .andThen(d -> new ConvertContextsToHeatCoolRules(kompileOptions).resolve(d))
                 .andThen(resolveHeatCoolAttribute)
                 .andThen(resolveSemanticCasts)
                 .andThen(generateSortPredicateSyntax)
-                .andThen(func(this::resolveFreshConstants))
-                .andThen(func(AddImplicitComputationCell::transformDefinition))
+                .andThen(this::resolveFreshConstants)
+                .andThen(AddImplicitComputationCell::transformDefinition)
                 .andThen(new Strategy(kompileOptions.experimental.heatCoolStrategies).addStrategyCellToRulesTransformer())
-                .andThen(func(ConcretizeCells::transformDefinition))
-                .andThen(func(this::addSemanticsModule))
+                .andThen(ConcretizeCells::transformDefinition)
+                .andThen(this::addSemanticsModule)
                 .apply(def);
     }
 
@@ -201,14 +201,14 @@ public class Kompile {
     }
 
     public Definition resolveFreshConstants(Definition input) {
-        return DefinitionTransformer.from(new ResolveFreshConstants(input)::resolve, "resolving !Var variables")
+        return DefinitionTransformer.fromUnary(new ResolveFreshConstants(input)::resolve, "resolving !Var variables")
                 .apply(input);
     }
 
     public Rule compileRule(CompiledDefinition compiledDef, Rule parsedRule) {
-        return (Rule) func(new ResolveAnonVar()::resolve)
-                .andThen(func(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve))
-                .andThen(func(s -> concretizeSentence(s, compiledDef.kompiledDefinition)))
+        return (Rule) asScalaFunc(new ResolveAnonVar()::resolve)
+                .andThen(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve)
+                .andThen(s -> concretizeSentence(s, compiledDef.kompiledDefinition))
                 .apply(parsedRule);
     }
 

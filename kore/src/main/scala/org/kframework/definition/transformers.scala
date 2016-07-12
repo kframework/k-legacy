@@ -87,6 +87,9 @@ object DefinitionTransformer {
   def fromRuleBodyTranformer(f: java.util.function.UnaryOperator[K], name: String): DefinitionTransformer =
     DefinitionTransformer(ModuleTransformer.fromRuleBodyTranformer(f, name))
 
+  def fromRuleBodyTranformerUnary(f: java.util.function.UnaryOperator[K], name: String): DefinitionTransformer =
+    DefinitionTransformer(ModuleTransformer.fromRuleBodyTranformer(f, name))
+
   def fromRuleBodyTranformer(f: K => K, name: String): DefinitionTransformer =
     DefinitionTransformer(ModuleTransformer.fromRuleBodyTranformer(f, name))
 
@@ -100,6 +103,8 @@ object DefinitionTransformer {
     fromKTransformerWithModuleInfo((m, k) => f(m, k), name)
 
   def from(f: java.util.function.UnaryOperator[Module], name: String): DefinitionTransformer = DefinitionTransformer(f(_), name)
+
+  def fromUnary(f: java.util.function.UnaryOperator[Module], name: String): DefinitionTransformer = DefinitionTransformer(f(_), name)
 
   def from(f: Module => Module, name: String): DefinitionTransformer = DefinitionTransformer(f, name)
 

@@ -27,7 +27,7 @@ public class Compiler {
      */
     public static Definition toRuleParser(Definition d) {
         RuleGrammarGenerator rgg = new RuleGrammarGenerator(d, true);
-        return DefinitionTransformer.from(rgg::getRuleGrammar, "toRuleParser").apply(d);
+        return DefinitionTransformer.fromUnary(rgg::getRuleGrammar, "toRuleParser").apply(d);
     }
 
     /**
@@ -36,7 +36,7 @@ public class Compiler {
      */
     public static Definition toGenericAbstractConfigurationParser(Definition d) {
         RuleGrammarGenerator rgg = new RuleGrammarGenerator(d, true);
-        return DefinitionTransformer.from(rgg::getConfigGrammar, "toGenericAbstractConfigurationParser").apply(d);
+        return DefinitionTransformer.fromUnary(rgg::getConfigGrammar, "toGenericAbstractConfigurationParser").apply(d);
     }
 
 }
