@@ -1,6 +1,7 @@
 // Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
+import org.apache.commons.lang3.tuple.Triple;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Constants;
@@ -229,8 +230,9 @@ public class BuiltinMap extends AssociativeCommutativeCollection {
                 BuiltinMap map = (BuiltinMap) term;
 
                 if (!update && entries.keySet().stream().anyMatch(key -> map.entries.containsKey(key) && !entries.get(key).equals(map.entries.get(key)))) {
+                    List<Triple<Term, Term, Term>> clashingKeys = entries.keySet().stream().filter(map.entries::containsKey).map(k -> Triple.of(k, entries.get(k), map.entries.get(k))).collect(Collectors.toList());
                     throw KEMException.criticalError("failed to concatenate maps with common keys: "
-                            + entries.keySet().stream().filter(map.entries::containsKey).collect(Collectors.toList()));
+                            + clashingKeys);
                 }
 
                 entries.putAll(map.entries);
