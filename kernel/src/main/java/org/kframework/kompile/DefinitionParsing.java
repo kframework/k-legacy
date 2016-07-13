@@ -171,7 +171,7 @@ public class DefinitionParsing {
 
         Definition definitionWithConfigBubble;
         if (!hasConfigDecl) {
-            definitionWithConfigBubble = DefinitionTransformer.fromUnary(mod -> {
+            definitionWithConfigBubble = DefinitionTransformer.from(mod -> {
                 if (mod == definition.mainModule()) {
                     java.util.Set<Module> imports = mutable(mod.imports());
                     imports.add(definition.getModule("DEFAULT-CONFIGURATION").get());
@@ -197,7 +197,7 @@ public class DefinitionParsing {
 
         ResolveConfig resolveConfig = new ResolveConfig(definitionWithConfigBubble, isStrict, this::parseBubble, this::getParser);
         gen = new RuleGrammarGenerator(definitionWithConfigBubble, isStrict);
-        Definition defWithConfig = DefinitionTransformer.from(resolveConfig, "parsing configurations").apply(definitionWithConfigBubble);
+        Definition defWithConfig = DefinitionTransformer.from(resolveConfig::apply, "parsing configurations").apply(definitionWithConfigBubble);
 
         return defWithConfig;
     }
@@ -212,7 +212,7 @@ public class DefinitionParsing {
 
     public Definition resolveNonConfigBubbles(Definition defWithConfig) {
         RuleGrammarGenerator gen = new RuleGrammarGenerator(defWithConfig, isStrict);
-        Definition parsedDef = DefinitionTransformer.fromUnary(m -> this.resolveNonConfigBubbles(m, gen), "parsing rules").apply(defWithConfig);
+        Definition parsedDef = DefinitionTransformer.from(m -> this.resolveNonConfigBubbles(m, gen), "parsing rules").apply(defWithConfig);
         return parsedDef;
     }
 

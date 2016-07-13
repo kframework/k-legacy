@@ -102,10 +102,6 @@ object DefinitionTransformer {
   def fromKTransformerWithModuleInfo(f: BiFunction[Module, K, K], name: String): DefinitionTransformer =
     fromKTransformerWithModuleInfo((m, k) => f(m, k), name)
 
-  def from(f: java.util.function.UnaryOperator[Module], name: String): DefinitionTransformer = DefinitionTransformer(f(_), name)
-
-  def fromUnary(f: java.util.function.UnaryOperator[Module], name: String): DefinitionTransformer = DefinitionTransformer(f(_), name)
-
   def from(f: Module => Module, name: String): DefinitionTransformer = DefinitionTransformer(f, name)
 
   def apply(f: ModuleTransformer): DefinitionTransformer = new DefinitionTransformer(f)

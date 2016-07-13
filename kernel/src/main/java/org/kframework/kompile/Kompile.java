@@ -129,16 +129,16 @@ public class Kompile {
     }
 
     public Definition resolveIOStreams(Definition d) {
-        return DefinitionTransformer.fromUnary(new ResolveIOStreams(d, kem)::resolve, "resolving io streams").apply(d);
+        return DefinitionTransformer.from(new ResolveIOStreams(d, kem)::resolve, "resolving io streams").apply(d);
     }
 
     public Function<Definition, Definition> defaultSteps() {
-        DefinitionTransformer convertStrictToContexts = DefinitionTransformer.fromUnary(new ResolveStrict(kompileOptions)::resolve, "resolving strict and seqstrict attributes");
+        DefinitionTransformer convertStrictToContexts = DefinitionTransformer.from(new ResolveStrict(kompileOptions)::resolve, "resolving strict and seqstrict attributes");
         DefinitionTransformer resolveHeatCoolAttribute = DefinitionTransformer.fromSentenceTransformer(new ResolveHeatCoolAttribute(new HashSet<>(kompileOptions.transition))::resolve, "resolving heat and cool attributes");
         DefinitionTransformer convertAnonVarsToNamedVars = DefinitionTransformer.fromSentenceTransformer(new ResolveAnonVar()::resolve, "resolving \"_\" vars");
         DefinitionTransformer resolveSemanticCasts =
                 DefinitionTransformer.fromSentenceTransformer(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve, "resolving semantic casts");
-        DefinitionTransformer generateSortPredicateSyntax = DefinitionTransformer.fromUnary(new GenerateSortPredicateSyntax()::gen, "adding sort predicate productions");
+        DefinitionTransformer generateSortPredicateSyntax = DefinitionTransformer.from(new GenerateSortPredicateSyntax()::gen, "adding sort predicate productions");
 
         return def -> asScalaFunc(this::resolveIOStreams)
                 .andThen(convertStrictToContexts)
@@ -201,7 +201,7 @@ public class Kompile {
     }
 
     public Definition resolveFreshConstants(Definition input) {
-        return DefinitionTransformer.fromUnary(new ResolveFreshConstants(input)::resolve, "resolving !Var variables")
+        return DefinitionTransformer.from(new ResolveFreshConstants(input)::resolve, "resolving !Var variables")
                 .apply(input);
     }
 
