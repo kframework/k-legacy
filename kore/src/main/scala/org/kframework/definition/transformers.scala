@@ -34,9 +34,6 @@ object ModuleTransformer {
         m
     }, name)
 
-  def fromRuleBodyTranformer(f: java.util.function.UnaryOperator[K], name: String): ModuleTransformer =
-    fromSentenceTransformer(_ match { case r: Rule => r.copy(body = f(r.body)); case s => s }, name)
-
   def fromRuleBodyTranformer(f: K => K, name: String): ModuleTransformer =
     fromSentenceTransformer(_ match { case r: Rule => r.copy(body = f(r.body)); case s => s }, name)
 
@@ -78,7 +75,7 @@ class ModuleTransformer(f: Module => Module, name: String) extends (Module => Mo
 }
 
 object DefinitionTransformer {
-  def fromSentenceTransformer(f: java.util.function.UnaryOperator[Sentence], name: String): DefinitionTransformer =
+  def fromSentenceTransformer(f: Sentence => Sentence, name: String): DefinitionTransformer =
     DefinitionTransformer(ModuleTransformer.fromSentenceTransformer(f(_), name))
 
   def fromSentenceTransformer(f: (Module, Sentence) => Sentence, name: String): DefinitionTransformer =

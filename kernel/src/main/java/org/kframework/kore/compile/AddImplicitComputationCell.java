@@ -31,7 +31,7 @@ public class AddImplicitComputationCell implements UnaryOperator<Sentence> {
         ConfigurationInfoFromModule configInfo = new ConfigurationInfoFromModule(input.mainModule());
         LabelInfo labelInfo = new LabelInfoFromModule(input.mainModule());
         return DefinitionTransformer.fromSentenceTransformer(
-                new AddImplicitComputationCell(configInfo, labelInfo),
+                new AddImplicitComputationCell(configInfo, labelInfo)::apply,
                 "concretizing configuration").apply(input);
     }
 
