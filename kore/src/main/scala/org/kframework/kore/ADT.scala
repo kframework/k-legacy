@@ -1,11 +1,12 @@
 package org.kframework.kore
 
-import org.kframework.builtin.{Sorts, KLabels}
+import org.kframework.builtin.{KLabels, Sorts}
 import org.kframework.kore
 import org.kframework.attributes._
 import org.kframework.utils.errorsystem.KEMException
+
 import collection.JavaConverters._
-import org.kframework.definition.{LookupSymbol, ModuleName, ResolvedSymbol, Module}
+import org.kframework.definition._
 
 /**
   * Abstract Data Types: basic implementations for the inner KORE interfaces.
@@ -92,6 +93,8 @@ object ADT {
       case s: kore.Sort => this.moduleName == s.moduleName && this.localName == s.localName
       case _ => throw new AssertionError("We cannot compare this.")
     }
+
+    override def name = super[LookupSymbol].name // hack for compiler bug
   }
 
   case class Sort(localName: String, moduleName: ModuleName) extends kore.Sort with ResolvedSymbol {
