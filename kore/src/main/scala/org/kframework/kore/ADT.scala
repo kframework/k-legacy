@@ -106,6 +106,8 @@ object ADT {
       case s: kore.Sort => s.moduleName == this.moduleName && s.localName == this.localName
       case _ => throw new AssertionError("We cannot compare this.")
     }
+
+    override def name = super[ResolvedSymbol].name // hack for compiler bug
   }
 
   case class KToken(s: String, sort: kore.Sort, att: Att = Att()) extends kore.KToken
