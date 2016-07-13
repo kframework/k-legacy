@@ -11,6 +11,7 @@ import org.kframework.definition.Rule;
 import org.kframework.kore.K;
 import org.kframework.kore.KORE;
 import org.kframework.kore.KVariable;
+import org.kframework.main.GlobalOptions;
 import org.kframework.parser.ProductionReference;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.rewriter.SearchType;

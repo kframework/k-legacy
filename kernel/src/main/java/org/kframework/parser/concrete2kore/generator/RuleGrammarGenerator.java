@@ -175,7 +175,7 @@ public class RuleGrammarGenerator {
     private static Module getExtensionModule(Module seedMod) { /** Extension module is used by the compiler to get information about subsorts and access the definition of casts */
         return ModuleTransformer.fromHybrid((Module m) -> {
             Set<Sentence> newProds = new HashSet<>();
-            if (seedMod.importedModules().exists(func(m1 -> m1.name().equals(AUTO_CASTS)))) { // create the casts
+            if (seedMod.importedModules().exists(m1 -> m1.name().equals(AUTO_CASTS))) { // create the casts
                 for (Sort srt : iterable(m.localSorts())) {
                     if (!isParserSort(srt)) {
                         // K ::= K "::Sort" | K ":Sort" | K "<:Sort" | K ":>Sort"
@@ -183,7 +183,7 @@ public class RuleGrammarGenerator {
                     }
                 }
             }
-            if (seedMod.importedModules().exists(func(m1 -> m1.name().equals(K_TOP_SORT)))) { // create the upper diamond
+            if (seedMod.importedModules().exists(m1 -> m1.name().equals(K_TOP_SORT))) { // create the upper diamond
                 for (Sort srt : iterable(m.localSorts())) {
                     if (!isParserSort(srt)) {
                         // K ::= Sort
@@ -191,7 +191,7 @@ public class RuleGrammarGenerator {
                     }
                 }
             }
-            if (seedMod.importedModules().exists(func(m1 -> m1.name().equals(K_BOTTOM_SORT)))) { // create the lower diamond
+            if (seedMod.importedModules().exists(m1 -> m1.name().equals(K_BOTTOM_SORT))) { // create the lower diamond
                 for (Sort srt : iterable(m.localSorts())) {
                     if (!isParserSort(srt)) {
                         // Sort ::= KBott
@@ -213,7 +213,7 @@ public class RuleGrammarGenerator {
 
             @Override
             public Module processHybridModule(Module m) {
-                if (disambM.importedModules().exists(func(m1 -> m1.name().equals(PROGRAM_LISTS))) && !m.name().equals(SORT_K)) {
+                if (disambM.importedModules().exists(m1 -> m1.name().equals(PROGRAM_LISTS)) && !m.name().equals(SORT_K)) {
                     Set<Sentence> newProds = mutable(m.localSentences());
                     // if no start symbol has been defined in the configuration, then use K
                     for (Sort srt : iterable(m.localSorts())) {
@@ -257,7 +257,7 @@ public class RuleGrammarGenerator {
                         }
                     }
 
-                    Module sortKModule = apply(disambM.importedModules().find(func(m1 -> m1.name().equals(SORT_K))).get());
+                    Module sortKModule = apply(disambM.importedModules().find(m1 -> m1.name().equals(SORT_K)).get());
                     return Module(m.name(), Collections.add(sortKModule, m.imports()), immutable(newProds), m.att());
                 }
                 return m;
@@ -279,15 +279,15 @@ public class RuleGrammarGenerator {
             public Module processHybridModule(Module m) {
                 final String mName = m.name();
                 // make sure a configuration actually exists, otherwise ConfigurationInfoFromModule explodes.
-                final ConfigurationInfo cfgInfo = m.localSentences().exists(func(p -> p instanceof Production && p.att().contains("cell")))
+                final ConfigurationInfo cfgInfo = m.localSentences().exists(p -> p instanceof Production && p.att().contains("cell"))
                         ? new ConfigurationInfoFromModule(extensionM)
                         : null;
 
-                if (extensionM.importedModules().exists(func(m1 -> m1.name().equals(RULE_CELLS))) &&
+                if (extensionM.importedModules().exists(m1 -> m1.name().equals(RULE_CELLS)) &&
                         cfgInfo != null) { // prepare cell productions for rule parsing
                     // avoid creating cycles in module inclusion
-                    Module ruleCellsOriginal = apply(extensionM.importedModules().find(func(m1 -> m1.name().equals(RULE_CELLS))).get());
-                    if (!m.name().equals(RULE_CELLS) && !ruleCellsOriginal.importedModules().exists(func(m1 -> m1.name().equals(mName)))) {
+                    Module ruleCellsOriginal = apply(extensionM.importedModules().find(m1 -> m1.name().equals(RULE_CELLS)).get());
+                    if (!m.name().equals(RULE_CELLS) && !ruleCellsOriginal.importedModules().exists(m1 -> m1.name().equals(mName))) {
                         Module ruleCells = apply(ruleCellsOriginal);
                         Set<Sentence> newProds = stream(m.localSentences()).flatMap(s -> {
                             if (s instanceof Production && (s.att().contains("cell"))) {
@@ -319,10 +319,10 @@ public class RuleGrammarGenerator {
                 }
 
                 // configurations can be declared on multiple modules, so make sure to subsort previously declared cells to Cell
-                if (extensionM.importedModules().exists(func(m1 -> m1.name().equals(CONFIG_CELLS))) && !m.name().equals(CONFIG_CELLS)) {
-                    Module configCellsOriginal = extensionM.importedModules().find(func(m1 -> m1.name().equals(CONFIG_CELLS))).get();
+                if (extensionM.importedModules().exists(m1 -> m1.name().equals(CONFIG_CELLS)) && !m.name().equals(CONFIG_CELLS)) {
+                    Module configCellsOriginal = extensionM.importedModules().find(m1 -> m1.name().equals(CONFIG_CELLS)).get();
                     // avoid creating cyrcles in imports
-                    if (!m.name().equals(CONFIG_CELLS) && !configCellsOriginal.importedModules().exists(func(m1 -> m1.name().equals(mName)))) {
+                    if (!m.name().equals(CONFIG_CELLS) && !configCellsOriginal.importedModules().exists(m1 -> m1.name().equals(mName))) {
                         Module configCells = apply(configCellsOriginal);
                         Set<Sentence> newProds = stream(m.localSentences()).flatMap(s -> {
                             if (s instanceof Production && s.att().contains("initializer")) {
@@ -339,7 +339,7 @@ public class RuleGrammarGenerator {
                     }
                 }
 
-                if (extensionM.importedModules().exists(func(m1 -> m1.name().equals(AUTO_FOLLOW)))) {
+                if (extensionM.importedModules().exists(m1 -> m1.name().equals(AUTO_FOLLOW))) {
                     Set<Sentence> newProds = stream(m.localSentences()).map(s -> {
                         if (s instanceof Production) {
                             Production p = (Production) s;
@@ -377,7 +377,7 @@ public class RuleGrammarGenerator {
                     m = Module(m.name(), m.imports(), immutable(newProds), m.att());
                 }
 
-                if (extensionM.importedModules().exists(func(m1 -> m1.name().equals(RULE_LISTS)))) {
+                if (extensionM.importedModules().exists(m1 -> m1.name().equals(RULE_LISTS))) {
                     Set<Sentence> newProds = mutable(m.localSentences());
                     for (UserList ul : UserList.getLists(newProds)) {
                         Production prod1;

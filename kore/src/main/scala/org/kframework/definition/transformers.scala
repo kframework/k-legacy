@@ -27,7 +27,6 @@ object ModuleTransformer {
         ))
       }
     }
-  def from(f: Module => Module, name: String): ModuleTransformer = ModuleTransformer(f, name)
 
   def fromSentenceTransformer(f: (Module, Sentence) => Sentence, passName: String): HybridMemoizingModuleTransformer =
     new HybridMemoizingModuleTransformer {
@@ -74,8 +73,6 @@ object ModuleTransformer {
       override val name: String = lName
     }
   }
-
-  def fromHybrid(f: java.util.function.UnaryOperator[Module], name: String): HybridMemoizingModuleTransformer = fromHybrid(m => f(m), name)
 }
 
 class ModuleTransformerException(moduleTransformerName: String, cause: Throwable) extends Exception(cause) {
@@ -99,7 +96,7 @@ abstract class ModuleTransformer extends (Module => Module) {
 /**
   * A module transformer with memoization
   */
-trait MemoizingModuleTransformer extends ModuleTransformer {
+abstract class MemoizingModuleTransformer extends ModuleTransformer {
   val memoization = collection.concurrent.TrieMap[Module, Module]()
   val currentProcessedModules = new java.util.concurrent.LinkedBlockingDeque[Module]()
 
@@ -178,16 +175,12 @@ object DefinitionTransformer {
   def fromKTransformerWithModuleInfo(f: (Module, K) => K, name: String): DefinitionTransformer =
     DefinitionTransformer(ModuleTransformer.fromKTransformerWithModuleInfo(f.curried, name))
 
-  def fromKTransformerWithModuleInfo(f: BiFunction[Module, K, K], name: String): DefinitionTransformer =
-    fromKTransformerWithModuleInfo((m, k) => f(m, k), name)
-
-  def from(f: Module => Module, name: String): DefinitionTransformer = DefinitionTransformer.fromHybrid(f, name)
+  def fromHybrid(f: Module => Module, name: String): DefinitionTransformer = DefinitionTransformer(ModuleTransformer.fromHybrid(f, name))
 
   def apply(f: HybridMemoizingModuleTransformer): DefinitionTransformer = new DefinitionTransformer(f)
 
   def fromWithInputDefinitionTransformerClass(c: Class[_]): (Definition => Definition) = (d: Definition) => c.getConstructor(classOf[Definition]).newInstance(d).asInstanceOf[WithInputDefinitionModuleTransformer].outputDefinition
 
-  //  def apply(f: Module => Module, name: String): DefinitionTransformer = new DefinitionTransformer(ModuleTransformer(f, name))
 }
 
 class DefinitionTransformer(moduleTransformer: MemoizingModuleTransformer) extends (Definition => Definition) {
