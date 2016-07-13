@@ -228,7 +228,7 @@ public class BuiltinMap extends AssociativeCommutativeCollection {
             if (term instanceof BuiltinMap) {
                 BuiltinMap map = (BuiltinMap) term;
 
-                if (!update && entries.keySet().stream().anyMatch(key -> map.entries.containsKey(key))) {
+                if (!update && entries.keySet().stream().anyMatch(key -> map.entries.containsKey(key) && !entries.get(key).equals(map.entries.get(key)))) {
                     throw KEMException.criticalError("failed to concatenate maps with common keys: "
                             + entries.keySet().stream().filter(map.entries::containsKey).collect(Collectors.toList()));
                 }
