@@ -382,7 +382,7 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
     private Sort renameSort(Sort sort) {
         sort = definition.smtSortFlattening().getOrDefault(sort, sort);
         if (sort == Sort.LIST) {
-            return Sort.of("IntSeq");
+            return Sort.of("INT@IntSeq");
         } else if (sort == Sort.of("Id")) {
             return Sort.INT;
         } else {
