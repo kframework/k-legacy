@@ -2,9 +2,6 @@
 
 package org.kframework.backend.java.kore.compile;
 
-import static org.kframework.Collections.*;
-
-import org.kframework.Collections;
 import org.kframework.definition.Definition;
 import org.kframework.definition.ModuleTransformer;
 import org.kframework.definition.SelectiveDefinitionTransformer;
@@ -12,9 +9,6 @@ import org.kframework.kompile.KompileOptions;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.definition.Module;
-
-import static scala.compat.java8.JFunction.*;
 
 import java.util.function.Function;
 

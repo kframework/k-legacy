@@ -39,13 +39,12 @@ import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 
-import static scala.compat.java8.JFunction.*;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 import static org.kframework.definition.Constructors.Att;
+import static org.kframework.Collections.*;
 
 public class JavaBackend implements Backend {
 
@@ -72,10 +71,10 @@ public class JavaBackend implements Backend {
      */
     @Override
     public Function<Definition, Definition> steps(Kompile kompile) {
-        DefinitionTransformer convertDataStructureToLookup = DefinitionTransformer.fromSentenceTransformer(func((m, s) -> new ConvertDataStructureToLookup(m, false).convert(s)), "convert data structures to lookups");
+        DefinitionTransformer convertDataStructureToLookup = DefinitionTransformer.fromSentenceTransformer((m, s) -> new ConvertDataStructureToLookup(m, false).convert(s), "convert data structures to lookups");
         ExpandMacrosDefinitionTransformer expandMacrosDefinitionTransformer = new ExpandMacrosDefinitionTransformer(kem, files, globalOptions, kompileOptions);
 
-        return d -> (func((Definition dd) -> kompile.defaultSteps().apply(dd)))
+        return d -> func((Definition dd) -> kompile.defaultSteps().apply(dd))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(DefinitionTransformer.from(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))

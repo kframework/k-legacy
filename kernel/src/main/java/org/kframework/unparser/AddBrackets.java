@@ -23,7 +23,6 @@ import java.util.EnumSet;
 import java.util.List;
 
 import static org.kframework.Collections.*;
-import static scala.compat.java8.JFunction.*;
 
 /**
  * Implements the naive algorithm to add brackets in order to disambiguate an unparsed AST. This algorithm executes

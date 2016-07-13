@@ -49,7 +49,6 @@ import java.util.stream.Collectors;
 
 import static org.kframework.Collections.*;
 import static org.kframework.definition.Constructors.*;
-import static scala.compat.java8.JFunction.func;
 
 /**
  * The new compilation pipeline. Everything is just wired together and will need clean-up once we deside on design.
@@ -143,16 +142,15 @@ public class Kompile {
         return def -> func(this::resolveIOStreams)
                 .andThen(convertStrictToContexts)
                 .andThen(convertAnonVarsToNamedVars)
-                .andThen(func(d -> new ConvertContextsToHeatCoolRules(kompileOptions).resolve(d)))
+                .andThen(d -> new ConvertContextsToHeatCoolRules(kompileOptions).resolve(d))
                 .andThen(resolveHeatCoolAttribute)
                 .andThen(resolveSemanticCasts)
                 .andThen(generateSortPredicateSyntax)
-                .andThen(func(this::resolveFreshConstants))
-                .andThen(func(AddImplicitComputationCell::transformDefinition))
+                .andThen(this::resolveFreshConstants)
+                .andThen(AddImplicitComputationCell::transformDefinition)
                 .andThen(new Strategy(kompileOptions.experimental.heatCoolStrategies).addStrategyCellToRulesTransformer())
-                .andThen(func(ConcretizeCells::transformDefinition))
-                .andThen(func(this::addSemanticsModule))
-                .apply(def);
+                .andThen(ConcretizeCells::transformDefinition)
+                .andThen(this::addSemanticsModule).apply(def);
     }
 
     public Rule parseAndCompileRule(CompiledDefinition compiledDef, String contents, Source source, Optional<Rule> parsedRule) {
@@ -180,7 +178,7 @@ public class Kompile {
         }
     }
 
-    public Definition addSemanticsModule(Definition d) {
+    private Definition addSemanticsModule(Definition d) {
         java.util.Set<Sentence> prods = new HashSet<>();
         for (Sort srt : iterable(d.mainModule().definedSorts())) {
             if (!RuleGrammarGenerator.isParserSort(srt)) {
@@ -207,8 +205,8 @@ public class Kompile {
 
     public Rule compileRule(CompiledDefinition compiledDef, Rule parsedRule) {
         return (Rule) func(new ResolveAnonVar()::resolve)
-                .andThen(func(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve))
-                .andThen(func(s -> concretizeSentence(s, compiledDef.kompiledDefinition)))
+                .andThen(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve)
+                .andThen(s -> concretizeSentence(s, compiledDef.kompiledDefinition))
                 .apply(parsedRule);
     }
 

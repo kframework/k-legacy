@@ -5,12 +5,11 @@ import com.google.common.collect.ArrayTable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
-import org.kframework.Collections;
+import static org.kframework.Collections.*;
 import org.kframework.backend.java.kil.Sort;
 import org.kframework.definition.Module;
 import org.kframework.kil.loader.Context;
 import org.kframework.utils.errorsystem.KEMException;
-import scala.collection.JavaConversions;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -55,13 +54,13 @@ public class Subsorts implements Serializable {
     }
 
     public Subsorts(Module module) {
-        sorts = JavaConversions.asJavaCollection(module.definedSorts()).stream()
+        sorts = stream(module.definedSorts())
                 .map(s -> Sort.of(s.name()))
                 .collect(Collectors.toSet());
 
         this.subsort = ArrayTable.create(sorts, sorts);
-        for (org.kframework.kore.Sort sort1 : Collections.iterable(module.definedSorts())) {
-            for (org.kframework.kore.Sort sort2 : Collections.iterable(module.definedSorts())) {
+        for (org.kframework.kore.Sort sort1 : iterable(module.definedSorts())) {
+            for (org.kframework.kore.Sort sort2 : iterable(module.definedSorts())) {
                 subsort.put(
                         Sort.of(sort1.name()),
                         Sort.of(sort2.name()),
