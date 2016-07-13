@@ -10,9 +10,9 @@ import org.kframework.kore.K
 import org.kframework.utils.errorsystem.KEMException
 
 object ModuleTransformer {
-  def from(f: java.util.function.UnaryOperator[Module], name: String): ModuleTransformer = ModuleTransformer(f(_), name)
+  def from(f: Module => Module, name: String): ModuleTransformer = ModuleTransformer(f, name)
 
-  def fromSentenceTransformer(f: java.util.function.UnaryOperator[Sentence], name: String): ModuleTransformer =
+  def fromSentenceTransformer(f: Sentence => Sentence, name: String): ModuleTransformer =
     fromSentenceTransformer((m: Module, s: Sentence) => f(s), name)
 
   def fromSentenceTransformer(f: (Module, Sentence) => Sentence, name: String): ModuleTransformer =
@@ -79,16 +79,10 @@ class ModuleTransformer(f: Module => Module, name: String) extends (Module => Mo
 
 object DefinitionTransformer {
   def fromSentenceTransformer(f: java.util.function.UnaryOperator[Sentence], name: String): DefinitionTransformer =
-    DefinitionTransformer(ModuleTransformer.fromSentenceTransformer(f, name))
+    DefinitionTransformer(ModuleTransformer.fromSentenceTransformer(f(_), name))
 
   def fromSentenceTransformer(f: (Module, Sentence) => Sentence, name: String): DefinitionTransformer =
     DefinitionTransformer(ModuleTransformer.fromSentenceTransformer(f, name))
-
-  def fromRuleBodyTranformer(f: java.util.function.UnaryOperator[K], name: String): DefinitionTransformer =
-    DefinitionTransformer(ModuleTransformer.fromRuleBodyTranformer(f, name))
-
-  def fromRuleBodyTranformerUnary(f: java.util.function.UnaryOperator[K], name: String): DefinitionTransformer =
-    DefinitionTransformer(ModuleTransformer.fromRuleBodyTranformer(f, name))
 
   def fromRuleBodyTranformer(f: K => K, name: String): DefinitionTransformer =
     DefinitionTransformer(ModuleTransformer.fromRuleBodyTranformer(f, name))
