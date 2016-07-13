@@ -197,7 +197,8 @@ public class DefinitionParsing {
         }
 
         ResolveConfig resolveConfig = new ResolveConfig(definitionWithConfigBubble, isStrict, this::parseBubble, this::getParser);
-        Definition defWithConfig = DefinitionTransformer.fromHybrid(resolveConfig, "parsing configurations").apply(definitionWithConfigBubble);
+        gen = new RuleGrammarGenerator(definitionWithConfigBubble, isStrict);
+        Definition defWithConfig = DefinitionTransformer.fromHybrid(resolveConfig::apply, "parsing configurations").apply(definitionWithConfigBubble);
 
         return defWithConfig;
     }

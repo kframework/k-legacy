@@ -27,6 +27,7 @@ object ModuleTransformer {
         ))
       }
     }
+  def from(f: Module => Module, name: String): ModuleTransformer = ModuleTransformer(f, name)
 
   def fromSentenceTransformer(f: (Module, Sentence) => Sentence, passName: String): HybridMemoizingModuleTransformer =
     new HybridMemoizingModuleTransformer {
@@ -49,9 +50,6 @@ object ModuleTransformer {
       }
       override val name: String = passName
     }
-
-  def fromRuleBodyTranformer(f: java.util.function.UnaryOperator[K], name: String): MemoizingModuleTransformer =
-    fromSentenceTransformer(_ match { case r: Rule => r.copy(body = f(r.body)); case s => s }, name)
 
   def fromRuleBodyTranformer(f: K => K, name: String): MemoizingModuleTransformer =
     fromSentenceTransformer(_ match { case r: Rule => r.copy(body = f(r.body)); case s => s }, name)
@@ -165,14 +163,11 @@ abstract class HybridMemoizingModuleTransformer extends MemoizingModuleTransform
 }
 
 object DefinitionTransformer {
-  def fromSentenceTransformer(f: java.util.function.UnaryOperator[Sentence], name: String): DefinitionTransformer =
-    new DefinitionTransformer(ModuleTransformer.fromSentenceTransformer(f, name))
+  def fromSentenceTransformer(f: Sentence => Sentence, name: String): DefinitionTransformer =
+    new DefinitionTransformer(ModuleTransformer.fromSentenceTransformer(f(_), name))
 
   def fromSentenceTransformer(f: (Module, Sentence) => Sentence, name: String): DefinitionTransformer =
     DefinitionTransformer(ModuleTransformer.fromSentenceTransformer(f, name))
-
-  def fromRuleBodyTranformer(f: java.util.function.UnaryOperator[K], name: String): DefinitionTransformer =
-    new DefinitionTransformer(ModuleTransformer.fromRuleBodyTranformer(f, name))
 
   def fromRuleBodyTranformer(f: K => K, name: String): DefinitionTransformer =
     new DefinitionTransformer(ModuleTransformer.fromRuleBodyTranformer(f, name))
@@ -186,9 +181,7 @@ object DefinitionTransformer {
   def fromKTransformerWithModuleInfo(f: BiFunction[Module, K, K], name: String): DefinitionTransformer =
     fromKTransformerWithModuleInfo((m, k) => f(m, k), name)
 
-  def fromHybrid(f: java.util.function.UnaryOperator[Module], name: String): DefinitionTransformer = DefinitionTransformer(ModuleTransformer.fromHybrid(f, name))
-
-  def fromHybrid(f: Module => Module, name: String): DefinitionTransformer = DefinitionTransformer(ModuleTransformer.fromHybrid(f, name))
+  def from(f: Module => Module, name: String): DefinitionTransformer = DefinitionTransformer.fromHybrid(f, name)
 
   def apply(f: HybridMemoizingModuleTransformer): DefinitionTransformer = new DefinitionTransformer(f)
 

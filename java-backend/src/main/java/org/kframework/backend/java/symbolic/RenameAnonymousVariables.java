@@ -6,7 +6,6 @@ import org.kframework.backend.java.kil.Variable;
 import org.kframework.kil.ASTNode;
 import scala.collection.mutable.HashMap;
 import scala.collection.mutable.Map;
-import static scala.compat.java8.JFunction.*;
 
 /**
  * Renames the anonymous variable to a normal form with index numbers starting from 0.
@@ -20,7 +19,7 @@ class RenameAnonymousVariables {
 
     public Variable getRenamedVariable(Variable v) {
         if (v.isAnonymous()) {
-            return renames.getOrElseUpdate(v, func(() -> new Variable("V" + newCount++, v.sort())));
+            return renames.getOrElseUpdate(v, () -> new Variable("V" + newCount++, v.sort()));
         } else {
             return v;
         }

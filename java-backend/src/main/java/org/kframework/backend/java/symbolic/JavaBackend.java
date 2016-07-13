@@ -3,6 +3,7 @@ package org.kframework.backend.java.symbolic;
 
 import com.google.inject.Inject;
 import org.kframework.AddConfigurationRecoveryFlags;
+import org.kframework.Collections;
 import org.kframework.attributes.Att;
 import org.kframework.backend.java.kore.compile.ExpandMacrosDefinitionTransformer;
 import org.kframework.builtin.KLabels;
@@ -41,13 +42,12 @@ import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import scala.Option;
 
-import static scala.compat.java8.JFunction.*;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 import static org.kframework.definition.Constructors.Att;
+import static scala.runtime.java8.JFunction.func;
 
 public class JavaBackend implements Backend {
 
@@ -102,13 +102,13 @@ public class JavaBackend implements Backend {
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(DefinitionTransformer.fromHybrid(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))
                 .andThen(moduleQualifySortPredicates)
-                .andThen(func(expandMacrosDefinitionTransformer::apply))
+                .andThen(expandMacrosDefinitionTransformer::apply)
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(convertDataStructureToLookup)
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::convertKSeqToKApply, "kseq to kapply"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(NormalizeKSeq.self(), "normalize kseq"))
-                .andThen(func(JavaBackend::markRegularRules))
+                .andThen(JavaBackend::markRegularRules)
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new AddConfigurationRecoveryFlags(), "add refers_THIS_CONFIGURATION_marker"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(JavaBackend::markSingleVariables, "mark single variables"))
                 .andThen(DefinitionTransformer.fromHybrid(new AssocCommToAssoc(KORE.c()), "convert assoc/comm to assoc"))
@@ -122,16 +122,13 @@ public class JavaBackend implements Backend {
 
         return d -> (func((Definition dd) -> kompile.defaultSteps().apply(dd)))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
-                .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(DefinitionTransformer.fromHybrid(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))
                 .andThen(func(dd -> expandMacrosDefinitionTransformer.apply(dd)))
-                .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::convertKSeqToKApply, "kseq to kapply"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(NormalizeKSeq.self(), "normalize kseq"))
-                .andThen(func(dd -> markRegularRules(dd)))
+                .andThen(JavaBackend::markRegularRules)
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new AddConfigurationRecoveryFlags(), "add refers_THIS_CONFIGURATION_marker"))
-                //.andThen(DefinitionTransformer.fromSentenceTransformer(JavaBackend::markSingleVariables, "mark single variables"))
                 .andThen(DefinitionTransformer.fromHybrid(new AssocCommToAssoc(KORE.c()), "convert assoc/comm to assoc"))
                 .apply(d);
     }

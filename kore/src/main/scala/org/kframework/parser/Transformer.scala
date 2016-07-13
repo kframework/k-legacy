@@ -132,25 +132,23 @@ abstract class GeneralTransformer[E, W] extends ChildrenMapping[E, W] {
   def apply(c: Constant): (Either[E, Term], W) = simpleResult(c)
 }
 
-trait EAsSet[E] {
+
+abstract class SetsGeneralTransformer[E, W]
+  extends GeneralTransformer[java.util.Set[E], java.util.Set[W]] {
   /**
-   * Merges the set of problematic (i.e., Left) results.
-   */
+    * Merges the set of problematic (i.e., Left) results.
+    */
   def mergeErrors(a: java.util.Set[E], b: java.util.Set[E]): java.util.Set[E] = Sets.union(a, b)
 
   val errorUnit: java.util.Set[E] = Sets.newHashSet()
-}
 
-trait WAsSet[W] {
-  val warningUnit: java.util.Set[W] = Sets.newHashSet();
   /**
-   * Merges the set of problematic (i.e., Left) results.
-   */
+    * Merges the set of problematic (i.e., Left) results.
+    */
   def mergeWarnings(a: java.util.Set[W], b: java.util.Set[W]): java.util.Set[W] = Sets.union(a, b)
-}
 
-abstract class SetsGeneralTransformer[E, W]
-  extends GeneralTransformer[java.util.Set[E], java.util.Set[W]] with EAsSet[E] with WAsSet[W]
+  val warningUnit: java.util.Set[W] = Sets.newHashSet()
+}
 
 /**
  * Visitor pattern for the front end classes.
@@ -195,7 +193,14 @@ abstract class TransformerWithErrors[E] extends ChildrenMapping[E, Ignore] {
 }
 
 abstract class SetsTransformerWithErrors[E]
-  extends TransformerWithErrors[java.util.Set[E]] with EAsSet[E]
+  extends TransformerWithErrors[java.util.Set[E]] {
+  /**
+    * Merges the set of problematic (i.e., Left) results.
+    */
+  def mergeErrors(a: java.util.Set[E], b: java.util.Set[E]): java.util.Set[E] = Sets.union(a, b)
+
+  val errorUnit: java.util.Set[E] = Sets.newHashSet()
+}
 
 /**
  * Visitor pattern for the front end classes.

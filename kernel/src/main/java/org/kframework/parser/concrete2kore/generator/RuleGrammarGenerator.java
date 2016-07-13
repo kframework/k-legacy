@@ -37,7 +37,6 @@ import static org.kframework.Collections.*;
 import static org.kframework.definition.Constructors.Att;
 import static org.kframework.definition.Constructors.*;
 import static org.kframework.kore.KORE.*;
-import static scala.compat.java8.JFunction.func;
 
 /**
  * Generator for rule and ground parsers.

@@ -156,15 +156,15 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
                         cellPlaceholderSubstitutionApplication.apply(r.ensures()),
                         r.att()))
                 .map(r -> (Rule) macroExpander.expand(r))
-                .map(r -> transform(JavaBackend::ADTKVariableToSortedVariable, r))
-                .map(r -> transform(JavaBackend::convertKSeqToKApply, r))
+                .map(r -> transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
+                .map(r -> transformFunction(JavaBackend::convertKSeqToKApply, r))
                 .map(r -> transform(NormalizeKSeq.self(), r))
                 //.map(r -> kompile.compileRule(compiledDefinition, r))
                 .collect(Collectors.toList());
         return rewriter.prove(rules);
     }
 
-    private Rule transform(Function<K, K> f, Rule r) {
+    private Rule transformFunction(Function<K, K> f, Rule r) {
         return Rule.apply(f.apply(r.body()), f.apply(r.requires()), f.apply(r.ensures()), r.att());
     }
 
