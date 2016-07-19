@@ -9,7 +9,4 @@ rule
   =>
     tv(int, (X +Int Y +Int Z) /Int 3)
   ...</k>
-  <in> IN:List </in>
-  <out> OUT:List </out>
-
 endmodule

@@ -57,6 +57,7 @@ public class SymbolicRewriter {
     private final FastRuleMatcher theFastMatcher;
     private final Definition definition;
     private final BitSet allRuleBits;
+    public boolean proveFlag;
 
     @Inject
     public SymbolicRewriter(GlobalContext global, KompileOptions kompileOptions, JavaExecutionOptions javaOptions,
@@ -170,6 +171,12 @@ public class SymbolicRewriter {
                     rule.containsAttribute(Att.refers_THIS_CONFIGURATION()) ?
                             matchResult.constraint.substitution().plus(new Variable(KLabels.THIS_CONFIGURATION, Sort.KSEQUENCE), filterOurStrategyCell(subject.term())) :
                             matchResult.constraint.substitution();
+
+            // skip over IO rules when in prove rules
+            if (proveFlag && rule.containsAttribute("stream")) {
+                continue;
+            }
+
             // start the optimized substitution
 
             // get a map from AST paths to (fine-grained, inner) rewrite RHSs
@@ -547,6 +554,7 @@ public class SymbolicRewriter {
             ConstrainedTerm initialTerm,
             ConstrainedTerm targetTerm,
             List<Rule> specRules) {
+        proveFlag = true;
         List<ConstrainedTerm> proofResults = new ArrayList<>();
         Set<ConstrainedTerm> visited = new HashSet<>();
         List<ConstrainedTerm> queue = new ArrayList<>();
@@ -641,6 +649,7 @@ public class SymbolicRewriter {
             guarded = true;
         }
 
+        proveFlag = false;
         return proofResults;
     }
 

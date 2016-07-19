@@ -9,7 +9,4 @@ rule
   =>
     tv(int, minInt(X, Y))
   ...</k>
-  <in> IN:List </in>
-  <out> OUT:List </out>
-
 endmodule
