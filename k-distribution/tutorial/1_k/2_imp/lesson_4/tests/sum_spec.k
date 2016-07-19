@@ -20,8 +20,8 @@ requires N >=Int 0
 rule
   <k>
     int n, sum;
-    n = 0;
-    sum = N:Int;
+    n = N:Int;
+    sum = 0;
     while (!(n <= 0)) {
       sum = sum + n;
       n = n + -1;

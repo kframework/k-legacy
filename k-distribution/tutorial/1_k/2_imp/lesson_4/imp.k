@@ -55,6 +55,7 @@ module IMP
     requires notBool (X in keys(Rho))
   rule int .Ids; S => S  [structural]
 
+// verification ids
   syntax Id ::= "n"     [token]
               | "sum"   [token]
 endmodule
