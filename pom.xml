@@ -14,7 +14,6 @@
     <module>k-distribution</module>
     <module>java-backend</module>
     <module>coq-backend</module>
-    <module>tiny</module>
     <module>API</module>
   </modules>
 
@@ -44,7 +43,7 @@
     <base>master</base>
     <skipCheckstyleOnWindows>true</skipCheckstyleOnWindows>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <scala.version>2.11.7</scala.version>
+    <scala.version>2.12.0-M5</scala.version>
   </properties>
 
   <dependencies>
@@ -52,11 +51,6 @@
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
       <version>${scala.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.scala-lang.modules</groupId>
-      <artifactId>scala-java8-compat_2.11</artifactId>
-      <version>0.7.0</version>
     </dependency>
     <dependency>
         <groupId>org.scala-lang</groupId>

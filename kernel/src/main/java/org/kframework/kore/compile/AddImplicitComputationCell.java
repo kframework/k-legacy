@@ -17,6 +17,7 @@ import org.kframework.kore.KLabel;
 import org.kframework.kore.KRewrite;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
@@ -30,7 +31,7 @@ public class AddImplicitComputationCell implements UnaryOperator<Sentence> {
         ConfigurationInfoFromModule configInfo = new ConfigurationInfoFromModule(input.mainModule());
         LabelInfo labelInfo = new LabelInfoFromModule(input.mainModule());
         return DefinitionTransformer.fromSentenceTransformer(
-                new AddImplicitComputationCell(configInfo, labelInfo),
+                new AddImplicitComputationCell(configInfo, labelInfo)::apply,
                 "concretizing configuration").apply(input);
     }
 
