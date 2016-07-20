@@ -1,7 +1,7 @@
 // Copyright (c) 2016 K Team. All Rights Reserved.
 
 module SUM-SPEC
-  imports IMP 
+  imports IMP
 rule
   <k>
     while (!(n <= 0)) {
