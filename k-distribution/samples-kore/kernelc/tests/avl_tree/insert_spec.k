@@ -9,8 +9,6 @@ rule
   =>
     tv(int, maxInt(X, Y))
   ...</k>
-  <in> IN:List </in>
-  <out> OUT:List </out>
 
 rule
   <struct>... STRUCT:Map ...</struct>
@@ -21,8 +19,6 @@ rule
     tv(int, tree_height(T))
   ...</k>
   <heap>... htree(TP)(T:Tree) ...</heap>
-  <in> IN:List </in>
-  <out> OUT:List </out>
 requires avl(T)
 
 rule
@@ -42,8 +38,6 @@ rule
     htree(PL)(TL:Tree)
     htree(PR)(TR:Tree)
   ...</heap>
-  <in> IN:List </in>
-  <out> OUT:List </out>
 requires avl(TL) andBool avl(TR)
 
 rule
@@ -55,8 +49,6 @@ rule
     tv(struct node *, ?TP2:Pointer)
   ...</k>
   <heap>... htree(TP1)(T1:Tree) => htree(?TP2)(?T2:Tree) ...</heap>
-  <in> IN:List </in>
-  <out> OUT:List </out>
 requires avl(T1)
 ensures avl(?T2) andBool tree_keys(?T2) ==K { V } U tree_keys(T1)
   andBool tree_height(T1) <=Int tree_height(?T2)

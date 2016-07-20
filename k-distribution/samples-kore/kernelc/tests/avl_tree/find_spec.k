@@ -11,8 +11,6 @@ rule
     tv(int, ?B:Int)
   ...</k>
   <heap>... htree(TP)(T:Tree) ...</heap>
-  <in> IN:List </in>
-  <out> OUT:List </out>
 requires avl(T)
 ensures (?B =/=K 0) ==K (V inIntSet tree_keys(T))
 endmodule

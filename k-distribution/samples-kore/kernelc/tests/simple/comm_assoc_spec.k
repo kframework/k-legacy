@@ -9,7 +9,4 @@ rule
   =>
     tv(int, 1)
   ...</k>
-  <in> IN:List </in>
-  <out> OUT:List </out>
-
 endmodule
