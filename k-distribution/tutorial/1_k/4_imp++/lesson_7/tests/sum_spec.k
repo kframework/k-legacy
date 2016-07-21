@@ -3,7 +3,7 @@
 module SUM-SPEC
   imports IMP
 rule
-  <threads><thread>
+  <threads><thread>...
     <k>
       while (!(n <= 0)) {
         sum = sum + n;
@@ -16,7 +16,7 @@ rule
       n   |-> LN:Int
       sum |-> LSUM:Int
     ...</env>
-  </thread></threads>
+  ...</thread></threads>
   <store>...
     LN   |-> (N:Int => 0)
     LSUM |-> (S:Int => S +Int ((N +Int 1) *Int N /Int 2))
@@ -24,7 +24,7 @@ rule
 requires N >=Int 0
 
 rule
-  <threads><thread>
+  <threads><thread>...
     <k>
       int n, sum;
       n = N:Int;
@@ -36,18 +36,18 @@ rule
     =>
       .K
     ...</k>
-    <env>...
+    <env>
       .Map
     =>
       n   |-> ?LN:Int
       sum |-> ?LSUM:Int
-    ...</env>
-  </thread></threads>
+    </env>
+  ...</thread></threads>
   <store>...
     .Map
   =>
-    LN   |-> 0
-    LSUM |-> ((N +Int 1) *Int N /Int 2)
+    ?LN   |-> 0
+    ?LSUM |-> ((N +Int 1) *Int N /Int 2)
   ...</store>
 requires N >=Int 0
 endmodule

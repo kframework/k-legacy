@@ -79,7 +79,7 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
                 .collect(org.kframework.Collections.toSet());
 
         mod = new JavaBackend(kem, files, globalOptions, compiledDefinition.kompileOptions)
-                .stepsForProverRules(kompile)
+                .stepsForProverRules()
                 .apply(Definition.apply(mod, org.kframework.Collections.add(mod, alsoIncluded), Att.apply()))
                 .getModule(mod.name()).get();
 

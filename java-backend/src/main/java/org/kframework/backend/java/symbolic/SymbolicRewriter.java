@@ -57,7 +57,6 @@ public class SymbolicRewriter {
     private final FastRuleMatcher theFastMatcher;
     private final Definition definition;
     private final BitSet allRuleBits;
-    public boolean proveFlag;
 
     @Inject
     public SymbolicRewriter(GlobalContext global, KompileOptions kompileOptions, JavaExecutionOptions javaOptions,
@@ -98,7 +97,7 @@ public class SymbolicRewriter {
     }
 
     private List<ConstrainedTerm> computeRewriteStep(ConstrainedTerm constrainedTerm, int step, boolean computeOne) {
-        return fastComputeRewriteStep(constrainedTerm, computeOne, false);
+        return fastComputeRewriteStep(constrainedTerm, computeOne, false, false);
     }
 
     /**
@@ -152,7 +151,7 @@ public class SymbolicRewriter {
         throw new UnsupportedOperationException();
     }
 
-    private List<ConstrainedTerm> fastComputeRewriteStep(ConstrainedTerm subject, boolean computeOne, boolean narrowing) {
+    private List<ConstrainedTerm> fastComputeRewriteStep(ConstrainedTerm subject, boolean computeOne, boolean narrowing, boolean proofFlag) {
         List<ConstrainedTerm> results = new ArrayList<>();
         if (definition.automaton == null) {
             return results;
@@ -164,6 +163,7 @@ public class SymbolicRewriter {
                 narrowing,
                 computeOne,
                 transitions,
+                proofFlag,
                 subject.termContext());
         for (FastRuleMatcher.RuleMatchResult matchResult : matches) {
             Rule rule = definition.ruleTable.get(matchResult.ruleIndex);
@@ -171,12 +171,6 @@ public class SymbolicRewriter {
                     rule.containsAttribute(Att.refers_THIS_CONFIGURATION()) ?
                             matchResult.constraint.substitution().plus(new Variable(KLabels.THIS_CONFIGURATION, Sort.KSEQUENCE), filterOurStrategyCell(subject.term())) :
                             matchResult.constraint.substitution();
-
-            // skip over IO rules when in prove rules
-            if (proveFlag && rule.containsAttribute("stream")) {
-                continue;
-            }
-
             // start the optimized substitution
 
             // get a map from AST paths to (fine-grained, inner) rewrite RHSs
@@ -554,7 +548,6 @@ public class SymbolicRewriter {
             ConstrainedTerm initialTerm,
             ConstrainedTerm targetTerm,
             List<Rule> specRules) {
-        proveFlag = true;
         List<ConstrainedTerm> proofResults = new ArrayList<>();
         Set<ConstrainedTerm> visited = new HashSet<>();
         List<ConstrainedTerm> queue = new ArrayList<>();
@@ -586,6 +579,7 @@ public class SymbolicRewriter {
                                 rightKPattern.getLeft(),
                                 term.termContext());
                         if (matchable != null && matchable.booleanValue()) {
+                            System.err.println("===" + term);
                             proofResults.add(term);
                             continue;
                         }
@@ -601,10 +595,11 @@ public class SymbolicRewriter {
                     }
                 }
 
-                List<ConstrainedTerm> results = fastComputeRewriteStep(term, false, true);
+                List<ConstrainedTerm> results = fastComputeRewriteStep(term, false, true, true);
                 if (results.isEmpty()) {
                     /* final term */
                     proofResults.add(term);
+                    System.err.println(">>>" + term);
                 } else {
 //                    for (Rule rule : appliedRules) {
 //                        System.err.println(rule.getLocation() + " " + rule.getSource());
@@ -649,7 +644,6 @@ public class SymbolicRewriter {
             guarded = true;
         }
 
-        proveFlag = false;
         return proofResults;
     }
 

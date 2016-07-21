@@ -28,12 +28,12 @@ rule
     }
   =>
     .K
-  ...</k>
-  <state>...
+  </k>
+  <state>
     .Map
   =>
     n   |-> 0
     sum |-> ((N +Int 1) *Int N /Int 2)
-  ...</state>
+  </state>
 requires N >=Int 0
 endmodule
