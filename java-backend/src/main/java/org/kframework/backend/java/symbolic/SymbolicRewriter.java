@@ -579,7 +579,6 @@ public class SymbolicRewriter {
                                 rightKPattern.getLeft(),
                                 term.termContext());
                         if (matchable != null && matchable.booleanValue()) {
-                            System.err.println("===" + term);
                             proofResults.add(term);
                             continue;
                         }
@@ -599,7 +598,6 @@ public class SymbolicRewriter {
                 if (results.isEmpty()) {
                     /* final term */
                     proofResults.add(term);
-                    System.err.println(">>>" + term);
                 } else {
 //                    for (Rule rule : appliedRules) {
 //                        System.err.println(rule.getLocation() + " " + rule.getSource());
