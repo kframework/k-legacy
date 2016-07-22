@@ -628,7 +628,7 @@ those in untyped KOOL. */
   rule <k> storeObj => . ...</k>
        <crntObj>
          <crntClass> Class </crntClass>
-         <envStack> EStack </envStack> 
+         <envStack> EStack </envStack>
          (<location> L:Int </location> => .Bag)
        </crntObj>
        <store>... .Map => L |-> objectClosure(Class, EStack) ...</store>
@@ -641,7 +641,7 @@ Like in untyped KOOL. */
   rule <k> this => objectClosure(Class, EStack) ...</k>
        <crntObj>
          <crntClass> Class </crntClass>
-         <envStack> EStack </envStack> 
+         <envStack> EStack </envStack>
          ...
        </crntObj>
 
