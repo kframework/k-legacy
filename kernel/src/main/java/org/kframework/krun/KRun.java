@@ -345,7 +345,7 @@ public class KRun {
         } catch (IOException e) {
             throw KEMException.internalError("IO error detected reading from stdin", e);
         }
-        if (buffer == null) {
+        if (buffer == null || buffer.equals("")) {
             return "";
         }
         return buffer + "\n";
