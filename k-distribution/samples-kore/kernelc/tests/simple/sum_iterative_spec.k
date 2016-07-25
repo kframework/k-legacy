@@ -19,8 +19,6 @@ rule
     object(P1) |-> tv(int, N:Int => 0)
     object(P2) |-> tv(int, S:Int => S +Int ((N +Int 1) *Int N /Int 2))
   ...</heap>
-  <in> IN:List </in>
-  <out> OUT:List </out>
 requires N >=Int 0
 
 rule
@@ -30,8 +28,5 @@ rule
   =>
     tv(int, (N +Int 1) *Int N /Int 2)
   ...</k>
-  <in> IN:List </in>
-  <out> OUT:List </out>
 requires N >=Int 0
-
 endmodule

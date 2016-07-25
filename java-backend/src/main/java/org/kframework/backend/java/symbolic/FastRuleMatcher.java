@@ -98,6 +98,7 @@ public class FastRuleMatcher {
             boolean narrowing,
             boolean computeOne,
             List<String> transitions,
+            boolean proveFlag,
             TermContext context) {
 
         ruleMask.stream().forEach(i -> constraints[i] = ConjunctiveFormula.of(context.global()));
@@ -109,6 +110,11 @@ public class FastRuleMatcher {
         List<RuleMatchResult> transitionResults = new ArrayList<>();
         for (int i = theMatchingRules.nextSetBit(0); i >= 0; i = theMatchingRules.nextSetBit(i + 1)) {
             Rule rule = global.getDefinition().ruleTable.get(i);
+            // skip over IO rules when in prove rules
+            if (proveFlag && rule.containsAttribute("stream")) {
+                continue;
+            }
+
             // TODO(YilongL): remove TermContext from the signature once
             // ConstrainedTerm doesn't hold a TermContext anymore
             /* TODO(AndreiS): remove this hack for super strictness after strategies work */
