@@ -188,7 +188,12 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
                             termContext.global()))
                     .collect(Collectors.toList());
             List<org.kframework.backend.java.kil.Rule> allRules = javaRules.stream()
-                    .map(r -> r.renameVariables())
+                    .map(org.kframework.backend.java.kil.Rule::renameVariables)
+                    .collect(Collectors.toList());
+
+            // rename all variables again to avoid any potential conflicts with the rules in the semantics
+            javaRules = javaRules.stream()
+                    .map(org.kframework.backend.java.kil.Rule::renameVariables)
                     .collect(Collectors.toList());
 
             this.rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, javaOptions, new KRunState.Counter(), converter);

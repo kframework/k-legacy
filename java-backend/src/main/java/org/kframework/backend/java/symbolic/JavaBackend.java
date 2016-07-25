@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import org.kframework.AddConfigurationRecoveryFlags;
 import org.kframework.Collections;
 import org.kframework.attributes.Att;
+import org.kframework.backend.Backends;
 import org.kframework.backend.java.kore.compile.ExpandMacrosDefinitionTransformer;
 import org.kframework.builtin.KLabels;
 import org.kframework.compile.AddBottomSortForListsWithIdenticalLabels;
@@ -20,7 +21,6 @@ import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.ADT;
-import org.kframework.kore.KToken;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
@@ -28,12 +28,15 @@ import org.kframework.kore.KORE;
 import org.kframework.kore.KSequence;
 import org.kframework.kore.KVariable;
 import org.kframework.kore.SortedADT;
+import org.kframework.kore.compile.AddImplicitComputationCell;
 import org.kframework.kore.compile.AssocCommToAssoc;
 import org.kframework.kore.compile.Backend;
+import org.kframework.kore.compile.ConcretizeCells;
 import org.kframework.kore.compile.ConvertDataStructureToLookup;
-import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.kore.compile.MergeRules;
 import org.kframework.kore.compile.NormalizeAssoc;
+import org.kframework.kore.compile.ResolveAnonVar;
+import org.kframework.kore.compile.ResolveSemanticCasts;
 import org.kframework.kore.compile.RewriteToTop;
 import org.kframework.kore.TransformK;
 import org.kframework.main.GlobalOptions;
@@ -93,10 +96,15 @@ public class JavaBackend implements Backend {
                 .apply(d);
     }
 
-    public Function<Definition, Definition> stepsForProverRules(Kompile kompile) {
+    public Function<Definition, Definition> stepsForProverRules() {
+        DefinitionTransformer resolveAnonVars = DefinitionTransformer.fromSentenceTransformer(new ResolveAnonVar()::resolve, "resolving \"_\" vars");
+        DefinitionTransformer resolveSemanticCasts = DefinitionTransformer.fromSentenceTransformer(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve, "resolving semantic casts");
         ExpandMacrosDefinitionTransformer expandMacrosDefinitionTransformer = new ExpandMacrosDefinitionTransformer(kem, files, globalOptions, kompileOptions);
 
-        return d -> (func((Definition dd) -> kompile.defaultSteps().apply(dd)))
+        return d -> resolveAnonVars
+                .andThen(resolveSemanticCasts)
+                .andThen(AddImplicitComputationCell::transformDefinition)
+                .andThen(ConcretizeCells::transformDefinition)
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
                 .andThen(DefinitionTransformer.from(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))
                 .andThen(expandMacrosDefinitionTransformer::apply)

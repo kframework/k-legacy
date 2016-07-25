@@ -97,7 +97,7 @@ public class SymbolicRewriter {
     }
 
     private List<ConstrainedTerm> computeRewriteStep(ConstrainedTerm constrainedTerm, int step, boolean computeOne) {
-        return fastComputeRewriteStep(constrainedTerm, computeOne, false);
+        return fastComputeRewriteStep(constrainedTerm, computeOne, false, false);
     }
 
     /**
@@ -151,7 +151,7 @@ public class SymbolicRewriter {
         throw new UnsupportedOperationException();
     }
 
-    private List<ConstrainedTerm> fastComputeRewriteStep(ConstrainedTerm subject, boolean computeOne, boolean narrowing) {
+    private List<ConstrainedTerm> fastComputeRewriteStep(ConstrainedTerm subject, boolean computeOne, boolean narrowing, boolean proofFlag) {
         List<ConstrainedTerm> results = new ArrayList<>();
         if (definition.automaton == null) {
             return results;
@@ -163,6 +163,7 @@ public class SymbolicRewriter {
                 narrowing,
                 computeOne,
                 transitions,
+                proofFlag,
                 subject.termContext());
         for (FastRuleMatcher.RuleMatchResult matchResult : matches) {
             Rule rule = definition.ruleTable.get(matchResult.ruleIndex);
@@ -593,7 +594,7 @@ public class SymbolicRewriter {
                     }
                 }
 
-                List<ConstrainedTerm> results = fastComputeRewriteStep(term, false, true);
+                List<ConstrainedTerm> results = fastComputeRewriteStep(term, false, true, true);
                 if (results.isEmpty()) {
                     /* final term */
                     proofResults.add(term);
