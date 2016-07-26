@@ -50,14 +50,14 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
             Sort.BIT_VECTOR,
             Sort.of(Sorts.Float().name()),
             Sort.of(Sorts.String().name()),
-            Sort.of("INT-SET@IntSet"),
-            Sort.of("MINT-SET@MIntSet"),
-            Sort.of("FLOAT-SET@FloatSet"),
-            Sort.of("STRING-SET@StringSet"),
-            Sort.of("INT-LIST@IntSeq"),
-            Sort.of("MINT-LIST@MIntSeq"),
-            Sort.of("FLOAT-LIST@FloatSeq"),
-            Sort.of("STRING-LIST@StringSeq"));
+            Sort.of("IntSet@INT-SET"),
+            Sort.of("MIntSet@MINT-SET"),
+            Sort.of("FloatSet@FLOAT-SET"),
+            Sort.of("StringSet@STRING-SET"),
+            Sort.of("IntSeq@INT-LIST"),
+            Sort.of("MIntSeq@MINT-LIST"),
+            Sort.of("FloatSeq@FLOAT-LIST"),
+            Sort.of("StringSeq@STRING-LIST"));
     public static final ImmutableSet<String> SMTLIB_BUILTIN_FUNCTIONS = ImmutableSet.of(
             "forall",
             "exists",
@@ -269,7 +269,7 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
 
         for (Sort sort : Sets.difference(sorts, SMTLIB_BUILTIN_SORTS)) {
             sb.append("(declare-sort ");
-            sb.append(sort);
+            sb.append(renameSort(sort).localName());
             sb.append(")\n");
         }
 
@@ -382,7 +382,7 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
     private Sort renameSort(Sort sort) {
         sort = definition.smtSortFlattening().getOrDefault(sort, sort);
         if (sort == Sort.LIST) {
-            return Sort.of("INT-LIST@IntSeq");
+            return Sort.of("IntSeq@INT-LIST");
         } else if (sort == Sort.of(Sorts.Id().name())) {
             return Sort.INT;
         } else {

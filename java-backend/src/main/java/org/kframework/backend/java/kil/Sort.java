@@ -142,7 +142,7 @@ public final class Sort extends org.kframework.kore.AbstractSort implements Maxi
     @Override
     public String localName() {
         if(name.contains("@"))
-            return name.split("@")[1];
+            return name.split("@")[0];
         else
             return name;
     }
