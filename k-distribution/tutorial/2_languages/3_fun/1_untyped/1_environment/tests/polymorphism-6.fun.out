@@ -2,5 +2,5 @@ Search results:
 
 Solution 1:
 V:K@SORT-K -->
-closure ( f00 |-> 1 f03 |-> 4 f01 |-> 2 f02 |-> 3 , ( x -> ( f03 ( f03 x ) ) ) | .TypeCases )
+closure ( f02 |-> 3 f01 |-> 2 f00 |-> 1 f03 |-> 4 , ( x -> ( f03 ( f03 x ) ) ) | .TypeCases )
 
