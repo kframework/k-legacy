@@ -441,7 +441,7 @@ interestingly, the semantics of return stays unchanged. */
 
   rule <k> return(V:Val); ~> _ => V ~> K </k>
        <control>
-         <fstack> ListItem(tuple4(Env,K,XS,<crntObj> CO </crntObj>)) => .List ...</fstack>
+         <fstack> ListItem(fstackFrame(Env,K,XS,<crntObj> CO </crntObj>)) => .List ...</fstack>
          <xstack> _ => XS </xstack>
          <crntObj> _ => CO </crntObj>
        </control>
@@ -478,7 +478,7 @@ interestingly, the semantics of return stays unchanged. */
   rule print(.Vals); => .  [structural]
 
 
-  syntax KItem ::= tuple5(Id,Stmt,K,Map,K)
+  syntax KItem ::= xstackFrame(Id,Stmt,K,Map,K)
   // TODO(KORE): drop the additional production once parsing issue #1842 is fixed
                  | (Id,Stmt,K,Map,K)
 
@@ -486,7 +486,7 @@ interestingly, the semantics of return stays unchanged. */
 
   rule <k> (try S1 catch(X) {S2} => S1 ~> popx) ~> K </k>
        <control>
-         <xstack> .List => ListItem(tuple5(X, S2, K, Env, C)) ...</xstack>
+         <xstack> .List => ListItem(xstackFrame(X, S2, K, Env, C)) ...</xstack>
          C
        </control>
        <env> Env </env>
@@ -496,7 +496,7 @@ interestingly, the semantics of return stays unchanged. */
 
   rule <k> throw V:Val; ~> _ => { var X = V; S2 } ~> K </k>
        <control>
-         <xstack> ListItem(tuple5(X, S2, K, Env, C)) => .List ...</xstack>
+         <xstack> ListItem(xstackFrame(X, S2, K, Env, C)) => .List ...</xstack>
          (_ => C)
        </control>
        <env> _ => Env </env>
@@ -641,7 +641,7 @@ switch to method closure's class and object environment and execute
 the method body.  The \texttt{mkDecls} construct is the one that came
 with the unchanged semantics of SIMPLE above.  */
 
-  syntax KItem ::= tuple4(Map,K,List,K)
+  syntax KItem ::= fstackFrame(Map,K,List,K)
   // TODO(KORE): drop the additional production once parsing issue #1842 is fixed
                  | (Map,K,K)
 
@@ -652,7 +652,7 @@ with the unchanged semantics of SIMPLE above.  */
      //<br/> // TODO(KORE): support latex annotations #1799
        <control>
           <xstack> XS </xstack>
-          <fstack> .List => ListItem(tuple4(Env, K, XS, <crntObj> Obj' </crntObj>))
+          <fstack> .List => ListItem(fstackFrame(Env, K, XS, <crntObj> Obj' </crntObj>))
           ...</fstack>
           <crntObj> Obj' => <crntClass> Class </crntClass> <envStack> EnvStack </envStack> </crntObj>
        </control>
@@ -754,7 +754,7 @@ refer to it (see rule above). */
                       <envStack> ListItem(envStackFrame(Object, .Map)) </envStack>
                       <location> L </location>
          </crntObj>
-         <fstack> .List => ListItem(tuple4(Env, K, XS, <crntObj> Obj </crntObj>)) ...</fstack>
+         <fstack> .List => ListItem(fstackFrame(Env, K, XS, <crntObj> Obj </crntObj>)) ...</fstack>
        </control>
 
 /*@ The creation of a new object (the memory allocation part only) is
