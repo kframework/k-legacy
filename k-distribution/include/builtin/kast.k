@@ -14,6 +14,14 @@ module BASIC-K
   syntax KItem            [hook(K.KItem)]
   syntax K     ::= KItem  [allowChainSubsort]
   syntax KConfigVar
+  syntax KBott
+  syntax KList
+  syntax KResult
+  // here will be automatically added the casts for KLabel, KItem, K and KList
+
+  // used by the backend
+  syntax MetaVariable
+  syntax Bottom
 endmodule
 
 module KSTRING
@@ -30,7 +38,7 @@ module KAST
   syntax KItem ::= KBott                                 [allowChainSubsort]
 
   syntax KLabel ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\n\r])+`" [token, hook(org.kframework.kore.KLabel)]
-                  | r"(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9]*"               [token, hook(org.kframework.kore.KLabel), autoReject]
+                  | r"(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"               [token, hook(org.kframework.kore.KLabel), autoReject]
                        // something that doesn't collide with meta-variables
 
   syntax KList ::= K                 [allowChainSubsort]
@@ -81,7 +89,6 @@ endmodule
 
 module RULE-CELLS
   imports KCELLS
-  imports RULE-LISTS
   // if this module is imported, the parser automatically
   // generates, for all productions that have the attribute 'cell' or 'maincell',
   // a production like below:
@@ -89,6 +96,13 @@ module RULE-CELLS
 
   syntax #OptionalDots ::= "..." [klabel(#dots)]
                          | ""    [klabel(#noDots)]
+endmodule
+
+module RULE-PARSER
+  imports RULE-LISTS
+  imports RULE-CELLS
+  // imported in modules which generate rule parsers
+  // TODO: (radumereuta) don't use modules as markers to generate parsers
 endmodule
 
 module CONFIG-CELLS

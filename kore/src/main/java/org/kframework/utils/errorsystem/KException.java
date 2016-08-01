@@ -150,4 +150,8 @@ public class KException implements Serializable {
     public Location getLocation() {
         return location;
     }
+
+    public KException copy(Location l) {
+        return new KException(this.type, this.exceptionGroup, this.message, this.compilationPhase, this.source, l, this.exception);
+    }
 }

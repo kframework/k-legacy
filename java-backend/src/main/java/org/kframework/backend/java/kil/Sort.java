@@ -14,6 +14,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.collections4.trie.PatriciaTrie;
 
 import com.google.common.collect.ImmutableSet;
+import org.kframework.builtin.Sorts;
+import org.kframework.definition.ModuleName;
 import org.kframework.utils.errorsystem.KEMException;
 
 /**
@@ -22,7 +24,7 @@ import org.kframework.utils.errorsystem.KEMException;
  * @author YilongL
  *
  */
-public final class Sort implements MaximalSharing, Serializable, org.kframework.kore.Sort {
+public final class Sort extends org.kframework.kore.AbstractSort implements MaximalSharing, Serializable {
 
     private static final ConcurrentMap<String, Sort> cache = new ConcurrentHashMap<>();
 
@@ -32,32 +34,27 @@ public final class Sort implements MaximalSharing, Serializable, org.kframework.
     public static final AtomicInteger maxOrdinal = new AtomicInteger(0);
 
 
-    public static final Sort KITEM          =   Sort.of("KItem");
-    public static final Sort KSEQUENCE      =   Sort.of("K");
-    public static final Sort KLIST          =   Sort.of("KList");
-    public static final Sort KLABEL         =   Sort.of("KLabel");
-    public static final Sort KRESULT        =   Sort.of("KResult");
+    public static final Sort KITEM          =   Sort.of(Sorts.KItem().name());
+    public static final Sort KSEQUENCE      =   Sort.of(Sorts.K().name());
+    public static final Sort KLIST          =   Sort.of(Sorts.KList().name());
+    public static final Sort KLABEL         =   Sort.of(Sorts.KLabel().name());
+    public static final Sort KRESULT        =   Sort.of(Sorts.KResult().name());
 
-    public static final Sort BAG            =   Sort.of("Bag");
-    public static final Sort BAG_ITEM       =   Sort.of("BagItem");
-    public static final Sort LIST           =   Sort.of("List");
-    public static final Sort MAP            =   Sort.of("Map");
-    public static final Sort SET            =   Sort.of("Set");
+    public static final Sort BAG            =   Sort.of("Bag@KCELLS");
+    public static final Sort LIST           =   Sort.of("List@LIST");
+    public static final Sort MAP            =   Sort.of("Map@MAP");
+    public static final Sort SET            =   Sort.of("Set@SET");
 
-    public static final Sort INT            =   Sort.of("Int");
-    public static final Sort BOOL           =   Sort.of("Bool");
-    public static final Sort FLOAT          =   Sort.of("Float");
-    public static final Sort CHAR           =   Sort.of("Char");
-    public static final Sort STRING         =   Sort.of("String");
-    public static final Sort BIT_VECTOR     =   Sort.of("MInt");
-    public static final Sort META_VARIABLE  =   Sort.of("MetaVariable");
+    public static final Sort INT            =   Sort.of("Int@INT-SYNTAX");
+    public static final Sort BOOL           =   Sort.of("Bool@BOOL-SYNTAX");
+    public static final Sort FLOAT          =   Sort.of("Float@FLOAT-SYNTAX");
+    public static final Sort STRING         =   Sort.of("String@STRING-SYNTAX");
+    public static final Sort BIT_VECTOR     =   Sort.of("MInt@MINT");
 
-    public static final Sort VARIABLE       =   Sort.of("Variable");
-    public static final Sort KVARIABLE      =   Sort.of("KVariable");
+    public static final Sort KVARIABLE      =   Sort.of("KVariable@SUBSTITUTION");
 
-    public static final Sort BOTTOM         =   Sort.of("Bottom");
-    public static final Sort SHARP_BOT      =   Sort.of("#Bot");
-    public static final Sort MGU            =   Sort.of("Mgu");
+    public static final Sort META_VARIABLE  =   Sort.of("MetaVariable@BASIC-K");
+    public static final Sort BOTTOM         =   Sort.of("Bottom@BASIC-K");
 
     /**
      * {@code String} representation of this {@code Sort}.
@@ -75,7 +72,9 @@ public final class Sort implements MaximalSharing, Serializable, org.kframework.
      * @return the sort
      */
     public static Sort of(String name) {
-        return cache.computeIfAbsent(name, s -> new Sort(s, maxOrdinal.getAndIncrement()));
+        if(!name.contains("@"))
+            throw new AssertionError("Backend should only get fully qulified sorts, but got: " + name);
+        return cache.computeIfAbsent(name, s -> new Sort(name, maxOrdinal.getAndIncrement()));
     }
 
     public static Sort of(org.kframework.kil.Sort sort) {
@@ -113,11 +112,6 @@ public final class Sort implements MaximalSharing, Serializable, org.kframework.
     }
 
     @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
-
-    @Override
     public boolean equals(Object object) {
         return this == object;
     }
@@ -138,5 +132,18 @@ public final class Sort implements MaximalSharing, Serializable, org.kframework.
         }
         // TODO: fix bug: ordinals from deserialized objects may overlap with those of newly created objects
         return cache.computeIfAbsent(name, x -> this);
+    }
+
+    @Override
+    public ModuleName moduleName() {
+        return ModuleName.STAR();
+    }
+
+    @Override
+    public String localName() {
+        if(name.contains("@"))
+            return name.split("@")[0];
+        else
+            return name;
     }
 }

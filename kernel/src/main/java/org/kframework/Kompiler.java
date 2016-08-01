@@ -27,8 +27,7 @@ public class Kompiler {
      * Generates the definition containing the modules appropriate for generating rule parsers.
      */
     public static Definition toRuleParser(Definition d) {
-        RuleGrammarGenerator rgg = new RuleGrammarGenerator(d, true);
-        return DefinitionTransformer.from(rgg::getRuleGrammar, "toRuleParser").apply(d);
+        return DefinitionTransformer.fromHybrid((Module m) -> RuleGrammarGenerator.getRuleGrammar(m, s -> d.getModule(s).get()), "toRuleParser").apply(d);
     }
 
     public static Definition configurationSentencesToSyntaxAndRules(Definition d) {
@@ -41,8 +40,7 @@ public class Kompiler {
      * with the exact cell labels not known apriori.
      */
     public static Definition toGenericAbstractConfigurationParser(Definition d) {
-        RuleGrammarGenerator rgg = new RuleGrammarGenerator(d, true);
-        return DefinitionTransformer.from(rgg::getConfigGrammar, "toGenericAbstractConfigurationParser").apply(d);
+        return DefinitionTransformer.fromHybrid((Module m) -> RuleGrammarGenerator.getRuleGrammar(m, s -> d.getModule(s).get()), "toGenericAbstractConfigurationParser").apply(d);
     }
 
 }

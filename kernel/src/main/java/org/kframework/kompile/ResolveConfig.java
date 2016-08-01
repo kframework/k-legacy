@@ -8,6 +8,7 @@ import org.kframework.builtin.BooleanUtils;
 import org.kframework.definition.Bubble;
 import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
+import org.kframework.definition.ModuleName;
 import org.kframework.definition.Sentence;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
@@ -87,7 +88,7 @@ public class ResolveConfig implements UnaryOperator<Module> {
 
         scala.collection.Set<Sentence> importedConfigurationSortsSubsortedToCell = stream(inputModule.productions())
                 .filter(p -> p.att().contains("cell"))
-                .map(p -> Production(Sort("Cell"), Seq(NonTerminal(p.sort())))).collect(Collections.toSet());
+                .map(p -> Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())))).collect(Collections.toSet());
 
         Module module = Module(inputModule.name(), (scala.collection.Set<Module>) inputModule.imports(),
                 (scala.collection.Set<Sentence>) inputModule.localSentences().$bar(importedConfigurationSortsSubsortedToCell),
@@ -130,7 +131,7 @@ public class ResolveConfig implements UnaryOperator<Module> {
         if (def.getModule("MAP").isDefined()) {
             mapModule = def.getModule("MAP").get();
         } else {
-            throw KEMException.compilerError("Module Map must be visible at the configuration declaration, in module " + module.name());
+            throw KEMException.compilerError("Module MAP must be visible at the configuration declaration, in module " + module.name());
         }
         return Module(module.name(), (scala.collection.Set<Module>) module.imports().$bar(Set(mapModule)),
                 (scala.collection.Set<Sentence>) module.localSentences().$bar(configDeclProductions),

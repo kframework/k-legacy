@@ -3,6 +3,7 @@ package org.kframework.kore.compile;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.kframework.Collections;
+import org.kframework.attributes.Att;
 import org.kframework.builtin.BooleanUtils;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.Definition;
@@ -104,7 +105,7 @@ public class GenerateSortPredicateRules {
                 int i = 0;
                 List<NonTerminal> nts = stream(p.items()).filter(pi -> pi instanceof NonTerminal).map(pi -> (NonTerminal) pi).collect(Collectors.toList());
                 for (NonTerminal nt : nts) {
-                    KVariable v = KVariable("K" + i++, Att().add(Attribute.SORT_KEY, nt.sort().name()));
+                    KVariable v = KVariable("K" + i++, Att().add(Att.sort(), nt.sort()));
                     klist.add(v);
                     side.add(KApply(KLabel("is" + nt.sort().name()), v));
                 }

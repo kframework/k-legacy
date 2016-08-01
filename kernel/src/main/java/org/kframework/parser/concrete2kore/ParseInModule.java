@@ -4,6 +4,7 @@ package org.kframework.parser.concrete2kore;
 import com.google.common.collect.Sets;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Module;
+import org.kframework.kore.ADT;
 import org.kframework.kore.K;
 import org.kframework.kore.Sort;
 import org.kframework.parser.Term;
@@ -43,7 +44,7 @@ public class ParseInModule implements Serializable {
      * In this case the modified production will be annotated with the information from the
      * original production, so disambiguation can be done safely.
      */
-    private final Module parsingModule;
+    public final Module parsingModule;
     private volatile Grammar grammar = null;
     private final boolean strict;
     public ParseInModule(Module seedModule) {
@@ -126,7 +127,7 @@ public class ParseInModule implements Serializable {
             parseStringTerm(String input, Sort startSymbol, Source source, int startLine, int startColumn) {
         getGrammar();
 
-        Grammar.NonTerminal startSymbolNT = grammar.get(startSymbol.name());
+        Grammar.NonTerminal startSymbolNT = grammar.get(parsingModule.resolve(startSymbol).name());
         Set<ParseFailedException> warn = Sets.newHashSet();
         if (startSymbolNT == null) {
             String msg = "Could not find start symbol: " + startSymbol;

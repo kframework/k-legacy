@@ -172,7 +172,7 @@ public class GenerateSentencesFromConfigDecl {
     }
 
     public static String getInitLabel(Sort sort) {
-        return "init" + sort.name();
+        return "init" + sort.localName(); // sort.name();
     }
 
     /**
