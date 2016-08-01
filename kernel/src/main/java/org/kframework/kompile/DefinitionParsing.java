@@ -253,7 +253,7 @@ public class DefinitionParsing {
                 .filter(b -> b.sentenceType().equals("rule"))
                 .map(b -> performParse(cache.getCache(), parser, b))
                 .flatMap(r -> {
-                    if(r.isRight()) {
+                    if (r.isRight()) {
                         return Stream.of(this.upRule(r.right().get()));
                     } else {
                         errors.addAll(r.left().get());
@@ -265,7 +265,7 @@ public class DefinitionParsing {
                 .filter(b -> b.sentenceType().equals("context"))
                 .map(b -> performParse(cache.getCache(), parser, b))
                 .flatMap(r -> {
-                    if(r.isRight()) {
+                    if (r.isRight()) {
                         return Stream.of(this.upContext(r.right().get()));
                     } else {
                         errors.addAll(r.left().get());
@@ -279,24 +279,13 @@ public class DefinitionParsing {
 
 
     public Rule parseRule(CompiledDefinition compiledDef, String contents, Source source) {
-        gen = new RuleGrammarGenerator(compiledDef.kompiledDefinition, isStrict);
-        Either<java.util.Set<ParseFailedException>, K> res = performParse(new HashMap<>(), gen.getCombinedGrammar(gen.getRuleGrammar(compiledDef.executionModule())),
+        Either<java.util.Set<ParseFailedException>, K> res = performParse(new HashMap<>(), RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getRuleGrammar(compiledDef.executionModule(), s -> compiledDef.kompiledDefinition.getModule(s).get()), isStrict),
                 new Bubble("rule", contents, Att().add("contentStartLine", 1).add("contentStartColumn", 1).add("Source", source.source())));
+
         if (res.isLeft()) {
             throw res.left().get().iterator().next();
         }
         return upRule(res.right().get());
-    }
-
-    public Rule parseRule(CompiledDefinition compiledDef, String contents, Source source) {
-        errors = java.util.Collections.synchronizedSet(Sets.newHashSet());
-        java.util.Set<K> res = performParse(new HashMap<>(), RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getRuleGrammar(compiledDef.executionModule(), s -> compiledDef.kompiledDefinition.getModule(s).get()), isStrict),
-                new Bubble("rule", contents, Att().add("contentStartLine", 1).add("contentStartColumn", 1).add("Source", source.source())))
-                .collect(Collectors.toSet());
-        if (!errors.isEmpty()) {
-            throw errors.iterator().next();
-        }
-        return upRule(res.iterator().next());
     }
 
     private Rule upRule(K contents) {
@@ -346,20 +335,14 @@ public class DefinitionParsing {
         return _this.sortDeclarations().equals(that.sortDeclarations());
     }
 
-    private Either<java.util.Set<ParseFailedException>, K> parseBubble(Module module, Bubble b) {
-        ParseCache cache = loadCache(gen.getConfigGrammar(module));
-        ParseInModule parser = gen.getCombinedGrammar(cache.getModule());
-        return performParse(cache.getCache(), parser, b);
-    }
-
-    private Stream<? extends K> parseBubble(Module module, Bubble b) {
-        ParseCache cache = loadCache(RuleGrammarGenerator.getConfigGrammar(module, s -> definitionWithConfigBubble.getModule(s).get()));
+    private Either<java.util.Set<ParseFailedException>, K> parseBubble(Module module, Function<String, Module> getModule, Bubble b) {
+        ParseCache cache = loadCache(RuleGrammarGenerator.getConfigGrammar(module, getModule));
         ParseInModule parser = RuleGrammarGenerator.getCombinedGrammar(cache.getModule(), isStrict);
         return performParse(cache.getCache(), parser, b);
     }
 
-    private ParseInModule getParser(Module module) {
-        ParseCache cache = loadCache(RuleGrammarGenerator.getConfigGrammar(module, s -> definitionWithConfigBubble.getModule(s).get()));
+    private ParseInModule getParser(Module module, Function<String, Module> getModule) {
+        ParseCache cache = loadCache(RuleGrammarGenerator.getConfigGrammar(module, getModule));
         return RuleGrammarGenerator.getCombinedGrammar(cache.getModule(), isStrict);
     }
 

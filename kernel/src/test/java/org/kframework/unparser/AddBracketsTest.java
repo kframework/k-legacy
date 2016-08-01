@@ -76,7 +76,7 @@ public class AddBracketsTest {
     }
 
     private void unparserTest(String def, String pgm) {
-        Definition baseK = RuleGrammarGenerator.autoGenerateBaseKCasts(org.kframework.Definition.from(baseKText + def, "TEST"));
+        Definition baseK = RuleGrammarGenerator.autoGenerateBaseKCasts(org.kframework.DefinitionParser.from(baseKText + def, "TEST"));
         Module test = baseK.getModule("TEST").get();
         ParseInModule parser = RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getRuleGrammar(test, s -> baseK.getModule(s).get()), true);
         K parsed = parseTerm(pgm, parser);

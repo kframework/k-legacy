@@ -174,16 +174,7 @@ object Att {
   val keyMap: Map[String, TypedKey[_]] = Map(
     "sort" -> sort
   )
-  val sort = TypedKey[Sort]("sort", {
-    s: Sort => KORE.KToken(s.name, Sorts.String)
-  }, {
-    case KApply(KLabel("sort"), List(v)) => Some(KORE.Sort(v.asInstanceOf[KToken].s))
-    case _ => None
-  })
 
-  val keyMap: Map[String, TypedKey[_]] = Map(
-    "sort" -> sort
-  )
   val klabel = "klabel"
 
   def generatedByAtt(c: Class[_]) = Att().add(Att.generatedBy, c.getName)

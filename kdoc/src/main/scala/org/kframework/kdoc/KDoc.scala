@@ -1,5 +1,6 @@
 package org.kframework.kdoc
 
+import org.kframework.{DefinitionParser, Kompiler, Parser}
 import org.kframework.kore.KApply
 import org.kframework.kore.KLabel
 import org.kframework.kore.KORE._
@@ -9,8 +10,7 @@ import org.kframework.kore.Unapply.KApply
 import org.kframework.kore.Unapply.KLabel
 import org.kframework.kore.Unapply.KToken
 import org.kframework.kore.Unapply.Sort
-import org.kframework.{Kompiler, DefinitionParser, Parser}
-import org.kframework.definition.{RegexTerminal, NonTerminal, Terminal, Module}
+import org.kframework.definition._
 import org.kframework.kore._
 import org.kframework.kore.Unapply._
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator
@@ -48,7 +48,7 @@ class KDoc(docStyle: String, separator: String = " ") {
 
     override def apply(k: KToken) = k match {
       case c@KToken(contents, Sort("Bubble")) =>
-        currentParser(ADT.Sort("RuleContent"), contents) match {
+        currentParser(ADT.Sort("RuleContent", ModuleName("REQUIRES-ENSURES")), contents) match {
           case (Some(parsedBubble), _) => currentKToLatex(parsedBubble)
           case (_, errs) => throw new RuntimeException("When parsing: "+contents + " got errors:\n"+errs.toString)
         }
@@ -57,7 +57,7 @@ class KDoc(docStyle: String, separator: String = " ") {
   }.apply(k)
 
   private def parseDefinition(definitionText: String): K = {
-    outerParser.apply(KORE.Sort("KDefinition"), definitionText) match {
+    outerParser.apply(KORE.Sort("KDefinition", ModuleName("OUTER-KORE")), definitionText) match {
       case (Some(x), _) => x
       case (None, errs) => throw new RuntimeException(errs.toString)
     }

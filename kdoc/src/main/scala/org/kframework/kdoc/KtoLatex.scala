@@ -1,8 +1,8 @@
 package org.kframework.kdoc
 
 import org.kframework.attributes.Att
-import org.kframework.definition.{RegexTerminal, NonTerminal, Terminal, Module}
-import org.kframework.kore.{KORE, K}
+import org.kframework.definition.{Module, NonTerminal, RegexTerminal, Terminal}
+import org.kframework.kore.K
 import org.kframework.kore.Unapply._
 
 /**

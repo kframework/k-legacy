@@ -32,7 +32,7 @@ public class Kompiler {
 
     public static Definition configurationSentencesToSyntaxAndRules(Definition d) {
         ResolveConfig resolveConfig = new ResolveConfig(d, true);
-        return DefinitionTransformer.from(resolveConfig, "toRuleParser").apply(d);
+        return DefinitionTransformer.fromHybrid(resolveConfig::apply, "toRuleParser").apply(d);
     }
 
     /**
