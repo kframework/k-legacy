@@ -498,12 +498,31 @@ public abstract class CopyOnWriteTransformer implements Transformer {
 
     @Override
     public ASTNode transform(ConjunctiveFormula conjunctiveFormula) {
-        ConjunctiveFormula transformedConjunctiveFormula = ConjunctiveFormula.of(resolveGlobalContext(conjunctiveFormula));
-
+        Substitution<Variable, Term> transformedSubstitution = ImmutableMapSubstitution.empty();
+        List<Pair<Term, Term>> transformedEntries = new ArrayList<>();
         for (Map.Entry<Variable, Term> entry : conjunctiveFormula.substitution().entrySet()) {
+            Term key = (Term) entry.getKey().accept(this);
+            Term value = (Term) entry.getValue().accept(this);
+            if (key instanceof Variable) {
+                Substitution<Variable, Term> tmp = transformedSubstitution.plus((Variable) key, value);
+                if (tmp != null) {
+                    transformedSubstitution = tmp;
+                } else {
+                    transformedEntries.add(Pair.of(key, value));
+                }
+            } else {
+                transformedEntries.add(Pair.of(key, value));
+            }
+        }
+
+        ConjunctiveFormula transformedConjunctiveFormula = ConjunctiveFormula.of(
+                transformedSubstitution,
+                resolveGlobalContext(conjunctiveFormula));
+
+        for (Pair<Term, Term> pair : transformedEntries) {
             transformedConjunctiveFormula = transformedConjunctiveFormula.add(
-                    (Term) entry.getKey().accept(this),
-                    (Term) entry.getValue().accept(this));
+                    pair.getLeft(),
+                    pair.getRight());
         }
 
         for (Equality equality : conjunctiveFormula.equalities()) {

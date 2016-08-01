@@ -2,6 +2,12 @@
 package org.kframework.backend.java.symbolic;
 
 import com.google.inject.Inject;
+import org.kframework.attributes.Att;
+import org.kframework.backend.java.kore.compile.ExpandMacros;
+import org.kframework.compile.NormalizeKSeq;
+import org.kframework.definition.Definition;
+import org.kframework.definition.ModuleTransformer;
+import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.RewriterResult;
 import org.kframework.compile.ConfigurationInfo;
@@ -27,12 +33,15 @@ import org.kframework.main.GlobalOptions;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
+import scala.Function1;
+import scala.collection.Set;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -64,6 +73,16 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
         String proofFile = options.experimental.prove;
         Kompile kompile = new Kompile(compiledDefinition.kompileOptions, globalOptions, files, kem, sw, false);
         Module mod = kompile.parseModule(compiledDefinition, files.resolveWorkingDirectory(proofFile).getAbsoluteFile());
+
+        Set<Module> alsoIncluded = Stream.of("K-TERM", "K-REFLECTION", RuleGrammarGenerator.ID_PROGRAM_PARSING)
+                .map(module -> compiledDefinition.getParsedDefinition().getModule(module).get())
+                .collect(org.kframework.Collections.toSet());
+
+        mod = new JavaBackend(kem, files, globalOptions, compiledDefinition.kompileOptions)
+                .stepsForProverRules()
+                .apply(Definition.apply(mod, org.kframework.Collections.add(mod, alsoIncluded), Att.apply()))
+                .getModule(mod.name()).get();
+
         RewriterResult executionResult = rewriter.execute(k, Optional.<Integer>empty());
 
         ConfigurationInfo configurationInfo = new ConfigurationInfoFromModule(compiledDefinition.executionModule());
@@ -126,14 +145,32 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
             }
         };
 
+
+        ExpandMacros macroExpander = new ExpandMacros(compiledDefinition.kompiledDefinition.mainModule(), kem, files, globalOptions, compiledDefinition.kompileOptions);
+        ModuleTransformer expandMacros = ModuleTransformer.fromSentenceTransformer(macroExpander::expand, "expand macro rules");
+
         List<Rule> rules = stream(mod.localRules())
+                .filter(r -> r.toString().contains("spec.k"))
                 .map(r -> new Rule(
                         cellPlaceholderSubstitutionApplication.apply(r.body()),
                         cellPlaceholderSubstitutionApplication.apply(r.requires()),
                         cellPlaceholderSubstitutionApplication.apply(r.ensures()),
                         r.att()))
-                .map(r -> kompile.compileRule(compiledDefinition, r))
+                .map(r -> (Rule) macroExpander.expand(r))
+                .map(r -> transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
+                .map(r -> transformFunction(JavaBackend::convertKSeqToKApply, r))
+                .map(r -> transform(NormalizeKSeq.self(), r))
+                //.map(r -> kompile.compileRule(compiledDefinition, r))
                 .collect(Collectors.toList());
         return rewriter.prove(rules);
     }
+
+    private Rule transformFunction(Function<K, K> f, Rule r) {
+        return Rule.apply(f.apply(r.body()), f.apply(r.requires()), f.apply(r.ensures()), r.att());
+    }
+
+    private Rule transform(Function1<K, K> f, Rule r) {
+        return Rule.apply(f.apply(r.body()), f.apply(r.requires()), f.apply(r.ensures()), r.att());
+    }
+
 }

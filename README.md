@@ -85,7 +85,7 @@ LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<release>/lib/native/linux64`
 _N.B. the Eclipse internal compiler may generate false compilation errors (there are bugs in its support of Scala mixed compilation). We recommend using IntelliJ IDEA if at all possible._
 
 To autogenerate an Eclipse project for K, run `mvn install -DskipKTest; mvn eclipse:eclipse` on the
-command line, and then go into each of the `kore` and `tiny` directories and run `sbt eclipse`.
+command line, and then go into the `kore` directory and run `sbt eclipse`.
 Then start eclipse and go to File->Import->General->Existing projects into workspace, and select
 the directory of the installation. You should only add the leaves to the workspace, because
 eclipse does not support hierarchical projects.
@@ -124,6 +124,7 @@ windows release of the K framework, run `mvn install -P windows -P x86 -DskipTes
 To view the platform being used by a particular build, run the `mvn help:active-profiles` target.
 
 # Troubleshooting
+
 Common error messages:
 
 -  `Error: JAVA_HOME not found in your environment.

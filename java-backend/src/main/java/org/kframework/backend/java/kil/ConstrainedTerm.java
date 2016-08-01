@@ -7,12 +7,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.kframework.backend.java.rewritemachine.MatchingInstruction;
-import org.kframework.backend.java.symbolic.AbstractKMachine;
 import org.kframework.backend.java.symbolic.ConjunctiveFormula;
 import org.kframework.backend.java.symbolic.DisjunctiveFormula;
+import org.kframework.backend.java.symbolic.Equality;
+import org.kframework.backend.java.symbolic.FastRuleMatcher;
 import org.kframework.backend.java.symbolic.PatternExpander;
-import org.kframework.backend.java.symbolic.SymbolicUnifier;
+import org.kframework.backend.java.symbolic.PersistentUniqueList;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Constants;
@@ -21,6 +21,7 @@ import org.kframework.kil.ASTNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 
 
 /**
@@ -33,11 +34,13 @@ public class ConstrainedTerm extends JavaSymbolicObject {
     public static class Data {
         public final Term term;
         public final ConjunctiveFormula constraint;
+
         public Data(Term term, ConjunctiveFormula constraint) {
             super();
             this.term = term;
             this.constraint = constraint;
         }
+
         @Override
         public int hashCode() {
             final int prime = 31;
@@ -46,6 +49,7 @@ public class ConstrainedTerm extends JavaSymbolicObject {
             result = prime * result + ((term == null) ? 0 : term.hashCode());
             return result;
         }
+
         @Override
         public boolean equals(Object obj) {
             if (this == obj)
@@ -165,31 +169,17 @@ public class ConstrainedTerm extends JavaSymbolicObject {
     }
 
     /**
-     * Unifies this constrained term with another constrained term.
-     *
-     * @param constrainedTerm
-     *            another constrained term
-     * @return solutions to the unification problem
+     * Unifies this constrained term with another constrained term. Returns a list of solutions for the unification problem.
+     * Each solution is a triple of (1) the unification constraint, (2) whether the constraint is a matching of the variables of the argument constrainedTerm,
+     * and (3) the inner rewrites from the constrainedTerm.
      */
-    public List<Pair<ConjunctiveFormula, Boolean>> unify(
+    public List<Triple<ConjunctiveFormula, Boolean, Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>>> unify(
             ConstrainedTerm constrainedTerm,
-            List<MatchingInstruction> instructions,
-            Map<CellLabel, Term> cells,
             Set<Variable> variables) {
-        assert (instructions == null) == (cells == null);
         /* unify the subject term and the pattern term without considering those associated constraints */
-        ConjunctiveFormula unificationConstraint;
-        if (instructions != null) {
-            unificationConstraint = AbstractKMachine.unify(this, instructions, cells, termContext());
-            if (unificationConstraint == null) {
-                return Collections.emptyList();
-            }
-        } else {
-            SymbolicUnifier unifier = new SymbolicUnifier(termContext());
-            if (!unifier.symbolicUnify(term(), constrainedTerm.term())) {
-                return Collections.emptyList();
-            }
-            unificationConstraint = unifier.constraint();
+        ConjunctiveFormula unificationConstraint = FastRuleMatcher.unify(term(), constrainedTerm.term(), context);
+        if (unificationConstraint.isFalse()) {
+            return Collections.emptyList();
         }
         unificationConstraint = unificationConstraint.simplify(context);
         if (unificationConstraint.isFalse()) {
@@ -204,7 +194,7 @@ public class ConstrainedTerm extends JavaSymbolicObject {
                 context);
     }
 
-    public static List<Pair<ConjunctiveFormula, Boolean>> evaluateConstraints(
+    public static List<Triple<ConjunctiveFormula, Boolean, Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>>> evaluateConstraints(
             ConjunctiveFormula constraint,
             ConjunctiveFormula subjectConstraint,
             ConjunctiveFormula patternConstraint,
@@ -221,11 +211,13 @@ public class ConstrainedTerm extends JavaSymbolicObject {
                 .filter(c -> !c.isFalse())
                 .collect(Collectors.toList());
 
-        List<Pair<ConjunctiveFormula, Boolean>> solutions = Lists.newArrayList();
+        List<Triple<ConjunctiveFormula, Boolean, Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>>> solutions = Lists.newArrayList();
         for (ConjunctiveFormula candidate : candidates) {
             candidate = candidate.orientSubstitution(variables);
 
-            ConjunctiveFormula solution = candidate.addAndSimplify(subjectConstraint, context);
+            Pair<Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>, ConjunctiveFormula> pair = ConstrainedTerm.splitRewrites(candidate);
+
+            ConjunctiveFormula solution = pair.getRight().addAndSimplify(subjectConstraint, context);
             if (solution.isFalse()) {
                 continue;
             }
@@ -239,10 +231,30 @@ public class ConstrainedTerm extends JavaSymbolicObject {
             }
 
             assert solution.disjunctions().isEmpty();
-            solutions.add(Pair.of(solution, isMatching));
+            solutions.add(Triple.of(solution, isMatching, pair.getLeft()));
         }
 
         return solutions;
+    }
+
+    /**
+     * Splits the constraint into the rewrites and the "pure" constraint.
+     * {@link FastRuleMatcher} encodes the information about the inner rewrites (path to rewrite and what to rewrite to) as a boolean predicate in the constraint.
+     * This method method reverses the encoding.
+     */
+    private static Pair<Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>, ConjunctiveFormula> splitRewrites(ConjunctiveFormula constraint) {
+        Map<Boolean, List<Equality>> split = constraint.equalities().stream()
+                .collect(Collectors.partitioningBy(e -> e.leftHandSide() instanceof LocalRewriteTerm));
+        Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term> rewrites = split.get(true).stream()
+                .map(Equality::leftHandSide)
+                .map(LocalRewriteTerm.class::cast)
+                .collect(Collectors.toMap(e -> e.path, e -> e.rewriteRHS));
+        ConjunctiveFormula pureConstraint = ConjunctiveFormula.of(
+                constraint.substitution(),
+                PersistentUniqueList.from(split.get(false)),
+                constraint.disjunctions(),
+                constraint.globalContext());
+        return Pair.of(rewrites, pureConstraint);
     }
 
     @Override

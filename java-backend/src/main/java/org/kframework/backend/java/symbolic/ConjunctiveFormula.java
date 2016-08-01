@@ -357,11 +357,9 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
                 } else {
                     if (equality.isSimplifiableByCurrentAlgorithm()) {
                         // (decompose + conflict)*
-                        SymbolicUnifier unifier = new SymbolicUnifier(
-                                patternFolding,
-                                partialSimplification,
-                                context);
-                        if (!unifier.symbolicUnify(leftHandSide, rightHandSide)) {
+                        FastRuleMatcher unifier = new FastRuleMatcher(global, 1);
+                        ConjunctiveFormula unificationConstraint = unifier.unifyEquality(leftHandSide, rightHandSide, patternFolding, partialSimplification, false, context);
+                        if (unificationConstraint.isFalse()) {
                             return falsify(
                                     substitution,
                                     equalities,
@@ -371,14 +369,34 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
                                             unifier.unificationFailureRightHandSide(),
                                             global));
                         }
+
                         // TODO(AndreiS): fix this in a general way
-                        if (unifier.constraint().equalities.contains(equality)) {
+                        if (unificationConstraint.equalities.contains(equality)) {
                             pendingEqualities = pendingEqualities.plus(equality);
                             continue;
                         }
-                        equalities = equalities.plusAll(i + 1, unifier.constraint().equalities);
-                        equalities = equalities.plusAll(i + 1, unifier.constraint().substitution.equalities(global));
-                        disjunctions = disjunctions.plusAll(unifier.constraint().disjunctions);
+
+                        equalities = equalities.plusAll(i + 1, unificationConstraint.equalities);
+                        equalities = equalities.plusAll(i + 1, unificationConstraint.substitution.equalities(global));
+                        disjunctions = disjunctions.plusAll(unificationConstraint.disjunctions);
+                    } else if (leftHandSide instanceof Variable && rightHandSide instanceof Variable
+                            && leftHandSide.sort().equals(rightHandSide.sort())) {
+                        // eliminate: special case when both the left-hand-side and the right-hand-side can be eliminated
+                        ImmutableMapSubstitution<Variable, Term> eliminationSubstitution;
+                        if (leftHandSide.toString().compareTo(rightHandSide.toString()) < 0) {
+                            eliminationSubstitution = ImmutableMapSubstitution.singleton((Variable) leftHandSide, rightHandSide);
+                        } else {
+                            eliminationSubstitution = ImmutableMapSubstitution.singleton((Variable) rightHandSide, leftHandSide);
+                        }
+
+                        substitution = ImmutableMapSubstitution.composeAndEvaluate(
+                                substitution,
+                                eliminationSubstitution,
+                                context);
+                        change = true;
+                        if (substitution.isFalse(global)) {
+                            return falsify(substitution, equalities, disjunctions, equality);
+                        }
                     } else if (leftHandSide instanceof Variable
                             && !rightHandSide.variableSet().contains(leftHandSide)) {
                         // eliminate
@@ -460,6 +478,38 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
     public ImmutableMapSubstitution<Variable, Term> getSubstitution(Variable variable, Term term) {
         if (RewriteEngineUtils.isSubsortedEq(variable, term, global.getDefinition())) {
             return ImmutableMapSubstitution.singleton(variable, term);
+        } else if (term instanceof KItem && ((KItem) term).kLabel() instanceof KLabelConstant && ((KItem) term).kList() instanceof KList
+                && ((KLabelConstant) ((KItem) term).kLabel()).isConstructor()
+                && ((KList) ((KItem) term).kList()).getContents().stream().allMatch(Variable.class::isInstance)) {
+            /**
+             * Hack for a special case of order-sorted unification. If the term is an overloaded klabel applied to a klist of variables,
+             * and the sort of the term if too generic (i.e. not equal or subsorted to the sort of the variable),
+             * then it may be possible that one of the overloaded signatures may give the term a sort compatible with that of the variable.
+             * In that case, the variables in the klist are substituted with variables of the appropriate sorts.
+             */
+            KItem kItem = (KItem) term;
+            KLabelConstant kLabelConstant = (KLabelConstant) kItem.kLabel();
+            KList kList = (KList) kItem.kList();
+            List<Sort> sorts = kItem.possibleSorts().stream()
+                    .filter(s -> global.getDefinition().subsorts().isSubsortedEq(variable.sort(), s))
+                    .collect(Collectors.toList());
+            if (sorts.size() != 1) {
+                return null;
+            }
+            SortSignature signature = kLabelConstant.signatures().stream()
+                    .filter(s -> global.getDefinition().subsorts().isSubsortedEq(variable.sort(), s.result()))
+                    .findAny().get();
+            ImmutableMapSubstitution<Variable, Term> substitution = ImmutableMapSubstitution.empty();
+            for (int i = 0; i < kList.size(); i++) {
+                substitution = substitution.plus((Variable) kList.get(i), Variable.getAnonVariable(signature.parameters().get(i)));
+                if (substitution == null) {
+                    return null;
+                }
+            }
+            substitution = substitution.plus(
+                    variable,
+                    KItem.of(kLabelConstant, KList.concatenate(substitution.keySet().stream().collect(Collectors.toList())), global));
+            return substitution;
         } else if (term instanceof Variable) {
             if (RewriteEngineUtils.isSubsortedEq(term, variable, global.getDefinition())) {
                 return ImmutableMapSubstitution.singleton((Variable) term, variable);
@@ -616,7 +666,7 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
                 continue;
             }
 
-            if (!impliesSMT(left,right, rightOnlyVariables)) {
+            if (!impliesSMT(left, right, rightOnlyVariables)) {
                 if (global.globalOptions.debug) {
                     System.err.println("Failure!");
                 }
@@ -640,7 +690,7 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
                 Maps.difference(constraint.substitution, substitution).entriesInCommon().keySet());
         Predicate<Equality> inConstraint = equality -> !equalities().contains(equality)
                 && !equalities().contains(new Equality(equality.rightHandSide(), equality.leftHandSide(), global));
-        PersistentUniqueList<Equality> simplifiedEqualities= PersistentUniqueList.from(
+        PersistentUniqueList<Equality> simplifiedEqualities = PersistentUniqueList.from(
                 constraint.equalities().stream().filter(inConstraint).collect(Collectors.toList()));
         ConjunctiveFormula simplifiedConstraint = ConjunctiveFormula.of(
                 simplifiedSubstitution,

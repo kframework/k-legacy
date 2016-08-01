@@ -16,7 +16,6 @@ import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.indexing.RuleIndex;
 import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.strategies.TransitionCompositeStrategy;
-import org.kframework.backend.java.util.Coverage;
 import org.kframework.backend.java.util.JavaKRunState;
 import org.kframework.builtin.KLabels;
 import org.kframework.kil.ASTNode;
@@ -26,15 +25,12 @@ import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.krun.api.KRunState;
 import org.kframework.utils.BitSet;
-import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.rewriter.SearchType;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -62,8 +58,6 @@ public class SymbolicRewriter {
     private final Definition definition;
     private final BitSet allRuleBits;
 
-    private final boolean useFastRewriting;
-
     @Inject
     public SymbolicRewriter(GlobalContext global, KompileOptions kompileOptions, JavaExecutionOptions javaOptions,
                             KRunState.Counter counter, KOREtoBackendKIL constructor) {
@@ -76,9 +70,8 @@ public class SymbolicRewriter {
         this.counter = counter;
         this.strategy = new TransitionCompositeStrategy(kompileOptions.transition);
         this.transitions = kompileOptions.transition;
-        this.useFastRewriting = !kompileOptions.experimental.koreProve;
         this.theFastMatcher = new FastRuleMatcher(global, definition.ruleTable.size());
-        this.transition = useFastRewriting;
+        this.transition = true;
     }
 
     public KRunState rewrite(ConstrainedTerm constrainedTerm, int bound) {
@@ -104,77 +97,7 @@ public class SymbolicRewriter {
     }
 
     private List<ConstrainedTerm> computeRewriteStep(ConstrainedTerm constrainedTerm, int step, boolean computeOne) {
-        return useFastRewriting ?
-                fastComputeRewriteStep(constrainedTerm, computeOne) :
-                slowComputeRewriteStep(constrainedTerm, step, computeOne);
-    }
-
-    private List<ConstrainedTerm> slowComputeRewriteStep(ConstrainedTerm subject, int step, boolean computeOne) {
-        RuleAuditing.setAuditingRule(javaOptions, step, subject.termContext().definition());
-        try {
-            subject.termContext().setTopTerm(subject.term());
-            /* rules that are failed to apply on subject */
-            Set<Rule> failedRules = new HashSet<>(subject2DisabledRules.getOrDefault(subject, Collections.emptySet()));
-            /* resulting terms after rewriting */
-            List<ConstrainedTerm> results = new ArrayList<>();
-
-            // Applying a strategy to a list of rules divides the rules up into
-            // equivalence classes of rules. We iterate through these equivalence
-            // classes one at a time, seeing which one contains rules we can apply.
-            for (strategy.reset(ruleIndex.getRules(subject.term())); strategy.hasNext(); ) {
-                transition = strategy.nextIsTransition();
-                Set<Rule> rules = new LinkedHashSet<>(strategy.next());
-                rules.removeAll(failedRules);
-
-                Map<Rule, List<ConstrainedTerm>> rule2Results;
-                if (computeOne) {
-                    rule2Results = Collections.emptyMap();
-                    for (Rule rule : rules) {
-                        List<ConstrainedTerm> terms = computeRewriteStepByRule(subject, rule);
-                        if (!terms.isEmpty()) {
-                            rule2Results = Collections.singletonMap(rule, terms);
-                            results.add(terms.get(0));
-                            break;
-                        } else {
-                            failedRules.add(rule);
-                        }
-                    }
-                } else {
-                    rule2Results = rules.stream().collect(
-                            Collectors.toMap(r -> r, r -> computeRewriteStepByRule(subject, r),
-                                    (u, v) -> u, IdentityHashMap::new));
-                    for (Rule rule : rules) {
-                        if (rule2Results.get(rule).isEmpty()) {
-                            failedRules.add(rule);
-                        } else {
-                            results.addAll(rule2Results.get(rule));
-                        }
-                    }
-                }
-
-                // If we've found matching results from one equivalence class then
-                // we are done, as we can't match rules from two equivalence classes
-                // in the same step.
-                if (!results.isEmpty()) {
-                    /* compute disabled rules for the resulting terms */
-                    subject2DisabledRules.remove(subject);
-                    rule2Results.forEach((appliedRule, terms) -> {
-                        // if the latest applied rule doesn't modify the read cells of a failing rule,
-                        // that failing rule is deemed to fail again when applied on the new term
-                        Set<Rule> rulesWillFail = failedRules.stream()
-                                .filter(failedRule -> failedRule.isCompiledForFastRewriting() &&
-                                        appliedRule.isCompiledForFastRewriting() &&
-                                        Collections.disjoint(failedRule.readCells(), appliedRule.writeCells()))
-                                .collect(Collectors.toSet());
-                        terms.forEach(t -> subject2DisabledRules.put(t, rulesWillFail));
-                    });
-                    break;
-                }
-            }
-            return results;
-        } finally {
-            RuleAuditing.clearAuditingRule();
-        }
+        return fastComputeRewriteStep(constrainedTerm, computeOne, false, false);
     }
 
     /**
@@ -228,63 +151,67 @@ public class SymbolicRewriter {
         throw new UnsupportedOperationException();
     }
 
-    private Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term> getRewrites(ConjunctiveFormula constraint) {
-        return constraint.equalities().stream()
-                .filter(e -> e.leftHandSide() instanceof LocalRewriteTerm)
-                .map(Equality::leftHandSide)
-                .map(LocalRewriteTerm.class::cast)
-                .collect(Collectors.toMap(e -> e.path, e -> e.rewriteRHS));
-    }
-
-    private List<ConstrainedTerm> fastComputeRewriteStep(ConstrainedTerm subject, boolean computeOne) {
+    private List<ConstrainedTerm> fastComputeRewriteStep(ConstrainedTerm subject, boolean computeOne, boolean narrowing, boolean proofFlag) {
         List<ConstrainedTerm> results = new ArrayList<>();
         if (definition.automaton == null) {
             return results;
         }
-        List<Triple<ConjunctiveFormula, Boolean, Integer>> matches = theFastMatcher.matchRulePattern(
+        List<FastRuleMatcher.RuleMatchResult> matches = theFastMatcher.matchRulePattern(
                 subject,
                 definition.automaton.leftHandSide(),
                 allRuleBits,
+                narrowing,
                 computeOne,
                 transitions,
+                proofFlag,
                 subject.termContext());
-        for (Triple<ConjunctiveFormula, Boolean, Integer> triple : matches) {
-            Rule rule = definition.ruleTable.get(triple.getRight());
+        for (FastRuleMatcher.RuleMatchResult matchResult : matches) {
+            Rule rule = definition.ruleTable.get(matchResult.ruleIndex);
             Substitution<Variable, Term> substitution =
                     rule.containsAttribute(Att.refers_THIS_CONFIGURATION()) ?
-                            triple.getLeft().substitution().plus(new Variable(KLabels.THIS_CONFIGURATION, Sort.KSEQUENCE), filterOurStrategyCell(subject.term())) :
-                            triple.getLeft().substitution();
-            boolean isMatching = triple.getMiddle();
+                            matchResult.constraint.substitution().plus(new Variable(KLabels.THIS_CONFIGURATION, Sort.KSEQUENCE), filterOurStrategyCell(subject.term())) :
+                            matchResult.constraint.substitution();
             // start the optimized substitution
 
             // get a map from AST paths to (fine-grained, inner) rewrite RHSs
-            Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term> rewrites = getRewrites(triple.getLeft());
-
-            assert (rewrites.size() > 0);
-
-
+            assert (matchResult.rewrites.size() > 0);
             Term theNew;
-            if (rewrites.size() == 1)
+            if (matchResult.rewrites.size() == 1)
             // use the more efficient implementation if we only have one rewrite
             {
-                theNew = buildRHS(subject.term(), substitution, rewrites.keySet().iterator().next(),
-                        rewrites.values().iterator().next(), subject.termContext());
+                theNew = buildRHS(subject.term(), substitution, matchResult.rewrites.keySet().iterator().next(),
+                        matchResult.rewrites.values().iterator().next(), subject.termContext());
             } else {
                 theNew = buildRHS(subject.term(), substitution,
-                        rewrites.entrySet().stream().map(e -> Pair.of(e.getKey(), e.getValue())).collect(Collectors.toList()),
+                        matchResult.rewrites.entrySet().stream().map(e -> Pair.of(e.getKey(), e.getValue())).collect(Collectors.toList()),
                         subject.termContext());
             }
 
-            // rename rule variables in the term
-            theNew = theNew.substituteWithBinders(Variable.rename(rule.variableSet()));
-
-            if (!isMatching) {
+            if (!matchResult.isMatching) {
                 theNew = theNew.substituteAndEvaluate(substitution, subject.termContext());
             }
 
             theNew = restoreConfigurationIfNecessary(subject, rule, theNew);
 
-            ConstrainedTerm result = new ConstrainedTerm(theNew, subject.termContext());
+            /* eliminate bindings of the substituted variables */
+            ConjunctiveFormula constraint = matchResult.constraint;
+            constraint = constraint.removeBindings(rule.variableSet());
+
+            /* get fresh substitutions of rule variables */
+            Map<Variable, Variable> renameSubst = Variable.rename(rule.variableSet());
+
+            /* rename rule variables in both the term and the constraint */
+            theNew = theNew.substituteWithBinders(renameSubst);
+            constraint = ((ConjunctiveFormula) constraint.substituteWithBinders(renameSubst)).simplify(subject.termContext());
+
+            ConstrainedTerm result = new ConstrainedTerm(theNew, constraint, subject.termContext());
+            if (!matchResult.isMatching) {
+                // TODO(AndreiS): move these some other place
+                result = result.expandPatterns(true);
+                if (result.constraint().isFalse() || result.constraint().checkUnsat()) {
+                    continue;
+                }
+            }
 
             /* TODO(AndreiS): remove this hack for super strictness after strategies work */
             if (rule.containsAttribute(Att.heat()) && transitions.stream().anyMatch(rule::containsAttribute)) {
@@ -426,42 +353,6 @@ public class SymbolicRewriter {
         }
     }
 
-    private List<ConstrainedTerm> computeRewriteStepByRule(ConstrainedTerm subject, Rule rule) {
-        List<ConstrainedTerm> results = Collections.emptyList();
-        try {
-            if (rule == RuleAuditing.getAuditingRule()) {
-                RuleAuditing.beginAudit();
-            } else if (RuleAuditing.isAuditBegun() && RuleAuditing.getAuditingRule() == null) {
-                System.err.println("\nAuditing " + rule + "...\n");
-            }
-
-            return results = subject.unify(rule.createLhsPattern(subject.termContext()),
-                    rule.matchingInstructions(), rule.lhsOfReadCell(), rule.matchingVariables())
-                    .stream()
-                    .map(s -> buildResult(rule, s.getLeft(), subject.term(), !s.getRight(), subject.termContext()))
-                    .collect(Collectors.toList());
-        } catch (KEMException e) {
-            e.exception.addTraceFrame("while evaluating rule at " + rule.getSource() + rule.getLocation());
-            throw e;
-        } finally {
-            if (!results.isEmpty()) {
-                RuleAuditing.succeed(rule);
-                Coverage.print(subject.termContext().global().krunOptions.experimental.coverage, subject);
-                Coverage.print(subject.termContext().global().krunOptions.experimental.coverage, rule);
-            }
-
-            if (RuleAuditing.isAuditBegun()) {
-                if (RuleAuditing.getAuditingRule() == rule) {
-                    RuleAuditing.endAudit();
-                }
-                if (!RuleAuditing.isSuccess()
-                        && RuleAuditing.getAuditingRule() == rule) {
-                    throw RuleAuditing.fail();
-                }
-            }
-        }
-    }
-
     /**
      * Builds the result of rewrite based on the unification constraint.
      * It applies the unification constraint on the right-hand side of the rewrite rule,
@@ -481,17 +372,12 @@ public class SymbolicRewriter {
         }
         constraint = constraint.addAll(rule.ensures()).simplify(context);
 
-        Term term;
 
         /* apply the constraints substitution on the rule RHS */
         context.setTopConstraint(constraint);
         Set<Variable> substitutedVars = Sets.union(rule.freshConstants(), rule.matchingVariables());
         constraint = constraint.orientSubstitution(substitutedVars);
-        if (rule.isCompiledForFastRewriting()) {
-            term = AbstractKMachine.apply((CellCollection) subject, constraint.substitution(), rule, context);
-        } else {
-            term = rule.rightHandSide().substituteAndEvaluate(constraint.substitution(), context);
-        }
+        Term term = rule.rightHandSide().substituteAndEvaluate(constraint.substitution(), context);
 
         /* eliminate bindings of the substituted variables */
         constraint = constraint.removeBindings(substitutedVars);
@@ -708,7 +594,7 @@ public class SymbolicRewriter {
                     }
                 }
 
-                List<ConstrainedTerm> results = slowComputeRewriteStep(term, step, false);
+                List<ConstrainedTerm> results = fastComputeRewriteStep(term, false, true, true);
                 if (results.isEmpty()) {
                     /* final term */
                     proofResults.add(term);

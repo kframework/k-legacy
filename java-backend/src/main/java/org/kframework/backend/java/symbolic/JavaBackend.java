@@ -3,7 +3,9 @@ package org.kframework.backend.java.symbolic;
 
 import com.google.inject.Inject;
 import org.kframework.AddConfigurationRecoveryFlags;
+import org.kframework.Collections;
 import org.kframework.attributes.Att;
+import org.kframework.backend.Backends;
 import org.kframework.backend.java.kore.compile.ExpandMacrosDefinitionTransformer;
 import org.kframework.builtin.KLabels;
 import org.kframework.compile.AddBottomSortForListsWithIdenticalLabels;
@@ -19,7 +21,6 @@ import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.ADT;
-import org.kframework.kore.KToken;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
@@ -27,25 +28,27 @@ import org.kframework.kore.KORE;
 import org.kframework.kore.KSequence;
 import org.kframework.kore.KVariable;
 import org.kframework.kore.SortedADT;
+import org.kframework.kore.compile.AddImplicitComputationCell;
 import org.kframework.kore.compile.AssocCommToAssoc;
 import org.kframework.kore.compile.Backend;
+import org.kframework.kore.compile.ConcretizeCells;
 import org.kframework.kore.compile.ConvertDataStructureToLookup;
-import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.kore.compile.MergeRules;
 import org.kframework.kore.compile.NormalizeAssoc;
+import org.kframework.kore.compile.ResolveAnonVar;
+import org.kframework.kore.compile.ResolveSemanticCasts;
 import org.kframework.kore.compile.RewriteToTop;
 import org.kframework.kore.TransformK;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 
-import static scala.compat.java8.JFunction.*;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 import static org.kframework.definition.Constructors.Att;
+import static scala.runtime.java8.JFunction.func;
 
 public class JavaBackend implements Backend {
 
@@ -75,27 +78,41 @@ public class JavaBackend implements Backend {
         DefinitionTransformer convertDataStructureToLookup = DefinitionTransformer.fromSentenceTransformer(func((m, s) -> new ConvertDataStructureToLookup(m, false).convert(s)), "convert data structures to lookups");
         ExpandMacrosDefinitionTransformer expandMacrosDefinitionTransformer = new ExpandMacrosDefinitionTransformer(kem, files, globalOptions, kompileOptions);
 
-        if (kompile.kompileOptions.experimental.koreProve) {
-            return kompile.defaultSteps()
-                    .andThen(expandMacrosDefinitionTransformer::apply)
-                    .andThen(convertDataStructureToLookup::apply);
-        }
-
-        return d -> (func((Definition dd) -> kompile.defaultSteps().apply(dd)))
+        return d -> Collections.asScalaFunc(kompile.defaultSteps()::apply)
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(DefinitionTransformer.from(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))
-                .andThen(func(dd -> expandMacrosDefinitionTransformer.apply(dd)))
+                .andThen(expandMacrosDefinitionTransformer::apply)
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(convertDataStructureToLookup)
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::convertKSeqToKApply, "kseq to kapply"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(NormalizeKSeq.self(), "normalize kseq"))
-                .andThen(func(dd -> markRegularRules(dd)))
-                .andThen(DefinitionTransformer.fromSentenceTransformer(new AddConfigurationRecoveryFlags(), "add refers_THIS_CONFIGURATION_marker"))
+                .andThen(JavaBackend::markRegularRules)
+                .andThen(DefinitionTransformer.fromSentenceTransformer(new AddConfigurationRecoveryFlags()::apply, "add refers_THIS_CONFIGURATION_marker"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(JavaBackend::markSingleVariables, "mark single variables"))
                 .andThen(DefinitionTransformer.from(new AssocCommToAssoc(KORE.c()), "convert assoc/comm to assoc"))
                 .andThen(DefinitionTransformer.from(new MergeRules(KORE.c()), "generate matching automaton"))
+                .apply(d);
+    }
+
+    public Function<Definition, Definition> stepsForProverRules() {
+        DefinitionTransformer resolveAnonVars = DefinitionTransformer.fromSentenceTransformer(new ResolveAnonVar()::resolve, "resolving \"_\" vars");
+        DefinitionTransformer resolveSemanticCasts = DefinitionTransformer.fromSentenceTransformer(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve, "resolving semantic casts");
+        ExpandMacrosDefinitionTransformer expandMacrosDefinitionTransformer = new ExpandMacrosDefinitionTransformer(kem, files, globalOptions, kompileOptions);
+
+        return d -> resolveAnonVars
+                .andThen(resolveSemanticCasts)
+                .andThen(AddImplicitComputationCell::transformDefinition)
+                .andThen(ConcretizeCells::transformDefinition)
+                .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
+                .andThen(DefinitionTransformer.from(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))
+                .andThen(expandMacrosDefinitionTransformer::apply)
+                .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
+                .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::convertKSeqToKApply, "kseq to kapply"))
+                .andThen(DefinitionTransformer.fromRuleBodyTranformer(NormalizeKSeq.self(), "normalize kseq"))
+                .andThen(JavaBackend::markRegularRules)
+                .andThen(DefinitionTransformer.fromSentenceTransformer(new AddConfigurationRecoveryFlags()::apply, "add refers_THIS_CONFIGURATION_marker"))
                 .apply(d);
     }
 
@@ -119,7 +136,7 @@ public class JavaBackend implements Backend {
     /**
      * The Java backend expects sorted variables, so transform them to the sorted flavor.
      */
-    private static K ADTKVariableToSortedVariable(K ruleBody) {
+    public static K ADTKVariableToSortedVariable(K ruleBody) {
         return new TransformK() {
             public K apply(KVariable kvar) {
                 return new SortedADT.SortedKVariable(kvar.name(), kvar.att());
@@ -130,7 +147,7 @@ public class JavaBackend implements Backend {
     /**
      * In the Java backend, {@link KSequence}s are treated like {@link KApply}s, so tranform them.
      */
-    private static K convertKSeqToKApply(K ruleBody) {
+    public static K convertKSeqToKApply(K ruleBody) {
         return new TransformK() {
             public K apply(KSequence kseq) {
                 return super.apply(((ADT.KSequence) kseq).kApply());

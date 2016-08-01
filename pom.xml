@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!-- Copyright (c) 2014-2016 K Team. All Rights Reserved. -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.kframework.k</groupId>
   <artifactId>parent</artifactId>
   <packaging>pom</packaging>
-  <version>4.0-beta</version>
+  <version>4.0.1-SNAPSHOT</version>
   <name>K Framework Tool Parent</name>
 
   <modules>
@@ -14,7 +15,6 @@
     <module>k-distribution</module>
     <module>java-backend</module>
     <module>coq-backend</module>
-    <module>tiny</module>
     <module>API</module>
     <module>kdoc</module>
   </modules>
@@ -45,7 +45,7 @@
     <base>master</base>
     <skipCheckstyleOnWindows>true</skipCheckstyleOnWindows>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <scala.version>2.11.7</scala.version>
+    <scala.version>2.12.0-M5</scala.version>
   </properties>
 
   <dependencies>
@@ -53,11 +53,6 @@
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
       <version>${scala.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.scala-lang.modules</groupId>
-      <artifactId>scala-java8-compat_2.11</artifactId>
-      <version>0.7.0</version>
     </dependency>
     <dependency>
         <groupId>org.scala-lang</groupId>

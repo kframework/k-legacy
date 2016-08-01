@@ -31,6 +31,10 @@ public class BuiltinIOOperations {
         this.fs = fs;
     }
 
+    public Term getTime(TermContext termContext) {
+        return IntToken.of(System.currentTimeMillis());
+    }
+
     public Term open(StringToken term1, StringToken term2, TermContext termContext) {
         try {
             return IntToken.of(fs.open(term1.stringValue(), term2.stringValue()));

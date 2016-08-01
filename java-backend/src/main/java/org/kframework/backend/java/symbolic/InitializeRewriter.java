@@ -170,9 +170,30 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
             List<org.kframework.backend.java.kil.Rule> javaRules = rules.stream()
                     .map(r -> converter.convert(Optional.<Module>empty(), r))
+                    .map(r -> new org.kframework.backend.java.kil.Rule(
+                            r.label(),
+                            r.leftHandSide().evaluate(termContext),
+                            r.rightHandSide().evaluate(termContext),
+                            r.requires(),
+                            r.ensures(),
+                            r.freshConstants(),
+                            r.freshVariables(),
+                            r.lookups(),
+                            r.isCompiledForFastRewriting(),
+                            r.lhsOfReadCell(),
+                            r.rhsOfWriteCell(),
+                            r.cellsToCopy(),
+                            r.matchingInstructions(),
+                            r,
+                            termContext.global()))
                     .collect(Collectors.toList());
             List<org.kframework.backend.java.kil.Rule> allRules = javaRules.stream()
-                    .map(r -> r.renameVariables())
+                    .map(org.kframework.backend.java.kil.Rule::renameVariables)
+                    .collect(Collectors.toList());
+
+            // rename all variables again to avoid any potential conflicts with the rules in the semantics
+            javaRules = javaRules.stream()
+                    .map(org.kframework.backend.java.kil.Rule::renameVariables)
                     .collect(Collectors.toList());
 
             this.rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, javaOptions, new KRunState.Counter(), converter);
