@@ -15,7 +15,7 @@ else
     if [ $? -eq 0 ]; then
       $NG org.kframework.main.Main "$@"
     else
-      java -Djava.awt.headless=true $K_OPTS -ea -cp "$(dirname "$0")/java/*" org.kframework.main.Main "$@"
+      java -Djava.awt.headless=true -Djava.library.path="$THE_LIBRARY_PATH" $K_OPTS -ea -cp "$(dirname "$0")/java/*" org.kframework.main.Main "$@"
     fi
   else
     exit 1
