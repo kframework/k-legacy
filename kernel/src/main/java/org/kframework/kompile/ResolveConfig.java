@@ -85,7 +85,7 @@ public class ResolveConfig implements UnaryOperator<Module> {
                 .map(p -> Production(Sort("Cell", ModuleName.apply("KCELLS")), Seq(NonTerminal(p.sort())))).collect(Collections.toSet());
 
         Module module = Module(inputModule.name(), inputModule.imports(),
-                inputModule.localSentences().$plus$plus(importedConfigurationSortsSubsortedToCell),
+                Collections.addAll(inputModule.localSentences(), importedConfigurationSortsSubsortedToCell),
                 inputModule.att());
 
         ParseInModule parser = getParser.apply(module, name -> def.getModule(name).get());
