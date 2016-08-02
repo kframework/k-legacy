@@ -83,7 +83,7 @@ public class KRunAPI {
         KompileOptions kompileOptions = new KompileOptions();
         KRunOptions krunOptions = new KRunOptions();
         KExceptionManager kem = new KExceptionManager(globalOptions);
-        FileUtil files = FileUtil.testFileUtil();
+        FileUtil files = FileUtil.get(globalOptions, System.getenv());
 
         if (args.length < 2) {
             System.out.println("usage: <def> <main-module> <pgm>");
