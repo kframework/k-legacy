@@ -37,9 +37,12 @@ public class RuleGrammarTest {
 
     @Before
     public void setUp() throws Exception {
+        /*
         FileUtil files = FileUtil.testFileUtil();
         File definitionFile = new File(Kompile.BUILTIN_DIRECTORY.toString() + "/kast.k");
         baseKText = files.loadFromWorkingDirectory(definitionFile.getPath());
+         */
+        baseKText = "require \"domains.k\"\n";
     }
 
     private void parseRule(String input, String def, int warnings, boolean expectedError) {

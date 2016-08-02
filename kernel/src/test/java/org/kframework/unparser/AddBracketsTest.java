@@ -30,9 +30,12 @@ public class AddBracketsTest {
 
     @Before
     public void setUp() throws Exception {
+        /*
         FileUtil files = FileUtil.testFileUtil();
         File definitionFile = new File(Kompile.BUILTIN_DIRECTORY.toString() + "/kast.k");
         baseKText = files.loadFromWorkingDirectory(definitionFile.getPath());
+         */
+        baseKText = "require \"domains.k\"\n";
     }
 
     private Module parseModule(String def) {
