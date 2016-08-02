@@ -153,19 +153,21 @@ public class Kompile {
         DefinitionTransformer resolveSemanticCasts =
                 DefinitionTransformer.fromSentenceTransformer(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve, "resolving semantic casts");
 
-        return def -> asScalaFunc(this::resolveIOStreams)
-                .andThen(convertStrictToContexts)
-                .andThen(convertAnonVarsToNamedVars)
-                .andThen(d -> new ConvertContextsToHeatCoolRules(kompileOptions).resolve(d))
-                .andThen(resolveHeatCoolAttribute)
-                .andThen(resolveSemanticCasts)
-                .andThen(DefinitionTransformer.fromWithInputDefinitionTransformerClass(GenerateSortPredicateSyntax.class))
-                .andThen(this::resolveFreshConstants)
-                .andThen(AddImplicitComputationCell::transformDefinition)
-                .andThen(new Strategy(kompileOptions.experimental.heatCoolStrategies).addStrategyCellToRulesTransformer())
-                .andThen(ConcretizeCells::transformDefinition)
-                .andThen(this::addSemanticsModule)
-                .apply(def);
+        return d -> {
+            d = resolveIOStreams(d, kem);
+            d = convertStrictToContexts.apply(d);
+            d = convertAnonVarsToNamedVars.apply(d);
+            d = new ConvertContextsToHeatCoolRules(kompileOptions).resolve(d);
+            d = resolveHeatCoolAttribute.apply(d);
+            d = resolveSemanticCasts.apply(d);
+            d = DefinitionTransformer.fromWithInputDefinitionTransformerClass(GenerateSortPredicateSyntax.class).apply(d);
+            d = resolveFreshConstants(d);
+            d = AddImplicitComputationCell.transformDefinition(d);
+            d = new Strategy(kompileOptions.experimental.heatCoolStrategies).addStrategyCellToRulesTransformer().apply(d);
+            d = ConcretizeCells.transformDefinition(d);
+            d = addSemanticsModule(d);
+            return d;
+        };
     }
 
     public Rule parseAndCompileRule(CompiledDefinition compiledDef, String contents, Source source, Optional<Rule> parsedRule) {
