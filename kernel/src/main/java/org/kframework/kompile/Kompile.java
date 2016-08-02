@@ -142,7 +142,7 @@ public class Kompile {
         return definitionParsing.parseDefinitionAndResolveBubbles(definitionFile, mainModuleName, mainProgramsModule);
     }
 
-    public static Definition resolveIOStreams(Definition d) {
+    public static Definition resolveIOStreams(Definition d, KExceptionManager kem) {
         return DefinitionTransformer.fromHybrid(new ResolveIOStreams(d, kem)::resolve, "resolving io streams").apply(d);
     }
 
