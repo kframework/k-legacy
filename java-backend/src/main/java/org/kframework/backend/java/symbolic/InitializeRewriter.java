@@ -134,14 +134,10 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
         // org.kframework.krun.modes.KRunExecutionMode#execute
         @Override
         public RewriterResult execute(K k, Optional<Integer> depth) {
-            return execute(k, depth, false);
-        }
-
-        public RewriterResult execute(K k, Optional<Integer> depth, boolean api) {
             TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
             Term backendKil = KILtoBackendJavaKILTransformer.expandAndEvaluate(termContext, kem, converter.convert(k));
-            this.rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, javaOptions, new KRunState.Counter(), converter, api);
+            this.rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, javaOptions, new KRunState.Counter(), converter);
             // org.kframework.backend.java.symbolic.SymbolicRewriter.rewrite()
             JavaKRunState result = (JavaKRunState) rewriter.rewrite(new ConstrainedTerm(backendKil, termContext), depth.orElse(-1));
             return new RewriterResult(result.getStepsTaken(), result.getJavaKilTerm());
