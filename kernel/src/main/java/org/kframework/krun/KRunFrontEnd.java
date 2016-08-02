@@ -85,6 +85,7 @@ public class KRunFrontEnd extends FrontEnd {
     /**
      * @return the exit code returned from executing krun.
      */
+    // org.kframework.main.FrontEnd#main
     public int run() {
         scope.enter(kompiledDir.get());
         try {
@@ -94,6 +95,7 @@ public class KRunFrontEnd extends FrontEnd {
                         initializeRewriter.get(),
                         executionMode.get());
             }
+            // org.kframework.krun.KRun.run()
             return new KRun(kem, files, tty.stdin).run(compiledDef.get(),
                     krunOptions,
                     initializeRewriter.get(),

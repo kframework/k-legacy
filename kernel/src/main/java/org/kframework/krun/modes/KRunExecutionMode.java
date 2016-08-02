@@ -39,6 +39,9 @@ public class KRunExecutionMode implements ExecutionMode {
         this.files = files;
     }
 
+    // org.kframework.main.FrontEnd#main
+    // org.kframework.krun.KRunFrontEnd#run
+    // org.kframework.krun.KRun#run
     @Override
     public Object execute(K k, Rewriter rewriter, CompiledDefinition compiledDefinition) {
         Rule pattern = null, parsedPattern = null;
@@ -67,6 +70,7 @@ public class KRunExecutionMode implements ExecutionMode {
             Tuple2<RewriterResult, List<? extends Map<? extends KVariable, ? extends K>>> res = rewriter.executeAndMatch(k, Optional.ofNullable(kRunOptions.depth), pattern);
             return new SearchResult(res._2(), parsedPattern);
         }
+        // org.kframework.backend.java.symbolic.InitializeRewriter.SymbolicRewriterGlue.execute()
         return rewriter.execute(k, Optional.ofNullable(kRunOptions.depth)).k();
     }
 }

@@ -101,7 +101,7 @@ public class JavaBackend implements Backend {
             }.apply(k);
         }, "Module-qualify sort predicates");
 
-        return d -> (func((Definition dd) -> kompile.defaultSteps().apply(dd)))
+        return d -> (func((Definition dd) -> kompile.defaultSteps(kompile.kompileOptions, kompile.kem).apply(dd)))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(DefinitionTransformer.fromHybrid(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))

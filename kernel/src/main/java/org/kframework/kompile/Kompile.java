@@ -63,7 +63,7 @@ public class Kompile {
 
     public final KompileOptions kompileOptions;
     private final FileUtil files;
-    private final KExceptionManager kem;
+    public final KExceptionManager kem;
     private final ParserUtils parser;
     private final Stopwatch sw;
     private final DefinitionParsing definitionParsing;
@@ -100,7 +100,7 @@ public class Kompile {
     }
 
     public CompiledDefinition run(File definitionFile, String mainModuleName, String mainProgramsModuleName) {
-        return run(definitionFile, mainModuleName, mainProgramsModuleName, defaultSteps());
+        return run(definitionFile, mainModuleName, mainProgramsModuleName, defaultSteps(kompileOptions, kem));
     }
 
     /**
@@ -126,15 +126,27 @@ public class Kompile {
         return new CompiledDefinition(kompileOptions, parsedDef, kompiledDefinition, configInfo.getDefaultCell(configInfo.topCell()).klabel());
     }
 
+    public static CompiledDefinition run(Definition parsedDef, KompileOptions kompileOptions, KExceptionManager kem) {
+        /* TODO: enable checking
+        checkDefinition(parsedDef);
+         */
+
+        Definition kompiledDefinition = defaultSteps(kompileOptions, kem).apply(parsedDef);
+
+        ConfigurationInfoFromModule configInfo = new ConfigurationInfoFromModule(kompiledDefinition.mainModule());
+
+        return new CompiledDefinition(kompileOptions, parsedDef, kompiledDefinition, configInfo.getDefaultCell(configInfo.topCell()).klabel());
+    }
+
     public Definition parseDefinition(File definitionFile, String mainModuleName, String mainProgramsModule) {
         return definitionParsing.parseDefinitionAndResolveBubbles(definitionFile, mainModuleName, mainProgramsModule);
     }
 
-    public Definition resolveIOStreams(Definition d) {
+    public static Definition resolveIOStreams(Definition d) {
         return DefinitionTransformer.fromHybrid(new ResolveIOStreams(d, kem)::resolve, "resolving io streams").apply(d);
     }
 
-    public Function<Definition, Definition> defaultSteps() {
+    public static Function<Definition, Definition> defaultSteps(KompileOptions kompileOptions, KExceptionManager kem) {
         DefinitionTransformer convertStrictToContexts = DefinitionTransformer.fromHybrid(new ResolveStrict(kompileOptions)::resolve, "resolving strict and seqstrict attributes");
         DefinitionTransformer resolveHeatCoolAttribute = DefinitionTransformer.fromSentenceTransformer(new ResolveHeatCoolAttribute(new HashSet<>(kompileOptions.transition))::resolve, "resolving heat and cool attributes");
         DefinitionTransformer convertAnonVarsToNamedVars = DefinitionTransformer.fromSentenceTransformer(new ResolveAnonVar()::resolve, "resolving \"_\" vars");
@@ -181,7 +193,7 @@ public class Kompile {
         }
     }
 
-    public Definition addSemanticsModule(Definition d) {
+    public static Definition addSemanticsModule(Definition d) {
         java.util.Set<Sentence> prods = new HashSet<>();
         for (Sort srt : iterable(d.mainModule().definedSorts())) {
             if (!RuleGrammarGenerator.isParserSort(srt)) {
@@ -201,7 +213,7 @@ public class Kompile {
         return Constructors.Definition(withKSeq, immutable(allModules), d.att());
     }
 
-    public Definition resolveFreshConstants(Definition input) {
+    public static Definition resolveFreshConstants(Definition input) {
         return DefinitionTransformer.fromHybrid(new ResolveFreshConstants(input)::resolve, "resolving !Var variables")
                 .apply(input);
     }

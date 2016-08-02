@@ -61,6 +61,11 @@ public class SymbolicRewriter {
     @Inject
     public SymbolicRewriter(GlobalContext global, KompileOptions kompileOptions, JavaExecutionOptions javaOptions,
                             KRunState.Counter counter, KOREtoBackendKIL constructor) {
+        this(global, kompileOptions, javaOptions, counter, constructor, false);
+    }
+
+    public SymbolicRewriter(GlobalContext global, KompileOptions kompileOptions, JavaExecutionOptions javaOptions,
+                            KRunState.Counter counter, KOREtoBackendKIL constructor, boolean api) {
         this.constructor = constructor;
         this.definition = global.getDefinition();
         this.allRuleBits = BitSet.apply(definition.ruleTable.size());
@@ -74,6 +79,11 @@ public class SymbolicRewriter {
         this.transition = true;
     }
 
+    // org.kframework.main.FrontEnd#main
+    // org.kframework.krun.KRunFrontEnd#run
+    // org.kframework.krun.KRun#run
+    // org.kframework.krun.modes.KRunExecutionMode#execute
+    // org.kframework.backend.java.symbolic.InitializeRewriter.SymbolicRewriterGlue#execute
     public KRunState rewrite(ConstrainedTerm constrainedTerm, int bound) {
         stopwatch.start();
         int step = 0;
