@@ -5,6 +5,7 @@ import com.google.inject.Provider;
 import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
 import org.kframework.backend.java.symbolic.InitializeRewriter;
+import org.kframework.backend.java.symbolic.JavaBackend;
 import org.kframework.backend.java.symbolic.JavaExecutionOptions;
 import org.kframework.definition.Definition;
 import org.kframework.kompile.CompiledDefinition;
@@ -26,6 +27,7 @@ import java.lang.invoke.MethodHandle;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static org.kframework.Collections.*;
 import static org.kframework.kore.KORE.*;
@@ -79,9 +81,14 @@ public class KRunAPI {
     }
 
     public static void main(String[] args) {
+
+        // tier-1 dependencies
         GlobalOptions globalOptions = new GlobalOptions();
         KompileOptions kompileOptions = new KompileOptions();
         KRunOptions krunOptions = new KRunOptions();
+        JavaExecutionOptions javaExecutionOptions = new JavaExecutionOptions();
+
+        // tier-2 dependencies
         KExceptionManager kem = new KExceptionManager(globalOptions);
         FileUtil files = FileUtil.get(globalOptions, System.getenv());
 
@@ -96,7 +103,10 @@ public class KRunAPI {
 
         // kompile
         Definition d = DefinitionParser.from(def, mainModuleName);
-        CompiledDefinition compiledDef = Kompile.run(d, kompileOptions, kem);
+        //
+        Kompile kompile = new Kompile(kompileOptions, files, kem, false);
+        Function<Definition, Definition> pipeline = new JavaBackend(kem, files, globalOptions, kompileOptions).steps(kompile);
+        CompiledDefinition compiledDef = Kompile.run(d, kompileOptions, pipeline); // Kompile.runDefaultSteps(d, kompileOptions, kem);
 
         // krun
         RewriterResult result = run(compiledDef, pgm, null);

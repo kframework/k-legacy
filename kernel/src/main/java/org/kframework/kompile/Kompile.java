@@ -126,16 +126,20 @@ public class Kompile {
         return new CompiledDefinition(kompileOptions, parsedDef, kompiledDefinition, configInfo.getDefaultCell(configInfo.topCell()).klabel());
     }
 
-    public static CompiledDefinition run(Definition parsedDef, KompileOptions kompileOptions, KExceptionManager kem) {
+    public static CompiledDefinition run(Definition parsedDef, KompileOptions kompileOptions, Function<Definition, Definition> pipeline) {
         /* TODO: enable checking
         checkDefinition(parsedDef);
          */
 
-        Definition kompiledDefinition = defaultSteps(kompileOptions, kem).apply(parsedDef);
+        Definition kompiledDefinition = pipeline.apply(parsedDef);
 
         ConfigurationInfoFromModule configInfo = new ConfigurationInfoFromModule(kompiledDefinition.mainModule());
 
         return new CompiledDefinition(kompileOptions, parsedDef, kompiledDefinition, configInfo.getDefaultCell(configInfo.topCell()).klabel());
+    }
+
+    public static CompiledDefinition runDefaultSteps(Definition parsedDef, KompileOptions kompileOptions, KExceptionManager kem) {
+        return run(parsedDef, kompileOptions, d -> defaultSteps(kompileOptions, kem).apply(d));
     }
 
     public Definition parseDefinition(File definitionFile, String mainModuleName, String mainProgramsModule) {
