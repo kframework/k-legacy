@@ -61,9 +61,9 @@ public class FileUtil {
         File tmp = Files.createTempDir();
         File tempDir = new File(tmp.getAbsolutePath() + File.pathSeparator + "tempDir");
         File definitionDir = new File(tmp.getAbsolutePath() + File.pathSeparator + "definitionDir");
-        File workingDir = new File(tmp.getAbsolutePath() + File.pathSeparator + "workingDir");
+        File workingDir = new File("."); // new File(tmp.getAbsolutePath() + File.pathSeparator + "workingDir");
         File kompiledDir = new File(tmp.getAbsolutePath() + File.pathSeparator + "kompiledDir");
-        if(!tempDir.mkdir() || !definitionDir.mkdir() || !workingDir.mkdir() || !kompiledDir.mkdir()) {
+        if(!tempDir.mkdir() || !definitionDir.mkdir() /* || !workingDir.mkdir() */ || !kompiledDir.mkdir()) {
             throw new AssertionError("Could not create one of the temporary directories");
         }
         return new FileUtil(tempDir, Providers.of(definitionDir), workingDir, Providers.of(kompiledDir), globalOptions, env);
