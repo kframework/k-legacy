@@ -37,7 +37,27 @@ import static org.kframework.kore.KORE.*;
  */
 public class KRunAPI {
 
-    public static RewriterResult run(CompiledDefinition compiledDef, String programText, Integer depth) {
+    public static CompiledDefinition kompile(String def, String mainModuleName) {
+        // tier-1 dependencies
+        GlobalOptions globalOptions = new GlobalOptions();
+        KompileOptions kompileOptions = new KompileOptions();
+        KRunOptions krunOptions = new KRunOptions();
+        JavaExecutionOptions javaExecutionOptions = new JavaExecutionOptions();
+
+        // tier-2 dependencies
+        KExceptionManager kem = new KExceptionManager(globalOptions);
+        FileUtil files = FileUtil.get(globalOptions, System.getenv());
+
+        Definition d = DefinitionParser.from(def, mainModuleName);
+
+        Kompile kompile = new Kompile(kompileOptions, files, kem, false);
+        Function<Definition, Definition> pipeline = new JavaBackend(kem, files, globalOptions, kompileOptions).steps(kompile);
+        CompiledDefinition compiledDef = Kompile.run(d, kompileOptions, pipeline); // Kompile.runDefaultSteps(d, kompileOptions, kem);
+
+        return compiledDef;
+    }
+
+    public static RewriterResult krun(CompiledDefinition compiledDef, String programText, Integer depth) {
 
         GlobalOptions globalOptions = new GlobalOptions();
         KompileOptions kompileOptions = new KompileOptions();
@@ -45,7 +65,7 @@ public class KRunAPI {
         JavaExecutionOptions javaExecutionOptions = new JavaExecutionOptions();
 
         KExceptionManager kem = new KExceptionManager(globalOptions);
-        FileUtil files = FileUtil.testFileUtil();
+        FileUtil files = FileUtil.get(globalOptions, System.getenv());
         boolean ttyStdin = false;
 
         FileSystem fs = new PortableFileSystem(kem, files);
@@ -80,8 +100,7 @@ public class KRunAPI {
         return result;
     }
 
-    public static void main(String[] args) {
-
+    public static void kprint(CompiledDefinition compiledDef, RewriterResult result) {
         // tier-1 dependencies
         GlobalOptions globalOptions = new GlobalOptions();
         KompileOptions kompileOptions = new KompileOptions();
@@ -92,6 +111,12 @@ public class KRunAPI {
         KExceptionManager kem = new KExceptionManager(globalOptions);
         FileUtil files = FileUtil.get(globalOptions, System.getenv());
 
+        // print output
+        // from org.kframework.krun.KRun.run()
+        KRun.prettyPrint(compiledDef, krunOptions.output, s -> KRun.outputFile(s, krunOptions, files), result.k());
+    }
+
+    public static void main(String[] args) {
         if (args.length < 2) {
             System.out.println("usage: <def> <main-module> <pgm>");
             return;
@@ -102,18 +127,13 @@ public class KRunAPI {
         String mainModuleName = args[1]; // "A"
 
         // kompile
-        Definition d = DefinitionParser.from(def, mainModuleName);
-        //
-        Kompile kompile = new Kompile(kompileOptions, files, kem, false);
-        Function<Definition, Definition> pipeline = new JavaBackend(kem, files, globalOptions, kompileOptions).steps(kompile);
-        CompiledDefinition compiledDef = Kompile.run(d, kompileOptions, pipeline); // Kompile.runDefaultSteps(d, kompileOptions, kem);
+        CompiledDefinition compiledDef = kompile(def, mainModuleName);
 
         // krun
-        RewriterResult result = run(compiledDef, pgm, null);
+        RewriterResult result = krun(compiledDef, pgm, null);
 
-        // print output
-        // from org.kframework.krun.KRun.run()
-        KRun.prettyPrint(compiledDef, krunOptions.output, s -> KRun.outputFile(s, krunOptions, files), result.k());
+        // print
+        kprint(compiledDef, result);
 
         return;
     }
