@@ -7,6 +7,7 @@ import org.kframework.attributes.Source;
 import org.kframework.backend.java.symbolic.InitializeRewriter;
 import org.kframework.backend.java.symbolic.JavaBackend;
 import org.kframework.backend.java.symbolic.JavaExecutionOptions;
+import org.kframework.backend.java.symbolic.ProofExecutionMode;
 import org.kframework.definition.Definition;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
@@ -19,8 +20,10 @@ import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import org.kframework.main.GlobalOptions;
 import org.kframework.rewriter.Rewriter;
+import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
+import org.kframework.utils.options.SMTOptions;
 
 import java.io.File;
 import java.lang.invoke.MethodHandle;
@@ -57,7 +60,7 @@ public class KRunAPI {
         return compiledDef;
     }
 
-    public static RewriterResult krun(CompiledDefinition compiledDef, String programText, Integer depth) {
+    public static RewriterResult krun(CompiledDefinition compiledDef, String programText, Integer depth, String prove, String prelude) {
 
         GlobalOptions globalOptions = new GlobalOptions();
         KompileOptions kompileOptions = new KompileOptions();
@@ -95,9 +98,18 @@ public class KRunAPI {
                 initializeDefinition)
             .apply(compiledDef.executionModule());
 
-        RewriterResult result = ((InitializeRewriter.SymbolicRewriterGlue) rewriter).execute(program, Optional.ofNullable(depth));
-
-        return result;
+        if (prove == null) {
+            RewriterResult result = ((InitializeRewriter.SymbolicRewriterGlue) rewriter).execute(program, Optional.ofNullable(depth));
+            return result;
+        } else {
+            Stopwatch sw = new Stopwatch(globalOptions);
+            krunOptions.experimental.prove = prove;
+            krunOptions.experimental.smt.smtPrelude = prelude;
+            ProofExecutionMode mode = new ProofExecutionMode(kem, krunOptions, sw, files, globalOptions);
+            java.util.List<K> result = mode.execute(program, rewriter, compiledDef);
+            System.out.println(result);
+            return null;
+        }
     }
 
     public static void kprint(CompiledDefinition compiledDef, RewriterResult result) {
@@ -130,10 +142,15 @@ public class KRunAPI {
         CompiledDefinition compiledDef = kompile(def, mainModuleName);
 
         // krun
-        RewriterResult result = krun(compiledDef, pgm, null);
+        RewriterResult result = krun(compiledDef, pgm, null, null, null);
 
         // print
         kprint(compiledDef, result);
+
+        // kprove
+        String prove = args[3];
+        String prelude = args[4];
+        krun(compiledDef, pgm, null, prove, prelude);
 
         return;
     }
