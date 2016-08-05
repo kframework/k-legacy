@@ -148,27 +148,32 @@ public class KRunAPI {
     }
 
     public static void main(String[] args) {
-        if (args.length < 2) {
+        if (args.length < 7) {
             System.out.println("usage: <def> <main-module> <pgm>");
             return;
         }
-        String def = FileUtil.load(new File(args[0])); // "require \"domains.k\" module A syntax KItem ::= \"run\" endmodule"
-        String pgm = FileUtil.load(new File(args[2])); // "run"
+        String def0 = FileUtil.load(new File(args[0])); // "require \"domains.k\" module A syntax KItem ::= \"run\" endmodule"
+        String mod0 = args[1]; // "A"
 
-        String mainModuleName = args[1]; // "A"
+        String def1 = FileUtil.load(new File(args[2])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
+        String mod1 = args[3]; // "A"
+
+        String pgm = FileUtil.load(new File(args[4])); // "run"
+
+        String prove = args[5];
+        String prelude = args[6];
 
         // kompile
-        CompiledDefinition compiledDef = kompile(def, mainModuleName);
+        CompiledDefinition compiledDef0 = kompile(def0, mod0);
+        CompiledDefinition compiledDef1 = kompile(def1, mod1);
 
         // krun
-        RewriterResult result = krun(compiledDef, pgm, null, null, null);
-        kprint(compiledDef, result);
+        RewriterResult result = krun(compiledDef1, pgm, null, null, null);
+        kprint(compiledDef1, result);
 
         // kprove
-        String prove = args[3];
-        String prelude = args[4];
         //krun(compiledDef, pgm, null, prove, prelude);
-        kprove(compiledDef, compiledDef, prove, prelude);
+        kprove(compiledDef0, compiledDef1, prove, prelude);
 
         return;
     }
