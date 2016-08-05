@@ -164,11 +164,11 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
         return rewriter.prove(rules);
     }
 
-    private Rule transformFunction(Function<K, K> f, Rule r) {
+    public static Rule transformFunction(Function<K, K> f, Rule r) {
         return Rule.apply(f.apply(r.body()), f.apply(r.requires()), f.apply(r.ensures()), r.att());
     }
 
-    private Rule transform(Function1<K, K> f, Rule r) {
+    public static Rule transform(Function1<K, K> f, Rule r) {
         return Rule.apply(f.apply(r.body()), f.apply(r.requires()), f.apply(r.ensures()), r.att());
     }
 
