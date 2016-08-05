@@ -168,12 +168,16 @@ public class KRunAPI {
         String prove = args[3];
         String prelude = args[4];
         //krun(compiledDef, pgm, null, prove, prelude);
-        kprove(compiledDef, prove, prelude);
+        kprove(compiledDef, compiledDef, prove, prelude);
 
         return;
     }
 
-    public static void kprove(CompiledDefinition compiledDef, String proofFile, String prelude) {
+    /**
+     * compiledDef0: for parsing spec rules
+     * compiledDef1: for symbolic execution
+     */
+    public static void kprove(CompiledDefinition compiledDef0, CompiledDefinition compiledDef1, String proofFile, String prelude) {
 
         GlobalOptions globalOptions = new GlobalOptions();
         KompileOptions kompileOptions = new KompileOptions();
@@ -193,34 +197,34 @@ public class KRunAPI {
         krunOptions.experimental.prove = proofFile;
         krunOptions.experimental.smt.smtPrelude = prelude;
 
-        Module mainModule = compiledDef.executionModule();
         SMTOptions smtOptions = krunOptions.experimental.smt;
 
         //// creating rewritingContext
 
         GlobalContext initializingContextGlobal = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING);
         TermContext initializingContext = TermContext.builder(initializingContextGlobal).freshCounter(0).build();
-        org.kframework.backend.java.kil.Definition evaluatedDef = initializeDefinition.invoke(mainModule, kem, initializingContext.global());
+        org.kframework.backend.java.kil.Definition evaluatedDef0 = initializeDefinition.invoke(compiledDef0.executionModule(), kem, initializingContext.global());
+        org.kframework.backend.java.kil.Definition evaluatedDef1 = initializeDefinition.invoke(compiledDef1.executionModule(), kem, initializingContext.global());
 
         GlobalContext rewritingContextGlobal = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
-        rewritingContextGlobal.setDefinition(evaluatedDef);
+        rewritingContextGlobal.setDefinition(evaluatedDef1);
         TermContext rewritingContext = TermContext.builder(rewritingContextGlobal).freshCounter(initializingContext.getCounterValue()).build();
 
         //// parse spec file
 
-        Kompile kompile = new Kompile(compiledDef.kompileOptions, globalOptions, files, kem, sw, false);
-        Module specModule = kompile.parseModule(compiledDef, files.resolveWorkingDirectory(proofFile).getAbsoluteFile());
+        Kompile kompile = new Kompile(kompileOptions, globalOptions, files, kem, sw, false);
+        Module specModule = kompile.parseModule(compiledDef0, files.resolveWorkingDirectory(proofFile).getAbsoluteFile());
 
         scala.collection.Set<Module> alsoIncluded = Stream.of("K-TERM", "K-REFLECTION", RuleGrammarGenerator.ID_PROGRAM_PARSING)
-                .map(mod -> compiledDef.getParsedDefinition().getModule(mod).get())
+                .map(mod -> compiledDef0.getParsedDefinition().getModule(mod).get())
                 .collect(org.kframework.Collections.toSet());
 
-        specModule = new JavaBackend(kem, files, globalOptions, compiledDef.kompileOptions)
+        specModule = new JavaBackend(kem, files, globalOptions, kompileOptions)
                 .stepsForProverRules()
                 .apply(Definition.apply(specModule, org.kframework.Collections.add(specModule, alsoIncluded), Att.apply()))
                 .getModule(specModule.name()).get();
 
-        ExpandMacros macroExpander = new ExpandMacros(compiledDef.kompiledDefinition.mainModule(), kem, files, globalOptions, compiledDef.kompileOptions);
+        ExpandMacros macroExpander = new ExpandMacros(compiledDef0.executionModule(), kem, files, globalOptions, kompileOptions);
 
         List<Rule> specRules = stream(specModule.localRules())
                 .filter(r -> r.toString().contains("spec.k"))
@@ -233,7 +237,7 @@ public class KRunAPI {
 
         //// massage spec rules
 
-        KOREtoBackendKIL converter = new KOREtoBackendKIL(mainModule, evaluatedDef, rewritingContext.global(), false);
+        KOREtoBackendKIL converter = new KOREtoBackendKIL(compiledDef0.executionModule(), evaluatedDef0, rewritingContext.global(), false);
         List<org.kframework.backend.java.kil.Rule> javaRules = specRules.stream()
                 .map(r -> converter.convert(Optional.<Module>empty(), r))
                 .map(r -> new org.kframework.backend.java.kil.Rule(
