@@ -200,29 +200,29 @@ public class KRunAPI {
 
         GlobalContext initializingContextGlobal = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING);
         TermContext initializingContext = TermContext.builder(initializingContextGlobal).freshCounter(0).build();
-        org.kframework.backend.java.kil.Definition definition = initializeDefinition.invoke(mainModule, kem, initializingContext.global());
-        BigInteger initCounterValue = initializingContext.getCounterValue();
+        org.kframework.backend.java.kil.Definition evaluatedDef = initializeDefinition.invoke(mainModule, kem, initializingContext.global());
 
-        GlobalContext rewritingContext = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
-        rewritingContext.setDefinition(definition);
+        GlobalContext rewritingContextGlobal = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
+        rewritingContextGlobal.setDefinition(evaluatedDef);
+        TermContext rewritingContext = TermContext.builder(rewritingContextGlobal).freshCounter(initializingContext.getCounterValue()).build();
 
         //// parse spec file
 
         Kompile kompile = new Kompile(compiledDef.kompileOptions, globalOptions, files, kem, sw, false);
-        Module mod = kompile.parseModule(compiledDef, files.resolveWorkingDirectory(proofFile).getAbsoluteFile());
+        Module specModule = kompile.parseModule(compiledDef, files.resolveWorkingDirectory(proofFile).getAbsoluteFile());
 
         scala.collection.Set<Module> alsoIncluded = Stream.of("K-TERM", "K-REFLECTION", RuleGrammarGenerator.ID_PROGRAM_PARSING)
-                .map(module1 -> compiledDef.getParsedDefinition().getModule(module1).get())
+                .map(mod -> compiledDef.getParsedDefinition().getModule(mod).get())
                 .collect(org.kframework.Collections.toSet());
 
-        mod = new JavaBackend(kem, files, globalOptions, compiledDef.kompileOptions)
+        specModule = new JavaBackend(kem, files, globalOptions, compiledDef.kompileOptions)
                 .stepsForProverRules()
-                .apply(Definition.apply(mod, org.kframework.Collections.add(mod, alsoIncluded), Att.apply()))
-                .getModule(mod.name()).get();
+                .apply(Definition.apply(specModule, org.kframework.Collections.add(specModule, alsoIncluded), Att.apply()))
+                .getModule(specModule.name()).get();
 
         ExpandMacros macroExpander = new ExpandMacros(compiledDef.kompiledDefinition.mainModule(), kem, files, globalOptions, compiledDef.kompileOptions);
 
-        List<Rule> rules = stream(mod.localRules())
+        List<Rule> specRules = stream(specModule.localRules())
                 .filter(r -> r.toString().contains("spec.k"))
                 .map(r -> (Rule) macroExpander.expand(r))
                 .map(r -> ProofExecutionMode.transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
@@ -233,14 +233,13 @@ public class KRunAPI {
 
         //// massage spec rules
 
-        TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
-        KOREtoBackendKIL converter = new KOREtoBackendKIL(mainModule, definition, termContext.global(), false);
-        List<org.kframework.backend.java.kil.Rule> javaRules = rules.stream()
+        KOREtoBackendKIL converter = new KOREtoBackendKIL(mainModule, evaluatedDef, rewritingContext.global(), false);
+        List<org.kframework.backend.java.kil.Rule> javaRules = specRules.stream()
                 .map(r -> converter.convert(Optional.<Module>empty(), r))
                 .map(r -> new org.kframework.backend.java.kil.Rule(
                         r.label(),
-                        r.leftHandSide().evaluate(termContext),
-                        r.rightHandSide().evaluate(termContext),
+                        r.leftHandSide().evaluate(rewritingContext),
+                        r.rightHandSide().evaluate(rewritingContext),
                         r.requires(),
                         r.ensures(),
                         r.freshConstants(),
@@ -252,7 +251,7 @@ public class KRunAPI {
                         r.cellsToCopy(),
                         r.matchingInstructions(),
                         r,
-                        termContext.global()))
+                        rewritingContext.global()))
                 .collect(Collectors.toList());
         List<org.kframework.backend.java.kil.Rule> allRules = javaRules.stream()
                 .map(org.kframework.backend.java.kil.Rule::renameVariables)
@@ -265,11 +264,11 @@ public class KRunAPI {
 
         //// prove spec rules
 
-        SymbolicRewriter rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, javaExecutionOptions, new KRunState.Counter(), converter);
+        SymbolicRewriter rewriter = new SymbolicRewriter(rewritingContextGlobal, kompileOptions, javaExecutionOptions, new KRunState.Counter(), converter);
 
         List<ConstrainedTerm> proofResults = javaRules.stream()
                 .filter(r -> !r.containsAttribute(Attribute.TRUSTED_KEY))
-                .map(r -> rewriter.proveRule(r.createLhsPattern(termContext), r.createRhsPattern(), allRules))
+                .map(r -> rewriter.proveRule(r.createLhsPattern(rewritingContext), r.createRhsPattern(), allRules))
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
 
