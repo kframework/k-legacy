@@ -374,6 +374,22 @@ public class Rule extends JavaSymbolicObject<Rule> {
                 TermContext.builder(global).build());
     }
 
+    public ConstrainedTerm createLhsPattern(TermContext termContext, int idx) {
+        // TODO(YilongL): remove TermContext from the signature once
+        // ConstrainedTerm doesn't hold a TermContext anymore
+        return new ConstrainedTerm(
+                (Term) ((KList) ((KItem) leftHandSide).kList()).items().get(idx-1), // leftHandSide,
+                ConjunctiveFormula.of(lookups).addAll(requires),
+                termContext);
+    }
+
+    public ConstrainedTerm createRhsPattern(int idx) {
+        return new ConstrainedTerm(
+                (Term) ((KList) ((KItem) rightHandSide).kList()).items().get(idx-1), //rightHandSide,
+                ConjunctiveFormula.of(global), //.addAll(ensures),
+                TermContext.builder(global).build());
+    }
+
     public ImmutableSet<Variable> freshConstants() {
         return freshConstants;
     }

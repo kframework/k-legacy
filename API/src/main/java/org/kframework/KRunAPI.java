@@ -148,7 +148,7 @@ public class KRunAPI {
     }
 
     public static void main(String[] args) {
-        if (args.length < 7) {
+        if (args.length < 10) {
             System.out.println("usage: <def> <main-module> <pgm>");
             return;
         }
@@ -157,26 +157,175 @@ public class KRunAPI {
 
         String def1 = FileUtil.load(new File(args[2])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
         String mod1 = args[3]; // "A"
+        String pgm1 = FileUtil.load(new File(args[4])); // "run"
 
-        String pgm = FileUtil.load(new File(args[4])); // "run"
+        String def2 = FileUtil.load(new File(args[5])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
+        String mod2 = args[6]; // "A"
+        String pgm2 = FileUtil.load(new File(args[7])); // "run"
 
-        String prove = args[5];
-        String prelude = args[6];
+        String prove = args[8];
+        String prelude = args[9];
 
         // kompile
         CompiledDefinition compiledDef0 = kompile(def0, mod0);
         CompiledDefinition compiledDef1 = kompile(def1, mod1);
+        CompiledDefinition compiledDef2 = kompile(def2, mod2);
 
+        /*
         // krun
-        RewriterResult result = krun(compiledDef1, pgm, null, null, null);
-        kprint(compiledDef1, result);
+        RewriterResult result1 = krun(compiledDef1, pgm1, null, null, null);
+        kprint(compiledDef1, result1);
+        RewriterResult result2 = krun(compiledDef2, pgm2, null, null, null);
+        kprint(compiledDef2, result2);
+         */
 
         // kprove
         //krun(compiledDef, pgm, null, prove, prelude);
-        kprove(compiledDef0, compiledDef1, prove, prelude);
+        //kprove(compiledDef0, compiledDef1, prove, prelude);
+
+        // kequiv
+        kequiv(compiledDef0, compiledDef1, compiledDef2, prove, prelude);
 
         return;
     }
+
+    /**
+     * compiledDef0: for parsing spec rules
+     * compiledDef1: for symbolic execution
+     * compiledDef2: for symbolic execution
+     */
+    public static void kequiv(CompiledDefinition compiledDef0, CompiledDefinition compiledDef1, CompiledDefinition compiledDef2, String proofFile, String prelude) {
+
+        GlobalOptions globalOptions = new GlobalOptions();
+        KompileOptions kompileOptions = new KompileOptions();
+        KRunOptions krunOptions = new KRunOptions();
+        JavaExecutionOptions javaExecutionOptions = new JavaExecutionOptions();
+
+        KExceptionManager kem = new KExceptionManager(globalOptions);
+        Stopwatch sw = new Stopwatch(globalOptions);
+        FileUtil files = FileUtil.get(globalOptions, System.getenv());
+
+        FileSystem fs = new PortableFileSystem(kem, files);
+        Map<String, Provider<MethodHandle>> hookProvider = HookProvider.get(kem); // new HashMap<>();
+        InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
+
+        //// setting options
+
+        krunOptions.experimental.prove = proofFile;
+        krunOptions.experimental.smt.smtPrelude = prelude;
+
+        SMTOptions smtOptions = krunOptions.experimental.smt;
+
+        //// creating rewritingContext
+
+        GlobalContext initializingContextGlobal = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING);
+        TermContext initializingContext = TermContext.builder(initializingContextGlobal).freshCounter(0).build();
+        org.kframework.backend.java.kil.Definition evaluatedDef0 = initializeDefinition.invoke(compiledDef0.executionModule(), kem, initializingContext.global());
+        org.kframework.backend.java.kil.Definition evaluatedDef1 = initializeDefinition.invoke(compiledDef1.executionModule(), kem, initializingContext.global());
+        org.kframework.backend.java.kil.Definition evaluatedDef2 = initializeDefinition.invoke(compiledDef2.executionModule(), kem, initializingContext.global());
+
+        GlobalContext rewritingContextGlobal0 = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
+        GlobalContext rewritingContextGlobal1 = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
+        GlobalContext rewritingContextGlobal2 = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
+        rewritingContextGlobal0.setDefinition(evaluatedDef0);
+        rewritingContextGlobal1.setDefinition(evaluatedDef1);
+        rewritingContextGlobal2.setDefinition(evaluatedDef2);
+        TermContext rewritingContext0 = TermContext.builder(rewritingContextGlobal0).freshCounter(initializingContext.getCounterValue()).build();
+        TermContext rewritingContext1 = TermContext.builder(rewritingContextGlobal1).freshCounter(initializingContext.getCounterValue()).build();
+        TermContext rewritingContext2 = TermContext.builder(rewritingContextGlobal2).freshCounter(initializingContext.getCounterValue()).build();
+
+        //// parse spec file
+
+        Kompile kompile = new Kompile(kompileOptions, globalOptions, files, kem, sw, false);
+        Module specModule = kompile.parseModule(compiledDef0, files.resolveWorkingDirectory(proofFile).getAbsoluteFile());
+
+        scala.collection.Set<Module> alsoIncluded = Stream.of("K-TERM", "K-REFLECTION", RuleGrammarGenerator.ID_PROGRAM_PARSING)
+                .map(mod -> compiledDef0.getParsedDefinition().getModule(mod).get())
+                .collect(org.kframework.Collections.toSet());
+
+        specModule = new JavaBackend(kem, files, globalOptions, kompileOptions)
+                .stepsForProverRules()
+                .apply(Definition.apply(specModule, org.kframework.Collections.add(specModule, alsoIncluded), Att.apply()))
+                .getModule(specModule.name()).get();
+
+        ExpandMacros macroExpander = new ExpandMacros(compiledDef0.executionModule(), kem, files, globalOptions, kompileOptions);
+
+        List<Rule> specRules = stream(specModule.localRules())
+                .filter(r -> r.toString().contains("spec.k"))
+                .map(r -> (Rule) macroExpander.expand(r))
+                .map(r -> ProofExecutionMode.transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
+                .map(r -> ProofExecutionMode.transformFunction(JavaBackend::convertKSeqToKApply, r))
+                .map(r -> ProofExecutionMode.transform(NormalizeKSeq.self(), r))
+                        //.map(r -> kompile.compileRule(compiledDefinition, r))
+                .collect(Collectors.toList());
+
+        //// massage spec rules
+
+        KOREtoBackendKIL converter = new KOREtoBackendKIL(compiledDef0.executionModule(), evaluatedDef0, rewritingContext0.global(), false);
+        List<org.kframework.backend.java.kil.Rule> javaRules = specRules.stream()
+                .map(r -> converter.convert(Optional.<Module>empty(), r))
+                .map(r -> new org.kframework.backend.java.kil.Rule(
+                        r.label(),
+                        r.leftHandSide().evaluate(rewritingContext0),
+                        r.rightHandSide().evaluate(rewritingContext0),
+                        r.requires(),
+                        r.ensures(),
+                        r.freshConstants(),
+                        r.freshVariables(),
+                        r.lookups(),
+                        r.isCompiledForFastRewriting(),
+                        r.lhsOfReadCell(),
+                        r.rhsOfWriteCell(),
+                        r.cellsToCopy(),
+                        r.matchingInstructions(),
+                        r,
+                        rewritingContext0.global()))
+                .collect(Collectors.toList());
+        List<org.kframework.backend.java.kil.Rule> allRules = javaRules.stream()
+                .map(org.kframework.backend.java.kil.Rule::renameVariables)
+                .collect(Collectors.toList());
+
+        // rename all variables again to avoid any potential conflicts with the rules in the semantics
+        javaRules = javaRules.stream()
+                .map(org.kframework.backend.java.kil.Rule::renameVariables)
+                .collect(Collectors.toList());
+
+        //// prove spec rules
+
+        SymbolicRewriter rewriter1 = new SymbolicRewriter(rewritingContextGlobal1, kompileOptions, javaExecutionOptions, new KRunState.Counter(), converter);
+        SymbolicRewriter rewriter2 = new SymbolicRewriter(rewritingContextGlobal2, kompileOptions, javaExecutionOptions, new KRunState.Counter(), converter);
+
+        for (org.kframework.backend.java.kil.Rule rule : javaRules) {
+            if (rule.containsAttribute(Attribute.TRUSTED_KEY)) continue;
+            List<ConstrainedTerm> proofResults;
+            proofResults = rewriter1.proveRule(rule.createLhsPattern(rewritingContext1,1), rule.createRhsPattern(1), allRules);
+            System.out.println(proofResults);
+            proofResults = rewriter2.proveRule(rule.createLhsPattern(rewritingContext2,2), rule.createRhsPattern(2), allRules);
+            System.out.println(proofResults);
+        }
+
+        /*
+        List<ConstrainedTerm> proofResults = javaRules.stream()
+                .filter(r -> !r.containsAttribute(Attribute.TRUSTED_KEY))
+                .map(r -> rewriter.proveRule(r.createLhsPattern1(rewritingContext), r.createRhsPattern1(), allRules))
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+
+        //// print result
+
+        //System.out.println(proofResults);
+
+        List<K> result = proofResults.stream()
+                .map(ConstrainedTerm::term)
+                .map(t -> (KItem) t)
+                .collect(Collectors.toList());
+
+        System.out.println(result);
+        */
+
+        return;
+    }
+
 
     /**
      * compiledDef0: for parsing spec rules
@@ -277,7 +426,7 @@ public class KRunAPI {
 
         List<ConstrainedTerm> proofResults = javaRules.stream()
                 .filter(r -> !r.containsAttribute(Attribute.TRUSTED_KEY))
-                .map(r -> rewriter.proveRule(r.createLhsPattern(rewritingContext), r.createRhsPattern(), allRules))
+                .map(r -> rewriter.proveRule(r.createLhsPattern(rewritingContext,1), r.createRhsPattern(1), allRules))
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
 
