@@ -51,7 +51,11 @@ public class Variable extends Term implements Immutable, org.kframework.kore.KVa
      * @return the fresh variable
      */
     public static Variable getAnonVariable(Sort sort) {
-        return new Variable(VARIABLE_PREFIX + counter.getAndIncrement(), sort, true, -1);
+        return getAnonVariable("", sort);
+    }
+
+    public static Variable getAnonVariable(String name, Sort sort) {
+        return new Variable(name + VARIABLE_PREFIX + counter.getAndIncrement(), sort, true, -1);
     }
 
     /* TODO(AndreiS): cache the variables */
@@ -92,7 +96,7 @@ public class Variable extends Term implements Immutable, org.kframework.kore.KVa
     }
 
     public Variable getFreshCopy() {
-        Variable var = Variable.getAnonVariable(sort);
+        Variable var = Variable.getAnonVariable(name, sort);
         var.copyAttributesFrom(this);
         return var;
     }
