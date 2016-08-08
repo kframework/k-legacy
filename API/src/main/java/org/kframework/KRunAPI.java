@@ -11,6 +11,7 @@ import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.KItem;
 import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.kore.compile.ExpandMacros;
+import org.kframework.backend.java.symbolic.ConjunctiveFormula;
 import org.kframework.backend.java.symbolic.InitializeRewriter;
 import org.kframework.backend.java.symbolic.JavaBackend;
 import org.kframework.backend.java.symbolic.JavaExecutionOptions;
@@ -216,24 +217,6 @@ public class KRunAPI {
 
         SMTOptions smtOptions = krunOptions.experimental.smt;
 
-        //// creating rewritingContext
-
-        GlobalContext initializingContextGlobal = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING);
-        TermContext initializingContext = TermContext.builder(initializingContextGlobal).freshCounter(0).build();
-        org.kframework.backend.java.kil.Definition evaluatedDef0 = initializeDefinition.invoke(compiledDef0.executionModule(), kem, initializingContext.global());
-        org.kframework.backend.java.kil.Definition evaluatedDef1 = initializeDefinition.invoke(compiledDef1.executionModule(), kem, initializingContext.global());
-        org.kframework.backend.java.kil.Definition evaluatedDef2 = initializeDefinition.invoke(compiledDef2.executionModule(), kem, initializingContext.global());
-
-        //GlobalContext rewritingContextGlobal0 = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
-        GlobalContext rewritingContextGlobal1 = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
-        GlobalContext rewritingContextGlobal2 = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
-        //rewritingContextGlobal0.setDefinition(evaluatedDef0);
-        rewritingContextGlobal1.setDefinition(evaluatedDef1);
-        rewritingContextGlobal2.setDefinition(evaluatedDef2);
-        //TermContext rewritingContext0 = TermContext.builder(rewritingContextGlobal0).freshCounter(initializingContext.getCounterValue()).build();
-        TermContext rewritingContext1 = TermContext.builder(rewritingContextGlobal1).freshCounter(initializingContext.getCounterValue()).build();
-        TermContext rewritingContext2 = TermContext.builder(rewritingContextGlobal2).freshCounter(initializingContext.getCounterValue()).build();
-
         //// parse spec file
 
         Kompile kompile = new Kompile(kompileOptions, globalOptions, files, kem, sw, false);
@@ -259,6 +242,21 @@ public class KRunAPI {
                         //.map(r -> kompile.compileRule(compiledDefinition, r))
                 .collect(Collectors.toList());
 
+        //// creating rewritingContext
+
+        GlobalContext initializingContextGlobal = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING);
+        TermContext initializingContext = TermContext.builder(initializingContextGlobal).freshCounter(0).build();
+        org.kframework.backend.java.kil.Definition evaluatedDef0 = initializeDefinition.invoke(compiledDef0.executionModule(), kem, initializingContext.global());
+        org.kframework.backend.java.kil.Definition evaluatedDef1 = initializeDefinition.invoke(compiledDef1.executionModule(), kem, initializingContext.global());
+        org.kframework.backend.java.kil.Definition evaluatedDef2 = initializeDefinition.invoke(compiledDef2.executionModule(), kem, initializingContext.global());
+
+        GlobalContext rewritingContextGlobal1 = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
+        GlobalContext rewritingContextGlobal2 = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
+        rewritingContextGlobal1.setDefinition(evaluatedDef1);
+        rewritingContextGlobal2.setDefinition(evaluatedDef2);
+        TermContext rewritingContext1 = TermContext.builder(rewritingContextGlobal1).freshCounter(initializingContext.getCounterValue()).build();
+        TermContext rewritingContext2 = TermContext.builder(rewritingContextGlobal2).freshCounter(initializingContext.getCounterValue()).build();
+
         //// massage spec rules
 
         KOREtoBackendKIL converter1 = new KOREtoBackendKIL(compiledDef0.executionModule(), evaluatedDef0, rewritingContext1.global(), false);
@@ -268,8 +266,8 @@ public class KRunAPI {
                 .map(r -> converter1.convert(Optional.<Module>empty(), r))
                 .map(r -> new org.kframework.backend.java.kil.Rule(
                         r.label(),
-                        r.leftHandSide().evaluate(rewritingContext1),
-                        r.rightHandSide().evaluate(rewritingContext1),
+                        r.leftHandSide(), //.evaluate(rewritingContext1), // TODO: drop?
+                        r.rightHandSide(), //.evaluate(rewritingContext1), // TODO: drop?
                         r.requires(),
                         r.ensures(),
                         r.freshConstants(),
@@ -281,15 +279,15 @@ public class KRunAPI {
                         r.cellsToCopy(),
                         r.matchingInstructions(),
                         r,
-                        rewritingContext1.global()))
+                        rewritingContext1.global())) // register definition to be used for execution of the current rule
                 .collect(Collectors.toList());
 
         List<org.kframework.backend.java.kil.Rule> javaRules2 = specRules.stream()
                 .map(r -> converter2.convert(Optional.<Module>empty(), r))
                 .map(r -> new org.kframework.backend.java.kil.Rule(
                         r.label(),
-                        r.leftHandSide().evaluate(rewritingContext2),
-                        r.rightHandSide().evaluate(rewritingContext2),
+                        r.leftHandSide(), //.evaluate(rewritingContext2), // TODO: drop?
+                        r.rightHandSide(), //.evaluate(rewritingContext2), // TODO: drop?
                         r.requires(),
                         r.ensures(),
                         r.freshConstants(),
@@ -301,43 +299,66 @@ public class KRunAPI {
                         r.cellsToCopy(),
                         r.matchingInstructions(),
                         r,
-                        rewritingContext2.global()))
+                        rewritingContext2.global())) // register definition to be used for execution of the current rule
                 .collect(Collectors.toList());
 
-        List<org.kframework.backend.java.kil.Rule> allRules = javaRules1.stream()
+        List<org.kframework.backend.java.kil.Rule> allRules = new ArrayList<>();
+        /* TODO: check if correct?
+        List<org.kframework.backend.java.kil.Rule> allRules = javaRules.stream()
                 .map(org.kframework.backend.java.kil.Rule::renameVariables)
                 .collect(Collectors.toList());
+        */
 
-        // rename all variables again to avoid any potential conflicts with the rules in the semantics
-        javaRules1 = javaRules2.stream()
-                .map(org.kframework.backend.java.kil.Rule::renameVariables)
-                .collect(Collectors.toList());
-        javaRules2 = javaRules2.stream()
-                .map(org.kframework.backend.java.kil.Rule::renameVariables)
-                .collect(Collectors.toList());
+//        // rename all variables again to avoid any potential conflicts with the rules in the semantics
+//        javaRules1 = javaRules1.stream()
+//                .map(org.kframework.backend.java.kil.Rule::renameVariables)
+//                .collect(Collectors.toList());
+//        javaRules2 = javaRules2.stream()
+//                .map(org.kframework.backend.java.kil.Rule::renameVariables)
+//                .collect(Collectors.toList());
 
         //// prove spec rules
 
         SymbolicRewriter rewriter1 = new SymbolicRewriter(rewritingContextGlobal1, kompileOptions, javaExecutionOptions, new KRunState.Counter(), converter1);
         SymbolicRewriter rewriter2 = new SymbolicRewriter(rewritingContextGlobal2, kompileOptions, javaExecutionOptions, new KRunState.Counter(), converter2);
 
+        assert (javaRules1.size() == javaRules2.size());
+
+        for (int i = 0; i < javaRules1.size(); i++) {
+            org.kframework.backend.java.kil.Rule rule1 = javaRules1.get(i);
+            org.kframework.backend.java.kil.Rule rule2 = javaRules2.get(i);
+            if (rule1.containsAttribute(Attribute.TRUSTED_KEY)) continue;
+            if (rule2.containsAttribute(Attribute.TRUSTED_KEY)) continue;
+
+            List<ConjunctiveFormula> xxx = new ArrayList<>();
+            List<ConstrainedTerm> proofResults1 = rewriter1.proveRule(rule1.createLhsPattern(rewritingContext1,1), rule1.createRhsPattern(1), allRules, xxx);
+            System.out.println("1" + proofResults1);
+            System.out.println(xxx);
+            List<ConstrainedTerm> proofResults2 = rewriter2.proveRule(rule2.createLhsPattern(rewritingContext2,2), rule2.createRhsPattern(2), allRules, xxx);
+            System.out.println("2" + proofResults2);
+            System.out.println(xxx);
+
+            ConjunctiveFormula ensures1 = rule1.getEnsures();
+            System.out.println("e: " + ensures1);
+
+            ConjunctiveFormula c = xxx.get(0).add(xxx.get(1)).add(ensures1).simplify(rewritingContext1);
+            System.out.println("c: " + c);
+            System.out.println(!c.isFalse());
+        }
+
+        /*
         for (org.kframework.backend.java.kil.Rule rule : javaRules1) {
             if (rule.containsAttribute(Attribute.TRUSTED_KEY)) continue;
-            List<ConstrainedTerm> proofResults;
-            proofResults = rewriter1.proveRule(rule.createLhsPattern(rewritingContext1,1), rule.createRhsPattern(1), allRules);
+            List<ConstrainedTerm> proofResults = rewriter1.proveRule(rule.createLhsPattern(rewritingContext1,1), rule.createRhsPattern(1), allRules);
             System.out.println(proofResults);
-//            proofResults = rewriter2.proveRule(rule.createLhsPattern(rewritingContext2,2), rule.createRhsPattern(2), allRules);
-//            System.out.println(proofResults);
         }
 
         for (org.kframework.backend.java.kil.Rule rule : javaRules2) {
             if (rule.containsAttribute(Attribute.TRUSTED_KEY)) continue;
-            List<ConstrainedTerm> proofResults;
-//            proofResults = rewriter1.proveRule(rule.createLhsPattern(rewritingContext1,1), rule.createRhsPattern(1), allRules);
-//            System.out.println(proofResults);
-            proofResults = rewriter2.proveRule(rule.createLhsPattern(rewritingContext2,2), rule.createRhsPattern(2), allRules);
+            List<ConstrainedTerm> proofResults = rewriter2.proveRule(rule.createLhsPattern(rewritingContext2,2), rule.createRhsPattern(2), allRules);
             System.out.println(proofResults);
         }
+        */
 
         /*
         List<ConstrainedTerm> proofResults = javaRules.stream()

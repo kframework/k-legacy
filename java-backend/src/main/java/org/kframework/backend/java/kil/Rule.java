@@ -390,6 +390,10 @@ public class Rule extends JavaSymbolicObject<Rule> {
                 TermContext.builder(global).build());
     }
 
+    public ConjunctiveFormula getEnsures() {
+        return ConjunctiveFormula.of(global).addAll(ensures);
+    }
+
     public ImmutableSet<Variable> freshConstants() {
         return freshConstants;
     }

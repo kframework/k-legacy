@@ -552,7 +552,8 @@ public class SymbolicRewriter {
     public List<ConstrainedTerm> proveRule(
             ConstrainedTerm initialTerm,
             ConstrainedTerm targetTerm,
-            List<Rule> specRules) {
+            List<Rule> specRules,
+            List<ConjunctiveFormula> xxx) {
         List<ConstrainedTerm> proofResults = new ArrayList<>();
         Set<ConstrainedTerm> visited = new HashSet<>();
         List<ConstrainedTerm> queue = new ArrayList<>();
@@ -567,9 +568,17 @@ public class SymbolicRewriter {
         while (!queue.isEmpty()) {
             step++;
             for (ConstrainedTerm term : queue) {
+
+                ConjunctiveFormula ccc = term.matchImplies(targetTerm, true);
+                if (ccc != null) {
+                    if (xxx != null) xxx.add(ccc);
+                    continue;
+                }
+                /*
                 if (term.implies(targetTerm)) {
                     continue;
                 }
+                 */
 
                 List<Term> leftKContents = term.term().getCellContentsByName(CellLabel.K);
                 List<Term> rightKContents = targetTerm.term().getCellContentsByName(CellLabel.K);
