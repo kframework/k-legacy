@@ -10,6 +10,7 @@ import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.KItem;
 import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.kore.compile.ExpandMacros;
 import org.kframework.backend.java.symbolic.ConjunctiveFormula;
 import org.kframework.backend.java.symbolic.InitializeRewriter;
@@ -266,8 +267,8 @@ public class KRunAPI {
                 .map(r -> converter1.convert(Optional.<Module>empty(), r))
                 .map(r -> new org.kframework.backend.java.kil.Rule(
                         r.label(),
-                        r.leftHandSide(), //.evaluate(rewritingContext1), // TODO: drop?
-                        r.rightHandSide(), //.evaluate(rewritingContext1), // TODO: drop?
+                        r.leftHandSide().evaluate(rewritingContext1), // TODO: drop?
+                        r.rightHandSide().evaluate(rewritingContext1), // TODO: drop?
                         r.requires(),
                         r.ensures(),
                         r.freshConstants(),
@@ -286,8 +287,8 @@ public class KRunAPI {
                 .map(r -> converter2.convert(Optional.<Module>empty(), r))
                 .map(r -> new org.kframework.backend.java.kil.Rule(
                         r.label(),
-                        r.leftHandSide(), //.evaluate(rewritingContext2), // TODO: drop?
-                        r.rightHandSide(), //.evaluate(rewritingContext2), // TODO: drop?
+                        r.leftHandSide().evaluate(rewritingContext2), // TODO: drop?
+                        r.rightHandSide().evaluate(rewritingContext2), // TODO: drop?
                         r.requires(),
                         r.ensures(),
                         r.freshConstants(),
@@ -309,13 +310,15 @@ public class KRunAPI {
                 .collect(Collectors.toList());
         */
 
-//        // rename all variables again to avoid any potential conflicts with the rules in the semantics
-//        javaRules1 = javaRules1.stream()
-//                .map(org.kframework.backend.java.kil.Rule::renameVariables)
-//                .collect(Collectors.toList());
-//        javaRules2 = javaRules2.stream()
-//                .map(org.kframework.backend.java.kil.Rule::renameVariables)
-//                .collect(Collectors.toList());
+        // rename all variables again to avoid any potential conflicts with the rules in the semantics
+        int counter = Variable.getCounter();
+        javaRules1 = javaRules1.stream()
+                .map(org.kframework.backend.java.kil.Rule::renameVariables)
+                .collect(Collectors.toList());
+        Variable.setCounter(counter); // TODO: HACK:
+        javaRules2 = javaRules2.stream()
+                .map(org.kframework.backend.java.kil.Rule::renameVariables)
+                .collect(Collectors.toList());
 
         //// prove spec rules
 
@@ -330,20 +333,21 @@ public class KRunAPI {
             if (rule1.containsAttribute(Attribute.TRUSTED_KEY)) continue;
             if (rule2.containsAttribute(Attribute.TRUSTED_KEY)) continue;
 
-            List<ConjunctiveFormula> xxx = new ArrayList<>();
-            List<ConstrainedTerm> proofResults1 = rewriter1.proveRule(rule1.createLhsPattern(rewritingContext1,1), rule1.createRhsPattern(1), allRules, xxx);
-            System.out.println("1" + proofResults1);
-            System.out.println(xxx);
-            List<ConstrainedTerm> proofResults2 = rewriter2.proveRule(rule2.createLhsPattern(rewritingContext2,2), rule2.createRhsPattern(2), allRules, xxx);
-            System.out.println("2" + proofResults2);
-            System.out.println(xxx);
+            List<ConjunctiveFormula> constraints = new ArrayList<>();
+            List<ConstrainedTerm> proofResults1 = rewriter1.proveRule(rule1.createLhsPattern(rewritingContext1,1), rule1.createRhsPattern(1), allRules, constraints);
+            System.out.println("L1: " + proofResults1);
+            System.out.println("L1: " + constraints);
+            List<ConstrainedTerm> proofResults2 = rewriter2.proveRule(rule2.createLhsPattern(rewritingContext2,2), rule2.createRhsPattern(2), allRules, constraints);
+            System.out.println("L2: " + proofResults2);
+            System.out.println("L2: " + constraints);
 
             ConjunctiveFormula ensures1 = rule1.getEnsures();
             System.out.println("e: " + ensures1);
 
-            ConjunctiveFormula c = xxx.get(0).add(xxx.get(1)).add(ensures1).simplify(rewritingContext1);
+            ConjunctiveFormula c = constraints.get(0).add(constraints.get(1)).add(ensures1).simplify(rewritingContext1);
             System.out.println("c: " + c);
             System.out.println(!c.isFalse());
+            System.out.println(!c.checkUnsat());
         }
 
         /*
