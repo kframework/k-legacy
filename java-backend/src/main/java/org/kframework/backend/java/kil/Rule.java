@@ -390,6 +390,10 @@ public class Rule extends JavaSymbolicObject<Rule> {
                 TermContext.builder(global).build());
     }
 
+    public ConjunctiveFormula getRequires() {
+        return ConjunctiveFormula.of(lookups).addAll(requires);
+    }
+
     public ConjunctiveFormula getEnsures() {
         return ConjunctiveFormula.of(global).addAll(ensures);
     }

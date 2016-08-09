@@ -26,6 +26,7 @@ import org.kframework.kore.KApply;
 import org.kframework.krun.api.KRunState;
 import org.kframework.utils.BitSet;
 import org.kframework.rewriter.SearchType;
+import scala.Tuple3;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -671,6 +672,187 @@ public class SymbolicRewriter {
             }
         }
         return null;
+    }
+
+    public static boolean equiv(
+            List<ConstrainedTerm> targetSyncNodes1,
+            List<ConstrainedTerm> targetSyncNodes2,
+            List<ConjunctiveFormula> ensures,
+            List<Boolean> trusted,
+            //
+            SymbolicRewriter rewriter1,
+            SymbolicRewriter rewriter2
+    ) {
+
+        assert targetSyncNodes1.size() == ensures.size();
+        assert targetSyncNodes2.size() == ensures.size();
+
+        int numSyncPoints = ensures.size();
+
+        List<Set<Tuple3<ConjunctiveFormula,ConstrainedTerm,Mark>>> allSyncNodes1 = newListOfSets(numSyncPoints);
+        List<Set<Tuple3<ConjunctiveFormula,ConstrainedTerm,Mark>>> allSyncNodes2 = newListOfSets(numSyncPoints);
+
+        // start with non-final nodes
+        List<ConstrainedTerm> currSyncNodes1 = new ArrayList<>();
+        List<ConstrainedTerm> currSyncNodes2 = new ArrayList<>();
+        for (int i = 0; i < numSyncPoints; i++) {
+            if (trusted.get(i)) continue;
+
+            ConstrainedTerm t1 = targetSyncNodes1.get(i);
+            ConstrainedTerm t2 = targetSyncNodes2.get(i);
+
+            /* TODO: should final nodes be trusted?
+            List<ConstrainedTerm> nt1 = rewriter1.fastComputeRewriteStep(t1, false, true, true);
+            List<ConstrainedTerm> nt2 = rewriter2.fastComputeRewriteStep(t2, false, true, true);
+            assert nt1.isEmpty() == nt2.isEmpty();
+            if (nt1.isEmpty()) continue;
+             */
+
+            currSyncNodes1.add(t1);
+            currSyncNodes2.add(t2);
+        }
+
+        while (!currSyncNodes1.isEmpty() && !currSyncNodes2.isEmpty()) {
+
+            List<Set<Tuple3<ConjunctiveFormula,ConstrainedTerm,Mark>>> nextSyncNodes1 = getNextSyncNodes(currSyncNodes1, targetSyncNodes1, rewriter1);
+            List<Set<Tuple3<ConjunctiveFormula,ConstrainedTerm,Mark>>> nextSyncNodes2 = getNextSyncNodes(currSyncNodes2, targetSyncNodes2, rewriter2);
+
+            // fail
+            if (nextSyncNodes1 == null || nextSyncNodes2 == null) return false;
+
+            // accumulate visited nodes
+            for (int i = 0; i < numSyncPoints; i++) {
+                allSyncNodes1.get(i).addAll(nextSyncNodes1.get(i));
+                allSyncNodes2.get(i).addAll(nextSyncNodes2.get(i));
+            }
+
+            matchSyncNodes(allSyncNodes1, allSyncNodes2, ensures);
+
+            currSyncNodes1.clear();
+            currSyncNodes2.clear();
+            for (int i = 0; i < numSyncPoints; i++) {
+                for (Tuple3<ConjunctiveFormula,ConstrainedTerm,Mark> tuple3 : allSyncNodes1.get(i)) {
+                    if (!tuple3._3().isBlack()) {
+                        currSyncNodes1.add(tuple3._2());
+                    }
+                }
+                for (Tuple3<ConjunctiveFormula,ConstrainedTerm,Mark> tuple3 : allSyncNodes2.get(i)) {
+                    if (!tuple3._3().isBlack()) {
+                        currSyncNodes2.add(tuple3._2());
+                    }
+                }
+            }
+
+        }
+
+        return true;
+    }
+
+    public static List<Set<Tuple3<ConjunctiveFormula,ConstrainedTerm,Mark>>> getNextSyncNodes(
+            List<ConstrainedTerm> currSyncNodes,
+            List<ConstrainedTerm> targetSyncNodes,
+            //
+            SymbolicRewriter rewriter
+    ) {
+
+        int numSyncPoints = targetSyncNodes.size();
+
+        List<Set<Tuple3<ConjunctiveFormula,ConstrainedTerm,Mark>>> nextSyncNodes = newListOfSets(numSyncPoints);
+
+        List<ConstrainedTerm> queue = new ArrayList<>();
+        List<ConstrainedTerm> nextQueue = new ArrayList<>();
+
+        queue.addAll(currSyncNodes);
+
+        while (!queue.isEmpty()) {
+            for (ConstrainedTerm curr : queue) {
+
+                List<ConstrainedTerm> nexts = rewriter.fastComputeRewriteStep(curr, false, true, true);
+
+                if (nexts.isEmpty()) {
+                    /* final term */
+                    return null; // failed
+                }
+
+                loop:
+                for (ConstrainedTerm next : nexts) {
+                    for (int i = 0; i < numSyncPoints; i++) {
+                        ConjunctiveFormula c = next.matchImplies(targetSyncNodes.get(i), true);
+                        if (c != null) {
+                            nextSyncNodes.get(i).add(Tuple3.apply(c, next, new Mark()));
+                            continue loop;
+                        }
+                    }
+                    nextQueue.add(next);
+                }
+            }
+
+            /* swap the queues */
+            List<ConstrainedTerm> temp;
+            temp = queue;
+            queue = nextQueue;
+            nextQueue = temp;
+            nextQueue.clear();
+        }
+
+        return nextSyncNodes;
+    }
+
+    // TODO: should compare only nodes that have the same starting points.
+    // TODO: should mark all children once its parent is marked.
+    public static void matchSyncNodes(
+            List<Set<Tuple3<ConjunctiveFormula,ConstrainedTerm,Mark>>> syncNodes1,
+            List<Set<Tuple3<ConjunctiveFormula,ConstrainedTerm,Mark>>> syncNodes2,
+            List<ConjunctiveFormula> ensures) {
+
+        assert syncNodes1.size() == ensures.size();
+        assert syncNodes2.size() == ensures.size();
+
+        int numSyncPoints = ensures.size();
+
+        for (int i = 0; i < numSyncPoints; i++) {
+            for (Tuple3<ConjunctiveFormula,ConstrainedTerm,Mark> ct1 : syncNodes1.get(i)) {
+            for (Tuple3<ConjunctiveFormula,ConstrainedTerm,Mark> ct2 : syncNodes2.get(i)) {
+                if (ct1._3().isBlack() && ct2._3().isBlack()) continue;
+                ConjunctiveFormula c1 = ConjunctiveFormula.of(ct1._1());
+                ConjunctiveFormula c2 = ConjunctiveFormula.of(ct2._1());
+                ConjunctiveFormula e = ConjunctiveFormula.of(ensures.get(i));
+                ConjunctiveFormula c = c1.add(c2).simplify(); // TODO: termContext ??
+                if (!c.isFalse() && !c.checkUnsat() && c.smartImplies(e) /* c.implies(e, Collections.emptySet()) */) {
+                    ct1._3().setBlack();
+                    ct2._3().setBlack();
+                }
+            }
+            }
+        }
+    }
+
+    public static List<Set<Tuple3<ConjunctiveFormula,ConstrainedTerm,Mark>>> newListOfSets(int size) {
+        List<Set<Tuple3<ConjunctiveFormula,ConstrainedTerm,Mark>>> list = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            list.add(new HashSet<>());
+        }
+        return list;
+    }
+
+    private static class Mark {
+        private boolean black;
+
+        public Mark() {
+            this.black = false;
+        }
+
+        public void setBlack() {
+            this.black = true;
+        }
+
+        public boolean isBlack() {
+            return this.black;
+        }
+
+        public String toString() {
+            return black ? "BLACK" : "RED";
+        }
     }
 
 }

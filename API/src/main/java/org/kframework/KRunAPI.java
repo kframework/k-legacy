@@ -327,6 +327,30 @@ public class KRunAPI {
 
         assert (javaRules1.size() == javaRules2.size());
 
+        List<ConstrainedTerm> targetSyncNodes1 = new ArrayList<>();
+        List<ConstrainedTerm> targetSyncNodes2 = new ArrayList<>();
+        List<ConjunctiveFormula> ensures = new ArrayList<>();
+        List<Boolean> trusted = new ArrayList<>();
+
+        for (int i = 0; i < javaRules1.size(); i++) {
+            org.kframework.backend.java.kil.Rule rule1 = javaRules1.get(i);
+            org.kframework.backend.java.kil.Rule rule2 = javaRules2.get(i);
+
+            // assert rule1.getEnsures().equals(rule2.getEnsures());
+
+            // TODO: split requires for each side and for both sides in createLhsPattern
+            targetSyncNodes1.add(rule1.createLhsPattern(rewritingContext1,1));
+            targetSyncNodes2.add(rule2.createLhsPattern(rewritingContext2,2));
+            ensures.add(rule1.getRequires());
+
+            // assert rule1.containsAttribute(Attribute.TRUSTED_KEY) == rule2.containsAttribute(Attribute.TRUSTED_KEY);
+            trusted.add(rule1.containsAttribute(Attribute.TRUSTED_KEY));
+        }
+
+        boolean result = SymbolicRewriter.equiv(targetSyncNodes1, targetSyncNodes2, ensures, trusted, rewriter1, rewriter2);
+        System.out.println(result);
+
+        /*
         for (int i = 0; i < javaRules1.size(); i++) {
             org.kframework.backend.java.kil.Rule rule1 = javaRules1.get(i);
             org.kframework.backend.java.kil.Rule rule2 = javaRules2.get(i);
@@ -349,6 +373,7 @@ public class KRunAPI {
             System.out.println(!c.isFalse());
             System.out.println(!c.checkUnsat());
         }
+         */
 
         /*
         for (org.kframework.backend.java.kil.Rule rule : javaRules1) {
