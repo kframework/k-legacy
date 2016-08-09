@@ -320,6 +320,16 @@ public class KRunAPI {
                 .map(org.kframework.backend.java.kil.Rule::renameVariables)
                 .collect(Collectors.toList());
 
+        // rename all variables again to avoid any potential conflicts with the rules in the semantics
+        counter = Variable.getCounter();
+        List<org.kframework.backend.java.kil.Rule> targetJavaRules1 = javaRules1.stream()
+                .map(org.kframework.backend.java.kil.Rule::renameVariables)
+                .collect(Collectors.toList());
+        Variable.setCounter(counter); // TODO: HACK:
+        List<org.kframework.backend.java.kil.Rule> targetJavaRules2 = javaRules2.stream()
+                .map(org.kframework.backend.java.kil.Rule::renameVariables)
+                .collect(Collectors.toList());
+
         //// prove spec rules
 
         SymbolicRewriter rewriter1 = new SymbolicRewriter(rewritingContextGlobal1, kompileOptions, javaExecutionOptions, new KRunState.Counter(), converter1);
@@ -327,6 +337,8 @@ public class KRunAPI {
 
         assert (javaRules1.size() == javaRules2.size());
 
+        List<ConstrainedTerm> startSyncNodes1 = new ArrayList<>();
+        List<ConstrainedTerm> startSyncNodes2 = new ArrayList<>();
         List<ConstrainedTerm> targetSyncNodes1 = new ArrayList<>();
         List<ConstrainedTerm> targetSyncNodes2 = new ArrayList<>();
         List<ConjunctiveFormula> ensures = new ArrayList<>();
@@ -335,19 +347,23 @@ public class KRunAPI {
         for (int i = 0; i < javaRules1.size(); i++) {
             org.kframework.backend.java.kil.Rule rule1 = javaRules1.get(i);
             org.kframework.backend.java.kil.Rule rule2 = javaRules2.get(i);
+            org.kframework.backend.java.kil.Rule targetRule1 = targetJavaRules1.get(i);
+            org.kframework.backend.java.kil.Rule targetRule2 = targetJavaRules2.get(i);
 
             // assert rule1.getEnsures().equals(rule2.getEnsures());
 
             // TODO: split requires for each side and for both sides in createLhsPattern
-            targetSyncNodes1.add(rule1.createLhsPattern(rewritingContext1,1));
-            targetSyncNodes2.add(rule2.createLhsPattern(rewritingContext2,2));
-            ensures.add(rule1.getRequires());
+            startSyncNodes1.add(rule1.createLhsPattern(rewritingContext1,1));
+            startSyncNodes2.add(rule2.createLhsPattern(rewritingContext2,2));
+            targetSyncNodes1.add(targetRule1.createLhsPattern(rewritingContext1,1));
+            targetSyncNodes2.add(targetRule2.createLhsPattern(rewritingContext2,2));
+            ensures.add(targetRule1.getRequires());
 
             // assert rule1.containsAttribute(Attribute.TRUSTED_KEY) == rule2.containsAttribute(Attribute.TRUSTED_KEY);
             trusted.add(rule1.containsAttribute(Attribute.TRUSTED_KEY));
         }
 
-        boolean result = SymbolicRewriter.equiv(targetSyncNodes1, targetSyncNodes2, ensures, trusted, rewriter1, rewriter2);
+        boolean result = SymbolicRewriter.equiv(startSyncNodes1, startSyncNodes2, targetSyncNodes1, targetSyncNodes2, ensures, trusted, rewriter1, rewriter2);
         System.out.println(result);
 
         /*

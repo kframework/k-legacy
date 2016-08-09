@@ -674,6 +674,8 @@ public class SymbolicRewriter {
     }
 
     public static boolean equiv(
+            List<ConstrainedTerm> startSyncNodes1,
+            List<ConstrainedTerm> startSyncNodes2,
             List<ConstrainedTerm> targetSyncNodes1,
             List<ConstrainedTerm> targetSyncNodes2,
             List<ConjunctiveFormula> ensures,
@@ -697,8 +699,8 @@ public class SymbolicRewriter {
         for (int i = 0; i < numSyncPoints; i++) {
             if (trusted.get(i)) continue;
 
-            ConstrainedTerm t1 = targetSyncNodes1.get(i);
-            ConstrainedTerm t2 = targetSyncNodes2.get(i);
+            ConstrainedTerm t1 = startSyncNodes1.get(i);
+            ConstrainedTerm t2 = startSyncNodes2.get(i);
 
             /* TODO: should final nodes be trusted?
             List<ConstrainedTerm> nt1 = rewriter1.fastComputeRewriteStep(t1, false, true, true);
