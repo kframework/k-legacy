@@ -743,6 +743,9 @@ public class SymbolicRewriter {
                 }
             }
 
+            if (currSyncNodes1.isEmpty() != currSyncNodes2.isEmpty()) {
+                return false; // TODO: output more information for failure
+            }
         }
 
         return true;
