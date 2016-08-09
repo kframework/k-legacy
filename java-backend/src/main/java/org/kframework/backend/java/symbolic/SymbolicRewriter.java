@@ -717,7 +717,7 @@ public class SymbolicRewriter {
             List<Set<SyncNode>> nextSyncNodes2 = getNextSyncNodes(currSyncNodes2, targetSyncNodes2, rewriter2);
 
             // fail
-            if (nextSyncNodes1 == null || nextSyncNodes2 == null) return false;
+            if (nextSyncNodes1 == null || nextSyncNodes2 == null) return false; // TODO: output more information for failure
 
             allSyncNodes1 = mergeListOfSets(allSyncNodes1, nextSyncNodes1);
             allSyncNodes2 = mergeListOfSets(allSyncNodes2, nextSyncNodes2);
@@ -755,7 +755,9 @@ public class SymbolicRewriter {
         int numSyncPoints = targetSyncNodes.size();
         List<Set<SyncNode>> nextSyncNodes = newListOfSets(numSyncPoints);
         for (SyncNode currSyncNode : currSyncNodes) {
-            nextSyncNodes = mergeListOfSets(nextSyncNodes, getNextSyncNodes(currSyncNode, targetSyncNodes, rewriter));
+            List<Set<SyncNode>> nodes = getNextSyncNodes(currSyncNode, targetSyncNodes, rewriter);
+            if (nodes == null) return null; // failed // TODO: output more information for failure
+            nextSyncNodes = mergeListOfSets(nextSyncNodes, nodes);
         }
         return nextSyncNodes;
     }
@@ -782,7 +784,7 @@ public class SymbolicRewriter {
 
                 if (nexts.isEmpty()) {
                     /* final term */
-                    return null; // failed
+                    return null; // failed // TODO: output more information for failure
                 }
 
                 loop:
