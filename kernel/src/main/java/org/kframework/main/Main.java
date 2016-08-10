@@ -16,7 +16,9 @@ import org.fusesource.jansi.AnsiConsole;
 import org.kframework.kast.KastFrontEnd;
 import org.kframework.kdep.KDepFrontEnd;
 import org.kframework.kdoc.KDocFrontEnd;
+import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.KompileFrontEnd;
+import org.kframework.krun.KRun;
 import org.kframework.krun.KRunFrontEnd;
 import org.kframework.kserver.KServerFrontEnd;
 import org.kframework.ktest.KTestFrontEnd;
@@ -46,6 +48,20 @@ public class Main {
         isNailgun = false;
         AnsiConsole.systemInstall();
         if (args.length >= 1) {
+
+            if (args[0].equals("-keq")) {
+                String[] args2 = Arrays.copyOfRange(args, 1, args.length);
+                System.out.println("keq: " + Arrays.toString(args2));
+                int result = 0;
+
+                /*
+                CompiledDefinition compiledDef = null;
+                KRun.run(compiledDef);
+                 */
+
+                AnsiConsole.systemUninstall();
+                System.exit(result);
+            }
 
             String[] args2 = Arrays.copyOfRange(args, 1, args.length);
             Injector injector = getInjector(args[0]);

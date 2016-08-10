@@ -96,7 +96,8 @@ public class ConstrainedTerm extends JavaSymbolicObject {
     }
 
     public boolean implies(ConstrainedTerm constrainedTerm) {
-        return matchImplies(constrainedTerm, true) != null;
+        ConjunctiveFormula conjunctiveFormula = matchImplies(constrainedTerm, true);
+        return conjunctiveFormula != null;
     }
 
     public ConstrainedTerm expandPatterns(boolean narrowing) {

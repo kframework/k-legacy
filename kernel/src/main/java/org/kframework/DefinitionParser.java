@@ -53,23 +53,9 @@ public class DefinitionParser {
      * Parses the text to create a {@link Definition} object.
      */
     public static org.kframework.definition.Definition from(String definitionText, String mainModuleName, Source source, List<File> lookupDirectories) {
-        File tempDir = Files.createTempDir();
-        File theFileUtilTempDir = new File(tempDir.getAbsolutePath() + File.pathSeparator + "tempDir");
-        File definitionDir = new File(tempDir.getAbsolutePath() + File.pathSeparator + "definitionDir");
-        File workingDir = new File(tempDir.getAbsolutePath() + File.pathSeparator + "workingDir");
-        File kompiledDir = new File(tempDir.getAbsolutePath() + File.pathSeparator + "kompiledDir");
-        if(!theFileUtilTempDir.mkdir() || !definitionDir.mkdir() || !workingDir.mkdir() || !kompiledDir.mkdir()) {
-            throw new AssertionError("Could not create one of the temporary directories");
-        }
         GlobalOptions globalOptions = new GlobalOptions();
         KExceptionManager kem = new KExceptionManager(globalOptions);
-//
-        FileUtil fileUtil = new FileUtil(theFileUtilTempDir,
-                Providers.of(definitionDir),
-                workingDir,
-                Providers.of(kompiledDir),
-                globalOptions,
-                System.getenv());
+        FileUtil fileUtil = FileUtil.get(globalOptions, System.getenv());
         ParserUtils parserUtils = new ParserUtils(fileUtil::resolveWorkingDirectory, kem, globalOptions);
 
         DefinitionParsing definitionParsing = new DefinitionParsing(lookupDirectories, true, kem, parserUtils, false, null, false);

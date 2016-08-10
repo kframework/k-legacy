@@ -292,7 +292,7 @@ public class FastRuleMatcher {
         if (subject instanceof KItem && pattern instanceof KItem) {
             KLabelConstant subjectKLabel = (KLabelConstant) ((KItem) subject).kLabel();
             KLabelConstant patternKLabel = (KLabelConstant) ((KItem) pattern).klabel();
-            if (subjectKLabel != patternKLabel) {
+            if (!subjectKLabel.name().equals(patternKLabel.name())) { // subjectKLabel != patternKLabel
                 return empty;
             }
 
