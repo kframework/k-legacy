@@ -205,7 +205,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
 
             List<ConstrainedTerm> proofResults = javaRules.stream()
                     .filter(r -> !r.containsAttribute(Attribute.TRUSTED_KEY))
-                    .map(r -> rewriter.proveRule(r.createLhsPattern(termContext), r.createRhsPattern(), allRules, null))
+                    .map(r -> rewriter.proveRule(r.createLhsPattern(termContext), r.createRhsPattern(), allRules))
                     .flatMap(List::stream)
                     .collect(Collectors.toList());
 
