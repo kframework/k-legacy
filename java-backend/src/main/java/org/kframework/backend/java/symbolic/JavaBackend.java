@@ -1,7 +1,6 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import com.google.inject.Inject;
 import org.kframework.AddConfigurationRecoveryFlags;
 import org.kframework.Collections;
 import org.kframework.attributes.Att;
@@ -64,7 +63,6 @@ public class JavaBackend implements Backend {
     public void accept(CompiledDefinition def) {
     }
 
-    @Inject
     public JavaBackend(KExceptionManager kem, FileUtil files, GlobalOptions globalOptions, KompileOptions kompileOptions) {
         this.kem = kem;
         this.files = files;

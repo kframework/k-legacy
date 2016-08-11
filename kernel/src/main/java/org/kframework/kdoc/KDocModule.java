@@ -13,15 +13,13 @@ import org.kframework.main.GlobalOptions;
 import org.kframework.main.Tool;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
-import org.kframework.utils.inject.Options;
 import org.kframework.utils.inject.OuterParsingModule;
 import org.kframework.utils.options.OuterParsingOptions;
 
 import java.util.Map;
 
-public class KDocModule extends AbstractModule {
+public class KDocModule {
 
-    @Override
     protected void configure() {
 //        bind(FrontEnd.class).to(KDocFrontEnd.class);
 //        bind(Tool.class).toInstance(Tool.KDOC);

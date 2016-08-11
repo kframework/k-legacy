@@ -12,7 +12,6 @@ import org.kframework.main.FrontEnd;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
-import org.kframework.utils.file.Environment;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
 import org.kframework.utils.inject.JCommanderModule;
@@ -20,8 +19,6 @@ import org.kframework.utils.inject.CommonModule;
 import org.xml.sax.SAXException;
 
 import com.beust.jcommander.ParameterException;
-import com.google.inject.Inject;
-import com.google.inject.Module;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -33,28 +30,19 @@ import java.util.*;
 
 public class KTestFrontEnd extends FrontEnd {
 
-    public static List<Module> getModules() {
-        List<Module> modules = new ArrayList<>();
-//        modules.add(new KTestModule());
-//        modules.add(new JCommanderModule());
-//        modules.add(new CommonModule());
-        return modules;
-    }
-
     private final KTestOptions options;
     private final KExceptionManager kem;
     private final Map<String, String> env;
     private final FileUtil files;
 
-    @Inject
-    KTestFrontEnd(
+    public KTestFrontEnd(
             KTestOptions options,
             KExceptionManager kem,
             GlobalOptions globalOptions,
             String usage,
             String experimentalUsage,
             JarInfo jarInfo,
-            @Environment Map<String, String> env,
+            Map<String, String> env,
             FileUtil files) {
         super(kem, globalOptions, usage, experimentalUsage, jarInfo, files);
         this.options = options;

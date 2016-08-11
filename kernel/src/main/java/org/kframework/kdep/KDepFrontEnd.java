@@ -2,7 +2,6 @@
 package org.kframework.kdep;
 
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 import com.google.inject.Module;
 import org.apache.commons.collections15.ListUtils;
 import org.kframework.attributes.Source;
@@ -51,7 +50,6 @@ public class KDepFrontEnd extends FrontEnd {
     private final FileUtil files;
     private final ParserUtils parser;
 
-    @Inject
     public KDepFrontEnd(
             OuterParsingOptions options,
             KExceptionManager kem,

@@ -15,7 +15,6 @@ import org.kframework.krun.api.io.FileSystem;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.inject.Builtins;
 import org.kframework.utils.options.SMTOptions;
 
 import java.io.Serializable;
@@ -42,7 +41,7 @@ public class GlobalContext implements Serializable {
             KRunOptions krunOptions,
             KExceptionManager kem,
             SMTOptions smtOptions,
-            @Builtins Map<String, MethodHandle> hookProvider,
+            Map<String, MethodHandle> hookProvider,
             FileUtil files,
             Stage stage) {
         this.fs = fs;

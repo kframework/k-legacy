@@ -13,11 +13,7 @@ import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
-import org.kframework.utils.file.DefinitionDir;
-import org.kframework.utils.file.Environment;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.file.KompiledDir;
-import org.kframework.utils.file.WorkingDir;
 import org.kframework.utils.options.DefinitionLoadingOptions;
 
 import java.io.File;

@@ -11,7 +11,6 @@ import org.kframework.krun.KRunOptions;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.attributes.Source;
 import org.kframework.backend.java.symbolic.InitializeRewriter;
-import org.kframework.backend.java.symbolic.JavaSymbolicCommonModule;
 import org.kframework.backend.java.symbolic.Stage;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.Module;
@@ -25,8 +24,6 @@ import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.inject.DefinitionScoped;
-import org.kframework.utils.inject.SimpleScope;
 import org.kframework.utils.options.SMTOptions;
 
 import java.io.File;

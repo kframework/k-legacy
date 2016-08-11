@@ -18,7 +18,6 @@ import org.kframework.utils.file.JarInfo;
 import org.kframework.utils.file.TTYInfo;
 import org.kframework.utils.inject.CommonModule;
 import org.kframework.utils.inject.JCommanderModule;
-import org.kframework.utils.inject.SimpleScope;
 
 import com.google.common.collect.ImmutableList;
 import com.martiansoftware.nailgun.NGContext;

@@ -9,7 +9,6 @@ import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 
-import com.google.inject.Inject;
 import java.io.EOFException;
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
@@ -28,7 +27,6 @@ public class PortableFileSystem implements FileSystem {
     private final FileUtil fileUtil;
     private final KExceptionManager kem;
 
-    @Inject
     public PortableFileSystem(KExceptionManager kem, FileUtil fileUtil) {
         this.fileUtil = fileUtil;
         this.kem = kem;

@@ -2,7 +2,6 @@
 package org.kframework.backend.java.kil;
 
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.kframework.attributes.Att;
 import org.kframework.attributes.Location;
@@ -300,7 +299,6 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
         private final Provider<BuiltinFunction> builtins;
         private final GlobalOptions options;
 
-        @Inject
         public KItemOperations(
                 Stage stage,
                 JavaExecutionOptions javaOptions,

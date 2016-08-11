@@ -1,7 +1,6 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.kframework.RewriterResult;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
@@ -29,8 +28,6 @@ import org.kframework.rewriter.Rewriter;
 import org.kframework.rewriter.SearchType;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.inject.Builtins;
-import org.kframework.utils.inject.DefinitionScoped;
 import org.kframework.utils.options.SMTOptions;
 import scala.Tuple2;
 import scala.collection.JavaConversions;
@@ -61,14 +58,13 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
     private final InitializeDefinition initializeDefinition;
     private static final int NEGATIVE_VALUE = -1;
 
-    @Inject
     public InitializeRewriter(
             FileSystem fs,
             JavaExecutionOptions javaOptions,
             GlobalOptions globalOptions,
             KExceptionManager kem,
             SMTOptions smtOptions,
-            @Builtins Map<String, MethodHandle> hookProvider,
+            Map<String, MethodHandle> hookProvider,
             KompileOptions kompileOptions,
             KRunOptions krunOptions,
             FileUtil files,
@@ -216,7 +212,6 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
     }
 
 
-    @DefinitionScoped
     public static class InitializeDefinition {
 
         private final Map<Module, Definition> cache = new LinkedHashMap<Module, Definition>() {

@@ -12,8 +12,11 @@ import org.kframework.backend.java.symbolic.JavaBackend;
 import org.kframework.backend.java.symbolic.JavaExecutionOptions;
 import org.kframework.definition.Module;
 import org.kframework.kast.KastFrontEnd;
+import org.kframework.kast.KastOptions;
 import org.kframework.kdep.KDepFrontEnd;
+import org.kframework.kdep.KDepOptions;
 import org.kframework.kdoc.KDocFrontEnd;
+import org.kframework.kdoc.KDocOptions;
 import org.kframework.kil.loader.Context;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
@@ -28,6 +31,7 @@ import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import org.kframework.krun.modes.KRunExecutionMode;
 import org.kframework.kserver.KServerFrontEnd;
 import org.kframework.kserver.KServerOptions;
+import org.kframework.ktest.CmdArgs.KTestOptions;
 import org.kframework.ktest.KTestFrontEnd;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.utils.BinaryLoader;
@@ -35,17 +39,13 @@ import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
-import org.kframework.utils.file.Environment;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
 import org.kframework.utils.file.TTYInfo;
-import org.kframework.utils.file.WorkingDir;
 import org.kframework.utils.inject.CommonModule;
 import org.kframework.utils.inject.DefinitionLoadingModule;
 import org.kframework.utils.inject.JCommanderModule;
-import org.kframework.utils.inject.Options;
 import org.kframework.utils.inject.OuterParsingModule;
-import org.kframework.utils.inject.SimpleScope;
 import org.kframework.utils.options.OuterParsingOptions;
 import org.kframework.utils.options.SMTOptions;
 
@@ -187,6 +187,145 @@ public class Main {
             FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, kServerOptions.global, env);
 
             KServerFrontEnd frontEnd = new KServerFrontEnd(kem, kServerOptions, usage, experimentalUsage, jarInfo, files);
+
+            System.out.println("xxxxxxxxxxxxxxx");
+            return runApplication(frontEnd, kem);
+
+        } else if (toolName.equals("-kast")) {
+
+            Tool tool = Tool.KAST;
+
+            // basics
+            KastOptions kastOptions = new KastOptions();
+            KExceptionManager kem = new KExceptionManager(kastOptions.global);
+            Stopwatch sw = new Stopwatch(kastOptions.global);
+            BinaryLoader loader = new BinaryLoader(kem);
+            JarInfo jarInfo = new JarInfo(kem);
+
+            // parsing options
+            Set<Object> options = ImmutableSet.of(kastOptions);
+            Set<Class<?>> experimentalOptions = ImmutableSet.of(kastOptions.experimental.getClass());
+            JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
+            String usage = JCommanderModule.usage(jc);
+            String experimentalUsage = JCommanderModule.experimentalUsage(jc);
+
+            // directories
+            File tempDir = CommonModule.tempDir(workingDir, tool);
+            File definitionDir = DefinitionLoadingModule.directory(kastOptions.definitionLoading, workingDir, kem, env);
+            File kompiledDir = DefinitionLoadingModule.definition(definitionDir, kem);
+            FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, kastOptions.global, env);
+
+            kastOptions.setFiles(files);
+            CompiledDefinition compiledDef = DefinitionLoadingModule.koreDefinition(loader, files);
+            KastFrontEnd frontEnd = new KastFrontEnd(kastOptions, usage, experimentalUsage, sw, kem, jarInfo, env, files, kompiledDir, compiledDef);
+
+            System.out.println("xxxxxxxxxxxxxxx");
+            return runApplication(frontEnd, kem);
+
+        } else if (toolName.equals("-kpp")) {
+
+            Tool tool = Tool.KPP;
+
+            // basics
+            GlobalOptions globalOptions = new GlobalOptions();
+            KExceptionManager kem = new KExceptionManager(globalOptions);
+            JarInfo jarInfo = new JarInfo(kem);
+
+            // directories
+            File tempDir = CommonModule.tempDir(workingDir, tool);
+            File definitionDir = null;
+            File kompiledDir = null;
+            FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, globalOptions, env);
+
+            KppFrontEnd frontEnd = new KppFrontEnd(kem, globalOptions, jarInfo, files, args);
+
+            System.out.println("xxxxxxxxxxxxxxx");
+            return runApplication(frontEnd, kem);
+
+        } else if (toolName.equals("-kdep")) {
+
+            Tool tool = Tool.KDEP;
+
+            // basics
+            KDepOptions kDepOptions = new KDepOptions();
+            KExceptionManager kem = new KExceptionManager(kDepOptions.global);
+            Stopwatch sw = new Stopwatch(kDepOptions.global);
+            BinaryLoader loader = new BinaryLoader(kem);
+            JarInfo jarInfo = new JarInfo(kem);
+
+            // parsing options
+            Set<Object> options = ImmutableSet.of(kDepOptions);
+            Set<Class<?>> experimentalOptions = ImmutableSet.of();
+            JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
+            String usage = JCommanderModule.usage(jc);
+            String experimentalUsage = JCommanderModule.experimentalUsage(jc);
+
+            // directories
+            File tempDir = CommonModule.tempDir(workingDir, tool);
+            File definitionDir = OuterParsingModule.definitionDir(workingDir, kDepOptions.outerParsing);
+            File kompiledDir = OuterParsingModule.kompiledDir(definitionDir, kDepOptions.outerParsing, workingDir, tempDir);
+            FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, kDepOptions.global, env);
+
+            // kdep
+            KDepFrontEnd frontEnd = new KDepFrontEnd(kDepOptions.outerParsing, kem, kDepOptions.global, usage, experimentalUsage, sw, jarInfo, files);
+
+            System.out.println("xxxxxxxxxxxxxxx");
+            return runApplication(frontEnd, kem);
+
+        } else if (toolName.equals("-kdoc")) {
+
+            Tool tool = Tool.KDOC;
+
+            // basics
+            KDocOptions kDocOptions = new KDocOptions();
+            KExceptionManager kem = new KExceptionManager(kDocOptions.global);
+            Stopwatch sw = new Stopwatch(kDocOptions.global);
+            BinaryLoader loader = new BinaryLoader(kem);
+            JarInfo jarInfo = new JarInfo(kem);
+
+            // parsing options
+            Set<Object> options = ImmutableSet.of(kDocOptions);
+            Set<Class<?>> experimentalOptions = ImmutableSet.of();
+            JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
+            String usage = JCommanderModule.usage(jc);
+            String experimentalUsage = JCommanderModule.experimentalUsage(jc);
+
+            // directories
+            File tempDir = CommonModule.tempDir(workingDir, tool);
+            File definitionDir = OuterParsingModule.definitionDir(workingDir, kDocOptions.outerParsing);
+            File kompiledDir = OuterParsingModule.kompiledDir(definitionDir, kDocOptions.outerParsing, workingDir, tempDir);
+            FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, kDocOptions.global, env);
+
+            // kdep
+            KDocFrontEnd frontEnd = new KDocFrontEnd(kDocOptions, kem, kDocOptions.global, usage, experimentalUsage, jarInfo, files, null); // TODO: correct PosterBackend
+
+            System.out.println("xxxxxxxxxxxxxxx");
+            return runApplication(frontEnd, kem);
+
+        } else if (toolName.equals("-ktest")) {
+
+            Tool tool = Tool.KTEST;
+
+            // basics
+            KTestOptions kTestOptions = new KTestOptions();
+            KExceptionManager kem = new KExceptionManager(kTestOptions.getGlobal());
+            Stopwatch sw = new Stopwatch(kTestOptions.getGlobal());
+            JarInfo jarInfo = new JarInfo(kem);
+
+            // parsing options
+            Set<Object> options = ImmutableSet.of(kTestOptions);
+            Set<Class<?>> experimentalOptions = ImmutableSet.of();
+            JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
+            String usage = JCommanderModule.usage(jc);
+            String experimentalUsage = JCommanderModule.experimentalUsage(jc);
+
+            // directories
+            File tempDir = CommonModule.tempDir(workingDir, tool);
+            File definitionDir = null;
+            File kompiledDir = null;
+            FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, kTestOptions.getGlobal(), env);
+
+            KTestFrontEnd frontEnd = new KTestFrontEnd(kTestOptions, kem, kTestOptions.getGlobal(), usage, experimentalUsage, jarInfo, env, files);
 
             System.out.println("xxxxxxxxxxxxxxx");
             return runApplication(frontEnd, kem);

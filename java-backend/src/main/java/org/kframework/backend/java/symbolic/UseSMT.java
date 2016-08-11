@@ -13,7 +13,6 @@ import org.kframework.utils.options.SMTSolver;
 
 import java.io.Serializable;
 
-import com.google.inject.Inject;
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.FuncDecl;
@@ -27,7 +26,6 @@ public class UseSMT implements Serializable {
 
     private final SMTOptions options;
 
-    @Inject
     public UseSMT(SMTOptions options) {
         this.options = options;
     }

@@ -9,7 +9,6 @@ import org.kframework.kdoc.KDocOptions;
 import org.kframework.main.FrontEnd;
 import org.kframework.main.GlobalOptions;
 import org.kframework.main.Tool;
-import org.kframework.utils.inject.Options;
 import org.kframework.utils.inject.OuterParsingModule;
 import org.kframework.utils.options.OuterParsingOptions;
 
@@ -17,8 +16,7 @@ import org.kframework.utils.options.OuterParsingOptions;
  * Guice module for kdep tool. Binds the information needed to compute the kompiled directory as well as the options
  * and frontend.
  */
-public class KDepModule extends AbstractModule {
-    @Override
+public class KDepModule {
     protected void configure() {
 
 //        bind(FrontEnd.class).to(KDepFrontEnd.class);

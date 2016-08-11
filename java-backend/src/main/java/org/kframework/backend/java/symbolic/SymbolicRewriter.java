@@ -4,7 +4,6 @@ package org.kframework.backend.java.symbolic;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.kframework.Strategy;
@@ -58,7 +57,6 @@ public class SymbolicRewriter {
     private final Definition definition;
     private final BitSet allRuleBits;
 
-    @Inject
     public SymbolicRewriter(GlobalContext global, KompileOptions kompileOptions, JavaExecutionOptions javaOptions,
                             KRunState.Counter counter, KOREtoBackendKIL constructor) {
         this.constructor = constructor;

@@ -2,7 +2,6 @@
 package org.kframework.krun;
 
 import com.google.common.collect.ImmutableList;
-import com.google.inject.Provider;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.main.FrontEnd;
@@ -11,13 +10,10 @@ import org.kframework.rewriter.Rewriter;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
-import org.kframework.utils.file.KompiledDir;
 import org.kframework.utils.file.TTYInfo;
 import org.kframework.utils.inject.CommonModule;
 import org.kframework.utils.inject.DefinitionLoadingModule;
-import org.kframework.utils.inject.DefinitionScope;
 import org.kframework.utils.inject.JCommanderModule;
-import org.kframework.utils.inject.Main;
 
 import java.io.File;
 import java.util.List;

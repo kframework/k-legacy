@@ -35,7 +35,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 
 public class Context implements Serializable {
 
@@ -127,9 +126,9 @@ public class Context implements Serializable {
     }
 
     // TODO(dwightguth): remove these fields and replace with injected dependencies
-    @Deprecated @Inject public transient GlobalOptions globalOptions;
+    @Deprecated public transient GlobalOptions globalOptions;
     public KompileOptions kompileOptions;
-    @Deprecated @Inject(optional=true) public transient KRunOptions krunOptions;
+    @Deprecated public transient KRunOptions krunOptions;
 
     public Context() {
         initSubsorts(subsorts);

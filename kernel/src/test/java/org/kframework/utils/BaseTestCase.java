@@ -18,10 +18,6 @@ import org.kframework.krun.RunProcess;
 import org.kframework.main.Main;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.file.KompiledDir;
-import org.kframework.utils.inject.Concrete;
-import org.kframework.utils.inject.DefinitionScope;
-import org.kframework.utils.inject.SimpleScope;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 

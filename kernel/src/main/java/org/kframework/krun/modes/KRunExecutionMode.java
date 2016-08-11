@@ -1,7 +1,6 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.krun.modes;
 
-import com.google.inject.Inject;
 import org.kframework.RewriterResult;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.attributes.Source;
@@ -32,7 +31,6 @@ public class KRunExecutionMode implements ExecutionMode {
     private final KExceptionManager kem;
     private final FileUtil files;
 
-    @Inject
     public KRunExecutionMode(KRunOptions kRunOptions, KExceptionManager kem, FileUtil files) {
         this.kRunOptions = kRunOptions;
         this.kem = kem;

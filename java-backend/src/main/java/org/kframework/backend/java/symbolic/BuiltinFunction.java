@@ -11,7 +11,6 @@ import org.kframework.kil.Attributes;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
-import org.kframework.utils.inject.Builtins;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -20,9 +19,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 
 /**
  * Utility class that handles the builtin (hooked) operations and their Java
@@ -50,8 +46,7 @@ public class BuiltinFunction {
      * @see org.kframework.backend.java.symbolic.KILtoBackendJavaKILTransformer#evaluateDefinition(org.kframework.backend.java.kil.Definition)
      * @see org.kframework.backend.java.symbolic.KILtoBackendJavaKILTransformer#evaluateRule(org.kframework.backend.java.kil.Rule, org.kframework.backend.java.kil.Definition)
      */
-    @Inject
-    public BuiltinFunction(Definition definition, @Builtins Map<String, MethodHandle> hookProvider, KExceptionManager kem, Stage stage) {
+    public BuiltinFunction(Definition definition, Map<String, MethodHandle> hookProvider, KExceptionManager kem, Stage stage) {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         MethodType hookType = MethodType.methodType(Term.class, Object[].class);
         MethodHandle throwImpureExceptionHandle;

@@ -9,11 +9,6 @@ import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
-import org.kframework.utils.inject.Options;
-
-import com.google.inject.AbstractModule;
-import com.google.inject.Inject;
-import com.google.inject.Module;
 
 public class KppFrontEnd extends FrontEnd {
 
@@ -24,31 +19,17 @@ public class KppFrontEnd extends FrontEnd {
     private final String fileName;
     private static final String USAGE = "Usage: kpp <filename>";
 
-    @Inject
-    KppFrontEnd(
+    public KppFrontEnd(
             KExceptionManager kem,
             GlobalOptions globalOptions,
             JarInfo jarInfo,
             FileUtil files,
-            @Options String[] args) {
+            String[] args) {
         super(kem, globalOptions, USAGE, "", jarInfo, files);
         if (args.length != 1) {
             printBootError("Kpp takes exactly one file");
         }
         this.fileName = args[0];
-    }
-
-    public static List<Module> getModules() {
-        List<Module> modules = new ArrayList<>();
-        modules.add(new AbstractModule() {
-            @Override
-            protected void configure() {
-                bind(FrontEnd.class).to(KppFrontEnd.class);
-                bind(Tool.class).toInstance(Tool.KPP);
-                bind(GlobalOptions.class).toInstance(new GlobalOptions());
-            }
-        });
-        return modules;
     }
 
     public int run() {

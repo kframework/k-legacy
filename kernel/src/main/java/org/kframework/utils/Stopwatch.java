@@ -3,7 +3,6 @@ package org.kframework.utils;
 
 import org.kframework.main.GlobalOptions;
 
-import com.google.inject.Inject;
 import java.util.Formatter;
 
 /**
@@ -15,7 +14,6 @@ public class Stopwatch {
     Formatter f = new Formatter(System.out);
     private final GlobalOptions options;
 
-    @Inject
     public Stopwatch(GlobalOptions options) {
         this.options = options;
         start = System.currentTimeMillis();

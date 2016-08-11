@@ -6,8 +6,6 @@ import org.kframework.main.FrontEnd;
 import org.kframework.main.GlobalOptions;
 import org.kframework.main.Tool;
 import org.kframework.utils.inject.DefinitionLoadingModule;
-import org.kframework.utils.inject.Main;
-import org.kframework.utils.inject.Options;
 import org.kframework.utils.options.DefinitionLoadingOptions;
 
 import com.google.inject.AbstractModule;

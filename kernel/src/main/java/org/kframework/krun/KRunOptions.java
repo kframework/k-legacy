@@ -5,7 +5,6 @@ import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.ParametersDelegate;
-import com.google.inject.Inject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.ktest.ExecNames;
 import org.kframework.main.GlobalOptions;
@@ -35,10 +34,6 @@ public final class KRunOptions {
     public static final class ConfigurationCreationOptions {
 
         public ConfigurationCreationOptions() {}
-
-        //TODO(dwightguth): remove in Guice 4.0
-        @Inject
-        public ConfigurationCreationOptions(Void v) {}
 
         @Parameter(description="<file>")
         private List<String> parameters;

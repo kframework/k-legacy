@@ -63,7 +63,6 @@ import java.util.stream.Collectors;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 
 
 /**
@@ -90,7 +89,6 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
     private final IndexingTable.Data indexingData;
     private final KExceptionManager kem;
 
-    @Inject
     public KILtoBackendJavaKILTransformer(
             Context context,
             @FreshRules boolean freshRules,
