@@ -16,6 +16,7 @@ import org.kframework.attributes.Source;
 import org.kframework.kore.K;
 import org.kframework.kore.KLabel;
 import org.kframework.kore.KList;
+import org.kframework.utils.Strings;
 import org.kframework.utils.StringUtil;
 import org.kframework.utils.errorsystem.KEMException;
 
@@ -194,7 +195,7 @@ KLabel klabel() :
 {
 	<KLABEL>
 	{
-		return KLabel(StringUtil.unescapeKoreKLabel(token.image));
+		return KLabel(Strings.unescapeKoreKLabel(token.image));
 	}
 |   <ID_KLABEL>
     {
