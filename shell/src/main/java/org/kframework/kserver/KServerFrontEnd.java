@@ -30,11 +30,8 @@ public class KServerFrontEnd extends FrontEnd {
     public KServerFrontEnd(
             KExceptionManager kem,
             KServerOptions options,
-            String usage,
-            String experimentalUsage,
-            JarInfo jarInfo,
             FileUtil files) {
-        super(kem, options.global, usage, experimentalUsage, jarInfo, files);
+        super(kem, options.global, files);
         this.options = options;
     }
 
@@ -90,7 +87,12 @@ public class KServerFrontEnd extends FrontEnd {
             system_err.init(new PrintStream(new AnsiOutputStream(system_err.getPrintStream())));
         }
 
-        int result = Main.runApplication(tool, args, workingDir, env);
+        int result;
+        try {
+            result = Main.runApplication(tool, args, workingDir, env);
+        } catch (Main.Usage e) {
+            result = 0; // simple usage output
+        }
         System.out.flush();
         System.err.flush();
         return result;

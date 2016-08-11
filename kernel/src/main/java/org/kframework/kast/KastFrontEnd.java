@@ -35,16 +35,13 @@ public class KastFrontEnd extends FrontEnd {
 
     public KastFrontEnd(
             KastOptions options,
-            String usage,
-            String experimentalUsage,
             Stopwatch sw,
             KExceptionManager kem,
-            JarInfo jarInfo,
             Map<String, String> env,
             FileUtil files,
             File kompiledDir,
             CompiledDefinition compiledDef) {
-        super(kem, options.global, usage, experimentalUsage, jarInfo, files);
+        super(kem, options.global, files);
         this.options = options;
         this.sw = sw;
         this.kem = kem;

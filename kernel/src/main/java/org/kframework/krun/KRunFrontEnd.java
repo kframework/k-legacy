@@ -34,9 +34,6 @@ public class KRunFrontEnd extends FrontEnd {
 
     public KRunFrontEnd(
             GlobalOptions options,
-            String usage,
-            String experimentalUsage,
-            JarInfo jarInfo,
             File kompiledDir,
             KExceptionManager kem,
             KRunOptions krunOptions,
@@ -46,7 +43,7 @@ public class KRunFrontEnd extends FrontEnd {
             ExecutionMode executionMode,
             TTYInfo tty,
             boolean isNailgun) {
-        super(kem, options, usage, experimentalUsage, jarInfo, files);
+        super(kem, options, files);
         this.kompiledDir = kompiledDir;
         this.kem = kem;
         this.krunOptions = krunOptions;

@@ -76,7 +76,12 @@ public class Main {
         AnsiConsole.systemInstall();
         if (args.length >= 1) {
             String[] args2 = Arrays.copyOfRange(args, 1, args.length);
-            int result = runApplication(args[0], args2, new File("."), System.getenv());
+            int result;
+            try {
+                result = runApplication(args[0], args2, new File("."), System.getenv());
+            } catch (Usage e) {
+                result = 0; // simple usage output
+            }
             AnsiConsole.systemUninstall();
             System.exit(result);
         }
@@ -84,7 +89,23 @@ public class Main {
         invalidJarArguments();
     }
 
-    public static int runApplication(String toolName, String[] args, File workingDir, Map<String, String> env) {
+    public static class Usage extends Exception {
+    }
+
+    public static void usage(GlobalOptions globalOptions, String usage, String experimentalUsage, JarInfo jarInfo) throws Usage {
+        if (globalOptions.help) {
+            System.out.print(usage);
+            throw new Usage();
+        } else if (globalOptions.helpExperimental) {
+            System.out.print(experimentalUsage);
+            throw new Usage();
+        } else if (globalOptions.version) {
+            jarInfo.printVersionMessage();
+            throw new Usage();
+        }
+    }
+
+    public static int runApplication(String toolName, String[] args, File workingDir, Map<String, String> env) throws Usage {
 
         if (toolName.equals("-kompile")) {
             Tool tool = Tool.KOMPILE;
@@ -103,6 +124,7 @@ public class Main {
             JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
             String usage = JCommanderModule.usage(jc);
             String experimentalUsage = JCommanderModule.experimentalUsage(jc);
+            usage(kompileOptions.global, usage, experimentalUsage, jarInfo);
 
             // directories
             File tempDir = CommonModule.tempDir(workingDir, tool);
@@ -113,7 +135,7 @@ public class Main {
             // kompile
             assert (kompileOptions.backend.equals(Backends.JAVA)); // TODO: support other backends
             Backend koreBackend = new JavaBackend(kem, files, kompileOptions.global, kompileOptions);
-            KompileFrontEnd frontEnd = new KompileFrontEnd(kompileOptions, usage, experimentalUsage, koreBackend, sw, kem, loader, jarInfo, files);
+            KompileFrontEnd frontEnd = new KompileFrontEnd(kompileOptions, koreBackend, sw, kem, loader, files);
 
             return runApplication(frontEnd, kem);
         }
@@ -133,6 +155,7 @@ public class Main {
             JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
             String usage = JCommanderModule.usage(jc);
             String experimentalUsage = JCommanderModule.experimentalUsage(jc);
+            usage(kDocOptions.global, usage, experimentalUsage, jarInfo);
 
             // directories
             File tempDir = CommonModule.tempDir(workingDir, tool);
@@ -141,7 +164,7 @@ public class Main {
             FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, kDocOptions.global, env);
 
             // kdep
-            KDocFrontEnd frontEnd = new KDocFrontEnd(kDocOptions, kem, kDocOptions.global, usage, experimentalUsage, jarInfo, files, null); // TODO: correct PosterBackend
+            KDocFrontEnd frontEnd = new KDocFrontEnd(kDocOptions, kem, kDocOptions.global, files, null); // TODO: correct PosterBackend
 
             return runApplication(frontEnd, kem);
         }
@@ -161,6 +184,7 @@ public class Main {
             JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
             String usage = JCommanderModule.usage(jc);
             String experimentalUsage = JCommanderModule.experimentalUsage(jc);
+            usage(kDepOptions.global, usage, experimentalUsage, jarInfo);
 
             // directories
             File tempDir = CommonModule.tempDir(workingDir, tool);
@@ -169,7 +193,7 @@ public class Main {
             FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, kDepOptions.global, env);
 
             // kdep
-            KDepFrontEnd frontEnd = new KDepFrontEnd(kDepOptions.outerParsing, kem, kDepOptions.global, usage, experimentalUsage, sw, jarInfo, files);
+            KDepFrontEnd frontEnd = new KDepFrontEnd(kDepOptions.outerParsing, kem, kDepOptions.global, sw, files);
 
             return runApplication(frontEnd, kem);
         }
@@ -194,6 +218,7 @@ public class Main {
             JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
             String usage = JCommanderModule.usage(jc);
             String experimentalUsage = JCommanderModule.experimentalUsage(jc);
+            usage(kRunOptions.global, usage, experimentalUsage, jarInfo);
 
             // directories
             File tempDir = CommonModule.tempDir(workingDir, tool);
@@ -226,7 +251,7 @@ public class Main {
             }
             //
             InitializeRewriter initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions, kRunOptions, files, initializeDefinition);
-            KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, usage, experimentalUsage, jarInfo, kompiledDir, kem, kRunOptions, files, compiledDef, initializeRewriter, executionMode, ttyInfo, isNailgun);
+            KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, kompiledDir, kem, kRunOptions, files, compiledDef, initializeRewriter, executionMode, ttyInfo, isNailgun);
 
             return runApplication(frontEnd, kem);
         }
@@ -247,6 +272,7 @@ public class Main {
             JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
             String usage = JCommanderModule.usage(jc);
             String experimentalUsage = JCommanderModule.experimentalUsage(jc);
+            usage(kastOptions.global, usage, experimentalUsage, jarInfo);
 
             // directories
             File tempDir = CommonModule.tempDir(workingDir, tool);
@@ -256,7 +282,7 @@ public class Main {
 
             kastOptions.setFiles(files);
             CompiledDefinition compiledDef = DefinitionLoadingModule.koreDefinition(loader, files);
-            KastFrontEnd frontEnd = new KastFrontEnd(kastOptions, usage, experimentalUsage, sw, kem, jarInfo, env, files, kompiledDir, compiledDef);
+            KastFrontEnd frontEnd = new KastFrontEnd(kastOptions, sw, kem, env, files, kompiledDir, compiledDef);
 
             return runApplication(frontEnd, kem);
         }
@@ -276,6 +302,7 @@ public class Main {
             JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
             String usage = JCommanderModule.usage(jc);
             String experimentalUsage = JCommanderModule.experimentalUsage(jc);
+            usage(kServerOptions.global, usage, experimentalUsage, jarInfo);
 
             // directories
             File tempDir = CommonModule.tempDir(workingDir, tool);
@@ -283,7 +310,7 @@ public class Main {
             File kompiledDir = null;
             FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, kServerOptions.global, env);
 
-            KServerFrontEnd frontEnd = new KServerFrontEnd(kem, kServerOptions, usage, experimentalUsage, jarInfo, files);
+            KServerFrontEnd frontEnd = new KServerFrontEnd(kem, kServerOptions, files);
 
             return runApplication(frontEnd, kem);
         }
@@ -303,6 +330,7 @@ public class Main {
             JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
             String usage = JCommanderModule.usage(jc);
             String experimentalUsage = JCommanderModule.experimentalUsage(jc);
+            usage(kTestOptions.getGlobal(), usage, experimentalUsage, jarInfo);
 
             // directories
             File tempDir = CommonModule.tempDir(workingDir, tool);
@@ -310,7 +338,7 @@ public class Main {
             File kompiledDir = null;
             FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, kTestOptions.getGlobal(), env);
 
-            KTestFrontEnd frontEnd = new KTestFrontEnd(kTestOptions, kem, kTestOptions.getGlobal(), usage, experimentalUsage, jarInfo, env, files);
+            KTestFrontEnd frontEnd = new KTestFrontEnd(kTestOptions, kem, kTestOptions.getGlobal(), env, files);
 
             return runApplication(frontEnd, kem);
         }
@@ -321,7 +349,6 @@ public class Main {
             // basics
             GlobalOptions globalOptions = new GlobalOptions();
             KExceptionManager kem = new KExceptionManager(globalOptions);
-            JarInfo jarInfo = new JarInfo(kem);
 
             // directories
             File tempDir = CommonModule.tempDir(workingDir, tool);
@@ -329,7 +356,7 @@ public class Main {
             File kompiledDir = null;
             FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, globalOptions, env);
 
-            KppFrontEnd frontEnd = new KppFrontEnd(kem, globalOptions, jarInfo, files, args);
+            KppFrontEnd frontEnd = new KppFrontEnd(kem, globalOptions, files, args);
 
             return runApplication(frontEnd, kem);
         }

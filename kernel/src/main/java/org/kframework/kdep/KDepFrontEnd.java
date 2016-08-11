@@ -54,12 +54,9 @@ public class KDepFrontEnd extends FrontEnd {
             OuterParsingOptions options,
             KExceptionManager kem,
             GlobalOptions globalOptions,
-            String usage,
-            String experimentalUsage,
             Stopwatch sw,
-            JarInfo jarInfo,
             FileUtil files) {
-        super(kem, globalOptions, usage, experimentalUsage, jarInfo, files);
+        super(kem, globalOptions, files);
         this.options = options;
         this.kem = kem;
         this.sw = sw;

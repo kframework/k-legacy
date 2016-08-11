@@ -22,15 +22,12 @@ public class KompileFrontEnd extends FrontEnd {
 
     public KompileFrontEnd(
             KompileOptions options,
-            String usage,
-            String experimentalUsage,
             org.kframework.kore.compile.Backend koreBackend,
             Stopwatch sw,
             KExceptionManager kem,
             BinaryLoader loader,
-            JarInfo jarInfo,
             FileUtil files) {
-        super(kem, options.global, usage, experimentalUsage, jarInfo, files);
+        super(kem, options.global, files);
         this.options = options;
         this.koreBackend = koreBackend;
         this.sw = sw;

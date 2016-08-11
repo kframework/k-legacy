@@ -23,12 +23,9 @@ public class KDocFrontEnd extends FrontEnd {
             KDocOptions options,
             KExceptionManager kem,
             GlobalOptions globalOptions,
-            String usage,
-            String experimentalUsage,
-            JarInfo jarInfo,
             FileUtil files,
             PosterBackend backend) {
-        super(kem, globalOptions, usage, experimentalUsage, jarInfo, files);
+        super(kem, globalOptions, files);
         this.options = options;
         this.backend = backend;
     }

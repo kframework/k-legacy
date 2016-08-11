@@ -39,12 +39,9 @@ public class KTestFrontEnd extends FrontEnd {
             KTestOptions options,
             KExceptionManager kem,
             GlobalOptions globalOptions,
-            String usage,
-            String experimentalUsage,
-            JarInfo jarInfo,
             Map<String, String> env,
             FileUtil files) {
-        super(kem, globalOptions, usage, experimentalUsage, jarInfo, files);
+        super(kem, globalOptions, files);
         this.options = options;
         this.options.setDebug(globalOptions.debug);
         this.options.setWarnings2errors(globalOptions.warnings2errors);

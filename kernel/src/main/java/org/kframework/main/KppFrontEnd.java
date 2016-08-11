@@ -22,11 +22,11 @@ public class KppFrontEnd extends FrontEnd {
     public KppFrontEnd(
             KExceptionManager kem,
             GlobalOptions globalOptions,
-            JarInfo jarInfo,
             FileUtil files,
             String[] args) {
-        super(kem, globalOptions, USAGE, "", jarInfo, files);
+        super(kem, globalOptions, files);
         if (args.length != 1) {
+            System.err.println(USAGE);
             printBootError("Kpp takes exactly one file");
         }
         this.fileName = args[0];
@@ -34,8 +34,10 @@ public class KppFrontEnd extends FrontEnd {
 
     public int run() {
         File f = new File(fileName);
-        if (!f.exists())
+        if (!f.exists()) {
+            System.err.println(USAGE);
             System.err.println("File not found.");
+        }
 
         try (BufferedReader input = new BufferedReader(new FileReader(f))) {
             KppFrontEnd.codeClean(input, System.out);
