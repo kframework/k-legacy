@@ -10,6 +10,7 @@ import org.kframework.backend.Backends;
 import org.kframework.backend.java.symbolic.InitializeRewriter;
 import org.kframework.backend.java.symbolic.JavaBackend;
 import org.kframework.backend.java.symbolic.JavaExecutionOptions;
+import org.kframework.backend.java.symbolic.ProofExecutionMode;
 import org.kframework.definition.Module;
 import org.kframework.kast.KastFrontEnd;
 import org.kframework.kast.KastOptions;
@@ -28,6 +29,8 @@ import org.kframework.krun.KRunFrontEnd;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
+import org.kframework.krun.modes.DebugMode.DebugExecutionMode;
+import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.krun.modes.KRunExecutionMode;
 import org.kframework.kserver.KServerFrontEnd;
 import org.kframework.kserver.KServerOptions;
@@ -154,10 +157,21 @@ public class Main {
             //
             Map<String, MethodHandle> hookProvider = HookProvider.get(kem);
             InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
-            KRunExecutionMode kRunExecutionMode = new KRunExecutionMode(kRunOptions, kem, files);
+            //
+            ExecutionMode executionMode;
+            boolean isProofMode = kRunOptions.experimental.prove != null;
+            boolean isDebugMode = kRunOptions.experimental.debugger();
+            assert !(isProofMode && isDebugMode); // TODO: generate error messages for multiple tool activations
+            if (isProofMode) {
+                executionMode = new ProofExecutionMode(kem, kRunOptions, sw, files, kRunOptions.global);
+            } else if (isDebugMode) {
+                executionMode = new DebugExecutionMode(kRunOptions, kem, files, 500, fs);
+            } else {
+                executionMode = new KRunExecutionMode(kRunOptions, kem, files);
+            }
             //
             InitializeRewriter initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions, kRunOptions, files, initializeDefinition);
-            KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, usage, experimentalUsage, jarInfo, kompiledDir, kem, kRunOptions, files, compiledDef, initializeRewriter, kRunExecutionMode, ttyInfo, isNailgun);
+            KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, usage, experimentalUsage, jarInfo, kompiledDir, kem, kRunOptions, files, compiledDef, initializeRewriter, executionMode, ttyInfo, isNailgun);
 
             return runApplication(frontEnd, kem);
 
