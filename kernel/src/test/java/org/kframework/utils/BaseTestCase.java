@@ -15,7 +15,6 @@ import org.kframework.kil.loader.Context;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.RunProcess;
-import org.kframework.main.Main;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.mockito.Mock;

@@ -25,7 +25,7 @@ public class HookProvider {
     private static Map<String, String> getHookDeclarations() {
         Properties properties = new Properties();
         try {
-            InputStream inStream = KRunAPI.class.getResourceAsStream(HOOK_PROPERTIES_FILE_NAME);
+            InputStream inStream = HookProvider.class.getResourceAsStream(HOOK_PROPERTIES_FILE_NAME);
             if (inStream == null) {
                 throw new IOException("Could not find resource " + HOOK_PROPERTIES_FILE_NAME);
             }

@@ -30,6 +30,7 @@ public class KRunFrontEnd extends FrontEnd {
     private final Function<org.kframework.definition.Module, Rewriter> initializeRewriter;
     private final ExecutionMode executionMode;
     private final TTYInfo tty;
+    private final boolean isNailgun;
 
     public KRunFrontEnd(
             GlobalOptions options,
@@ -43,7 +44,8 @@ public class KRunFrontEnd extends FrontEnd {
             CompiledDefinition compiledDef,
             Function<org.kframework.definition.Module, Rewriter> initializeRewriter,
             ExecutionMode executionMode,
-            TTYInfo tty) {
+            TTYInfo tty,
+            boolean isNailgun) {
         super(kem, options, usage, experimentalUsage, jarInfo, files);
         this.kompiledDir = kompiledDir;
         this.kem = kem;
@@ -53,6 +55,7 @@ public class KRunFrontEnd extends FrontEnd {
         this.initializeRewriter = initializeRewriter;
         this.executionMode = executionMode;
         this.tty = tty;
+        this.isNailgun = isNailgun;
     }
 
     /**
@@ -61,13 +64,13 @@ public class KRunFrontEnd extends FrontEnd {
     // org.kframework.main.FrontEnd#main
     public int run() {
         for (int i = 0; i < krunOptions.experimental.profile - 1; i++) {
-            new KRun(kem, files, tty.stdin).run(compiledDef,
+            new KRun(kem, files, tty.stdin, isNailgun).run(compiledDef,
                     krunOptions,
                     initializeRewriter,
                     executionMode);
         }
         // org.kframework.krun.KRun.run()
-        return new KRun(kem, files, tty.stdin).run(compiledDef,
+        return new KRun(kem, files, tty.stdin, isNailgun).run(compiledDef,
                 krunOptions,
                 initializeRewriter,
                 executionMode);

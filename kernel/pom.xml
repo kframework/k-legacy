@@ -19,16 +19,6 @@
       <artifactId>kore</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.kframework.k</groupId>
-      <artifactId>java-backend</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.kframework.k</groupId>
-      <artifactId>api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
 
     <dependency>
       <groupId>com.google.guava</groupId>

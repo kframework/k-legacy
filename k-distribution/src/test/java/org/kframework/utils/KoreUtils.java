@@ -96,7 +96,7 @@ public class KoreUtils {
 
     public K getParsed(String program, Source source, String strategy) throws URISyntaxException {
         K parsed = programParser.apply(program, source);
-        KRun krun = new KRun(kem, FileUtil.testFileUtil(), true);
+        KRun krun = new KRun(kem, FileUtil.testFileUtil(), true, false);
 
         Map<KToken, K> map = new HashMap<>();
         map.put(KToken("$PGM", Sorts.KConfigVar()), parsed);

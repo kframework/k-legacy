@@ -24,7 +24,6 @@ import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.main.GlobalOptions;
-import org.kframework.main.Main;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.binary.BinaryParser;
 import org.kframework.parser.kore.KoreParser;
@@ -69,11 +68,13 @@ public class KRun {
     private final KExceptionManager kem;
     private final FileUtil files;
     private final boolean ttyStdin;
+    private final boolean isNailgun;
 
-    public KRun(KExceptionManager kem, FileUtil files, boolean ttyStdin) {
+    public KRun(KExceptionManager kem, FileUtil files, boolean ttyStdin, boolean isNailgun) {
         this.kem = kem;
         this.files = files;
         this.ttyStdin = ttyStdin;
+        this.isNailgun = isNailgun;
     }
 
     /*
@@ -123,7 +124,7 @@ public class KRun {
             program = externalParse(options.configurationCreation.parser(compiledDef.executionModule().name()),
                     pgmFileName, compiledDef.programStartSymbol, Source.apply("<parameters>"), compiledDef, files);
         } else {
-            program = parseConfigVars(options, compiledDef, kem, files, ttyStdin, null);
+            program = parseConfigVars(options, compiledDef, kem, files, ttyStdin, isNailgun, null);
         }
 
         program = new KTokenVariablesToTrueVariables()
@@ -342,7 +343,7 @@ public class KRun {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    public static K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef, KExceptionManager kem, FileUtil files, boolean ttyStdin, K pgm) {
+    public static K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef, KExceptionManager kem, FileUtil files, boolean ttyStdin, boolean isNailgun, K pgm) {
         HashMap<KToken, K> output = new HashMap<>();
         for (Map.Entry<String, Pair<String, String>> entry
                 : options.configurationCreation.configVars(compiledDef.getParsedDefinition().mainModule().name()).entrySet()) {
@@ -358,7 +359,7 @@ public class KRun {
             output.put(KToken("$STDIN", Sorts.KConfigVar()), KToken("\"\"", Sorts.String()));
             output.put(KToken("$IO", Sorts.KConfigVar()), KToken("\"on\"", Sorts.String()));
         } else {
-            String stdin = getStdinBuffer(ttyStdin);
+            String stdin = getStdinBuffer(ttyStdin, isNailgun);
             output.put(KToken("$STDIN", Sorts.KConfigVar()), KToken("\"" + stdin + "\"", Sorts.String()));
             output.put(KToken("$IO", Sorts.KConfigVar()), KToken("\"off\"", Sorts.String()));
         }
@@ -387,7 +388,7 @@ public class KRun {
         }
     }
 
-    public static String getStdinBuffer(boolean ttyStdin) {
+    public static String getStdinBuffer(boolean ttyStdin, boolean isNailgun) {
         String buffer = "";
 
         try {
@@ -396,8 +397,8 @@ public class KRun {
             // detect if the input comes from console or redirected
             // from a pipeline
 
-            if ((Main.isNailgun() && !ttyStdin)
-                    || (!Main.isNailgun() && br.ready())) {
+            if ((isNailgun && !ttyStdin)
+                    || (!isNailgun && br.ready())) {
                 buffer = br.readLine();
             }
         } catch (IOException e) {

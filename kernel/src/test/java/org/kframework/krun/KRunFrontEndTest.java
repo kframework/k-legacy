@@ -20,7 +20,7 @@ public class KRunFrontEndTest extends BaseTestCase {
     public void testVersion() {
         GlobalOptions options = new GlobalOptions();
         options.version = true;
-        KRunFrontEnd frontend = new KRunFrontEnd(options, null, null, jarInfo, kompiledDir, kem, new KRunOptions(), files, null, null, null, null);
+        KRunFrontEnd frontend = new KRunFrontEnd(options, null, null, jarInfo, kompiledDir, kem, new KRunOptions(), files, null, null, null, null, false);
         frontend.main();
         verify(jarInfo).printVersionMessage();
     }
@@ -28,7 +28,7 @@ public class KRunFrontEndTest extends BaseTestCase {
     @Test @Ignore
     public void testNothingAvailable() {
         GlobalOptions options = new GlobalOptions();
-        KRunFrontEnd frontend = new KRunFrontEnd(options, null, null, jarInfo, kompiledDir, kem, new KRunOptions(), files, null, null, null, null);
+        KRunFrontEnd frontend = new KRunFrontEnd(options, null, null, jarInfo, kompiledDir, kem, new KRunOptions(), files, null, null, null, null, false);
         frontend.main();
         verify(kem).print();
     }
