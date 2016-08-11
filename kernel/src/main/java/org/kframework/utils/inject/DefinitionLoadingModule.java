@@ -2,7 +2,6 @@
 package org.kframework.utils.inject;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Provider;
 import com.google.inject.Provides;
 import org.kframework.kil.Definition;
 import org.kframework.kil.loader.Context;
@@ -25,14 +24,9 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Map;
 
-public class DefinitionLoadingModule extends AbstractModule {
+public class DefinitionLoadingModule {
 
-    @Override
-    protected void configure() {
-    }
-
-    @Provides @DefinitionScoped
-    Context context(
+    public static Context context(
             BinaryLoader loader,
             DefinitionLoadingOptions options,
             GlobalOptions global,
@@ -50,37 +44,30 @@ public class DefinitionLoadingModule extends AbstractModule {
         return context;
     }
 
-    @Provides @DefinitionScoped @Concrete
-    Definition concreteDefinition(BinaryLoader loader, FileUtil files) {
+    public static Definition concreteDefinition(BinaryLoader loader, FileUtil files) {
         return loader.loadOrDie(Definition.class, files.resolveKompiled("definition-concrete.bin"));
     }
 
-    @Provides @DefinitionScoped
-    Definition definition(BinaryLoader loader, FileUtil files) {
+    public static Definition definition(BinaryLoader loader, FileUtil files) {
         return loader.loadOrDie(Definition.class, files.resolveKompiled("definition.bin"));
     }
 
-
-    @Provides @DefinitionScoped
-    CompiledDefinition koreDefinition(BinaryLoader loader, FileUtil files) {
+    public static CompiledDefinition koreDefinition(BinaryLoader loader, FileUtil files) {
         return loader.loadOrDie(CompiledDefinition.class, files.resolveKompiled("compiled.bin"));
     }
 
-
-    @Provides
-    KompileOptions kompileOptions(Provider<Context> context, Provider<CompiledDefinition> compiledDef, Provider<FileUtil> files) {
+    public static KompileOptions kompileOptions(Context context, CompiledDefinition compiledDef, FileUtil files) {
         // a hack, but it's good enough for what we need from it, which is a temporary solution
-        if (files.get().resolveKompiled("compiled.bin").exists()) {
-            KompileOptions res = compiledDef.get().kompileOptions;
+        if (files.resolveKompiled("compiled.bin").exists()) {
+            KompileOptions res = compiledDef.kompileOptions;
             return res;
         } else {
-            Context res = context.get();
+            Context res = context;
             return res.kompileOptions;
         }
     }
 
-    @Provides @KompiledDir
-    File definition(@DefinitionDir File defDir, KExceptionManager kem) {
+    public static File definition(File defDir, KExceptionManager kem) {
         File directory = null;
         File[] dirs = defDir.listFiles(new FilenameFilter() {
             @Override
@@ -111,8 +98,7 @@ public class DefinitionLoadingModule extends AbstractModule {
         return directory;
     }
 
-    @Provides @DefinitionDir
-    File directory(DefinitionLoadingOptions options, @WorkingDir File workingDir, KExceptionManager kem, @Environment Map<String, String> env) {
+    public static File directory(DefinitionLoadingOptions options, File workingDir, KExceptionManager kem, Map<String, String> env) {
         File directory;
         if (options.directory == null) {
             if (env.get("KRUN_COMPILED_DEF") != null) {

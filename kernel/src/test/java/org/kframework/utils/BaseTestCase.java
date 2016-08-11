@@ -64,47 +64,8 @@ public abstract class BaseTestCase {
     @Mock
     protected FileUtil files;
 
-    @Mock
-    protected DefinitionScope scope;
-
     @Before
     public void setUpWiring() {
         context.kompileOptions = new KompileOptions();
-    }
-
-    public class DefinitionSpecificTestModule extends AbstractModule {
-
-        @Override
-        protected void configure() {
-            bind(KompileOptions.class).toInstance(context.kompileOptions);
-            bind(Definition.class).toInstance(definition);
-            bind(Configuration.class).toInstance(configuration);
-            bind(File.class).annotatedWith(KompiledDir.class).toInstance(kompiledDir);
-            bind(Definition.class).annotatedWith(Concrete.class).toInstance(definition);
-        }
-
-        @Provides
-        Context context() {
-            return context;
-        }
-    }
-
-    public class TestModule extends AbstractModule {
-
-        @Override
-        protected void configure() {
-            bind(RunProcess.class).toInstance(rp);
-            bind(KDocOptions.class).toInstance(new KDocOptions());
-            bind(KRunOptions.class).toInstance(new KRunOptions());
-        }
-
-    }
-
-    public void prepInjector(Injector injector, String tool, String[] args) {
-        SimpleScope scope = injector.getInstance(Key.get(SimpleScope.class, Names.named("requestScope")));
-        scope.enter();
-        DefinitionScope definitionScope = injector.getInstance(DefinitionScope.class);
-        definitionScope.enter(new File("."));
-        Main.seedInjector(scope, tool, args, new File("."), System.getenv());
     }
 }

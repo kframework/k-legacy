@@ -1,7 +1,6 @@
 // Copyright (c) 2016 K Team. All Rights Reserved.
 package org.kframework;
 
-import com.google.inject.Provider;
 import org.kframework.RewriterResult;
 import org.kframework.attributes.Att;
 import org.kframework.attributes.Source;
@@ -93,7 +92,7 @@ public class KRunAPI {
         boolean ttyStdin = false;
 
         FileSystem fs = new PortableFileSystem(kem, files);
-        Map<String, Provider<MethodHandle>> hookProvider = HookProvider.get(kem); // new HashMap<>();
+        Map<String, MethodHandle> hookProvider = HookProvider.get(kem); // new HashMap<>();
         InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
 
         BiFunction<String, Source, K> programParser = compiledDef.getProgramParser(kem);
@@ -208,7 +207,7 @@ public class KRunAPI {
         FileUtil files = FileUtil.get(globalOptions, System.getenv());
 
         FileSystem fs = new PortableFileSystem(kem, files);
-        Map<String, Provider<MethodHandle>> hookProvider = HookProvider.get(kem); // new HashMap<>();
+        Map<String, MethodHandle> hookProvider = HookProvider.get(kem); // new HashMap<>();
         InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
 
         //// setting options
@@ -380,7 +379,7 @@ public class KRunAPI {
         FileUtil files = FileUtil.get(globalOptions, System.getenv());
 
         FileSystem fs = new PortableFileSystem(kem, files);
-        Map<String, Provider<MethodHandle>> hookProvider = HookProvider.get(kem); // new HashMap<>();
+        Map<String, MethodHandle> hookProvider = HookProvider.get(kem); // new HashMap<>();
         InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
 
         //// setting options

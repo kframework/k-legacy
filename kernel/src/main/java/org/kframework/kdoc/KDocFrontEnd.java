@@ -12,8 +12,6 @@ import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
 import org.kframework.utils.inject.CommonModule;
 import org.kframework.utils.inject.JCommanderModule;
-import org.kframework.utils.inject.JCommanderModule.ExperimentalUsage;
-import org.kframework.utils.inject.JCommanderModule.Usage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,9 +21,9 @@ public class KDocFrontEnd extends FrontEnd {
 
     public static List<Module> getModules() {
         List<Module> modules = new ArrayList<>();
-        modules.add(new KDocModule());
-        modules.add(new JCommanderModule());
-        modules.add(new CommonModule());
+//        modules.add(new KDocModule());
+//        modules.add(new JCommanderModule());
+//        modules.add(new CommonModule());
         return modules;
     }
 
@@ -37,8 +35,8 @@ public class KDocFrontEnd extends FrontEnd {
             KDocOptions options,
             KExceptionManager kem,
             GlobalOptions globalOptions,
-            @Usage String usage,
-            @ExperimentalUsage String experimentalUsage,
+            String usage,
+            String experimentalUsage,
             JarInfo jarInfo,
             FileUtil files,
             Provider<PosterBackend> backend) {

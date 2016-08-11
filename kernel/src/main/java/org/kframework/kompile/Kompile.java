@@ -1,7 +1,6 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.kompile;
 
-import com.google.inject.Inject;
 import org.kframework.Strategy;
 import org.kframework.attributes.Source;
 import org.kframework.backend.Backends;
@@ -81,7 +80,6 @@ public class Kompile {
         this(kompileOptions, files, kem, true);
     }
 
-    @Inject
     public Kompile(KompileOptions kompileOptions, FileUtil files, KExceptionManager kem, Stopwatch sw) {
         this(kompileOptions, files, kem, sw, true);
     }

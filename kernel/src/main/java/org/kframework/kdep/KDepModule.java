@@ -21,14 +21,14 @@ public class KDepModule extends AbstractModule {
     @Override
     protected void configure() {
 
-        bind(FrontEnd.class).to(KDepFrontEnd.class);
-        bind(Tool.class).toInstance(Tool.KDEP);
-
-        install(new OuterParsingModule());
-
-        Multibinder<Object> optionsBinder = Multibinder.newSetBinder(binder(), Object.class, Options.class);
-        optionsBinder.addBinding().to(KDepOptions.class);
-        Multibinder<Class<?>> experimentalOptionsBinder = Multibinder.newSetBinder(binder(), new TypeLiteral<Class<?>>() {}, Options.class);
+//        bind(FrontEnd.class).to(KDepFrontEnd.class);
+//        bind(Tool.class).toInstance(Tool.KDEP);
+//
+//        install(new OuterParsingModule());
+//
+//        Multibinder<Object> optionsBinder = Multibinder.newSetBinder(binder(), Object.class, Options.class);
+//        optionsBinder.addBinding().to(KDepOptions.class);
+//        Multibinder<Class<?>> experimentalOptionsBinder = Multibinder.newSetBinder(binder(), new TypeLiteral<Class<?>>() {}, Options.class);
     }
 
     @Provides

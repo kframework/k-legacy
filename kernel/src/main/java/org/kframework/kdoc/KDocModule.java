@@ -23,18 +23,18 @@ public class KDocModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(FrontEnd.class).to(KDocFrontEnd.class);
-        bind(Tool.class).toInstance(Tool.KDOC);
-
-        install(new OuterParsingModule());
-
-        Multibinder<Object> optionsBinder = Multibinder.newSetBinder(binder(), Object.class, Options.class);
-        optionsBinder.addBinding().to(KDocOptions.class);
-        Multibinder.newSetBinder(binder(), new TypeLiteral<Class<?>>() {}, Options.class);
-
-        MapBinder<String, PosterBackend> posterBinder = MapBinder.newMapBinder(
-                binder(), String.class, PosterBackend.class);
-        posterBinder.addBinding("latex").to(LatexBackend.class);
+//        bind(FrontEnd.class).to(KDocFrontEnd.class);
+//        bind(Tool.class).toInstance(Tool.KDOC);
+//
+//        install(new OuterParsingModule());
+//
+//        Multibinder<Object> optionsBinder = Multibinder.newSetBinder(binder(), Object.class, Options.class);
+//        optionsBinder.addBinding().to(KDocOptions.class);
+//        Multibinder.newSetBinder(binder(), new TypeLiteral<Class<?>>() {}, Options.class);
+//
+//        MapBinder<String, PosterBackend> posterBinder = MapBinder.newMapBinder(
+//                binder(), String.class, PosterBackend.class);
+//        posterBinder.addBinding("latex").to(LatexBackend.class);
     }
 
     @Provides

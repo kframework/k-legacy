@@ -2,9 +2,6 @@
 package org.kframework.utils.file;
 
 import com.google.common.io.Files;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.util.Providers;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -12,9 +9,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
-import org.kframework.utils.inject.RequestScoped;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -31,24 +26,22 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
-@RequestScoped
 public class FileUtil {
 
     private final File tempDir;
-    private final Provider<File> kompiledDir;
+    private final File kompiledDir;
     private final File workingDir;
-    private final Provider<File> definitionDir;
+    private final File definitionDir;
     private final GlobalOptions options;
     private final Map<String, String> env;
 
-    @Inject
     public FileUtil(
-            @TempDir File tempDir,
-            @DefinitionDir @Nullable Provider<File> definitionDir,
-            @WorkingDir File workingDir,
-            @KompiledDir @Nullable Provider<File> kompiledDir,
+            File tempDir,
+            File definitionDir,
+            File workingDir,
+            File kompiledDir,
             GlobalOptions options,
-            @Environment Map<String, String> env) {
+            Map<String, String> env) {
         this.tempDir = tempDir;
         this.definitionDir = definitionDir;
         this.workingDir = workingDir;
@@ -66,12 +59,12 @@ public class FileUtil {
         if(!tempDir.mkdir() || !definitionDir.mkdir() /* || !workingDir.mkdir() */ || !kompiledDir.mkdir()) {
             throw new AssertionError("Could not create one of the temporary directories");
         }
-        return new FileUtil(tempDir, Providers.of(definitionDir), workingDir, Providers.of(kompiledDir), globalOptions, env);
+        return new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, globalOptions, env);
     }
 
     public static FileUtil testFileUtil() {
         File workingDir = new File(".");
-        return new FileUtil(workingDir, Providers.of(workingDir), workingDir, Providers.of(workingDir), new GlobalOptions(), System.getenv());
+        return new FileUtil(workingDir, workingDir, workingDir, workingDir, new GlobalOptions(), System.getenv());
     }
 
     public ProcessBuilder getProcessBuilder() {
@@ -171,11 +164,11 @@ public class FileUtil {
     }
 
     public File resolveKompiled(String file) {
-        return new File(kompiledDir.get(), file);
+        return new File(kompiledDir, file);
     }
 
     public File resolveDefinitionDirectory(String file) {
-        return new File(definitionDir.get(), file);
+        return new File(definitionDir, file);
     }
 
     public File resolveWorkingDirectory(String file) {

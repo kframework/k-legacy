@@ -11,7 +11,6 @@ import org.kframework.kore.Sort;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.inject.RequestScoped;
 import org.kframework.utils.options.DefinitionLoadingOptions;
 
 import java.io.Reader;
@@ -20,7 +19,6 @@ import java.util.List;
 
 import static org.kframework.kore.KORE.*;
 
-@RequestScoped
 public final class KastOptions {
 
     @Parameter(description="<file>")

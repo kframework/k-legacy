@@ -12,7 +12,6 @@ import org.kframework.main.GlobalOptions;
 import org.kframework.rewriter.SearchType;
 import org.kframework.unparser.OutputModes;
 import org.kframework.utils.errorsystem.KEMException;
-import org.kframework.utils.inject.RequestScoped;
 import org.kframework.utils.options.BaseEnumConverter;
 import org.kframework.utils.options.DefinitionLoadingOptions;
 import org.kframework.utils.options.OnOffConverter;
@@ -25,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@RequestScoped
 public final class KRunOptions {
 
     @ParametersDelegate

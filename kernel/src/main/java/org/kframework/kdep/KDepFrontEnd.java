@@ -17,8 +17,6 @@ import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
 import org.kframework.utils.inject.CommonModule;
 import org.kframework.utils.inject.JCommanderModule;
-import org.kframework.utils.inject.JCommanderModule.ExperimentalUsage;
-import org.kframework.utils.inject.JCommanderModule.Usage;
 import org.kframework.utils.options.OuterParsingOptions;
 
 import java.io.File;
@@ -58,8 +56,8 @@ public class KDepFrontEnd extends FrontEnd {
             OuterParsingOptions options,
             KExceptionManager kem,
             GlobalOptions globalOptions,
-            @Usage String usage,
-            @ExperimentalUsage String experimentalUsage,
+            String usage,
+            String experimentalUsage,
             Stopwatch sw,
             JarInfo jarInfo,
             FileUtil files) {
@@ -73,9 +71,9 @@ public class KDepFrontEnd extends FrontEnd {
 
     public static List<Module> getModules() {
         List<Module> modules = new ArrayList<>();
-        modules.add(new KDepModule());
-        modules.add(new JCommanderModule());
-        modules.add(new CommonModule());
+//        modules.add(new KDepModule());
+//        modules.add(new JCommanderModule());
+//        modules.add(new CommonModule());
         return modules;
     }
 

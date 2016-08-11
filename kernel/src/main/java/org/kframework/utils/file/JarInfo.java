@@ -4,8 +4,6 @@ package org.kframework.utils.file;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 
-import com.google.inject.Inject;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -65,7 +63,6 @@ public class JarInfo {
 
     private final KExceptionManager kem;
 
-    @Inject
     public JarInfo(KExceptionManager kem) {
         this.kem = kem;
     }

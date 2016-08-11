@@ -31,7 +31,6 @@ import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.inject.Builtins;
 import org.kframework.utils.inject.DefinitionScoped;
-import org.kframework.utils.inject.RequestScoped;
 import org.kframework.utils.options.SMTOptions;
 import scala.Tuple2;
 import scala.collection.JavaConversions;
@@ -48,7 +47,6 @@ import java.util.stream.Collectors;
 /**
  * Created by dwightguth on 5/6/15.
  */
-@RequestScoped
 public class InitializeRewriter implements Function<Module, Rewriter> {
 
     private final FileSystem fs;
@@ -56,7 +54,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
     private final GlobalOptions globalOptions;
     private final KExceptionManager kem;
     private final SMTOptions smtOptions;
-    private final Map<String, Provider<MethodHandle>> hookProvider;
+    private final Map<String, MethodHandle> hookProvider;
     private final KompileOptions kompileOptions;
     private final KRunOptions krunOptions;
     private final FileUtil files;
@@ -70,7 +68,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
             GlobalOptions globalOptions,
             KExceptionManager kem,
             SMTOptions smtOptions,
-            @Builtins Map<String, Provider<MethodHandle>> hookProvider,
+            @Builtins Map<String, MethodHandle> hookProvider,
             KompileOptions kompileOptions,
             KRunOptions krunOptions,
             FileUtil files,

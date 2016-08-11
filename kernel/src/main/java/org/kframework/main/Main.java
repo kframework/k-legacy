@@ -1,41 +1,66 @@
 // Copyright (c) 2014-2016 K Team. All Rights Reserved.
 package org.kframework.main;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import com.google.inject.ProvisionException;
-import com.google.inject.TypeLiteral;
-import com.google.inject.name.Named;
-import com.google.inject.spi.Message;
+import com.beust.jcommander.JCommander;
+import com.google.common.collect.ImmutableSet;
 import com.martiansoftware.nailgun.NGContext;
 import org.fusesource.jansi.AnsiConsole;
+import org.kframework.HookProvider;
+import org.kframework.backend.Backends;
+import org.kframework.backend.java.symbolic.InitializeRewriter;
+import org.kframework.backend.java.symbolic.JavaBackend;
+import org.kframework.backend.java.symbolic.JavaExecutionOptions;
+import org.kframework.definition.Module;
 import org.kframework.kast.KastFrontEnd;
 import org.kframework.kdep.KDepFrontEnd;
 import org.kframework.kdoc.KDocFrontEnd;
+import org.kframework.kil.loader.Context;
 import org.kframework.kompile.CompiledDefinition;
+import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileFrontEnd;
+import org.kframework.kompile.KompileOptions;
+import org.kframework.kore.compile.Backend;
 import org.kframework.krun.KRun;
 import org.kframework.krun.KRunFrontEnd;
+import org.kframework.krun.KRunOptions;
+import org.kframework.krun.api.io.FileSystem;
+import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
+import org.kframework.krun.modes.KRunExecutionMode;
 import org.kframework.kserver.KServerFrontEnd;
+import org.kframework.kserver.KServerOptions;
 import org.kframework.ktest.KTestFrontEnd;
+import org.kframework.rewriter.Rewriter;
+import org.kframework.utils.BinaryLoader;
+import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KEMException;
+import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.Environment;
+import org.kframework.utils.file.FileUtil;
+import org.kframework.utils.file.JarInfo;
+import org.kframework.utils.file.TTYInfo;
 import org.kframework.utils.file.WorkingDir;
+import org.kframework.utils.inject.CommonModule;
+import org.kframework.utils.inject.DefinitionLoadingModule;
+import org.kframework.utils.inject.JCommanderModule;
 import org.kframework.utils.inject.Options;
+import org.kframework.utils.inject.OuterParsingModule;
 import org.kframework.utils.inject.SimpleScope;
+import org.kframework.utils.options.OuterParsingOptions;
+import org.kframework.utils.options.SMTOptions;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.invoke.MethodHandle;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.Set;
+import java.util.function.Function;
 
 public class Main {
 
@@ -45,32 +70,143 @@ public class Main {
      * @throws IOException when loadDefinition fails
      */
     public static void main(String[] args) {
-        isNailgun = false;
         AnsiConsole.systemInstall();
         if (args.length >= 1) {
-
-            if (args[0].equals("-keq")) {
-                String[] args2 = Arrays.copyOfRange(args, 1, args.length);
-                System.out.println("keq: " + Arrays.toString(args2));
-                int result = 0;
-
-                /*
-                CompiledDefinition compiledDef = null;
-                KRun.run(compiledDef);
-                 */
-
-                AnsiConsole.systemUninstall();
-                System.exit(result);
-            }
-
             String[] args2 = Arrays.copyOfRange(args, 1, args.length);
-            Injector injector = getInjector(args[0]);
-            int result = injector.getInstance(Main.class).runApplication(args[0], args2, new File("."), System.getenv());
+            int result = runApplication(args[0], args2, new File("."), System.getenv());
             AnsiConsole.systemUninstall();
             System.exit(result);
         }
         AnsiConsole.systemUninstall();
         invalidJarArguments();
+    }
+
+    public static int runApplication(String toolName, String[] args, File workingDir, Map<String, String> env) {
+
+        if (toolName.equals("-kompile")) {
+
+            Tool tool = Tool.KOMPILE;
+
+            // basics
+            KompileOptions kompileOptions = new KompileOptions();
+            KExceptionManager kem = new KExceptionManager(kompileOptions.global);
+            Stopwatch sw = new Stopwatch(kompileOptions.global);
+            BinaryLoader loader = new BinaryLoader(kem);
+            JarInfo jarInfo = new JarInfo(kem);
+
+            // parsing options
+            Set<Object> options = ImmutableSet.of(kompileOptions);
+            Set<Class<?>> experimentalOptions = ImmutableSet.of(kompileOptions.experimental.getClass(),      // KompileOptions.Experimental.class
+                                                                kompileOptions.experimental.smt.getClass()); // SMTOptions.class
+            JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
+            String usage = JCommanderModule.usage(jc);
+            String experimentalUsage = JCommanderModule.experimentalUsage(jc);
+
+            // directories
+            File tempDir = CommonModule.tempDir(workingDir, tool);
+            File definitionDir = OuterParsingModule.definitionDir(workingDir, kompileOptions.outerParsing);
+            File kompiledDir = OuterParsingModule.kompiledDir(definitionDir, kompileOptions.outerParsing, workingDir, tempDir);
+            FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, kompileOptions.global, env);
+
+            // kompile
+            assert (kompileOptions.backend.equals(Backends.JAVA)); // TODO: support other backends
+            Backend koreBackend = new JavaBackend(kem, files, kompileOptions.global, kompileOptions);
+            KompileFrontEnd frontEnd = new KompileFrontEnd(kompileOptions, usage, experimentalUsage, koreBackend, sw, kem, loader, jarInfo, files);
+
+            System.out.println("xxxxxxxxxxxxxxx");
+            return runApplication(frontEnd, kem);
+
+        } else if (toolName.equals("-krun")) {
+
+            Tool tool = Tool.KRUN;
+
+            // basics
+            KRunOptions kRunOptions = new KRunOptions();
+            JavaExecutionOptions javaExecutionOptions = new JavaExecutionOptions();
+            KExceptionManager kem = new KExceptionManager(kRunOptions.global);
+            Stopwatch sw = new Stopwatch(kRunOptions.global);
+            BinaryLoader loader = new BinaryLoader(kem);
+            JarInfo jarInfo = new JarInfo(kem);
+            TTYInfo ttyInfo = CommonModule.ttyInfo(env);
+
+            // parsing options
+            Set<Object> options = ImmutableSet.of(kRunOptions, javaExecutionOptions);
+            Set<Class<?>> experimentalOptions = ImmutableSet.of(kRunOptions.experimental.getClass(),        // KRunOptions.Experimental.class
+                                                                kRunOptions.experimental.smt.getClass(),    // SMTOptions.class
+                                                                javaExecutionOptions.getClass());           // JavaExecutionOptions.class
+            JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
+            String usage = JCommanderModule.usage(jc);
+            String experimentalUsage = JCommanderModule.experimentalUsage(jc);
+
+            // directories
+            File tempDir = CommonModule.tempDir(workingDir, tool);
+            File definitionDir = DefinitionLoadingModule.directory(kRunOptions.configurationCreation.definitionLoading, workingDir, kem, env);
+            File kompiledDir = DefinitionLoadingModule.definition(definitionDir, kem);
+            FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, kRunOptions.global, env);
+            FileSystem fs = new PortableFileSystem(kem, files);
+
+            // loading kompiled definition
+            Context context = null; // DefinitionLoadingModule.context(loader, kRunOptions.configurationCreation.definitionLoading, kRunOptions.global, sw, kem, files, kRunOptions); // TODO: check if 'context.bin' exists
+            CompiledDefinition compiledDef = DefinitionLoadingModule.koreDefinition(loader, files);
+            KompileOptions kompileOptions = DefinitionLoadingModule.kompileOptions(context, compiledDef, files);
+
+            // krun
+            assert (kompileOptions.backend.equals(Backends.JAVA)); // TODO: support other backends
+            //
+            Map<String, MethodHandle> hookProvider = HookProvider.get(kem);
+            InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
+            KRunExecutionMode kRunExecutionMode = new KRunExecutionMode(kRunOptions, kem, files);
+            //
+            InitializeRewriter initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions, kRunOptions, files, initializeDefinition);
+            KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, usage, experimentalUsage, jarInfo, kompiledDir, kem, kRunOptions, files, compiledDef, initializeRewriter, kRunExecutionMode, ttyInfo);
+
+            System.out.println("xxxxxxxxxxxxxxx");
+            return runApplication(frontEnd, kem);
+
+        } else if (toolName.equals("-kserver")) {
+
+            Tool tool = Tool.KSERVER;
+
+            // basics
+            KServerOptions kServerOptions = new KServerOptions();
+            KExceptionManager kem = new KExceptionManager(kServerOptions.global);
+            Stopwatch sw = new Stopwatch(kServerOptions.global);
+            JarInfo jarInfo = new JarInfo(kem);
+
+            // parsing options
+            Set<Object> options = ImmutableSet.of(kServerOptions);
+            Set<Class<?>> experimentalOptions = ImmutableSet.of();
+            JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
+            String usage = JCommanderModule.usage(jc);
+            String experimentalUsage = JCommanderModule.experimentalUsage(jc);
+
+            // directories
+            File tempDir = CommonModule.tempDir(workingDir, tool);
+            File definitionDir = null;
+            File kompiledDir = null;
+            FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, kServerOptions.global, env);
+
+            KServerFrontEnd frontEnd = new KServerFrontEnd(kem, kServerOptions, usage, experimentalUsage, jarInfo, files);
+
+            System.out.println("xxxxxxxxxxxxxxx");
+            return runApplication(frontEnd, kem);
+
+        } else {
+            return -1;
+        }
+
+
+    }
+
+    public static int runApplication(FrontEnd frontEnd, KExceptionManager kem) {
+        kem.installForUncaughtExceptions();
+        int retval = frontEnd.main();
+        return retval;
+    }
+
+    private static void invalidJarArguments() {
+        System.err.println("The first argument of K3 not recognized. Try -kompile, -kast, -krun, -ktest, -kserver, or -kpp.");
+        System.exit(1);
     }
 
     private static volatile boolean isNailgun;
@@ -91,148 +227,4 @@ public class Main {
         invalidJarArguments();
     }
 
-    private final Provider<KExceptionManager> kem;
-    private final Provider<FrontEnd> frontEnd;
-    private final SimpleScope requestScope;
-
-    @Inject
-    public Main(
-            Provider<KExceptionManager> kem,
-            Provider<FrontEnd> frontEnd,
-            @Named("requestScope") SimpleScope requestScope) {
-        this.kem = kem;
-        this.frontEnd = frontEnd;
-        this.requestScope = requestScope;
-    }
-
-    public SimpleScope getRequestScope() {
-        return requestScope;
-    }
-
-    public int runApplication(String tool, String[] args, File workingDir, Map<String, String> env) {
-        try {
-            requestScope.enter();
-            seedInjector(requestScope, tool, args, workingDir, env);
-            return runApplication();
-        } finally {
-            requestScope.exit();
-        }
-    }
-
-    public int runApplication() {
-        KExceptionManager kem = this.kem.get();
-        kem.installForUncaughtExceptions();
-        try {
-            int retval = frontEnd.get().main();
-            return retval;
-        } catch (ProvisionException e) {
-            for (Message m : e.getErrorMessages()) {
-                if (!(m.getCause() instanceof KEMException)) {
-                    throw e;
-                } else {
-                    KEMException ex = (KEMException) m.getCause();
-                    kem.registerThrown(ex);
-                }
-            }
-            kem.print();
-            return 1;
-        }
-    }
-
-    public static void seedInjector(SimpleScope scope, String tool, String[] args, File workingDir,
-            Map<String, String> env) {
-        scope.seed(Key.get(File.class, WorkingDir.class), workingDir);
-        scope.seed(Key.get(new TypeLiteral<Map<String, String>>() {}, Environment.class), env);
-        scope.seed(Key.get(String[].class, Options.class), args);
-    }
-
-    public static Injector getInjector(String tool) {
-        ServiceLoader<KModule> kLoader = ServiceLoader.load(KModule.class);
-        List<KModule> kModules = new ArrayList<>();
-        for (KModule m : kLoader) {
-            kModules.add(m);
-        }
-
-        List<Module> modules = new ArrayList<>();
-
-            switch (tool) {
-                case "-kserver":
-                    modules.addAll(KServerFrontEnd.getModules());
-                    break;
-                case "-kompile":
-                    modules.addAll(KompileFrontEnd.getModules());
-                    for (KModule kModule : kModules) {
-                        List<Module> ms = kModule.getKompileModules();
-                        if (ms != null) {
-                            modules.addAll(ms);
-                        }
-                    }
-                    break;
-                case "-ktest":
-                    modules.addAll(KTestFrontEnd.getModules());
-                    for (KModule kModule : kModules) {
-                        List<Module> ms = kModule.getKTestModules();
-                        if (ms != null) {
-                            modules.addAll(ms);
-                        }
-                    }
-                    break;
-                case "-kdoc":
-                    modules.addAll(KDocFrontEnd.getModules());
-                    for (KModule kModule : kModules) {
-                        List<Module> ms = kModule.getKDocModules();
-                        if (ms != null) {
-                            modules.addAll(ms);
-                        }
-                    }
-                    break;
-                case "-kast":
-                    modules.addAll(KastFrontEnd.getModules());
-                    for (KModule kModule : kModules) {
-                        List<Module> ms = kModule.getKastModules();
-                        if (ms != null) {
-                            modules.addAll(ms);
-                        }
-                    }
-                    break;
-                case "-kdep":
-                    modules = KDepFrontEnd.getModules();
-                    break;
-                case "-krun":
-                    List<Module> definitionSpecificModules = new ArrayList<>();
-                    definitionSpecificModules.addAll(KRunFrontEnd.getDefinitionSpecificModules());
-                    for (KModule kModule : kModules) {
-                        List<Module> ms = kModule.getDefinitionSpecificKRunModules();
-                        if (ms != null) {
-                            definitionSpecificModules.addAll(ms);
-                        }
-                    }
-
-                    modules.addAll(KRunFrontEnd.getModules(definitionSpecificModules));
-                    for (KModule kModule : kModules) {
-                        List<Module> ms = kModule.getKRunModules(definitionSpecificModules);
-                        if (ms != null) {
-                            modules.addAll(ms);
-                        }
-                    }
-                    break;
-                case "-kpp":
-                    modules = KppFrontEnd.getModules();
-                    break;
-                default:
-                    invalidJarArguments();
-                    throw new AssertionError("unreachable");
-        }
-        if (modules.size() == 0) {
-            //boot error, we should have printed it already
-            System.exit(1);
-        }
-        Injector injector = Guice.createInjector(modules);
-        return injector;
-    }
-
-    private static void invalidJarArguments() {
-        System.err.println("The first argument of K3 not recognized. Try -kompile, -kast, -krun, -ktest, -kserver, or -kpp.");
-        System.exit(1);
-    }
 }

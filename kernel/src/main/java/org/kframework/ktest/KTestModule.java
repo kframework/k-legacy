@@ -11,7 +11,6 @@ import org.kframework.main.Tool;
 import org.kframework.utils.file.DefinitionDir;
 import org.kframework.utils.file.KompiledDir;
 import org.kframework.utils.inject.Options;
-import org.kframework.utils.inject.RequestScoped;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
@@ -22,16 +21,16 @@ public class KTestModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(FrontEnd.class).to(KTestFrontEnd.class);
-        bind(Tool.class).toInstance(Tool.KTEST);
-        bind(KTestOptions.class).in(RequestScoped.class);
-
-        Multibinder<Object> optionsBinder = Multibinder.newSetBinder(binder(), Object.class, Options.class);
-        optionsBinder.addBinding().to(KTestOptions.class);
-        Multibinder.newSetBinder(binder(), new TypeLiteral<Class<?>>() {}, Options.class);
-
-        bind(File.class).annotatedWith(DefinitionDir.class).toProvider(Providers.of(null));
-        bind(File.class).annotatedWith(KompiledDir.class).toProvider(Providers.of(null));
+//        bind(FrontEnd.class).to(KTestFrontEnd.class);
+//        bind(Tool.class).toInstance(Tool.KTEST);
+//        bind(KTestOptions.class).in(RequestScoped.class);
+//
+//        Multibinder<Object> optionsBinder = Multibinder.newSetBinder(binder(), Object.class, Options.class);
+//        optionsBinder.addBinding().to(KTestOptions.class);
+//        Multibinder.newSetBinder(binder(), new TypeLiteral<Class<?>>() {}, Options.class);
+//
+//        bind(File.class).annotatedWith(DefinitionDir.class).toProvider(Providers.of(null));
+//        bind(File.class).annotatedWith(KompiledDir.class).toProvider(Providers.of(null));
     }
 
     @Provides

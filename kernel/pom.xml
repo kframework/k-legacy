@@ -20,10 +20,22 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.kframework.k</groupId>
+      <artifactId>java-backend</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.kframework.k</groupId>
+      <artifactId>api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>18.0</version>
     </dependency>
+
     <dependency>
       <groupId>com.google.inject</groupId>
       <artifactId>guice</artifactId>
@@ -44,6 +56,7 @@
       <artifactId>guice-throwingproviders</artifactId>
       <version>4.0-beta5</version>
     </dependency>
+
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>

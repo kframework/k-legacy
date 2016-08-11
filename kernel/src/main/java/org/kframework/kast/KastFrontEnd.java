@@ -19,8 +19,6 @@ import org.kframework.utils.file.KompiledDir;
 import org.kframework.utils.inject.CommonModule;
 import org.kframework.utils.inject.DefinitionScope;
 import org.kframework.utils.inject.JCommanderModule;
-import org.kframework.utils.inject.JCommanderModule.ExperimentalUsage;
-import org.kframework.utils.inject.JCommanderModule.Usage;
 import scala.Option;
 
 import java.io.File;
@@ -35,9 +33,9 @@ public class KastFrontEnd extends FrontEnd {
 
     public static List<Module> getModules() {
         List<Module> modules = new ArrayList<>();
-        modules.add(new KastModule());
-        modules.add(new JCommanderModule());
-        modules.add(new CommonModule());
+//        modules.add(new KastModule());
+//        modules.add(new JCommanderModule());
+//        modules.add(new CommonModule());
         return modules;
     }
 
@@ -52,8 +50,8 @@ public class KastFrontEnd extends FrontEnd {
     @Inject
     KastFrontEnd(
             KastOptions options,
-            @Usage String usage,
-            @ExperimentalUsage String experimentalUsage,
+            String usage,
+            String experimentalUsage,
             Stopwatch sw,
             KExceptionManager kem,
             JarInfo jarInfo,

@@ -1,7 +1,6 @@
 // Copyright (c) 2016 K Team. All Rights Reserved.
 package org.kframework;
 
-import com.google.inject.Provider;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 
@@ -42,8 +41,8 @@ public class HookProvider {
         return builtinMethods;
     }
 
-    private static Map<String, Provider<MethodHandle>> getBuiltinTable(Map<String, String> hookDeclarations, KExceptionManager kem) {
-        Map<String, Provider<MethodHandle>> result = new HashMap<>();
+    private static Map<String, MethodHandle> getBuiltinTable(Map<String, String> hookDeclarations, KExceptionManager kem) {
+        Map<String, MethodHandle> result = new HashMap<>();
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         for (String key : hookDeclarations.keySet()) {
             String hook = hookDeclarations.get(key);
@@ -54,20 +53,7 @@ public class HookProvider {
                 for (Method method : c.getDeclaredMethods()) {
                     if (method.getName().equals(methodName)) {
                         MethodHandle handle = lookup.unreflect(method);
-                        result.put(key, () -> {
-                            MethodHandle resultHandle = handle;
-                            /* TODO: support non-static hooks e.g., z3 bindings
-                            if (!Modifier.isStatic(method.getModifiers())) {
-                                try {
-                                    resultHandle = MethodHandles.insertArguments(handle, 0 , injector.getInstance(c));
-                                } catch (KEMException e) {
-                                    e.exception.addTraceFrame("while constructing implementation for " + hook + " hook.");
-                                    throw e;
-                                }
-                            }
-                             */
-                            return resultHandle;
-                        });
+                        result.put(key, handle);
                         break;
                     }
                 }
@@ -78,7 +64,7 @@ public class HookProvider {
         return result;
     }
 
-    public static Map<String, Provider<MethodHandle>> get(KExceptionManager kem) {
+    public static Map<String, MethodHandle> get(KExceptionManager kem) {
         Map<String, String> hookDeclarations = getHookDeclarations();
         return getBuiltinTable(hookDeclarations, kem);
     }

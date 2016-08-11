@@ -1,7 +1,6 @@
 // Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.builtins;
 
-import com.google.inject.Inject;
 import org.kframework.backend.java.kil.BuiltinList;
 import org.kframework.backend.java.kil.KItem;
 import org.kframework.backend.java.kil.KLabelConstant;
@@ -25,7 +24,6 @@ public class BuiltinIOOperations {
 
     private final FileSystem fs;
 
-    @Inject
     public BuiltinIOOperations(
             FileSystem fs) {
         this.fs = fs;

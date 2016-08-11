@@ -18,7 +18,6 @@ import org.kframework.main.AnnotatedByDefinitionModule;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.utils.inject.Annotations;
 import org.kframework.utils.inject.Options;
-import org.kframework.utils.inject.RequestScoped;
 import org.kframework.utils.inject.Spec;
 
 import java.util.List;
@@ -29,7 +28,6 @@ public class JavaSymbolicKRunModule extends AbstractModule {
     protected void configure() {
         bind(Stage.class).toInstance(Stage.REWRITING);
 
-        bind(JavaExecutionOptions.class).in(RequestScoped.class);
         bind(Boolean.class).annotatedWith(FreshRules.class).toInstance(false);
 
         Multibinder<Object> optionsBinder = Multibinder.newSetBinder(binder(), Object.class, Options.class);

@@ -12,7 +12,6 @@ import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.inject.Builtins;
-import org.kframework.utils.inject.RequestScoped;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -31,7 +30,6 @@ import com.google.inject.Provider;
  *
  * @author AndreiS
  */
-@RequestScoped
 public class BuiltinFunction {
 
     /**
@@ -53,7 +51,7 @@ public class BuiltinFunction {
      * @see org.kframework.backend.java.symbolic.KILtoBackendJavaKILTransformer#evaluateRule(org.kframework.backend.java.kil.Rule, org.kframework.backend.java.kil.Definition)
      */
     @Inject
-    public BuiltinFunction(Definition definition, @Builtins Map<String, Provider<MethodHandle>> hookProvider, KExceptionManager kem, Stage stage) {
+    public BuiltinFunction(Definition definition, @Builtins Map<String, MethodHandle> hookProvider, KExceptionManager kem, Stage stage) {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         MethodType hookType = MethodType.methodType(Term.class, Object[].class);
         MethodHandle throwImpureExceptionHandle;
@@ -84,7 +82,7 @@ public class BuiltinFunction {
                     continue;
                 }
 
-                table.put(KLabelConstant.of(entry.getKey(), definition), hookProvider.get(hookAttribute).get());
+                table.put(KLabelConstant.of(entry.getKey(), definition), hookProvider.get(hookAttribute));
             }
         }
     }

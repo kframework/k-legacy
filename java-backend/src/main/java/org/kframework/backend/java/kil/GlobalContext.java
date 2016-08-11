@@ -2,7 +2,6 @@
 
 package org.kframework.backend.java.kil;
 
-import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.kframework.backend.java.kil.KItem.KItemOperations;
 import org.kframework.backend.java.symbolic.BuiltinFunction;
@@ -17,14 +16,12 @@ import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.inject.Builtins;
-import org.kframework.utils.inject.RequestScoped;
 import org.kframework.utils.options.SMTOptions;
 
 import java.io.Serializable;
 import java.lang.invoke.MethodHandle;
 import java.util.Map;
 
-@RequestScoped
 public class GlobalContext implements Serializable {
     private Definition def;
     public final transient FileSystem fs;
@@ -34,11 +31,10 @@ public class GlobalContext implements Serializable {
     public final transient KItemOperations kItemOps;
     public final transient KRunOptions krunOptions;
     private final transient KExceptionManager kem;
-    private final transient Map<String, Provider<MethodHandle>> hookProvider;
+    private final transient Map<String, MethodHandle> hookProvider;
     public final transient FileUtil files;
     public final transient GlobalOptions globalOptions;
 
-    @Inject
     public GlobalContext(
             FileSystem fs,
             JavaExecutionOptions javaOptions,
@@ -46,7 +42,7 @@ public class GlobalContext implements Serializable {
             KRunOptions krunOptions,
             KExceptionManager kem,
             SMTOptions smtOptions,
-            @Builtins Map<String, Provider<MethodHandle>> hookProvider,
+            @Builtins Map<String, MethodHandle> hookProvider,
             FileUtil files,
             Stage stage) {
         this.fs = fs;

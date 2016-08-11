@@ -1,10 +1,6 @@
 // Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.kompile;
 
-import com.google.inject.Inject;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import org.kframework.builtin.Sorts;
 import org.kframework.main.FrontEnd;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
@@ -12,38 +8,23 @@ import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
-import org.kframework.utils.inject.CommonModule;
-import org.kframework.utils.inject.JCommanderModule;
-import org.kframework.utils.inject.JCommanderModule.ExperimentalUsage;
-import org.kframework.utils.inject.JCommanderModule.Usage;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class KompileFrontEnd extends FrontEnd {
 
-    public static List<Module> getModules() {
-        List<Module> modules = new ArrayList<>();
-        modules.add(new KompileModule());
-        modules.add(new JCommanderModule());
-        modules.add(new CommonModule());
-        return modules;
-    }
 
 
     private final KompileOptions options;
-    private final Provider<org.kframework.kore.compile.Backend> koreBackend;
+    private final org.kframework.kore.compile.Backend koreBackend;
     private final Stopwatch sw;
     private final KExceptionManager kem;
     private final BinaryLoader loader;
     private final FileUtil files;
 
-    @Inject
-    KompileFrontEnd(
+    public KompileFrontEnd(
             KompileOptions options,
-            @Usage String usage,
-            @ExperimentalUsage String experimentalUsage,
-            Provider<org.kframework.kore.compile.Backend> koreBackend,
+            String usage,
+            String experimentalUsage,
+            org.kframework.kore.compile.Backend koreBackend,
             Stopwatch sw,
             KExceptionManager kem,
             BinaryLoader loader,
@@ -66,9 +47,9 @@ public class KompileFrontEnd extends FrontEnd {
         }
 
         Kompile kompile = new Kompile(options, files, kem, sw);
-        CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.get().steps(kompile));
+        CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps(kompile));
         loader.saveOrDie(files.resolveKompiled("compiled.bin"), def);
-        koreBackend.get().accept(def);
+        koreBackend.accept(def);
         loader.saveOrDie(files.resolveKompiled("timestamp"), "");
         sw.printIntermediate("Save to disk");
         sw.printTotal("Total");
