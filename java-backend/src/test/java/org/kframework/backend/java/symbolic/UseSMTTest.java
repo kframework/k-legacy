@@ -52,7 +52,7 @@ public class UseSMTTest {
         System.err.println(System.getProperty("java.library.path"));
         BuiltinMap.Builder builder = new BuiltinMap.Builder(tc.global());
         SMTOptions options = new SMTOptions();
-        assertEquals(builder.build(), new UseSMT(options).checkSat(BoolToken.TRUE, tc));
+        assertEquals(builder.build(), UseSMT.checkSat(BoolToken.TRUE, tc));
         options.smt = SMTSolver.Z3;
     }
 }

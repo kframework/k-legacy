@@ -24,13 +24,9 @@ import com.microsoft.z3.Z3Exception;
 
 public class UseSMT implements Serializable {
 
-    private final SMTOptions options;
+    public static Term checkSat(Term term, TermContext termContext) {
+        SMTOptions options = termContext.global().krunOptions.experimental.smt;
 
-    public UseSMT(SMTOptions options) {
-        this.options = options;
-    }
-
-    public Term checkSat(Term term, TermContext termContext) {
         if (options.smt != SMTSolver.Z3) {
             return null;
         }
