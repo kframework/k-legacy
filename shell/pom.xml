@@ -7,7 +7,6 @@
     <groupId>org.kframework.k</groupId>
     <artifactId>parent</artifactId>
     <version>4.0.1-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>shell</artifactId>
   <packaging>jar</packaging>
