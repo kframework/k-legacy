@@ -80,6 +80,10 @@
            directory="issue1724"
            skip="pdf" />
 
+  <include file="issue2194/config.xml"
+           directory="issue2194"
+           skip="pdf" />
+
 <!--  <include file="smt-sort-flattening/config.xml"
            directory="smt-sort-flattening"
            programs="smt-sort-flattening"
