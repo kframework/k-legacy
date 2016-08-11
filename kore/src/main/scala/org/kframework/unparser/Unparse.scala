@@ -2,7 +2,8 @@ package org.kframework.unparser
 
 import org.apache.commons.lang3.StringEscapeUtils
 import org.kframework.kore.Unapply._
-import org.kframework.kore.{KLabel, InjectedKLabel, K, KApply}
+import org.kframework.kore.{InjectedKLabel, K, KApply, KLabel}
+import org.kframework.utils.Strings
 
 import scala.collection.JavaConverters._
 
@@ -46,9 +47,9 @@ object ToKast {
         && l.name != "#token" && l.name != "#klabel") {
       l.name
     } else if (inParen) {
-      " `"+l.name+'`'
+      " " + Strings.escapeKoreKLabel(l.name)
     } else {
-      '`'+l.name+'`'
+      Strings.escapeKoreKLabel(l.name)
     }
   }
 
