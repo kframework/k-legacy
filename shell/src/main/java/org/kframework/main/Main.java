@@ -113,7 +113,6 @@ public class Main {
             Backend koreBackend = new JavaBackend(kem, files, kompileOptions.global, kompileOptions);
             KompileFrontEnd frontEnd = new KompileFrontEnd(kompileOptions, usage, experimentalUsage, koreBackend, sw, kem, loader, jarInfo, files);
 
-            System.out.println("xxxxxxxxxxxxxxx");
             return runApplication(frontEnd, kem);
 
         } else if (toolName.equals("-krun")) {
@@ -160,7 +159,6 @@ public class Main {
             InitializeRewriter initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions, kRunOptions, files, initializeDefinition);
             KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, usage, experimentalUsage, jarInfo, kompiledDir, kem, kRunOptions, files, compiledDef, initializeRewriter, kRunExecutionMode, ttyInfo, isNailgun);
 
-            System.out.println("xxxxxxxxxxxxxxx");
             return runApplication(frontEnd, kem);
 
         } else if (toolName.equals("-kserver")) {
@@ -188,7 +186,6 @@ public class Main {
 
             KServerFrontEnd frontEnd = new KServerFrontEnd(kem, kServerOptions, usage, experimentalUsage, jarInfo, files);
 
-            System.out.println("xxxxxxxxxxxxxxx");
             return runApplication(frontEnd, kem);
 
         } else if (toolName.equals("-kast")) {
@@ -219,7 +216,6 @@ public class Main {
             CompiledDefinition compiledDef = DefinitionLoadingModule.koreDefinition(loader, files);
             KastFrontEnd frontEnd = new KastFrontEnd(kastOptions, usage, experimentalUsage, sw, kem, jarInfo, env, files, kompiledDir, compiledDef);
 
-            System.out.println("xxxxxxxxxxxxxxx");
             return runApplication(frontEnd, kem);
 
         } else if (toolName.equals("-kpp")) {
@@ -239,7 +235,6 @@ public class Main {
 
             KppFrontEnd frontEnd = new KppFrontEnd(kem, globalOptions, jarInfo, files, args);
 
-            System.out.println("xxxxxxxxxxxxxxx");
             return runApplication(frontEnd, kem);
 
         } else if (toolName.equals("-kdep")) {
@@ -269,7 +264,6 @@ public class Main {
             // kdep
             KDepFrontEnd frontEnd = new KDepFrontEnd(kDepOptions.outerParsing, kem, kDepOptions.global, usage, experimentalUsage, sw, jarInfo, files);
 
-            System.out.println("xxxxxxxxxxxxxxx");
             return runApplication(frontEnd, kem);
 
         } else if (toolName.equals("-kdoc")) {
@@ -299,7 +293,6 @@ public class Main {
             // kdep
             KDocFrontEnd frontEnd = new KDocFrontEnd(kDocOptions, kem, kDocOptions.global, usage, experimentalUsage, jarInfo, files, null); // TODO: correct PosterBackend
 
-            System.out.println("xxxxxxxxxxxxxxx");
             return runApplication(frontEnd, kem);
 
         } else if (toolName.equals("-ktest")) {
@@ -327,7 +320,6 @@ public class Main {
 
             KTestFrontEnd frontEnd = new KTestFrontEnd(kTestOptions, kem, kTestOptions.getGlobal(), usage, experimentalUsage, jarInfo, env, files);
 
-            System.out.println("xxxxxxxxxxxxxxx");
             return runApplication(frontEnd, kem);
 
         } else {
