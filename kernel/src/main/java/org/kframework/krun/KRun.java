@@ -76,44 +76,6 @@ public class KRun {
         this.isNailgun = isNailgun;
     }
 
-    /*
-    public static RewriterResult run(CompiledDefinition compiledDef) {
-
-        GlobalOptions globalOptions = new GlobalOptions();
-        KompileOptions kompileOptions = new KompileOptions();
-        KRunOptions krunOptions = new KRunOptions();
-        JavaExecutionOptions javaExecutionOptions = new JavaExecutionOptions();
-
-        KExceptionManager kem = new KExceptionManager(globalOptions);
-        FileUtil files = FileUtil.testFileUtil();
-        boolean ttyStdin = false;
-
-        FileSystem fs = new PortableFileSystem(kem, files);
-        Map<String, Provider<MethodHandle>> hookProvider = new HashMap<>();
-        InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
-
-        K program = parseConfigVars(krunOptions, compiledDef, kem, files, ttyStdin);
-
-        Rewriter rewriter = (InitializeRewriter.SymbolicRewriterGlue)
-            new InitializeRewriter(
-                fs,
-                javaExecutionOptions,
-                globalOptions,
-                kem,
-                kompileOptions.experimental.smt,
-                hookProvider,
-                kompileOptions,
-                krunOptions,
-                files,
-                initializeDefinition)
-            .apply(compiledDef.executionModule());
-
-        RewriterResult result = rewriter.execute(program, null);
-
-        return result;
-    }
-     */
-
     // org.kframework.main.FrontEnd#main
     // org.kframework.krun.KRunFrontEnd#run
     public int run(CompiledDefinition compiledDef, KRunOptions options, Function<Module, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
