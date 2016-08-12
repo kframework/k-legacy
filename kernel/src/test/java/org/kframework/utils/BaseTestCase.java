@@ -1,11 +1,6 @@
 // Copyright (c) 2014-2016 K Team. All Rights Reserved.
 package org.kframework.utils;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.Provides;
-import com.google.inject.name.Names;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.kframework.kdoc.KDocOptions;

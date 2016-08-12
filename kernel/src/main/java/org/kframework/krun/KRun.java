@@ -1,7 +1,6 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.krun;
 
-import com.google.inject.Provider;
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;

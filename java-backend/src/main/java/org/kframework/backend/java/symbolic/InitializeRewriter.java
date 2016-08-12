@@ -1,7 +1,6 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import com.google.inject.Provider;
 import org.kframework.RewriterResult;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.indexing.IndexingTable;

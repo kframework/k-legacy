@@ -2,7 +2,6 @@
 package org.kframework.kdep;
 
 import com.google.common.collect.Lists;
-import com.google.inject.Module;
 import org.apache.commons.collections15.ListUtils;
 import org.kframework.attributes.Source;
 import org.kframework.kompile.Kompile;
@@ -62,14 +61,6 @@ public class KDepFrontEnd extends FrontEnd {
         this.sw = sw;
         this.files = files;
         this.parser = new ParserUtils(files::resolveWorkingDirectory, kem, globalOptions);
-    }
-
-    public static List<Module> getModules() {
-        List<Module> modules = new ArrayList<>();
-//        modules.add(new KDepModule());
-//        modules.add(new JCommanderModule());
-//        modules.add(new CommonModule());
-        return modules;
     }
 
     @Override

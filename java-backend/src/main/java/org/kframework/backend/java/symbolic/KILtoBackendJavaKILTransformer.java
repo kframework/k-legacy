@@ -91,7 +91,7 @@ public class KILtoBackendJavaKILTransformer extends CopyOnWriteTransformer {
 
     public KILtoBackendJavaKILTransformer(
             Context context,
-            @FreshRules boolean freshRules,
+            boolean freshRules,
             GlobalContext globalContext,
             IndexingTable.Data data,
             KExceptionManager kem) {

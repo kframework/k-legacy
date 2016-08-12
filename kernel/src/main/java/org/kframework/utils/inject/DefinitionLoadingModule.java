@@ -1,8 +1,6 @@
 // Copyright (c) 2014-2016 K Team. All Rights Reserved.
 package org.kframework.utils.inject;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
 import org.kframework.kil.Definition;
 import org.kframework.kil.loader.Context;
 import org.kframework.kompile.CompiledDefinition;

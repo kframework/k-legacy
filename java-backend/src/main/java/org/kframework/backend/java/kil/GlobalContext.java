@@ -2,7 +2,6 @@
 
 package org.kframework.backend.java.kil;
 
-import com.google.inject.Provider;
 import org.kframework.backend.java.kil.KItem.KItemOperations;
 import org.kframework.backend.java.symbolic.BuiltinFunction;
 import org.kframework.backend.java.symbolic.Equality.EqualityOperations;

@@ -3,7 +3,6 @@ package org.kframework;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
-import com.google.inject.util.Providers;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Definition;
 import org.kframework.kompile.DefinitionParsing;

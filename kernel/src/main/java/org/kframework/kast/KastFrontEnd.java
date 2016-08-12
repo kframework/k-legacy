@@ -1,7 +1,6 @@
 // Copyright (c) 2012-2016 K Team. All Rights Reserved.
 package org.kframework.kast;
 
-import com.google.inject.Module;
 import org.kframework.attributes.Source;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kore.K;
