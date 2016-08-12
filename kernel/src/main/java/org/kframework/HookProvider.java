@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -52,6 +53,7 @@ public class HookProvider {
                 Class<?> c = Class.forName(className);
                 for (Method method : c.getDeclaredMethods()) {
                     if (method.getName().equals(methodName)) {
+                        assert Modifier.isStatic(method.getModifiers()); // TODO(Daejun): ignore non-static methods with warning?
                         MethodHandle handle = lookup.unreflect(method);
                         result.put(key, handle);
                         break;
