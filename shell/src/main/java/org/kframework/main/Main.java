@@ -157,16 +157,19 @@ public class Main {
             String experimentalUsage = JCommanderModule.experimentalUsage(jc);
             usage(kDocOptions.global, usage, experimentalUsage, jarInfo);
 
+            return 0;
+            /* TODO: complete implementation
             // directories
             File tempDir = CommonModule.tempDir(workingDir, tool);
             File definitionDir = OuterParsingModule.definitionDir(workingDir, kDocOptions.outerParsing);
-            File kompiledDir = OuterParsingModule.kompiledDir(definitionDir, kDocOptions.outerParsing, workingDir, tempDir);
+            File kompiledDir = OuterParsingModule.kompiledDir(definitionDir, kDocOptions.outerParsing, workingDir, tempDir); // TODO: handle when only --directory option is provided
             FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, kDocOptions.global, env);
 
             // kdep
             KDocFrontEnd frontEnd = new KDocFrontEnd(kDocOptions, kem, kDocOptions.global, files, null); // TODO: correct PosterBackend
 
             return runApplication(frontEnd, kem);
+             */
         }
 
         if (toolName.equals("-kdep")) {

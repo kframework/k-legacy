@@ -25,6 +25,7 @@ public class OuterParsingModule {
     }
 
     public static File kompiledDir(File defDir, OuterParsingOptions options, File workingDir, File tempDir) {
+        // TODO(Daejun): handle when options.mainDefinitionFile is not given, but only --directory option is given
         // bootstrap the part of FileUtil we need
         return new File(defDir, FilenameUtils.removeExtension(options.mainDefinitionFile(new FileUtil(null, null, workingDir, null, null, null)).getName()) + "-kompiled");
     }
