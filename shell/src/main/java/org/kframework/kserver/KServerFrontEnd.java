@@ -87,12 +87,7 @@ public class KServerFrontEnd extends FrontEnd {
             system_err.init(new PrintStream(new AnsiOutputStream(system_err.getPrintStream())));
         }
 
-        int result;
-        try {
-            result = Main.runApplication(tool, args, workingDir, env);
-        } catch (Main.Usage e) {
-            result = 0; // simple usage output
-        }
+        int result = Main.runApplication(tool, args, workingDir, env);
         System.out.flush();
         System.err.flush();
         return result;

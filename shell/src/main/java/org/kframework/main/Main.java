@@ -76,12 +76,7 @@ public class Main {
         AnsiConsole.systemInstall();
         if (args.length >= 1) {
             String[] args2 = Arrays.copyOfRange(args, 1, args.length);
-            int result;
-            try {
-                result = runApplication(args[0], args2, new File("."), System.getenv());
-            } catch (Usage e) {
-                result = 0; // simple usage output
-            }
+            int result = runApplication(args[0], args2, new File("."), System.getenv());
             AnsiConsole.systemUninstall();
             System.exit(result);
         }
@@ -89,23 +84,20 @@ public class Main {
         invalidJarArguments();
     }
 
-    public static class Usage extends Exception {
-    }
-
-    public static void usage(GlobalOptions globalOptions, String usage, String experimentalUsage, JarInfo jarInfo) throws Usage {
+    public static void usage(GlobalOptions globalOptions, String usage, String experimentalUsage, JarInfo jarInfo) {
         if (globalOptions.help) {
             System.out.print(usage);
-            throw new Usage();
+            System.exit(0);
         } else if (globalOptions.helpExperimental) {
             System.out.print(experimentalUsage);
-            throw new Usage();
+            System.exit(0);
         } else if (globalOptions.version) {
             jarInfo.printVersionMessage();
-            throw new Usage();
+            System.exit(0);
         }
     }
 
-    public static int runApplication(String toolName, String[] args, File workingDir, Map<String, String> env) throws Usage {
+    public static int runApplication(String toolName, String[] args, File workingDir, Map<String, String> env) {
 
         if (toolName.equals("-kompile")) {
             Tool tool = Tool.KOMPILE;
