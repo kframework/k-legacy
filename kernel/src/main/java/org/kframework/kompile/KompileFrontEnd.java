@@ -44,7 +44,7 @@ public class KompileFrontEnd extends FrontEnd {
         }
 
         Kompile kompile = new Kompile(options, files, kem, sw);
-        CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps(kompile));
+        CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps());
         loader.saveOrDie(files.resolveKompiled("compiled.bin"), def);
         koreBackend.accept(def);
         loader.saveOrDie(files.resolveKompiled("timestamp"), "");

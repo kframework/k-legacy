@@ -75,7 +75,7 @@ public class JavaBackend implements Backend {
      * @return the special steps for the Java backend
      */
     @Override
-    public Function<Definition, Definition> steps(Kompile kompile) {
+    public Function<Definition, Definition> steps() {
         DefinitionTransformer convertDataStructureToLookup = DefinitionTransformer.fromSentenceTransformer(func((m, s) -> new ConvertDataStructureToLookup(m, false).convert(s)), "convert data structures to lookups");
         ExpandMacrosDefinitionTransformer expandMacrosDefinitionTransformer = new ExpandMacrosDefinitionTransformer(kem, files, globalOptions, kompileOptions);
 
@@ -99,7 +99,7 @@ public class JavaBackend implements Backend {
             }.apply(k);
         }, "Module-qualify sort predicates");
 
-        return d -> (func((Definition dd) -> kompile.defaultSteps(kompile.kompileOptions, kompile.kem).apply(dd)))
+        return d -> (func((Definition dd) -> Kompile.defaultSteps(kompileOptions, kem).apply(dd)))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(DefinitionTransformer.fromHybrid(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))

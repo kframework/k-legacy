@@ -81,7 +81,7 @@ public class KoreUtils {
 
         Kompile kompile = new Kompile(kompileOptions, FileUtil.testFileUtil(), kem, false);
         compiledDef = kompile.run(definitionFile, mainModuleName, mainProgramsModuleName,
-                new JavaBackend(kem, files, globalOptions, kompileOptions).steps(kompile));
+                new JavaBackend(kem, files, globalOptions, kompileOptions).steps());
 
         programParser = compiledDef.getProgramParser(this.kem);
 

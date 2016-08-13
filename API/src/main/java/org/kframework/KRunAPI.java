@@ -73,8 +73,7 @@ public class KRunAPI {
 
         Definition d = DefinitionParser.from(def, mainModuleName);
 
-        Kompile kompile = new Kompile(kompileOptions, files, kem, false);
-        Function<Definition, Definition> pipeline = new JavaBackend(kem, files, globalOptions, kompileOptions).steps(kompile);
+        Function<Definition, Definition> pipeline = new JavaBackend(kem, files, globalOptions, kompileOptions).steps();
         CompiledDefinition compiledDef = Kompile.run(d, kompileOptions, pipeline); // Kompile.runDefaultSteps(d, kompileOptions, kem);
 
         return compiledDef;
