@@ -299,8 +299,8 @@ public class Kapi {
 
         //// prove spec rules
 
-        SymbolicRewriter rewriter1 = new SymbolicRewriter(rewritingContextGlobal1, kompileOptions, javaExecutionOptions, new KRunState.Counter(), converter1);
-        SymbolicRewriter rewriter2 = new SymbolicRewriter(rewritingContextGlobal2, kompileOptions, javaExecutionOptions, new KRunState.Counter(), converter2);
+        SymbolicRewriter rewriter1 = new SymbolicRewriter(rewritingContextGlobal1, kompileOptions, new KRunState.Counter(), converter1);
+        SymbolicRewriter rewriter2 = new SymbolicRewriter(rewritingContextGlobal2, kompileOptions, new KRunState.Counter(), converter2);
 
         assert (specRules1.size() == specRules2.size());
         assert (specRules1.size() == targetSpecRules1.size());
@@ -433,7 +433,7 @@ public class Kapi {
 
         //// prove spec rules
 
-        SymbolicRewriter rewriter = new SymbolicRewriter(rewritingContextGlobal, kompileOptions, javaExecutionOptions, new KRunState.Counter(), converter);
+        SymbolicRewriter rewriter = new SymbolicRewriter(rewritingContextGlobal, kompileOptions, new KRunState.Counter(), converter);
 
         List<ConstrainedTerm> proofResults = javaRules.stream()
                 .filter(r -> !r.containsAttribute(Attribute.TRUSTED_KEY))

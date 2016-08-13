@@ -138,7 +138,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
             TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
             Term backendKil = KILtoBackendJavaKILTransformer.expandAndEvaluate(termContext, kem, converter.convert(k));
-            this.rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, javaOptions, new KRunState.Counter(), converter);
+            this.rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, new KRunState.Counter(), converter);
             // org.kframework.backend.java.symbolic.SymbolicRewriter.rewrite()
             JavaKRunState result = (JavaKRunState) rewriter.rewrite(new ConstrainedTerm(backendKil, termContext), depth.orElse(-1));
             return new RewriterResult(result.getStepsTaken(), result.getJavaKilTerm());
@@ -157,7 +157,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
             Term javaTerm = KILtoBackendJavaKILTransformer.expandAndEvaluate(termContext, kem, converter.convert(initialConfiguration));
             org.kframework.backend.java.kil.Rule javaPattern = converter.convert(Optional.empty(), pattern);
             List<Substitution<Variable, Term>> searchResults;
-            this.rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, javaOptions, new KRunState.Counter(), converter);
+            this.rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, new KRunState.Counter(), converter);
             searchResults = rewriter
                     .search(javaTerm, javaPattern, bound.orElse(NEGATIVE_VALUE), depth.orElse(NEGATIVE_VALUE), searchType, termContext)
                     .stream().collect(Collectors.toList());
@@ -202,7 +202,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
                     .map(org.kframework.backend.java.kil.Rule::renameVariables)
                     .collect(Collectors.toList());
 
-            this.rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, javaOptions, new KRunState.Counter(), converter);
+            this.rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, new KRunState.Counter(), converter);
 
             List<ConstrainedTerm> proofResults = javaRules.stream()
                     .filter(r -> !r.containsAttribute(Attribute.TRUSTED_KEY))

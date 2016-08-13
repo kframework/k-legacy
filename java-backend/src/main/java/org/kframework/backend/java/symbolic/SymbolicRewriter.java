@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
  */
 public class SymbolicRewriter {
 
-    private final JavaExecutionOptions javaOptions;
     private final TransitionCompositeStrategy strategy;
     private final List<String> transitions;
     private final Stopwatch stopwatch = Stopwatch.createUnstarted();
@@ -57,13 +56,12 @@ public class SymbolicRewriter {
     private final Definition definition;
     private final BitSet allRuleBits;
 
-    public SymbolicRewriter(GlobalContext global, KompileOptions kompileOptions, JavaExecutionOptions javaOptions,
+    public SymbolicRewriter(GlobalContext global, KompileOptions kompileOptions,
                             KRunState.Counter counter, KOREtoBackendKIL constructor) {
         this.constructor = constructor;
         this.definition = global.getDefinition();
         this.allRuleBits = BitSet.apply(definition.ruleTable.size());
         this.allRuleBits.makeOnes(definition.ruleTable.size());
-        this.javaOptions = javaOptions;
         this.ruleIndex = definition.getIndex();
         this.counter = counter;
         this.strategy = new TransitionCompositeStrategy(kompileOptions.transition);
