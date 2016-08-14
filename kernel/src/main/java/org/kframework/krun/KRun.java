@@ -304,8 +304,8 @@ public class KRun {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    public static K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef, KExceptionManager kem, FileUtil files, boolean ttyStdin, boolean isNailgun, K pgm) {
-        HashMap<KToken, K> output = new HashMap<>();
+    public static Map<KToken,K> getUserConfigVarsMap(KRunOptions options, CompiledDefinition compiledDef, FileUtil files) {
+        Map<KToken,K> output = new HashMap<>();
         for (Map.Entry<String, Pair<String, String>> entry
                 : options.configurationCreation.configVars(compiledDef.getParsedDefinition().mainModule().name()).entrySet()) {
             String name = entry.getKey();
@@ -316,7 +316,12 @@ public class KRun {
             K configVar = externalParse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), compiledDef, files);
             output.put(KToken("$" + name, Sorts.KConfigVar()), configVar);
         }
-        if (options.io()) {
+        return output;
+    }
+
+    public static Map<KToken,K> getIOConfigVarsMap(boolean realIO, boolean ttyStdin, boolean isNailgun) {
+        Map<KToken,K> output = new HashMap<>();
+        if (realIO) {
             output.put(KToken("$STDIN", Sorts.KConfigVar()), KToken("\"\"", Sorts.String()));
             output.put(KToken("$IO", Sorts.KConfigVar()), KToken("\"on\"", Sorts.String()));
         } else {
@@ -324,9 +329,36 @@ public class KRun {
             output.put(KToken("$STDIN", Sorts.KConfigVar()), KToken("\"" + stdin + "\"", Sorts.String()));
             output.put(KToken("$IO", Sorts.KConfigVar()), KToken("\"off\"", Sorts.String()));
         }
+        return output;
+    }
+
+    public static Map<KToken,K> getPGMConfigVarsMap(K pgm) {
+        Map<KToken,K> output = new HashMap<>();
         if (pgm != null) {
             output.put(KToken("$PGM", Sorts.KConfigVar()), pgm);
         }
+        return output;
+    }
+
+    public static K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef, KExceptionManager kem, FileUtil files, boolean ttyStdin, boolean isNailgun, K pgm) {
+        Map<KToken,K> output = getUserConfigVarsMap(options, compiledDef, files);
+        return getInitConfig(pgm, output, compiledDef, kem, options.io(), ttyStdin, isNailgun);
+    }
+
+    public static K getInitConfig(K pgm, CompiledDefinition compiledDef, KExceptionManager kem) {
+        return getInitConfig(pgm, new HashMap<>(), compiledDef, kem, true, true, false);
+    }
+
+    public static K getInitConfig(K pgm, Map<KToken,K> outputUser, CompiledDefinition compiledDef, KExceptionManager kem,
+                                  boolean realIO, boolean ttyStdin, boolean isNailgun) {
+        Map<KToken,K> outputIO = getIOConfigVarsMap(realIO, ttyStdin, isNailgun);
+        Map<KToken,K> outputPGM = getPGMConfigVarsMap(pgm);
+
+        Map<KToken,K> output = new HashMap<>();
+        output.putAll(outputUser);
+        output.putAll(outputIO);
+        output.putAll(outputPGM);
+
         checkConfigVars(output.keySet(), compiledDef, kem);
         return plugConfigVars(compiledDef, output);
     }
