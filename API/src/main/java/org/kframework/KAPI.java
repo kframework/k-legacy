@@ -27,7 +27,6 @@ import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.K;
-import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.KRun;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.KRunState;
@@ -43,7 +42,6 @@ import org.kframework.utils.options.SMTOptions;
 
 import java.io.File;
 import java.lang.invoke.MethodHandle;
-import java.math.BigInteger;
 import java.util.*;
 import java.util.List;
 import java.util.Map;
@@ -53,20 +51,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.kframework.Collections.*;
-import static org.kframework.kore.KORE.*;
 
 /**
  * KRunAPI
  */
-public class KRunAPI {
+public class Kapi {
 
     public KapiGlobal kapiGlobal;
 
-    public KRunAPI(KapiGlobal kapiGlobal) {
+    public Kapi(KapiGlobal kapiGlobal) {
         this.kapiGlobal = kapiGlobal;
     }
 
-    public KRunAPI() {
+    public Kapi() {
         this(new KapiGlobal());
     }
 
@@ -168,7 +165,7 @@ public class KRunAPI {
         String prove = args[8];
         String prelude = args[9];
 
-        KRunAPI kapi = new KRunAPI();
+        Kapi kapi = new Kapi();
 
         // kompile
         CompiledDefinition compiledDef0 = kapi.kompile(def0, mod0);
