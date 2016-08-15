@@ -60,21 +60,23 @@ import static org.kframework.kore.KORE.*;
  */
 public class KRunAPI {
 
-    public static CompiledDefinition kompile(String def, String mainModuleName) {
-        // tier-1 dependencies
-        GlobalOptions globalOptions = new GlobalOptions();
-        KompileOptions kompileOptions = new KompileOptions();
-        KRunOptions krunOptions = new KRunOptions();
-        JavaExecutionOptions javaExecutionOptions = new JavaExecutionOptions();
+    public KapiGlobal kapiGlobal;
 
-        // tier-2 dependencies
-        KExceptionManager kem = new KExceptionManager(globalOptions);
-        FileUtil files = FileUtil.get(globalOptions, System.getenv());
+    public KRunAPI(KapiGlobal kapiGlobal) {
+        this.kapiGlobal = kapiGlobal;
+    }
 
-        Definition d = DefinitionParser.from(def, mainModuleName);
+    public KRunAPI() {
+        this(new KapiGlobal());
+    }
 
-        Function<Definition, Definition> pipeline = new JavaBackend(kem, files, globalOptions, kompileOptions).steps();
-        CompiledDefinition compiledDef = Kompile.run(d, kompileOptions, pipeline); // Kompile.runDefaultSteps(d, kompileOptions, kem);
+    public CompiledDefinition kompile(String def, String mainModuleName) {
+        // parse
+        Definition parsedDef = DefinitionParser.from(def, mainModuleName);
+
+        // compile (translation pipeline)
+        Function<Definition, Definition> pipeline = new JavaBackend(kapiGlobal).steps();
+        CompiledDefinition compiledDef = new Kompile(kapiGlobal).run(parsedDef, pipeline);
 
         return compiledDef;
     }
@@ -166,10 +168,12 @@ public class KRunAPI {
         String prove = args[8];
         String prelude = args[9];
 
+        KRunAPI kapi = new KRunAPI();
+
         // kompile
-        CompiledDefinition compiledDef0 = kompile(def0, mod0);
-        CompiledDefinition compiledDef1 = kompile(def1, mod1);
-        CompiledDefinition compiledDef2 = kompile(def2, mod2);
+        CompiledDefinition compiledDef0 = kapi.kompile(def0, mod0);
+        CompiledDefinition compiledDef1 = kapi.kompile(def1, mod1);
+        CompiledDefinition compiledDef2 = kapi.kompile(def2, mod2);
 
         /*
         // krun

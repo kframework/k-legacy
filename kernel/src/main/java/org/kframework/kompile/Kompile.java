@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.kompile;
 
+import org.kframework.KapiGlobal;
 import org.kframework.Strategy;
 import org.kframework.attributes.Source;
 import org.kframework.backend.Backends;
@@ -97,6 +98,10 @@ public class Kompile {
         this.sw = sw;
     }
 
+    public Kompile(KapiGlobal kapiGlobal) {
+        this(kapiGlobal.kompileOptions, kapiGlobal.files, kapiGlobal.kem);
+    }
+
     public CompiledDefinition run(File definitionFile, String mainModuleName, String mainProgramsModuleName) {
         return run(definitionFile, mainModuleName, mainProgramsModuleName, defaultSteps(kompileOptions, kem));
     }
@@ -114,6 +119,10 @@ public class Kompile {
         Definition parsedDef = parseDefinition(definitionFile, mainModuleName, mainProgramsModuleName);
         sw.printIntermediate("Parse definition [" + definitionParsing.parsedBubbles.get() + "/" + (definitionParsing.parsedBubbles.get() + definitionParsing.cachedBubbles.get()) + " rules]");
 
+        return run(parsedDef, pipeline);
+    }
+
+    public CompiledDefinition run(Definition parsedDef, Function<Definition, Definition> pipeline) {
         checkDefinition(parsedDef);
 
         Definition kompiledDefinition = pipeline.apply(parsedDef);
@@ -122,22 +131,6 @@ public class Kompile {
         ConfigurationInfoFromModule configInfo = new ConfigurationInfoFromModule(kompiledDefinition.mainModule());
 
         return new CompiledDefinition(kompileOptions, parsedDef, kompiledDefinition, configInfo.getDefaultCell(configInfo.topCell()).klabel());
-    }
-
-    public static CompiledDefinition run(Definition parsedDef, KompileOptions kompileOptions, Function<Definition, Definition> pipeline) {
-        /* TODO: enable checking
-        checkDefinition(parsedDef);
-         */
-
-        Definition kompiledDefinition = pipeline.apply(parsedDef);
-
-        ConfigurationInfoFromModule configInfo = new ConfigurationInfoFromModule(kompiledDefinition.mainModule());
-
-        return new CompiledDefinition(kompileOptions, parsedDef, kompiledDefinition, configInfo.getDefaultCell(configInfo.topCell()).klabel());
-    }
-
-    public static CompiledDefinition runDefaultSteps(Definition parsedDef, KompileOptions kompileOptions, KExceptionManager kem) {
-        return run(parsedDef, kompileOptions, d -> defaultSteps(kompileOptions, kem).apply(d));
     }
 
     public Definition parseDefinition(File definitionFile, String mainModuleName, String mainProgramsModule) {

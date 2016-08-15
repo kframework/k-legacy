@@ -3,6 +3,7 @@ package org.kframework.backend.java.symbolic;
 
 import org.kframework.AddConfigurationRecoveryFlags;
 import org.kframework.Collections;
+import org.kframework.KapiGlobal;
 import org.kframework.attributes.Att;
 import org.kframework.backend.Backends;
 import org.kframework.backend.java.kore.compile.ExpandMacrosDefinitionTransformer;
@@ -68,6 +69,10 @@ public class JavaBackend implements Backend {
         this.files = files;
         this.globalOptions = globalOptions;
         this.kompileOptions = kompileOptions;
+    }
+
+    public JavaBackend(KapiGlobal kapiGlobal) {
+        this(kapiGlobal.kem, kapiGlobal.files, kapiGlobal.globalOptions, kapiGlobal.kompileOptions);
     }
 
     /**
