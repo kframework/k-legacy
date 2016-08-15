@@ -70,6 +70,10 @@ public class SymbolicRewriter {
         this.transition = true;
     }
 
+    public KOREtoBackendKIL getConstructor() {
+        return constructor;
+    }
+
     // org.kframework.main.FrontEnd#main
     // org.kframework.krun.KRunFrontEnd#run
     // org.kframework.krun.KRun#run

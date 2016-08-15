@@ -2,6 +2,7 @@
 
 package org.kframework.backend.java.kil;
 
+import org.kframework.KapiGlobal;
 import org.kframework.backend.java.kil.KItem.KItemOperations;
 import org.kframework.backend.java.symbolic.BuiltinFunction;
 import org.kframework.backend.java.symbolic.Equality.EqualityOperations;
@@ -53,6 +54,13 @@ public class GlobalContext implements Serializable {
         this.constraintOps = new SMTOperations(() -> def, smtOptions, new Z3Wrapper(smtOptions, kem, globalOptions, files));
         this.kItemOps = new KItemOperations(stage, deterministicFunctions, kem, this::builtins, globalOptions);
         this.stage = stage;
+    }
+
+    public GlobalContext(
+            KapiGlobal g,
+            Map<String, MethodHandle> hookProvider,
+            Stage stage) {
+        this(g.fs, g.deterministicFunctions, g.globalOptions, g.kRunOptions, g.kem, g.smtOptions, hookProvider, g.files, stage);
     }
 
     private transient BuiltinFunction builtinFunction;
