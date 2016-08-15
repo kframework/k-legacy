@@ -162,18 +162,9 @@ public class Kapi {
         return result;
     }
 
-
-
-
     public static void kprint(CompiledDefinition compiledDef, RewriterResult result) {
-        // tier-1 dependencies
         GlobalOptions globalOptions = new GlobalOptions();
-        KompileOptions kompileOptions = new KompileOptions();
         KRunOptions krunOptions = new KRunOptions();
-        JavaExecutionOptions javaExecutionOptions = new JavaExecutionOptions();
-
-        // tier-2 dependencies
-        KExceptionManager kem = new KExceptionManager(globalOptions);
         FileUtil files = FileUtil.get(globalOptions, System.getenv());
 
         // print output
