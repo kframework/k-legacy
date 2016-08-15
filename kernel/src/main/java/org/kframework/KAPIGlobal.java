@@ -5,6 +5,7 @@ import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import org.kframework.main.GlobalOptions;
+import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.options.SMTOptions;
@@ -19,6 +20,7 @@ public class KapiGlobal {
     public SMTOptions smtOptions;
 
     public KExceptionManager kem;
+    public Stopwatch sw;
     public FileUtil files;
     public FileSystem fs;
 
@@ -36,6 +38,7 @@ public class KapiGlobal {
         this.smtOptions = kRunOptions.experimental.smt;
 
         this.kem = new KExceptionManager(globalOptions);
+        this.sw = new Stopwatch(globalOptions);
         this.files = FileUtil.get(globalOptions, System.getenv());
         this.fs = new PortableFileSystem(kem, files);
 

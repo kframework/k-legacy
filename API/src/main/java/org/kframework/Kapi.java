@@ -113,9 +113,10 @@ public class Kapi {
         Tuple2<SymbolicRewriter,TermContext> tuple = getRewriter(compiledDef);
         SymbolicRewriter rewriter = tuple._1();
         TermContext rewritingContext = tuple._2();
+        KOREtoBackendKIL converter = rewriter.getConstructor();
 
         // prepare term to rewrite  // TODO: simplify
-        Term programInKIL = rewriter.getConstructor().convert(program); // conversion: kore -> kil
+        Term programInKIL = converter.convert(program); // conversion: kore -> kil
         Term programWithMacroExpanded = KILtoBackendJavaKILTransformer.expandAndEvaluate(rewritingContext, kapiGlobal.kem, programInKIL); // macro expansion
         ConstrainedTerm programInConstrainedTerm = new ConstrainedTerm(programWithMacroExpanded, rewritingContext); // initial constrained term
 
@@ -205,7 +206,7 @@ public class Kapi {
         kprint(compiledDef2, result2);
 
         // kprove
-        kprove(compiledDef0, compiledDef1, prove, prelude);
+        kapi.kprove(prove, prelude, compiledDef0);
 
         // kequiv
         kequiv(compiledDef0, compiledDef1, compiledDef2, prove, prelude);
@@ -390,54 +391,32 @@ public class Kapi {
      * compiledDef0: for parsing spec rules
      * compiledDef1: for symbolic execution
      */
-    public static void kprove(CompiledDefinition compiledDef0, CompiledDefinition compiledDef1, String proofFile, String prelude) {
+    public void kprove(String proofFile, String prelude, CompiledDefinition compiledDef) {
 
-        GlobalOptions globalOptions = new GlobalOptions();
-        KompileOptions kompileOptions = new KompileOptions();
-        KRunOptions krunOptions = new KRunOptions();
-        JavaExecutionOptions javaExecutionOptions = new JavaExecutionOptions();
+        kapiGlobal.setSmtPrelude(prelude);
 
-        KExceptionManager kem = new KExceptionManager(globalOptions);
-        Stopwatch sw = new Stopwatch(globalOptions);
-        FileUtil files = FileUtil.get(globalOptions, System.getenv());
+        // initialize rewriter
+        Tuple2<SymbolicRewriter,TermContext> tuple = getRewriter(compiledDef);
+        SymbolicRewriter rewriter = tuple._1();
+        TermContext rewritingContext = tuple._2();
+        KOREtoBackendKIL converter = rewriter.getConstructor();
 
-        FileSystem fs = new PortableFileSystem(kem, files);
-        Map<String, MethodHandle> hookProvider = HookProvider.get(kem); // new HashMap<>();
-        InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
-
-        //// setting options
-
-        krunOptions.experimental.prove = proofFile;
-        krunOptions.experimental.smt.smtPrelude = prelude;
-
-        SMTOptions smtOptions = krunOptions.experimental.smt;
-
-        //// creating rewritingContext
-
-        GlobalContext initializingContextGlobal = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING);
-        TermContext initializingContext = TermContext.builder(initializingContextGlobal).freshCounter(0).build();
-        org.kframework.backend.java.kil.Definition evaluatedDef0 = initializeDefinition.invoke(compiledDef0.executionModule(), kem, initializingContext.global());
-        org.kframework.backend.java.kil.Definition evaluatedDef1 = initializeDefinition.invoke(compiledDef1.executionModule(), kem, initializingContext.global());
-
-        GlobalContext rewritingContextGlobal = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
-        rewritingContextGlobal.setDefinition(evaluatedDef1);
-        TermContext rewritingContext = TermContext.builder(rewritingContextGlobal).freshCounter(initializingContext.getCounterValue()).build();
 
         //// parse spec file
 
-        Kompile kompile = new Kompile(kompileOptions, globalOptions, files, kem, sw, false);
-        Module specModule = kompile.parseModule(compiledDef0, files.resolveWorkingDirectory(proofFile).getAbsoluteFile());
+        Kompile kompile = new Kompile(kapiGlobal);
+        Module specModule = kompile.parseModule(compiledDef, kapiGlobal.files.resolveWorkingDirectory(proofFile).getAbsoluteFile());
 
         scala.collection.Set<Module> alsoIncluded = Stream.of("K-TERM", "K-REFLECTION", RuleGrammarGenerator.ID_PROGRAM_PARSING)
-                .map(mod -> compiledDef0.getParsedDefinition().getModule(mod).get())
+                .map(mod -> compiledDef.getParsedDefinition().getModule(mod).get())
                 .collect(org.kframework.Collections.toSet());
 
-        specModule = new JavaBackend(kem, files, globalOptions, kompileOptions)
+        specModule = new JavaBackend(kapiGlobal)
                 .stepsForProverRules()
                 .apply(Definition.apply(specModule, org.kframework.Collections.add(specModule, alsoIncluded), Att.apply()))
                 .getModule(specModule.name()).get();
 
-        ExpandMacros macroExpander = new ExpandMacros(compiledDef0.executionModule(), kem, files, globalOptions, kompileOptions);
+        ExpandMacros macroExpander = new ExpandMacros(compiledDef.executionModule(), kapiGlobal.kem, kapiGlobal.files, kapiGlobal.globalOptions, kapiGlobal.kompileOptions);
 
         List<Rule> specRules = stream(specModule.localRules())
                 .filter(r -> r.toString().contains("spec.k"))
@@ -450,7 +429,6 @@ public class Kapi {
 
         //// massage spec rules
 
-        KOREtoBackendKIL converter = new KOREtoBackendKIL(compiledDef0.executionModule(), evaluatedDef0, rewritingContext.global(), false);
         List<org.kframework.backend.java.kil.Rule> javaRules = specRules.stream()
                 .map(r -> converter.convert(Optional.<Module>empty(), r))
                 .map(r -> new org.kframework.backend.java.kil.Rule(
@@ -480,8 +458,6 @@ public class Kapi {
                 .collect(Collectors.toList());
 
         //// prove spec rules
-
-        SymbolicRewriter rewriter = new SymbolicRewriter(rewritingContextGlobal, kompileOptions, new KRunState.Counter(), converter);
 
         List<ConstrainedTerm> proofResults = javaRules.stream()
                 .filter(r -> !r.containsAttribute(Attribute.TRUSTED_KEY))
