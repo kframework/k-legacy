@@ -22,6 +22,8 @@ public class KapiGlobal {
     public FileUtil files;
     public FileSystem fs;
 
+    public boolean deterministicFunctions; // from JavaExecutionOptions
+
     public KapiGlobal() {
         this.globalOptions = new GlobalOptions();
 
@@ -36,6 +38,8 @@ public class KapiGlobal {
         this.kem = new KExceptionManager(globalOptions);
         this.files = FileUtil.get(globalOptions, System.getenv());
         this.fs = new PortableFileSystem(kem, files);
+
+        this.deterministicFunctions = false; // from JavaExecutionOptions
     }
 
     public void setVerbose(boolean v) {

@@ -82,10 +82,9 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
     }
 
     public InitializeRewriter(KapiGlobal g,
-            boolean deterministicFunctions,
             Map<String, MethodHandle> hookProvider,
             InitializeDefinition initializeDefinition) {
-        this(g.fs, deterministicFunctions, g.globalOptions, g.kem, g.smtOptions, hookProvider, g.kompileOptions, g.kRunOptions, g.files, initializeDefinition);
+        this(g.fs, g.deterministicFunctions, g.globalOptions, g.kem, g.smtOptions, hookProvider, g.kompileOptions, g.kRunOptions, g.files, initializeDefinition);
     }
 
     @Override
