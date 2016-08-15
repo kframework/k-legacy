@@ -381,7 +381,7 @@ public class Kapi {
             trusted.add(startRule1.containsAttribute(Attribute.TRUSTED_KEY));
         }
 
-        boolean result = SymbolicRewriter.equiv(startSyncNodes1, startSyncNodes2, targetSyncNodes1, targetSyncNodes2, ensures, trusted, rewriter1, rewriter2);
+        boolean result = EquivChecker.equiv(startSyncNodes1, startSyncNodes2, targetSyncNodes1, targetSyncNodes2, ensures, trusted, rewriter1, rewriter2);
         System.out.println(result);
 
         return;
