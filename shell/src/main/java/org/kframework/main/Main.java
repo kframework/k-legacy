@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableSet;
 import com.martiansoftware.nailgun.NGContext;
 import org.fusesource.jansi.AnsiConsole;
 import org.kframework.HookProvider;
+import org.kframework.Kapi;
 import org.kframework.backend.Backends;
 import org.kframework.backend.java.symbolic.InitializeRewriter;
 import org.kframework.backend.java.symbolic.JavaBackend;
@@ -354,6 +355,35 @@ public class Main {
             KppFrontEnd frontEnd = new KppFrontEnd(kem, globalOptions, files, args);
 
             return runApplication(frontEnd, kem);
+        }
+
+        if (toolName.equals("-kequiv")) {
+
+            if (args.length < 8) {
+                System.out.println("usage: <smt-prelude> <def0> <mod0> <def1> <mod1> <def2> <mod2> <spec>");
+                return 1;
+            }
+            String def0 = FileUtil.load(new File(args[1])); // "require \"domains.k\" module A syntax KItem ::= \"run\" endmodule"
+            String mod0 = args[2]; // "A"
+            String def1 = FileUtil.load(new File(args[3])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
+            String mod1 = args[4]; // "A"
+            String def2 = FileUtil.load(new File(args[5])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
+            String mod2 = args[6]; // "A"
+            //
+            String prelude = args[0];
+            String prove = args[7];
+
+            Kapi kapi = new Kapi();
+
+            // kompile
+            CompiledDefinition compiledDef0 = kapi.kompile(def0, mod0);
+            CompiledDefinition compiledDef1 = kapi.kompile(def1, mod1);
+            CompiledDefinition compiledDef2 = kapi.kompile(def2, mod2);
+
+            // kequiv
+            Kapi.kequiv(compiledDef0, compiledDef1, compiledDef2, prove, prelude);
+
+            return 1;
         }
 
         invalidJarArguments();
