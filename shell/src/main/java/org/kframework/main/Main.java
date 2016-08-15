@@ -357,7 +357,7 @@ public class Main {
             return runApplication(frontEnd, kem);
         }
 
-        if (toolName.equals("-kequiv")) {
+        if (toolName.equals("-keq")) {
 
             if (args.length < 8) {
                 System.out.println("usage: <smt-prelude> <def0> <mod0> <def1> <mod1> <def2> <mod2> <spec>");
