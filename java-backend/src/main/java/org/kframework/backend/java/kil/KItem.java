@@ -294,19 +294,19 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
     public static class KItemOperations {
 
         private final Stage stage;
-        private final JavaExecutionOptions javaOptions;
+        private final boolean deterministicFunctions;
         private final KExceptionManager kem;
         private final Provider<BuiltinFunction> builtins;
         private final GlobalOptions options;
 
         public KItemOperations(
                 Stage stage,
-                JavaExecutionOptions javaOptions,
+                boolean deterministicFunctions,
                 KExceptionManager kem,
                 Provider<BuiltinFunction> builtins,
                 GlobalOptions options) {
             this.stage = stage;
-            this.javaOptions = javaOptions;
+            this.deterministicFunctions = deterministicFunctions;
             this.kem = kem;
             this.builtins = builtins;
             this.options = options;
@@ -470,7 +470,7 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                                 continue;
                             } else {
                                 if (matches.size() > 1) {
-                                    if (javaOptions.deterministicFunctions) {
+                                    if (deterministicFunctions) {
                                         throw KEMException.criticalError("More than one possible match. " +
                                                 "Function " + kLabelConstant + " might be non-deterministic.");
                                     }
@@ -513,7 +513,7 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                              * If the function definitions do not need to be deterministic, try them in order
                              * and apply the first one that matches.
                              */
-                            if (!javaOptions.deterministicFunctions && result != null) {
+                            if (!deterministicFunctions && result != null) {
                                 return result;
                             }
                         } finally {

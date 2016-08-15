@@ -55,7 +55,7 @@ public class ExpandMacros {
         if (macroModule.isPresent()) {
             rewriter = (InitializeRewriter.SymbolicRewriterGlue) new InitializeRewriter(
                     new PortableFileSystem(kem, files),
-                    new JavaExecutionOptions(),
+                    false,
                     globalOptions,
                     kem,
                     kompileOptions.experimental.smt,

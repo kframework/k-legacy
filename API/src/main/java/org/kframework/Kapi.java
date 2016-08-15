@@ -99,7 +99,7 @@ public class Kapi {
         //
         Rewriter rewriter = (InitializeRewriter.SymbolicRewriterGlue)
             new InitializeRewriter(kapiGlobal,
-                javaExecutionOptions,
+                false,
                 hookProvider,
                 initializeDefinition)
             .apply(compiledDef.executionModule());
@@ -219,14 +219,14 @@ public class Kapi {
 
         //// creating rewritingContext
 
-        GlobalContext initializingContextGlobal = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING);
+        GlobalContext initializingContextGlobal = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING);
         TermContext initializingContext = TermContext.builder(initializingContextGlobal).freshCounter(0).build();
         org.kframework.backend.java.kil.Definition evaluatedDef0 = initializeDefinition.invoke(compiledDef0.executionModule(), kem, initializingContext.global());
         org.kframework.backend.java.kil.Definition evaluatedDef1 = initializeDefinition.invoke(compiledDef1.executionModule(), kem, initializingContext.global());
         org.kframework.backend.java.kil.Definition evaluatedDef2 = initializeDefinition.invoke(compiledDef2.executionModule(), kem, initializingContext.global());
 
-        GlobalContext rewritingContextGlobal1 = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
-        GlobalContext rewritingContextGlobal2 = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
+        GlobalContext rewritingContextGlobal1 = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
+        GlobalContext rewritingContextGlobal2 = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
         rewritingContextGlobal1.setDefinition(evaluatedDef1);
         rewritingContextGlobal2.setDefinition(evaluatedDef2);
         TermContext rewritingContext1 = TermContext.builder(rewritingContextGlobal1).freshCounter(initializingContext.getCounterValue()).build();
@@ -366,12 +366,12 @@ public class Kapi {
 
         //// creating rewritingContext
 
-        GlobalContext initializingContextGlobal = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING);
+        GlobalContext initializingContextGlobal = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING);
         TermContext initializingContext = TermContext.builder(initializingContextGlobal).freshCounter(0).build();
         org.kframework.backend.java.kil.Definition evaluatedDef0 = initializeDefinition.invoke(compiledDef0.executionModule(), kem, initializingContext.global());
         org.kframework.backend.java.kil.Definition evaluatedDef1 = initializeDefinition.invoke(compiledDef1.executionModule(), kem, initializingContext.global());
 
-        GlobalContext rewritingContextGlobal = new GlobalContext(fs, javaExecutionOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
+        GlobalContext rewritingContextGlobal = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
         rewritingContextGlobal.setDefinition(evaluatedDef1);
         TermContext rewritingContext = TermContext.builder(rewritingContextGlobal).freshCounter(initializingContext.getCounterValue()).build();
 

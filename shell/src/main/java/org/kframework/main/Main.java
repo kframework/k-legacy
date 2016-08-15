@@ -245,7 +245,7 @@ public class Main {
                 executionMode = new KRunExecutionMode(kRunOptions, kem, files);
             }
             //
-            InitializeRewriter initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions, kRunOptions, files, initializeDefinition);
+            InitializeRewriter initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions, kRunOptions, files, initializeDefinition);
             KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, kompiledDir, kem, kRunOptions, files, compiledDef, initializeRewriter, executionMode, ttyInfo, isNailgun);
 
             return runApplication(frontEnd, kem);

@@ -154,11 +154,9 @@ public class Equality implements Serializable {
     public static class EqualityOperations {
 
         private final Provider<Definition> definitionProvider;
-        private final JavaExecutionOptions options;
 
-        public EqualityOperations(Provider<Definition> definitionProvider, JavaExecutionOptions options) {
+        public EqualityOperations(Provider<Definition> definitionProvider) {
             this.definitionProvider = definitionProvider;
-            this.options = options;
         }
 
         /**

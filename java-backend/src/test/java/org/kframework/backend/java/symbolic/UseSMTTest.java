@@ -42,7 +42,7 @@ public class UseSMTTest {
         when(tc.definition()).thenReturn(definition);
         when(definition.functionRules()).thenReturn(HashMultimap.<KLabelConstant, Rule>create());
         when(definition.kLabels()).thenReturn(new HashSet<>());
-        GlobalContext global = new GlobalContext(null, null, null, null, null, new SMTOptions(), null, FileUtil.testFileUtil(), null);
+        GlobalContext global = new GlobalContext(null, false, null, null, null, new SMTOptions(), null, FileUtil.testFileUtil(), null);
         global.setDefinition(definition);
         when(tc.global()).thenReturn(global);
     }

@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 public class InitializeRewriter implements Function<Module, Rewriter> {
 
     private final FileSystem fs;
-    private final JavaExecutionOptions javaOptions;
+    private final boolean deterministicFunctions;
     private final GlobalOptions globalOptions;
     private final KExceptionManager kem;
     private final SMTOptions smtOptions;
@@ -60,7 +60,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
 
     public InitializeRewriter(
             FileSystem fs,
-            JavaExecutionOptions javaOptions,
+            boolean deterministicFunctions,
             GlobalOptions globalOptions,
             KExceptionManager kem,
             SMTOptions smtOptions,
@@ -70,7 +70,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
             FileUtil files,
             InitializeDefinition initializeDefinition) {
         this.fs = fs;
-        this.javaOptions = javaOptions;
+        this.deterministicFunctions = deterministicFunctions;
         this.globalOptions = globalOptions;
         this.kem = kem;
         this.smtOptions = smtOptions;
@@ -82,19 +82,19 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
     }
 
     public InitializeRewriter(KapiGlobal g,
-            JavaExecutionOptions javaOptions,
+            boolean deterministicFunctions,
             Map<String, MethodHandle> hookProvider,
             InitializeDefinition initializeDefinition) {
-        this(g.fs, javaOptions, g.globalOptions, g.kem, g.smtOptions, hookProvider, g.kompileOptions, g.kRunOptions, g.files, initializeDefinition);
+        this(g.fs, deterministicFunctions, g.globalOptions, g.kem, g.smtOptions, hookProvider, g.kompileOptions, g.kRunOptions, g.files, initializeDefinition);
     }
 
     @Override
     public synchronized Rewriter apply(Module module) {
-        TermContext initializingContext = TermContext.builder(new GlobalContext(fs, javaOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING))
+        TermContext initializingContext = TermContext.builder(new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING))
                 .freshCounter(0).build();
         Definition evaluatedDef = initializeDefinition.invoke(module, kem, initializingContext.global());
 
-        GlobalContext rewritingContext = new GlobalContext(fs, javaOptions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
+        GlobalContext rewritingContext = new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
         rewritingContext.setDefinition(evaluatedDef);
 
         return new SymbolicRewriterGlue(module, evaluatedDef, kompileOptions, initializingContext.getCounterValue(), rewritingContext, kem);

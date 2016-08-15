@@ -35,7 +35,7 @@ public class GlobalContext implements Serializable {
 
     public GlobalContext(
             FileSystem fs,
-            JavaExecutionOptions javaOptions,
+            boolean deterministicFunctions,
             GlobalOptions globalOptions,
             KRunOptions krunOptions,
             KExceptionManager kem,
@@ -49,9 +49,9 @@ public class GlobalContext implements Serializable {
         this.kem = kem;
         this.hookProvider = hookProvider;
         this.files = files;
-        this.equalityOps = new EqualityOperations(() -> def, javaOptions);
+        this.equalityOps = new EqualityOperations(() -> def);
         this.constraintOps = new SMTOperations(() -> def, smtOptions, new Z3Wrapper(smtOptions, kem, globalOptions, files));
-        this.kItemOps = new KItemOperations(stage, javaOptions, kem, this::builtins, globalOptions);
+        this.kItemOps = new KItemOperations(stage, deterministicFunctions, kem, this::builtins, globalOptions);
         this.stage = stage;
     }
 
