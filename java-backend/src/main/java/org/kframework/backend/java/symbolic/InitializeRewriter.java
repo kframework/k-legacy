@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
+import org.kframework.KapiGlobal;
 import org.kframework.RewriterResult;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.indexing.IndexingTable;
@@ -78,6 +79,13 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
         this.krunOptions = krunOptions;
         this.files = files;
         this.initializeDefinition = initializeDefinition;
+    }
+
+    public InitializeRewriter(KapiGlobal g,
+            JavaExecutionOptions javaOptions,
+            Map<String, MethodHandle> hookProvider,
+            InitializeDefinition initializeDefinition) {
+        this(g.fs, javaOptions, g.globalOptions, g.kem, g.smtOptions, hookProvider, g.kompileOptions, g.kRunOptions, g.files, initializeDefinition);
     }
 
     @Override
