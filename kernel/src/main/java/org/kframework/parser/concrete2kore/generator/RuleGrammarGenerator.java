@@ -283,8 +283,8 @@ public class RuleGrammarGenerator {
 
                 Att newAtts = ul.attrs.remove("userList");
                 // Es#Terminator ::= "" [klabel('.Es)]
-                prod1 = Production(ul.terminatorKLabel, Sort(ul.sort + "#Terminator"), Seq(Terminal("")),
-                        newAtts.add("klabel", ul.terminatorKLabel).add(Constants.ORIGINAL_PRD, ul.pTerminator));
+                prod1 = Production(ul.klabel, Sort(ul.sort + "#Terminator"), Seq(Terminal("")),
+                        newAtts.add("klabel", ul.klabel).add(Constants.ORIGINAL_PRD, ul.pTerminator));
                 // Ne#Es ::= E "," Ne#Es [klabel('_,_)]
                 prod2 = Production(ul.klabel, Sort("Ne#" + ul.sort),
                         Seq(NonTerminal(Sort(ul.childSort)), Terminal(ul.separator), NonTerminal(Sort("Ne#" + ul.sort))),
