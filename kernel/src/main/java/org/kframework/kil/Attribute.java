@@ -37,6 +37,7 @@ public class Attribute<T> extends ASTNode {
     public static final String SIMPLIFICATION_KEY = "simplification";
 
     public static final String FRESH_GENERATOR = "freshGenerator";
+    public static final String CELL_COLLECTION = "cellCollection";
     public static final String BITWIDTH_KEY = "bitwidth";
     public static final String EXPONENT_KEY = "exponent";
     public static final String SIGNIFICAND_KEY = "significand";

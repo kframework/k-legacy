@@ -196,7 +196,7 @@ public class RuleGrammarGenerator {
         if (addRuleCells) {
             ConfigurationInfo cfgInfo = new ConfigurationInfoFromModule(mod);
             parseProds = Stream.concat(prods.stream(), stream(mod.sentences())).flatMap(s -> {
-                if (s instanceof Production && (s.att().contains("avoid") && s.att().contains("bag"))) {
+                if (s instanceof Production && s.att().contains(Attribute.CELL_COLLECTION)) {
                     // remove from parsing the productions added by the configuration concretization for
                     // multiplicity="*" cells, since they interfere with the general Bag Bag production
                     // and create java.lang.OutOfMemoryError
