@@ -1,3 +1,4 @@
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 module TEST
 
 configuration <T>
@@ -10,7 +11,7 @@ configuration <T>
 syntax KItem ::= "@InitConfig"
 rule <k> @InitConfig => . ... </k>
      <objs> 
-       .Bag =>(
+       .Bag =>
             <obj> 1 </obj>
             <obj> 2 </obj>
             <obj> 3 </obj>
@@ -28,8 +29,7 @@ rule <k> @InitConfig => . ... </k>
             <obj> 15 </obj>  // 3.4GB  20sec
             <obj> 16 </obj>  // 5.6GB  60sec
             <obj> 17 </obj>  // java.lang.OutOfMemoryError
-       
-	   )
+
      </objs>
 
 endmodule
