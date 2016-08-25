@@ -10,7 +10,7 @@ configuration <T>
 
 syntax KItem ::= "@InitConfig"
 rule <k> @InitConfig => . ... </k>
-     <objs> 
+     <objs>
        .Bag =>
             <obj> 1 </obj>
             <obj> 2 </obj>
