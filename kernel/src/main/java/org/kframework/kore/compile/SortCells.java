@@ -4,6 +4,7 @@ package org.kframework.kore.compile;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import org.kframework.attributes.Att;
 import org.kframework.builtin.BooleanUtils;
 import org.kframework.compile.ConfigurationInfo;
 import org.kframework.compile.ConfigurationInfo.Multiplicity;
@@ -134,8 +135,8 @@ public class SortCells {
             if (remainingCells == null) {
                 remainingCells = new LinkedHashSet<>(cfg.getChildren(cell));
             }
-            if (var.att().contains(Attribute.SORT_KEY)) {
-                Sort sort = Sort(var.att().<String>get(Attribute.SORT_KEY).get());
+            if (var.att().contains(Att.sort())) {
+                Sort sort = var.att().get(Att.sort()).get();
                 if (cfg.cfg.isCell(sort)) {
                     remainingCells.removeIf(s -> !s.equals(sort));
                 }
@@ -148,8 +149,8 @@ public class SortCells {
                         remainingCells.remove(s);
                     }
                 } else if (item instanceof KVariable && !item.equals(var)) {
-                    if (item.att().contains(Attribute.SORT_KEY)) {
-                        Sort sort = Sort(item.att().<String>get(Attribute.SORT_KEY).get());
+                    if (item.att().contains(Att.sort())) {
+                        Sort sort = item.att().get(Att.sort()).get();
                         remainingCells.remove(sort);
                     }
                 }
@@ -187,7 +188,7 @@ public class SortCells {
                 split = Collections.emptyMap();
             } else if (remainingCells.size() == 1) {
                 Sort s = Iterables.getOnlyElement(remainingCells);
-                split = ImmutableMap.of(s, KVariable(var.name(), var.att().remove(Attribute.SORT_KEY)));
+                split = ImmutableMap.of(s, KVariable(var.name(), var.att().remove(Att.sort())));
             } else {
                 split = new HashMap<>();
                 for (Sort cell : remainingCells) {
@@ -266,8 +267,8 @@ public class SortCells {
                 for (K item : items) {
                     if (item instanceof KVariable) {
                         KVariable var = (KVariable) item;
-                        if (var.att().contains(Attribute.SORT_KEY)) {
-                            Sort sort = Sort(var.att().<String>get(Attribute.SORT_KEY).get());
+                        if (var.att().contains(Att.sort())) {
+                            Sort sort = var.att().get(Att.sort()).get();
                             if (cfg.cfg.isCell(sort)) {
                                 if (!cellVariables.getOrDefault(var, sort).equals(sort)) {
                                     Sort prevSort = cellVariables.get(var);
@@ -614,12 +615,12 @@ public class SortCells {
                                     if (variables.containsKey(var)) {
                                         varinfo = variables.get(var);
                                     }
-                                    if (!var.att().contains(Attribute.SORT_KEY) && varinfo != null) {
+                                    if (!var.att().contains(Att.sort()) && varinfo != null) {
                                         if (varinfo.var != null)
                                             var = varinfo.var;
                                     }
-                                    if (var.att().contains(Attribute.SORT_KEY)) {
-                                        Sort sort = Sort(var.att().<String>get(Attribute.SORT_KEY).get());
+                                    if (var.att().contains(Att.sort())) {
+                                        Sort sort = var.att().get(Att.sort()).get();
                                         if (cfg.cfg.isCell(sort)) {
                                             if (!subcellSorts.contains(sort)) {
                                                 throw new IllegalArgumentException("No such sub-cell " + sort + " in the cell " + cellLabel);
@@ -730,8 +731,8 @@ public class SortCells {
                         K item = k.klist().items().get(i);
                         if (item instanceof KVariable) {
                             KVariable var = (KVariable) item;
-                            if (var.att().contains(Attribute.SORT_KEY)) {
-                                Sort sort = Sort(var.att().<String>get(Attribute.SORT_KEY).get());
+                            if (var.att().contains(Att.sort())) {
+                                Sort sort = var.att().get(Att.sort()).get();
                                 if (!cfg.cfg.isCell(sort)) {
                                     if (!cellFragmentVars.containsKey(var)) {
                                         cellFragmentVars.put(var, new HashSet<>());

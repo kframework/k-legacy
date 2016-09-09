@@ -11,11 +11,14 @@ import java.io.Serializable;
 import java.lang.annotation.Annotation;
 
 /**
+ * @Deprecated
+ * Please use {@link org.kframework.attributes.Att}
  * Represents either an explicit attribute on a {@link Rule} or {@link Production},
  * or node metadata like location.
  * The inherited member attributes is used for location information
  * if this represents an explicitly written attribute.
  */
+@Deprecated
 public class Attribute<T> extends ASTNode {
 
     public static final String BUILTIN_KEY = "builtin";
@@ -24,7 +27,7 @@ public class Attribute<T> extends ASTNode {
     public static final String COMMUTATIVE_KEY = "comm";
     public static final String IDEMPOTENT_KEY = "idem";
     public static final String UNIT_KEY = "unit";
-    public static final String SORT_KEY = "sort";
+//    public static final String SORT_KEY = "sort";
     public static final String PREDICATE_KEY = "predicate";
     public static final String STREAM_KEY = "stream";
     public static final String ANYWHERE_KEY = Constants.ANYWHERE;
@@ -37,6 +40,7 @@ public class Attribute<T> extends ASTNode {
     public static final String SIMPLIFICATION_KEY = "simplification";
 
     public static final String FRESH_GENERATOR = "freshGenerator";
+    public static final String CELL_COLLECTION = "cellCollection";
     public static final String BITWIDTH_KEY = "bitwidth";
     public static final String EXPONENT_KEY = "exponent";
     public static final String SIGNIFICAND_KEY = "significand";

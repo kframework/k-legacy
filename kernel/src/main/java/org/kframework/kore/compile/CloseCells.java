@@ -2,6 +2,7 @@
 package org.kframework.kore.compile;
 
 import com.google.common.collect.Sets;
+import org.kframework.attributes.Att;
 import org.kframework.builtin.Sorts;
 import org.kframework.compile.ConfigurationInfo;
 import org.kframework.compile.LabelInfo;
@@ -95,7 +96,7 @@ public class CloseCells {
             if (s == null) {
                 newLabel = KVariable("DotVar" + (counter++));
             } else {
-                newLabel = KVariable("DotVar" + (counter++), Att().add(Attribute.SORT_KEY, s.name()));
+                newLabel = KVariable("DotVar" + (counter++), Att().add(Att.sort(), s));
             }
         } while (vars.contains(newLabel));
         vars.add(newLabel);
@@ -278,8 +279,8 @@ public class CloseCells {
         if (item instanceof KApply) {
             required.remove(labelInfo.getCodomain(((KApply) item).klabel()));
         } else if (item instanceof KVariable) {
-            if (item.att().contains(Attribute.SORT_KEY)) {
-                Sort sort = Sort(item.att().<String>get(Attribute.SORT_KEY).get());
+            if (item.att().contains(Att.sort())) {
+                Sort sort = item.att().get(Att.sort()).get();
                 if (cfg.cfg.isCell(sort)) {
                     required.remove(sort);
                 } else {

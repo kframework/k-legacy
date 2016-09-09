@@ -1,15 +1,15 @@
 // Copyright (c) 2014-2016 K Team. All Rights Reserved.
 DEF: null -> null
 module TEST
-  syntax Foo ::= "t"
+  syntax Foo@TEST ::= "t"
 
-  syntax Foo ::= "u"
+  syntax Foo@TEST ::= "u"
 
-  syntax Foo ::= "x"
+  syntax Foo@TEST ::= "x"
 
-  syntax Foo ::= "y"
+  syntax Foo@TEST ::= "y"
 
-  syntax Foo ::= "z"
+  syntax Foo@TEST ::= "z"
 
   syntax left x
 

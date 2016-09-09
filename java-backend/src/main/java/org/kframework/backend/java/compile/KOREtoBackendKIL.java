@@ -10,6 +10,7 @@ import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.kil.KItem;
 import org.kframework.backend.java.symbolic.ConjunctiveFormula;
 import org.kframework.builtin.KLabels;
+import org.kframework.builtin.Sorts;
 import org.kframework.definition.Module;
 import org.kframework.compile.ConfigurationInfo;
 import org.kframework.kil.Attribute;
@@ -78,7 +79,6 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
         return Sort.of(name);
     }
 
-    @Override
     public <KK extends org.kframework.kore.K> KList KList(List<KK> items) {
         return (KList) KCollection.upKind(
                 KList.concatenate(items.stream().map(this::convert).collect(Collectors.toList())),
@@ -237,7 +237,7 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
 
     @Override
     public Variable KVariable(String name, Att att) {
-        Sort sort = Sort.of(att.<String>getOptional(Attribute.SORT_KEY).orElse("K"));
+        Sort sort = Sort.of(att.getOptional(Att.sort()).orElse(Sorts.K()).toString());
         String key = name + sort;
         if (variableTable.containsKey(key)) {
             return variableTable.get(key);
@@ -265,7 +265,7 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
 
     private Term convert1(KLabel klabel) {
         if (klabel instanceof KVariable) {
-            return KVariable(klabel.name(), ((KVariable) klabel).att().add(Attribute.SORT_KEY, "KLabel"));
+            return KVariable(klabel.name(), ((KVariable) klabel).att().add(Att.sort(), Sorts.KLabel()));
         } else {
             return KLabel(klabel.name());
         }

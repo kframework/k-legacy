@@ -225,8 +225,8 @@ public class KILtoKORE extends KILTransformation<Object> {
 
             @Override
             public Set<Tuple2<K, Sort>> apply(KVariable k) {
-                return (Set<Tuple2<K, Sort>>) k.att().<String>getOptional(Attribute.SORT_KEY)
-                        .map(x -> Sets.<Tuple2<K, Sort>>newHashSet(new Tuple2((K) k, Sort(x))))
+                return (Set<Tuple2<K, Sort>>) k.att().getOptional(Att.sort())
+                        .map(x -> Sets.<Tuple2<K, Sort>>newHashSet(new Tuple2((K) k, x)))
                         .orElseGet(() -> Sets.<Tuple2<K, Sort>>newHashSet());
             }
 

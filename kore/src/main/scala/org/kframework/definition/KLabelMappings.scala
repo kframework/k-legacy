@@ -12,7 +12,7 @@ trait KLabelMappings {
       case prod: Production => (makeKLabel(prod.items), prod)
     } groupBy (_._1) mapValues (_ map { _._2 })
 
-  def makeKLabel(items: Seq[ProductionItem]): kore.KLabel = ADT.KLabel(
+  def makeKLabel(items: Seq[ProductionItem]): kore.KLabel = ADT.KLabelLookup(
     items map {
       case NonTerminal(sort) => "_"
       case Terminal(string, _) => string

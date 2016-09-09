@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._
 object Assoc extends {
 
   def flatten(label: KLabel, list: java.util.List[K], m: Module): java.util.List[K] = {
-    flatten(label, list.asScala, ADT.KLabel(m.attributesFor(label).get[String]("unit").get)).asJava
+    flatten(label, list.asScala, ADT.KLabelLookup(m.attributesFor(label).get[String]("unit").get)).asJava
   }
 
 

@@ -42,7 +42,7 @@ class UnparseTest {
   }
 
   @Test def Tokens() {
-    Assert.assertEquals("""#token("9","Int")~>#token("Test","String")""",ToKast(intToToken(9)~>"Test"))
+    Assert.assertEquals("""#token("9","Int@INT-SYNTAX")~>#token("Test","String@STRING-SYNTAX")""",ToKast(intToToken(9)~>"Test"))
   }
 
   @Test def Variables() {

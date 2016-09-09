@@ -17,7 +17,7 @@ import org.kframework.utils.errorsystem.KException.KExceptionGroup;
 public class KEMException extends RuntimeException {
     public final KException exception;
 
-    KEMException(KException e) {
+    public KEMException(KException e) {
         super(e.toString(), e.getException());
         this.exception = e;
     }

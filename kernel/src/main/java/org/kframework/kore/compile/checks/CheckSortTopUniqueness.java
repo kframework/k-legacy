@@ -2,6 +2,7 @@
 package org.kframework.kore.compile.checks;
 
 import org.kframework.definition.Module;
+import org.kframework.definition.ModuleName;
 import org.kframework.definition.Production;
 import org.kframework.definition.Sentence;
 import org.kframework.definition.SyntaxSort;
@@ -51,7 +52,7 @@ public class CheckSortTopUniqueness {
     }
 
     private void check(Sort s, Sentence p) {
-        if (!s.equals(Sort("Cell")) &&
+        if (!s.equals(Sort("Cell", ModuleName.apply("KCELLS"))) &&
                 module.subsorts().lessThan(s, Sort("KList")) &&
                 module.subsorts().lessThan(s, Sort("Bag"))) {
             errors.add(KEMException.compilerError("Multiple top sorts found for " + s.name() + ": KList and Bag.", p));

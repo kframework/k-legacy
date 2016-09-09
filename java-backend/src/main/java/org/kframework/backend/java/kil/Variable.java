@@ -145,14 +145,13 @@ public class Variable extends Term implements Immutable, org.kframework.kore.KVa
         }
 
         Variable variable = (Variable) object;
-        return name.equals(variable.name) && sort.equals(variable.sort);
+        return name.equals(variable.name);
     }
 
     @Override
     protected final int computeHash() {
         int hashCode = 1;
         hashCode = hashCode * Constants.HASH_PRIME + name.hashCode();
-        hashCode = hashCode * Constants.HASH_PRIME + sort.hashCode();
         return hashCode;
     }
 

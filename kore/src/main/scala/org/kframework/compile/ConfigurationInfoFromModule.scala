@@ -3,6 +3,7 @@ package org.kframework.compile
 import java.util
 
 import org.kframework.POSet
+import org.kframework.builtin.Sorts
 import org.kframework.kore.KORE.{KLabel, KApply}
 
 import scala.collection.JavaConverters._
@@ -19,6 +20,7 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
 
   private val cellProductions: Map[Sort,Production] =
     m.productions.filter(_.att.contains("cell")).map(p => (p.sort, p)).toMap
+  // TODO (brandon): can all assoc prods can be cell productions? I (radu) had some weird issues where isLeafCell failed
   private val cellBagProductions: Map[Sort,Production] =
     m.productions.filter(_.att.contains("assoc")).map(p => (p.sort, p)).toMap
   private val cellBagSubsorts: Map[Sort, Set[Sort]] = cellBagProductions.values.map(p => (p.sort, getCellSortsOfCellBag(p.sort))).toMap
@@ -47,7 +49,7 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
     }}.toSet
 
   private def getCellSortsOfCellBag(n: Sort): Set[Sort] = {
-    m.definedSorts.filter(m.subsorts.directlyGreaterThan(n, _))
+    m.definedSorts.filter(m.subsorts.directlyGreaterThan(n, _)).filterNot(s => s.equals(Sorts.KBott))
   }
 
   override def getCellBagSortsOfCell(n: Sort): Set[Sort] = {
@@ -64,12 +66,14 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
     else
       topCellsIncludingStrategyCell
 
-  if (topCells.size > 1)
-    throw new AssertionError("Too many top cells:" + topCells)
+  lazy val topCell: Sort = {
+    if (topCells.size > 1)
+      throw new AssertionError("Too many top cells:" + topCells)
 
-  val topCell: Sort = topCells.head
+    topCells.head
+  }
   private val sortedSorts: Seq[Sort] = tsort(edges).toSeq
-  val levels: Map[Sort, Int] = edges.toList.sortWith((l, r) => sortedSorts.indexOf(l._1) < sortedSorts.indexOf(r._1)).foldLeft(Map(topCell -> 0)) {
+  lazy val levels: Map[Sort, Int] = edges.toList.sortWith((l, r) => sortedSorts.indexOf(l._1) < sortedSorts.indexOf(r._1)).foldLeft(Map(topCell -> 0)) {
     case (m: Map[Sort, Int], (from: Sort, to: Sort)) =>
       m + (to -> (m(from) + 1))
   }
@@ -118,8 +122,8 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
   override def getCellLabel(k: Sort): KLabel = cellLabels(k)
   override def getCellSort(kLabel: KLabel): Sort = cellLabelsToSorts(kLabel)
 
-  override def getCellFragmentLabel(k : Sort): KLabel = cellFragmentLabel(k.name)
-  override def getCellAbsentLabel(k: Sort): KLabel = cellAbsentLabel(k.name)
+  override def getCellFragmentLabel(k : Sort): KLabel = cellFragmentLabel(k.localName)
+  override def getCellAbsentLabel(k: Sort): KLabel = cellAbsentLabel(k.localName)
 
   override def getRootCell: Sort = topCell
   override def getComputationCell: Sort = mainCell
@@ -164,7 +168,7 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
   lazy val configVars: Set[KToken] = {
     val transformer = new FoldK[Set[KToken]] {
       override def apply(k: KToken): Set[KToken] = {
-        if (k.sort.name == "KConfigVar") Set(k) else unit
+        if (k.sort == Sorts.KConfigVar) Set(k) else unit
       }
       def unit = Set()
       def merge(set1: Set[KToken], set2: Set[KToken]) = set1 | set2

@@ -1,7 +1,6 @@
 package org.kframework.compile
 
 import org.kframework.attributes.Att
-import org.kframework.definition
 import org.kframework.definition._
 import org.kframework.kore.ADT.Sort
 
@@ -15,9 +14,9 @@ object AddBottomSortForListsWithIdenticalLabels extends (Module => Module) {
       .groupBy(l => l.klabel)
       .flatMap {
         case (klabel, userListInfo) =>
-          val minimalSorts = m.subsorts.minimal(userListInfo map { li => Sort(li.sort) })
+          val minimalSorts = m.subsorts.minimal(userListInfo map { li => li.sort })
           if (minimalSorts.size > 1) {
-            val newBottomSort = Sort("GeneratedListBottom{" + klabel + "}")
+            val newBottomSort = Sort("GeneratedListBottom{" + klabel + "}", ModuleName(m.name))
 
             Set[Sentence]()
               .|(minimalSorts.map(s => Production(s, Seq(NonTerminal(newBottomSort)), Att.generatedByAtt(this.getClass))))

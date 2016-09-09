@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.kore.compile;
 
+import org.kframework.attributes.Att;
 import org.kframework.builtin.BooleanUtils;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.Context;
@@ -94,7 +95,7 @@ public class DeconstructIntegerAndFloatLiterals {
     KVariable newDotVariable(Sort sort) {
         KVariable newLabel;
         do {
-            newLabel = KVariable("_" + (counter++), Att().add("sort", sort.name()));
+            newLabel = KVariable("_" + (counter++), Att().add(Att.sort(), sort));
         } while (vars.contains(newLabel));
         vars.add(newLabel);
         return newLabel;

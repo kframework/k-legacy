@@ -23,7 +23,7 @@ public class KTokenVariablesToTrueVariables implements BiFunction<Module, K, K> 
             public K apply(KToken t) {
                 Option<Att> attOption = module.attForSort().get(t.sort());
                 if(attOption.isDefined() && attOption.get().contains(Att.variable())) {
-                    return new SortedADT.SortedKVariable(t.s(), t.att().add(Att.sort(), t.sort().name()));
+                    return new SortedADT.SortedKVariable(t.s(), t.att().add(Att.sort(), t.sort()));
                 } else {
                     return t;
                 }
