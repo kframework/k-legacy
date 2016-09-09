@@ -307,7 +307,7 @@ public class ResolveIOStreams {
             @Override
             public void apply(KApply k) {
                 if (k.klabel().name().equals(userCellLabel.name())) {
-                    Optional<Sort> sort = wellformedAndGetSortNameOfCast(k.klist());
+                    Optional<Sort> sort = wellformedAndGetSortOfCast(k.klist());
                     if (sort.isPresent()) {
                         sorts.add(sort.get());
                     } else {
@@ -333,7 +333,7 @@ public class ResolveIOStreams {
              * which comes from, e.g.,:
              *   <in> ListItem(V:Int) => .List ... </in>
              */
-            private Optional<Sort> wellformedAndGetSortNameOfCast(KList klist) {
+            private Optional<Sort> wellformedAndGetSortOfCast(KList klist) {
                 try {
                     if (klist.size() == 3) {
                         KApply k1 = (KApply) klist.items().get(0);
@@ -350,7 +350,7 @@ public class ResolveIOStreams {
                                 KApply k2li = (KApply) k2l.klist().items().get(0);
                                 if (k2li.klabel().name().startsWith("#SemanticCastTo") && k2li.klist().size() == 1 &&
                                         k2li.klist().items().get(0) instanceof KVariable) {
-                                    return Optional.of(ResolveSemanticCasts.getSortNameOfCast(k2li));
+                                    return Optional.of(ResolveSemanticCasts.getSortOfCast(k2li));
                                 }
                             }
                         }
