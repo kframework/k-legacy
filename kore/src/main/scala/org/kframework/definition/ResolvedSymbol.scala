@@ -22,10 +22,6 @@ trait LookupSymbol extends ModuleQualified
 
 trait ResolvedSymbol extends ModuleQualified
 
-object Foo {
-  var x = 0L
-}
-
 case class SymbolResolver[L <: ModuleQualified, S <: ResolvedSymbol](val moduleName: String, imported: Set[SymbolResolver[L, S]], definedLookups: Set[L])
                                                                     (implicit makeL: (String, ModuleName) => L, makeS: (String, ModuleName) => S)
   extends (L => S) {
