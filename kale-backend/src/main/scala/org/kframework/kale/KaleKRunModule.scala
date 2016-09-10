@@ -5,7 +5,6 @@ import java.util.function.Function
 import com.google.inject.{AbstractModule, TypeLiteral}
 import com.google.inject.multibindings.MapBinder
 import org.kframework.definition.Module
-import org.kframework.rewriter.Rewriter
 
 class KaleKRunModule extends AbstractModule {
   override def configure(): Unit = {

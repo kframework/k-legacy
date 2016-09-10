@@ -3,16 +3,15 @@ package org.kframework.kale
 import java.util
 import java.util.Optional
 
-import collection.JavaConverters._
 import org.kframework.RewriterResult
 import org.kframework.attributes.Att
+import org.kframework.builtin.Sorts
 import org.kframework.definition._
-import org.kframework.kil.{Attribute, Attributes}
-import org.kframework.kore.Unapply.Sort
 import org.kframework.kore._
-import org.kframework.rewriter.{Rewriter, SearchType}
+import org.kframework.rewriter.SearchType
 
 import collection._
+import org.kframework.kale
 
 object KaleRewriter {
   val self = this
@@ -29,10 +28,10 @@ object KaleRewriter {
 
 class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
 
-  private val productionLike = m.sentences.collect({
-    case p: Production => p
-    case s: SyntaxSort => s
-  })
+  private val productionLike: Set[Sentence] = (m.sentences.collect({
+    case p: Production => (p.klabel, p)
+    case s: SyntaxSort => (s.sort, s)
+  }) groupBy { _._1 } map { _._2.head } values).toSet
 
   private val assocProductions = productionLike.filter(p => KaleRewriter.isEffectivelyAssoc(p.att))
   private val nonAssocProductions = productionLike &~ assocProductions
@@ -42,7 +41,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     case p@Production(s, items, att) =>
       att.get(Att.hook).flatMap(KaleRewriter.hooks.get).orElse({
         if (att.contains(Att.token)) {
-          Some(org.kframework.kale.STRING)
+          Some(kale.GENERIC_TOKEN(kale.Sort(s.name)))
         } else {
           if(p.klabel.isDefined) {
             val nonTerminals = items.filter(_.isInstanceOf[NonTerminal])
@@ -59,21 +58,35 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
       })
   }
 
+  private val uninterpretedTokenLabels: Map[kale.Sort, ConstantLabel[String]] = nonAssocLabels collect {
+    case  l@GENERIC_TOKEN(s) => (s, l)
+  } toMap
+
+  private val nonConstantLabels: Map[String, NodeLabel] = nonAssocLabels collect {
+    case  l: NodeLabel => (l.name, l)
+  } toMap
+
   private val assocLabels: Set[Label] = assocProductions map { case p @ Production(s, items, att) =>
     val units = nonAssocLabels.filter(l => l.name == p.att.get[String]("unit").get)
     assert(units.size == 1)
     val theUnit = units.head.asInstanceOf[FreeLabel0]()
-    AssocWithIdListLabel(p.klabel.get.name, theUnit)
+    new AssocWithIdListLabel(p.klabel.get.name, theUnit)
   } toSet
 
   private val allLabels = nonAssocLabels | assocLabels
 
-  val unifier = SimpleMatcher(allLabels)
-  val substitutionApplier = ApplySubstitution(allLabels)
+  val unifier = Matcher(allLabels)
+  val substitutionApplier = SubstitutionApply(allLabels)
   val rewriterConstructor = Rewriter(substitutionApplier, unifier) _
 
   def convert(body: K): Term = body match {
-    case Unapply.KToken(s, sort) => ???
+    case Unapply.KToken(s, sort) => sort match {
+      case Sorts.Bool => kale.BOOLEAN(s.toBoolean)
+      case Sorts.Int => kale.INT(s.toInt)
+      case Sorts.String => kale.STRING(s)
+      case _ => uninterpretedTokenLabels(kale.Sort(sort.name))(s)
+    }
+    case Unapply.KApply(klabel, list) => ???
   }
 
   val rules = m.rules map {
