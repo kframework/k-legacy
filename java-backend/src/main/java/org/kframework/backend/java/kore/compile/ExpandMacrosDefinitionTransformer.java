@@ -6,15 +6,13 @@ import static org.kframework.Collections.*;
 
 import org.kframework.Collections;
 import org.kframework.definition.Definition;
+import org.kframework.definition.MemoizingModuleTransformer;
 import org.kframework.definition.ModuleTransformer;
 import org.kframework.definition.SelectiveDefinitionTransformer;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.definition.Module;
-
-import static scala.compat.java8.JFunction.*;
 
 import java.util.function.Function;
 
@@ -35,7 +33,7 @@ public class ExpandMacrosDefinitionTransformer implements Function<Definition, D
     @Override
     public Definition apply(Definition definition) {
         ExpandMacros macroExpander = new ExpandMacros(definition.mainModule(), kem, files, globalOptions, kompileOptions);
-        ModuleTransformer expandMacros = ModuleTransformer.fromSentenceTransformer(macroExpander::expand, "expand macro rules");
+        MemoizingModuleTransformer expandMacros = (MemoizingModuleTransformer) ModuleTransformer.fromSentenceTransformer(macroExpander::expand, "expand macro rules");
         return new SelectiveDefinitionTransformer(expandMacros).apply(definition);
     }
 }

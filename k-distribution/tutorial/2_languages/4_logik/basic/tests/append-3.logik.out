@@ -1,6 +1,6 @@
 Search results:
 
 Solution 1:
-Solution:Map -->
-Y:Term |-> V0 Z:Term |-> ( cons ( a , ( V0 , .Terms ) ) )
+Solution:Map@MAP -->
+Y:Term@LOGIK-COMMON |-> V0 Z:Term@LOGIK-COMMON |-> ( cons ( a , ( V0 , .Terms ) ) )
 

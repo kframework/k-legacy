@@ -172,7 +172,7 @@ public class GenerateSentencesFromConfigDecl {
     }
 
     public static String getInitLabel(Sort sort) {
-        return "init" + sort.name();
+        return "init" + sort.localName(); // TODO: replace with sort.name()
     }
 
     /**
@@ -350,7 +350,7 @@ public class GenerateSentencesFromConfigDecl {
                     .add("wrapElement", "<" + cellName + ">")
                     .add(Attribute.UNIT_KEY, "." + bagSort.name())
                     .add(Attribute.HOOK_KEY, type.toUpperCase() + ".concat")
-                    .add("avoid") // needed to ensure cell collections are parsed as Bag instead of CellBag
+                    .add(Attribute.CELL_COLLECTION) // used in GrammarGenerator to eliminate it from final parsing grammar
                     .add(Attribute.FUNCTION_KEY);
             String unitHook = type.toUpperCase() + ".unit", elementHook = type.toUpperCase() + ".element";
             switch(type) {

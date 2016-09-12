@@ -58,12 +58,12 @@ public class GenerateSentencesFromConfigDeclTest {
     public void testSingleTop() {
         K configuration = cell("threads", Collections.emptyMap(),
                 cell("thread", Collections.singletonMap("multiplicity", "*"),
-                        cells(cell("k", Collections.emptyMap(), KApply(KLabel("#SemanticCastToKItem"), KToken("$PGM", Sorts.KConfigVar()))),
+                        cells(cell("k", Collections.emptyMap(), KApply(KLabel("#SemanticCastToKItem@BASIC-K"), KToken("$PGM", Sorts.KConfigVar()))),
                                 cell("opt", Collections.singletonMap("multiplicity", "?"),
                                         KApply(KLabel(".Opt"))))));
         Module m1 = Module("CONFIG", Set(def.getModule("KSEQ").get()), Set(Production(".Opt", Sort("OptCellContent"), Seq(Terminal("")))), Att());
-        RuleGrammarGenerator parserGen = new RuleGrammarGenerator(def, true);
-        Module m = parserGen.getCombinedGrammar(parserGen.getConfigGrammar(m1)).getExtensionModule();
+        Definition d = Definition(m1, add(m1, def.modules()), Att());
+        Module m = RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getConfigGrammar(m1, s -> d.getModule(s).get()), true).getExtensionModule();
         Set<Sentence> gen = GenerateSentencesFromConfigDecl.gen(configuration, BooleanUtils.FALSE, Att(), m);
         Att initializerAtts = Att().add("initializer");
         Att productionAtts = initializerAtts.add("function");
@@ -75,7 +75,7 @@ public class GenerateSentencesFromConfigDeclTest {
                         Seq(NonTerminal(Sort("ThreadCellBag")), NonTerminal(Sort("ThreadCellBag"))),
                         Att().add("assoc","").add("comm","").add("unit",".ThreadCellBag")
                                 .add("element","ThreadCellBagItem").add("wrapElement","<thread>")
-                                .add("function").add("avoid").add("bag").add("hook","BAG.concat")),
+                                .add("function").add(Attribute.CELL_COLLECTION).add("bag").add("hook","BAG.concat")),
                 Production(".ThreadCellBag", Sort("ThreadCellBag"),
                         Seq(Terminal(".ThreadCellBag")),
                         Att().add("function").add("hook","BAG.unit")),
@@ -117,7 +117,7 @@ public class GenerateSentencesFromConfigDeclTest {
                                                 KApply(KLabel(KLabels.CELLS))), false)),
                         BooleanUtils.TRUE, BooleanUtils.TRUE, initializerAtts),
                 Rule(KRewrite(KApply(KLabel("initKCell"), KVariable("Init")),
-                                IncompleteCellUtils.make(KLabel("<k>"), false, KApply(KLabel("#SemanticCastToKItem"), KApply(KLabel("Map:lookup"),
+                                IncompleteCellUtils.make(KLabel("<k>"), false, KApply(KLabel("#SemanticCastToKItem@BASIC-K"), KApply(KLabel("Map:lookup"),
                                         KVariable("Init"),
                                         KToken("$PGM", Sorts.KConfigVar()))), false)),
                         BooleanUtils.TRUE, BooleanUtils.TRUE, initializerAtts),

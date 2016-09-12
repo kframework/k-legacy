@@ -31,7 +31,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static scala.compat.java8.JFunction.func;
 import static org.kframework.Collections.*;
 import static org.kframework.definition.Constructors.*;
 import static org.kframework.kore.KORE.*;
@@ -90,8 +89,8 @@ public class ExpandMacros {
     }
 
     private static boolean isSortPredicate(KLabel label, Module mod) {
-        return mod.attributesFor().get(label).exists(func(atts ->
-                atts.get(Attribute.PREDICATE_KEY).exists(func(s -> !s.equals("")))));
+        return mod.attributesFor().get(label).exists(atts ->
+                atts.get(Attribute.PREDICATE_KEY).exists(s -> !s.equals("")));
     }
 
     private static Optional<Module> getMacroModule(Module mod) {

@@ -1,11 +1,11 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.kore.compile;
 
+import org.kframework.attributes.Att;
 import org.kframework.builtin.BooleanUtils;
 import org.kframework.definition.Context;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
-import org.kframework.kil.Attribute;
 import org.kframework.kore.*;
 
 import java.util.HashMap;
@@ -71,7 +71,7 @@ public class ResolveSemanticCasts {
                         return k;
                     }
                 }.apply(k);
-            }).map(k -> KApply(KLabel("is" + getSortNameOfCast((KApply) k)), transform(k))).reduce(BooleanUtils::and);
+            }).map(k -> KApply(KLabel("is" + getSortOfCast((KApply) k)), transform(k))).reduce(BooleanUtils::and);
             if (!sideCondition.isPresent()) {
                 return requires;
             } else if (requires.equals(BooleanUtils.TRUE) && sideCondition.isPresent()) {
@@ -82,8 +82,8 @@ public class ResolveSemanticCasts {
         }
     }
 
-    public static String getSortNameOfCast(KApply kapp) {
-        return kapp.klabel().name().substring("#SemanticCastTo".length());
+    public static Sort getSortOfCast(KApply kapp) {
+        return Sort(kapp.klabel().name().substring("#SemanticCastTo".length()));
     }
 
     void gatherCasts(K term) {
@@ -95,7 +95,7 @@ public class ResolveSemanticCasts {
                     K child = v.klist().items().get(0);
                     if (child instanceof KVariable) {
                         KVariable var = (KVariable) child;
-                        varToTypedVar.put(var, KVariable(var.name(), var.att().add(Attribute.SORT_KEY, getSortNameOfCast(v))));
+                        varToTypedVar.put(var, KVariable(var.name(), var.att().add(Att.sort(), getSortOfCast(v))));
                     }
                 }
                 super.apply(v);

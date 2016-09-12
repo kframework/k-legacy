@@ -14,6 +14,7 @@ import org.kframework.kore.K;
 import org.kframework.kore.Sort;
 import org.kframework.kore.convertors.KILtoKORE;
 import org.kframework.main.GlobalOptions;
+import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.parser.outer.Outer;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KException;
@@ -22,7 +23,9 @@ import org.kframework.utils.file.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -116,6 +119,15 @@ public class ParserUtils {
             Source source,
             File currentDirectory,
             List<File> lookupDirectories) {
+        return slurp(definitionText, source, currentDirectory, lookupDirectories, new ArrayDeque<>());
+    }
+
+    private List<org.kframework.kil.Module> slurp(
+            String definitionText,
+            Source source,
+            File currentDirectory,
+            List<File> lookupDirectories,
+            Deque<File> parents) {
         List<DefinitionItem> items = Outer.parse(source, definitionText, null);
         if (options.verbose) {
             System.out.println("Importing: " + source);
@@ -123,17 +135,17 @@ public class ParserUtils {
         List<org.kframework.kil.Module> results = new ArrayList<>();
 
         for (DefinitionItem di : items) {
-            if (di instanceof org.kframework.kil.Module)
+            if (di instanceof org.kframework.kil.Module) {
                 results.add((org.kframework.kil.Module) di);
-            else if (di instanceof Require) {
+            } else if (di instanceof Require) {
                 // resolve location of the new file
 
                 String definitionFileName = ((Require) di).getValue();
 
-                ArrayList<File> allLookupDirectoris = new ArrayList<>(lookupDirectories);
-                allLookupDirectoris.add(0, currentDirectory);
+                ArrayList<File> allLookupDirectories = new ArrayList<>(lookupDirectories);
+                allLookupDirectories.add(0, currentDirectory);
 
-                Optional<File> definitionFile = allLookupDirectoris.stream()
+                Optional<File> definitionFile = allLookupDirectories.stream()
                         .map(lookupDirectory -> {
                             if (new File(definitionFileName).isAbsolute()) {
                                 return new File(definitionFileName);
@@ -144,16 +156,40 @@ public class ParserUtils {
                         .filter(file -> file.exists()).findFirst();
 
                 if (definitionFile.isPresent()) {
+                    // Look for dependency cycle
+                    if (parents.stream().
+                            anyMatch(parent -> {
+                                try {
+                                    File sourceFile = new File(source.source());
+                                    return parent.getCanonicalFile().equals(sourceFile.getCanonicalFile());
+                                } catch (IOException e) {
+                                    // Catch exceptions from getCanonicalFile
+                                    return false;
+                                }
+                            })) {
+                        String dependencyChain = (new File(source.source())).getName() + " -> "
+                                + parents.stream().map(File::getName).collect(Collectors.joining(" -> "));
+                        throw KExceptionManager.criticalError("Dependency cycle detected: " + dependencyChain, di);
+                    } else {
+                        parents.push(new File(source.source()));
+                    }
+
                     results.addAll(slurp(loadDefinitionText(definitionFile.get()),
                             Source.apply(definitionFile.get().getAbsolutePath()),
                             definitionFile.get().getParentFile(),
-                            lookupDirectories));
+                            lookupDirectories,
+                            parents));
                 }
                 else
                     throw KExceptionManager.criticalError("Could not find file: " +
-                            definitionFileName + "\nLookup directories:" + allLookupDirectoris, di);
+                            definitionFileName + "\nLookup directories:" + allLookupDirectories, di);
             }
         }
+
+        if (!parents.isEmpty()) {
+            File p = parents.pop();
+        }
+
         return results;
     }
 
@@ -237,6 +273,6 @@ public class ParserUtils {
             syntaxModule = opt.get();
         }
 
-        return org.kframework.definition.Definition.apply(mainModule, immutable(modules), Att().add(Att.syntaxModule(), syntaxModule.name()));
+        return RuleGrammarGenerator.autoGenerateBaseKCasts(org.kframework.definition.Definition.apply(mainModule, immutable(modules), Att().add(Att.syntaxModule(), syntaxModule.name())));
     }
 }

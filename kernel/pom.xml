@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.kframework.k</groupId>
     <artifactId>parent</artifactId>
-    <version>4.0-beta</version>
+    <version>4.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>kernel</artifactId>
   <packaging>jar</packaging>
@@ -17,11 +17,6 @@
     <dependency>
       <groupId>org.kframework.k</groupId>
       <artifactId>kore</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.kframework.k</groupId>
-      <artifactId>tiny</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

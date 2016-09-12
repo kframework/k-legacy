@@ -26,7 +26,7 @@
         </program>
         <program name="mirror.c">
           <krun-option name="--prove" value="tests/tree/mirror_spec.k" />
-          <krun-option name="--smt_prelude" value="../../include/z3/list.smt2" />
+          <krun-option name="--smt_prelude" value="../../include/z3/search_tree.smt2" />
           <krun-option name="--z3-executable" />
         </program>
         <program name="inorder.c">

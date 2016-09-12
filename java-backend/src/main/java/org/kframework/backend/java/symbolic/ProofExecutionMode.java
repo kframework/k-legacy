@@ -79,7 +79,7 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
                 .collect(org.kframework.Collections.toSet());
 
         mod = new JavaBackend(kem, files, globalOptions, compiledDefinition.kompileOptions)
-                .stepsForProverRules(kompile)
+                .stepsForProverRules()
                 .apply(Definition.apply(mod, org.kframework.Collections.add(mod, alsoIncluded), Att.apply()))
                 .getModule(mod.name()).get();
 
@@ -90,7 +90,7 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
             @Override
             public Map<String, K> apply(KApply k) {
                 Map<String, K> substitution = processChildren(k.klist());
-                if (configurationInfo.isCellLabel(new ADT.KLabel(k.klabel().name())) && k.klist().size() == 1) {
+                if (configurationInfo.isCellLabel(new ADT.KLabelLookup(k.klabel().name())) && k.klist().size() == 1) {
                     substitution = mergeSubstitutions(Stream.of(
                             substitution,
                             Collections.singletonMap(k.klabel().name().substring(1, k.klabel().name().length() - 1).toUpperCase().replace("-", ""), k.klist().items().get(0))));
@@ -147,7 +147,6 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
 
 
         ExpandMacros macroExpander = new ExpandMacros(compiledDefinition.kompiledDefinition.mainModule(), kem, files, globalOptions, compiledDefinition.kompileOptions);
-        ModuleTransformer expandMacros = ModuleTransformer.fromSentenceTransformer(macroExpander::expand, "expand macro rules");
 
         List<Rule> rules = stream(mod.localRules())
                 .filter(r -> r.toString().contains("spec.k"))
@@ -157,15 +156,15 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
                         cellPlaceholderSubstitutionApplication.apply(r.ensures()),
                         r.att()))
                 .map(r -> (Rule) macroExpander.expand(r))
-                .map(r -> transform(JavaBackend::ADTKVariableToSortedVariable, r))
-                .map(r -> transform(JavaBackend::convertKSeqToKApply, r))
+                .map(r -> transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
+                .map(r -> transformFunction(JavaBackend::convertKSeqToKApply, r))
                 .map(r -> transform(NormalizeKSeq.self(), r))
                 //.map(r -> kompile.compileRule(compiledDefinition, r))
                 .collect(Collectors.toList());
         return rewriter.prove(rules);
     }
 
-    private Rule transform(Function<K, K> f, Rule r) {
+    private Rule transformFunction(Function<K, K> f, Rule r) {
         return Rule.apply(f.apply(r.body()), f.apply(r.requires()), f.apply(r.ensures()), r.att());
     }
 

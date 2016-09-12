@@ -15,6 +15,8 @@ import scala.collection.mutable.SetBuilder
 import collection._
 
 object Collections {
+  def asScalaFunc[U, V](f: Function[U, V]): (U => V) = f
+
   def immutable[T](s: java.lang.Iterable[T]): Iterable[T] = s.asScala
   def immutable[T](s: java.util.Set[T]): Set[T] = s.asScala.toSet
   def immutable[T](s: java.util.List[T]): Seq[T] = s.asScala
@@ -40,6 +42,7 @@ object Collections {
 
   def add[T](e: T)(s: Set[T]): Set[T] = s + e
   def minus[T](e: T)(s: Set[T]): Set[T] = s - e
+  def addAll[T](a: Set[T], b: Set[T]): Set[T] = a ++ b
   def or[T](a: Set[T], b: Set[T]): Set[T] = a | b
 
   def cons[T](e: T)(s: Seq[T]): Seq[T] = e +: s

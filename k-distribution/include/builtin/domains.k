@@ -87,6 +87,7 @@ endmodule
 module SET
   imports INT-SYNTAX
   imports BASIC-K
+  imports BOOL-SYNTAX
 
   syntax Set [hook(SET.Set)]
 
@@ -132,6 +133,7 @@ endmodule
 module LIST
   imports INT-SYNTAX
   imports BASIC-K
+  imports BOOL-SYNTAX
 
   syntax List [hook(LIST.List)]
 
@@ -189,6 +191,8 @@ module LIST
 endmodule
 
 module BOOL-SYNTAX
+  imports SORT-K
+
   syntax Bool [hook(BOOL.Bool)]
   syntax Bool ::= "true"  [token]
   syntax Bool ::= "false" [token]
@@ -479,6 +483,7 @@ module STRING
 endmodule
 
 module ID-PROGRAM-PARSING
+  imports ID
   syntax Id ::= r"(?<![A-Za-z0-9\\_])[A-Za-z\\_][A-Za-z0-9\\_]*"     [notInRules, token, autoReject]
 endmodule
 
@@ -489,7 +494,7 @@ module ID
 
   syntax String ::= Id2String ( Id )    [function, hook(STRING.token2string)]
   syntax Id ::= String2Id ( String )    [function]
-  rule String2Id(S:String) => #parseToken("Id", S)
+  rule String2Id(S:String) => #parseToken("Id@ID", S)
 
   syntax Id ::= freshId(Int)    [freshGenerator, function]
   rule freshId(I:Int) => String2Id("_" +String Int2String(I))
@@ -605,7 +610,7 @@ module STDIN-STREAM
   // when we reach whitespace, if it parses create a ListItem
   rule [stdinParseString]:
        <stdin>
-       (ListItem(#parseInput("String", Delimiters:String)) => ListItem(S))
+       (ListItem(#parseInput("String@STRING-SYNTAX", Delimiters:String)) => ListItem(S))
        ListItem(#buffer(S:String => ""))
        _:List
        </stdin>
@@ -615,7 +620,7 @@ module STDIN-STREAM
   // a hack: handle the case when we read integers without the help of the IO server
   rule [stdinParseInt]:
        <stdin>
-       (ListItem(#parseInput("Int", Delimiters:String))
+       (ListItem(#parseInput("Int@INT-SYNTAX", Delimiters:String))
        => ListItem(String2Int(substrString(S, 0, findChar(S, Delimiters, 0)))))
        ListItem(#buffer(S:String => substrString(S,findChar(S, Delimiters, 0) +Int 1, lengthString(S))))
        _:List
@@ -632,8 +637,8 @@ module STDIN-STREAM
        _:List
        </stdin>
     requires findChar(S, Delimiters, 0) =/=Int -1
-       andBool Sort =/=String "String"
-       andBool Sort =/=String "Int"
+       andBool Sort =/=String "String@STRING-SYNTAX"
+       andBool Sort =/=String "Int@INT-SYNTAX"
        andBool lengthString(S) >Int 1 // [stdin]
        [stream]
 
@@ -644,7 +649,7 @@ module STDIN-STREAM
        _:List
        </stdin>
     requires findChar(S, Delimiters, 0) =/=Int -1
-       andBool Sort =/=String "String"
+       andBool Sort =/=String "String@STRING-SYNTAX"
        andBool lengthString(S) <=Int 1 // [stdin]
        [stream]
 
@@ -944,6 +949,7 @@ module MINT
 endmodule
 
 module CONFIGURATION-PRIMITIVES
+    imports SORT-K
     syntax K ::= "#RESTORE_CONFIGURATION" "(" K ")"  [klabel(#RESTORE_CONFIGURATION)]
 endmodule
 

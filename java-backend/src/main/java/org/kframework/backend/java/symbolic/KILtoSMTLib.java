@@ -20,6 +20,7 @@ import org.kframework.backend.java.kil.Sort;
 import org.kframework.backend.java.kil.SortSignature;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.Variable;
+import org.kframework.builtin.Sorts;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.NonTerminal;
@@ -47,20 +48,16 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
             Sort.BOOL,
             Sort.INT,
             Sort.BIT_VECTOR,
-            Sort.of("Float"),
-            Sort.of("String"),
-            Sort.of("IntSet"),
-            Sort.of("MIntSet"),
-            Sort.of("FloatSet"),
-            Sort.of("StringSet"),
-            Sort.of("IntSeq"),
-            Sort.of("MIntSeq"),
-            Sort.of("FloatSeq"),
-            Sort.of("StringSeq"));
-    public static final ImmutableSet<Sort> RESERVED_Z3_SORTS = ImmutableSet.of(
-            Sort.LIST,
-            Sort.SET,
-            Sort.of("Seq"));
+            Sort.of(Sorts.Float().name()),
+            Sort.of(Sorts.String().name()),
+            Sort.of("IntSet@INT-SET"),
+            Sort.of("MIntSet@MINT-SET"),
+            Sort.of("FloatSet@FLOAT-SET"),
+            Sort.of("StringSet@STRING-SET"),
+            Sort.of("IntSeq@INT-LIST"),
+            Sort.of("MIntSeq@MINT-LIST"),
+            Sort.of("FloatSeq@FLOAT-LIST"),
+            Sort.of("StringSeq@STRING-LIST"));
     public static final ImmutableSet<String> SMTLIB_BUILTIN_FUNCTIONS = ImmutableSet.of(
             "forall",
             "exists",
@@ -268,15 +265,11 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
             sorts.add(renameSort(variable.sort()));
         }
 
-        if (!Sets.intersection(sorts, RESERVED_Z3_SORTS).isEmpty()) {
-            throw new UnsupportedOperationException("do not use sorts " + RESERVED_Z3_SORTS);
-        }
-
         StringBuilder sb = new StringBuilder();
 
         for (Sort sort : Sets.difference(sorts, SMTLIB_BUILTIN_SORTS)) {
             sb.append("(declare-sort ");
-            sb.append(sort);
+            sb.append(renameSort(sort).localName());
             sb.append(")\n");
         }
 
@@ -286,11 +279,11 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
             sb.append(" (");
             List<String> childrenSorts = new ArrayList<>();
             for (Sort sort : kLabel.signatures().iterator().next().parameters()) {
-                childrenSorts.add(renameSort(sort).name());
+                childrenSorts.add(renameSort(sort).localName());
             }
             Joiner.on(" ").appendTo(sb, childrenSorts);
             sb.append(") ");
-            sb.append(renameSort(kLabel.signatures().iterator().next().result()).name());
+            sb.append(renameSort(kLabel.signatures().iterator().next().result()).localName());
             sb.append(")\n");
         }
 
@@ -382,15 +375,15 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
             Pair<Integer, Integer> pair = FloatToken.getExponentAndSignificandOrDie(node);
             return "(_ FP " + pair.getLeft() + " " + pair.getRight() + ")";
         } else {
-            return s.name();
+            return s.localName();
         }
     }
 
     private Sort renameSort(Sort sort) {
         sort = definition.smtSortFlattening().getOrDefault(sort, sort);
         if (sort == Sort.LIST) {
-            return Sort.of("IntSeq");
-        } else if (sort == Sort.of("Id")) {
+            return Sort.of("IntSeq@INT-LIST");
+        } else if (sort == Sort.of(Sorts.Id().name())) {
             return Sort.INT;
         } else {
             return sort;

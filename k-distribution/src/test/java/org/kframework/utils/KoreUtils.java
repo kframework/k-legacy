@@ -61,12 +61,12 @@ public class KoreUtils {
         return new File(KoreUtils.class.getResource(baseName).toURI());
     }
 
-    public KoreUtils(String fileName, String mainModuleName, String mainProgramsModuleName, boolean noPrelude) throws URISyntaxException {
-        this(fileName, mainModuleName, mainProgramsModuleName, false, false, noPrelude);
+    public KoreUtils(String fileName, String mainModuleName, String mainProgramsModuleName, KExceptionManager kem) throws URISyntaxException {
+        this(fileName, mainModuleName, mainProgramsModuleName, false, Sorts.K(), false, false, kem);
     }
 
-    public KoreUtils(String fileName, String mainModuleName, String mainProgramsModuleName, boolean search, boolean heatCoolStrategies, boolean noPrelude) throws URISyntaxException {
-        kem = new KExceptionManager(new GlobalOptions());
+    public KoreUtils(String fileName, String mainModuleName, String mainProgramsModuleName, boolean search, Sort sort, boolean heatCoolStrategies, boolean noPrelude, KExceptionManager kem) throws URISyntaxException {
+        this.kem = kem;
         File definitionFile = testResource(fileName);
         KompileOptions kompileOptions = new KompileOptions();
         GlobalOptions globalOptions = new GlobalOptions();
@@ -101,7 +101,7 @@ public class KoreUtils {
                 bindScope(DefinitionScoped.class, requestScope);
             }
         });
-        programParser = compiledDef.getProgramParser(kem);
+        programParser = compiledDef.getProgramParser(this.kem);
     }
 
     public K getParsed(String program, Source source) throws URISyntaxException {

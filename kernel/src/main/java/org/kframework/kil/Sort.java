@@ -13,7 +13,7 @@ public class Sort implements Serializable {
     public static final Sort KITEM = Sort.of("KItem");
     public static final Sort KLABEL = Sort.of("KLabel");
     public static final Sort KLIST = Sort.of("KList");
-    public static final Sort KRESULT = Sort.of("KResult");
+    public static final Sort KRESULT = Sort.of("KResult@BASIC-K");
 
     public static final Sort CELL_LABEL = Sort.of("CellLabel");
 

@@ -488,7 +488,7 @@ value, but we do not need that level of detail here), and also that
 a function/closure value that expects the second, list argument): */
 
   syntax Val ::= "cons" | "[" Vals "]"
-  rule isVal(cons V:Val) => true
+  rule isVal@FUN-UNTYPED(cons V:Val) => true
   rule cons V:Val [Vs:Vals] => [V,Vs]
 
 

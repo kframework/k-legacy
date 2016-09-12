@@ -1,7 +1,6 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.parser.concrete2kore.disambiguation;
 
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -15,12 +14,9 @@ import org.kframework.kompile.Kompile;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KLabel;
-import org.kframework.main.GlobalOptions;
 import org.kframework.parser.TreeNodesToKORE;
 import org.kframework.parser.concrete2kore.ParseInModule;
-import org.kframework.parser.concrete2kore.ParserUtils;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
-import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.file.FileUtil;
 import scala.Tuple2;
@@ -39,29 +35,12 @@ public class AddEmptyListsTest {
 
     @Before
     public void setUp() throws Exception {
-        RuleGrammarGenerator gen = makeRuleGrammarGenerator();
-        Module test = ParserUtils.parseMainModuleOuterSyntax(DEF, Source.apply("AddEmptyListsTest test definition"), "TEST");
-        parser = gen.getCombinedGrammar(gen.getRuleGrammar(test));
-    }
-
-    /*
-     * Return a RuleGrammarGenerator which uses the default K syntax as loaded from kast.k
-     */
-    private RuleGrammarGenerator makeRuleGrammarGenerator() {
-        String definitionText;
         FileUtil files = FileUtil.testFileUtil();
-        ParserUtils parser = new ParserUtils(files::resolveWorkingDirectory, new KExceptionManager(new GlobalOptions()));
         File definitionFile = new File(Kompile.BUILTIN_DIRECTORY.toString() + "/kast.k");
-        definitionText = files.loadFromWorkingDirectory(definitionFile.getPath());
-
-        Definition baseK =
-                parser.loadDefinition("K", "K", definitionText,
-                        definitionFile,
-                        definitionFile.getParentFile(),
-                        Lists.newArrayList(Kompile.BUILTIN_DIRECTORY),
-                        false);
-
-        return new RuleGrammarGenerator(baseK, true);
+        String baseKText = files.loadFromWorkingDirectory(definitionFile.getPath());
+        Definition baseK = org.kframework.Definition.from(baseKText + DEF, "TEST");
+        Module test = baseK.getModule("TEST").get();
+        parser = RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getRuleGrammar(test, s -> baseK.getModule(s).get()), true);
     }
 
     private void parseTerm(String term, String sort, K expected) {
@@ -89,8 +68,8 @@ public class AddEmptyListsTest {
                     "syntax A ::= B\n" +
                     "syntax As ::= List{A,\",\"}\n" +
                     "syntax Bs ::= List{B,\",\"}\n" +
-                    "syntax As ::= Bs\n" +
-                    "syntax K ::= f(As) | g(A) | h(Bs)" +
+                    "syntax As ::= Bs\n" + // TODO: no longer needed. Fixed in #1891 in master branch
+                    "syntax Func ::= f(As) | g(A) | h(Bs)" +
                     "endmodule\n";
 
     public static final KApply NIL = KApply(KLabel(".List{\"_,_\"}"));
@@ -100,10 +79,10 @@ public class AddEmptyListsTest {
     public static final KLabel F = KLabel("f");
     public static final KLabel G = KLabel("g");
     public static final KLabel H = KLabel("h");
-    public static final KLabel CAST_A = KLabel("#SemanticCastToA");
-    public static final KLabel CAST_B = KLabel("#SemanticCastToB");
-    public static final KLabel CAST_AS = KLabel("#SemanticCastToAs");
-    public static final KLabel CAST_BS = KLabel("#SemanticCastToBs");
+    public static final KLabel CAST_A = KLabel("#SemanticCastToA@TEST");
+    public static final KLabel CAST_B = KLabel("#SemanticCastToB@TEST");
+    public static final KLabel CAST_AS = KLabel("#SemanticCastToAs@TEST");
+    public static final KLabel CAST_BS = KLabel("#SemanticCastToBs@TEST");
 
     @Test
     public void testEmptyList1() {
@@ -128,13 +107,13 @@ public class AddEmptyListsTest {
 
     @Test
     public void testConcreteArgument() {
-        parseTerm("f(.As)", "K", KApply(F, NIL));
-        parseTerm("f(a)", "K", KApply(F, KApply(CONS, A, NIL)));
-        parseTerm("f(a,a)", "K", KApply(F, KApply(CONS, A, KApply(CONS, A, NIL))));
-        parseTerm("f(a,.As)", "K", KApply(F, KApply(CONS, A, NIL)));
-        parseTerm("f(a,b)", "K", KApply(F, KApply(CONS, A, KApply(CONS, B, NIL))));
-        parseTerm("f(b,.Bs)", "K", KApply(F, KApply(CONS, B, NIL)));
-        parseTerm("f(b,b)", "K", KApply(F, KApply(CONS, B, KApply(CONS, B, NIL))));
+        parseTerm("f(.As)", "Func", KApply(F, NIL));
+        parseTerm("f(a)", "Func", KApply(F, KApply(CONS, A, NIL)));
+        parseTerm("f(a,a)", "Func", KApply(F, KApply(CONS, A, KApply(CONS, A, NIL))));
+        parseTerm("f(a,.As)", "Func", KApply(F, KApply(CONS, A, NIL)));
+        parseTerm("f(a,b)", "Func", KApply(F, KApply(CONS, A, KApply(CONS, B, NIL))));
+        parseTerm("f(b,.Bs)", "Func", KApply(F, KApply(CONS, B, NIL)));
+        parseTerm("f(b,b)", "Func", KApply(F, KApply(CONS, B, KApply(CONS, B, NIL))));
     }
 
     @Ignore("BUG: need to also propagate correct sorts to arguments of labeled application")
@@ -160,7 +139,7 @@ public class AddEmptyListsTest {
 
     @Test
     public void testArgumentLabeledCons() {
-        parseTerm("f(`_,_`(a,.As))", "K", KApply(F, KApply(CONS, A, NIL)));
+        parseTerm("f(`_,_`(a,.As))", "Func", KApply(F, KApply(CONS, A, NIL)));
     }
 
     @Test
@@ -170,13 +149,13 @@ public class AddEmptyListsTest {
 
     @Test
     public void testArgumentLabeledConsSub1() {
-        parseTerm("h(`_,_`(b,.Bs))", "K", KApply(H, KApply(CONS, B, NIL)));
+        parseTerm("h(`_,_`(b,.Bs))", "Func", KApply(H, KApply(CONS, B, NIL)));
     }
 
     @Test
     public void testArgumentLabeledConsSub2() {
         // gets a warning because the argument of sort As does not fit.n
-        parseTerm("h(`_,_`(a,.As))", "K", KApply(H, KApply(CONS, A, NIL)), 1);
+        parseTerm("h(`_,_`(a,.As))", "Func", KApply(H, KApply(CONS, A, NIL)), 1);
     }
 
     @Test
@@ -187,36 +166,36 @@ public class AddEmptyListsTest {
     @Test
     public void testArgumentInferredListVar() {
         // 1 warning from inference
-        parseTerm("f(V)", "K", KApply(F, KApply(CAST_AS, KVariable("V"))), 1);
+        parseTerm("f(V)", "Func", KApply(F, KApply(CAST_AS, KVariable("V"))), 1);
     }
 
     @Test
     public void testArgumentAnnListVar() {
-        parseTerm("f(V:As)", "K", KApply(F, KApply(CAST_AS, KVariable("V"))));
+        parseTerm("f(V:As)", "Func", KApply(F, KApply(CAST_AS, KVariable("V"))));
     }
 
     @Test
     public void testArgumentAnnSubListVar() {
-        parseTerm("f(V:Bs)", "K", KApply(F, KApply(CAST_BS, KVariable("V"))));
+        parseTerm("f(V:Bs)", "Func", KApply(F, KApply(CAST_BS, KVariable("V"))));
     }
 
     @Test
     public void testArgumentInferredItemVar() {
         // 1 warning from inference
-        parseTerm("f(V)~>g(V)", "K",
+        parseTerm("f(V)~>g(V)", "Func",
                 KSequence(KApply(F, KApply(CONS, KApply(CAST_A, KVariable("V")), NIL)),
                         KApply(G, KApply(CAST_A, KVariable("V")))), 1);
     }
 
     @Test
     public void testArgumentAnnItemVar() {
-        parseTerm("f(V:A)", "K",
+        parseTerm("f(V:A)", "Func",
                 KApply(F, KApply(CONS, KApply(CAST_A, KVariable("V")), NIL)));
     }
 
     @Test
     public void testArgumentAnnSubItemVar() {
-        parseTerm("f(V:B)", "K",
+        parseTerm("f(V:B)", "Func",
                 KApply(F, KApply(CONS, KApply(CAST_B, KVariable("V")), NIL)));
     }
 }
