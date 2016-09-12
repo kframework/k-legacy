@@ -12,6 +12,7 @@ import org.kframework.rewriter.SearchType
 
 import collection._
 import org.kframework.kale
+import org.kframework.kore.SortedADT.SortedKVariable
 
 object KaleRewriter {
   val self = this
@@ -21,9 +22,7 @@ object KaleRewriter {
   private def isEffectivelyAssoc(att: Att): Boolean =
     att.contains(Att.assoc) && !att.contains(Att.assoc) || att.contains(Att.bag)
 
-  val hooks: Map[String, Label] = Map({
-    "INT.Int" -> INT
-  })
+  val hooks: Map[String, Label] = Map()
 }
 
 class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
@@ -36,21 +35,26 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   private val assocProductions = productionLike.filter(p => KaleRewriter.isEffectivelyAssoc(p.att))
   private val nonAssocProductions = productionLike &~ assocProductions
 
+  implicit val env = Environment()
+  import env._
+  import env.builtin._
+
   private val nonAssocLabels: Set[Label] = nonAssocProductions flatMap {
     case SyntaxSort(s, att) => att.get(Att.hook) flatMap KaleRewriter.hooks.get
     case p@Production(s, items, att) =>
+      implicit val envv = env
       att.get(Att.hook).flatMap(KaleRewriter.hooks.get).orElse({
         if (att.contains(Att.token)) {
-          Some(kale.GENERIC_TOKEN(kale.Sort(s.name)))
+          Some(GENERIC_TOKEN(Sort(s.name)))
         } else {
           if(p.klabel.isDefined) {
             val nonTerminals = items.filter(_.isInstanceOf[NonTerminal])
             Some(nonTerminals match {
-              case Seq() => FreeLabel0(UniqueId(), p.klabel.get.name)
-              case Seq(_) => FreeLabel1(UniqueId(), p.klabel.get.name)
-              case Seq(_, _) => FreeLabel2(UniqueId(), p.klabel.get.name)
-              case Seq(_, _, _) => FreeLabel3(UniqueId(), p.klabel.get.name)
-              case Seq(_, _, _, _) => FreeLabel4(UniqueId(), p.klabel.get.name)
+              case Seq() => FreeLabel0(p.klabel.get.name)
+              case Seq(_) => FreeLabel1(p.klabel.get.name)
+              case Seq(_, _) => FreeLabel2(p.klabel.get.name)
+              case Seq(_, _, _) => FreeLabel3(p.klabel.get.name)
+              case Seq(_, _, _, _) => FreeLabel4(p.klabel.get.name)
             })
           } else
             None
@@ -58,7 +62,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
       })
   }
 
-  private val uninterpretedTokenLabels: Map[kale.Sort, ConstantLabel[String]] = nonAssocLabels collect {
+  private val uninterpretedTokenLabels: Map[Sort, ConstantLabel[String]] = nonAssocLabels collect {
     case  l@GENERIC_TOKEN(s) => (s, l)
   } toMap
 
@@ -70,23 +74,24 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     val units = nonAssocLabels.filter(l => l.name == p.att.get[String]("unit").get)
     assert(units.size == 1)
     val theUnit = units.head.asInstanceOf[FreeLabel0]()
-    new AssocWithIdListLabel(p.klabel.get.name, theUnit)
+    new AssocWithIdListLabel(p.klabel.get.name, theUnit)(env)
   } toSet
 
   private val allLabels = nonAssocLabels | assocLabels
 
-  val unifier = Matcher(allLabels)
-  val substitutionApplier = SubstitutionApply(allLabels)
-  val rewriterConstructor = Rewriter(substitutionApplier, unifier) _
+  val unifier = Matcher(env)
+  val substitutionApplier = SubstitutionApply(env)
+  val rewriterConstructor = Rewriter(substitutionApplier, unifier, env) _
 
   def convert(body: K): Term = body match {
     case Unapply.KToken(s, sort) => sort match {
-      case Sorts.Bool => kale.BOOLEAN(s.toBoolean)
-      case Sorts.Int => kale.INT(s.toInt)
-      case Sorts.String => kale.STRING(s)
-      case _ => uninterpretedTokenLabels(kale.Sort(sort.name))(s)
+      case Sorts.Bool => BOOLEAN(s.toBoolean)
+      case Sorts.Int => INT(s.toInt)
+      case Sorts.String => STRING(s)
+      case _ => uninterpretedTokenLabels(Sort(sort.name))(s)
     }
-    case Unapply.KApply(klabel, list) => ???
+    case Unapply.KApply(klabel, list) => env.label(klabel.name).asInstanceOf[NodeLabel](list map convert)
+    case v: SortedKVariable => Variable(v.name)
   }
 
   val rules = m.rules map {
