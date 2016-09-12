@@ -87,7 +87,8 @@ public class KLabelConstant extends KLabel implements MaximalSharing, org.kframe
         boolean isFunction;
         boolean isPattern = false;
         String smtlib = null;
-        if (!label.startsWith("is") || !allSorts.contains(Sort.of(label.substring("is".length())))) {
+        // there are labels which are just predicates, but are not obligated to be sort membership predicates
+        if (!label.startsWith("is") || (!label.contains("@") || !allSorts.contains(Sort.of(label.substring("is".length()))))) {
             predicateSort = null;
             isFunction = productionAttributes.containsKey(Attribute.FUNCTION.getKey())
                     || productionAttributes.containsKey(Attribute.PREDICATE.getKey());

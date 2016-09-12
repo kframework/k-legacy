@@ -1,5 +1,5 @@
 Search results:
 
 Solution 1:
-V:K -->
+V:K@SORT-K -->
 x ~> #freezer_,_1 ( .Exps ) ~> #freezer_,_0 ( 2 ) ~> #freezerassignTo0 ( x , ( y , .Exps ) ) ~> y ~> env ( x |-> 1 ) ~> env ( .Map )

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.kore.compile;
 
+import org.kframework.attributes.Att;
 import org.kframework.compile.ConfigurationInfo;
 import org.kframework.compile.LabelInfo;
 import org.kframework.kil.Attribute;
@@ -32,7 +33,7 @@ public class ConcretizationInfo {
         if (k instanceof KApply) {
             return labels.getCodomain(((KApply) k).klabel());
         } else if (k instanceof KVariable) {
-            return Sort(k.att().<String>get(Attribute.SORT_KEY).get());
+            return k.att().get(Att.sort()).get();
         } else {
             throw new AssertionError("expected KApply or KVariable, found " + k.getClass().getSimpleName());
         }

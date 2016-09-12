@@ -35,7 +35,7 @@ class TestMeta {
   val d = Definition(m, Set(m), Att())
 
   val metamodule = 'Module("TEST", 'Set(),
-    'Set('Production("Foo", 'Sort("Foo"), 'List('Terminal("Bar")))))
+    'Set('Production("Foo", 'SortLookup("Foo"), 'List('Terminal("Bar")))))
 
   val metad = 'Definition(metamodule, 'Set(metamodule), 'Att('Set()))
 

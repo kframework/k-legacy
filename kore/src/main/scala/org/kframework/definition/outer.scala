@@ -8,6 +8,8 @@ import dk.brics.automaton.{BasicAutomata, RegExp, RunAutomaton, SpecialOperation
 import org.kframework.POSet
 import org.kframework.attributes.Att
 import org.kframework.definition.Constructors._
+import org.kframework.attributes.{Source, Location, Att}
+import org.kframework.kore.SortedADT.SortedKVariable
 import org.kframework.kore.Unapply.{KApply, KLabel}
 import org.kframework.kore._
 import org.kframework.utils.errorsystem.KEMException
@@ -35,12 +37,16 @@ case class DivergingAttributesForTheSameKLabel(ps: Set[Production])
 case class Definition(
                        mainModule: Module,
                        entryModules: Set[Module],
-                       att: Att)
+                       att: Att = Att())
   extends DefinitionToString with OuterKORE {
 
   private def allModules(m: Module): Set[Module] = m.imports | (m.imports flatMap allModules) + m
 
   val modules = entryModules flatMap allModules
+
+  for (m1 <- modules; m2 <- modules if m1.name == m2.name && m1 != m2) {
+    throw new AssertionError("In definition, found different modules with the same name: " + m1.name)
+  }
 
   assert(modules.contains(mainModule))
 
@@ -75,8 +81,8 @@ trait GeneratingListSubsortProductions extends Sorting {
       for (l1 <- userLists;
            l2 <- userLists
            if l1 != l2 && l1.klabel == l2.klabel &&
-             subsorts.>(ADT.Sort(l1.childSort), ADT.Sort(l2.childSort))) yield {
-        Production(ADT.Sort(l1.sort), Seq(NonTerminal(ADT.Sort(l2.sort))), Att().add(Att.generatedByListSubsorting))
+             subsorts.>(l1.childSort, l2.childSort)) yield {
+        Production(l1.sort, Seq(NonTerminal(l2.sort)), Att().add(Att.generatedByListSubsorting))
       }
 
     listProductions.toSet
@@ -93,11 +99,87 @@ case class Module(val name: String, val imports: Set[Module], unresolvedLocalSen
   extends ModuleToString with KLabelMappings with OuterKORE with Sorting with GeneratingListSubsortProductions with Serializable {
   assert(att != null)
 
+  val unresolvedLocalSyntaxSentences: Set[SyntaxSentence] = unresolvedLocalSentences.collect({ case s: SyntaxSentence => s })
+  val unresolvedLocalSemanticSentences: Set[SemanticSentence] = unresolvedLocalSentences.collect({ case s: SemanticSentence => s })
+
+  val lookingToDefineSorts: Set[Sort] = unresolvedLocalSyntaxSentences collect {
+    case Production(s, _, _) => s
+    case SyntaxSort(s, _) => s
+  }
+
+  val sortResolver: SymbolResolver[Sort, ADT.Sort] =
+    new SymbolResolver(name, imports map {_.sortResolver}, lookingToDefineSorts)(ADT.SortLookup.apply, ADT.Sort.apply)
+
+  def resolve(s: Sort): ADT.Sort = sortResolver(s)
+
+  private val importedSorts = imports flatMap {
+    //noinspection ForwardReference
+    _.sorts
+  }
+
+  case class OuterException(m: String) extends Throwable {
+    override def getMessage() = "While constructing module " + name + ": " + m
+  }
+
+  val localSorts: Set[ADT.Sort] = lookingToDefineSorts map sortResolver.get flatten
+
+  def makeTooManySortsErrorMessage(name: String, sortSet: Set[ADT.Sort]): String = {
+    "While defining module " + this.name + ": "
+    "Found too many sorts named: " + name + ". Possible sorts: " + sortSet.mkString(", ")
+  }
+
+  val sorts: Set[ADT.Sort] = localSorts ++ importedSorts
+
+  /**
+    * "a@A" -> ("a", "A")
+    * "a" -> ("a", this.name) for the local module
+    */
+  private def splitAtModule(name: String): (String, String) = name.split("@") match {
+    case Array(localName, moduleName) => (localName, moduleName)
+    case Array(localName) => (localName, this.name)
+    case _ => throw KEMException.compilerError("Sort name contains multiple @ symbols: " + name)
+  }
+
+  def SortOption(localName: String): Option[ADT.Sort] = sortResolver.get(ADT.SortLookup(localName, ModuleName.STAR))
+
+  def Sort(localName: String): ADT.Sort = SortOption(localName) match {
+    case Some(s) => s
+    case None => throw KEMException.compilerError("Could not find sort named: " + localName)
+  }
+
+  val localSyntaxSentences: Set[SyntaxSentence] = unresolvedLocalSyntaxSentences map {
+    case p: Production => p.copy(sort = resolve(p.sort), p.items map {
+      case t: NonTerminal => t.copy(sort = resolve(t.sort))
+      case other => other
+    })
+    case s: SyntaxSort => s.copy(sort = resolve(s.sort))
+    case other => other
+  }
+
+  def resolveSorts(k: K): K = (new TransformK() {
+    override def apply(t: KToken): K = t match {
+      case tt: ADT.KToken => tt.copy(sort = sortResolver(tt.sort))
+    }
+  }) (k)
+
+  //    k match {
+  //    case app: KApply => app.copy(list map resolveSorts, app.att)
+  //  }
+
+  val localSemanticSentences = unresolvedLocalSemanticSentences map {
+    case c: Configuration => Configuration(resolveSorts(c.body), resolveSorts(c.ensures), c.att)
+    case c: Context => Context(resolveSorts(c.body), resolveSorts(c.requires), c.att)
+    case r: Rule => Rule(resolveSorts(r.body), resolveSorts(r.requires), resolveSorts(r.ensures), r.att)
+    case b: Bubble => b
+  }
+
+  val afterResolvingSorts = localSyntaxSentences ++ localSemanticSentences
+
   private val importedSentences = imports flatMap {_.sentences}
 
-  val listProductions = computeFromSentences(unresolvedLocalSentences | importedSentences)
+  val listProductions = computeFromSentences(afterResolvingSorts | importedSentences)
 
-  val localSentences = unresolvedLocalSentences | listProductions
+  val localSentences = afterResolvingSorts | listProductions
 
   val sentences: Set[Sentence] = localSentences | importedSentences
 
@@ -105,6 +187,10 @@ case class Module(val name: String, val imports: Set[Module], unresolvedLocalSen
   lazy val importedModules: Set[Module] = imports | (imports flatMap {
     _.importedModules
   })
+
+  for (m1 <- importedModules; m2 <- importedModules if m1.name == m2.name && m1 != m2) {
+    throw new AssertionError("While creating module " + name + " found different modules with the same name: " + m1.name)
+  }
 
   val productions: Set[Production] = sentences collect { case p: Production => p }
 
@@ -205,6 +291,9 @@ case class Module(val name: String, val imports: Set[Module], unresolvedLocalSen
   }
 
   val definedSorts: Set[Sort] = (productions map {_.sort}) ++ (sortDeclarations map {_.sort})
+
+  val withSameShortName = definedSorts.groupBy(_.asInstanceOf[ADT.Sort].localName).filter(_._2.size > 1)
+
   val usedCellSorts: Set[Sort] = productions.flatMap { p => p.items.collect { case NonTerminal(s) => s }
     .filter(s => s.name.endsWith("Cell") || s.name.endsWith("CellFragment"))
   }
@@ -276,19 +365,23 @@ trait Sentence {
   val att: Att
 }
 
+trait SyntaxSentence extends Sentence
+
+trait SemanticSentence extends Sentence
+
 // deprecated
-case class Context(body: K, requires: K, att: Att = Att()) extends Sentence with OuterKORE with ContextToString
+case class Context(body: K, requires: K, att: Att = Att()) extends SemanticSentence with OuterKORE with ContextToString
 
-case class Rule(body: K, requires: K, ensures: K, att: Att = Att()) extends Sentence with RuleToString with OuterKORE
+case class Rule(body: K, requires: K, ensures: K, att: Att = Att()) extends SemanticSentence with RuleToString with OuterKORE
 
-case class ModuleComment(comment: String, att: Att = Att()) extends Sentence with OuterKORE
+case class ModuleComment(comment: String, att: Att = Att()) extends SyntaxSentence with OuterKORE
 
 // hooked
 
 // syntax declarations
 
 case class SyntaxPriority(priorities: Seq[Set[Tag]], att: Att = Att())
-  extends Sentence with SyntaxPriorityToString with OuterKORE
+  extends SyntaxSentence with SyntaxPriorityToString with OuterKORE
 
 object Associativity extends Enumeration {
   type Value1 = Value
@@ -299,7 +392,7 @@ case class SyntaxAssociativity(
                                 assoc: Associativity.Value,
                                 tags: Set[Tag],
                                 att: Att = Att())
-  extends Sentence with SyntaxAssociativityToString with OuterKORE
+  extends SyntaxSentence with SyntaxAssociativityToString with OuterKORE
 
 case class Tag(name: String) extends TagToString with OuterKORE
 
@@ -311,14 +404,14 @@ case class Tag(name: String) extends TagToString with OuterKORE
 //    att.get(Production.kLabelAttribute).headOption map { case KList(KToken(s, _, _)) => s } map { KLabel(_) }
 //}
 
-case class SyntaxSort(sort: Sort, att: Att = Att()) extends Sentence
+case class SyntaxSort(sort: Sort, att: Att = Att()) extends SyntaxSentence
   with SyntaxSortToString with OuterKORE {
   def items = Seq()
 }
 
 case class Production(sort: Sort, items: Seq[ProductionItem], att: Att)
-  extends Sentence with ProductionToString {
-  lazy val klabel: Option[KLabel] = att.get[String]("klabel") map {org.kframework.kore.KORE.KLabel(_)}
+  extends SyntaxSentence with ProductionToString {
+  lazy val klabel: Option[KLabel] = att.get[String]("klabel") map org.kframework.kore.KORE.KLabel
 
   override def equals(that: Any) = that match {
     case p@Production(`sort`, `items`, _) => this.klabel == p.klabel
@@ -377,6 +470,7 @@ object Terminal {
 
 case class Terminal(value: String, followRegex: Seq[String]) extends TerminalLike // hooked
   with TerminalToString {
+  def this(value: String) = this(value, Seq())
 
   lazy val pattern = new RunAutomaton(BasicAutomata.makeString(value), false)
   lazy val followPattern =
@@ -386,5 +480,5 @@ case class Terminal(value: String, followRegex: Seq[String]) extends TerminalLik
 
 /* Helper constructors */
 object NonTerminal {
-  def apply(sort: String): NonTerminal = NonTerminal(ADT.Sort(sort))
+  def apply(sort: String): NonTerminal = NonTerminal(ADT.SortLookup(sort))
 }

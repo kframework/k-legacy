@@ -1,6 +1,7 @@
 package org.kframework.kore
 
 import org.kframework.attributes._
+import org.kframework.definition.ModuleQualified
 import org.kframework.unparser.Unparse
 
 /**
@@ -9,15 +10,17 @@ import org.kframework.unparser.Unparse
  * https://github.com/kframework/k/wiki/KORE-data-structures-guide
  */
 
-trait K extends Serializable {
-  def att: Att
-  override def toString = Unparse.apply(this)
-
+trait HashCodeCaching {
   lazy val cachedHashCode = computeHashCode
 
   override def hashCode = cachedHashCode
 
   def computeHashCode: Int
+}
+
+trait K extends Serializable with HashCodeCaching {
+  def att: Att
+  override def toString = Unparse.apply(this)
 }
 
 trait KItem extends K
@@ -41,14 +44,15 @@ trait KToken extends KItem {
   def computeHashCode = sort.hashCode() * 13 + s.hashCode
 }
 
-trait Sort {
+trait Sort extends ModuleQualified with HashCodeCaching {
   def name: String
   override def equals(other: Any) = other match {
     case other: Sort => name == other.name
     case _ => false
   }
-  override def hashCode = name.hashCode
+  override def computeHashCode: Int = localName.hashCode
 }
+abstract class AbstractSort extends Sort
 
 trait KCollection {
   def items: java.util.List[K]
