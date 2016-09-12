@@ -22,8 +22,8 @@
     </dependency>
     <dependency>
       <groupId>org.kframework.kale</groupId>
-      <artifactId>kale_2.11</artifactId>
-      <version>0.1.4-SNAPSHOT</version>
+      <artifactId>kale_2.12.0-M5</artifactId>
+      <version>0.1.5-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
