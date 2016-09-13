@@ -2,14 +2,9 @@
 
 package org.kframework.kore.compile;
 
-import com.google.inject.Guice;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.kframework.attributes.Source;
-import org.kframework.backend.java.symbolic.InitializeRewriter;
-import org.kframework.backend.java.symbolic.JavaBackend;
-import org.kframework.backend.java.symbolic.JavaSymbolicCommonModule;
-import org.kframework.backend.java.symbolic.Stage;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.Module;
 import org.kframework.kale.KaleBackend;
@@ -21,22 +16,12 @@ import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KORE;
 import org.kframework.kore.KToken;
-import org.kframework.kore.convertors.TstTinyOnKORE_IT;
-import org.kframework.krun.KRun;
-import org.kframework.krun.KRunOptions;
-import org.kframework.krun.api.io.FileSystem;
-import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import org.kframework.main.GlobalOptions;
 import org.kframework.parser.ProductionReference;
 import org.kframework.unparser.AddBrackets;
 import org.kframework.unparser.KOREToTreeNodes;
-import org.kframework.utils.KoreUtils;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.inject.DefinitionScoped;
-import org.kframework.utils.inject.RequestScoped;
-import org.kframework.utils.inject.SimpleScope;
-import org.kframework.utils.options.SMTOptions;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,6 +75,8 @@ public class IMPonKale {
         map.put(KORE.KToken("$PGM", Sorts.KConfigVar()), parsed);
 
         KApply input = KORE.KApply(compiledDef.topCellInitializer, map.entrySet().stream().map(e -> KApply(KLabel("_|->_"), e.getKey(), e.getValue())).reduce(KApply(KLabel(".Map")), (a, b) -> KApply(KLabel("_Map_"), a, b)));
+
+//        System.out.println(compiledDef.executionModule().sentences().mkString("\n"));
 
         KaleRewriter kaleRewriter = new KaleRewriter(compiledDef.executionModule());
 

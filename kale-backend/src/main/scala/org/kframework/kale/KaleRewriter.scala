@@ -20,22 +20,29 @@ object KaleRewriter {
   def apply(m: Module): KaleRewriter = new KaleRewriter(m)
 
   private def isEffectivelyAssoc(att: Att): Boolean =
-    att.contains(Att.assoc) && !att.contains(Att.assoc) || att.contains(Att.bag)
+    att.contains(Att.assoc) || att.contains(Att.bag)
 
   val hooks: Map[String, Label] = Map()
 }
 
 class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
 
-  private val productionLike: Set[Sentence] = (m.sentences.collect({
-    case p: Production => (p.klabel, p)
-    case s: SyntaxSort => (s.sort, s)
-  }) groupBy { _._1 } map { _._2.head } values).toSet
+  private val productionWithUniqueSorts: Set[Sentence] = (m.sentences.collect({
+    case p: Production if p.klabel.isDefined => p
+  }) groupBy {_.klabel.get} map {_._2.head}).toSet
 
-  private val assocProductions = productionLike.filter(p => KaleRewriter.isEffectivelyAssoc(p.att))
-  private val nonAssocProductions = productionLike &~ assocProductions
+  private val syntaxSortDeclarations: Set[Sentence] = m.sentences.collect({
+    case p: SyntaxSort => p
+  }) toSet
+
+  private val assocProductions: Set[Sentence] = productionWithUniqueSorts.filter(p => KaleRewriter.isEffectivelyAssoc(p.att)).toSet
+
+  println(assocProductions.size)
+
+  private val nonAssocProductions = (productionWithUniqueSorts | syntaxSortDeclarations) &~ assocProductions
 
   implicit val env = Environment()
+
   import env._
   import env.builtin._
 
@@ -45,9 +52,12 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
       implicit val envv = env
       att.get(Att.hook).flatMap(KaleRewriter.hooks.get).orElse({
         if (att.contains(Att.token)) {
-          Some(GENERIC_TOKEN(Sort(s.name)))
+          if (!env.labels.exists(l => l.name == "TOKEN_" + s.name))
+            Some(GENERIC_TOKEN(Sort(s.name)))
+          else
+            None
         } else {
-          if(p.klabel.isDefined) {
+          if (p.klabel.isDefined) {
             val nonTerminals = items.filter(_.isInstanceOf[NonTerminal])
             Some(nonTerminals match {
               case Seq() => FreeLabel0(p.klabel.get.name)
@@ -62,22 +72,23 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
       })
   }
 
-  private val uninterpretedTokenLabels: Map[Sort, ConstantLabel[String]] = nonAssocLabels collect {
-    case  l@GENERIC_TOKEN(s) => (s, l)
-  } toMap
+  private val uninterpretedTokenLabels: Map[Sort, ConstantLabel[String]] = (nonAssocLabels collect {
+    case l@GENERIC_TOKEN(s) => (s, l)
+  }).toMap + (Sort("KConfigVar@BASIC-K") -> GENERIC_TOKEN(Sort("KConfigVar@BASIC-K")))
 
   private val nonConstantLabels: Map[String, NodeLabel] = nonAssocLabels collect {
-    case  l: NodeLabel => (l.name, l)
+    case l: NodeLabel => (l.name, l)
   } toMap
 
-  private val assocLabels: Set[Label] = assocProductions map { case p @ Production(s, items, att) =>
+  private val emptyKSeq = FreeLabel0(".")(env)()
+  private val kseq = new AssocWithIdListLabel("~>", emptyKSeq)
+
+  assocProductions map { case p@Production(s, items, att) =>
     val units = nonAssocLabels.filter(l => l.name == p.att.get[String]("unit").get)
     assert(units.size == 1)
     val theUnit = units.head.asInstanceOf[FreeLabel0]()
     new AssocWithIdListLabel(p.klabel.get.name, theUnit)(env)
-  } toSet
-
-  private val allLabels = nonAssocLabels | assocLabels
+  }
 
   val unifier = Matcher(env)
   val substitutionApplier = SubstitutionApply(env)
@@ -90,8 +101,10 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
       case Sorts.String => STRING(s)
       case _ => uninterpretedTokenLabels(Sort(sort.name))(s)
     }
+    case Unapply.KApply(klabel, list) if klabel.name == "#KSequence" => kseq(list map convert)
     case Unapply.KApply(klabel, list) => env.label(klabel.name).asInstanceOf[NodeLabel](list map convert)
-    case v: SortedKVariable => Variable(v.name)
+    case v: KVariable => Variable(v.name)
+    case r: KRewrite => Rewrite(convert(r.left), convert(r.right))
   }
 
   val rules = m.rules map {
