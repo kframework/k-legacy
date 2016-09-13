@@ -34,6 +34,8 @@ import org.kframework.utils.file.FileUtil;
 import scala.Tuple2;
 import scala.collection.Set;
 import scala.util.Either;
+import scala.util.Left;
+import scala.util.Right;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -55,6 +57,7 @@ import static org.kframework.kore.KORE.*;
 /**
  * A bundle of code doing various aspects of definition parsing.
  * TODO: In major need of refactoring.
+ *
  * @cos refactored this code out of Kompile but none (or close to none) of it was originally written by him.
  */
 public class DefinitionParsing {
@@ -95,8 +98,7 @@ public class DefinitionParsing {
                 mutable(definition.getParsedDefinition().modules()),
                 "require " + StringUtil.enquoteCString(definitionFile.getPath()),
                 Source.apply(definitionFile.getAbsolutePath()),
-                definitionFile.getParentFile(),
-                Lists.newArrayList(Kompile.BUILTIN_DIRECTORY),
+                Lists.newArrayList(Kompile.BUILTIN_DIRECTORY, definitionFile.getParentFile()),
                 autoImportDomains);
 
         if (modules.size() != 1) {
@@ -138,7 +140,17 @@ public class DefinitionParsing {
     }
 
     public Definition parseDefinitionAndResolveBubbles(File definitionFile, String mainModuleName, String mainProgramsModule) {
-        Definition parsedDefinition = RuleGrammarGenerator.autoGenerateBaseKCasts(parseDefinition(definitionFile, mainModuleName, mainProgramsModule));
+
+        List<File> allLookupDirectories = ListUtils.union(
+                lookupDirectories,
+                Lists.newArrayList(Kompile.BUILTIN_DIRECTORY));
+        allLookupDirectories.add(0, definitionFile.getParentFile());
+
+        return parseDefinitionAndResolveBubbles(FileUtil.load(definitionFile), mainModuleName, mainProgramsModule, Source.apply(definitionFile.toString()), allLookupDirectories);
+    }
+
+    public Definition parseDefinitionAndResolveBubbles(String definitionString, String mainModuleName, String mainProgramsModule, Source source, List<File> allLookupDirectories) {
+        Definition parsedDefinition = RuleGrammarGenerator.autoGenerateBaseKCasts(parseDefinition(definitionString, mainModuleName, mainProgramsModule, source, allLookupDirectories));
         Definition afterResolvingConfigBubbles = resolveConfigBubbles(parsedDefinition);
         Definition afterResolvingAllOtherBubbles = resolveNonConfigBubbles(afterResolvingConfigBubbles);
         saveCachesAndReportParsingErrors();
@@ -152,14 +164,13 @@ public class DefinitionParsing {
         }
     }
 
-    public Definition parseDefinition(File definitionFile, String mainModuleName, String mainProgramsModule) {
+    public Definition parseDefinition(String definitionString, String mainModuleName, String mainProgramsModule, Source source, List<File> allLookupDirectories) {
+
         Definition definition = parser.loadDefinition(
                 mainModuleName,
-                mainProgramsModule, FileUtil.load(definitionFile),
-                definitionFile,
-                definitionFile.getParentFile(),
-                ListUtils.union(lookupDirectories,
-                        Lists.newArrayList(Kompile.BUILTIN_DIRECTORY)),
+                mainProgramsModule, definitionString,
+                source,
+                allLookupDirectories,
                 autoImportDomains);
         return definition;
     }
@@ -233,37 +244,48 @@ public class DefinitionParsing {
         ParseCache cache = loadCache(ruleParserModule);
         ParseInModule parser = RuleGrammarGenerator.getCombinedGrammar(cache.getModule(), isStrict);
 
-        Set<Sentence> ruleSet = stream(module.localSentences())
+        java.util.Set<Bubble> bubbles = stream(module.localSentences())
                 .parallel()
                 .filter(s -> s instanceof Bubble)
-                .map(b -> (Bubble) b)
-                .filter(b -> b.sentenceType().equals("rule"))
-                .flatMap(b -> performParse(cache.getCache(), parser, b))
-                .map(this::upRule)
-                .collect(Collections.toSet());
+                .map(b -> (Bubble) b).collect(Collectors.toSet());
 
-        Set<Sentence> contextSet = stream(module.localSentences())
-                .parallel()
-                .filter(s -> s instanceof Bubble)
-                .map(b -> (Bubble) b)
+        Set<Sentence> ruleSet = bubbles.stream()
+                .filter(b -> b.sentenceType().equals("rule"))
+                .map(b -> performParse(cache.getCache(), parser, b))
+                .flatMap(r -> {
+                    if (r.isRight()) {
+                        return Stream.of(this.upRule(r.right().get()));
+                    } else {
+                        errors.addAll(r.left().get());
+                        return Stream.empty();
+                    }
+                }).collect(Collections.toSet());
+
+        Set<Sentence> contextSet = bubbles.stream()
                 .filter(b -> b.sentenceType().equals("context"))
-                .flatMap(b -> performParse(cache.getCache(), parser, b))
-                .map(this::upContext)
-                .collect(Collections.toSet());
+                .map(b -> performParse(cache.getCache(), parser, b))
+                .flatMap(r -> {
+                    if (r.isRight()) {
+                        return Stream.of(this.upContext(r.right().get()));
+                    } else {
+                        errors.addAll(r.left().get());
+                        return Stream.empty();
+                    }
+                }).collect(Collections.toSet());
 
         return Module(module.name(), module.imports(),
                 stream((Set<Sentence>) module.localSentences().$bar(ruleSet).$bar(contextSet)).filter(b -> !(b instanceof Bubble)).collect(Collections.toSet()), module.att());
     }
 
+
     public Rule parseRule(CompiledDefinition compiledDef, String contents, Source source) {
-        errors = java.util.Collections.synchronizedSet(Sets.newHashSet());
-        java.util.Set<K> res = performParse(new HashMap<>(), RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getRuleGrammar(compiledDef.executionModule(), s -> compiledDef.kompiledDefinition.getModule(s).get()), isStrict),
-                new Bubble("rule", contents, Att().add("contentStartLine", 1).add("contentStartColumn", 1).add("Source", source.source())))
-                .collect(Collectors.toSet());
-        if (!errors.isEmpty()) {
-            throw errors.iterator().next();
+        Either<java.util.Set<ParseFailedException>, K> res = performParse(new HashMap<>(), RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getRuleGrammar(compiledDef.executionModule(), s -> compiledDef.kompiledDefinition.getModule(s).get()), isStrict),
+                new Bubble("rule", contents, Att().add("contentStartLine", 1).add("contentStartColumn", 1).add("Source", source.source())));
+
+        if (res.isLeft()) {
+            throw res.left().get().iterator().next();
         }
-        return upRule(res.iterator().next());
+        return upRule(res.right().get());
     }
 
     private Rule upRule(K contents) {
@@ -313,18 +335,18 @@ public class DefinitionParsing {
         return _this.sortDeclarations().equals(that.sortDeclarations());
     }
 
-    private Stream<? extends K> parseBubble(Module module, Bubble b) {
-        ParseCache cache = loadCache(RuleGrammarGenerator.getConfigGrammar(module, s -> definitionWithConfigBubble.getModule(s).get()));
+    private Either<java.util.Set<ParseFailedException>, K> parseBubble(Module module, Function<String, Module> getModule, Bubble b) {
+        ParseCache cache = loadCache(RuleGrammarGenerator.getConfigGrammar(module, getModule));
         ParseInModule parser = RuleGrammarGenerator.getCombinedGrammar(cache.getModule(), isStrict);
         return performParse(cache.getCache(), parser, b);
     }
 
-    private ParseInModule getParser(Module module) {
-        ParseCache cache = loadCache(RuleGrammarGenerator.getConfigGrammar(module, s -> definitionWithConfigBubble.getModule(s).get()));
+    private ParseInModule getParser(Module module, Function<String, Module> getModule) {
+        ParseCache cache = loadCache(RuleGrammarGenerator.getConfigGrammar(module, getModule));
         return RuleGrammarGenerator.getCombinedGrammar(cache.getModule(), isStrict);
     }
 
-    private Stream<? extends K> performParse(Map<String, ParsedSentence> cache, ParseInModule parser, Bubble b) {
+    private Either<java.util.Set<ParseFailedException>, K> performParse(Map<String, ParsedSentence> cache, ParseInModule parser, Bubble b) {
         int startLine = b.att().<Integer>get("contentStartLine").get();
         int startColumn = b.att().<Integer>get("contentStartColumn").get();
         String source = b.att().<String>get("Source").get();
@@ -333,7 +355,7 @@ public class DefinitionParsing {
             ParsedSentence parse = cache.get(b.contents());
             cachedBubbles.getAndIncrement();
             kem.addAllKException(parse.getWarnings().stream().map(e -> e.getKException()).collect(Collectors.toList()));
-            return Stream.of(parse.getParse());
+            return Right.apply(parse.getParse());
         } else {
             result = parser.parseString(b.contents(), START_SYMBOL, Source.apply(source), startLine, startColumn);
             parsedBubbles.getAndIncrement();
@@ -342,10 +364,9 @@ public class DefinitionParsing {
                 KApply k = (KApply) TreeNodesToKORE.down(result._1().right().get());
                 k = KApply(k.klabel(), k.klist(), k.att().addAll(b.att().remove("contentStartLine").remove("contentStartColumn").remove("Source").remove("Location")));
                 cache.put(b.contents(), new ParsedSentence(k, new HashSet<>(result._2())));
-                return Stream.of(k);
+                return Right.apply(k);
             } else {
-                errors.addAll(result._1().left().get());
-                return Stream.empty();
+                return Left.apply(result._1().left().get());
             }
         }
     }

@@ -3,6 +3,8 @@ package org.kframework;
 
 import org.kframework.definition.DefinitionTransformer;
 import org.kframework.definition.Module;
+import org.kframework.definition.ModuleTransformer;
+import org.kframework.kompile.ResolveConfig;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.definition.Definition;
 
@@ -20,12 +22,17 @@ import org.kframework.definition.Definition;
  */
 
 @API
-public class Compiler {
+public class Kompiler {
     /**
      * Generates the definition containing the modules appropriate for generating rule parsers.
      */
     public static Definition toRuleParser(Definition d) {
         return DefinitionTransformer.fromHybrid((Module m) -> RuleGrammarGenerator.getRuleGrammar(m, s -> d.getModule(s).get()), "toRuleParser").apply(d);
+    }
+
+    public static Definition configurationSentencesToSyntaxAndRules(Definition d) {
+        ResolveConfig resolveConfig = new ResolveConfig(d, true);
+        return DefinitionTransformer.fromHybrid(resolveConfig::apply, "toRuleParser").apply(d);
     }
 
     /**

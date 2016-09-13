@@ -112,6 +112,11 @@ public class RuleGrammarGenerator {
      * Imports module markers RULE-CELLS and K found in /include/kast.k.
      *
      * @param mod The user defined module from which to start.
+     * @param getProcessedModule initially, RuleGrammerGenerator was initialized with a Definition but this introduced
+     *                           error as modules in that definition bacame obsolete as various RuleGrammarGenerator
+     *                           methods were used.
+     *                           This method is just meant to expose other modules available in the same Definition
+     *                           (i.e., at the same level of processing) as mod.
      * @return a new module which imports the original user module and a set of marker modules.
      */
     public static Module getRuleGrammar(Module mod, Function<String, Module> getProcessedModule) {

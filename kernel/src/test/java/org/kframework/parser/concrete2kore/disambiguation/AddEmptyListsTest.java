@@ -35,10 +35,13 @@ public class AddEmptyListsTest {
 
     @Before
     public void setUp() throws Exception {
+        /*
         FileUtil files = FileUtil.testFileUtil();
         File definitionFile = new File(Kompile.BUILTIN_DIRECTORY.toString() + "/kast.k");
         String baseKText = files.loadFromWorkingDirectory(definitionFile.getPath());
-        Definition baseK = org.kframework.Definition.from(baseKText + DEF, "TEST");
+         */
+        String baseKText = "require \"domains.k\"\n";
+        Definition baseK = org.kframework.DefinitionParser.from(baseKText + DEF, "TEST");
         Module test = baseK.getModule("TEST").get();
         parser = RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getRuleGrammar(test, s -> baseK.getModule(s).get()), true);
     }

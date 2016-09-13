@@ -30,9 +30,12 @@ public class AddBracketsTest {
 
     @Before
     public void setUp() throws Exception {
+        /*
         FileUtil files = FileUtil.testFileUtil();
         File definitionFile = new File(Kompile.BUILTIN_DIRECTORY.toString() + "/kast.k");
         baseKText = files.loadFromWorkingDirectory(definitionFile.getPath());
+         */
+        baseKText = "require \"domains.k\"\n";
     }
 
     private Module parseModule(String def) {
@@ -76,7 +79,7 @@ public class AddBracketsTest {
     }
 
     private void unparserTest(String def, String pgm) {
-        Definition baseK = RuleGrammarGenerator.autoGenerateBaseKCasts(org.kframework.Definition.from(baseKText + def, "TEST"));
+        Definition baseK = RuleGrammarGenerator.autoGenerateBaseKCasts(org.kframework.DefinitionParser.from(baseKText + def, "TEST"));
         Module test = baseK.getModule("TEST").get();
         ParseInModule parser = RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getRuleGrammar(test, s -> baseK.getModule(s).get()), true);
         K parsed = parseTerm(pgm, parser);

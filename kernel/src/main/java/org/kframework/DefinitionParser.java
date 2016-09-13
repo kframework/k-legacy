@@ -5,6 +5,8 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.google.inject.util.Providers;
 import org.kframework.attributes.Source;
+import org.kframework.definition.Definition;
+import org.kframework.kompile.DefinitionParsing;
 import org.kframework.kompile.Kompile;
 import org.kframework.main.GlobalOptions;
 import org.kframework.parser.concrete2kore.ParserUtils;
@@ -17,7 +19,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @API
-public class Definition {
+public class DefinitionParser {
 
     /**
      * Parses the text to create a {@link Definition} object.
@@ -61,7 +63,7 @@ public class Definition {
         }
         GlobalOptions globalOptions = new GlobalOptions();
         KExceptionManager kem = new KExceptionManager(globalOptions);
-
+//
         FileUtil fileUtil = new FileUtil(theFileUtilTempDir,
                 Providers.of(definitionDir),
                 workingDir,
@@ -70,15 +72,8 @@ public class Definition {
                 System.getenv());
         ParserUtils parserUtils = new ParserUtils(fileUtil::resolveWorkingDirectory, kem, globalOptions);
 
-        org.kframework.definition.Definition definition = parserUtils.loadDefinition(
-                mainModuleName,
-                mainModuleName,
-                definitionText,
-                source,
-                workingDir,
-                lookupDirectories,
-                false
-        );
+        DefinitionParsing definitionParsing = new DefinitionParsing(lookupDirectories, true, kem, parserUtils, false, null, false);
+        Definition definition = definitionParsing.parseDefinitionAndResolveBubbles(definitionText, mainModuleName, mainModuleName, source, lookupDirectories);
 
         return definition;
     }

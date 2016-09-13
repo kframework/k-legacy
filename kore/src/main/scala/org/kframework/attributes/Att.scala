@@ -162,6 +162,7 @@ object Att {
   val unit = "unit"
   val bag = "bag"
   val syntaxModule = "syntaxModule"
+  val latex = "latex"
   val variable = "variable"
   val sort = TypedKey[Sort]("sort", {
     s: Sort => KORE.KToken(s.name, Sorts.String)
@@ -173,6 +174,8 @@ object Att {
   val keyMap: Map[String, TypedKey[_]] = Map(
     "sort" -> sort
   )
+
+  val klabel = "klabel"
 
   def generatedByAtt(c: Class[_]) = Att().add(Att.generatedBy, c.getName)
 }
