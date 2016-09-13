@@ -104,7 +104,7 @@ object ADT {
     override def equals(other: Any) = other match {
       case s: SortLookup if s.moduleName == ModuleName.STAR => this.localName == s.localName
       case s: kore.Sort => s.moduleName == this.moduleName && s.localName == this.localName
-      case _ => throw new AssertionError("We cannot compare this.")
+      case _ => throw new AssertionError("We cannot compare " + other + " to " + this)
     }
 
     override def name = super[ResolvedSymbol].name // hack for compiler bug

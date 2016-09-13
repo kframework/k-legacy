@@ -3,7 +3,6 @@ package org.kframework.backend.java.symbolic;
 
 import com.google.inject.Inject;
 import org.kframework.AddConfigurationRecoveryFlags;
-import org.kframework.Collections;
 import org.kframework.attributes.Att;
 import org.kframework.backend.Backends;
 import org.kframework.backend.java.kore.compile.ExpandMacrosDefinitionTransformer;
@@ -14,20 +13,15 @@ import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Constructors;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
-import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
-import org.kframework.kore.ADT;
-import org.kframework.kore.KToken;
-import org.kframework.kore.Sort;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KORE;
-import org.kframework.kore.KSequence;
 import org.kframework.kore.KVariable;
 import org.kframework.kore.SortedADT;
 import org.kframework.kore.compile.AddImplicitComputationCell;
@@ -44,7 +38,6 @@ import org.kframework.kore.TransformK;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import scala.Option;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -72,26 +65,6 @@ public class JavaBackend implements Backend {
         this.kompileOptions = kompileOptions;
     }
 
-    DefinitionTransformer moduleQualifySortPredicates = DefinitionTransformer.fromKTransformerWithModuleInfo((Module m, K k) -> {
-        return new TransformK() {
-            @Override
-            public K apply(KApply kk) {
-                KApply k = (KApply) super.apply(kk);
-                if (!k.klabel().name().startsWith("is"))
-                    return k;
-
-                Sort possibleSort = KORE.Sort(k.klabel().name().substring("is".length()));
-                Option<ADT.Sort> resolvedSort = m.sortResolver().get(possibleSort);
-
-                if (resolvedSort.isDefined()) {
-                    return KORE.KApply(KORE.KLabel("is" + resolvedSort.get().name()), k.klist());
-                } else {
-                    return k;
-                }
-            }
-        }.apply(k);
-    }, "Module-qualify sort predicates");
-
     /**
      * @param the generic {@link Kompile}
      * @return the special steps for the Java backend
@@ -105,19 +78,19 @@ public class JavaBackend implements Backend {
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(DefinitionTransformer.fromHybrid(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))
-                .andThen(moduleQualifySortPredicates)
+                .andThen(Kompile.moduleQualifySortPredicates)
                 .andThen(expandMacrosDefinitionTransformer::apply)
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(convertDataStructureToLookup)
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
-                .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::convertKSeqToKApply, "kseq to kapply"))
+                .andThen(DefinitionTransformer.fromRuleBodyTranformer(Kompile::convertKSeqToKApply, "kseq to kapply"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(NormalizeKSeq.self(), "normalize kseq"))
                 .andThen(JavaBackend::markRegularRules)
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new AddConfigurationRecoveryFlags()::apply, "add refers_THIS_CONFIGURATION_marker"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(JavaBackend::markSingleVariables, "mark single variables"))
                 .andThen(DefinitionTransformer.fromHybrid(new AssocCommToAssoc(KORE.c()), "convert assoc/comm to assoc"))
                 .andThen(DefinitionTransformer.fromHybrid(new MergeRules(KORE.c()), "generate matching automaton"))
-                .andThen(moduleQualifySortPredicates)
+                .andThen(Kompile.moduleQualifySortPredicates)
                 .apply(d);
     }
 
@@ -132,10 +105,10 @@ public class JavaBackend implements Backend {
                 .andThen(ConcretizeCells::transformDefinition)
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
                 .andThen(DefinitionTransformer.fromHybrid(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))
-                .andThen(moduleQualifySortPredicates)
+                .andThen(Kompile.moduleQualifySortPredicates)
                 .andThen(expandMacrosDefinitionTransformer::apply)
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
-                .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::convertKSeqToKApply, "kseq to kapply"))
+                .andThen(DefinitionTransformer.fromRuleBodyTranformer(Kompile::convertKSeqToKApply, "kseq to kapply"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(NormalizeKSeq.self(), "normalize kseq"))
                 .andThen(JavaBackend::markRegularRules)
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new AddConfigurationRecoveryFlags()::apply, "add refers_THIS_CONFIGURATION_marker"))
@@ -166,17 +139,6 @@ public class JavaBackend implements Backend {
         return new TransformK() {
             public K apply(KVariable kvar) {
                 return new SortedADT.SortedKVariable(kvar.name(), kvar.att());
-            }
-        }.apply(ruleBody);
-    }
-
-    /**
-     * In the Java backend, {@link KSequence}s are treated like {@link KApply}s, so tranform them.
-     */
-    public static K convertKSeqToKApply(K ruleBody) {
-        return new TransformK() {
-            public K apply(KSequence kseq) {
-                return super.apply(((ADT.KSequence) kseq).kApply());
             }
         }.apply(ruleBody);
     }
