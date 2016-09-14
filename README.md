@@ -102,7 +102,7 @@ in running the unit tests and checkstyle goals, run `mvn verify -DskipKTest` to
 skip the lengthy `ktest` execution.
 
 # Changing the KORE data structures
-If you need to change the KORE data structures (unless you are a K core developer, you probably do not), see [Guide-for-changing-the-KORE-data-structures](https://github.com/kframework/k/wiki/Guide-for-changing-the-KORE-data-structures).
+If you need to change the KORE data structures (unless you are a K core developer, you probably do not), see [KORE data structures guide](https://github.com/kframework/k/wiki/KORE-data-structures-guide).
 
 # Build the final release directory/archives
 Call `mvn install` in the base directory. This will attach an artifact to the local
