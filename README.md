@@ -12,7 +12,7 @@ You can download the JDK at http://www.oracle.com/technetwork/java/javase/downlo
 To make sure that everything works you should be able to call `java -version` and
 `javac -version` from a Terminal.
 
-## Apache Maven
+### Apache Maven
 
 Linux:
 *   Download from package manager (e.g. `sudo apt-get install maven`)
@@ -34,54 +34,52 @@ You can test if it works by calling `mvn -version` in a Terminal.
 This will provide the information about the JDK Maven is using, in case
 it is the wrong one.
 	
-## Git - command line
+### Git - command line
 Having a GUI client is not enough. Most distributions have an installation
 option to make git accessible in the command line too.
 
 # Install
 Checkout this directory in your desired location and call `mvn package` from the main
-directory to build the distribution. For convenient usage, you can update
-your $PATH with <checkout-dir>k-distribution/target/release/k/bin (strongly recommended, but optional).
+directory to build the distribution.
+For convenient usage, you can update your `$PATH` with `<checkout-dir>k-distribution/target/release/k/bin` (strongly recommended, but optional).
 
 You are also encouraged to set the environment variable `MAVEN_OPTS` to `-XX:+TieredCompilation`,
 which will significantly speed up the incremental build process.
 
 # IDE Setup
 
-## General
+First build K and set up the environment variables as explained above.
 
-You should run K from the k-distribution project, because it is the only project to have the complete
-classpath and therefore all backends.
-
-## Environment
-
-In order for K to run correctly in an IDE, it is necessary that the correct environment variables be set.
+Additionally, in order for K to run correctly in an IDE, it is necessary that the correct environment variables be set.
 You need to replace `<release>` with a path to `k-distribution/target/release/k` in your source tree.
 
-### Mac OS X
-
+**Mac OS X**:
 `PATH=$PATH:<release>/lib/native/osx
 DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:<release>/lib/native/osx`
 
-### Windows x86
+**Windows x86**:
+`PATH=$PATH;<release>\lib\native\windows;<release>\lib\native\windows32`
 
-`PATH=$PATH;<release>\lib\native\windows;<release>\lib\native\windows32;<release>\lib\native\32`
+**Windows x64**:
+`PATH=$PATH;<release>\lib\native\windows;<release>\lib\native\windows64`
 
-### Windows x64
-
-`PATH=$PATH;<release>\lib\native\windows;<release>\lib\native\windows64;<release>\lib\native\64`
-
-### Linux i386
-
+**Linux i386**:
 `PATH=$PATH:<release>/lib/native/linux:<release>/lib/native/linux32
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<release>/lib/native/linux32`
 
-### Linux amd64
-
+**Linux amd64**:
 `PATH=$PATH:<release>/lib/native/linux:<release>/lib/native/linux64
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<release>/lib/native/linux64`
 
-## Eclipse
+### IntelliJ IDEA
+
+Import project (`<checkout-dir>`, the top `k` directory) from external model Maven
+(see [IntelliJ IDEA wiki](http://wiki.jetbrains.net/intellij/Creating_and_importing_Maven_projects) for more info).
+If you intend to contribute code to the k repository, then make sure you work with the existing styles configuration file (`.idea/codeStyleSettings.xml`); if your IntelliJ import deletes it, then check it out again.
+
+
+
+### Eclipse
 _N.B. the Eclipse internal compiler may generate false compilation errors (there are bugs in its support of Scala mixed compilation). We recommend using IntelliJ IDEA if at all possible._
 
 To autogenerate an Eclipse project for K, run `mvn install -DskipKTest; mvn eclipse:eclipse` on the
@@ -89,11 +87,6 @@ command line, and then go into the `kore` directory and run `sbt eclipse`.
 Then start eclipse and go to File->Import->General->Existing projects into workspace, and select
 the directory of the installation. You should only add the leaves to the workspace, because
 eclipse does not support hierarchical projects.
-
-## IntelliJ IDEA
-
-IntelliJ IDEA comes with built-in maven integration. For more information, refer to
-the [IntelliJ IDEA wiki](http://wiki.jetbrains.net/intellij/Creating_and_importing_Maven_projects)
 
 # Run test suite
 To completely test the current version of the K framework, run `mvn verify`.
