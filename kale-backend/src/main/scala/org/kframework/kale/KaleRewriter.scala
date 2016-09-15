@@ -125,9 +125,9 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   }
 
   override def execute(k: K, depth: Optional[Integer]): RewriterResult = {
-    val converted = convert(k)
+    val converted: Term = convert(k)
     println(converted)
-    new RewriterResult(Optional.of(0), convertBack(rewrite.executionStep(And(converted, BOOLEAN(true)))))
+    new RewriterResult(Optional.of(0), convertBack(rewrite.executionStep(converted)))
   }
 
   override def `match`(k: K, rule: Rule): util.List[_ <: util.Map[_ <: KVariable, _ <: K]] = ???
