@@ -23,7 +23,7 @@ class KaleBackend extends Backend {
 
 
     (d => kompile.defaultSteps()(d))
-      .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop.bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
+      .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop.rewriteToTop, "rewrite to top"))
       .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE), "normalize assoc"))
       .andThen(DefinitionTransformer.fromHybrid(AddBottomSortForListsWithIdenticalLabels, "AddBottomSortForListsWithIdenticalLabels"))
       .andThen(Kompile.moduleQualifySortPredicates)

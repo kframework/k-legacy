@@ -13,6 +13,7 @@ import org.kframework.rewriter.SearchType
 import collection._
 import org.kframework.kale
 import org.kframework.kore.SortedADT.SortedKVariable
+import org.kframework.kore.Unapply.KRewrite
 
 object KaleRewriter {
   val self = this
@@ -90,6 +91,8 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     new AssocWithIdListLabel(p.klabel.get.name, theUnit)(env)
   }
 
+  env.seal()
+
   val unifier = Matcher(env)
   val substitutionApplier = SubstitutionApply(env)
   val rewriterConstructor = Rewriter(substitutionApplier, unifier, env) _
@@ -108,11 +111,23 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   }
 
   val rules = m.rules map {
-    case Rule(body, requires, ensures, att) => And(convert(body), convert(requires))
+    case Rule(KRewrite(l, r), requires, ensures, att) if !att.contains(Att.Function)=>
+      Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r))
+  }
+
+  println(rules.mkString("\n"))
+
+  val rewrite = rewriterConstructor(rules)
+
+  def convertBack(term: Term): K = {
+    println(term)
+    ???
   }
 
   override def execute(k: K, depth: Optional[Integer]): RewriterResult = {
-    new RewriterResult(Optional.of(0), k)
+    val converted = convert(k)
+    println(converted)
+    new RewriterResult(Optional.of(0), convertBack(rewrite.executionStep(And(converted, BOOLEAN(true)))))
   }
 
   override def `match`(k: K, rule: Rule): util.List[_ <: util.Map[_ <: KVariable, _ <: K]] = ???
