@@ -75,8 +75,10 @@ LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<release>/lib/native/linux64`
 
 Import project (`<checkout-dir>`, the top `k` directory) from external model Maven
 (see [IntelliJ IDEA wiki](http://wiki.jetbrains.net/intellij/Creating_and_importing_Maven_projects) for more info).
-If you intend to contribute code to the k repository, then make sure you work with the existing styles configuration file (`.idea/codeStyleSettings.xml`); if your IntelliJ import deletes it, then check it out again.
 
+If you intend to contribute code to the k repository, then make sure you work with the existing styles configuration file (`.idea/codeStyleSettings.xml`); if your IntelliJ import deletes or modifies it, then check it out again.
+
+When editing your IntelliJ configurations, we recommend that you use `<checkout-dir>\k-distribution` as working directory.
 
 
 ### Eclipse
