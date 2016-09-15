@@ -78,7 +78,7 @@ Import project (`<checkout-dir>`, the top `k` directory) from external model Mav
 
 If you intend to contribute code to the k repository, then make sure you work with the existing styles configuration file (`.idea/codeStyleSettings.xml`); if your IntelliJ import deletes or modifies it, then check it out again.
 
-When editing your IntelliJ configurations, we recommend that you use `<checkout-dir>\k-distribution` as working directory.
+When editing your IntelliJ configurations, we recommend that you use classpath of module `k-distribution`.
 
 
 ### Eclipse
