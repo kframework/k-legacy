@@ -15,7 +15,7 @@ class NormalizeAssoc(c: Constructors[K]) extends ((Module, Sentence )=> Sentence
 
   def apply(m: Module, s: Sentence): Sentence = s match {
     case r: Rule =>
-      Rule(apply(r.body)(m), apply(r.requires)(m), apply(r.ensures)(m), r.att)
+      Rule(apply(r.body)(m), apply(r.requires)(m), r.ensures, r.att)
     case _ => s
   }
 
