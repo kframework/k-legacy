@@ -3,6 +3,7 @@
 package org.kframework.backend.java.symbolic;
 
 import java.io.Serializable;
+import java.util.stream.IntStream;
 
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.kil.*;
@@ -95,9 +96,9 @@ public class Equality implements Serializable {
 
     public boolean isTrue() {
         return !(leftHandSide instanceof Bottom)
-            && !(rightHandSide instanceof Bottom)
-            && leftHandSide.hashCode() == rightHandSide.hashCode()
-            && leftHandSide.equals(rightHandSide);
+                && !(rightHandSide instanceof Bottom)
+                && leftHandSide.hashCode() == rightHandSide.hashCode()
+                && leftHandSide.equals(rightHandSide);
     }
 
     public boolean isFalse() {
@@ -167,7 +168,7 @@ public class Equality implements Serializable {
          * Checks if a given equality is false.
          *
          * @return {@code true} if this equality is definitely false; otherwise,
-         *         {@code false}
+         * {@code false}
          */
         public boolean isFalse(Equality equality) {
             Definition definition = definitionProvider.get();
@@ -196,6 +197,15 @@ public class Equality implements Serializable {
                 return true;
             }
 
+            if (leftHandSide instanceof BuiltinList && rightHandSide instanceof BuiltinList) {
+                if (((BuiltinList) leftHandSide).isEmpty() && IntStream.range(0, ((BuiltinList) rightHandSide).size()).anyMatch(((BuiltinList) rightHandSide)::isElement)) {
+                    return true;
+                }
+                if (((BuiltinList) rightHandSide).isEmpty() && IntStream.range(0, ((BuiltinList) leftHandSide).size()).anyMatch(((BuiltinList) leftHandSide)::isElement)) {
+                    return true;
+                }
+            }
+
             // TODO(YilongL): handle this in SymbolicUnifier?
             if (leftHandSide.isExactSort() && rightHandSide.isExactSort()) {
                 return !leftHandSide.sort().equals(rightHandSide.sort());
@@ -216,7 +226,7 @@ public class Equality implements Serializable {
                 // syntax ThreadId ::= Int | "foo" | "getThreadId" [function]
                 // ThreadId:Int ?= getThreadId
                 if (leftHandSide instanceof Variable && rightHandSide instanceof KItem
-                        && !((KItem)rightHandSide).isEvaluable()) {
+                        && !((KItem) rightHandSide).isEvaluable()) {
                     for (Sort sort : ((KItem) rightHandSide).possibleSorts()) {
                         unifiable = unifiable || definition.subsorts().isSubsortedEq(leftHandSide.sort(), sort);
                     }
@@ -224,7 +234,7 @@ public class Equality implements Serializable {
                         return true;
                     }
                 } else if (rightHandSide instanceof Variable && leftHandSide instanceof KItem
-                        && !((KItem)leftHandSide).isEvaluable()) {
+                        && !((KItem) leftHandSide).isEvaluable()) {
                     for (Sort sort : ((KItem) leftHandSide).possibleSorts()) {
                         unifiable = unifiable || definition.subsorts().isSubsortedEq(rightHandSide.sort(), sort);
                     }
