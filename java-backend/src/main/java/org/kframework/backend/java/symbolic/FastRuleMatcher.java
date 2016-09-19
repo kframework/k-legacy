@@ -484,6 +484,10 @@ public class FastRuleMatcher {
         for (int i = ruleMask.nextSetBit(0); i >= 0; i = ruleMask.nextSetBit(i + 1)) {
             Term leftHandSide = getLeftHandSide(pattern, i);
             Term rightHandSide = getRightHandSide(pattern, i);
+            if (leftHandSide instanceof Variable
+                    && ((Variable) leftHandSide).name().equals(KOREtoBackendKIL.THE_VARIABLE)) {
+                continue;
+            }
 
             constraints[i] = constraints[i].add(subject, leftHandSide);
             if (continuousSimplification) {
@@ -542,8 +546,13 @@ public class FastRuleMatcher {
                     return (Term) super.transform(kItem);
                 }
 
+                Term rhs = ((InnerRHSRewrite) kItem.klist().items().get(1)).theRHS[i];
+                if (rhs == null) {
+                    return (Term) ((Term) kItem.klist().items().get(0)).accept(this);
+                }
+
                 hasRewrite[0] = true;
-                return ((InnerRHSRewrite) kItem.klist().items().get(1)).theRHS[i];
+                return rhs;
             }
         });
         return hasRewrite[0] ? result : null;

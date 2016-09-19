@@ -72,6 +72,7 @@ public class ImmutableMapSubstitution<K extends Term, V extends Term> implements
     private final HashPMap<K, V> entries;
 
     private ImmutableMapSubstitution(HashPMap<K, V> entries) {
+        assert !entries.keySet().stream().anyMatch(k -> k.toString().startsWith("THE"));
         this.entries = entries;
     }
 
