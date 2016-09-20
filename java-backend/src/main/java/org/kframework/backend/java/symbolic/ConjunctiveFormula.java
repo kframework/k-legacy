@@ -93,7 +93,7 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
             GlobalContext global) {
         super(Kind.KITEM);
 
-        assert !equalities.stream().anyMatch(e -> e.leftHandSide() instanceof BuiltinList && ((BuiltinList) e.leftHandSide()).isEmpty() && e.rightHandSide() instanceof BuiltinList && ((BuiltinList) e.rightHandSide()).isElement(0));
+        assert !equalities.stream().anyMatch(e -> e.leftHandSide() instanceof BuiltinList && ((BuiltinList) e.leftHandSide()).isEmpty() && e.rightHandSide() instanceof BuiltinList && !((BuiltinList) e.rightHandSide()).isEmpty() && ((BuiltinList) e.rightHandSide()).isElement(0));
         this.substitution = substitution;
         this.equalities = equalities;
         this.disjunctions = disjunctions;
