@@ -1,7 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.kompile;
 
-import com.google.inject.Inject;
+import org.kframework.KapiGlobal;
 import org.kframework.Strategy;
 import org.kframework.attributes.Source;
 import org.kframework.backend.Backends;
@@ -63,7 +63,7 @@ public class Kompile {
 
     public final KompileOptions kompileOptions;
     private final FileUtil files;
-    private final KExceptionManager kem;
+    public final KExceptionManager kem;
     private final ParserUtils parser;
     private final Stopwatch sw;
     private final DefinitionParsing definitionParsing;
@@ -81,7 +81,6 @@ public class Kompile {
         this(kompileOptions, files, kem, true);
     }
 
-    @Inject
     public Kompile(KompileOptions kompileOptions, FileUtil files, KExceptionManager kem, Stopwatch sw) {
         this(kompileOptions, files, kem, sw, true);
     }
@@ -99,8 +98,12 @@ public class Kompile {
         this.sw = sw;
     }
 
+    public Kompile(KapiGlobal kapiGlobal) {
+        this(kapiGlobal.kompileOptions, kapiGlobal.files, kapiGlobal.kem);
+    }
+
     public CompiledDefinition run(File definitionFile, String mainModuleName, String mainProgramsModuleName) {
-        return run(definitionFile, mainModuleName, mainProgramsModuleName, defaultSteps());
+        return run(definitionFile, mainModuleName, mainProgramsModuleName, defaultSteps(kompileOptions, kem));
     }
 
     /**
@@ -116,6 +119,10 @@ public class Kompile {
         Definition parsedDef = parseDefinition(definitionFile, mainModuleName, mainProgramsModuleName);
         sw.printIntermediate("Parse definition [" + definitionParsing.parsedBubbles.get() + "/" + (definitionParsing.parsedBubbles.get() + definitionParsing.cachedBubbles.get()) + " rules]");
 
+        return run(parsedDef, pipeline);
+    }
+
+    public CompiledDefinition run(Definition parsedDef, Function<Definition, Definition> pipeline) {
         checkDefinition(parsedDef);
 
         Definition kompiledDefinition = pipeline.apply(parsedDef);
@@ -130,30 +137,32 @@ public class Kompile {
         return definitionParsing.parseDefinitionAndResolveBubbles(definitionFile, mainModuleName, mainProgramsModule);
     }
 
-    public Definition resolveIOStreams(Definition d) {
+    public static Definition resolveIOStreams(Definition d, KExceptionManager kem) {
         return DefinitionTransformer.fromHybrid(new ResolveIOStreams(d, kem)::resolve, "resolving io streams").apply(d);
     }
 
-    public Function<Definition, Definition> defaultSteps() {
+    public static Function<Definition, Definition> defaultSteps(KompileOptions kompileOptions, KExceptionManager kem) {
         DefinitionTransformer convertStrictToContexts = DefinitionTransformer.fromHybrid(new ResolveStrict(kompileOptions)::resolve, "resolving strict and seqstrict attributes");
         DefinitionTransformer resolveHeatCoolAttribute = DefinitionTransformer.fromSentenceTransformer(new ResolveHeatCoolAttribute(new HashSet<>(kompileOptions.transition))::resolve, "resolving heat and cool attributes");
         DefinitionTransformer convertAnonVarsToNamedVars = DefinitionTransformer.fromSentenceTransformer(new ResolveAnonVar()::resolve, "resolving \"_\" vars");
         DefinitionTransformer resolveSemanticCasts =
                 DefinitionTransformer.fromSentenceTransformer(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve, "resolving semantic casts");
 
-        return def -> asScalaFunc(this::resolveIOStreams)
-                .andThen(convertStrictToContexts)
-                .andThen(convertAnonVarsToNamedVars)
-                .andThen(d -> new ConvertContextsToHeatCoolRules(kompileOptions).resolve(d))
-                .andThen(resolveHeatCoolAttribute)
-                .andThen(resolveSemanticCasts)
-                .andThen(DefinitionTransformer.fromWithInputDefinitionTransformerClass(GenerateSortPredicateSyntax.class))
-                .andThen(this::resolveFreshConstants)
-                .andThen(AddImplicitComputationCell::transformDefinition)
-                .andThen(new Strategy(kompileOptions.experimental.heatCoolStrategies).addStrategyCellToRulesTransformer())
-                .andThen(ConcretizeCells::transformDefinition)
-                .andThen(this::addSemanticsModule)
-                .apply(def);
+        return d -> {
+            d = resolveIOStreams(d, kem);
+            d = convertStrictToContexts.apply(d);
+            d = convertAnonVarsToNamedVars.apply(d);
+            d = new ConvertContextsToHeatCoolRules(kompileOptions).resolve(d);
+            d = resolveHeatCoolAttribute.apply(d);
+            d = resolveSemanticCasts.apply(d);
+            d = DefinitionTransformer.fromWithInputDefinitionTransformerClass(GenerateSortPredicateSyntax.class).apply(d);
+            d = resolveFreshConstants(d);
+            d = AddImplicitComputationCell.transformDefinition(d);
+            d = new Strategy(kompileOptions.experimental.heatCoolStrategies).addStrategyCellToRulesTransformer().apply(d);
+            d = ConcretizeCells.transformDefinition(d);
+            d = addSemanticsModule(d);
+            return d;
+        };
     }
 
     public Rule parseAndCompileRule(CompiledDefinition compiledDef, String contents, Source source, Optional<Rule> parsedRule) {
@@ -181,7 +190,7 @@ public class Kompile {
         }
     }
 
-    public Definition addSemanticsModule(Definition d) {
+    public static Definition addSemanticsModule(Definition d) {
         java.util.Set<Sentence> prods = new HashSet<>();
         for (Sort srt : iterable(d.mainModule().definedSorts())) {
             if (!RuleGrammarGenerator.isParserSort(srt)) {
@@ -201,7 +210,7 @@ public class Kompile {
         return Constructors.Definition(withKSeq, immutable(allModules), d.att());
     }
 
-    public Definition resolveFreshConstants(Definition input) {
+    public static Definition resolveFreshConstants(Definition input) {
         return DefinitionTransformer.fromHybrid(new ResolveFreshConstants(input)::resolve, "resolving !Var variables")
                 .apply(input);
     }

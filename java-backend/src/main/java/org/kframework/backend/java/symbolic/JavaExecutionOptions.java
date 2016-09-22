@@ -2,12 +2,10 @@
 package org.kframework.backend.java.symbolic;
 
 import org.kframework.backend.java.indexing.IndexingAlgorithm;
-import org.kframework.utils.inject.RequestScoped;
 import org.kframework.utils.options.BaseEnumConverter;
 
 import com.beust.jcommander.Parameter;
 
-@RequestScoped
 public final class JavaExecutionOptions {
 
     @Parameter(names="--deterministic-functions", description="Throw assertion failure during "

@@ -48,6 +48,13 @@ object RewriteToTop {
     case _ => true
   }
 
+  def hasRewrite(k: K): Boolean = k match {
+    case t: KRewrite => true
+    case t: KApply => immutable(t.klist.items).foldLeft(false)((b,k) => b || hasRewrite(k))
+    case t: KSequence => immutable(t.items).foldLeft(false)((b,k) => b || hasRewrite(k))
+    case other => false
+  }
+
   private def isCell(kapp: KApply): Boolean = {
     kapp.klabel.name.startsWith("<") && kapp.klabel.name.endsWith(">")
   }

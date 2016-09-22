@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface KModule {
 
+    // TODO(Daejun): remove this module
+
     public List<Module> getKDocModules();
     public List<Module> getKompileModules();
     public List<Module> getKastModules();
