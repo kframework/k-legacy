@@ -58,7 +58,6 @@ public class KRunFrontEnd extends FrontEnd {
     /**
      * @return the exit code returned from executing krun.
      */
-    // org.kframework.main.FrontEnd#main
     public int run() {
         for (int i = 0; i < krunOptions.experimental.profile - 1; i++) {
             new KRun(kem, files, tty.stdin, isNailgun).run(compiledDef,
@@ -66,7 +65,6 @@ public class KRunFrontEnd extends FrontEnd {
                     initializeRewriter,
                     executionMode);
         }
-        // org.kframework.krun.KRun.run()
         return new KRun(kem, files, tty.stdin, isNailgun).run(compiledDef,
                 krunOptions,
                 initializeRewriter,

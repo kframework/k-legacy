@@ -76,8 +76,6 @@ public class KRun {
         this.isNailgun = isNailgun;
     }
 
-    // org.kframework.main.FrontEnd#main
-    // org.kframework.krun.KRunFrontEnd#run
     public int run(CompiledDefinition compiledDef, KRunOptions options, Function<Module, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
         String pgmFileName = options.configurationCreation.pgm();
         K program;
@@ -94,8 +92,6 @@ public class KRun {
 
         Rewriter rewriter = rewriterGenerator.apply(compiledDef.executionModule());
 
-        // org.kframework.krun.modes.KRunExecutionMode.execute()
-        // org.kframework.backend.java.symbolic.ProofExecutionMode.execute()
         Object result = executionMode.execute(program, rewriter, compiledDef);
 
         if (result instanceof K) {
