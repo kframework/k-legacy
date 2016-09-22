@@ -1,7 +1,7 @@
 package org.kframework.compile
 
 import org.kframework.attributes.Att
-import org.kframework.definition.{Production, _}
+import org.kframework.definition._
 import org.kframework.kore.ADT.Sort
 
 import collection._
