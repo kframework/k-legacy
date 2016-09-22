@@ -8,15 +8,10 @@ import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.options.BaseEnumConverter;
 
 import com.beust.jcommander.Parameter;
-import com.google.inject.Inject;
 
 public final class GlobalOptions {
 
     public GlobalOptions() {}
-
-    //TODO(dwightguth): remove in Guice 4.0
-    @Inject
-    public GlobalOptions(Void v) {}
 
     public GlobalOptions(boolean debug, Warnings warnings, boolean verbose) {
         this.debug = debug;

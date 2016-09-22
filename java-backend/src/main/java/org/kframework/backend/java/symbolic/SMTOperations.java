@@ -9,7 +9,6 @@ import org.kframework.utils.options.SMTSolver;
 
 import java.util.Set;
 
-import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 public class SMTOperations {
@@ -17,7 +16,6 @@ public class SMTOperations {
     private final SMTOptions smtOptions;
     private final Z3Wrapper z3;
 
-    @Inject
     public SMTOperations(
             Provider<Definition> definitionProvider,
             SMTOptions smtOptions,

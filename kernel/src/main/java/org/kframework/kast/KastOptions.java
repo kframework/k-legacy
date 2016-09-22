@@ -4,14 +4,11 @@ package org.kframework.kast;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParametersDelegate;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 import org.kframework.attributes.Source;
 import org.kframework.kore.Sort;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.inject.RequestScoped;
 import org.kframework.utils.options.DefinitionLoadingOptions;
 
 import java.io.Reader;
@@ -20,7 +17,6 @@ import java.util.List;
 
 import static org.kframework.kore.KORE.*;
 
-@RequestScoped
 public final class KastOptions {
 
     @Parameter(description="<file>")
@@ -39,13 +35,12 @@ public final class KastOptions {
         if (parameters == null || parameters.size() != 1) {
             throw KEMException.criticalError("You have to provide a file in order to kast a program.");
         }
-        return files.get().readFromWorkingDirectory(parameters.get(0));
+        return files.readFromWorkingDirectory(parameters.get(0));
     }
 
-    private Provider<FileUtil> files;
+    private FileUtil files;
 
-    @Inject
-    public void setFiles(Provider<FileUtil> files) {
+    public void setFiles(FileUtil files) {
         this.files = files;
     }
 
@@ -58,7 +53,7 @@ public final class KastOptions {
         if (expression != null) {
             return Source.apply("<command line: -e>");
         } else {
-            return Source.apply(files.get().resolveWorkingDirectory(parameters.get(0)).getAbsolutePath());
+            return Source.apply(files.resolveWorkingDirectory(parameters.get(0)).getAbsolutePath());
         }
     }
 

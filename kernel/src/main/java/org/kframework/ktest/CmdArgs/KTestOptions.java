@@ -12,7 +12,6 @@ import org.kframework.ktest.KTestStep;
 import org.kframework.ktest.StringMatcher;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.inject.RequestScoped;
 import org.kframework.utils.options.BaseEnumConverter;
 import org.kframework.utils.options.EnumSetConverter;
 import org.kframework.utils.options.OnOffConverter;
@@ -34,7 +33,6 @@ import java.util.Set;
  *   - Only one unnamed argument is passed
  *   - File extension is either .k or .xml
  */
-@RequestScoped
 public class KTestOptions {
 
     public static final class KTestStepSetConverter extends EnumSetConverter<KTestStep, KTestStepConverter> {

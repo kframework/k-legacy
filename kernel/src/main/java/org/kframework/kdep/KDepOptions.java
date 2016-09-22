@@ -3,7 +3,6 @@ package org.kframework.kdep;
 
 import com.beust.jcommander.ParametersDelegate;
 import org.kframework.main.GlobalOptions;
-import org.kframework.utils.inject.RequestScoped;
 import org.kframework.utils.options.OuterParsingOptions;
 
 /**
@@ -11,7 +10,6 @@ import org.kframework.utils.options.OuterParsingOptions;
  * files get slurped by the outer parser.
  */
 
-@RequestScoped
 public class KDepOptions {
 
     @ParametersDelegate

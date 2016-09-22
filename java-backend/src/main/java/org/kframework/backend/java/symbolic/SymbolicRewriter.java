@@ -4,7 +4,6 @@ package org.kframework.backend.java.symbolic;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.kframework.Strategy;
@@ -43,7 +42,6 @@ import java.util.stream.Collectors;
  */
 public class SymbolicRewriter {
 
-    private final JavaExecutionOptions javaOptions;
     private final TransitionCompositeStrategy strategy;
     private final List<String> transitions;
     private final Stopwatch stopwatch = Stopwatch.createUnstarted();
@@ -58,14 +56,12 @@ public class SymbolicRewriter {
     private final Definition definition;
     private final BitSet allRuleBits;
 
-    @Inject
-    public SymbolicRewriter(GlobalContext global, KompileOptions kompileOptions, JavaExecutionOptions javaOptions,
+    public SymbolicRewriter(GlobalContext global, KompileOptions kompileOptions,
                             KRunState.Counter counter, KOREtoBackendKIL constructor) {
         this.constructor = constructor;
         this.definition = global.getDefinition();
         this.allRuleBits = BitSet.apply(definition.ruleTable.size());
         this.allRuleBits.makeOnes(definition.ruleTable.size());
-        this.javaOptions = javaOptions;
         this.ruleIndex = definition.getIndex();
         this.counter = counter;
         this.strategy = new TransitionCompositeStrategy(kompileOptions.transition);
@@ -74,6 +70,15 @@ public class SymbolicRewriter {
         this.transition = true;
     }
 
+    public KOREtoBackendKIL getConstructor() {
+        return constructor;
+    }
+
+    // org.kframework.main.FrontEnd#main
+    // org.kframework.krun.KRunFrontEnd#run
+    // org.kframework.krun.KRun#run
+    // org.kframework.krun.modes.KRunExecutionMode#execute
+    // org.kframework.backend.java.symbolic.InitializeRewriter.SymbolicRewriterGlue#execute
     public KRunState rewrite(ConstrainedTerm constrainedTerm, int bound) {
         stopwatch.start();
         int step = 0;
@@ -151,7 +156,7 @@ public class SymbolicRewriter {
         throw new UnsupportedOperationException();
     }
 
-    private List<ConstrainedTerm> fastComputeRewriteStep(ConstrainedTerm subject, boolean computeOne, boolean narrowing, boolean proofFlag) {
+    public List<ConstrainedTerm> fastComputeRewriteStep(ConstrainedTerm subject, boolean computeOne, boolean narrowing, boolean proofFlag) {
         List<ConstrainedTerm> results = new ArrayList<>();
         if (definition.automaton == null) {
             return results;
@@ -562,6 +567,7 @@ public class SymbolicRewriter {
         while (!queue.isEmpty()) {
             step++;
             for (ConstrainedTerm term : queue) {
+
                 if (term.implies(targetTerm)) {
                     continue;
                 }

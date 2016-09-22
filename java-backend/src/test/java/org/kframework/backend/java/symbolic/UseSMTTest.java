@@ -42,7 +42,7 @@ public class UseSMTTest {
         when(tc.definition()).thenReturn(definition);
         when(definition.functionRules()).thenReturn(HashMultimap.<KLabelConstant, Rule>create());
         when(definition.kLabels()).thenReturn(new HashSet<>());
-        GlobalContext global = new GlobalContext(null, null, null, null, null, new SMTOptions(), null, FileUtil.testFileUtil(), null);
+        GlobalContext global = new GlobalContext(null, false, null, null, null, new SMTOptions(), null, FileUtil.testFileUtil(), null);
         global.setDefinition(definition);
         when(tc.global()).thenReturn(global);
     }
@@ -52,7 +52,7 @@ public class UseSMTTest {
         System.err.println(System.getProperty("java.library.path"));
         BuiltinMap.Builder builder = new BuiltinMap.Builder(tc.global());
         SMTOptions options = new SMTOptions();
-        assertEquals(builder.build(), new UseSMT(options).checkSat(BoolToken.TRUE, tc));
+        assertEquals(builder.build(), UseSMT.checkSat(BoolToken.TRUE, tc));
         options.smt = SMTSolver.Z3;
     }
 }

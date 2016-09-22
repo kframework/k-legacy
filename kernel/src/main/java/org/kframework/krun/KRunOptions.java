@@ -5,14 +5,12 @@ import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.ParametersDelegate;
-import com.google.inject.Inject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.ktest.ExecNames;
 import org.kframework.main.GlobalOptions;
 import org.kframework.rewriter.SearchType;
 import org.kframework.unparser.OutputModes;
 import org.kframework.utils.errorsystem.KEMException;
-import org.kframework.utils.inject.RequestScoped;
 import org.kframework.utils.options.BaseEnumConverter;
 import org.kframework.utils.options.DefinitionLoadingOptions;
 import org.kframework.utils.options.OnOffConverter;
@@ -25,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@RequestScoped
 public final class KRunOptions {
 
     @ParametersDelegate
@@ -37,10 +34,6 @@ public final class KRunOptions {
     public static final class ConfigurationCreationOptions {
 
         public ConfigurationCreationOptions() {}
-
-        //TODO(dwightguth): remove in Guice 4.0
-        @Inject
-        public ConfigurationCreationOptions(Void v) {}
 
         @Parameter(description="<file>")
         private List<String> parameters;

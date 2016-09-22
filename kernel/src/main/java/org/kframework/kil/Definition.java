@@ -5,8 +5,6 @@ import org.kframework.kil.loader.*;
 import org.kframework.kil.visitors.Visitor;
 import org.kframework.utils.errorsystem.KExceptionManager;
 
-import com.google.inject.Inject;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,9 +31,6 @@ public class Definition extends ASTNode implements Interfaces.MutableList<Defini
     public Definition() {
         super();
     }
-
-    @Inject
-    public Definition(Void v) {}
 
     public Definition(Definition d) {
         super(d);

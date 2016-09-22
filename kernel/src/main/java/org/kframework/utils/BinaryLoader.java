@@ -1,10 +1,8 @@
 // Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.utils;
 
-import com.google.inject.Inject;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
-import org.kframework.utils.inject.RequestScoped;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -18,12 +16,10 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectStreamException;
 import java.io.OutputStream;
 
-@RequestScoped
 public class BinaryLoader {
 
     private final KExceptionManager kem;
 
-    @Inject
     public BinaryLoader(
             KExceptionManager kem) {
         this.kem = kem;

@@ -2,7 +2,6 @@
 package org.kframework.krun.api;
 
 import org.kframework.kil.Term;
-import org.kframework.utils.inject.RequestScoped;
 
 import java.io.Serializable;
 import java.util.Optional;
@@ -39,7 +38,6 @@ public abstract class KRunState implements Serializable, Comparable<KRunState>, 
      */
     private Optional<Integer> stepsTaken;
 
-    @RequestScoped
     public static class Counter {
         private int nextState;
     }

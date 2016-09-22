@@ -43,6 +43,11 @@
       <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
+    <dependency>
+      <groupId>org.kframework.k</groupId>
+      <artifactId>shell</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

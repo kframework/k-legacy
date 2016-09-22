@@ -5,10 +5,8 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParametersDelegate;
 import org.kframework.backend.Backends;
 import org.kframework.main.GlobalOptions;
-import org.kframework.utils.inject.RequestScoped;
 import org.kframework.utils.options.OuterParsingOptions;
 
-@RequestScoped
 public class KDocOptions {
 
     @ParametersDelegate

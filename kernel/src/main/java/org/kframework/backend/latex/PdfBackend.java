@@ -10,7 +10,6 @@ import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.file.FileUtil;
 
-import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 import java.io.*;
@@ -21,7 +20,6 @@ public class PdfBackend extends PosterBackend {
     private final FileUtil files;
     private final Provider<ProcessBuilder> pb;
 
-    @Inject
     PdfBackend(
             Stopwatch sw,
             LatexBackend latexBackend,

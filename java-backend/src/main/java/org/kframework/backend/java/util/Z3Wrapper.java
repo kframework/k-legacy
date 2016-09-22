@@ -2,7 +2,6 @@
 package org.kframework.backend.java.util;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.Inject;
 import com.microsoft.z3.Params;
 import com.microsoft.z3.Solver;
 import com.microsoft.z3.Status;
@@ -35,7 +34,6 @@ public class Z3Wrapper {
     private final KExceptionManager kem;
     private final FileUtil files;
 
-    @Inject
     public Z3Wrapper(
             SMTOptions options,
             KExceptionManager kem,

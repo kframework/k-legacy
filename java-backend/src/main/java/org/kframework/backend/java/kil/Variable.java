@@ -27,6 +27,14 @@ public class Variable extends Term implements Immutable, org.kframework.kore.KVa
     protected static final AtomicInteger counter = new AtomicInteger(0);
     private static final Map<Pair<Integer, Sort>, Variable> deserializationAnonymousVariableMap = new ConcurrentHashMap<>();
 
+    public static int getCounter() {
+        return counter.get();
+    }
+
+    public static void setCounter(int c) {
+        counter.set(c);
+    }
+
     /**
      * Given a set of {@link Variable}s, returns a substitution that maps each
      * element inside to a fresh {@code Variable}.

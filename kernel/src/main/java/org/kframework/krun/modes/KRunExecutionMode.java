@@ -1,7 +1,6 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.krun.modes;
 
-import com.google.inject.Inject;
 import org.kframework.RewriterResult;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.attributes.Source;
@@ -32,13 +31,15 @@ public class KRunExecutionMode implements ExecutionMode {
     private final KExceptionManager kem;
     private final FileUtil files;
 
-    @Inject
     public KRunExecutionMode(KRunOptions kRunOptions, KExceptionManager kem, FileUtil files) {
         this.kRunOptions = kRunOptions;
         this.kem = kem;
         this.files = files;
     }
 
+    // org.kframework.main.FrontEnd#main
+    // org.kframework.krun.KRunFrontEnd#run
+    // org.kframework.krun.KRun#run
     @Override
     public Object execute(K k, Rewriter rewriter, CompiledDefinition compiledDefinition) {
         Rule pattern = null, parsedPattern = null;
@@ -67,6 +68,7 @@ public class KRunExecutionMode implements ExecutionMode {
             Tuple2<RewriterResult, List<? extends Map<? extends KVariable, ? extends K>>> res = rewriter.executeAndMatch(k, Optional.ofNullable(kRunOptions.depth), pattern);
             return new SearchResult(res._2(), parsedPattern);
         }
+        // org.kframework.backend.java.symbolic.InitializeRewriter.SymbolicRewriterGlue.execute()
         return rewriter.execute(k, Optional.ofNullable(kRunOptions.depth)).k();
     }
 }

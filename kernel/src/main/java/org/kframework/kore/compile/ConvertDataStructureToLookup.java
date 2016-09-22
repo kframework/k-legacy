@@ -335,7 +335,7 @@ public class ConvertDataStructureToLookup {
                                     KApply(KLabel("List:get"), list, KToken(Integer.toString(i - elementsRight.size()), Sorts.Int()))));
                         }
                     }
-                    if (lhsOf == null) {
+                    if (lhsOf == null && RewriteToTop.hasRewrite(k)) {
                         // An outermost list may contain nested rewrites, so the term
                         // is translated into a rewrite from compiled match into the original right-hand side.
                         return KRewrite(list, infer(RewriteToTop.toRight(k), collectionLabel));
@@ -398,7 +398,7 @@ public class ConvertDataStructureToLookup {
                         }
                         state.add(KApply(KLabel("#match"), element.getValue(), KApply(KLabel("Map:lookup"), map, element.getKey())));
                     }
-                    if (lhsOf == null) {
+                    if (lhsOf == null && RewriteToTop.hasRewrite(k)) {
                         // An outermost map may contain nested rewrites, so the term
                         // is translated into a rewrite from compiled match into the original right-hand side.
                         return KRewrite(map, infer(RewriteToTop.toRight(k), collectionLabel));
@@ -473,7 +473,7 @@ public class ConvertDataStructureToLookup {
                     } else {
                         state.add(KApply(KLabel("_==K_"), KApply(unit), accum));
                     }
-                    if (lhsOf == null) {
+                    if (lhsOf == null && RewriteToTop.hasRewrite(k)) {
                         // An outermost set may contain nested rewrites, so the term
                         // is translated into a rewrite from compiled match into the original right-hand side.
                         return KRewrite(set, infer(RewriteToTop.toRight(k), collectionLabel));

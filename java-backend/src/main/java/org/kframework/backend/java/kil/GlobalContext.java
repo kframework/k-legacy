@@ -2,8 +2,7 @@
 
 package org.kframework.backend.java.kil;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import org.kframework.KapiGlobal;
 import org.kframework.backend.java.kil.KItem.KItemOperations;
 import org.kframework.backend.java.symbolic.BuiltinFunction;
 import org.kframework.backend.java.symbolic.Equality.EqualityOperations;
@@ -16,15 +15,12 @@ import org.kframework.krun.api.io.FileSystem;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.inject.Builtins;
-import org.kframework.utils.inject.RequestScoped;
 import org.kframework.utils.options.SMTOptions;
 
 import java.io.Serializable;
 import java.lang.invoke.MethodHandle;
 import java.util.Map;
 
-@RequestScoped
 public class GlobalContext implements Serializable {
     private Definition def;
     public final transient FileSystem fs;
@@ -34,19 +30,18 @@ public class GlobalContext implements Serializable {
     public final transient KItemOperations kItemOps;
     public final transient KRunOptions krunOptions;
     private final transient KExceptionManager kem;
-    private final transient Map<String, Provider<MethodHandle>> hookProvider;
+    private final transient Map<String, MethodHandle> hookProvider;
     public final transient FileUtil files;
     public final transient GlobalOptions globalOptions;
 
-    @Inject
     public GlobalContext(
             FileSystem fs,
-            JavaExecutionOptions javaOptions,
+            boolean deterministicFunctions,
             GlobalOptions globalOptions,
             KRunOptions krunOptions,
             KExceptionManager kem,
             SMTOptions smtOptions,
-            @Builtins Map<String, Provider<MethodHandle>> hookProvider,
+            Map<String, MethodHandle> hookProvider,
             FileUtil files,
             Stage stage) {
         this.fs = fs;
@@ -55,10 +50,17 @@ public class GlobalContext implements Serializable {
         this.kem = kem;
         this.hookProvider = hookProvider;
         this.files = files;
-        this.equalityOps = new EqualityOperations(() -> def, javaOptions);
+        this.equalityOps = new EqualityOperations(() -> def);
         this.constraintOps = new SMTOperations(() -> def, smtOptions, new Z3Wrapper(smtOptions, kem, globalOptions, files));
-        this.kItemOps = new KItemOperations(stage, javaOptions, kem, this::builtins, globalOptions);
+        this.kItemOps = new KItemOperations(stage, deterministicFunctions, kem, this::builtins, globalOptions);
         this.stage = stage;
+    }
+
+    public GlobalContext(
+            KapiGlobal g,
+            Map<String, MethodHandle> hookProvider,
+            Stage stage) {
+        this(g.fs, g.deterministicFunctions, g.globalOptions, g.kRunOptions, g.kem, g.smtOptions, hookProvider, g.files, stage);
     }
 
     private transient BuiltinFunction builtinFunction;

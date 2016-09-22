@@ -2,7 +2,6 @@
 package org.kframework.utils.options;
 
 import com.beust.jcommander.Parameter;
-import com.google.inject.Inject;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.file.FileUtil;
 
@@ -19,9 +18,6 @@ import java.util.List;
 public class OuterParsingOptions implements Serializable {
 
     public OuterParsingOptions() {}
-
-    @Inject
-    public OuterParsingOptions(Void v) {}
 
     @Parameter(description="<file>")
     private List<String> parameters;

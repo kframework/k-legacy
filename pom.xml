@@ -17,6 +17,7 @@
     <module>coq-backend</module>
     <module>API</module>
     <module>kdoc</module>
+    <module>shell</module>
   </modules>
 
   <scm>

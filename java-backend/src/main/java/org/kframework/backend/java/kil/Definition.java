@@ -11,7 +11,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.reflect.TypeToken;
-import com.google.inject.Inject;
 import com.google.inject.name.Names;
 import org.kframework.attributes.Att;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
@@ -331,7 +330,6 @@ public class Definition extends JavaSymbolicObject {
         }
     }
 
-    @Inject
     public Definition(DefinitionData definitionData, KExceptionManager kem, IndexingTable.Data indexingData) {
         this(definitionData, kem, indexingData, new HashMap<>(), null);
     }

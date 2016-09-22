@@ -1,8 +1,6 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.krun.modes.DebugMode;
 
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import jline.console.ConsoleReader;
 import jline.console.UserInterruptException;
 import jline.console.completer.AggregateCompleter;
@@ -48,8 +46,7 @@ public class DebugExecutionMode implements ExecutionMode<Void> {
     private int checkpointInterval;
 
 
-    @Inject
-    public DebugExecutionMode(KRunOptions kRunOptions, KExceptionManager kem, FileUtil files, @Named("checkpointIntervalValue") Integer checkpointInterval, FileSystem fileSystem) {
+    public DebugExecutionMode(KRunOptions kRunOptions, KExceptionManager kem, FileUtil files, Integer checkpointInterval, FileSystem fileSystem) {
         this.kRunOptions = kRunOptions;
         this.kem = kem;
         this.files = files;

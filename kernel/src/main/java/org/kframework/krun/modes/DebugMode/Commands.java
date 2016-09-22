@@ -42,10 +42,8 @@ public class Commands {
             if (effectiveStepCount < stepCount) {
                 utils.print("Attempted " + stepCount + " step(s). " + "Took " + effectiveStepCount + " steps(s).");
                 utils.print("Final State Reached");
-                utils.displayWatches(steppedState.getWatchList(), compiledDefinition);
-                return;
-            }
-            utils.print(stepCount + " Step(s) Taken.");
+            } else
+                utils.print(stepCount + " Step(s) Taken.");
             utils.displayWatches(steppedState.getWatchList(), compiledDefinition);
         }
     }

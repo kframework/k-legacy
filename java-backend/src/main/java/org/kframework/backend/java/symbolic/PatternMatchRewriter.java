@@ -3,7 +3,6 @@ package org.kframework.backend.java.symbolic;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 import org.kframework.backend.java.indexing.IndexingCellsCollector;
 import org.kframework.backend.java.indexing.RuleIndex;
 import org.kframework.backend.java.kil.CellCollection;
@@ -47,7 +46,6 @@ public class PatternMatchRewriter {
     private final List<Term> results = new ArrayList<>();
     private final RuleIndex ruleIndex;
 
-    @Inject
     public PatternMatchRewriter(
             Definition definition,
             KRunOptions options,
