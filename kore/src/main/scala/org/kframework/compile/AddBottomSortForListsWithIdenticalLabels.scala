@@ -1,7 +1,7 @@
 package org.kframework.compile
 
 import org.kframework.attributes.Att
-import org.kframework.definition._
+import org.kframework.definition.{Production, _}
 import org.kframework.kore.ADT.Sort
 
 import collection._
@@ -21,6 +21,7 @@ object AddBottomSortForListsWithIdenticalLabels extends (Module => Module) {
             Set[Sentence]()
               .|(minimalSorts.map(s => Production(s, Seq(NonTerminal(newBottomSort)), Att.generatedByAtt(this.getClass))))
               .+(SyntaxSort(newBottomSort, Att.generatedByAtt(this.getClass)))
+              .+(Production(newBottomSort, userListInfo.head.pTerminator.items, Att.generatedByAtt(this.getClass)))
           } else {
             Set()
           }
