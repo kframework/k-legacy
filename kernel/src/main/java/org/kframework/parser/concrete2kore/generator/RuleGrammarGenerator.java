@@ -295,6 +295,12 @@ public class RuleGrammarGenerator {
                     if (!m.name().equals(RULE_CELLS) && !ruleCellsOriginal.importedModules().exists(m1 -> m1.name().equals(mName))) {
                         Module ruleCells = apply(ruleCellsOriginal);
                         Set<Sentence> newProds = stream(m.localSentences()).flatMap(s -> {
+                            if (s instanceof Production && s.att().contains(Attribute.CELL_COLLECTION)) {
+                                // remove from parsing the productions added by the configuration concretization for
+                                // multiplicity="*" cells, since they interfere with the general `Bag ::= Bag Bag` production
+                                // and create java.lang.OutOfMemoryError
+                                return Stream.of();
+                            }
                             if (s instanceof Production && (s.att().contains("cell"))) {
                                 Production p = (Production) s;
                                 // assuming that productions tagged with 'cell' start and end with terminals, and only have non-terminals in the middle

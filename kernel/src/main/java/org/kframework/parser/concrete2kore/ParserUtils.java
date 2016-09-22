@@ -23,7 +23,9 @@ import org.kframework.utils.file.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -116,6 +118,14 @@ public class ParserUtils {
             String definitionText,
             Source source,
             List<File> lookupDirectories) {
+        return slurp(definitionText, source, lookupDirectories, new ArrayDeque<>());
+    }
+
+    private List<org.kframework.kil.Module> slurp(
+            String definitionText,
+            Source source,
+            List<File> lookupDirectories,
+            Deque<File> parents) {
         List<DefinitionItem> items = Outer.parse(source, definitionText, null);
         if (options.verbose) {
             System.out.println("Importing: " + source);
@@ -123,9 +133,9 @@ public class ParserUtils {
         List<org.kframework.kil.Module> results = new ArrayList<>();
 
         for (DefinitionItem di : items) {
-            if (di instanceof org.kframework.kil.Module)
+            if (di instanceof org.kframework.kil.Module) {
                 results.add((org.kframework.kil.Module) di);
-            else if (di instanceof Require) {
+            } else if (di instanceof Require) {
                 // resolve location of the new file
 
                 String definitionFileName = ((Require) di).getValue();
@@ -140,19 +150,43 @@ public class ParserUtils {
                         })
                         .filter(file -> file.exists()).findFirst();
 
-                ArrayList<File> allLookupDirectoris = new ArrayList<>(lookupDirectories);
-                allLookupDirectoris.add(0, definitionFile.get().getParentFile());
+                ArrayList<File> allLookupDirectories = new ArrayList<>(lookupDirectories);
+                allLookupDirectories.add(0, definitionFile.get().getParentFile());
 
                 if (definitionFile.isPresent()) {
+                    // Look for dependency cycle
+                    if (parents.stream().
+                            anyMatch(parent -> {
+                                try {
+                                    File sourceFile = new File(source.source());
+                                    return parent.getCanonicalFile().equals(sourceFile.getCanonicalFile());
+                                } catch (IOException e) {
+                                    // Catch exceptions from getCanonicalFile
+                                    return false;
+                                }
+                            })) {
+                        String dependencyChain = (new File(source.source())).getName() + " -> "
+                                + parents.stream().map(File::getName).collect(Collectors.joining(" -> "));
+                        throw KExceptionManager.criticalError("Dependency cycle detected: " + dependencyChain, di);
+                    } else {
+                        parents.push(new File(source.source()));
+                    }
+
                     results.addAll(slurp(loadDefinitionText(definitionFile.get()),
                             Source.apply(definitionFile.get().getAbsolutePath()),
-                            allLookupDirectoris));
+                            allLookupDirectories,
+                            parents));
                 }
                 else
                     throw KExceptionManager.criticalError("Could not find file: " +
-                            definitionFileName + "\nLookup directories:" + lookupDirectories, di);
+                            definitionFileName + "\nLookup directories:" + allLookupDirectories, di);
             }
         }
+
+        if (!parents.isEmpty()) {
+            File p = parents.pop();
+        }
+
         return results;
     }
 

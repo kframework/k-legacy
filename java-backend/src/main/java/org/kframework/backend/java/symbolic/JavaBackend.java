@@ -75,6 +75,26 @@ public class JavaBackend implements Backend {
         this(kapiGlobal.kem, kapiGlobal.files, kapiGlobal.globalOptions, kapiGlobal.kompileOptions);
     }
 
+    DefinitionTransformer moduleQualifySortPredicates = DefinitionTransformer.fromKTransformerWithModuleInfo((Module m, K k) -> {
+        return new TransformK() {
+            @Override
+            public K apply(KApply kk) {
+                KApply k = (KApply) super.apply(kk);
+                if (!k.klabel().name().startsWith("is"))
+                    return k;
+
+                Sort possibleSort = KORE.Sort(k.klabel().name().substring("is".length()));
+                Option<ADT.Sort> resolvedSort = m.sortResolver().get(possibleSort);
+
+                if (resolvedSort.isDefined()) {
+                    return KORE.KApply(KORE.KLabel("is" + resolvedSort.get().name()), k.klist());
+                } else {
+                    return k;
+                }
+            }
+        }.apply(k);
+    }, "Module-qualify sort predicates");
+
     /**
      * @param the generic {@link Kompile}
      * @return the special steps for the Java backend
@@ -83,26 +103,6 @@ public class JavaBackend implements Backend {
     public Function<Definition, Definition> steps() {
         DefinitionTransformer convertDataStructureToLookup = DefinitionTransformer.fromSentenceTransformer(func((m, s) -> new ConvertDataStructureToLookup(m, false).convert(s)), "convert data structures to lookups");
         ExpandMacrosDefinitionTransformer expandMacrosDefinitionTransformer = new ExpandMacrosDefinitionTransformer(kem, files, globalOptions, kompileOptions);
-
-        DefinitionTransformer moduleQualifySortPredicates = DefinitionTransformer.fromKTransformerWithModuleInfo((Module m, K k) -> {
-            return new TransformK() {
-                @Override
-                public K apply(KApply kk) {
-                    KApply k = (KApply) super.apply(kk);
-                    if (!k.klabel().name().startsWith("is"))
-                        return k;
-
-                    Sort possibleSort = KORE.Sort(k.klabel().name().substring("is".length()));
-                    Option<ADT.Sort> resolvedSort = m.sortResolver().get(possibleSort);
-
-                    if (resolvedSort.isDefined()) {
-                        return KORE.KApply(KORE.KLabel("is" + resolvedSort.get().name()), k.klist());
-                    } else {
-                        return k;
-                    }
-                }
-            }.apply(k);
-        }, "Module-qualify sort predicates");
 
         return d -> (func((Definition dd) -> Kompile.defaultSteps(kompileOptions, kem).apply(dd)))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
@@ -135,6 +135,7 @@ public class JavaBackend implements Backend {
                 .andThen(ConcretizeCells::transformDefinition)
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
                 .andThen(DefinitionTransformer.fromHybrid(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))
+                .andThen(moduleQualifySortPredicates)
                 .andThen(expandMacrosDefinitionTransformer::apply)
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::convertKSeqToKApply, "kseq to kapply"))
