@@ -3,7 +3,6 @@ package org.kframework;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
-import com.google.inject.util.Providers;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Definition;
 import org.kframework.kompile.DefinitionParsing;
@@ -21,59 +20,76 @@ import java.util.regex.Pattern;
 @API
 public class DefinitionParser {
 
-    /**
-     * Parses the text to create a {@link Definition} object.
-     * The main module of the definition will be last module defined in the text file.
-     */
-    public static org.kframework.definition.Definition from(String definitionText) {
+    private static String defaultMainModuleName(String definitionText) {
         Pattern pattern = Pattern.compile("(?:^|\\s)module ([A-Z][A-Z\\-]*)");
         Matcher m = pattern.matcher(definitionText);
         if(!m.find()) {
             throw new RuntimeException("Could not find any module in the definition");
         }
         String nameOfLastModule = m.group(m.groupCount());
-        return from(definitionText, nameOfLastModule, Source.apply("generated"));
+        return nameOfLastModule;
+    }
+
+    private static String defaultMainSyntaxModuleName(String mainModuleName) {
+        return mainModuleName + "-SYNTAX";
+    }
+
+    private static Source defaultSource() {
+        return Source.apply("generated");
+    }
+
+    private static List<File> defaultLookupDirectories() {
+        return Lists.newArrayList(Kompile.BUILTIN_DIRECTORY);
+    }
+
+    /**
+     * Parses the text to create a {@link Definition} object.
+     * The main module of the definition will be last module defined in the text file.
+     */
+    public static org.kframework.definition.Definition from(String definitionText) {
+        String mainModuleName = defaultMainModuleName(definitionText);
+        return from(definitionText, mainModuleName, defaultMainSyntaxModuleName(mainModuleName), defaultSource(), defaultLookupDirectories());
     }
 
     /**
      * Parses the text to create a {@link Definition} object.
      */
     public static org.kframework.definition.Definition from(String definitionText, String mainModuleName) {
-        return from(definitionText, mainModuleName, Source.apply("generated"));
+        return from(definitionText, mainModuleName, defaultMainSyntaxModuleName(mainModuleName), defaultSource(), defaultLookupDirectories());
+    }
+
+    /**
+     * Parses the text to create a {@link Definition} object.
+     */
+    public static org.kframework.definition.Definition from(String definitionText, String mainModuleName, String mainSyntaxModuleName) {
+        return from(definitionText, mainModuleName, mainSyntaxModuleName, defaultSource(), defaultLookupDirectories());
     }
 
     /**
      * Parses the text to create a {@link Definition} object.
      */
     public static org.kframework.definition.Definition from(String definitionText, String mainModuleName, Source source) {
-        return from(definitionText, mainModuleName, source, Lists.newArrayList(Kompile.BUILTIN_DIRECTORY));
+        return from(definitionText, mainModuleName, defaultMainSyntaxModuleName(mainModuleName), source, defaultLookupDirectories());
     }
 
     /**
      * Parses the text to create a {@link Definition} object.
      */
     public static org.kframework.definition.Definition from(String definitionText, String mainModuleName, Source source, List<File> lookupDirectories) {
-        File tempDir = Files.createTempDir();
-        File theFileUtilTempDir = new File(tempDir.getAbsolutePath() + File.pathSeparator + "tempDir");
-        File definitionDir = new File(tempDir.getAbsolutePath() + File.pathSeparator + "definitionDir");
-        File workingDir = new File(tempDir.getAbsolutePath() + File.pathSeparator + "workingDir");
-        File kompiledDir = new File(tempDir.getAbsolutePath() + File.pathSeparator + "kompiledDir");
-        if(!theFileUtilTempDir.mkdir() || !definitionDir.mkdir() || !workingDir.mkdir() || !kompiledDir.mkdir()) {
-            throw new AssertionError("Could not create one of the temporary directories");
-        }
+        return from(definitionText, mainModuleName, defaultMainSyntaxModuleName(mainModuleName), source, lookupDirectories);
+    }
+
+    /**
+     * Parses the text to create a {@link Definition} object.
+     */
+    public static org.kframework.definition.Definition from(String definitionText, String mainModuleName, String mainSyntaxModuleName, Source source, List<File> lookupDirectories) {
         GlobalOptions globalOptions = new GlobalOptions();
         KExceptionManager kem = new KExceptionManager(globalOptions);
-//
-        FileUtil fileUtil = new FileUtil(theFileUtilTempDir,
-                Providers.of(definitionDir),
-                workingDir,
-                Providers.of(kompiledDir),
-                globalOptions,
-                System.getenv());
+        FileUtil fileUtil = FileUtil.get(globalOptions, System.getenv());
         ParserUtils parserUtils = new ParserUtils(fileUtil::resolveWorkingDirectory, kem, globalOptions);
 
         DefinitionParsing definitionParsing = new DefinitionParsing(lookupDirectories, true, kem, parserUtils, false, null, false);
-        Definition definition = definitionParsing.parseDefinitionAndResolveBubbles(definitionText, mainModuleName, mainModuleName, source, lookupDirectories);
+        Definition definition = definitionParsing.parseDefinitionAndResolveBubbles(definitionText, mainModuleName, mainSyntaxModuleName, source, lookupDirectories);
 
         return definition;
     }

@@ -1,7 +1,6 @@
 // Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.builtins;
 
-import com.google.inject.Inject;
 import org.kframework.backend.java.kil.BuiltinList;
 import org.kframework.backend.java.kil.KItem;
 import org.kframework.backend.java.kil.KLabelConstant;
@@ -23,19 +22,12 @@ import java.util.Map;
  */
 public class BuiltinIOOperations {
 
-    private final FileSystem fs;
-
-    @Inject
-    public BuiltinIOOperations(
-            FileSystem fs) {
-        this.fs = fs;
-    }
-
-    public Term getTime(TermContext termContext) {
+    public static Term getTime(TermContext termContext) {
         return IntToken.of(System.currentTimeMillis());
     }
 
-    public Term open(StringToken term1, StringToken term2, TermContext termContext) {
+    public static Term open(StringToken term1, StringToken term2, TermContext termContext) {
+        FileSystem fs = termContext.fileSystem();
         try {
             return IntToken.of(fs.open(term1.stringValue(), term2.stringValue()));
         } catch (IOException e) {
@@ -43,7 +35,8 @@ public class BuiltinIOOperations {
         }
     }
 
-    public Term tell(IntToken term, TermContext termContext) {
+    public static Term tell(IntToken term, TermContext termContext) {
+        FileSystem fs = termContext.fileSystem();
         try {
             return IntToken.of(fs.get(term.longValue()).tell());
         } catch (IOException e) {
@@ -51,7 +44,8 @@ public class BuiltinIOOperations {
         }
     }
 
-    public Term getc(IntToken term, TermContext termContext) {
+    public static Term getc(IntToken term, TermContext termContext) {
+        FileSystem fs = termContext.fileSystem();
         try {
             return IntToken.of(fs.get(term.longValue()).getc() & 0xff);
         } catch (IOException e) {
@@ -59,7 +53,8 @@ public class BuiltinIOOperations {
         }
     }
 
-    public Term read(IntToken term1, IntToken term2, TermContext termContext) {
+    public static Term read(IntToken term1, IntToken term2, TermContext termContext) {
+        FileSystem fs = termContext.fileSystem();
         try {
             return StringToken.of(fs.get(term1.longValue()).read(term2.intValue()));
         } catch (IOException e) {
@@ -67,7 +62,8 @@ public class BuiltinIOOperations {
         }
     }
 
-    public Term close(IntToken term, TermContext termContext) {
+    public static Term close(IntToken term, TermContext termContext) {
+        FileSystem fs = termContext.fileSystem();
         try {
             fs.close(term.longValue());
             return BuiltinList.kSequenceBuilder(termContext.global()).build();
@@ -76,7 +72,8 @@ public class BuiltinIOOperations {
         }
     }
 
-    public Term seek(IntToken term1, IntToken term2, TermContext termContext) {
+    public static Term seek(IntToken term1, IntToken term2, TermContext termContext) {
+        FileSystem fs = termContext.fileSystem();
         try {
             fs.get(term1.longValue()).seek(term2.longValue());
             return BuiltinList.kSequenceBuilder(termContext.global()).build();
@@ -85,7 +82,8 @@ public class BuiltinIOOperations {
         }
     }
 
-    public Term putc(IntToken term1, IntToken term2, TermContext termContext) {
+    public static Term putc(IntToken term1, IntToken term2, TermContext termContext) {
+        FileSystem fs = termContext.fileSystem();
         try {
             fs.get(term1.longValue()).putc(term2.unsignedByteValue());
             return BuiltinList.kSequenceBuilder(termContext.global()).build();
@@ -93,7 +91,8 @@ public class BuiltinIOOperations {
             return processIOException(e.getMessage(), termContext);
         }
     }
-    public Term write(IntToken term1, StringToken term2, TermContext termContext) {
+    public static Term write(IntToken term1, StringToken term2, TermContext termContext) {
+        FileSystem fs = termContext.fileSystem();
         try {
             fs.get(term1.longValue()).write(term2.byteArrayValue());
             return BuiltinList.kSequenceBuilder(termContext.global()).build();
@@ -104,15 +103,15 @@ public class BuiltinIOOperations {
         }
     }
 
-    public Term parse(StringToken term1, StringToken term2, TermContext termContext) {
+    public static Term parse(StringToken term1, StringToken term2, TermContext termContext) {
         throw new RuntimeException("Not implemented!");
     }
 
-    public Term parseInModule(StringToken input, StringToken startSymbol, StringToken moduleName, TermContext termContext) {
+    public static Term parseInModule(StringToken input, StringToken startSymbol, StringToken moduleName, TermContext termContext) {
         throw new RuntimeException("Not implemented!");
     }
 
-    public Term system(StringToken term, TermContext termContext) {
+    public static Term system(StringToken term, TermContext termContext) {
         Map<String, String> environment = new HashMap<>();
         String[] args = term.stringValue().split("\001", -1);
         //for (String c : args) { System.out.println(c); }
@@ -130,14 +129,14 @@ public class BuiltinIOOperations {
             StringToken.of(stdout.trim()), StringToken.of(stderr.trim())), termContext.global());
     }
 
-    private KItem processIOException(String errno, Term klist, TermContext termContext) {
+    private static KItem processIOException(String errno, Term klist, TermContext termContext) {
         String klabelString = "#" + errno;
         KLabelConstant klabel = KLabelConstant.of(klabelString, termContext.definition());
         assert termContext.definition().kLabels().contains(klabel) : "No KLabel in definition for errno '" + errno + "'";
         return KItem.of(klabel, klist, termContext.global());
     }
 
-    private KItem processIOException(String errno, TermContext termContext) {
+    private static KItem processIOException(String errno, TermContext termContext) {
         return processIOException(errno, KList.EMPTY, termContext);
     }
 }

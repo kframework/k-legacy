@@ -8,7 +8,6 @@ import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.util.Constants;
 
-import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 /**
@@ -155,12 +154,9 @@ public class Equality implements Serializable {
     public static class EqualityOperations {
 
         private final Provider<Definition> definitionProvider;
-        private final JavaExecutionOptions options;
 
-        @Inject
-        public EqualityOperations(Provider<Definition> definitionProvider, JavaExecutionOptions options) {
+        public EqualityOperations(Provider<Definition> definitionProvider) {
             this.definitionProvider = definitionProvider;
-            this.options = options;
         }
 
         /**
