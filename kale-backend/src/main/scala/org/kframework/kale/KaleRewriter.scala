@@ -84,11 +84,22 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   private val emptyKSeq = FreeLabel0(".")(env)()
   private val kseq = new AssocWithIdListLabel("~>", emptyKSeq)
 
-  assocProductions map { case p@Production(s, items, att) =>
-    val units = nonAssocLabels.filter(l => l.name == p.att.get[String]("unit").get)
-    assert(units.size == 1)
-    val theUnit = units.head.asInstanceOf[FreeLabel0]()
-    new AssocWithIdListLabel(p.klabel.get.name, theUnit)(env)
+  def getLabelForAtt(p: Production, att: String): Label = {
+    val labels = nonAssocLabels.filter(l => l.name == p.att.get[String](att).get)
+    assert(labels.size == 1)
+    labels.head
+  }
+
+  assocProductions map {
+    case p@Production(s, items, att) =>
+      val theUnit = getLabelForAtt(p, "unit").asInstanceOf[Label0]
+      val labelName = p.klabel.get.name
+      val index = att.get[Int]("index").get
+      def indexFunction(t: Term): Term = t.iterator().toList(index)
+      if(att.contains(Att.comm))
+        new MapLabel(labelName, indexFunction, theUnit())(env)
+      else
+        new AssocWithIdListLabel(labelName, theUnit())(env)
   }
 
   env.seal()
@@ -111,7 +122,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   }
 
   val rules = m.rules map {
-    case Rule(KRewrite(l, r), requires, ensures, att) if !att.contains(Att.Function)=>
+    case Rule(KRewrite(l, r), requires, ensures, att) if !att.contains(Att.Function) =>
       Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r))
   }
 
