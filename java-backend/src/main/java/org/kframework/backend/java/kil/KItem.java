@@ -242,10 +242,16 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
          */
         Sort sort = sorts.isEmpty() ? kind.asSort() : subsorts.getGLBSort(sorts);
         if (sort == null) {
-            throw KExceptionManager.criticalError("Cannot compute least sort of term: " +
-                    this.toString() + "\nPossible least sorts are: " + sorts +
-                    "\nAll terms must have a unique least sort; " +
-                    "consider assigning unique KLabels to overloaded productions", this);
+            throw KExceptionManager.criticalError("Cannot compute least sort of term: " + this.toString() + ".\n"
+                    + "Possible sorts are " + sorts + "\n."
+                    + "All terms must have a unique least sort; "
+                    + "consider assigning unique KLabels to overloaded productions.", this);
+        }
+        if (!sorts.isEmpty() && !sorts.contains(sort)) {
+            throw KExceptionManager.criticalError("Cannot compute least sort of term: " + this.toString() + ".\n"
+                    + "Possible sorts are " + sorts + ", but their least common subsort is " + sort + ", which is not a possible sort."
+                    + "All terms must have a unique least sort; "
+                    + "consider assigning unique KLabels to overloaded productions/completing the subsort lattice.", this);
         }
         /* the sort is exact iff the klabel is a constructor and there is no other possible sort */
         boolean isExactSort = kLabelConstant.isConstructor() && possibleSorts.isEmpty();
@@ -318,13 +324,9 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
          * Evaluates this {@code KItem} if it is a predicate or function; otherwise,
          * applies [anywhere] rules associated with this {@code KItem}
          *
-         * @param copyOnShareSubstAndEval
-         *            specifies whether to use
-         *            {@link CopyOnShareSubstAndEvalTransformer} when applying rules
-         *
-         * @param context
-         *            a term context
-         *
+         * @param copyOnShareSubstAndEval specifies whether to use
+         *                                {@link CopyOnShareSubstAndEvalTransformer} when applying rules
+         * @param context                 a term context
          * @return the reduced result on success, or this {@code KItem} otherwise
          */
         public Term resolveFunctionAndAnywhere(KItem kItem, boolean copyOnShareSubstAndEval, TermContext context) {
@@ -388,14 +390,10 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
         /**
          * Evaluates this {@code KItem} if it is a predicate or function
          *
-         * @param copyOnShareSubstAndEval
-         *            specifies whether to use
-         *            {@link CopyOnShareSubstAndEvalTransformer} when applying
-         *            user-defined function rules
-         *
-         * @param context
-         *            a term context
-         *
+         * @param copyOnShareSubstAndEval specifies whether to use
+         *                                {@link CopyOnShareSubstAndEvalTransformer} when applying
+         *                                user-defined function rules
+         * @param context                 a term context
          * @return the evaluated result on success, or this {@code KItem} otherwise
          */
         public Term evaluateFunction(KItem kItem, boolean copyOnShareSubstAndEval, TermContext context) {
@@ -419,12 +417,12 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                             return result.evaluate(context);
                         }
                     } catch (ClassCastException e) {
-                    // DISABLE EXCEPTION CHECKSTYLE
+                        // DISABLE EXCEPTION CHECKSTYLE
                     } catch (ImpureFunctionException e) {
                         // do not do anything further: immediately assume this function is not ready to be evaluated yet.
                         return kItem;
                     } catch (Throwable t) {
-                    // ENABLE EXCEPTION CHECKSTYLE
+                        // ENABLE EXCEPTION CHECKSTYLE
                         if (t instanceof Error) {
                             throw (Error) t;
                         }
@@ -577,21 +575,17 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
 
         anywhereApplicable = (kLabel instanceof KLabelConstant)
                 && !context.definition().anywhereRules()
-                        .get((KLabelConstant) kLabel).isEmpty();
+                .get((KLabelConstant) kLabel).isEmpty();
         return anywhereApplicable;
     }
 
     /**
      * Apply [anywhere] associated with this {@code KItem}.
      *
-     * @param copyOnShareSubstAndEval
-     *            specifies whether to use
-     *            {@link CopyOnShareSubstAndEvalTransformer} when applying
-     *            [anywhere] rules
-     *
-     * @param context
-     *            a term context
-     *
+     * @param copyOnShareSubstAndEval specifies whether to use
+     *                                {@link CopyOnShareSubstAndEvalTransformer} when applying
+     *                                [anywhere] rules
+     * @param context                 a term context
      * @return the result on success, or this {@code KItem} otherwise
      */
     public Term applyAnywhereRules(boolean copyOnShareSubstAndEval, TermContext context) {
@@ -811,6 +805,7 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
 
     /**
      * When serializing a KItem, compute its sort so that we don't end up serializing the TermContext
+     *
      * @param out
      * @throws IOException
      */
