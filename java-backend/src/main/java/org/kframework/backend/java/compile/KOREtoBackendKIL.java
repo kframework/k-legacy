@@ -140,6 +140,12 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
             return BuiltinList.kSequenceBuilder(global).addAll(convertedKList.getContents()).build();
         }
 
+        // make assoc-comm operators right-associative
+        if (definition.kLabelAttributesOf(klabel.name()).containsKey(Attribute.keyOf(Att.assoc()))
+                && definition.kLabelAttributesOf(klabel.name()).containsKey(Attribute.keyOf(Att.comm()))) {
+            return convertedKList.getContents().stream().reduce((a, b) -> KItem.of(convertedKLabel, KList.concatenate(a, b), global)).get();
+        }
+
         // we've encountered a regular KApply
         BitSet[] childrenDontCareRuleMask = constructDontCareRuleMask(convertedKList);
         KItem kItem = KItem.of(convertedKLabel, convertedKList, global, childrenDontCareRuleMask == null ? null : childrenDontCareRuleMask);
