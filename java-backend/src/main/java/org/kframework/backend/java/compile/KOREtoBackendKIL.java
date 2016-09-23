@@ -331,6 +331,11 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
             }
         }
 
+        Term convertedLeftHandSide = convert(leftHandSide);
+        if (oldRule.containsAttribute(Attribute.PATTERN_FOLDING_KEY)) {
+            convertedLeftHandSide = convertedLeftHandSide.evaluate(TermContext.builder(global).build());
+        }
+
         KLabelConstant matchLabel = KLabelConstant.of("#match", definition);
         KLabelConstant mapChoiceLabel = KLabelConstant.of("#mapChoice", definition);
         KLabelConstant setChoiceLabel = KLabelConstant.of("#setChoice", definition);
@@ -377,7 +382,7 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
 
         Rule backendKILRule = new Rule(
                 "",
-                convert(leftHandSide),
+                convertedLeftHandSide,
                 convert(RewriteToTop.toRight(rule.body())),
                 requires,
                 ensures,
@@ -395,7 +400,7 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
         with automaton variables and with each other */
         if (backendKILRule.containsAttribute(Attribute.FUNCTION_KEY)
                 || backendKILRule.containsAttribute(Attribute.ANYWHERE_KEY)
-                ||backendKILRule.containsAttribute(Attribute.PATTERN_KEY)
+                || backendKILRule.containsAttribute(Attribute.PATTERN_KEY)
                 || backendKILRule.containsAttribute(Attribute.PATTERN_FOLDING_KEY)) {
             backendKILRule = backendKILRule.renameVariables();
         }
