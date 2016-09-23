@@ -21,7 +21,9 @@ object AddBottomSortForListsWithIdenticalLabels extends (Module => Module) {
             Set[Sentence]()
               .|(minimalSorts.map(s => Production(s, Seq(NonTerminal(newBottomSort)), Att.generatedByAtt(this.getClass))))
               .+(SyntaxSort(newBottomSort, Att.generatedByAtt(this.getClass)))
-              .+(Production(newBottomSort, userListInfo.head.pTerminator.items, Att.generatedByAtt(this.getClass)))
+              .+(Production(newBottomSort,
+                Seq(Terminal(".GeneratedListBottom")),
+                Att.generatedByAtt(this.getClass) + (Production.kLabelAttribute -> userListInfo.head.pTerminator.klabel.get.name)))
           } else {
             Set()
           }
