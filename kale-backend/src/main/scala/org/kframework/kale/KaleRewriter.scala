@@ -5,7 +5,7 @@ import java.util.Optional
 
 import org.kframework.RewriterResult
 import org.kframework.attributes.Att
-import org.kframework.builtin.Sorts
+import org.kframework.builtin.{KLabels, Sorts}
 import org.kframework.definition._
 import org.kframework.kore._
 import org.kframework.rewriter.SearchType
@@ -22,8 +22,6 @@ object KaleRewriter {
 
   private def isEffectivelyAssoc(att: Att): Boolean =
     att.contains(Att.assoc) || att.contains(Att.bag)
-
-  val hooks: Map[String, Label] = Map()
 }
 
 class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
@@ -47,11 +45,18 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   import env._
   import env.builtin._
 
+  val hooks: Map[String, Label] = Map(
+    "MAP.lookup" -> MAP.lookup
+  )
+
   private val nonAssocLabels: Set[Label] = nonAssocProductions flatMap {
-    case SyntaxSort(s, att) => att.get(Att.hook) flatMap KaleRewriter.hooks.get
+    case SyntaxSort(s, att) => att.get(Att.hook) flatMap hooks.get
     case p@Production(s, items, att) =>
       implicit val envv = env
-      att.get(Att.hook).flatMap(KaleRewriter.hooks.get).orElse({
+      if(att.toString.contains("lookup")) {
+        println(att.get(Att.hook).flatMap(hooks.get))
+      }
+      att.get(Att.hook).flatMap(hooks.get).orElse({
         if (att.contains(Att.token)) {
           if (!env.labels.exists(l => l.name == "TOKEN_" + s.name))
             Some(GENERIC_TOKEN(Sort(s.name)))
@@ -94,11 +99,11 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     case p@Production(s, items, att) =>
       val theUnit = getLabelForAtt(p, "unit").asInstanceOf[Label0]
       val labelName = p.klabel.get.name
-      val index = att.get[Int]("index").get
-      def indexFunction(t: Term): Term = t.iterator().toList(index)
-      if(att.contains(Att.comm))
-        new MapLabel(labelName, indexFunction, theUnit())(env)
-      else
+      val index = att.get[Int]("index")
+      if (index.isDefined && att.contains(Att.comm)) {
+        def indexFunction(t: Term): Term = t.iterator().toList(index.get)
+        MapLabel(labelName, indexFunction, theUnit())(env)
+      } else
         new AssocWithIdListLabel(labelName, theUnit())(env)
   }
 
@@ -122,8 +127,20 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   }
 
   val rules = m.rules map {
-    case Rule(KRewrite(l, r), requires, ensures, att) if !att.contains(Att.Function) =>
-      Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r))
+    case rule@Rule(KRewrite(l, r), requires, ensures, att) =>
+      println(rule, att)
+      if (att.contains(Att.`macro`)) {
+        ???
+        Rewrite(AnywhereContext(Variable("CONTEXT"), And(convert(l), Equality(convert(requires)), BOOLEAN(true))),
+          AnywhereContext(Variable("CONTEXT"), convert(r)))
+      } else {
+        l match {
+          case t@Unapply.KApply(klabel, _) if m.attributesFor(klabel).contains(Att.`Function`) =>
+            Rewrite(AnywhereContext(Variable("CONTEXT"), And(convert(l), Equality(convert(requires), BOOLEAN(true)))),
+              AnywhereContext(Variable("CONTEXT"), convert(r)))
+          case _ => Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r))
+        }
+      }
   }
 
   println(rules.mkString("\n"))
@@ -131,14 +148,19 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   val rewrite = rewriterConstructor(rules)
 
   def convertBack(term: Term): K = {
-    println(term)
     ???
   }
 
   override def execute(k: K, depth: Optional[Integer]): RewriterResult = {
     val converted: Term = convert(k)
-    println(converted)
-    new RewriterResult(Optional.of(0), convertBack(rewrite.executionStep(converted)))
+    println("step0: " + converted)
+    val step1 = rewrite.executionStep(converted)
+    println("step1: " + step1)
+    val step2 = rewrite.executionStep(step1)
+    println("step2: " + step2)
+    val step3 = rewrite.executionStep(step2)
+    println("step3: " + step3)
+    new RewriterResult(Optional.of(0), convertBack(step2))
   }
 
   override def `match`(k: K, rule: Rule): util.List[_ <: util.Map[_ <: KVariable, _ <: K]] = ???
