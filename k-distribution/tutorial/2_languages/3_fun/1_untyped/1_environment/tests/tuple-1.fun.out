@@ -2,4 +2,5 @@ Search results:
 
 Solution 1:
 V:K@SORT-K -->
-closure ( .Map , ( Triple ( x , ( y , ( z , .Exps ) ) ) -> y ) | .TypeCases )
+closure ( .Map , ( Triple ( x , ( y , ( z , .Exps ) ) ) -> y ) | .Cases )
+
