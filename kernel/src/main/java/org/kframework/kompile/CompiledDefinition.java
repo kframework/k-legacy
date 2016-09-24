@@ -63,7 +63,7 @@ public class CompiledDefinition implements Serializable {
     }
 
     private void initializeConfigurationVariableDefaultSorts() {
-        // searching for #SemanticCastTo<Sort>(Map:lookup(_, #token(<VarName>, KConfigVar)))
+        // searching for #SemanticCastTo<Sort>(_Map_.lookup(_, #token(<VarName>, KConfigVar)))
         Collections.stream(parsedDefinition.mainModule().rules())
                 .forEach(r -> {
                     new VisitK() {

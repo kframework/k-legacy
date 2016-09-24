@@ -52,7 +52,7 @@ module IMP
   rule while (B) S => if (B) {S while (B) S} else {}  [structural]
 // Pgm
   rule <k> int (X,Xs => Xs);_ </k> <state> Rho:Map (.Map => X|->0) </state>
-    requires notBool (X in keys(Rho))
+//    requires notBool (X in keys(Rho))
   rule int .Ids; S => S  [structural]
 
 // verification ids

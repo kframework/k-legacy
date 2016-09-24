@@ -46,16 +46,26 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   import env.builtin._
 
   val hooks: Map[String, Label] = Map(
-    "MAP.lookup" -> MAP.lookup
+
   )
+
+  def relativeHook(relativeHook: String): Option[Label] = relativeHook.split('.').toSeq match {
+    case Seq(baseLabel: String, hookName: String) => relativeHookByBaseLabel(baseLabel, hookName)
+    case _ => None
+  }
+
+  def relativeHookByBaseLabel(baseLabel: String, hookName: String): Option[Label] = env.label(baseLabel) match {
+    case l: MapLabel => hookName match {
+      case "lookup" => Some(l.lookup)
+      case _ => None
+    }
+    case _ => None
+  }
 
   private val nonAssocLabels: Set[Label] = nonAssocProductions flatMap {
     case SyntaxSort(s, att) => att.get(Att.hook) flatMap hooks.get
-    case p@Production(s, items, att) =>
+    case p@Production(s, items, att) if !att.contains(Att.relativeHook) =>
       implicit val envv = env
-      if(att.toString.contains("lookup")) {
-        println(att.get(Att.hook).flatMap(hooks.get))
-      }
       att.get(Att.hook).flatMap(hooks.get).orElse({
         if (att.contains(Att.token)) {
           if (!env.labels.exists(l => l.name == "TOKEN_" + s.name))
@@ -76,6 +86,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
             None
         }
       })
+    case _ => None
   }
 
   private val uninterpretedTokenLabels: Map[Sort, ConstantLabel[String]] = (nonAssocLabels collect {
@@ -99,12 +110,17 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     case p@Production(s, items, att) =>
       val theUnit = getLabelForAtt(p, "unit").asInstanceOf[Label0]
       val labelName = p.klabel.get.name
-      val index = att.get[Int]("index")
+      val index = att.get[String]("index")
       if (index.isDefined && att.contains(Att.comm)) {
-        def indexFunction(t: Term): Term = t.iterator().toList(index.get)
+        def indexFunction(t: Term): Term = t.iterator().toList(index.get.toInt)
         MapLabel(labelName, indexFunction, theUnit())(env)
       } else
         new AssocWithIdListLabel(labelName, theUnit())(env)
+  }
+
+  nonAssocProductions collect {
+    case p@Production(s, items, att) if att.contains(Att.relativeHook) =>
+      relativeHook(att.get(Att.relativeHook).get)
   }
 
   env.seal()
@@ -152,15 +168,16 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   }
 
   override def execute(k: K, depth: Optional[Integer]): RewriterResult = {
-    val converted: Term = convert(k)
-    println("step0: " + converted)
-    val step1 = rewrite.executionStep(converted)
-    println("step1: " + step1)
-    val step2 = rewrite.executionStep(step1)
-    println("step2: " + step2)
-    val step3 = rewrite.executionStep(step2)
-    println("step3: " + step3)
-    new RewriterResult(Optional.of(0), convertBack(step2))
+    var i = 0
+    var term: Term = null
+    var next = convert(k)
+    do {
+      term = next
+      println("step " + i + " : " + next)
+      next = rewrite.executionStep(term)
+      i += 1
+    } while (term != next)
+    new RewriterResult(Optional.of(0), convertBack(term))
   }
 
   override def `match`(k: K, rule: Rule): util.List[_ <: util.Map[_ <: KVariable, _ <: K]] = ???

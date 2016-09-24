@@ -2,6 +2,7 @@
 package org.kframework.backend.java.kil;
 
 import org.kframework.backend.java.builtins.IntToken;
+import org.kframework.builtin.KLabels;
 
 import java.util.Map;
 import java.util.Set;
@@ -19,7 +20,7 @@ public interface DataStructures {
     String MAP_CHOICE = "Map:choice";
     String SET_CHOICE = "Set:choice";
     String LIST_GET = "List:get";
-    String MAP_LOOKUP = "Map:lookup";
+    String MAP_LOOKUP = KLabels.MAP_LOOKUP;
     String SET_MEMBERSHIP = "Set:in";
     String LIST_RANGE = "List:range";
     String MAP_UPDATE = "updateMap";

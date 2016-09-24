@@ -396,7 +396,7 @@ public class ConvertDataStructureToLookup {
                         if (element.getKey() instanceof KVariable && varConstraints.count(element.getKey()) == 1) {
                             state.add(KApply(KLabel("#mapChoice"), element.getKey(), map));
                         }
-                        state.add(KApply(KLabel("#match"), element.getValue(), KApply(KLabel("Map:lookup"), map, element.getKey())));
+                        state.add(KApply(KLabel("#match"), element.getValue(), KApply(KLabel(KLabels.MAP_LOOKUP), map, element.getKey())));
                     }
                     if (lhsOf == null) {
                         // An outermost map may contain nested rewrites, so the term

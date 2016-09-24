@@ -32,7 +32,7 @@ module MAP
 
   /*@ Construct a new Map consisting of key/value pairs of two Maps (the keys of
    the two Maps are assumed disjoint) */
-  syntax Map ::= Map Map                        [left, function, hook(MAP.concat), klabel(_Map_), assoc, comm, unit(.Map), element(_|->_)]
+  syntax Map ::= Map Map                        [left, function, hook(MAP.concat), klabel(_Map_), assoc, comm, unit(.Map), element(_|->_), index(0)]
   /*@  Construct an empty Map */
   syntax Map ::= ".Map"                         [function, hook(MAP.unit), latex(\dotCt{Map})]
                // breaks klabel uniqueness
@@ -46,7 +46,7 @@ module MAP
   syntax non-assoc _|->_
 
   /*@ Retrieve the value associated with the given key */
-  syntax K ::= Map "[" K "]"                    [function, hook(MAP.lookup), klabel(Map:lookup)]
+  syntax K ::= Map "[" K "]"                    [function, hook(MAP.lookup), klabel(_Map_.lookup), relativeHook(_Map_.lookup)]
 
   /*@ Update a Map in form of  of keys and values: */
   syntax Map ::= Map "[" K "<-" K "]"           [function, hook(MAP.update), prefer]

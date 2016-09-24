@@ -165,6 +165,7 @@ object Att {
   val variable = "variable"
   val token = "token"
   val hook = "hook"
+  val relativeHook = "relativeHook"
   val `macro` = "macro"
 
   val sort = TypedKey[Sort]("sort", {

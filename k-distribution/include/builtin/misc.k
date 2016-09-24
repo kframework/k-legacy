@@ -116,7 +116,7 @@ module MAP
 
   syntax Set ::= "keys" "(" Map ")"     [klabel('keys), function, hook(Map:keys)]
 
-  syntax K ::= Map "[" K "]"                    [function, klabel(Map:lookup), hook(Map:lookup)]
+  syntax K ::= Map "[" K "]"                    [function, klabel(_Map_.lookup), hook(Map:lookup)]
 endmodule
 
 module SET
