@@ -17,10 +17,10 @@ module KERNELC-SYNTAX
   syntax Globals ::= List{Global, ""}   [klabel(_Globals_)]
 
   syntax FunctionDefinition ::= Type Id "(" ParameterDeclarations ")" Block
+                              | Type Id "(" "void" ")" Block
   syntax FunctionDeclaration ::= Type Id "(" ParameterDeclarations ")" ";"
   syntax ParameterDeclaration ::= Type Id
-  syntax ParameterDeclarations ::= List{ParameterDeclaration, ","}
-    [klabel(_ParameterDeclarations_)]
+  syntax ParameterDeclarations ::= List{ParameterDeclaration, ","} [klabel(_ParameterDeclarations_)]
   syntax StructDeclaration ::= "struct" Id "{" VariableDeclarations "}" ";"
 
   syntax BaseVariableName ::= Id

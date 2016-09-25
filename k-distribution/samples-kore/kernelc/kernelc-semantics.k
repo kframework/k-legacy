@@ -100,6 +100,7 @@ module KERNELC-SEMANTICS
    */
   /* Function definition */
   syntax KItem ::= functionBody(ParameterDeclarations, Type, Block)
+  rule T:Type F:Id(void) B:Block => T F(.ParameterDeclarations) B
   rule
     <k> T:Type F:Id(PDs:ParameterDeclarations) B:Block => .K ...</k>
     <fun>... .Map => F |-> functionBody(PDs, T, { B return; }) ...</fun>
