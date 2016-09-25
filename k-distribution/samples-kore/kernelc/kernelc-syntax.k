@@ -23,15 +23,24 @@ module KERNELC-SYNTAX
     [klabel(_ParameterDeclarations_)]
   syntax StructDeclaration ::= "struct" Id "{" VariableDeclarations "}" ";"
 
-  syntax VariableDeclaration ::= Type Id ";"
-  syntax VariableDeclarations ::= List{VariableDeclaration, ""}
-    [klabel(_VariableDeclarations_)]
+  syntax BaseVariableName ::= Id
+                            | Id "=" Expression
+  syntax VariableName ::= BaseVariableName
+                        | "*" VariableName [klabel(_PointerDeclaration_)]
+  syntax VariableNames ::= VariableName
+                         | VariableName "," VariableNames
+  syntax BaseVariableDeclaration ::= BaseType VariableNames ";"
+  syntax VariableDeclaration     ::= BaseVariableDeclaration
+                                   | Type VariableName ";" [avoid]
 
-  syntax Type ::= IntType
-                | FloatType
-                | "void"
+  syntax VariableDeclarations ::= List{VariableDeclaration, ""} [klabel(_VariableDeclarations_)]
+
+  syntax BaseType ::= IntType
+                    | FloatType
+                    | "void"
+                    | "struct" Id
+  syntax Type ::= BaseType
                 | Type "*"
-                | "struct" Id
   syntax IntType ::= "int"
   syntax FloatType ::= "double"
 
@@ -112,6 +121,12 @@ module KERNELC-SYNTAX
   rule E1:Expression && E2:Expression => (E1 ? E2 : 0)      [macro]
   rule ! E:Expression => E ? 0 : 1                          [macro]
 
+  //  syntax K ::= assert(Bool, String)
+  syntax Statement ::= "assert" "(" Expression ")"
+                     | "assert" "(" Expression "," String ")"
+                     | "assert" "(" Expression "," String "," AssertionType ")"
+  syntax AssertionType ::= "HALT" | "CONT"
+  syntax Expression ::= "nondet" "(" Type ")"
 
   /*
    * Verification specific stuff

@@ -114,16 +114,22 @@ module KERNELC-SEMANTICS
     [structural]
 
   /* Variable declaration */
-  rule VD:VariableDeclaration VDs:VariableDeclarations => VD ~> VDs
-    [structural]
-  rule .VariableDeclarations => .K    [structural]
+  rule VD:VariableDeclaration VDs:VariableDeclarations  => VD ~> VDs          [structural]
+  rule .VariableDeclarations                            => .K                 [structural]
+  rule BT:BaseType VN:VariableName , VNs:VariableNames; => BT VN; ~> BT VNs;  [structural]
+  rule T:Type (* VN:VariableName);                      => (T *) VN;          [structural]
+  rule T:Type X:Id;                                     => T (X = nondet(T)); [structural]
   rule
-    <k> T:Type X:Id; => .K ...</k>
+    <k> T:Type (X:Id = E:Expression); => X = E; ...</k>
     <env> Env:Map => Env[X <- tv(T *, object(!I:Int))] </env>
     <heap>... .Map => object(!I) |-> tv(T, undef) ...</heap>
     <locals>... .List => ListItem(tv(T *, object(!I:Int))) </locals>
     [structural]
 
+  /* Non-deterministic values */
+  rule nondet(int)      => tv(int, ?_:Int)      [structural]
+  rule nondet(double)   => tv(double, ?_:Float) [structural]
+  rule nondet(T:Type *) => tv(T *, ?_:Pointer)  [structural]
 
   /*
    * Structural statements
@@ -176,8 +182,8 @@ module KERNELC-SEMANTICS
   rule HOLE:Bool ~> #wrap2(S1:Statement, S2:Statement)
     => if (HOLE) S1 else S2
     [cool]
-  rule if( true) S:Statement else _:Statement => S    [structural]
-  rule if(false) _:Statement else S:Statement => S    [structural]
+  rule if( true) S:Statement else _:Statement => S    [transition]
+  rule if(false) _:Statement else S:Statement => S    [transition]
 
   rule HOLE:Expression ? E1:Expression : E2:Expression
     => expression2bool(HOLE) ~> #wrap2(E1, E2)
@@ -296,85 +302,37 @@ module KERNELC-SEMANTICS
   /*
    * Boolean and arithmetic operations
    */
-  rule I:Int => tv(int, I)                    [structural]
   // TODO: node unary -Int?
-  rule -tv(int, I:Int) => tv(int, 0 -Int I)   [structural]
-  rule ~tv(int, I:Int) => tv(int, ~Int I)     [structural]
-  rule
-    tv(int, I1:Int) + tv(int, I2:Int) => tv(int, I1 +Int I2)
-    [structural]
-  rule
-    tv(int, I1:Int) - tv(int, I2:Int) => tv(int, I1 -Int I2)
-    [structural]
-  rule
-    tv(int, I1:Int) * tv(int, I2:Int) => tv(int, I1 *Int I2)
-    [structural]
-  rule
-    tv(int, I1:Int) / tv(int, I2:Int) => tv(int, I1 /Int I2)
-    requires I2 =/=K 0
-    [structural]
-  rule
-    tv(int, I1:Int) % tv(int, I2:Int) => tv(int, I1 %Int I2)
-    requires I2 =/=K 0
-    [structural]
-  rule
-    tv(int, I1:Int) << tv(int, I2:Int) => tv(int, I1 <<Int I2)
-    [structural]
-  rule
-    tv(int, I1:Int) >> tv(int, I2:Int) => tv(int, I1 >>Int I2)
-    [structural]
-  rule
-    tv(int, I1:Int) >= tv(int, I2:Int) => bool2int(I1 >=Int I2)
-    [structural]
-  rule
-    tv(int, I1:Int) >  tv(int, I2:Int) => bool2int(I1 >Int  I2)
-    [structural]
-  rule
-    tv(int, I1:Int) <= tv(int, I2:Int) => bool2int(I1 <=Int I2)
-    [structural]
-  rule
-    tv(int, I1:Int) <  tv(int, I2:Int) => bool2int(I1 <Int  I2)
-    [structural]
+  rule I:Int                              => tv(int, I)                               [structural]
+  rule -tv(int, I:Int)                    => tv(int, 0 -Int I)                        [structural]
+  rule ~tv(int, I:Int)                    => tv(int, ~Int I)                          [structural]
+  rule tv(int, I1:Int) +  tv(int, I2:Int) => tv(int, I1 +Int I2)                      [structural]
+  rule tv(int, I1:Int) -  tv(int, I2:Int) => tv(int, I1 -Int I2)                      [structural]
+  rule tv(int, I1:Int) *  tv(int, I2:Int) => tv(int, I1 *Int I2)                      [structural]
+  rule tv(int, I1:Int) /  tv(int, I2:Int) => tv(int, I1 /Int I2)   requires I2 =/=K 0 [structural]
+  rule tv(int, I1:Int) %  tv(int, I2:Int) => tv(int, I1 %Int I2)   requires I2 =/=K 0 [structural]
+  rule tv(int, I1:Int) << tv(int, I2:Int) => tv(int, I1 <<Int I2)                     [structural]
+  rule tv(int, I1:Int) >> tv(int, I2:Int) => tv(int, I1 >>Int I2)                     [structural]
+  rule tv(int, I1:Int) >= tv(int, I2:Int) => bool2int(I1 >=Int I2)                    [structural]
+  rule tv(int, I1:Int) >  tv(int, I2:Int) => bool2int(I1 >Int  I2)                    [structural]
+  rule tv(int, I1:Int) <= tv(int, I2:Int) => bool2int(I1 <=Int I2)                    [structural]
+  rule tv(int, I1:Int) <  tv(int, I2:Int) => bool2int(I1 <Int  I2)                    [structural]
 
-  rule F:Float => tv(double, F)                         [structural]
-  rule -tv(double, F:Float) => tv(double, --Float F)    [structural]
-  rule
-    tv(double, F1:Float) + tv(double, F2:Float) => tv(double, F1 +Float F2)
-    [structural]
-  rule
-    tv(double, F1:Float) - tv(double, F2:Float) => tv(double, F1 -Float F2)
-    [structural]
-  rule
-    tv(double, F1:Float) * tv(double, F2:Float) => tv(double, F1 *Float F2)
-    [structural]
-  rule
-    tv(double, F1:Float) / tv(double, F2:Float) => tv(double, F1 /Float F2)
-    [structural]
-  rule
-    tv(double, F1:Float) % tv(double, F2:Float) => tv(double, F1 %Float F2)
-    [structural]
-  rule
-    tv(double, F1:Float) ^ tv(double, F2:Float) => tv(double, F1 ^Float F2)
-    [structural]
-  rule
-    tv(double, F1:Float) >= tv(double, F2:Float) => bool2int(F1 >=Float F2)
-    [structural]
-  rule
-    tv(double, F1:Float) > tv(double, F2:Float) => bool2int(F1 >Float F2)
-    [structural]
-  rule
-    tv(double, F1:Float) <= tv(double, F2:Float) => bool2int(F1 <=Float F2)
-    [structural]
-  rule
-    tv(double, F1:Float) < tv(double, F2:Float) => bool2int(F1 <Float F2)
-    [structural]
+  rule F:Float                                      => tv(double, F)            [structural]
+  rule -tv(double, F:Float)                         => tv(double, --Float F)    [structural]
+  rule tv(double, F1:Float) +  tv(double, F2:Float) => tv(double, F1 +Float F2) [structural]
+  rule tv(double, F1:Float) -  tv(double, F2:Float) => tv(double, F1 -Float F2) [structural]
+  rule tv(double, F1:Float) *  tv(double, F2:Float) => tv(double, F1 *Float F2) [structural]
+  rule tv(double, F1:Float) /  tv(double, F2:Float) => tv(double, F1 /Float F2) [structural]
+  rule tv(double, F1:Float) %  tv(double, F2:Float) => tv(double, F1 %Float F2) [structural]
+  rule tv(double, F1:Float) ^  tv(double, F2:Float) => tv(double, F1 ^Float F2) [structural]
+  rule tv(double, F1:Float) >= tv(double, F2:Float) => bool2int(F1 >=Float F2)  [structural]
+  rule tv(double, F1:Float) >  tv(double, F2:Float) => bool2int(F1 >Float F2)   [structural]
+  rule tv(double, F1:Float) <= tv(double, F2:Float) => bool2int(F1 <=Float F2)  [structural]
+  rule tv(double, F1:Float) <  tv(double, F2:Float) => bool2int(F1 <Float F2)   [structural]
 
-  rule
-    tv(T:Type, V1:Value) == tv(T, V2:Value) => bool2int(V1 ==K  V2)
-    [structural]
-  rule
-    tv(T:Type, V1:Value) != tv(T, V2:Value) => bool2int(V1 =/=K V2)
-    [structural]
+  rule tv(T:Type, V1:Value) == tv(T, V2:Value) => bool2int(V1 ==K  V2) [structural]
+  rule tv(T:Type, V1:Value) != tv(T, V2:Value) => bool2int(V1 =/=K V2) [structural]
 
   syntax KItem ::= "bool2int" "(" Bool ")"
   rule bool2int( true) => tv(int, 1)    [structural]
@@ -479,6 +437,32 @@ module KERNELC-SEMANTICS
     [structural]
   rule printf(_:String) => tv(void, undef)   [structural]
 
+  /*
+   * Assertions
+   */
+  syntax KItem ::= "#wrapAssert" "(" K "," K ")"
+
+  rule assert(E:Expression, Msg:String) => assert(E, Msg, HALT) [macro]
+  rule assert(E:Expression)             => assert(E, "", HALT)  [macro]
+
+  rule assert(true, Msg:String, _:AssertionType) => .  [structural]
+
+  rule assert(HOLE:Expression, Msg:String, AT:AssertionType)
+            => expression2bool(HOLE) ~> #wrapAssert(Msg, AT)
+            [heat]
+  rule HOLE:Bool ~> #wrapAssert(Msg:String, AT:AssertionType)
+            => assert(HOLE, Msg, AT)
+            [cool]
+
+  rule
+    <k> assert(false, Msg:String, HALT) ~> _:K => . </k>
+    <out> ... .List => ListItem("Assertion Failure (halt): " +String Msg) </out>
+    [structural]
+
+  rule
+    <k> assert(false, Msg:String, CONT) => . ... </k>
+    <out> ... .List => ListItem("Assertion Failure (continue): " +String Msg) </out>
+    [structural]
 
   /*
    * Helper functions
@@ -489,15 +473,13 @@ module KERNELC-SEMANTICS
   rule initializeObject(.Map) => .Map
 
   syntax Map ::= makeMemberMap(VariableDeclarations)    [function]
-  rule makeMemberMap(T:Type X:Id; VDs:VariableDeclarations)
-    => X |-> T makeMemberMap(VDs)
-  rule makeMemberMap(.VariableDeclarations) => .Map
+  rule makeMemberMap(T:Type X:Id; VDs:VariableDeclarations) => X |-> T makeMemberMap(VDs)
+  rule makeMemberMap(.VariableDeclarations)                 => .Map
 
   syntax VariableDeclarations ::= declareParameters(ParameterDeclarations)
     [function]
-  rule declareParameters(T:Type X:Id, PDs:ParameterDeclarations)
-    => (T X; declareParameters(PDs))
-  rule declareParameters(.ParameterDeclarations) => .VariableDeclarations
+  rule declareParameters(T:Type X:Id, PDs:ParameterDeclarations) => (T X; declareParameters(PDs))
+  rule declareParameters(.ParameterDeclarations)                 => .VariableDeclarations
 
   syntax Statements ::=
     bindParameters(ParameterDeclarations, EvaluatedExpressions, Block)
