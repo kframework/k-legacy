@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+file="$1" && shift
+
+pushd programs/$file
+
+kast --directory ../../../.. $@ main_pass.c
+
+popd

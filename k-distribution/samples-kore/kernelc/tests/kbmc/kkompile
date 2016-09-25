@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+pushd ../../
+
+kompile $@ kernelc.k
+
+popd
