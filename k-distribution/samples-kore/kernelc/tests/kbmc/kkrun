@@ -2,9 +2,9 @@
 
 file="$1" && shift
 
-semantics_dir="../../../.."
+semantics_dir="../../.."
 
-pushd programs/$file
+pushd $file
 
 krun --search --smt_prelude "$K_RELEASE/include/z3/basic.smt2" \
      --directory "$semantics_dir" \

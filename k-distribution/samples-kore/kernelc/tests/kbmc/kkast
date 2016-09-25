@@ -2,8 +2,8 @@
 
 file="$1" && shift
 
-pushd programs/$file
+pushd $file
 
-kast --directory ../../../.. $@ main_pass.c
+kast --directory ../../.. $@ main_pass.c
 
 popd
