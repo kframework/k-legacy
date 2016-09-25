@@ -443,27 +443,30 @@ module KERNELC-SEMANTICS
    */
   syntax KItem ::= "#wrapAssert" "(" K "," K ")"
 
-  rule assert(E:Expression, Msg:String) => assert(E, Msg, HALT) [macro]
-  rule assert(E:Expression)             => assert(E, "", HALT)  [macro]
-
-  rule assert(true, Msg:String, _:AssertionType) => .  [structural]
-
-  rule assert(HOLE:Expression, Msg:String, AT:AssertionType)
-            => expression2bool(HOLE) ~> #wrapAssert(Msg, AT)
-            [heat]
-  rule HOLE:Bool ~> #wrapAssert(Msg:String, AT:AssertionType)
-            => assert(HOLE, Msg, AT)
-            [cool]
+  rule assert(E:Expression)                               => assert(E, "", HALT)            [macro]
+  rule assert(E:Expression, Msg:String)                   => assert(E, Msg, HALT)           [macro]
+  rule assert(E:Expression, Msg:String, AT:AssertionType) => if (E) { ; } else { AT(Msg); } [macro]
 
   rule
-    <k> assert(false, Msg:String, HALT) ~> _:K => . </k>
-    <out> ... .List => ListItem("Assertion Failure (halt): " +String Msg) </out>
-    [structural]
-
-  rule
-    <k> assert(false, Msg:String, CONT) => . ... </k>
+    <k>   CONT(Msg) => .K ... </k>
     <out> ... .List => ListItem("Assertion Failure (continue): " +String Msg) </out>
-    [structural]
+
+//  rule assert(HOLE:Expression, Msg:String, AT:AssertionType)
+//            => expression2bool(HOLE) ~> #wrapAssert(Msg, AT)
+//            [heat]
+//  rule HOLE:Bool ~> #wrapAssert(Msg:String, AT:AssertionType)
+//            => assert(HOLE, Msg, AT)
+//            [cool]
+//
+//  rule
+//    <k> assert(false, Msg:String, HALT) ~> _:K => . </k>
+//    <out> ... .List => ListItem("Assertion Failure (halt): " +String Msg) </out>
+//    [structural]
+//
+//  rule
+//    <k> assert(false, Msg:String, CONT) => . ... </k>
+//    <out> ... .List => ListItem("Assertion Failure (continue): " +String Msg) </out>
+//    [structural]
 
   /*
    * Helper functions

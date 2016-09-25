@@ -125,6 +125,7 @@ module KERNELC-SYNTAX
   syntax Statement ::= "assert" "(" Expression ")"
                      | "assert" "(" Expression "," String ")"
                      | "assert" "(" Expression "," String "," AssertionType ")"
+                     | AssertionType "(" String ")"
   syntax AssertionType ::= "HALT" | "CONT"
   syntax Expression ::= "nondet" "(" Type ")"
 
