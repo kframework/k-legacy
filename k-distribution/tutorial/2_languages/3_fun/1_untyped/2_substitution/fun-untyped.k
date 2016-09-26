@@ -98,7 +98,7 @@ module FUN-UNTYPED-COMMON
 
   syntax TypeCase ::= ConstructorName
                     | ConstructorName "(" Types ")"
-  syntax TypeCases ::= List{TypeCase,"|"}
+  syntax TypeCases ::= List{TypeCase,"|"}     [klabel(_|TypeCase_)]
 
 
 //@ \subsection{Additional Priorities}

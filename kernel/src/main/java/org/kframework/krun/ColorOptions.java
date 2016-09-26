@@ -2,16 +2,11 @@
 package org.kframework.krun;
 
 import com.beust.jcommander.Parameter;
-import com.google.inject.Inject;
 import org.kframework.utils.options.BaseEnumConverter;
 
 public class ColorOptions {
 
     public ColorOptions() {}
-
-    //TODO(dwightguth): remove in Guice 4.0
-    @Inject
-    public ColorOptions(Void v) {}
 
     @Parameter(names="--color", description="Use colors in output. Default is on.")
     private ColorSetting color;

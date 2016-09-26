@@ -2,4 +2,5 @@ Search results:
 
 Solution 1:
 V:K@SORT-K -->
-closure ( .Map , ( x -> x ) | .TypeCases )
+closure ( .Map , ( x -> x ) | .Cases )
+
