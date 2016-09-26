@@ -147,6 +147,12 @@ public class RewriteEngineUtils {
         }
         Profiler.stopTimer(Profiler.EVALUATE_REQUIRES_TIMER);
 
+        if (crntSubst != null) {
+            ConjunctiveFormula substitutionAsFormula = ConjunctiveFormula.of(crntSubst, context.global())
+                    .orientSubstitution(rule.matchingVariables());
+            crntSubst = substitutionAsFormula.isMatching(rule.matchingVariables()) ? substitutionAsFormula.substitution() : null;
+        }
+
         return crntSubst;
     }
 
