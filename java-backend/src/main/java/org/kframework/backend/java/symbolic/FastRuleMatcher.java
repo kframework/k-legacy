@@ -362,7 +362,6 @@ public class FastRuleMatcher {
      */
     private BitSet matchAssoc(BuiltinList subject, int subjectIndex, BuiltinList pattern, int patternIndex, BitSet ruleMask, scala.collection.immutable.List<Pair<Integer, Integer>> path) {
         assert subject.sort.equals(pattern.sort);
-        //assert subject.isConcreteCollection();
 
         /* match prefix of elements in subject and pattern */
         if (subjectIndex == subject.size() && patternIndex == pattern.size()) {
@@ -375,8 +374,15 @@ public class FastRuleMatcher {
             return empty;
         }
 
-
         BuiltinList.ElementTailSplit patternElementTailSplit = pattern.splitElementTail(patternIndex, ruleCount);
+        if (subjectIndex < subject.size() && !subject.isElement(subjectIndex) && !ruleMask.subset(patternElementTailSplit.tailMask)) {
+            return addUnification(
+                    subject.range(subjectIndex, subject.size()),
+                    pattern.range(patternIndex, pattern.size()),
+                    ruleMask,
+                    subject instanceof BuiltinList.SingletonBuiltinList ? path : path.$colon$colon(Pair.of(subjectIndex, subject.size())));
+        }
+
         if (ruleMask.subset(patternElementTailSplit.combinedMask)) {
             BitSet elementMask;
             if (subjectIndex == subject.size()) {
