@@ -332,7 +332,7 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
         }
 
         Term convertedLeftHandSide = convert(leftHandSide);
-        if (oldRule.containsAttribute(Attribute.PATTERN_FOLDING_KEY)) {
+        if (oldRule.containsAttribute(Attribute.PATTERN_KEY) || oldRule.containsAttribute(Attribute.PATTERN_FOLDING_KEY)) {
             convertedLeftHandSide = convertedLeftHandSide.evaluate(TermContext.builder(global).build());
         }
 
