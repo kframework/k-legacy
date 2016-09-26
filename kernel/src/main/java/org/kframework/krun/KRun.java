@@ -2,12 +2,16 @@
 package org.kframework.krun;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
+//import org.kframework.backend.java.symbolic.InitializeRewriter;
+//import org.kframework.backend.java.symbolic.JavaExecutionOptions;
 import org.kframework.builtin.Sorts;
 import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
 import org.kframework.kompile.CompiledDefinition;
+import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KToken;
@@ -15,8 +19,10 @@ import org.kframework.kore.KVariable;
 import org.kframework.kore.Sort;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
+import org.kframework.krun.api.io.FileSystem;
+import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import org.kframework.krun.modes.ExecutionMode;
-import org.kframework.main.Main;
+import org.kframework.main.GlobalOptions;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.binary.BinaryParser;
 import org.kframework.parser.kore.KoreParser;
@@ -37,6 +43,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.invoke.MethodHandle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -60,11 +67,13 @@ public class KRun {
     private final KExceptionManager kem;
     private final FileUtil files;
     private final boolean ttyStdin;
+    private final boolean isNailgun;
 
-    public KRun(KExceptionManager kem, FileUtil files, boolean ttyStdin) {
+    public KRun(KExceptionManager kem, FileUtil files, boolean ttyStdin, boolean isNailgun) {
         this.kem = kem;
         this.files = files;
         this.ttyStdin = ttyStdin;
+        this.isNailgun = isNailgun;
     }
 
     public int run(CompiledDefinition compiledDef, KRunOptions options, Function<Module, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
@@ -72,9 +81,9 @@ public class KRun {
         K program;
         if (options.configurationCreation.term()) {
             program = externalParse(options.configurationCreation.parser(compiledDef.executionModule().name()),
-                    pgmFileName, compiledDef.programStartSymbol, Source.apply("<parameters>"), compiledDef);
+                    pgmFileName, compiledDef.programStartSymbol, Source.apply("<parameters>"), compiledDef, files);
         } else {
-            program = parseConfigVars(options, compiledDef);
+            program = parseConfigVars(options, compiledDef, kem, files, ttyStdin, isNailgun, null);
         }
 
         program = new KTokenVariablesToTrueVariables()
@@ -178,6 +187,10 @@ public class KRun {
     }
 
     public void outputFile(byte[] output, KRunOptions options) {
+        outputFile(output, options, files);
+    }
+
+    public static void outputFile(byte[] output, KRunOptions options, FileUtil files) {
         if (options.outputFile == null) {
             try {
                 System.out.write(output);
@@ -287,8 +300,8 @@ public class KRun {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef) {
-        HashMap<KToken, K> output = new HashMap<>();
+    public static Map<KToken,K> getUserConfigVarsMap(KRunOptions options, CompiledDefinition compiledDef, FileUtil files) {
+        Map<KToken,K> output = new HashMap<>();
         for (Map.Entry<String, Pair<String, String>> entry
                 : options.configurationCreation.configVars(compiledDef.getParsedDefinition().mainModule().name()).entrySet()) {
             String name = entry.getKey();
@@ -296,22 +309,57 @@ public class KRun {
             String parser = entry.getValue().getRight();
             Sort sort = compiledDef.configurationVariableDefaultSorts.get("$" + name);
             assert sort != null: "Could not find configuration variable: $" + name;
-            K configVar = externalParse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), compiledDef);
+            K configVar = externalParse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), compiledDef, files);
             output.put(KToken("$" + name, Sorts.KConfigVar()), configVar);
         }
-        if (options.io()) {
+        return output;
+    }
+
+    public static Map<KToken,K> getIOConfigVarsMap(boolean realIO, boolean ttyStdin, boolean isNailgun) {
+        Map<KToken,K> output = new HashMap<>();
+        if (realIO) {
             output.put(KToken("$STDIN", Sorts.KConfigVar()), KToken("\"\"", Sorts.String()));
             output.put(KToken("$IO", Sorts.KConfigVar()), KToken("\"on\"", Sorts.String()));
         } else {
-            String stdin = getStdinBuffer(ttyStdin);
+            String stdin = getStdinBuffer(ttyStdin, isNailgun);
             output.put(KToken("$STDIN", Sorts.KConfigVar()), KToken("\"" + stdin + "\"", Sorts.String()));
             output.put(KToken("$IO", Sorts.KConfigVar()), KToken("\"off\"", Sorts.String()));
         }
-        checkConfigVars(output.keySet(), compiledDef);
+        return output;
+    }
+
+    public static Map<KToken,K> getPGMConfigVarsMap(K pgm) {
+        Map<KToken,K> output = new HashMap<>();
+        if (pgm != null) {
+            output.put(KToken("$PGM", Sorts.KConfigVar()), pgm);
+        }
+        return output;
+    }
+
+    public static K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef, KExceptionManager kem, FileUtil files, boolean ttyStdin, boolean isNailgun, K pgm) {
+        Map<KToken,K> output = getUserConfigVarsMap(options, compiledDef, files);
+        return getInitConfig(pgm, output, compiledDef, kem, options.io(), ttyStdin, isNailgun);
+    }
+
+    public static K getInitConfig(K pgm, CompiledDefinition compiledDef, KExceptionManager kem) {
+        return getInitConfig(pgm, new HashMap<>(), compiledDef, kem, true, true, false);
+    }
+
+    public static K getInitConfig(K pgm, Map<KToken,K> outputUser, CompiledDefinition compiledDef, KExceptionManager kem,
+                                  boolean realIO, boolean ttyStdin, boolean isNailgun) {
+        Map<KToken,K> outputIO = getIOConfigVarsMap(realIO, ttyStdin, isNailgun);
+        Map<KToken,K> outputPGM = getPGMConfigVarsMap(pgm);
+
+        Map<KToken,K> output = new HashMap<>();
+        output.putAll(outputUser);
+        output.putAll(outputIO);
+        output.putAll(outputPGM);
+
+        checkConfigVars(output.keySet(), compiledDef, kem);
         return plugConfigVars(compiledDef, output);
     }
 
-    private void checkConfigVars(Set<KToken> inputConfigVars, CompiledDefinition compiledDef) {
+    private static void checkConfigVars(Set<KToken> inputConfigVars, CompiledDefinition compiledDef, KExceptionManager kem) {
         Set<KToken> defConfigVars = mutable(new ConfigurationInfoFromModule(compiledDef.kompiledDefinition.mainModule()).configVars());
 
         for (KToken defConfigVar : defConfigVars) {
@@ -329,7 +377,7 @@ public class KRun {
         }
     }
 
-    public static String getStdinBuffer(boolean ttyStdin) {
+    public static String getStdinBuffer(boolean ttyStdin, boolean isNailgun) {
         String buffer = "";
 
         try {
@@ -338,8 +386,8 @@ public class KRun {
             // detect if the input comes from console or redirected
             // from a pipeline
 
-            if ((Main.isNailgun() && !ttyStdin)
-                    || (!Main.isNailgun() && br.ready())) {
+            if ((isNailgun && !ttyStdin)
+                    || (!isNailgun && br.ready())) {
                 buffer = br.readLine();
             }
         } catch (IOException e) {
@@ -351,7 +399,7 @@ public class KRun {
         return buffer + "\n";
     }
 
-    public KApply plugConfigVars(CompiledDefinition compiledDef, Map<KToken, K> output) {
+    public static KApply plugConfigVars(CompiledDefinition compiledDef, Map<KToken, K> output) {
         return KApply(compiledDef.topCellInitializer, output.entrySet().stream().map(e -> KApply(KLabel("_|->_"), e.getKey(), e.getValue())).reduce(KApply(KLabel(".Map")), (a, b) -> KApply(KLabel("_Map_"), a, b)));
     }
 
@@ -361,7 +409,7 @@ public class KRun {
                         KOREToTreeNodes.apply(KOREToTreeNodes.up(test, input), test)));
     }
 
-    public K externalParse(String parser, String value, Sort startSymbol, Source source, CompiledDefinition compiledDef) {
+    public static K externalParse(String parser, String value, Sort startSymbol, Source source, CompiledDefinition compiledDef, FileUtil files) {
         List<String> tokens = new ArrayList<>(Arrays.asList(parser.split(" ")));
         tokens.add(value);
         Map<String, String> environment = new HashMap<>();

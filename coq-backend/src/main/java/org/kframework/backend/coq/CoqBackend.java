@@ -1,7 +1,6 @@
 // Copyright (c) 2014-2016 K Team. All Rights Reserved.
 package org.kframework.backend.coq;
 
-import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.apache.commons.io.FilenameUtils;
 import org.kframework.backend.Backends;
@@ -23,7 +22,6 @@ public class CoqBackend {
     private final Context context;
     private final KompileOptions options;
 
-    @Inject
     public CoqBackend(Stopwatch sw, Context context, KompileOptions options, Provider<ProcessBuilder> pb, FileUtil files) {
         this.context = context;
         this.options = options;

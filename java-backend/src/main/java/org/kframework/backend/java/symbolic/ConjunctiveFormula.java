@@ -14,6 +14,7 @@ import org.kframework.backend.java.util.Constants;
 import org.kframework.kil.ASTNode;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -632,6 +633,27 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
 
     public boolean checkUnsat() {
         return global.constraintOps.checkUnsat(this);
+    }
+
+    public boolean smartImplies(ConjunctiveFormula constraint) {
+
+        /* TODO: from org.kframework.backend.java.kil.ConstrainedTerm.matchImplies
+        context.setTopConstraint(data.constraint);
+        constraint = (ConjunctiveFormula) constraint.evaluate(context);
+
+        Set<Variable> rightOnlyVariables = Sets.difference(constraint.variableSet(), variableSet());
+        constraint = constraint.orientSubstitution(rightOnlyVariables);
+
+        ConjunctiveFormula leftHandSide = data.constraint;
+        ConjunctiveFormula rightHandSide = constraint.removeBindings(rightOnlyVariables);
+        rightHandSide = (ConjunctiveFormula) rightHandSide.substitute(leftHandSide.substitution());
+        if (!leftHandSide.implies(rightHandSide, rightOnlyVariables)) {
+            return null;
+        }
+         */
+
+        constraint = (ConjunctiveFormula) constraint.substitute(this.substitution());
+        return implies(constraint, Collections.emptySet());
     }
 
     public boolean implies(ConjunctiveFormula constraint, Set<Variable> rightOnlyVariables) {

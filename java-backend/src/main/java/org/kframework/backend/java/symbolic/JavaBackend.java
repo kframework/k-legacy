@@ -1,9 +1,9 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import com.google.inject.Inject;
 import org.kframework.AddConfigurationRecoveryFlags;
 import org.kframework.Collections;
+import org.kframework.KapiGlobal;
 import org.kframework.attributes.Att;
 import org.kframework.backend.Backends;
 import org.kframework.backend.java.kore.compile.ExpandMacrosDefinitionTransformer;
@@ -64,12 +64,15 @@ public class JavaBackend implements Backend {
     public void accept(CompiledDefinition def) {
     }
 
-    @Inject
     public JavaBackend(KExceptionManager kem, FileUtil files, GlobalOptions globalOptions, KompileOptions kompileOptions) {
         this.kem = kem;
         this.files = files;
         this.globalOptions = globalOptions;
         this.kompileOptions = kompileOptions;
+    }
+
+    public JavaBackend(KapiGlobal kapiGlobal) {
+        this(kapiGlobal.kem, kapiGlobal.files, kapiGlobal.globalOptions, kapiGlobal.kompileOptions);
     }
 
     DefinitionTransformer moduleQualifySortPredicates = DefinitionTransformer.fromKTransformerWithModuleInfo((Module m, K k) -> {
@@ -97,11 +100,11 @@ public class JavaBackend implements Backend {
      * @return the special steps for the Java backend
      */
     @Override
-    public Function<Definition, Definition> steps(Kompile kompile) {
+    public Function<Definition, Definition> steps() {
         DefinitionTransformer convertDataStructureToLookup = DefinitionTransformer.fromSentenceTransformer(func((m, s) -> new ConvertDataStructureToLookup(m, false).convert(s)), "convert data structures to lookups");
         ExpandMacrosDefinitionTransformer expandMacrosDefinitionTransformer = new ExpandMacrosDefinitionTransformer(kem, files, globalOptions, kompileOptions);
 
-        return d -> (func((Definition dd) -> kompile.defaultSteps().apply(dd)))
+        return d -> (func((Definition dd) -> Kompile.defaultSteps(kompileOptions, kem).apply(dd)))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(DefinitionTransformer.fromHybrid(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))

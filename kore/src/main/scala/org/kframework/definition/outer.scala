@@ -430,7 +430,7 @@ case class Production(sort: Sort, items: Seq[ProductionItem], att: Att)
 
 object Production {
   def apply(klabel: String, sort: Sort, items: Seq[ProductionItem], att: Att = Att()): Production = {
-    Production(sort, items, att + ("klabel" -> klabel))
+    Production(sort, items, att + (kLabelAttribute -> klabel))
   }
 
   val kLabelAttribute = "klabel"

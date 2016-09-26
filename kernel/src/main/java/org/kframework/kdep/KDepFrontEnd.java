@@ -2,8 +2,6 @@
 package org.kframework.kdep;
 
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.Module;
 import org.apache.commons.collections15.ListUtils;
 import org.kframework.attributes.Source;
 import org.kframework.kompile.Kompile;
@@ -17,8 +15,6 @@ import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
 import org.kframework.utils.inject.CommonModule;
 import org.kframework.utils.inject.JCommanderModule;
-import org.kframework.utils.inject.JCommanderModule.ExperimentalUsage;
-import org.kframework.utils.inject.JCommanderModule.Usage;
 import org.kframework.utils.options.OuterParsingOptions;
 
 import java.io.File;
@@ -53,30 +49,18 @@ public class KDepFrontEnd extends FrontEnd {
     private final FileUtil files;
     private final ParserUtils parser;
 
-    @Inject
     public KDepFrontEnd(
             OuterParsingOptions options,
             KExceptionManager kem,
             GlobalOptions globalOptions,
-            @Usage String usage,
-            @ExperimentalUsage String experimentalUsage,
             Stopwatch sw,
-            JarInfo jarInfo,
             FileUtil files) {
-        super(kem, globalOptions, usage, experimentalUsage, jarInfo, files);
+        super(kem, globalOptions, files);
         this.options = options;
         this.kem = kem;
         this.sw = sw;
         this.files = files;
         this.parser = new ParserUtils(files::resolveWorkingDirectory, kem, globalOptions);
-    }
-
-    public static List<Module> getModules() {
-        List<Module> modules = new ArrayList<>();
-        modules.add(new KDepModule());
-        modules.add(new JCommanderModule());
-        modules.add(new CommonModule());
-        return modules;
     }
 
     @Override

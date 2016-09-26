@@ -9,7 +9,6 @@ import org.kframework.kompile.KompileOptions;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.file.FileUtil;
 
-import com.google.inject.Inject;
 
 import java.io.File;
 
@@ -21,7 +20,6 @@ public class LatexBackend extends PosterBackend {
     private final FileUtil files;
     private final KompileOptions options;
 
-    @Inject
     LatexBackend(Stopwatch sw, KompileOptions options, FileUtil files) {
         super(sw);
         this.options = options;

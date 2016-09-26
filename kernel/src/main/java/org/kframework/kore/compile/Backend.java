@@ -14,5 +14,5 @@ public interface Backend {
 
     void accept(CompiledDefinition def);
 
-    Function<Definition, Definition> steps(Kompile kompile);
+    Function<Definition, Definition> steps();
 }

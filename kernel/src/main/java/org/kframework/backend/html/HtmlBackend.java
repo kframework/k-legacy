@@ -8,15 +8,12 @@ import org.kframework.kil.loader.Context;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.file.FileUtil;
 
-import com.google.inject.Inject;
-
 public class HtmlBackend extends PosterBackend {
 
     private final Context context;
     private final FileUtil files;
 
-    @Inject
-    HtmlBackend(Stopwatch sw, Context context, FileUtil files) {
+    public HtmlBackend(Stopwatch sw, Context context, FileUtil files) {
         super(sw);
         this.context = context;
         this.files = files;
