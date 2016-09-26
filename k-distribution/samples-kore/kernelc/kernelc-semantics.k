@@ -352,21 +352,11 @@ module KERNELC-SEMANTICS
   /*
    * Pointer conversions
    */
-  rule tv(T1:Type **, _:Pointer) = tv(T2:Type * => T1 *, null);
-    requires T1 =/=K T2
-    [structural]
-  rule tv(T1:Type *, _:Pointer) == tv(T2:Type * => T1 *, null)
-    requires T1 =/=K T2
-    [structural]
-  rule tv(T1:Type * => T2 *, null) == tv(T2:Type *, P:Pointer)
-    requires T1 =/=K T2 andBool P =/=K null
-    [structural]
-  rule tv(T1:Type *, _:Pointer) != tv(T2:Type * => T1 *, null)
-    requires T1 =/=K T2
-    [structural]
-  rule tv(T1:Type * => T2 *, null) != tv(T2:Type *, P:Pointer)
-    requires T1 =/=K T2 andBool P =/=K null
-    [structural]
+  rule tv(T1:Type **, _:Pointer)   =  tv(T2:Type * => T1 *, null); requires T1 =/=K T2                     [structural]
+  rule tv(T1:Type *, _:Pointer)    == tv(T2:Type * => T1 *, null)  requires T1 =/=K T2                     [structural]
+  rule tv(T1:Type * => T2 *, null) == tv(T2:Type *, P:Pointer)     requires T1 =/=K T2 andBool P =/=K null [structural]
+  rule tv(T1:Type *, _:Pointer)    != tv(T2:Type * => T1 *, null)  requires T1 =/=K T2                     [structural]
+  rule tv(T1:Type * => T2 *, null) != tv(T2:Type *, P:Pointer)     requires T1 =/=K T2 andBool P =/=K null [structural]
   rule
     <fun>...
       Callee |-> functionBody(_:ParameterDeclarations, T2:Type *, _:Block)
@@ -441,7 +431,7 @@ module KERNELC-SEMANTICS
   /*
    * Assertions
    */
-  syntax KItem ::= "#wrapAssert" "(" K "," K ")"
+  //syntax KItem ::= "#wrapAssert" "(" K "," K ")"
 
   rule assert(E:Expression)                               => assert(E, "", HALT)            [macro]
   rule assert(E:Expression, Msg:String)                   => assert(E, Msg, HALT)           [macro]
