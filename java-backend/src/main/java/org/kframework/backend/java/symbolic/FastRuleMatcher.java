@@ -411,6 +411,14 @@ public class FastRuleMatcher {
             return resultSet;
         }
 
+        if (!subject.isConcreteCollection()) {
+            return addUnification(
+                    subject.range(subjectIndex, subject.size()),
+                    pattern.range(patternIndex, pattern.size()),
+                    ruleMask,
+                    subject instanceof BuiltinList.SingletonBuiltinList ? path : path.$colon$colon(Pair.of(subjectIndex, subject.size())));
+        }
+
         ListMultimap<Integer, ConjunctiveFormula> nestedConstraints = ArrayListMultimap.create();
         for (int i = subjectIndex; i <= subject.size(); i++) {
             ConjunctiveFormula[] oldConstraints = constraints;
