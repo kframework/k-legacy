@@ -97,6 +97,7 @@ public class PatternExpander extends CopyOnWriteTransformer {
             }
 
             unificationConstraint = unificationConstraint
+                    .addAll(rule.requires())
                     .add(outputKList, ruleOutputKList)
                     .addAll(rule.ensures())
                     .simplify(context);
