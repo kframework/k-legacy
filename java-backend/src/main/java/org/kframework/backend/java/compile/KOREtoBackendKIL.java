@@ -140,6 +140,12 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
             return BuiltinList.kSequenceBuilder(global).addAll(convertedKList.getContents()).build();
         }
 
+        // make assoc-comm operators right-associative
+        if (definition.kLabelAttributesOf(klabel.name()).containsKey(Attribute.keyOf(Att.assoc()))
+                && definition.kLabelAttributesOf(klabel.name()).containsKey(Attribute.keyOf(Att.comm()))) {
+            return convertedKList.getContents().stream().reduce((a, b) -> KItem.of(convertedKLabel, KList.concatenate(a, b), global)).get();
+        }
+
         // we've encountered a regular KApply
         BitSet[] childrenDontCareRuleMask = constructDontCareRuleMask(convertedKList);
         KItem kItem = KItem.of(convertedKLabel, convertedKList, global, childrenDontCareRuleMask == null ? null : childrenDontCareRuleMask);
@@ -325,6 +331,11 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
             }
         }
 
+        Term convertedLeftHandSide = convert(leftHandSide);
+        if (oldRule.containsAttribute(Attribute.PATTERN_KEY) || oldRule.containsAttribute(Attribute.PATTERN_FOLDING_KEY)) {
+            convertedLeftHandSide = convertedLeftHandSide.evaluate(TermContext.builder(global).build());
+        }
+
         KLabelConstant matchLabel = KLabelConstant.of("#match", definition);
         KLabelConstant mapChoiceLabel = KLabelConstant.of("#mapChoice", definition);
         KLabelConstant setChoiceLabel = KLabelConstant.of("#setChoice", definition);
@@ -371,7 +382,7 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
 
         Rule backendKILRule = new Rule(
                 "",
-                convert(leftHandSide),
+                convertedLeftHandSide,
                 convert(RewriteToTop.toRight(rule.body())),
                 requires,
                 ensures,
@@ -389,7 +400,7 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
         with automaton variables and with each other */
         if (backendKILRule.containsAttribute(Attribute.FUNCTION_KEY)
                 || backendKILRule.containsAttribute(Attribute.ANYWHERE_KEY)
-                ||backendKILRule.containsAttribute(Attribute.PATTERN_KEY)
+                || backendKILRule.containsAttribute(Attribute.PATTERN_KEY)
                 || backendKILRule.containsAttribute(Attribute.PATTERN_FOLDING_KEY)) {
             backendKILRule = backendKILRule.renameVariables();
         }

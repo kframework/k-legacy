@@ -448,7 +448,7 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
     public String translateTerm(Term term) {
         try {
             return translate(term).expression();
-        } catch (UnsupportedOperationException e) {
+        } catch (SMTTranslationFailure | UnsupportedOperationException e) {
             if (skipEqualities){
                 Variable variable = termAbstractionMap.get(term);
                 if (variable == null) {

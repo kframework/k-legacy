@@ -157,7 +157,7 @@ public class ConstrainedTerm extends JavaSymbolicObject {
 
         ConjunctiveFormula leftHandSide = data.constraint;
         ConjunctiveFormula rightHandSide = constraint.removeBindings(rightOnlyVariables);
-        rightHandSide = (ConjunctiveFormula) rightHandSide.substitute(leftHandSide.substitution());
+        rightHandSide = (ConjunctiveFormula) rightHandSide.substituteAndEvaluate(leftHandSide.substitution(), context);
         if (!leftHandSide.implies(rightHandSide, rightOnlyVariables)) {
             return null;
         }
