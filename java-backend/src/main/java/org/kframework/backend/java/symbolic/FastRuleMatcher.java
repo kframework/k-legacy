@@ -375,6 +375,10 @@ public class FastRuleMatcher {
         }
 
         BuiltinList.ElementTailSplit patternElementTailSplit = pattern.splitElementTail(patternIndex, ruleCount);
+
+        /* if the subject is not a list consisting only of elements, then the current algorithm removes a equal number
+        of elements from the head of both the subject and the pattern, and creates an equality between the remaining
+        tail of the subject and the pattern */
         if (subjectIndex < subject.size() && !subject.isElement(subjectIndex) && !ruleMask.subset(patternElementTailSplit.tailMask)) {
             return addUnification(
                     subject.range(subjectIndex, subject.size()),
