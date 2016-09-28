@@ -304,7 +304,7 @@ public class RewriteEngineUtils {
                 break;
             case EVAL:
                 KItem kItem = (KItem) stack.pop();
-                stack.push(kItem.resolveFunctionAndAnywhere(true, context));
+                stack.push(kItem.resolveFunctionAndAnywhere(context));
                 break;
             case PROJECT:
                 KItemProjection projection = (KItemProjection) stack.pop();

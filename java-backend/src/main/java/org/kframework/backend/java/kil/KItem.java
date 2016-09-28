@@ -271,12 +271,12 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
         return global.kItemOps.isEvaluable(this, global.getDefinition());
     }
 
-    public Term evaluateFunction(boolean copyOnShareSubstAndEval, TermContext context) {
-        return global.kItemOps.evaluateFunction(this, copyOnShareSubstAndEval, context);
+    public Term evaluateFunction(TermContext context) {
+        return global.kItemOps.evaluateFunction(this, context);
     }
 
-    public Term resolveFunctionAndAnywhere(boolean copyOnShareSubstAndEval, TermContext context) {
-        return global.kItemOps.resolveFunctionAndAnywhere(this, copyOnShareSubstAndEval, context);
+    public Term resolveFunctionAndAnywhere(TermContext context) {
+        return global.kItemOps.resolveFunctionAndAnywhere(this, context);
     }
 
     @Override
@@ -323,16 +323,12 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
          * Evaluates this {@code KItem} if it is a predicate or function; otherwise,
          * applies [anywhere] rules associated with this {@code KItem}
          *
-         * @param copyOnShareSubstAndEval specifies whether to use
-         *                                {@link CopyOnShareSubstAndEvalTransformer} when applying rules
          * @param context                 a term context
          * @return the reduced result on success, or this {@code KItem} otherwise
          */
-        public Term resolveFunctionAndAnywhere(KItem kItem, boolean copyOnShareSubstAndEval, TermContext context) {
+        public Term resolveFunctionAndAnywhere(KItem kItem, TermContext context) {
             try {
-                Term result = kItem.isEvaluable() ?
-                        evaluateFunction(kItem, copyOnShareSubstAndEval, context) :
-                        kItem.applyAnywhereRules(copyOnShareSubstAndEval, context);
+                Term result = kItem.isEvaluable() ? evaluateFunction(kItem, context) : kItem.applyAnywhereRules(context);
                 if (result instanceof KItem && ((KItem) result).isEvaluable() && result.isGround()) {
                     // we do this check because this warning message can be very large and cause OOM
                     if (options.warnings.includesExceptionType(ExceptionType.HIDDENWARNING) && stage == Stage.REWRITING) {
@@ -389,13 +385,10 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
         /**
          * Evaluates this {@code KItem} if it is a predicate or function
          *
-         * @param copyOnShareSubstAndEval specifies whether to use
-         *                                {@link CopyOnShareSubstAndEvalTransformer} when applying
-         *                                user-defined function rules
          * @param context                 a term context
          * @return the evaluated result on success, or this {@code KItem} otherwise
          */
-        public Term evaluateFunction(KItem kItem, boolean copyOnShareSubstAndEval, TermContext context) {
+        public Term evaluateFunction(KItem kItem, TermContext context) {
             if (!kItem.isEvaluable()) {
                 return kItem;
             }
@@ -486,7 +479,7 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                             Term rightHandSide = RewriteEngineUtils.construct(
                                     rule.rhsInstructions(),
                                     solution,
-                                    copyOnShareSubstAndEval ? rule.reusableVariables().elementSet() : null,
+                                    rule.reusableVariables().elementSet(),
                                     context,
                                     false);
 
@@ -581,13 +574,10 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
     /**
      * Apply [anywhere] associated with this {@code KItem}.
      *
-     * @param copyOnShareSubstAndEval specifies whether to use
-     *                                {@link CopyOnShareSubstAndEvalTransformer} when applying
-     *                                [anywhere] rules
      * @param context                 a term context
      * @return the result on success, or this {@code KItem} otherwise
      */
-    public Term applyAnywhereRules(boolean copyOnShareSubstAndEval, TermContext context) {
+    public Term applyAnywhereRules(TermContext context) {
         // apply a .K ~> K => K normalization
         if ((kLabel instanceof KLabelConstant) && ((KLabelConstant) kLabel).name().equals(KLabels.KSEQ)
                 && kList instanceof KList
@@ -624,14 +614,7 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
 
                 RuleAuditing.succeed(rule);
                 Term rightHandSide = rule.rightHandSide();
-                if (copyOnShareSubstAndEval) {
-                    rightHandSide = rightHandSide.copyOnShareSubstAndEval(
-                            solution,
-                            rule.reusableVariables().elementSet(),
-                            context);
-                } else {
-                    rightHandSide = rightHandSide.substituteAndEvaluate(solution, context);
-                }
+                rightHandSide = rightHandSide.substituteAndEvaluate(solution, context);
                 return rightHandSide;
             } finally {
                 if (RuleAuditing.isAuditBegun()) {

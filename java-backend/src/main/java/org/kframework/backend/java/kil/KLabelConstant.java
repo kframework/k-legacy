@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.name.Names;
-import org.apache.commons.collections4.trie.PatriciaTrie;
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
@@ -14,8 +13,6 @@ import org.kframework.kil.Attribute;
 import org.kframework.kil.Attributes;
 import org.kframework.utils.errorsystem.KEMException;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author AndreiS
  */
-public class KLabelConstant extends KLabel implements MaximalSharing, org.kframework.kore.KLabel {
+public class KLabelConstant extends KLabel implements org.kframework.kore.KLabel, Immutable {
 
     private static final ConcurrentMap<Pair<Set<SortSignature>, Attributes>,
             ConcurrentMap<String, KLabelConstant>> cache = new ConcurrentHashMap<>();

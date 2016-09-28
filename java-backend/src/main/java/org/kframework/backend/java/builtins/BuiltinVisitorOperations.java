@@ -71,7 +71,7 @@ public class BuiltinVisitorOperations {
                      * KItem#evaluateFunction to the evaluation of builtin
                      * function that needs such information; or even better, a
                      * new mechanism for invoking builtin functions */
-                    return kItem.evaluateFunction(true/*to be safe*/, context);
+                    return kItem.evaluateFunction(context);
                 }
             });
 
@@ -84,7 +84,7 @@ public class BuiltinVisitorOperations {
                     KList.concatenate(visitParams),
                     context.global(),
                     term.getSource(), term.getLocation());
-            return ((KItem) term).evaluateFunction(true/*to be safe*/, context);
+            return ((KItem) term).evaluateFunction(context);
         }
 
         private boolean evaluateGuard(Term term) {

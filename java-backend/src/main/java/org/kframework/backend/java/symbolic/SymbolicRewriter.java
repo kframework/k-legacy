@@ -290,7 +290,7 @@ public class SymbolicRewriter {
                 KItem kItemSubject = (KItem) subject;
                 List<Term> newContents = new ArrayList<>(((KList) kItemSubject.kList()).getContents());
                 newContents.set(path.head().getLeft(), buildRHS(newContents.get(path.head().getLeft()), substitution, (scala.collection.immutable.List<Pair<Integer, Integer>>) path.tail(), rhs, context));
-                return KItem.of(kItemSubject.kLabel(), KList.concatenate(newContents), context.global()).applyAnywhereRules(false, context);
+                return KItem.of(kItemSubject.kLabel(), KList.concatenate(newContents), context.global()).applyAnywhereRules(context);
             } else if (subject instanceof BuiltinList) {
                 BuiltinList builtinListSubject = (BuiltinList) subject;
                 List<Term> newContents = new ArrayList<>(builtinListSubject.children);
@@ -338,7 +338,7 @@ public class SymbolicRewriter {
         }
 
         if (subject instanceof KItem) {
-            return KItem.of(((KItem) subject).kLabel(), KList.concatenate(newContents), context.global()).applyAnywhereRules(false, context);
+            return KItem.of(((KItem) subject).kLabel(), KList.concatenate(newContents), context.global()).applyAnywhereRules(context);
         } else if (subject instanceof BuiltinList) {
             return BuiltinList
                     .builder(((BuiltinList) subject).sort, ((BuiltinList) subject).operatorKLabel, ((BuiltinList) subject).unitKLabel, ((BuiltinList) subject).globalContext())

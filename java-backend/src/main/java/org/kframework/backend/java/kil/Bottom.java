@@ -15,7 +15,7 @@ import org.kframework.kil.ASTNode;
  *
  * @author TraianSF
  */
-public class Bottom extends Term implements MaximalSharing {
+public class Bottom extends Term implements Immutable {
 
     public static final Bottom BOTTOM = new Bottom();
 

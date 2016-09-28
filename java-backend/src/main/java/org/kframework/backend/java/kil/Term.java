@@ -5,7 +5,6 @@ import org.kframework.attributes.Att;
 import org.kframework.attributes.Location;
 import org.kframework.attributes.Source;
 import org.kframework.backend.java.symbolic.BottomUpVisitor;
-import org.kframework.backend.java.symbolic.CopyOnShareSubstAndEvalTransformer;
 import org.kframework.backend.java.symbolic.Evaluator;
 import org.kframework.backend.java.symbolic.SubstituteAndEvaluateTransformer;
 import org.kframework.backend.java.util.Constants;
@@ -14,7 +13,6 @@ import org.kframework.kore.convertors.KILtoInnerKORE;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 
 /**
@@ -101,33 +99,6 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
         return canSubstituteAndEvaluate(substitution) ?
                (Term) this.accept(new SubstituteAndEvaluateTransformer(substitution, context)) :
                this;
-    }
-
-    /**
-     * Similar to {@link Term#substituteAndEvaluate(Map, TermContext)} except
-     * that this method will copy the terms used for substitution whenever
-     * necessary in order to avoid undesired sharing of mutable terms.
-     *
-     * @param substitution
-     *            the substitution map; TODO(YilongL): this may become a
-     *            multi-map in the future when the pattern matching algorithm
-     *            allows us to record multiple equal terms binding to a variable
-     *            for the sake of maximizing term reuse
-     * @param variablesToReuse
-     *            a set of variables in the substitution whose binding terms can
-     *            be reused to build the new term
-     * @param context
-     * @return a new term obtained by applying substitution
-     */
-    public Term copyOnShareSubstAndEval(
-            Map<Variable, ? extends Term> substitution,
-            Set<Variable> variablesToReuse, TermContext context) {
-        if (!canSubstituteAndEvaluate(substitution)) {
-            return this;
-        }
-        CopyOnShareSubstAndEvalTransformer transformer = new CopyOnShareSubstAndEvalTransformer(
-                substitution, variablesToReuse, context);
-        return (Term) this.accept(transformer);
     }
 
     /**

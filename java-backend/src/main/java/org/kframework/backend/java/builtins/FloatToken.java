@@ -2,7 +2,7 @@
 package org.kframework.backend.java.builtins;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.kframework.backend.java.kil.MaximalSharing;
+import org.kframework.backend.java.kil.Immutable;
 import org.kframework.backend.java.kil.Sort;
 import org.kframework.backend.java.kil.Token;
 import org.kframework.backend.java.symbolic.Transformer;
@@ -16,7 +16,7 @@ import org.kframework.utils.errorsystem.KEMException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class FloatToken extends Token implements MaximalSharing {
+public class FloatToken extends Token implements Immutable {
 
     public static final Sort SORT = Sort.FLOAT;
 

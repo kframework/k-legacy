@@ -11,7 +11,7 @@ import org.kframework.kil.ASTNode;
  *
  * @author AndreiS
  */
-public final class Hole extends Term implements MaximalSharing {
+public final class Hole extends Term implements Immutable {
 
     public static final Hole HOLE = new Hole();
 
