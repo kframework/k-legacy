@@ -18,6 +18,7 @@
     <module>API</module>
     <module>kdoc</module>
     <module>shell</module>
+      <module>prover</module>
   </modules>
 
   <scm>
