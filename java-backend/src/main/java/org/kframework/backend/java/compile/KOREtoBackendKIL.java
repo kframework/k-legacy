@@ -369,7 +369,6 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
                 Collections.emptySet(),
                 Collections.emptySet(),
                 lookups,
-                null,
                 oldRule,
                 global);
         /* rename variables in function, anywhere, and pattern rules to avoid name conflicts

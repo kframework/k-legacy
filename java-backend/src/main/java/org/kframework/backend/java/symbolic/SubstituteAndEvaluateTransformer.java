@@ -84,11 +84,6 @@ public class SubstituteAndEvaluateTransformer extends CopyOnWriteTransformer {
     }
 
     @Override
-    public ASTNode transform(KLabelFreezer kLabelFreezer) {
-        return proceed(kLabelFreezer) ? super.transform(kLabelFreezer) : kLabelFreezer;
-    }
-
-    @Override
     public ASTNode transform(KLabelInjection kLabelInjection) {
         return proceed(kLabelInjection) ? super.transform(kLabelInjection) : kLabelInjection;
     }

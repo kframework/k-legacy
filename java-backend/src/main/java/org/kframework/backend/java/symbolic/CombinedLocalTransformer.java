@@ -104,11 +104,6 @@ public class CombinedLocalTransformer extends LocalTransformer {
     }
 
     @Override
-    public ASTNode transform(KLabelFreezer node) {
-        return transformAll(node);
-    }
-
-    @Override
     public ASTNode transform(KLabelInjection node) {
         return transformAll(node);
     }

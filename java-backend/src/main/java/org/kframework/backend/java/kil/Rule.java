@@ -46,15 +46,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
     private final GlobalContext global;
 
     /**
-     * Left-hand sides of the local rewrite operations under read cells; such
-     * left-hand sides are used as patterns to match against the subject term.
-     */
-    private final Map<CellLabel, Term> lhsOfReadCells;
-    /**
-     * Right-hand sides of the local rewrite operations under write cells.
-     */
-    private final Map<CellLabel, Term> rhsOfWriteCells;
-    /**
      * Instructions for evaluating side condition of rule.
      */
     private final List<ImmutableList<RHSInstruction>> instructionsOfRequires;
@@ -62,16 +53,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
      * Instructions for evaluating side condition of rule.
      */
     private final List<ImmutableList<RHSInstruction>> instructionsOfLookups;
-    /**
-     * @see Rule#computeReusableBoundVars()
-     */
-    private final Multiset<Variable> reusableVariables;
-    /**
-     * Ground cells inside the right-hand side of this rule. Since cells are
-     * mutable, they must be copied when the RHS is instantiated to avoid
-     * undesired sharing.
-     */
-    private final Set<CellLabel> groundCells;
     private final List<RHSInstruction> rhsInstructions;
 
     private final Set<Variable> matchingVariables;
@@ -90,7 +71,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
             Set<Variable> freshConstants,
             Set<Variable> freshVariables,
             ConjunctiveFormula lookups,
-            Set<CellLabel> cellsToCopy,
             ASTNode oldRule,
             GlobalContext global) {
         this.label = label;
@@ -138,12 +118,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
             sortPredArg = null;
         }
 
-        // setting fields related to fast rewriting
-        this.lhsOfReadCells     = null;
-        this.rhsOfWriteCells    = null;
-        this.reusableVariables  = computeReusableBoundVars();
-        this.groundCells        = cellsToCopy != null ? ImmutableSet.copyOf(cellsToCopy) : null;
-
         GenerateRHSInstructions rhsVisitor = new GenerateRHSInstructions();
         rightHandSide.accept(rhsVisitor);
         this.rhsInstructions = rhsVisitor.getInstructions();
@@ -166,33 +140,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
                 Sets.union(
                         lookups.variableSet(),
                         requires.stream().map(Term::variableSet).flatMap(Set::stream).collect(Collectors.toSet()))));
-    }
-
-    /**
-     * Private helper method that computes bound variables that can be reused to
-     * instantiate the right-hand sides of the local rewrite operations.
-     * <p>
-     * Essentially, reusable bound variables are
-     * <li>variables that occur in the left-hand sides of the rewrite operations
-     * under read-write cells, plus
-     * <li>variables in the key and value positions of data structure operations
-     * (they are initially in the left-hand sides but moved to side conditions
-     * during compilation)
-     *
-     * @return a multi-set representing reusable bound variables
-     */
-    private Multiset<Variable> computeReusableBoundVars() {
-        Multiset<Variable> lhsVariablesToReuse = HashMultiset.create();
-        lhsVariablesToReuse.addAll(VariableOccurrencesCounter.count(leftHandSide));
-        for (Equality eq : lookups.equalities()) {
-            if (DataStructures.isLookup(eq.leftHandSide())) {
-                // do not double count base variable again
-                lhsVariablesToReuse.addAll(VariableOccurrencesCounter.count(DataStructures.getLookupKey(eq.leftHandSide())));
-                lhsVariablesToReuse.addAll(VariableOccurrencesCounter.count(eq.rightHandSide()));
-            }
-        }
-
-        return lhsVariablesToReuse;
     }
 
     public String label() {
@@ -333,28 +280,12 @@ public class Rule extends JavaSymbolicObject<Rule> {
         return rightHandSide;
     }
 
-    public Map<CellLabel, Term> lhsOfReadCell() {
-        return lhsOfReadCells;
-    }
-
-    public Map<CellLabel, Term> rhsOfWriteCell() {
-        return rhsOfWriteCells;
-    }
-
     public List<ImmutableList<RHSInstruction>> instructionsOfRequires() {
         return UnmodifiableList.decorate(instructionsOfRequires);
     }
 
     public List<ImmutableList<RHSInstruction>> instructionsOfLookups() {
         return UnmodifiableList.decorate(instructionsOfLookups);
-    }
-
-    public Multiset<Variable> reusableVariables() {
-        return reusableVariables;
-    }
-
-    public Set<CellLabel> cellsToCopy() {
-        return groundCells;
     }
 
     public List<RHSInstruction> rhsInstructions() {

@@ -479,7 +479,6 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                             Term rightHandSide = RewriteEngineUtils.construct(
                                     rule.rhsInstructions(),
                                     solution,
-                                    rule.reusableVariables().elementSet(),
                                     context);
 
                             if (rule.containsAttribute("owise")) {

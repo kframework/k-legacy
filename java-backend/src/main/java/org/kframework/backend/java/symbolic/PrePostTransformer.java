@@ -50,18 +50,6 @@ public abstract class PrePostTransformer extends CopyOnWriteTransformer {
     }
 
     @Override
-    public ASTNode transform(KLabelFreezer kLabelFreezer) {
-        ASTNode astNode = kLabelFreezer.accept(preTransformer);
-        if (astNode instanceof DoneTransforming) {
-            return ((DoneTransforming) astNode).getContents();
-        }
-        assert astNode instanceof KLabelFreezer : "preTransformer should not modify type";
-        kLabelFreezer = (KLabelFreezer) astNode;
-        kLabelFreezer = (KLabelFreezer) super.transform(kLabelFreezer);
-        return kLabelFreezer.accept(postTransformer);
-    }
-
-    @Override
     public ASTNode transform(Hole hole) {
         ASTNode astNode = hole.accept(preTransformer);
         if (astNode instanceof DoneTransforming) {

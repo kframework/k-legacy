@@ -81,19 +81,6 @@ public class MacroExpander extends CopyOnWriteTransformer {
         ConjunctiveFormula processedLookups
             = (ConjunctiveFormula) processTerm(rule.lookups());
 
-        Map<CellLabel, Term> processedLhsOfReadCell = null;
-        Map<CellLabel, Term> processedRhsOfWriteCell = null;
-        if (false) {
-            processedLhsOfReadCell = new HashMap<>();
-            for (Map.Entry<CellLabel, Term> entry : rule.lhsOfReadCell().entrySet()) {
-                processedLhsOfReadCell.put(entry.getKey(), processTerm(entry.getValue()));
-            }
-            processedRhsOfWriteCell = new HashMap<>();
-            for (Map.Entry<CellLabel, Term> entry : rule.rhsOfWriteCell().entrySet()) {
-                processedRhsOfWriteCell.put(entry.getKey(), processTerm(entry.getValue()));
-            }
-        }
-
         return new Rule(
                 rule.label(),
                 processedLeftHandSide,
@@ -103,7 +90,6 @@ public class MacroExpander extends CopyOnWriteTransformer {
                 rule.freshConstants(),
                 rule.freshVariables(),
                 processedLookups,
-                rule.cellsToCopy(),
                 rule,
                 rule.globalContext());
     }

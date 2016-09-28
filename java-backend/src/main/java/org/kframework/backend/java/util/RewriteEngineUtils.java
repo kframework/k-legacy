@@ -14,7 +14,6 @@ import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.InjectedKLabel;
 import org.kframework.backend.java.kil.KItem;
 import org.kframework.backend.java.kil.KItemProjection;
-import org.kframework.backend.java.kil.KLabelFreezer;
 import org.kframework.backend.java.kil.KLabelInjection;
 import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.KSequence;
@@ -35,7 +34,6 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -75,7 +73,7 @@ public class RewriteEngineUtils {
             Term lookupOrChoice = equality.leftHandSide();
             Term nonLookupOrChoice =  equality.rightHandSide();
             List<RHSInstruction> instructions = rule.instructionsOfLookups().get(i);
-            Term evalLookupOrChoice = construct(instructions, crntSubst, null, context);
+            Term evalLookupOrChoice = construct(instructions, crntSubst, context);
 
             boolean resolved = false;
             if (evalLookupOrChoice instanceof Bottom
@@ -142,7 +140,7 @@ public class RewriteEngineUtils {
                 // TODO(YilongL): in the future, we may have to accumulate
                 // the substitution obtained from evaluating the side
                 // condition
-                Term evaluatedReq = construct(rule.instructionsOfRequires().get(i), crntSubst, null, context);
+                Term evaluatedReq = construct(rule.instructionsOfRequires().get(i), crntSubst, context);
                 if (!evaluatedReq.equals(BoolToken.TRUE)) {
                     if (!evaluatedReq.isGround()
                             && context.getTopConstraint() != null
@@ -189,7 +187,7 @@ public class RewriteEngineUtils {
                 .collect(Collectors.toList());
     }
 
-    public static Term construct(List<RHSInstruction> rhsInstructions, Map<Variable, Term> solution, Set<Variable> reusableVariables, TermContext context) {
+    public static Term construct(List<RHSInstruction> rhsInstructions, Map<Variable, Term> solution, TermContext context) {
         GlobalContext global = context.global();
 
         /* Special case for one-instruction lists that can be resolved without a stack;
@@ -256,9 +254,6 @@ public class RewriteEngineUtils {
                 case KITEM_PROJECTION:
                     stack.push(new KItemProjection(constructor.kind(), stack.pop()));
                     break;
-                case KLABEL_FREEZER:
-                    stack.push(new KLabelFreezer(stack.pop()));
-                    break;
                 case KLABEL_INJECTION:
                     stack.push(new KLabelInjection(stack.pop()));
                     break;
@@ -288,8 +283,6 @@ public class RewriteEngineUtils {
                 Term term = solution.get(var);
                 if (term == null) {
                     term = var;
-                } else if (reusableVariables != null && reusableVariables.contains(var)) {
-                    reusableVariables.remove(var);
                 }
                 stack.push(term);
                 break;

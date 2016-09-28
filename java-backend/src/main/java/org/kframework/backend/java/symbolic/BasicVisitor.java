@@ -140,12 +140,6 @@ public class BasicVisitor implements Visitor {
     }
 
     @Override
-    public void visit(KLabelFreezer kLabelFreezer) {
-        visitNode(kLabelFreezer.term());
-        visit((KLabelInjection) kLabelFreezer);
-    }
-
-    @Override
     public void visit(KLabelInjection kLabelInjection) {
         visitNode(kLabelInjection.term());
         visit((KLabel) kLabelInjection);

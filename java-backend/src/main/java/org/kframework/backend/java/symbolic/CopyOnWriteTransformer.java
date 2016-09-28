@@ -11,7 +11,6 @@ import org.kframework.backend.java.builtins.UninterpretedToken;
 import org.kframework.backend.java.kil.BuiltinList;
 import org.kframework.backend.java.kil.BuiltinMap;
 import org.kframework.backend.java.kil.BuiltinSet;
-import org.kframework.backend.java.kil.CellLabel;
 import org.kframework.backend.java.kil.Collection;
 import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.Definition;
@@ -25,7 +24,6 @@ import org.kframework.backend.java.kil.KItem;
 import org.kframework.backend.java.kil.KItemProjection;
 import org.kframework.backend.java.kil.KLabel;
 import org.kframework.backend.java.kil.KLabelConstant;
-import org.kframework.backend.java.kil.KLabelFreezer;
 import org.kframework.backend.java.kil.KLabelInjection;
 import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.KSequence;
@@ -41,7 +39,6 @@ import org.kframework.utils.BitSet;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -113,15 +110,6 @@ public abstract class CopyOnWriteTransformer implements Transformer {
     @Override
     public ASTNode transform(KLabelConstant kLabelConstant) {
         return kLabelConstant;
-    }
-
-    @Override
-    public ASTNode transform(KLabelFreezer kLabelFreezer) {
-        Term term = (Term) kLabelFreezer.term().accept(this);
-        if (term != kLabelFreezer.term()) {
-            kLabelFreezer = new KLabelFreezer(term);
-        }
-        return kLabelFreezer;
     }
 
     @Override
@@ -453,7 +441,6 @@ public abstract class CopyOnWriteTransformer implements Transformer {
                     processedFreshConstants,
                     processedFreshVariables,
                     processedLookups,
-                    rule.cellsToCopy(),
                     rule,
                     global);
         } else {

@@ -29,7 +29,7 @@ public interface Transformer {
     ASTNode transform(Hole hole);
     ASTNode transform(IntToken intToken);
     ASTNode transform(KLabelConstant kLabelConstant);
-    ASTNode transform(KLabelFreezer kLabelFreezer);
+
     ASTNode transform(KLabelInjection kLabelInjection);
     ASTNode transform(KItemProjection kItemProjection);
     ASTNode transform(KItem kItem);

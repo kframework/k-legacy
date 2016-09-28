@@ -76,11 +76,6 @@ public class LocalTransformer implements Transformer {
     }
 
     @Override
-    public ASTNode transform(KLabelFreezer kLabelFreezer) {
-        return transform((KLabelInjection) kLabelFreezer);
-    }
-
-    @Override
     public ASTNode transform(KLabelInjection kLabelInjection) {
         return transform((KLabel) kLabelInjection);
     }

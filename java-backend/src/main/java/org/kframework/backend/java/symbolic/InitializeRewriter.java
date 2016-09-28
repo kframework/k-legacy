@@ -175,7 +175,6 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
                             r.freshConstants(),
                             r.freshVariables(),
                             r.lookups(),
-                            r.cellsToCopy(),
                             r,
                             termContext.global()))
                     .collect(Collectors.toList());

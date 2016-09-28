@@ -105,11 +105,6 @@ public class CombinedLocalVisitor extends LocalVisitor {
     }
 
     @Override
-    public void visit(KLabelFreezer node) {
-        visitAll(node);
-    }
-
-    @Override
     public void visit(KLabelInjection node) {
         visitAll(node);
     }

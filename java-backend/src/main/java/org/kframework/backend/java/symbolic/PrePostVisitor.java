@@ -97,15 +97,6 @@ public class PrePostVisitor implements Visitor {
     }
 
     @Override
-    public void visit(KLabelFreezer kLabelFreezer) {
-        preVisitor.resetProceed();
-        kLabelFreezer.accept(preVisitor);
-        if (!preVisitor.isProceed()) return;
-        kLabelFreezer.term().accept(this);
-        kLabelFreezer.accept(postVisitor);
-    }
-
-    @Override
     public void visit(KLabelInjection kLabelInjection) {
         preVisitor.resetProceed();
         kLabelInjection.accept(preVisitor);

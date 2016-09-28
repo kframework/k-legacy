@@ -27,7 +27,7 @@ public interface Visitor {
     void visit(Hole hole);
     void visit(IntToken intToken);
     void visit(KLabelConstant kLabelConstant);
-    void visit(KLabelFreezer kLabelFreezer);
+
     void visit(KLabelInjection kLabelInjection);
     void visit(KItem kItem);
     void visit(KItemProjection kItemProjection);

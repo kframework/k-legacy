@@ -83,12 +83,6 @@ public class BottomUpVisitor implements Visitor {
     }
 
     @Override
-    public void visit(KLabelFreezer kLabelFreezer) {
-        kLabelFreezer.term().accept(this);
-        visit((KLabelInjection) kLabelFreezer);
-    }
-
-    @Override
     public void visit(KLabelInjection kLabelInjection) {
         kLabelInjection.term().accept(this);
         visit((KLabel) kLabelInjection);

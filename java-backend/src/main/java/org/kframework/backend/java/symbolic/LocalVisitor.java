@@ -88,11 +88,6 @@ public class LocalVisitor implements Visitor {
     }
 
     @Override
-    public void visit(KLabelFreezer kLabelFreezer) {
-        visit((KLabelInjection) kLabelFreezer);
-    }
-
-    @Override
     public void visit(KLabelInjection kLabelInjection) {
         visit((KLabel) kLabelInjection);
     }

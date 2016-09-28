@@ -93,17 +93,6 @@ public class GenerateRHSInstructions extends BottomUpVisitor {
     }
 
     @Override
-    public void visit(KLabelFreezer node) {
-        if (node.isGround() && node.isNormal()) {
-            rhsSchedule.add(RHSInstruction.PUSH(node));
-        } else {
-            node.term().accept(this);
-            rhsSchedule.add(RHSInstruction.CONSTRUCT(
-                    new Constructor(ConstructorType.KLABEL_FREEZER)));
-        }
-    }
-
-    @Override
     public void visit(KList node) {
         if (node.isGround() && node.isNormal()) {
             rhsSchedule.add(RHSInstruction.PUSH(node));

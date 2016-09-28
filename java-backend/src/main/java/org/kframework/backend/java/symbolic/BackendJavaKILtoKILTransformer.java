@@ -84,16 +84,6 @@ public class BackendJavaKILtoKILTransformer implements Transformer {
     }
 
     @Override
-    public ASTNode transform(KLabelFreezer kLabelFreezer) {
-        if (cache.containsKey(kLabelFreezer)) return cache.get(kLabelFreezer);
-        ASTNode kil = new org.kframework.kil.FreezerLabel(
-                (org.kframework.kil.Term) kLabelFreezer.term().accept(this));
-        kil.copyAttributesFrom(kLabelFreezer);
-        cache.put(kLabelFreezer, kil);
-        return kil;
-    }
-
-    @Override
     public ASTNode transform(KLabelInjection kLabelInjection) {
         if (cache.containsKey(kLabelInjection)) return cache.get(kLabelInjection);
         ASTNode kil = new org.kframework.kil.KInjectedLabel(
