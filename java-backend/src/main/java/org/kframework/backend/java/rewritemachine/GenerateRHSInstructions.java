@@ -72,29 +72,6 @@ public class GenerateRHSInstructions extends BottomUpVisitor {
     }
 
     @Override
-    public void visit(CellCollection node) {
-        if (node.isGround() && node.isNormal() && !node.isMutable()) {
-            rhsSchedule.add(RHSInstruction.PUSH(node));
-        } else {
-            int sizeBase = 0;
-            for (Term base : node.baseTerms()) {
-                base.accept(this);
-                sizeBase++;
-            }
-            List<CellLabel> cellLabels = new ArrayList<>();
-            for (Map.Entry<CellLabel, List<CellCollection.Cell>> entry : Multimaps.asMap(node.cells()).entrySet()) {
-                for (int i = entry.getValue().size() - 1; i >= 0; i--) {
-                    entry.getValue().get(i).content().accept(this);
-                    cellLabels.add(entry.getKey());
-                }
-            }
-            Collections.reverse(cellLabels);
-            rhsSchedule.add(RHSInstruction.CONSTRUCT(new Constructor(
-                    ConstructorType.CELL_COLLECTION, sizeBase, cellLabels, node.cellSort())));
-        }
-    }
-
-    @Override
     public void visit(Hole hole) {
         rhsSchedule.add(RHSInstruction.PUSH(hole));
     }

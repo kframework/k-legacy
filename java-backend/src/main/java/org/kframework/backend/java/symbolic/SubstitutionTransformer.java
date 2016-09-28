@@ -60,11 +60,6 @@ public class SubstitutionTransformer extends CopyOnWriteTransformer {
     }
 
     @Override
-    public ASTNode transform(CellCollection cellCollection) {
-        return proceed(cellCollection) ? super.transform(cellCollection) : cellCollection;
-    }
-
-    @Override
     public ASTNode transform(ConstrainedTerm constrainedTerm) {
         return proceed(constrainedTerm) ? super.transform(constrainedTerm) : constrainedTerm;
     }

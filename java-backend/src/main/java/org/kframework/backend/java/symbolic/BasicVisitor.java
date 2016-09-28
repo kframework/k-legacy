@@ -21,8 +21,6 @@ public class BasicVisitor implements Visitor {
             visit((KList) node);
         } else if (node instanceof KSequence) {
             visit((KSequence) node);
-        } else if (node instanceof CellCollection) {
-            visit((CellCollection) node);
         } else if (node instanceof Variable) {
             visit((Variable) node);
         } else if (node instanceof BoolToken) {
@@ -113,13 +111,6 @@ public class BasicVisitor implements Visitor {
         builtinSet.elements().stream().forEach(this::visitNode);
         builtinSet.baseTerms().stream().forEach(this::visitNode);
         visit((Collection) builtinSet);
-    }
-
-    @Override
-    public void visit(CellCollection cellCollection) {
-        cellCollection.cells().values().stream().forEach(c -> visitNode(c.content()));
-        cellCollection.baseTerms().stream().forEach(this::visitNode);
-        visit((Collection) cellCollection);
     }
 
     @Override

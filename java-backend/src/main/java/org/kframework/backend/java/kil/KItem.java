@@ -3,16 +3,15 @@ package org.kframework.backend.java.kil;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Provider;
-import org.kframework.attributes.Att;
 import org.kframework.attributes.Location;
 import org.kframework.attributes.Source;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.MetaK;
 import org.kframework.backend.java.builtins.SortMembership;
-import org.kframework.backend.java.rewritemachine.KAbstractRewriteMachine;
 import org.kframework.backend.java.symbolic.*;
 import org.kframework.backend.java.util.ImpureFunctionException;
 import org.kframework.backend.java.util.Profiler;
+import org.kframework.backend.java.util.RewriteEngineUtils;
 import org.kframework.backend.java.util.Subsorts;
 import org.kframework.backend.java.util.Constants;
 import org.kframework.builtin.KLabels;
@@ -484,7 +483,7 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                                     solution = solution.plus(freshVar, freshVar.getFreshCopy());
                                 }
                             }
-                            Term rightHandSide = KAbstractRewriteMachine.construct(
+                            Term rightHandSide = RewriteEngineUtils.construct(
                                     rule.rhsInstructions(),
                                     solution,
                                     copyOnShareSubstAndEval ? rule.reusableVariables().elementSet() : null,

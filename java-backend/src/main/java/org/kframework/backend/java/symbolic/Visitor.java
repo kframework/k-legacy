@@ -19,7 +19,7 @@ public interface Visitor {
     void visit(BuiltinList builtinList);
     void visit(BuiltinMap builtinMap);
     void visit(BuiltinSet builtinSet);
-    void visit(CellCollection cellCollection);
+
     void visit(Collection collection);
     void visit(ConjunctiveFormula node);
     void visit(ConstrainedTerm constrainedTerm);

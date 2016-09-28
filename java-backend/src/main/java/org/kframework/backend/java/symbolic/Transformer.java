@@ -20,7 +20,7 @@ public interface Transformer {
     ASTNode transform(BuiltinList builtinList);
     ASTNode transform(BuiltinMap builtinMap);
     ASTNode transform(BuiltinSet builtinSet);
-    ASTNode transform(CellCollection cellCollection);
+
     ASTNode transform(Collection collection);
     ASTNode transform(ConjunctiveFormula conjunctiveFormula);
     ASTNode transform(ConstrainedTerm constrainedTerm);

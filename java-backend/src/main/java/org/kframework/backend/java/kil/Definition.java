@@ -12,8 +12,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import org.kframework.attributes.Att;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
-import org.kframework.backend.java.indexing.IndexingTable;
-import org.kframework.backend.java.indexing.RuleIndex;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Subsorts;
@@ -119,8 +117,6 @@ public class Definition extends JavaSymbolicObject {
     private transient Context context;
 
     private transient KExceptionManager kem;
-
-    public final IndexingTable.Data indexingData;
 
     // new indexing data
     /**
@@ -250,10 +246,9 @@ public class Definition extends JavaSymbolicObject {
         }
     }
 
-    public Definition(DefinitionData definitionData, KExceptionManager kem, IndexingTable.Data indexingData, Map<Integer, Rule> ruleTable, Rule automaton) {
+    public Definition(DefinitionData definitionData, KExceptionManager kem, Map<Integer, Rule> ruleTable, Rule automaton) {
         kLabels = new HashSet<>();
         this.kem = kem;
-        this.indexingData = indexingData;
         this.ruleTable = ruleTable;
         this.automaton = automaton;
         this.module = null;

@@ -28,22 +28,6 @@ public abstract class PrePostTransformer extends CopyOnWriteTransformer {
     public PrePostTransformer() { }
 
     @Override
-    public ASTNode transform(CellCollection cellCollection) {
-        ASTNode astNode = cellCollection.accept(preTransformer);
-        if (astNode instanceof DoneTransforming) {
-            return ((DoneTransforming) astNode).getContents();
-        }
-        assert astNode instanceof CellCollection : "preTransformer should not modify type";
-        cellCollection = (CellCollection) astNode;
-
-        Term term = (Term) super.transform(cellCollection);
-        if (term instanceof CellCollection) {
-            term = (Term) term.accept(postTransformer);
-        }
-        return term;
-    }
-
-    @Override
     public ASTNode transform(Collection collection) {
         throw new UnsupportedOperationException();
     }

@@ -4,7 +4,6 @@ package org.kframework.backend.java.symbolic;
 import org.kframework.KapiGlobal;
 import org.kframework.RewriterResult;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
-import org.kframework.backend.java.indexing.IndexingTable;
 import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.GlobalContext;

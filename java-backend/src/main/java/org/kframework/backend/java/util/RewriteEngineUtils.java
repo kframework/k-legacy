@@ -5,15 +5,26 @@ import com.google.common.collect.Sets;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.FreshOperations;
 import org.kframework.backend.java.kil.Bottom;
+import org.kframework.backend.java.kil.BuiltinList;
+import org.kframework.backend.java.kil.BuiltinMap;
+import org.kframework.backend.java.kil.BuiltinSet;
 import org.kframework.backend.java.kil.DataStructures;
 import org.kframework.backend.java.kil.Definition;
+import org.kframework.backend.java.kil.GlobalContext;
+import org.kframework.backend.java.kil.InjectedKLabel;
+import org.kframework.backend.java.kil.KItem;
+import org.kframework.backend.java.kil.KItemProjection;
+import org.kframework.backend.java.kil.KLabelFreezer;
+import org.kframework.backend.java.kil.KLabelInjection;
+import org.kframework.backend.java.kil.KList;
+import org.kframework.backend.java.kil.KSequence;
 import org.kframework.backend.java.kil.Rule;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.kil.Variable;
-import org.kframework.backend.java.rewritemachine.KAbstractRewriteMachine;
 import org.kframework.backend.java.rewritemachine.RHSInstruction;
 import org.kframework.backend.java.symbolic.ConjunctiveFormula;
+import org.kframework.backend.java.symbolic.DeepCloner;
 import org.kframework.backend.java.symbolic.Equality;
 import org.kframework.backend.java.symbolic.ImmutableMapSubstitution;
 import org.kframework.backend.java.symbolic.PatternMatcher;
@@ -21,7 +32,11 @@ import org.kframework.backend.java.symbolic.RuleAuditing;
 import org.kframework.backend.java.symbolic.Substitution;
 
 import java.util.Collections;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -61,7 +76,7 @@ public class RewriteEngineUtils {
             Term lookupOrChoice = equality.leftHandSide();
             Term nonLookupOrChoice =  equality.rightHandSide();
             List<RHSInstruction> instructions = rule.instructionsOfLookups().get(i);
-            Term evalLookupOrChoice = KAbstractRewriteMachine.construct(instructions, crntSubst, null, context, false);
+            Term evalLookupOrChoice = construct(instructions, crntSubst, null, context, false);
 
             boolean resolved = false;
             if (evalLookupOrChoice instanceof Bottom
@@ -128,7 +143,7 @@ public class RewriteEngineUtils {
                 // TODO(YilongL): in the future, we may have to accumulate
                 // the substitution obtained from evaluating the side
                 // condition
-                Term evaluatedReq = KAbstractRewriteMachine.construct(rule.instructionsOfRequires().get(i), crntSubst, null, context, false);
+                Term evaluatedReq = construct(rule.instructionsOfRequires().get(i), crntSubst, null, context, false);
                 if (!evaluatedReq.equals(BoolToken.TRUE)) {
                     if (!evaluatedReq.isGround()
                             && context.getTopConstraint() != null
@@ -175,4 +190,129 @@ public class RewriteEngineUtils {
                 .collect(Collectors.toList());
     }
 
+    public static Term construct(List<RHSInstruction> rhsInstructions,
+                                 Map<Variable, Term> solution, Set<Variable> reusableVariables, TermContext context,
+                                 boolean doClone) {
+        GlobalContext global = context.global();
+
+        /* Special case for one-instruction lists that can be resolved without a stack;
+         * The code falls through the general case. */
+        if (rhsInstructions.size() == 1) {
+            RHSInstruction instruction = rhsInstructions.get(0);
+            switch (instruction.type()) {
+            case PUSH:
+                return instruction.term();
+            case SUBST:
+                Variable var = (Variable) instruction.term();
+                Term content = solution.get(var);
+                if (content == null) {
+                    content = var;
+                }
+                return content;
+            }
+        }
+
+        Deque<Term> stack = new LinkedList<>();
+        for (RHSInstruction instruction : rhsInstructions) {
+            switch (instruction.type()) {
+            case PUSH:
+                Term t = instruction.term();
+                if (doClone) {
+                    stack.push(DeepCloner.clone(t));
+                } else {
+                    stack.push(t);
+                }
+                break;
+            case CONSTRUCT:
+                RHSInstruction.Constructor constructor = instruction.constructor();
+                switch (constructor.type()) {
+                case BUILTIN_LIST:
+                    BuiltinList.Builder builder = BuiltinList.builder(constructor.assocListSort, constructor.assocListOperator, constructor.assocListUnit, global);
+                    for (int i = 0; i < constructor.size1(); i++) {
+                        builder.add(stack.pop());
+                    }
+                    stack.push(builder.build());
+                    break;
+                case BUILTIN_MAP:
+                    BuiltinMap.Builder builder1 = BuiltinMap.builder(global);
+                    for (int i = 0; i < constructor.size1(); i++) {
+                        Term key = stack.pop();
+                        Term value = stack.pop();
+                        builder1.put(key, value);
+                    }
+                    for (int i = 0; i < constructor.size2(); i++) {
+                        builder1.concatenate(stack.pop());
+                    }
+                    stack.push(builder1.build());
+                    break;
+                case BUILTIN_SET:
+                    BuiltinSet.Builder builder2 = BuiltinSet.builder(global);
+                    for (int i = 0; i < constructor.size1(); i++) {
+                        builder2.add(stack.pop());
+                    }
+                    for (int i = 0; i < constructor.size2(); i++) {
+                        builder2.concatenate(stack.pop());
+                    }
+                    stack.push(builder2.build());
+                    break;
+                case KITEM:
+                    Term kLabel = stack.pop();
+                    Term kList = stack.pop();
+                    stack.push(KItem.of(kLabel, kList, global, constructor.getSource(), constructor.getLocation()));
+                    break;
+                case KITEM_PROJECTION:
+                    stack.push(new KItemProjection(constructor.kind(), stack.pop()));
+                    break;
+                case KLABEL_FREEZER:
+                    stack.push(new KLabelFreezer(stack.pop()));
+                    break;
+                case KLABEL_INJECTION:
+                    stack.push(new KLabelInjection(stack.pop()));
+                    break;
+                case INJECTED_KLABEL:
+                    stack.push(new InjectedKLabel(stack.pop()));
+                    break;
+                case KLIST:
+                    KList.Builder builder3 = KList.builder();
+                    for (int i = 0; i < constructor.size1(); i++) {
+                        builder3.concatenate(stack.pop());
+                    }
+                    stack.push(builder3.build());
+                    break;
+                case KSEQUENCE:
+                    KSequence.Builder builder4 = KSequence.builder();
+                    for (int i = 0; i < constructor.size1(); i++) {
+                        builder4.concatenate(stack.pop());
+                    }
+                    stack.push(builder4.build());
+                    break;
+                default:
+                    throw new AssertionError("unreachable");
+                }
+                break;
+            case SUBST:
+                Variable var = (Variable) instruction.term();
+                Term term = solution.get(var);
+                if (term == null) {
+                    term = var;
+                } else if (reusableVariables != null && reusableVariables.contains(var)) {
+                    reusableVariables.remove(var);
+                } else if (reusableVariables != null && term.isMutable()) {
+                    term = DeepCloner.clone(term);
+                }
+                stack.push(term);
+                break;
+            case EVAL:
+                KItem kItem = (KItem) stack.pop();
+                stack.push(kItem.resolveFunctionAndAnywhere(true, context));
+                break;
+            case PROJECT:
+                KItemProjection projection = (KItemProjection) stack.pop();
+                stack.push(projection.evaluateProjection());
+                break;
+            }
+        }
+        assert stack.size() == 1;
+        return stack.pop();
+    }
 }

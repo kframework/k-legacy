@@ -10,9 +10,7 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections15.list.UnmodifiableList;
 import org.kframework.backend.java.builtins.BoolToken;
-import org.kframework.backend.java.indexing.IndexingPair;
 import org.kframework.backend.java.rewritemachine.GenerateRHSInstructions;
-import org.kframework.backend.java.rewritemachine.KAbstractRewriteMachine;
 import org.kframework.backend.java.rewritemachine.MatchingInstruction;
 import org.kframework.backend.java.rewritemachine.RHSInstruction;
 import org.kframework.backend.java.symbolic.ConjunctiveFormula;
@@ -25,7 +23,6 @@ import org.kframework.kil.ASTNode;
 import org.kframework.kil.Attribute;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -49,14 +46,9 @@ public class Rule extends JavaSymbolicObject<Rule> {
     private final ImmutableSet<Variable> freshConstants;
     private final ImmutableSet<Variable> freshVariables;
     private final ConjunctiveFormula lookups;
-    private final IndexingPair indexingPair;
     private final boolean containsKCell;
     private final GlobalContext global;
 
-    /**
-     * Specifies whether this rule has been compiled to generate instructions
-     * for the {@link KAbstractRewriteMachine}.
-     */
     private final boolean compiledForFastRewriting;
     /**
      * Left-hand sides of the local rewrite operations under read cells; such
@@ -89,10 +81,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
      * undesired sharing.
      */
     private final Set<CellLabel> groundCells;
-    /**
-     * Instructions generated from this rule to be executed by the
-     * {@link KAbstractRewriteMachine}.
-     */
     private final List<MatchingInstruction> matchingInstructions;
     private final List<RHSInstruction> rhsInstructions;
 
@@ -137,36 +125,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
         copyAttributesFrom(oldRule);
         setLocation(oldRule.getLocation());
         setSource(oldRule.getSource());
-
-        if (oldRule.containsAttribute(org.kframework.kil.loader.Constants.STDIN)
-                || oldRule.containsAttribute(org.kframework.kil.loader.Constants.STDOUT)
-                || oldRule.containsAttribute(org.kframework.kil.loader.Constants.STDERR)) {
-            Variable listVar = (Variable) lhsOfReadCells.values().iterator().next();
-            BuiltinList.Builder streamListBuilder = BuiltinList.builder(global);
-            for (Equality eq : lookups.equalities()) {
-                streamListBuilder.add(eq.rightHandSide());
-            }
-            if (!(listVar instanceof ConcreteCollectionVariable)) {
-                streamListBuilder.addAll(Variable.getAnonVariable(Sort.LIST));
-            }
-
-            Term streamList = streamListBuilder.build();
-            this.indexingPair = oldRule.containsAttribute(org.kframework.kil.loader.Constants.STDIN) ?
-                    IndexingPair.getInstreamIndexingPair(streamList, global.getDefinition()) :
-                    IndexingPair.getOutstreamIndexingPair(streamList, global.getDefinition());
-        } else {
-            Collection<IndexingPair> indexingPairs = leftHandSide.getKCellIndexingPairs(global.getDefinition());
-
-            /*
-             * Compute indexing information only if the left-hand side of this rule has precisely one
-             * k cell; set indexing to top otherwise (this rule could rewrite any term).
-             */
-            if (indexingPairs.size() == 1) {
-                this.indexingPair = indexingPairs.iterator().next();
-            } else {
-                this.indexingPair = global.getDefinition().indexingData.TOP_INDEXING_PAIR;
-            }
-        }
 
         containsKCell = !leftHandSide.getCellContentsByName(CellLabel.K).isEmpty();
 
@@ -464,10 +422,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
         return (KLabelConstant) ((KItem) leftHandSide).kLabel();
     }
 
-    public IndexingPair indexingPair() {
-        return indexingPair;
-    }
-
     public Term leftHandSide() {
         return leftHandSide;
     }
@@ -496,10 +450,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
         return rhsOfWriteCells;
     }
 
-    public Map<CellLabel, ImmutableList<RHSInstruction>> instructionsOfWriteCell() {
-        return instructionsOfWriteCells;
-    }
-
     public List<ImmutableList<RHSInstruction>> instructionsOfRequires() {
         return UnmodifiableList.decorate(instructionsOfRequires);
     }
@@ -522,21 +472,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
 
     public List<RHSInstruction> rhsInstructions() {
         return rhsInstructions;
-    }
-
-    /**
-     * Checks if this rule will modify the cell structure of the subject term.
-     */
-    public boolean modifyCellStructure() {
-        return modifyCellStructure;
-    }
-
-    public Set<CellLabel> readCells() {
-        return readCells;
-    }
-
-    public Set<CellLabel> writeCells() {
-        return writeCells;
     }
 
     public Set<Variable> matchingVariables() {

@@ -4,7 +4,6 @@ package org.kframework.backend.java.kil;
 import org.kframework.attributes.Att;
 import org.kframework.attributes.Location;
 import org.kframework.attributes.Source;
-import org.kframework.backend.java.indexing.IndexingPair;
 import org.kframework.backend.java.symbolic.BottomUpVisitor;
 import org.kframework.backend.java.symbolic.CopyOnShareSubstAndEvalTransformer;
 import org.kframework.backend.java.symbolic.Evaluator;
@@ -39,18 +38,6 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
     protected Term(Kind kind, Source source, Location location) {
         super(source, location);
         this.kind = kind;
-    }
-
-    /**
-     * Returns a {@link List} view of the indexing pairs from the {@code k}
-     * cells of this {@code Term}.
-     */
-    public List<IndexingPair> getKCellIndexingPairs(final Definition definition) {
-        final List<IndexingPair> indexingPairs = new ArrayList<>();
-        for (Term content : getCellContentsByName(CellLabel.K)) {
-            indexingPairs.add(IndexingPair.getKCellIndexingPair(content, definition));
-        }
-        return indexingPairs;
     }
 
     /**
@@ -152,17 +139,6 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
     public List<Term> getCellContentsByName(final CellLabel cellLabel) {
         final List<Term> contents = new ArrayList<>();
         accept(new BottomUpVisitor() {
-            @Override
-            public void visit(CellCollection cellCollection) {
-                for (CellCollection.Cell cell : cellCollection.get(cellLabel)) {
-                    contents.add(cell.content());
-                }
-                for (CellCollection.Cell cell : cellCollection.cells().values()) {
-                    if (cell.content() instanceof CellCollection) {
-                        visit((CellCollection) cell.content());
-                    }
-                }
-            }
         });
         return contents;
     }

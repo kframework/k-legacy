@@ -11,7 +11,6 @@ import org.kframework.backend.java.builtins.UninterpretedToken;
 import org.kframework.backend.java.kil.BuiltinList;
 import org.kframework.backend.java.kil.BuiltinMap;
 import org.kframework.backend.java.kil.BuiltinSet;
-import org.kframework.backend.java.kil.CellCollection;
 import org.kframework.backend.java.kil.CellLabel;
 import org.kframework.backend.java.kil.Collection;
 import org.kframework.backend.java.kil.ConstrainedTerm;
@@ -94,23 +93,6 @@ public abstract class CopyOnWriteTransformer implements Transformer {
      */
     private GlobalContext resolveGlobalContext(HasGlobalContext term) {
         return context == null ? term.globalContext() : context.global();
-    }
-
-    @Override
-    public ASTNode transform(CellCollection cellCollection) {
-        boolean changed = false;
-        CellCollection.Builder builder = cellCollection.builder();
-        for (CellCollection.Cell cell : cellCollection.cells().values()) {
-            Term transformedContent = (Term) cell.content().accept(this);
-            builder.put(cell.cellLabel(), transformedContent);
-            changed = changed || cell.content() != transformedContent;
-        }
-        for (Term term : cellCollection.baseTerms()) {
-            Term transformedTerm = (Term) term.accept(this);
-            builder.concatenate(transformedTerm);
-            changed = changed || term != transformedTerm;
-        }
-        return changed ? builder.build() : cellCollection;
     }
 
     @Override

@@ -71,11 +71,6 @@ public class SubstituteAndEvaluateTransformer extends CopyOnWriteTransformer {
     }
 
     @Override
-    public ASTNode transform(CellCollection cellCollection) {
-        return proceed(cellCollection) ? super.transform(cellCollection) : cellCollection;
-    }
-
-    @Override
     public ASTNode transform(Hole hole) {
         return hole;
     }

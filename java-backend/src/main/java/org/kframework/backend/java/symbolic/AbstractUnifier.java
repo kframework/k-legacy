@@ -173,9 +173,7 @@ public abstract class AbstractUnifier implements Unifier {
             }
 
             /* unify */
-            if (term instanceof CellCollection && otherTerm instanceof CellCollection) {
-                unify((CellCollection) term, (CellCollection) otherTerm);
-            } else if (term instanceof KItem && otherTerm instanceof KItem) {
+            if (term instanceof KItem && otherTerm instanceof KItem) {
                 unify((KItem) term, (KItem) otherTerm);
             } else if (term instanceof KLabelConstant && otherTerm instanceof KLabelConstant) {
                 unify((KLabelConstant) term, (KLabelConstant) otherTerm);

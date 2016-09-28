@@ -70,7 +70,7 @@ public final class RHSInstruction implements Serializable {
         public enum ConstructorType {
             KITEM, BUILTIN_LIST, BUILTIN_MAP, BUILTIN_SET,
             KLABEL_FREEZER, KLIST, KSEQUENCE, KITEM_PROJECTION,
-            KLABEL_INJECTION, CELL_COLLECTION, INJECTED_KLABEL
+            KLABEL_INJECTION, INJECTED_KLABEL
         }
 
         public Constructor(ConstructorType type) {

@@ -4,8 +4,6 @@ package org.kframework.backend.java.symbolic;
 import org.kframework.backend.java.kil.BuiltinList;
 import org.kframework.backend.java.kil.BuiltinMap;
 import org.kframework.backend.java.kil.BuiltinSet;
-import org.kframework.backend.java.kil.CellCollection;
-import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.KCollection;
 import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.KSequence;
@@ -23,18 +21,6 @@ public class TermCanonicalizer extends CopyOnWriteTransformer {
 
     public static Term canonicalize(Term term) {
         return (Term) term.accept(new TermCanonicalizer());
-    }
-
-    @Override
-    public ASTNode transform(CellCollection node) {
-        Term transformedNode = (Term) super.transform(node);
-        if (transformedNode instanceof CellCollection) {
-            CellCollection cellCol = (CellCollection) transformedNode;
-            if (cellCol.hasFrame() && cellCol.concreteSize() == 0) {
-                return cellCol.frame();
-            }
-        }
-        return transformedNode;
     }
 
     @Override
