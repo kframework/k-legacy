@@ -75,7 +75,7 @@ public class Coverage {
 
     private static String getSourceLocation(Term term) {
         String s = null; // Return null, if location information is not available.
-        Term t = term.getCellContentsByName(CellLabel.K).get(0);
+        Term t = term.getCellContentsByName("<k>").get(0);
         if (t instanceof KSequence && ((KSequence) t).concreteSize() > 0) {
             t = ((KSequence) t).get(0);
         }

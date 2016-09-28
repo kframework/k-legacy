@@ -3,7 +3,6 @@ package org.kframework.backend.java.rewritemachine;
 
 import org.kframework.attributes.Location;
 import org.kframework.attributes.Source;
-import org.kframework.backend.java.kil.CellLabel;
 import org.kframework.backend.java.kil.KLabelConstant;
 import org.kframework.backend.java.kil.Kind;
 import org.kframework.backend.java.kil.Sort;
@@ -11,7 +10,6 @@ import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.Variable;
 
 import java.io.Serializable;
-import java.util.List;
 
 public final class RHSInstruction implements Serializable {
 
@@ -64,8 +62,7 @@ public final class RHSInstruction implements Serializable {
 
         public enum ConstructorType {
             KITEM, BUILTIN_LIST, BUILTIN_MAP, BUILTIN_SET,
-            KLABEL_FREEZER, KLIST, KSEQUENCE, KITEM_PROJECTION,
-            KLABEL_INJECTION, INJECTED_KLABEL
+            KLIST, KSEQUENCE, KITEM_PROJECTION, KLABEL_INJECTION, INJECTED_KLABEL
         }
 
         public Constructor(ConstructorType type) {
@@ -73,7 +70,7 @@ public final class RHSInstruction implements Serializable {
         }
 
         public Constructor(ConstructorType type, int size, Sort assocListSort, KLabelConstant assocListOperator, KLabelConstant assocListUnit) {
-            this(type, size, 0, 0, null, null, null, assocListSort, assocListOperator, assocListUnit, null, null);
+            this(type, size, 0, 0, null, null, assocListSort, assocListOperator, assocListUnit, null, null);
         }
 
         public Constructor(ConstructorType type, int size1) {
@@ -87,21 +84,21 @@ public final class RHSInstruction implements Serializable {
 
         public Constructor(ConstructorType type, int size1,
                 int size2, int size3) {
-            this(type, size1, size2, size3, null, null, null);
+            this(type, size1, size2, size3, null, null);
         }
 
         public Constructor(ConstructorType type, int size1,
-                int size2, int size3, Kind kind,
-                org.kframework.kore.Sort cellCollectionSort, List<CellLabel> cellLabels) {
-            this(type, size1, size2, size3, kind, cellCollectionSort, cellLabels, null, null, null, null, null);
+                           int size2, int size3, Kind kind,
+                           org.kframework.kore.Sort cellCollectionSort) {
+            this(type, size1, size2, size3, kind, cellCollectionSort, null, null, null, null, null);
         }
 
         public Constructor(ConstructorType type, Source source, Location location) {
-            this(type, 0, 0, 0, null, null, null, null, null, null, source, location);
+            this(type, 0, 0, 0, null, null, null, null, null, source, location);
         }
 
         public Constructor(ConstructorType type, int size1,
-                           int size2, int size3, Kind kind, org.kframework.kore.Sort cellCollectionSort, List<CellLabel> cellLabels,
+                           int size2, int size3, Kind kind, org.kframework.kore.Sort cellCollectionSort,
                            Sort assocListSort, KLabelConstant assocListOperator, KLabelConstant assocListUnit,
                            Source source, Location location) {
             this.type = type;
@@ -118,12 +115,12 @@ public final class RHSInstruction implements Serializable {
         }
 
         public Constructor(ConstructorType type, Kind kind) {
-            this(type, 0, 0, 0, kind, null, null);
+            this(type, 0, 0, 0, kind, null);
         }
 
         public Constructor(ConstructorType type, int size1,
-                List<CellLabel> cellLabels, org.kframework.kore.Sort cellCollectionSort) {
-            this(type, size1, 0, 0, null, cellCollectionSort, cellLabels);
+                           org.kframework.kore.Sort cellCollectionSort) {
+            this(type, size1, 0, 0, null, cellCollectionSort);
         }
 
         public Kind kind() {

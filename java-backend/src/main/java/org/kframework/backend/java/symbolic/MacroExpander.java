@@ -1,11 +1,9 @@
 // Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.kframework.backend.java.kil.CellLabel;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.JavaSymbolicObject;
 import org.kframework.backend.java.kil.KItem;

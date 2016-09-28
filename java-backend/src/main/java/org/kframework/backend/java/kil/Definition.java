@@ -18,7 +18,6 @@ import org.kframework.backend.java.util.Subsorts;
 import org.kframework.builtin.Sorts;
 import org.kframework.compile.ConfigurationInfo;
 import org.kframework.compile.ConfigurationInfoFromModule;
-import org.kframework.compile.utils.ConfigurationStructureMap;
 import org.kframework.definition.Module;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Attribute;
@@ -60,48 +59,27 @@ public class Definition extends JavaSymbolicObject {
 
     private static class DefinitionData implements Serializable {
         public final Subsorts subsorts;
-        public final Set<Sort> builtinSorts;
         public final Map<org.kframework.kore.Sort, DataStructureSort> dataStructureSorts;
         public final SetMultimap<String, SortSignature> signatures;
         public final ImmutableMap<String, Attributes> kLabelAttributes;
         public final Map<Sort, String> freshFunctionNames;
         public final Map<Sort, Sort> smtSortFlattening;
-        public final Map<CellLabel, ConfigurationInfo.Multiplicity> cellLabelMultiplicity;
-        public final ConfigurationInfo configurationInfo;
-        public final ConfigurationStructureMap configurationStructureMap;
 
         private DefinitionData(
                 Subsorts subsorts,
-                Set<Sort> builtinSorts,
                 Map<org.kframework.kore.Sort, DataStructureSort> dataStructureSorts,
                 SetMultimap<String, SortSignature> signatures,
                 ImmutableMap<String, Attributes> kLabelAttributes,
                 Map<Sort, String> freshFunctionNames,
-                Map<Sort, Sort> smtSortFlattening,
-                Map<CellLabel, ConfigurationInfo.Multiplicity> cellLabelMultiplicity,
-                ConfigurationInfo configurationInfo,
-                ConfigurationStructureMap configurationStructureMap) {
+                Map<Sort, Sort> smtSortFlattening) {
             this.subsorts = subsorts;
-            this.builtinSorts = builtinSorts;
             this.dataStructureSorts = dataStructureSorts;
             this.signatures = signatures;
             this.kLabelAttributes = kLabelAttributes;
             this.freshFunctionNames = freshFunctionNames;
             this.smtSortFlattening = smtSortFlattening;
-            this.cellLabelMultiplicity = cellLabelMultiplicity;
-            this.configurationInfo = configurationInfo;
-            this.configurationStructureMap = configurationStructureMap;
         }
     }
-
-    public static final Set<Sort> TOKEN_SORTS = ImmutableSet.of(
-            Sort.BOOL,
-            Sort.INT,
-            Sort.FLOAT,
-            Sort.STRING,
-            Sort.LIST,
-            Sort.SET,
-            Sort.MAP);
 
     private final List<Rule> rules = Lists.newArrayList();
     private final List<Rule> macros = Lists.newArrayList();
@@ -153,25 +131,16 @@ public class Definition extends JavaSymbolicObject {
             attributesBuilder.put(e.getKey().name(), new KOREtoKIL().convertAttributes(e.getValue()));
         });
 
-        ConfigurationInfo configurationInfo = new ConfigurationInfoFromModule(module);
-
         definitionData = new DefinitionData(
                 new Subsorts(module),
-                ImmutableSet.<Sort>builder()
-                        .addAll(TOKEN_SORTS)
-                        .build(),
                 getDataStructureSorts(module),
                 signaturesBuilder.build(),
                 attributesBuilder.build(),
                 JavaConverters.mapAsJavaMapConverter(module.freshFunctionFor()).asJava().entrySet().stream().collect(Collectors.toMap(
                         e -> Sort.of(e.getKey().name()),
                         e -> e.getValue().name())),
-                Collections.emptyMap(),
-                configurationInfo.getCellSorts().stream().collect(Collectors.toMap(
-                        s -> CellLabel.of(configurationInfo.getCellLabel(s).name()),
-                        configurationInfo::getMultiplicity)),
-                configurationInfo,
-                null);
+                Collections.emptyMap()
+        );
         context = null;
 
         this.ruleTable = new HashMap<>();
@@ -299,14 +268,6 @@ public class Definition extends JavaSymbolicObject {
         }
     }
 
-    /**
-     * TODO(YilongL): this name is really confusing; looks like it's only used
-     * in building index;
-     */
-    public Set<Sort> builtinSorts() {
-        return definitionData.builtinSorts;
-    }
-
     public Set<Sort> allSorts() {
         return definitionData.subsorts.allSorts();
     }
@@ -401,10 +362,6 @@ public class Definition extends JavaSymbolicObject {
         return Optional.ofNullable(definitionData.kLabelAttributes.get(label)).orElse(new Attributes());
     }
 
-    public ConfigurationStructureMap getConfigurationStructureMap() {
-        return definitionData.configurationStructureMap;
-    }
-
     public DataStructureSort dataStructureSortOf(Sort sort) {
         return definitionData.dataStructureSorts.get(KORE.Sort(sort.name()));
     }
@@ -415,14 +372,6 @@ public class Definition extends JavaSymbolicObject {
 
     public Map<Sort, Sort> smtSortFlattening() {
         return definitionData.smtSortFlattening;
-    }
-
-    public ConfigurationInfo.Multiplicity cellMultiplicity(CellLabel label) {
-        return definitionData.cellLabelMultiplicity.get(label);
-    }
-
-    public ConfigurationInfo configurationInfo() {
-        return definitionData.configurationInfo;
     }
 
     public DefinitionData definitionData() {

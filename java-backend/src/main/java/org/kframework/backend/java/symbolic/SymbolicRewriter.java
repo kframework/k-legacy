@@ -48,7 +48,6 @@ public class SymbolicRewriter {
     private final Set<ConstrainedTerm> superheated = Sets.newHashSet();
     private final Set<ConstrainedTerm> newSuperheated = Sets.newHashSet();
     private final KRunState.Counter counter;
-    private final Map<ConstrainedTerm, Set<Rule>> subject2DisabledRules = new HashMap<>();
     private final FastRuleMatcher theFastMatcher;
     private final Definition definition;
     private final BitSet allRuleBits;
@@ -387,9 +386,6 @@ public class SymbolicRewriter {
 
         ConstrainedTerm result = new ConstrainedTerm(term, constraint, context);
         if (expandPattern) {
-            if (false) {
-                result = new ConstrainedTerm(term.substituteAndEvaluate(constraint.substitution(), context), constraint, context);
-            }
             // TODO(AndreiS): move these some other place
             result = result.expandPatterns(true);
             if (result.constraint().isFalse() || result.constraint().checkUnsat()) {
@@ -562,8 +558,8 @@ public class SymbolicRewriter {
                     continue;
                 }
 
-                List<Term> leftKContents = term.term().getCellContentsByName(CellLabel.K);
-                List<Term> rightKContents = targetTerm.term().getCellContentsByName(CellLabel.K);
+                List<Term> leftKContents = term.term().getCellContentsByName("<k>");
+                List<Term> rightKContents = targetTerm.term().getCellContentsByName("<k>");
                 // TODO(YilongL): the `get(0)` seems hacky
                 if (leftKContents.size() == 1 && rightKContents.size() == 1) {
                     Pair<Term, Variable> leftKPattern = KSequence.splitContentAndFrame(leftKContents.get(0));

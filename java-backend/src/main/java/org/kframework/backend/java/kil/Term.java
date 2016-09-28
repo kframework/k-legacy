@@ -10,6 +10,7 @@ import org.kframework.backend.java.symbolic.SubstituteAndEvaluateTransformer;
 import org.kframework.backend.java.util.Constants;
 import org.kframework.kore.convertors.KILtoInnerKORE;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -88,15 +89,23 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
      * Warning: this is slow!
      * TODO(YilongL): improve performance when better indexing is available
      */
-    public List<Term> getCellContentsByName(final CellLabel cellLabel) {
+    public List<Term> getCellContentsByName(final String cellLabel) {
         final List<Term> contents = new ArrayList<>();
         accept(new BottomUpVisitor() {
+            @Override
+            public void visit(KItem kItem) {
+                if (kItem.kLabel().toString().equals(cellLabel)) {
+                    contents.add(((KList) kItem.kList()).get(0));
+                } else {
+                    super.visit(kItem);
+                }
+            }
         });
         return contents;
     }
 
     @Override
-    public final int compareTo(Term o) {
+    public final int compareTo(@Nonnull Term o) {
         /* implement compareTo() in a way that the expensive toString() is
          * rarely called */
         if (hashCode() > o.hashCode()) {
@@ -119,7 +128,7 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
     @Override
     public final int hashCode() {
         int h = hashCode;
-        if (h == Constants.NO_HASHCODE && !false) {
+        if (h == Constants.NO_HASHCODE) {
             h = computeHash();
             h = h == 0 ? 1 : h;
             hashCode = h;

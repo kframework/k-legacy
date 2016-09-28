@@ -42,7 +42,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
     private final ImmutableSet<Variable> freshConstants;
     private final ImmutableSet<Variable> freshVariables;
     private final ConjunctiveFormula lookups;
-    private final boolean containsKCell;
     private final GlobalContext global;
 
     /**
@@ -86,8 +85,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
         copyAttributesFrom(oldRule);
         setLocation(oldRule.getLocation());
         setSource(oldRule.getSource());
-
-        containsKCell = !leftHandSide.getCellContentsByName(CellLabel.K).isEmpty();
 
         isSortPredicate = isFunction() && definedKLabel().isSortPredicate();
         if (isSortPredicate) {
@@ -270,10 +267,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
 
     public ConjunctiveFormula lookups() {
         return lookups;
-    }
-
-    public boolean containsKCell() {
-        return containsKCell;
     }
 
     public Term rightHandSide() {
