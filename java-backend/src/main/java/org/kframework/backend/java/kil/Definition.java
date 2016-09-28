@@ -10,8 +10,6 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
-import com.google.common.reflect.TypeToken;
-import com.google.inject.name.Names;
 import org.kframework.attributes.Att;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.indexing.IndexingTable;
@@ -28,7 +26,6 @@ import org.kframework.kil.ASTNode;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.Attributes;
 import org.kframework.kil.DataStructureSort;
-import org.kframework.kil.Production;
 import org.kframework.kil.loader.Context;
 import org.kframework.kore.KORE;
 import org.kframework.kore.convertors.KOREtoKIL;
@@ -123,7 +120,6 @@ public class Definition extends JavaSymbolicObject {
 
     private transient KExceptionManager kem;
 
-    private RuleIndex index;
     public final IndexingTable.Data indexingData;
 
     // new indexing data
@@ -139,81 +135,6 @@ public class Definition extends JavaSymbolicObject {
     public final Map<Integer, Integer> reverseRuleTable = new HashMap<>();
 
     private final Map<KItem.CacheTableColKey, KItem.CacheTableValue> sortCacheTable = new HashMap<>();
-
-    public Definition(Context context, KExceptionManager kem, IndexingTable.Data indexingData) {
-        kLabels = new HashSet<>();
-        this.kem = kem;
-        this.indexingData = indexingData;
-        this.module = null;
-
-        ImmutableSet.Builder<Sort> builder = ImmutableSet.builder();
-        // TODO(YilongL): this is confusing; give a better name to tokenSorts
-        builder.addAll(Sort.of(context.getTokenSorts())); // e.g., [#String, #Int, Id, #Float]
-        builder.addAll(TOKEN_SORTS); // [Bool, Int, Float, Char, String, List, Set, Map]
-
-        ImmutableSetMultimap.Builder<String, SortSignature> signaturesBuilder = ImmutableSetMultimap.builder();
-        for (Map.Entry<String, Production> entry : context.klabels.entries()) {
-            ImmutableList.Builder<Sort> sortsBuilder = ImmutableList.builder();
-            for (int i = 0; i < entry.getValue().getArity(); ++i) {
-                sortsBuilder.add(Sort.of(entry.getValue().getChildSort(i)));
-            }
-            signaturesBuilder.put(
-                    entry.getKey(),
-                    new SortSignature(sortsBuilder.build(), Sort.of(entry.getValue().getSort())));
-        }
-        context.listKLabels.entries().stream().forEach(e -> {
-            signaturesBuilder.put(
-                    e.getKey(),
-                    new SortSignature(ImmutableList.of(), Sort.of(e.getValue().getSort())));
-        });
-
-        ImmutableMap.Builder<String, Attributes> attributesBuilder = ImmutableMap.builder();
-        for (Map.Entry<String, Collection<Production>> entry : context.klabels.asMap().entrySet()) {
-            final Attributes attributes = new Attributes();
-            entry.getValue().stream().filter(p -> !p.isLexical()).forEach(p -> {
-                attributes.putAll(p.getAttributes());
-                if (p.containsAttribute("binder")) {
-                    attributes.add(new Attribute<>(
-                            Attribute.Key.get(
-                                    new TypeToken<Multimap<Integer, Integer>>() {},
-                                    Names.named("binder")),
-                            p.getBinderMap()));
-                }
-                if (p.containsAttribute("metabinder")) {
-                    attributes.add(new Attribute<>(
-                            Attribute.Key.get(
-                                    new TypeToken<Multimap<Integer, Integer>>() {
-                                    },
-                                    Names.named("metabinder")),
-                            p.getBinderMap()));
-                }
-            });
-            // TODO(AndreiS): fix the definitions to pass this assertion
-            //entry.getValue().stream().filter(p -> !p.isLexical()).forEach(p -> {
-            //    assert p.getAttributes().equals(attributes) : "attribute mismatch:\n" + entry.getValue();
-            //});
-            attributesBuilder.put(entry.getKey(), attributes);
-        }
-        context.listKLabels.keySet().stream().forEach(key -> {
-            attributesBuilder.put(key, new Attributes());
-        });
-
-        definitionData = new DefinitionData(
-                new Subsorts(context),
-                builder.build(),
-                context.getDataStructureSorts().entrySet().stream().collect(Collectors.toMap(e -> Sort(e.getKey().getName()), Map.Entry::getValue)),
-                signaturesBuilder.build(),
-                attributesBuilder.build(),
-                context.freshFunctionNames.entrySet().stream().collect(Collectors.toMap(e -> Sort.of(e.getKey()), Map.Entry::getValue)),
-                context.smtSortFlattening.entrySet().stream().collect(Collectors.toMap(e -> Sort.of(e.getKey()), e -> Sort.of(e.getValue()))),
-                context.getConfigurationStructureMap().entrySet().stream().collect(Collectors.toMap(
-                        e -> CellLabel.of(e.getKey()),
-                        e -> KOREtoBackendKIL.kil2koreMultiplicity(e.getValue().multiplicity))),
-                null,
-                context.getConfigurationStructureMap());
-        this.context = context;
-        this.ruleTable = new HashMap<>();
-    }
 
     public Definition(org.kframework.definition.Module module, KExceptionManager kem) {
         this.module = module;
@@ -257,7 +178,6 @@ public class Definition extends JavaSymbolicObject {
                 null);
         context = null;
 
-        this.indexingData = new IndexingTable.Data();
         this.ruleTable = new HashMap<>();
     }
 
@@ -328,10 +248,6 @@ public class Definition extends JavaSymbolicObject {
         if (koreAutomaton.isPresent()) {
             automaton = transformer.convert(Optional.of(module), koreAutomaton.get());
         }
-    }
-
-    public Definition(DefinitionData definitionData, KExceptionManager kem, IndexingTable.Data indexingData) {
-        this(definitionData, kem, indexingData, new HashMap<>(), null);
     }
 
     public Definition(DefinitionData definitionData, KExceptionManager kem, IndexingTable.Data indexingData, Map<Integer, Rule> ruleTable, Rule automaton) {
@@ -463,14 +379,6 @@ public class Definition extends JavaSymbolicObject {
     @Override
     public void accept(Visitor visitor) {
         throw new UnsupportedOperationException();
-    }
-
-    public void setIndex(RuleIndex index) {
-        this.index = index;
-    }
-
-    public RuleIndex getIndex() {
-        return index;
     }
 
     public KItem.CacheTableValue getSortCacheValue(KItem.CacheTableColKey key) {

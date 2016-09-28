@@ -34,6 +34,12 @@ public class MacroExpander extends CopyOnWriteTransformer {
         this.kem = kem;
     }
 
+    public static Term expandAndEvaluate(TermContext termContext, KExceptionManager kem, Term term) {
+        term = new MacroExpander(termContext, kem).processTerm(term);
+        term = term.evaluate(termContext);
+        return term;
+    }
+
     public Definition processDefinition() {
         Definition definition = context.definition();
         Definition processedDefinition = new Definition(

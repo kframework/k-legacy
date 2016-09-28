@@ -16,7 +16,7 @@ import org.kframework.backend.java.symbolic.ConjunctiveFormula;
 import org.kframework.backend.java.symbolic.InitializeRewriter;
 import org.kframework.backend.java.symbolic.JavaBackend;
 import org.kframework.backend.java.symbolic.JavaExecutionOptions;
-import org.kframework.backend.java.symbolic.KILtoBackendJavaKILTransformer;
+import org.kframework.backend.java.symbolic.MacroExpander;
 import org.kframework.backend.java.symbolic.ProofExecutionMode;
 import org.kframework.backend.java.symbolic.Stage;
 import org.kframework.backend.java.symbolic.SymbolicRewriter;
@@ -117,7 +117,7 @@ public class Kapi {
 
         // prepare term to rewrite  // TODO: simplify
         Term programInKIL = converter.convert(program); // conversion: kore -> kil
-        Term programWithMacroExpanded = KILtoBackendJavaKILTransformer.expandAndEvaluate(rewritingContext, kapiGlobal.kem, programInKIL); // macro expansion
+        Term programWithMacroExpanded = MacroExpander.expandAndEvaluate(rewritingContext, kapiGlobal.kem, programInKIL); // macro expansion
         ConstrainedTerm programInConstrainedTerm = new ConstrainedTerm(programWithMacroExpanded, rewritingContext); // initial constrained term
 
         // rewrite: apply the rewriter to the term

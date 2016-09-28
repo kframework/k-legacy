@@ -49,7 +49,6 @@ public class SymbolicRewriter {
     private boolean transition;
     private final Set<ConstrainedTerm> superheated = Sets.newHashSet();
     private final Set<ConstrainedTerm> newSuperheated = Sets.newHashSet();
-    private final RuleIndex ruleIndex;
     private final KRunState.Counter counter;
     private final Map<ConstrainedTerm, Set<Rule>> subject2DisabledRules = new HashMap<>();
     private final FastRuleMatcher theFastMatcher;
@@ -62,7 +61,6 @@ public class SymbolicRewriter {
         this.definition = global.getDefinition();
         this.allRuleBits = BitSet.apply(definition.ruleTable.size());
         this.allRuleBits.makeOnes(definition.ruleTable.size());
-        this.ruleIndex = definition.getIndex();
         this.counter = counter;
         this.strategy = new TransitionCompositeStrategy(kompileOptions.transition);
         this.transitions = kompileOptions.transition;
@@ -562,7 +560,6 @@ public class SymbolicRewriter {
         while (!queue.isEmpty()) {
             step++;
             for (ConstrainedTerm term : queue) {
-
                 if (term.implies(targetTerm)) {
                     continue;
                 }
