@@ -387,7 +387,7 @@ public class SymbolicRewriter {
 
         ConstrainedTerm result = new ConstrainedTerm(term, constraint, context);
         if (expandPattern) {
-            if (rule.isCompiledForFastRewriting()) {
+            if (false) {
                 result = new ConstrainedTerm(term.substituteAndEvaluate(constraint.substitution(), context), constraint, context);
             }
             // TODO(AndreiS): move these some other place

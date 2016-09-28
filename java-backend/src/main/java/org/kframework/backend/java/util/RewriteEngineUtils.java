@@ -24,7 +24,6 @@ import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.rewritemachine.RHSInstruction;
 import org.kframework.backend.java.symbolic.ConjunctiveFormula;
-import org.kframework.backend.java.symbolic.DeepCloner;
 import org.kframework.backend.java.symbolic.Equality;
 import org.kframework.backend.java.symbolic.ImmutableMapSubstitution;
 import org.kframework.backend.java.symbolic.PatternMatcher;
@@ -76,7 +75,7 @@ public class RewriteEngineUtils {
             Term lookupOrChoice = equality.leftHandSide();
             Term nonLookupOrChoice =  equality.rightHandSide();
             List<RHSInstruction> instructions = rule.instructionsOfLookups().get(i);
-            Term evalLookupOrChoice = construct(instructions, crntSubst, null, context, false);
+            Term evalLookupOrChoice = construct(instructions, crntSubst, null, context);
 
             boolean resolved = false;
             if (evalLookupOrChoice instanceof Bottom
@@ -143,7 +142,7 @@ public class RewriteEngineUtils {
                 // TODO(YilongL): in the future, we may have to accumulate
                 // the substitution obtained from evaluating the side
                 // condition
-                Term evaluatedReq = construct(rule.instructionsOfRequires().get(i), crntSubst, null, context, false);
+                Term evaluatedReq = construct(rule.instructionsOfRequires().get(i), crntSubst, null, context);
                 if (!evaluatedReq.equals(BoolToken.TRUE)) {
                     if (!evaluatedReq.isGround()
                             && context.getTopConstraint() != null
@@ -190,9 +189,7 @@ public class RewriteEngineUtils {
                 .collect(Collectors.toList());
     }
 
-    public static Term construct(List<RHSInstruction> rhsInstructions,
-                                 Map<Variable, Term> solution, Set<Variable> reusableVariables, TermContext context,
-                                 boolean doClone) {
+    public static Term construct(List<RHSInstruction> rhsInstructions, Map<Variable, Term> solution, Set<Variable> reusableVariables, TermContext context) {
         GlobalContext global = context.global();
 
         /* Special case for one-instruction lists that can be resolved without a stack;
@@ -217,11 +214,7 @@ public class RewriteEngineUtils {
             switch (instruction.type()) {
             case PUSH:
                 Term t = instruction.term();
-                if (doClone) {
-                    stack.push(DeepCloner.clone(t));
-                } else {
-                    stack.push(t);
-                }
+                stack.push(t);
                 break;
             case CONSTRUCT:
                 RHSInstruction.Constructor constructor = instruction.constructor();
@@ -297,8 +290,6 @@ public class RewriteEngineUtils {
                     term = var;
                 } else if (reusableVariables != null && reusableVariables.contains(var)) {
                     reusableVariables.remove(var);
-                } else if (reusableVariables != null && term.isMutable()) {
-                    term = DeepCloner.clone(term);
                 }
                 stack.push(term);
                 break;

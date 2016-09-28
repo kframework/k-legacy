@@ -369,10 +369,6 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
                 Collections.emptySet(),
                 Collections.emptySet(),
                 lookups,
-                false,
-                null,
-                null,
-                null,
                 null,
                 oldRule,
                 global);

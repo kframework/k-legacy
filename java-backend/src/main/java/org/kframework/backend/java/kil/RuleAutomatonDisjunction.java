@@ -152,11 +152,6 @@ public class RuleAutomatonDisjunction extends Term implements HasGlobalContext {
     }
 
     @Override
-    protected boolean computeMutability() {
-        return false;
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

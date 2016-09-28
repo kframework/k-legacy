@@ -54,11 +54,6 @@ public class InnerRHSRewrite extends Term {
     }
 
     @Override
-    protected boolean computeMutability() {
-        return false;
-    }
-
-    @Override
     public ASTNode accept(Transformer transformer) {
         return transformer.transform(this);
     }

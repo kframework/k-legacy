@@ -175,11 +175,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
                             r.freshConstants(),
                             r.freshVariables(),
                             r.lookups(),
-                            r.isCompiledForFastRewriting(),
-                            r.lhsOfReadCell(),
-                            r.rhsOfWriteCell(),
                             r.cellsToCopy(),
-                            r.matchingInstructions(),
                             r,
                             termContext.global()))
                     .collect(Collectors.toList());

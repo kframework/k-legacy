@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author AndreiS
  */
-public class KLabelConstant extends KLabel implements org.kframework.kore.KLabel, Immutable {
+public class KLabelConstant extends KLabel implements org.kframework.kore.KLabel {
 
     private static final ConcurrentMap<Pair<Set<SortSignature>, Attributes>,
             ConcurrentMap<String, KLabelConstant>> cache = new ConcurrentHashMap<>();
@@ -204,11 +204,6 @@ public class KLabelConstant extends KLabel implements org.kframework.kore.KLabel
     @Override
     protected int computeHash() {
         return label.hashCode();
-    }
-
-    @Override
-    protected boolean computeMutability() {
-        return false;
     }
 
     @Override

@@ -480,8 +480,7 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                                     rule.rhsInstructions(),
                                     solution,
                                     rule.reusableVariables().elementSet(),
-                                    context,
-                                    false);
+                                    context);
 
                             if (rule.containsAttribute("owise")) {
                                 if (owiseResult != null) {
@@ -695,11 +694,6 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
         hashCode = hashCode * Constants.HASH_PRIME + kLabel.hashCode();
         hashCode = hashCode * Constants.HASH_PRIME + kList.hashCode();
         return hashCode;
-    }
-
-    @Override
-    protected boolean computeMutability() {
-        return kLabel.isMutable() || kList.isMutable();
     }
 
     @Override

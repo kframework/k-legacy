@@ -83,7 +83,7 @@ public class MacroExpander extends CopyOnWriteTransformer {
 
         Map<CellLabel, Term> processedLhsOfReadCell = null;
         Map<CellLabel, Term> processedRhsOfWriteCell = null;
-        if (rule.isCompiledForFastRewriting()) {
+        if (false) {
             processedLhsOfReadCell = new HashMap<>();
             for (Map.Entry<CellLabel, Term> entry : rule.lhsOfReadCell().entrySet()) {
                 processedLhsOfReadCell.put(entry.getKey(), processTerm(entry.getValue()));
@@ -103,11 +103,7 @@ public class MacroExpander extends CopyOnWriteTransformer {
                 rule.freshConstants(),
                 rule.freshVariables(),
                 processedLookups,
-                rule.isCompiledForFastRewriting(),
-                processedLhsOfReadCell,
-                processedRhsOfWriteCell,
                 rule.cellsToCopy(),
-                rule.matchingInstructions(),
                 rule,
                 rule.globalContext());
     }

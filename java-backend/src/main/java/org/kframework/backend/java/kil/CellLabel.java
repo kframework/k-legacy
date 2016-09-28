@@ -14,7 +14,7 @@ import java.util.Map;
  * @author YilongL
  *
  */
-public final class CellLabel implements Serializable, Immutable {
+public final class CellLabel implements Serializable {
 
     private static final Map<String, CellLabel> cache = Collections.synchronizedMap(new PatriciaTrie<>());
 

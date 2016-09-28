@@ -33,7 +33,6 @@ public final class RHSInstruction implements Serializable {
         private final int size3;
         private final Kind kind;
         private final org.kframework.kore.Sort cellCollectionSort;
-        private final List<CellLabel> cellLabels;
         public final Sort assocListSort;
         public final KLabelConstant assocListOperator;
         public final KLabelConstant assocListUnit;
@@ -59,10 +58,6 @@ public final class RHSInstruction implements Serializable {
             if (kind != null) {
                 sb.append(' ');
                 sb.append(kind);
-            }
-            if (cellLabels != null) {
-                sb.append(' ');
-                sb.append(cellLabels);
             }
             return sb.toString();
         }
@@ -115,7 +110,6 @@ public final class RHSInstruction implements Serializable {
             this.size3 = size3;
             this.kind = kind;
             this.cellCollectionSort = cellCollectionSort;
-            this.cellLabels = cellLabels;
             this.assocListSort = assocListSort;
             this.assocListOperator = assocListOperator;
             this.assocListUnit = assocListUnit;
@@ -154,10 +148,6 @@ public final class RHSInstruction implements Serializable {
 
         public org.kframework.kore.Sort cellCollectionSort() {
             return cellCollectionSort;
-        }
-
-        public List<CellLabel> cellLabels() {
-            return cellLabels;
         }
 
         public Source getSource() {

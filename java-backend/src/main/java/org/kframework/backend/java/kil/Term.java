@@ -26,8 +26,6 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
     protected final Kind kind;
     // protected final boolean normalized;
 
-    private Boolean mutable = null;
-
     protected Term(Kind kind) {
         super();
         this.kind = kind;
@@ -60,23 +58,6 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
     }
 
     public abstract Sort sort();
-
-    /**
-     * @return {@code true} if this term has {@code Cell} inside; otherwise,
-     *         {@code false}
-     */
-    public final boolean isMutable() {
-        Boolean m = mutable;
-        if (m == null) {
-            mutable = m = computeMutability();
-        }
-        return m;
-    }
-
-    /**
-     * Checks if this term has {@code Cell} inside.
-     */
-    protected abstract boolean computeMutability();
 
     /**
      * Returns a new {@code Term} instance obtained from this term by evaluating
@@ -138,7 +119,7 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
     @Override
     public final int hashCode() {
         int h = hashCode;
-        if (h == Constants.NO_HASHCODE && !isMutable()) {
+        if (h == Constants.NO_HASHCODE && !false) {
             h = computeHash();
             h = h == 0 ? 1 : h;
             hashCode = h;

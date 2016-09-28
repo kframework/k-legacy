@@ -15,7 +15,7 @@ import org.kframework.kil.ASTNode;
  *
  * @author TraianSF
  */
-public class Bottom extends Term implements Immutable {
+public class Bottom extends Term {
 
     public static final Bottom BOTTOM = new Bottom();
 
@@ -50,11 +50,6 @@ public class Bottom extends Term implements Immutable {
     @Override
     protected int computeHash() {
         return kind.hashCode();
-    }
-
-    @Override
-    protected boolean computeMutability() {
-        return false;
     }
 
     @Override

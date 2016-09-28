@@ -297,11 +297,7 @@ public class Kapi {
                         r.freshConstants(),
                         r.freshVariables(),
                         r.lookups(),
-                        r.isCompiledForFastRewriting(),
-                        r.lhsOfReadCell(),
-                        r.rhsOfWriteCell(),
                         r.cellsToCopy(),
-                        r.matchingInstructions(),
                         r,
                         rewritingContext1.global())) // register definition to be used for execution of the current rule
                 .collect(Collectors.toList());
@@ -317,11 +313,7 @@ public class Kapi {
                         r.freshConstants(),
                         r.freshVariables(),
                         r.lookups(),
-                        r.isCompiledForFastRewriting(),
-                        r.lhsOfReadCell(),
-                        r.rhsOfWriteCell(),
                         r.cellsToCopy(),
-                        r.matchingInstructions(),
                         r,
                         rewritingContext2.global())) // register definition to be used for execution of the current rule
                 .collect(Collectors.toList());
@@ -440,11 +432,7 @@ public class Kapi {
                         r.freshConstants(),
                         r.freshVariables(),
                         r.lookups(),
-                        r.isCompiledForFastRewriting(),
-                        r.lhsOfReadCell(),
-                        r.rhsOfWriteCell(),
                         r.cellsToCopy(),
-                        r.matchingInstructions(),
                         r,
                         rewritingContext.global()))
                 .collect(Collectors.toList());

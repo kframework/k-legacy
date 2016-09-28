@@ -4,14 +4,12 @@ package org.kframework.backend.java.kil;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections15.list.UnmodifiableList;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.rewritemachine.GenerateRHSInstructions;
-import org.kframework.backend.java.rewritemachine.MatchingInstruction;
 import org.kframework.backend.java.rewritemachine.RHSInstruction;
 import org.kframework.backend.java.symbolic.ConjunctiveFormula;
 import org.kframework.backend.java.symbolic.Equality;
@@ -23,8 +21,6 @@ import org.kframework.kil.ASTNode;
 import org.kframework.kil.Attribute;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,7 +45,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
     private final boolean containsKCell;
     private final GlobalContext global;
 
-    private final boolean compiledForFastRewriting;
     /**
      * Left-hand sides of the local rewrite operations under read cells; such
      * left-hand sides are used as patterns to match against the subject term.
@@ -59,10 +54,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
      * Right-hand sides of the local rewrite operations under write cells.
      */
     private final Map<CellLabel, Term> rhsOfWriteCells;
-    /**
-     * Instructions for constructing rhs of local rewrite operations under write cells.
-     */
-    private final Map<CellLabel, ImmutableList<RHSInstruction>> instructionsOfWriteCells;
     /**
      * Instructions for evaluating side condition of rule.
      */
@@ -81,13 +72,7 @@ public class Rule extends JavaSymbolicObject<Rule> {
      * undesired sharing.
      */
     private final Set<CellLabel> groundCells;
-    private final List<MatchingInstruction> matchingInstructions;
     private final List<RHSInstruction> rhsInstructions;
-
-    private final boolean modifyCellStructure;
-
-    private final Set<CellLabel> readCells;
-    private final Set<CellLabel> writeCells;
 
     private final Set<Variable> matchingVariables;
 
@@ -105,11 +90,7 @@ public class Rule extends JavaSymbolicObject<Rule> {
             Set<Variable> freshConstants,
             Set<Variable> freshVariables,
             ConjunctiveFormula lookups,
-            boolean compiledForFastRewriting,
-            Map<CellLabel, Term> lhsOfReadCells,
-            Map<CellLabel, Term> rhsOfWriteCells,
             Set<CellLabel> cellsToCopy,
-            List<MatchingInstruction> instructions,
             ASTNode oldRule,
             GlobalContext global) {
         this.label = label;
@@ -158,29 +139,15 @@ public class Rule extends JavaSymbolicObject<Rule> {
         }
 
         // setting fields related to fast rewriting
-        this.compiledForFastRewriting = compiledForFastRewriting;
-        this.lhsOfReadCells     = compiledForFastRewriting ? ImmutableMap.copyOf(lhsOfReadCells) : null;
-        this.rhsOfWriteCells    = compiledForFastRewriting ? ImmutableMap.copyOf(rhsOfWriteCells) : null;
+        this.lhsOfReadCells     = null;
+        this.rhsOfWriteCells    = null;
         this.reusableVariables  = computeReusableBoundVars();
         this.groundCells        = cellsToCopy != null ? ImmutableSet.copyOf(cellsToCopy) : null;
-        this.matchingInstructions       = compiledForFastRewriting ? ImmutableList.copyOf(instructions) : null;
 
         GenerateRHSInstructions rhsVisitor = new GenerateRHSInstructions();
         rightHandSide.accept(rhsVisitor);
         this.rhsInstructions = rhsVisitor.getInstructions();
 
-        instructionsOfWriteCells = new HashMap<>();
-        if (compiledForFastRewriting) {
-            for (Map.Entry<CellLabel, Term> entry :
-                rhsOfWriteCells.entrySet()) {
-                GenerateRHSInstructions visitor = new GenerateRHSInstructions();
-                entry.getValue().accept(visitor);
-                ImmutableList<RHSInstruction> rhsInstructions = visitor.getInstructions();
-                if (rhsInstructions != null) {
-                    instructionsOfWriteCells.put(entry.getKey(), rhsInstructions);
-                }
-            }
-        }
         instructionsOfRequires = new ArrayList<>();
         for (Term require : requires) {
             GenerateRHSInstructions visitor = new GenerateRHSInstructions();
@@ -194,58 +161,11 @@ public class Rule extends JavaSymbolicObject<Rule> {
             instructionsOfLookups.add(visitor.getInstructions());
         }
 
-        boolean modifyCellStructure;
-        if (compiledForFastRewriting) {
-            modifyCellStructure = false;
-            for (CellLabel wrtCellLabel : rhsOfWriteCells.keySet()) {
-                if (global.getDefinition().getConfigurationStructureMap().get(wrtCellLabel.name()).hasChildren()) {
-                    modifyCellStructure = true;
-                }
-            }
-        } else {
-            modifyCellStructure = true;
-        }
-        this.modifyCellStructure = modifyCellStructure;
-
-        if (compiledForFastRewriting) {
-            final ImmutableSet.Builder<CellLabel> readBuilder = ImmutableSet.builder();
-            lhsOfReadCells.keySet().stream().forEach(c -> {
-                global.getDefinition().getConfigurationStructureMap().descendants(c.name()).stream()
-                        .forEach(s -> readBuilder.add(CellLabel.of(s)));
-            });
-            readCells = readBuilder.build();
-            final ImmutableSet.Builder<CellLabel> writeBuilder = ImmutableSet.builder();
-            rhsOfWriteCells.keySet().stream().forEach(c -> {
-                global.getDefinition().getConfigurationStructureMap().descendants(c.name()).stream()
-                        .forEach(s -> writeBuilder.add(CellLabel.of(s)));
-            });
-            writeCells = writeBuilder.build();
-
-        } else {
-            readCells = writeCells = null;
-        }
-
-        Set<Variable> choiceVariables = new HashSet<>();
-        if (compiledForFastRewriting) {
-            for (int i = 0; i < instructions.size(); ++i) {
-                if (instructions.get(i) == MatchingInstruction.CHOICE) {
-                    choiceVariables.add(getChoiceVariableForCell(instructions.get(i + 1).cellLabel()));
-                }
-            }
-        }
         matchingVariables = ImmutableSet.copyOf(Sets.union(
-                !compiledForFastRewriting ?
-                        leftHandSide.variableSet() :
-                        Sets.union(
-                                lhsOfReadCells.values().stream().map(Term::variableSet).flatMap(Set::stream).collect(Collectors.toSet()),
-                                choiceVariables),
+                leftHandSide.variableSet(),
                 Sets.union(
                         lookups.variableSet(),
                         requires.stream().map(Term::variableSet).flatMap(Set::stream).collect(Collectors.toSet()))));
-    }
-
-    public static Variable getChoiceVariableForCell(CellLabel label) {
-        return new Variable("__choice_" + label, Sort.BAG);
     }
 
     /**
@@ -263,37 +183,12 @@ public class Rule extends JavaSymbolicObject<Rule> {
      */
     private Multiset<Variable> computeReusableBoundVars() {
         Multiset<Variable> lhsVariablesToReuse = HashMultiset.create();
-        if (compiledForFastRewriting) {
-            Set<Term> lhsOfReadOnlyCell = Sets.newHashSet();
-            /* add all variables that occur in the left-hand sides of read-write cells */
-            for (Map.Entry<CellLabel, Term> entry : lhsOfReadCells.entrySet()) {
-                CellLabel cellLabel = entry.getKey();
-                Term lhs = entry.getValue();
-                if (rhsOfWriteCells.containsKey(cellLabel)) {
-                    lhsVariablesToReuse.addAll(VariableOccurrencesCounter.count(lhs));
-                } else {
-                    lhsOfReadOnlyCell.add(lhs);
-                }
-            }
-            /* add variables that occur in the key and value positions of data
-             * structure lookup operations under read-write cells */
-            for (Equality eq : lookups.equalities()) {
-                if (DataStructures.isLookup(eq.leftHandSide())) {
-                    if (!lhsOfReadOnlyCell.contains(DataStructures.getLookupBase(eq.leftHandSide()))) {
-                        // do not double count base variable again
-                        lhsVariablesToReuse.addAll(VariableOccurrencesCounter.count(DataStructures.getLookupKey(eq.leftHandSide())));
-                        lhsVariablesToReuse.addAll(VariableOccurrencesCounter.count(eq.rightHandSide()));
-                    }
-                }
-            }
-        } else {
-            lhsVariablesToReuse.addAll(VariableOccurrencesCounter.count(leftHandSide));
-            for (Equality eq : lookups.equalities()) {
-                if (DataStructures.isLookup(eq.leftHandSide())) {
-                    // do not double count base variable again
-                    lhsVariablesToReuse.addAll(VariableOccurrencesCounter.count(DataStructures.getLookupKey(eq.leftHandSide())));
-                    lhsVariablesToReuse.addAll(VariableOccurrencesCounter.count(eq.rightHandSide()));
-                }
+        lhsVariablesToReuse.addAll(VariableOccurrencesCounter.count(leftHandSide));
+        for (Equality eq : lookups.equalities()) {
+            if (DataStructures.isLookup(eq.leftHandSide())) {
+                // do not double count base variable again
+                lhsVariablesToReuse.addAll(VariableOccurrencesCounter.count(DataStructures.getLookupKey(eq.leftHandSide())));
+                lhsVariablesToReuse.addAll(VariableOccurrencesCounter.count(eq.rightHandSide()));
             }
         }
 
@@ -438,10 +333,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
         return rightHandSide;
     }
 
-    public boolean isCompiledForFastRewriting() {
-        return compiledForFastRewriting;
-    }
-
     public Map<CellLabel, Term> lhsOfReadCell() {
         return lhsOfReadCells;
     }
@@ -464,10 +355,6 @@ public class Rule extends JavaSymbolicObject<Rule> {
 
     public Set<CellLabel> cellsToCopy() {
         return groundCells;
-    }
-
-    public List<MatchingInstruction> matchingInstructions() {
-        return matchingInstructions;
     }
 
     public List<RHSInstruction> rhsInstructions() {

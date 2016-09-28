@@ -437,19 +437,6 @@ public abstract class CopyOnWriteTransformer implements Transformer {
         ConjunctiveFormula processedLookups
                 = (ConjunctiveFormula) rule.lookups().accept(this);
 
-        Map<CellLabel, Term> processedLhsOfReadCell = null;
-        Map<CellLabel, Term> processedRhsOfWriteCell = null;
-        if (rule.isCompiledForFastRewriting()) {
-            processedLhsOfReadCell = new HashMap<>();
-            for (Map.Entry<CellLabel, Term> entry : rule.lhsOfReadCell().entrySet()) {
-                processedLhsOfReadCell.put(entry.getKey(), (Term) entry.getValue().accept(this));
-            }
-            processedRhsOfWriteCell = new HashMap<>();
-            for (Map.Entry<CellLabel, Term> entry : rule.rhsOfWriteCell().entrySet()) {
-                processedRhsOfWriteCell.put(entry.getKey(), (Term) entry.getValue().accept(this));
-            }
-        }
-
         if (processedLeftHandSide != rule.leftHandSide()
                 || processedRightHandSide != rule.rightHandSide()
                 || processedRequires.equals(rule.requires())
@@ -466,11 +453,7 @@ public abstract class CopyOnWriteTransformer implements Transformer {
                     processedFreshConstants,
                     processedFreshVariables,
                     processedLookups,
-                    rule.isCompiledForFastRewriting(),
-                    processedLhsOfReadCell,
-                    processedRhsOfWriteCell,
                     rule.cellsToCopy(),
-                    rule.matchingInstructions(),
                     rule,
                     global);
         } else {

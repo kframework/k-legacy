@@ -20,7 +20,7 @@ import org.kframework.utils.errorsystem.KEMException;
  * @author YilongL
  *
  */
-public final class Sort extends org.kframework.kore.AbstractSort implements Serializable, Immutable {
+public final class Sort extends org.kframework.kore.AbstractSort implements Serializable {
 
     private static final ConcurrentMap<String, Sort> cache = new ConcurrentHashMap<>();
 
