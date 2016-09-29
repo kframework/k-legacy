@@ -558,7 +558,7 @@ public class SymbolicRewriter {
                     continue;
                 }
 
-                /*
+                /* TODO(AndreiS): terminate the proof with failure based on the klabel _~>_
                 List<Term> leftKContents = term.term().getCellContentsByName("<k>");
                 List<Term> rightKContents = targetTerm.term().getCellContentsByName("<k>");
                 // TODO(YilongL): the `get(0)` seems hacky
