@@ -46,11 +46,6 @@ public class LocalTransformer implements Transformer {
     }
 
     @Override
-    public ASTNode transform(CellCollection cellCollection) {
-        return transform((Collection) cellCollection);
-    }
-
-    @Override
     public ASTNode transform(Collection collection) {
         return transform((Term) collection);
     }
@@ -78,11 +73,6 @@ public class LocalTransformer implements Transformer {
     @Override
     public ASTNode transform(KLabelConstant kLabelConstant) {
         return transform((KLabel) kLabelConstant);
-    }
-
-    @Override
-    public ASTNode transform(KLabelFreezer kLabelFreezer) {
-        return transform((KLabelInjection) kLabelFreezer);
     }
 
     @Override

@@ -80,11 +80,6 @@ public class CombinedLocalVisitor extends LocalVisitor {
     }
 
     @Override
-    public void visit(CellCollection node) {
-        visitAll(node);
-    }
-
-    @Override
     public void visit(Collection node) {
         visitAll(node);
     }
@@ -106,11 +101,6 @@ public class CombinedLocalVisitor extends LocalVisitor {
 
     @Override
     public void visit(KLabelConstant node) {
-        visitAll(node);
-    }
-
-    @Override
-    public void visit(KLabelFreezer node) {
         visitAll(node);
     }
 

@@ -4,7 +4,6 @@ package org.kframework.backend.java.symbolic;
 import org.kframework.KapiGlobal;
 import org.kframework.RewriterResult;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
-import org.kframework.backend.java.indexing.IndexingTable;
 import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.GlobalContext;
@@ -129,7 +128,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
         public RewriterResult execute(K k, Optional<Integer> depth) {
             TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
-            Term backendKil = KILtoBackendJavaKILTransformer.expandAndEvaluate(termContext, kem, converter.convert(k));
+            Term backendKil = MacroExpander.expandAndEvaluate(termContext, kem, converter.convert(k));
             this.rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, new KRunState.Counter(), converter);
             JavaKRunState result = (JavaKRunState) rewriter.rewrite(new ConstrainedTerm(backendKil, termContext), depth.orElse(-1));
             return new RewriterResult(result.getStepsTaken(), result.getJavaKilTerm());
@@ -145,7 +144,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
         public List<? extends Map<? extends KVariable, ? extends K>> search(K initialConfiguration, Optional<Integer> depth, Optional<Integer> bound, Rule pattern, SearchType searchType) {
             TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
-            Term javaTerm = KILtoBackendJavaKILTransformer.expandAndEvaluate(termContext, kem, converter.convert(initialConfiguration));
+            Term javaTerm = MacroExpander.expandAndEvaluate(termContext, kem, converter.convert(initialConfiguration));
             org.kframework.backend.java.kil.Rule javaPattern = converter.convert(Optional.empty(), pattern);
             List<Substitution<Variable, Term>> searchResults;
             this.rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, new KRunState.Counter(), converter);
@@ -176,11 +175,6 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
                             r.freshConstants(),
                             r.freshVariables(),
                             r.lookups(),
-                            r.isCompiledForFastRewriting(),
-                            r.lhsOfReadCell(),
-                            r.rhsOfWriteCell(),
-                            r.cellsToCopy(),
-                            r.matchingInstructions(),
                             r,
                             termContext.global()))
                     .collect(Collectors.toList());
@@ -232,7 +226,6 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
                     .forEach(definition::addKLabel);
             definition.addKoreRules(module, global);
 
-            definition.setIndex(new IndexingTable(() -> definition, new IndexingTable.Data()));
             cache.put(module, definition);
             return definition;
         }

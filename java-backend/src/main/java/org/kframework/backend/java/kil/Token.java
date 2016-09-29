@@ -19,7 +19,7 @@ import org.kframework.utils.StringUtil;
  *
  * @author AndreiS
  */
-public abstract class Token extends Term implements KoreRepresentation, Immutable, KToken {
+public abstract class Token extends Term implements KoreRepresentation, KToken {
 
     public static Token of(Sort sort, String value) {
         if (sort.equals(BoolToken.SORT)) {
@@ -67,11 +67,6 @@ public abstract class Token extends Term implements KoreRepresentation, Immutabl
 
     @Override
     public final boolean isSymbolic() {
-        return false;
-    }
-
-    @Override
-    protected final boolean computeMutability() {
         return false;
     }
 

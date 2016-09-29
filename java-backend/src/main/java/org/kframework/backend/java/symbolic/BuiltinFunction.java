@@ -42,9 +42,6 @@ public class BuiltinFunction {
      * The "impure" attribute on productions is used to exclude functions from evaluation during compilation,
      * when each rule's right-hand side and condition are partially evaluated. Certain functions, like functions
      * performing I/O operations or meta operations should only be evaluated at runtime.
-     *
-     * @see org.kframework.backend.java.symbolic.KILtoBackendJavaKILTransformer#evaluateDefinition(org.kframework.backend.java.kil.Definition)
-     * @see org.kframework.backend.java.symbolic.KILtoBackendJavaKILTransformer#evaluateRule(org.kframework.backend.java.kil.Rule, org.kframework.backend.java.kil.Definition)
      */
     public BuiltinFunction(Definition definition, Map<String, MethodHandle> hookProvider, KExceptionManager kem, Stage stage) {
         MethodHandles.Lookup lookup = MethodHandles.lookup();

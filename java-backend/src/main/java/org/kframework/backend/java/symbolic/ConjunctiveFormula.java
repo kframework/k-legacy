@@ -786,11 +786,6 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
     }
 
     @Override
-    protected boolean computeMutability() {
-        return false;
-    }
-
-    @Override
     public List<Term> getKComponents() {
         Stream<Term> stream = Stream.concat(
                 Stream.concat(

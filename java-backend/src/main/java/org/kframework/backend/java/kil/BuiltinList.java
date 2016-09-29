@@ -238,11 +238,6 @@ public class BuiltinList extends Collection implements CollectionInternalReprese
     }
 
     @Override
-    protected boolean computeMutability() {
-        return false;
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

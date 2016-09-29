@@ -38,11 +38,6 @@ public class InjectedKLabel extends Term implements org.kframework.kore.Injected
     }
 
     @Override
-    protected boolean computeMutability() {
-        return injectedKLabel.isMutable();
-    }
-
-    @Override
     protected int computeHash() {
         return injectedKLabel.hashCode();
     }

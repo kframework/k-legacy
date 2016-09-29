@@ -24,7 +24,7 @@ public class Evaluator extends CopyOnWriteTransformer {
 
     @Override
     public ASTNode transform(KItem kItem) {
-        return ((KItem) super.transform(kItem)).resolveFunctionAndAnywhere(false, context);
+        return ((KItem) super.transform(kItem)).resolveFunctionAndAnywhere(context);
     }
 
     @Override

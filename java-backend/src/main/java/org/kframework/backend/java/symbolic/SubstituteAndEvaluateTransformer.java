@@ -26,8 +26,6 @@ public class SubstituteAndEvaluateTransformer extends CopyOnWriteTransformer {
 
     protected final Map<Variable, ? extends Term> substitution;
 
-    protected boolean copyOnShareSubstAndEval = false;
-
     /*
      * YilongL: it turns out that not doing variableSet update along with
      * substituteAndEvaluate costs significant overhead; not sure why but I am
@@ -71,11 +69,6 @@ public class SubstituteAndEvaluateTransformer extends CopyOnWriteTransformer {
     }
 
     @Override
-    public ASTNode transform(CellCollection cellCollection) {
-        return proceed(cellCollection) ? super.transform(cellCollection) : cellCollection;
-    }
-
-    @Override
     public ASTNode transform(Hole hole) {
         return hole;
     }
@@ -88,11 +81,6 @@ public class SubstituteAndEvaluateTransformer extends CopyOnWriteTransformer {
     @Override
     public ASTNode transform(KLabelConstant kLabelConstant) {
         return kLabelConstant;
-    }
-
-    @Override
-    public ASTNode transform(KLabelFreezer kLabelFreezer) {
-        return proceed(kLabelFreezer) ? super.transform(kLabelFreezer) : kLabelFreezer;
     }
 
     @Override
@@ -113,7 +101,7 @@ public class SubstituteAndEvaluateTransformer extends CopyOnWriteTransformer {
         if (proceed(kItem)) {
             result = ((KItem) super
                     .transform(BinderSubstitutionTransformer.binderSensitiveSubstitute(kItem)))
-                    .resolveFunctionAndAnywhere(copyOnShareSubstAndEval, context);
+                    .resolveFunctionAndAnywhere(context);
         }
 
         return result;

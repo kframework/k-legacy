@@ -60,11 +60,6 @@ public class LocalVisitor implements Visitor {
     }
 
     @Override
-    public void visit(CellCollection cellCollection) {
-        visit((Collection) cellCollection);
-    }
-
-    @Override
     public void visit(Collection collection) {
         visit((Term) collection);
     }
@@ -90,11 +85,6 @@ public class LocalVisitor implements Visitor {
     @Override
     public void visit(KLabelConstant kLabelConstant) {
         visit((KLabel) kLabelConstant);
-    }
-
-    @Override
-    public void visit(KLabelFreezer kLabelFreezer) {
-        visit((KLabelInjection) kLabelFreezer);
     }
 
     @Override

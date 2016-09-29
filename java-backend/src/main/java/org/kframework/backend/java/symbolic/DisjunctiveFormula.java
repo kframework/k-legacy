@@ -60,11 +60,6 @@ public class DisjunctiveFormula extends Term implements CollectionInternalRepres
     }
 
     @Override
-    protected boolean computeMutability() {
-        return false;
-    }
-
-    @Override
     public List<Term> getKComponents() {
         return conjunctions.stream().map(ConjunctiveFormula::toKore).collect(Collectors.toList());
     }

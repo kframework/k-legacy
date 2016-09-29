@@ -21,8 +21,6 @@ public class BasicVisitor implements Visitor {
             visit((KList) node);
         } else if (node instanceof KSequence) {
             visit((KSequence) node);
-        } else if (node instanceof CellCollection) {
-            visit((CellCollection) node);
         } else if (node instanceof Variable) {
             visit((Variable) node);
         } else if (node instanceof BoolToken) {
@@ -116,13 +114,6 @@ public class BasicVisitor implements Visitor {
     }
 
     @Override
-    public void visit(CellCollection cellCollection) {
-        cellCollection.cells().values().stream().forEach(c -> visitNode(c.content()));
-        cellCollection.baseTerms().stream().forEach(this::visitNode);
-        visit((Collection) cellCollection);
-    }
-
-    @Override
     public void visit(Collection collection) {
         visit((Term) collection);
     }
@@ -146,12 +137,6 @@ public class BasicVisitor implements Visitor {
     @Override
     public void visit(KLabelConstant kLabelConstant) {
         visit((KLabel) kLabelConstant);
-    }
-
-    @Override
-    public void visit(KLabelFreezer kLabelFreezer) {
-        visitNode(kLabelFreezer.term());
-        visit((KLabelInjection) kLabelFreezer);
     }
 
     @Override

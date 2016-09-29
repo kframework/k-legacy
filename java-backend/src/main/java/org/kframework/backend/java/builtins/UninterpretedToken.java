@@ -1,7 +1,6 @@
 // Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.builtins;
 
-import org.kframework.backend.java.kil.MaximalSharing;
 import org.kframework.backend.java.kil.Sort;
 import org.kframework.backend.java.kil.Token;
 import org.kframework.backend.java.symbolic.Transformer;
@@ -19,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author AndreiS
  */
-public final class UninterpretedToken extends Token implements MaximalSharing {
+public final class UninterpretedToken extends Token {
 
     /* Token cache */
     private static final Map<Sort, Map<String, UninterpretedToken>> cache = new ConcurrentHashMap<>();
