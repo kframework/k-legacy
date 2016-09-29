@@ -98,7 +98,7 @@ public class KRun {
             prettyPrint(compiledDef, options.output, s -> outputFile(s, options), (K) result);
             if (options.exitCodePattern != null) {
                 Rule exitCodePattern = compilePattern(files, kem, options.exitCodePattern, options, compiledDef, Source.apply("<command line: --exit-code>"));
-                List<? extends Map<? extends KVariable, ? extends K>> res = rewriter.match((K) result, exitCodePattern);
+                List<Tuple2<? extends Map<? extends KVariable, ? extends K>, ? extends K>> res = rewriter.match((K) result, exitCodePattern);
                 return getExitCode(kem, res);
             }
         } else if (result instanceof Tuple2) {
@@ -125,8 +125,9 @@ public class KRun {
     }
 
     private void printSearchResult(SearchResult result, KRunOptions options, CompiledDefinition compiledDef) {
+
         Set<Map<? extends KVariable, ? extends K>> searchResult = ((SearchResult) result).getSearchList().stream()
-                .map(subst -> filterAnonymousVariables(subst, result.getParsedRule()))
+                .map(subst -> subst.filterAnonymousVariables(subst, result.getParsedRule()))
                 .collect(Collectors.toSet());
         outputFile("Search results:\n\n", options);
         if (searchResult.isEmpty()) {
@@ -157,12 +158,12 @@ public class KRun {
      * @param res The substitution from the match of the user specified pattern on the Final Configuration.
      * @return An int representing the error code.
      */
-    public static int getExitCode(KExceptionManager kem, List<? extends Map<? extends KVariable, ? extends K>> res) {
+    public static int getExitCode(KExceptionManager kem, List<Tuple2<? extends Map<? extends KVariable, ? extends K>, ? extends K>> res) {
         if (res.size() != 1) {
             kem.registerCriticalWarning("Found " + res.size() + " solutions to exit code pattern. Returning 112.");
             return 112;
         }
-        Map<? extends KVariable, ? extends K> solution = res.get(0);
+        Map<? extends KVariable, ? extends K> solution = res.get(0)._1();
         Set<Integer> vars = new HashSet<>();
         for (K t : solution.values()) {
             // TODO(andreistefanescu): fix Token.sort() to return a kore.Sort that obeys kore.Sort's equality contract.
