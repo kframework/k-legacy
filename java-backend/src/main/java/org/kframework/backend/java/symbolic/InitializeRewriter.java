@@ -18,6 +18,7 @@ import org.kframework.definition.Rule;
 import org.kframework.kil.Attribute;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.K;
+import org.kframework.kore.KORE;
 import org.kframework.kore.KVariable;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.KRunState;
@@ -33,10 +34,12 @@ import scala.collection.JavaConversions;
 
 import java.lang.invoke.MethodHandle;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -81,8 +84,8 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
     }
 
     public InitializeRewriter(KapiGlobal g,
-            Map<String, MethodHandle> hookProvider,
-            InitializeDefinition initializeDefinition) {
+                              Map<String, MethodHandle> hookProvider,
+                              InitializeDefinition initializeDefinition) {
         this(g.fs, g.deterministicFunctions, g.globalOptions, g.kem, g.smtOptions, hookProvider, g.kompileOptions, g.kRunOptions, g.files, initializeDefinition);
     }
 
@@ -135,27 +138,30 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
         }
 
         @Override
-        public List<? extends Map<? extends KVariable,? extends K>> match(K k, org.kframework.definition.Rule rule) {
+        public List<Tuple2<? extends Map<? extends KVariable, ? extends K>, ? extends K>> match(K k, org.kframework.definition.Rule rule) {
             return search(k, Optional.of(0), Optional.empty(), rule, SearchType.STAR);
         }
 
 
         @Override
-        public List<? extends Map<? extends KVariable, ? extends K>> search(K initialConfiguration, Optional<Integer> depth, Optional<Integer> bound, Rule pattern, SearchType searchType) {
+        public List<Tuple2<? extends Map<? extends KVariable, ? extends K>, ? extends K>> search(K initialConfiguration, Optional<Integer> depth, Optional<Integer> bound, Rule pattern, SearchType searchType) {
             TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
             Term javaTerm = MacroExpander.expandAndEvaluate(termContext, kem, converter.convert(initialConfiguration));
             org.kframework.backend.java.kil.Rule javaPattern = converter.convert(Optional.empty(), pattern);
-            List<Substitution<Variable, Term>> searchResults;
-            this.rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, new KRunState.Counter(), converter);
+            Set<Tuple2<Substitution<Variable, Term>, ConjunctiveFormula>> searchResults;
+            this.rewriter = new SymbolicRewriter(rewritingContext, kompileOptions, new KRunState.Counter(), converter);
             searchResults = rewriter
-                    .search(javaTerm, javaPattern, bound.orElse(NEGATIVE_VALUE), depth.orElse(NEGATIVE_VALUE), searchType, termContext)
-                    .stream().collect(Collectors.toList());
-            return searchResults;
+                    .search(javaTerm, javaPattern, bound.orElse(NEGATIVE_VALUE), depth.orElse(NEGATIVE_VALUE), searchType, termContext);
+            List<Tuple2<? extends Map<? extends KVariable, ? extends K>, ? extends K>> retList = new ArrayList<>();
+            searchResults.forEach(x -> {
+                retList.add(Tuple2.apply(x._1(), KORE.KApply(KORE.KLabel("AND"), x._2().klist())));
+            });
+            return retList;
         }
 
 
-        public Tuple2<RewriterResult, List<? extends Map<? extends KVariable, ? extends K>>> executeAndMatch(K k, Optional<Integer> depth, Rule rule) {
+        public Tuple2<RewriterResult, List<Tuple2<? extends Map<? extends KVariable, ? extends K>, ? extends K>>> executeAndMatch(K k, Optional<Integer> depth, Rule rule) {
             RewriterResult res = execute(k, depth);
             return Tuple2.apply(res, match(res.k(), rule));
         }
@@ -187,7 +193,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
                     .map(org.kframework.backend.java.kil.Rule::renameVariables)
                     .collect(Collectors.toList());
 
-            this.rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, new KRunState.Counter(), converter);
+            this.rewriter = new SymbolicRewriter(rewritingContext, kompileOptions, new KRunState.Counter(), converter);
 
             List<ConstrainedTerm> proofResults = javaRules.stream()
                     .filter(r -> !r.containsAttribute(Attribute.TRUSTED_KEY))

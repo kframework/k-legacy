@@ -23,6 +23,7 @@ import org.kframework.kore.KApply;
 import org.kframework.krun.api.KRunState;
 import org.kframework.utils.BitSet;
 import org.kframework.rewriter.SearchType;
+import scala.Tuple2;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -402,7 +403,7 @@ public class SymbolicRewriter {
      * up to the bound as were found, and returns {@code true} if the bound has been reached.
      */
     private boolean addSearchResult(
-            HashSet<Substitution<Variable, Term>> searchResults,
+            HashSet<Tuple2<Substitution<Variable, Term>, ConjunctiveFormula>> searchResults,
             ConstrainedTerm subject,
             Rule pattern,
             int bound) {
@@ -414,7 +415,7 @@ public class SymbolicRewriter {
                 pattern.leftHandSide(),
                 subject.termContext());
         for (Substitution<Variable, Term> searchResult : discoveredSearchResults) {
-            searchResults.add(searchResult);
+            searchResults.add(new Tuple2<>(searchResult, subject.constraint()));
             if (searchResults.size() == bound) {
                 return true;
             }
@@ -430,7 +431,7 @@ public class SymbolicRewriter {
      * @param searchType  defines when we will attempt to match the pattern
      * @return a list of substitution mappings for results that matched the pattern
      */
-    public Set<Substitution<Variable, Term>> search(
+    public Set<Tuple2<Substitution<Variable, Term>, ConjunctiveFormula>> search(
             Term initialTerm,
             Rule pattern,
             int bound,
@@ -439,7 +440,7 @@ public class SymbolicRewriter {
             TermContext context) {
         stopwatch.start();
 
-        HashSet<Substitution<Variable, Term>> searchResults = Sets.newHashSet();
+        HashSet<Tuple2<Substitution<Variable, Term>, ConjunctiveFormula>> searchResults = Sets.newHashSet();
         Set<ConstrainedTerm> visited = Sets.newHashSet();
 
         ConstrainedTerm initCnstrTerm = new ConstrainedTerm(initialTerm, context);
@@ -526,11 +527,13 @@ public class SymbolicRewriter {
             System.err.println("[" + visited.size() + "states, " + step + "steps, " + stopwatch + "]");
         }
 
-        Set<Substitution<Variable, Term>> adaptedResults = searchResults.stream().map(r -> {
+
+        Set<Tuple2<Substitution<Variable, Term>, ConjunctiveFormula>> adaptedResults = searchResults.stream().map(x -> {
             RenameAnonymousVariables renameAnonymousVariables = new RenameAnonymousVariables();
             Substitution<Variable, Term> subs = new HashMapSubstitution();
-            r.forEach((k, v) -> subs.plus(renameAnonymousVariables.getRenamedVariable(k), renameAnonymousVariables.apply(v)));
-            return subs;
+            x._1().forEach((k, v) -> subs.plus(renameAnonymousVariables.getRenamedVariable(k), renameAnonymousVariables.apply(v)));
+
+            return new Tuple2<Substitution<Variable, Term>, ConjunctiveFormula>(subs, x._2());
         }).collect(Collectors.toSet());
 
         return adaptedResults;
