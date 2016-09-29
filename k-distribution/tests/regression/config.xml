@@ -103,5 +103,10 @@
            programs ="error-messages"
            results  ="error-messages" />
 
+  <include file="wasm/tests/config.xml"
+           directory="wasm"
+           programs="wasm/tests"
+           results="wasm/tests" />
+
 </tests>
 
