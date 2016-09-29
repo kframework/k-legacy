@@ -6,6 +6,8 @@ This is a readme file for the developers.
 
 # Prerequisites
 
+[![Join the chat at https://gitter.im/kframework/k](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/kframework/k?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## Java Development Kit (required JDK8 version 8u45 or higher)
 You can download the JDK at http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
