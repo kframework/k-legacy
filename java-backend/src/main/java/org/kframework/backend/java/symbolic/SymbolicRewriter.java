@@ -558,6 +558,7 @@ public class SymbolicRewriter {
                     continue;
                 }
 
+                /*
                 List<Term> leftKContents = term.term().getCellContentsByName("<k>");
                 List<Term> rightKContents = targetTerm.term().getCellContentsByName("<k>");
                 // TODO(YilongL): the `get(0)` seems hacky
@@ -575,7 +576,7 @@ public class SymbolicRewriter {
                             continue;
                         }
                     }
-                }
+                }*/
 
                 if (guarded) {
                     ConstrainedTerm result = applySpecRules(term, specRules);
