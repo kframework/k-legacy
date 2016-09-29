@@ -26,6 +26,10 @@ import org.kframework.krun.api.KRunState;
 import org.kframework.utils.BitSet;
 import org.kframework.rewriter.SearchType;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -422,6 +426,16 @@ public class SymbolicRewriter {
                 pattern.leftHandSide(),
                 subject.termContext());
         for (Substitution<Variable, Term> searchResult : discoveredSearchResults) {
+            try(FileWriter fw = new FileWriter("/Users/lpena/Dropbox/Backup/Misc/kframework/k/k-distribution/samples-kore/kernelc/tests/kbmc/constraints.txt", true);
+                BufferedWriter bw = new BufferedWriter(fw);
+                PrintWriter out = new PrintWriter(bw))
+            {
+                out.println(subject.toString());
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
             searchResults.add(searchResult);
             if (searchResults.size() == bound) {
                 return true;
