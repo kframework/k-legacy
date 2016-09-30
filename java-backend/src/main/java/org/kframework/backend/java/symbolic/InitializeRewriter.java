@@ -13,10 +13,12 @@ import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.util.JavaKRunState;
+import org.kframework.builtin.KLabels;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
 import org.kframework.kil.Attribute;
 import org.kframework.kompile.KompileOptions;
+import org.kframework.kore.ADT;
 import org.kframework.kore.K;
 import org.kframework.kore.KORE;
 import org.kframework.kore.KVariable;
@@ -154,8 +156,10 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
             searchResults = rewriter
                     .search(javaTerm, javaPattern, bound.orElse(NEGATIVE_VALUE), depth.orElse(NEGATIVE_VALUE), searchType, termContext);
             List<Tuple2<? extends Map<? extends KVariable, ? extends K>, ? extends K>> retList = new ArrayList<>();
+            RenameAnonymousVariables renameAnonymousVariables= new RenameAnonymousVariables();
             searchResults.forEach(x -> {
-                retList.add(Tuple2.apply(x._1(), KORE.KApply(KORE.KLabel("AND"), x._2().klist())));
+                List<K> termList = x._2().items().stream().map(term -> renameAnonymousVariables.apply((Term) term)).collect(Collectors.toList());
+                retList.add(Tuple2.apply(x._1(), KORE.KApply(x._2().klabel(), KORE.KList(termList))));
             });
             return retList;
         }

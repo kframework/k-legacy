@@ -532,7 +532,7 @@ public class SymbolicRewriter {
             RenameAnonymousVariables renameAnonymousVariables = new RenameAnonymousVariables();
             Substitution<Variable, Term> subs = new HashMapSubstitution();
             x._1().forEach((k, v) -> subs.plus(renameAnonymousVariables.getRenamedVariable(k), renameAnonymousVariables.apply(v)));
-
+            List<K> termList = x._2().items().stream().map(term -> renameAnonymousVariables.apply((Term) term)).collect(Collectors.toList());
             return new Tuple2<Substitution<Variable, Term>, ConjunctiveFormula>(subs, x._2());
         }).collect(Collectors.toSet());
 
