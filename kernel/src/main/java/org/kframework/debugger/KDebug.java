@@ -5,6 +5,7 @@ package org.kframework.debugger;
 import org.kframework.definition.Rule;
 import org.kframework.kore.K;
 import org.kframework.kore.KVariable;
+import scala.Tuple2;
 
 import java.util.List;
 import java.util.Map;
@@ -60,7 +61,7 @@ public interface KDebug {
      * @param bounds        Max number of solutions to report. Empty parameter means unbounded.
      * @return
      */
-    public List<? extends Map<? extends K, ? extends K>> search(Rule searchPattern, Optional<Integer> depth, Optional<Integer> bounds);
+    public List<Tuple2<? extends Map<? extends KVariable, ? extends K>, ? extends K>>  search(Rule searchPattern, Optional<Integer> depth, Optional<Integer> bounds);
 
     /**
      * Resume the execution of the program until a final Configuration is reached.

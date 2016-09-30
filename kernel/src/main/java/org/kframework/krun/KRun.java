@@ -98,7 +98,7 @@ public class KRun {
             prettyPrint(compiledDef, options.output, s -> outputFile(s, options), (K) result);
             if (options.exitCodePattern != null) {
                 Rule exitCodePattern = compilePattern(files, kem, options.exitCodePattern, options, compiledDef, Source.apply("<command line: --exit-code>"));
-                List<? extends Map<? extends KVariable, ? extends K>> res = rewriter.match((K) result, exitCodePattern);
+                List<Tuple2<? extends Map<? extends KVariable, ? extends K>, ? extends K>> res = rewriter.match((K) result, exitCodePattern);
                 return getExitCode(kem, res);
             }
         } else if (result instanceof Tuple2) {
@@ -125,27 +125,35 @@ public class KRun {
     }
 
     private void printSearchResult(SearchResult result, KRunOptions options, CompiledDefinition compiledDef) {
-        Set<Map<? extends KVariable, ? extends K>> searchResult = ((SearchResult) result).getSearchList().stream()
-                .map(subst -> filterAnonymousVariables(subst, result.getParsedRule()))
-                .collect(Collectors.toSet());
+        Set<Map<? extends KVariable, ? extends K>> searchResult = new HashSet<>();
+        ArrayList<K> constraints = new ArrayList<>();
+        result.getSearchList().forEach(tuple -> {
+            searchResult.add(filterAnonymousVariables(tuple._1(), result.getParsedRule()));
+            constraints.add(tuple._2());
+        });
         outputFile("Search results:\n\n", options);
         if (searchResult.isEmpty()) {
             outputFile("No search results \n", options);
         }
-        int i = 1;
-        List<String> results = new ArrayList<>();
+        int i = 0;
+        List<Tuple2<String, String>> results = new ArrayList<>();
         for (Map<? extends KVariable, ? extends K> substitution : searchResult) {
-            ByteArrayOutputStream sb = new ByteArrayOutputStream();
-            prettyPrintSubstitution(substitution, result.getParsedRule(), compiledDef, options.output, v -> sb.write(v, 0, v.length));
+            ByteArrayOutputStream sb1 = new ByteArrayOutputStream();
+            ByteArrayOutputStream sb2 = new ByteArrayOutputStream();
+            prettyPrintSubstitution(substitution, result.getParsedRule(), compiledDef, options.output, v -> sb1.write(v, 0, v.length));
+            prettyPrint(compiledDef, options.output, v -> sb2.write(v, 0, v.length), constraints.get(i++));
             //Note that this is actually unsafe, but we are here assuming that --search is not used with --output binary
-            results.add(new String(sb.toByteArray()));
+            results.add(new Tuple2<>(new String(sb1.toByteArray()), new String(sb2.toByteArray())));
         }
-        Collections.sort(results);
+        // Collections.sort(results);
+        i = 1;
         StringBuilder sb = new StringBuilder();
-        for (String solution : results) {
+        for (Tuple2 solution : results) {
             sb.append("Solution ").append(i++).append(":\n");
-            sb.append(solution);
+            sb.append(solution._1());
             sb.append("\n");
+            sb.append("Constraint \n");
+            sb.append(solution._2() + "\n");
         }
         outputFile(sb.toString(), options);
     }
@@ -157,12 +165,12 @@ public class KRun {
      * @param res The substitution from the match of the user specified pattern on the Final Configuration.
      * @return An int representing the error code.
      */
-    public static int getExitCode(KExceptionManager kem, List<? extends Map<? extends KVariable, ? extends K>> res) {
+    public static int getExitCode(KExceptionManager kem, List<Tuple2<? extends Map<? extends KVariable, ? extends K>, ? extends K>> res) {
         if (res.size() != 1) {
             kem.registerCriticalWarning("Found " + res.size() + " solutions to exit code pattern. Returning 112.");
             return 112;
         }
-        Map<? extends KVariable, ? extends K> solution = res.get(0);
+        Map<? extends KVariable, ? extends K> solution = res.get(0)._1();
         Set<Integer> vars = new HashSet<>();
         for (K t : solution.values()) {
             // TODO(andreistefanescu): fix Token.sort() to return a kore.Sort that obeys kore.Sort's equality contract.
@@ -265,7 +273,7 @@ public class KRun {
                                                Rule parsedPattern, CompiledDefinition compiledDefinition,
                                                OutputModes outputModes,
                                                Consumer<byte[]> print) {
-        if(subst.isEmpty()) {
+        if (subst.isEmpty()) {
             print.accept("Empty substitution\n".getBytes());
         } else {
             subst.entrySet().forEach(e -> {
@@ -300,23 +308,23 @@ public class KRun {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    public static Map<KToken,K> getUserConfigVarsMap(KRunOptions options, CompiledDefinition compiledDef, FileUtil files) {
-        Map<KToken,K> output = new HashMap<>();
+    public static Map<KToken, K> getUserConfigVarsMap(KRunOptions options, CompiledDefinition compiledDef, FileUtil files) {
+        Map<KToken, K> output = new HashMap<>();
         for (Map.Entry<String, Pair<String, String>> entry
                 : options.configurationCreation.configVars(compiledDef.getParsedDefinition().mainModule().name()).entrySet()) {
             String name = entry.getKey();
             String value = entry.getValue().getLeft();
             String parser = entry.getValue().getRight();
             Sort sort = compiledDef.configurationVariableDefaultSorts.get("$" + name);
-            assert sort != null: "Could not find configuration variable: $" + name;
+            assert sort != null : "Could not find configuration variable: $" + name;
             K configVar = externalParse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), compiledDef, files);
             output.put(KToken("$" + name, Sorts.KConfigVar()), configVar);
         }
         return output;
     }
 
-    public static Map<KToken,K> getIOConfigVarsMap(boolean realIO, boolean ttyStdin, boolean isNailgun) {
-        Map<KToken,K> output = new HashMap<>();
+    public static Map<KToken, K> getIOConfigVarsMap(boolean realIO, boolean ttyStdin, boolean isNailgun) {
+        Map<KToken, K> output = new HashMap<>();
         if (realIO) {
             output.put(KToken("$STDIN", Sorts.KConfigVar()), KToken("\"\"", Sorts.String()));
             output.put(KToken("$IO", Sorts.KConfigVar()), KToken("\"on\"", Sorts.String()));
@@ -328,8 +336,8 @@ public class KRun {
         return output;
     }
 
-    public static Map<KToken,K> getPGMConfigVarsMap(K pgm) {
-        Map<KToken,K> output = new HashMap<>();
+    public static Map<KToken, K> getPGMConfigVarsMap(K pgm) {
+        Map<KToken, K> output = new HashMap<>();
         if (pgm != null) {
             output.put(KToken("$PGM", Sorts.KConfigVar()), pgm);
         }
@@ -337,7 +345,7 @@ public class KRun {
     }
 
     public static K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef, KExceptionManager kem, FileUtil files, boolean ttyStdin, boolean isNailgun, K pgm) {
-        Map<KToken,K> output = getUserConfigVarsMap(options, compiledDef, files);
+        Map<KToken, K> output = getUserConfigVarsMap(options, compiledDef, files);
         return getInitConfig(pgm, output, compiledDef, kem, options.io(), ttyStdin, isNailgun);
     }
 
@@ -345,12 +353,12 @@ public class KRun {
         return getInitConfig(pgm, new HashMap<>(), compiledDef, kem, true, true, false);
     }
 
-    public static K getInitConfig(K pgm, Map<KToken,K> outputUser, CompiledDefinition compiledDef, KExceptionManager kem,
+    public static K getInitConfig(K pgm, Map<KToken, K> outputUser, CompiledDefinition compiledDef, KExceptionManager kem,
                                   boolean realIO, boolean ttyStdin, boolean isNailgun) {
-        Map<KToken,K> outputIO = getIOConfigVarsMap(realIO, ttyStdin, isNailgun);
-        Map<KToken,K> outputPGM = getPGMConfigVarsMap(pgm);
+        Map<KToken, K> outputIO = getIOConfigVarsMap(realIO, ttyStdin, isNailgun);
+        Map<KToken, K> outputPGM = getPGMConfigVarsMap(pgm);
 
-        Map<KToken,K> output = new HashMap<>();
+        Map<KToken, K> output = new HashMap<>();
         output.putAll(outputUser);
         output.putAll(outputIO);
         output.putAll(outputPGM);
