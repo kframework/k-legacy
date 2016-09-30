@@ -125,10 +125,8 @@ public class KRun {
     }
 
     private void printSearchResult(SearchResult result, KRunOptions options, CompiledDefinition compiledDef) {
-
-        Set<Map<? extends KVariable, ? extends K>> searchResult = ((SearchResult) result).getSearchList().stream()
-                .map(subst -> subst.filterAnonymousVariables(subst, result.getParsedRule()))
-                .collect(Collectors.toSet());
+        Set<Map<? extends KVariable, ? extends K>> searchResult = new HashSet<>();
+        result.getSearchList().forEach(tuple -> searchResult.add(filterAnonymousVariables(tuple._1(), result.getParsedRule())));
         outputFile("Search results:\n\n", options);
         if (searchResult.isEmpty()) {
             outputFile("No search results \n", options);

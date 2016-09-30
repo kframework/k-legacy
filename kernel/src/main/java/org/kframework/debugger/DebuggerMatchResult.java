@@ -4,6 +4,7 @@ package org.kframework.debugger;
 import org.kframework.definition.Rule;
 import org.kframework.kore.K;
 import org.kframework.kore.KVariable;
+import scala.Tuple2;
 
 import java.util.List;
 import java.util.Map;
@@ -13,12 +14,12 @@ import java.util.Map;
  * Represents the result of a match on a configuration
  */
 public class DebuggerMatchResult {
-    private final List<? extends Map<? extends KVariable, ? extends K>> substitutions;
+    private final List<Tuple2<? extends Map<? extends KVariable, ? extends K>, ? extends K>>  substitutions;
     private final Rule parsedRule;
     private final Rule compiledRule;
     private final String pattern;
 
-    public DebuggerMatchResult(List<? extends Map<? extends KVariable, ? extends K>> substitutions, Rule parsedRule, Rule compiledRule, String pattern) {
+    public DebuggerMatchResult(List<Tuple2<? extends Map<? extends KVariable, ? extends K>,? extends K>> substitutions, Rule parsedRule, Rule compiledRule, String pattern) {
         this.substitutions = substitutions;
         this.parsedRule = parsedRule;
         this.compiledRule = compiledRule;
@@ -33,7 +34,7 @@ public class DebuggerMatchResult {
         return parsedRule;
     }
 
-    public List<? extends Map<? extends KVariable, ?extends K>> getSubstitutions() {
+    public List<Tuple2<? extends Map<? extends KVariable, ? extends K>, ? extends K>>  getSubstitutions() {
         return substitutions;
     }
 
