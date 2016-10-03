@@ -9,7 +9,6 @@ import org.kframework.Strategy;
 import org.kframework.attributes.Att;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.FreshOperations;
-import org.kframework.backend.java.builtins.MetaK;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.strategies.TransitionCompositeStrategy;
@@ -27,7 +26,6 @@ import scala.Tuple2;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -403,7 +401,7 @@ public class SymbolicRewriter {
      * up to the bound as were found, and returns {@code true} if the bound has been reached.
      */
     private boolean addSearchResult(
-            HashSet<Tuple2<Substitution<Variable, Term>, ConjunctiveFormula>> searchResults,
+            HashSet<Tuple2<Substitution<Variable, Term>, K>> searchResults,
             ConstrainedTerm subject,
             Rule pattern,
             int bound) {
@@ -431,7 +429,7 @@ public class SymbolicRewriter {
      * @param searchType  defines when we will attempt to match the pattern
      * @return a list of substitution mappings for results that matched the pattern
      */
-    public Set<Tuple2<Substitution<Variable, Term>, ConjunctiveFormula>> search(
+    public Set<Tuple2<Substitution<Variable, Term>, K>> search(
             Term initialTerm,
             Rule pattern,
             int bound,
@@ -440,7 +438,7 @@ public class SymbolicRewriter {
             TermContext context) {
         stopwatch.start();
 
-        HashSet<Tuple2<Substitution<Variable, Term>, ConjunctiveFormula>> searchResults = Sets.newHashSet();
+        HashSet<Tuple2<Substitution<Variable, Term>, K>> searchResults = Sets.newHashSet();
         Set<ConstrainedTerm> visited = Sets.newHashSet();
 
         ConstrainedTerm initCnstrTerm = new ConstrainedTerm(initialTerm, context);
@@ -528,12 +526,11 @@ public class SymbolicRewriter {
         }
 
 
-        Set<Tuple2<Substitution<Variable, Term>, ConjunctiveFormula>> adaptedResults = searchResults.stream().map(x -> {
+        Set<Tuple2<Substitution<Variable, Term>, K>> adaptedResults = searchResults.stream().map(x -> {
             RenameAnonymousVariables renameAnonymousVariables = new RenameAnonymousVariables();
             Substitution<Variable, Term> subs = new HashMapSubstitution();
             x._1().forEach((k, v) -> subs.plus(renameAnonymousVariables.getRenamedVariable(k), renameAnonymousVariables.apply(v)));
-            List<K> termList = x._2().items().stream().map(term -> renameAnonymousVariables.apply((Term) term)).collect(Collectors.toList());
-            return new Tuple2<Substitution<Variable, Term>, ConjunctiveFormula>(subs, x._2());
+            return new Tuple2<Substitution<Variable, Term>, K>(subs, renameAnonymousVariables.apply((Term) x._2()));
         }).collect(Collectors.toSet());
 
         return adaptedResults;
