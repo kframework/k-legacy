@@ -413,7 +413,11 @@ public class SymbolicRewriter {
                 pattern.leftHandSide(),
                 subject.termContext());
         for (Substitution<Variable, Term> searchResult : discoveredSearchResults) {
-            searchResults.add(new Tuple2<>(searchResult, subject.constraint()));
+            if (subject.constraint().isTrue()) {
+                searchResults.add(new Tuple2<>(searchResult, BoolToken.TRUE));
+            } else {
+                searchResults.add(new Tuple2<>(searchResult, subject.constraint()));
+            }
             if (searchResults.size() == bound) {
                 return true;
             }
