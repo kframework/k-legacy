@@ -134,7 +134,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
             TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
             Term backendKil = MacroExpander.expandAndEvaluate(termContext, kem, converter.convert(k));
-            this.rewriter = new SymbolicRewriter(rewritingContext,  kompileOptions, new KRunState.Counter(), converter);
+            this.rewriter = new SymbolicRewriter(rewritingContext, kompileOptions, new KRunState.Counter(), converter);
             JavaKRunState result = (JavaKRunState) rewriter.rewrite(new ConstrainedTerm(backendKil, termContext), depth.orElse(-1));
             return new RewriterResult(result.getStepsTaken(), result.getJavaKilTerm());
         }
@@ -151,17 +151,9 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
             Term javaTerm = MacroExpander.expandAndEvaluate(termContext, kem, converter.convert(initialConfiguration));
             org.kframework.backend.java.kil.Rule javaPattern = converter.convert(Optional.empty(), pattern);
-            Set<Tuple2<Substitution<Variable, Term>, ConjunctiveFormula>> searchResults;
             this.rewriter = new SymbolicRewriter(rewritingContext, kompileOptions, new KRunState.Counter(), converter);
-            searchResults = rewriter
-                    .search(javaTerm, javaPattern, bound.orElse(NEGATIVE_VALUE), depth.orElse(NEGATIVE_VALUE), searchType, termContext);
-            List<Tuple2<? extends Map<? extends KVariable, ? extends K>, ? extends K>> retList = new ArrayList<>();
-            RenameAnonymousVariables renameAnonymousVariables= new RenameAnonymousVariables();
-            searchResults.forEach(x -> {
-                List<K> termList = x._2().items().stream().map(term -> renameAnonymousVariables.apply((Term) term)).collect(Collectors.toList());
-                retList.add(Tuple2.apply(x._1(), KORE.KApply(x._2().klabel(), KORE.KList(termList))));
-            });
-            return retList;
+            return rewriter.search(javaTerm, javaPattern, bound.orElse(NEGATIVE_VALUE), depth.orElse(NEGATIVE_VALUE), searchType, termContext)
+                    .stream().collect(Collectors.toList());
         }
 
 
