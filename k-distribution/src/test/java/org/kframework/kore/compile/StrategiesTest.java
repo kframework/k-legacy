@@ -19,6 +19,7 @@ import org.kframework.unparser.AddBrackets;
 import org.kframework.unparser.KOREToTreeNodes;
 import org.kframework.utils.KoreUtils;
 import org.kframework.utils.errorsystem.KExceptionManager;
+import scala.Tuple2;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,9 +71,13 @@ public class StrategiesTest {
 
         Rewriter rewriter = utils.getRewriter();
 
-        List<? extends Map<? extends KVariable, ? extends K>> searchResults = rewriter.search(kPgm, Optional.empty(), Optional.empty(),
+        List<Tuple2<? extends Map<? extends KVariable, ? extends K>, ? extends K>> searchMap = rewriter.search(kPgm, Optional.empty(), Optional.empty(),
                 new Rule(KORE.KVariable("X"), BooleanUtils.TRUE, BooleanUtils.TRUE, KORE.Att()),
                 SearchType.FINAL);
+
+        List<? extends Map<? extends KVariable, ? extends K>> searchResults = searchMap.stream().map(x -> {
+            return x._1();
+        }).collect(Collectors.toList());
 
         List<K> res = searchResults.stream().flatMap(m -> m.values().stream()).collect(Collectors.toList());
         Module unparsingModule = utils.getUnparsingModule();

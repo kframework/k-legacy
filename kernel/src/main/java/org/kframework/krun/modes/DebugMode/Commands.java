@@ -308,7 +308,7 @@ public class Commands {
             }
             result.getSubstitutions().forEach(subst -> {
                 KRun.prettyPrintSubstitution(
-                        KRun.filterAnonymousVariables(subst, result.getParsedRule()),
+                        KRun.filterAnonymousVariables(subst._1(), result.getParsedRule()),
                         result.getParsedRule(),
                         compiledDefinition,
                         OutputModes.PRETTY,
