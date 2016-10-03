@@ -61,7 +61,7 @@ public interface KDebug {
      * @param bounds        Max number of solutions to report. Empty parameter means unbounded.
      * @return
      */
-    public List<Tuple2<? extends Map<? extends KVariable, ? extends K>, ? extends K>>  search(Rule searchPattern, Optional<Integer> depth, Optional<Integer> bounds);
+    public List<Tuple2<? extends Map<? extends KVariable, ? extends K>, ? extends K>> search(Rule searchPattern, Optional<Integer> depth, Optional<Integer> bounds);
 
     /**
      * Resume the execution of the program until a final Configuration is reached.
