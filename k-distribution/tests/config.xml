@@ -19,10 +19,8 @@
            directory="samples-kore/kernelc"
            skip="pdf" />
 
-  <include file     ="equiv/test2/config.xml"
-           directory="equiv/test2"
-           programs ="equiv/test2"
-           results  ="equiv/test2" />
+  <include file     =      "equiv/config.xml"
+           directory="tests/equiv" />
 
 </tests>
 
