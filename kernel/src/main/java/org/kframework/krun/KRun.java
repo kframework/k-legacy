@@ -141,7 +141,9 @@ public class KRun {
             ByteArrayOutputStream sb1 = new ByteArrayOutputStream();
             ByteArrayOutputStream sb2 = new ByteArrayOutputStream();
             prettyPrintSubstitution(substitution, result.getParsedRule(), compiledDef, options.output, v -> sb1.write(v, 0, v.length));
-            prettyPrint(compiledDef, options.output, v -> sb2.write(v, 0, v.length), constraints.get(i++));
+            if (options.printConstraint) {
+                prettyPrint(compiledDef, options.output, v -> sb2.write(v, 0, v.length), constraints.get(i++));
+            }
             //Note that this is actually unsafe, but we are here assuming that --search is not used with --output binary
             results.add(new Tuple2<>(new String(sb1.toByteArray()), new String(sb2.toByteArray())));
         }
@@ -152,8 +154,10 @@ public class KRun {
             sb.append("Solution ").append(i++).append(":\n");
             sb.append(solution._1());
             sb.append("\n");
-            sb.append("Constraint \n");
-            sb.append(solution._2() + "\n");
+            if (options.printConstraint) {
+                sb.append("Constraint \n");
+                sb.append(solution._2() + "\n");
+            }
         }
         outputFile(sb.toString(), options);
     }

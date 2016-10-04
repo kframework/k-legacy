@@ -160,6 +160,9 @@ public final class KRunOptions {
     @Parameter(names="--search", description="In conjunction with it you can specify 3 options that are optional: pattern (the pattern used for search), bound (the number of desired solutions) and depth (the maximum depth of the search).")
     public boolean search = false;
 
+    @Parameter(names={"--print-constraint", "--print-constraints"}, description="If specified with search, prints the constraints for each solution.")
+    public boolean printConstraint = false;
+
     @Parameter(names="--search-final", description="Same as --search but only return final states, even if --depth is provided.")
     private boolean searchFinal = false;
 
