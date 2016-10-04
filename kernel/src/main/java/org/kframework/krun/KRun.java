@@ -47,6 +47,7 @@ import java.lang.invoke.MethodHandle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -147,7 +148,7 @@ public class KRun {
             //Note that this is actually unsafe, but we are here assuming that --search is not used with --output binary
             results.add(new Tuple2<>(new String(sb1.toByteArray()), new String(sb2.toByteArray())));
         }
-        // Collections.sort(results);
+        results.sort(Comparator.comparing(x -> x._1()));
         i = 1;
         StringBuilder sb = new StringBuilder();
         for (Tuple2 solution : results) {
