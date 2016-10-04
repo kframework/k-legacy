@@ -18,5 +18,11 @@
   <include file="../samples-kore/kernelc/tests/config.xml"
            directory="samples-kore/kernelc"
            skip="pdf" />
+
+  <include file     ="equiv/test2/config.xml"
+           directory="equiv/test2"
+           programs ="equiv/test2"
+           results  ="equiv/test2" />
+
 </tests>
 
