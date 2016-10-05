@@ -4,14 +4,10 @@ package org.kframework.backend.java.kil;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.apache.commons.collections4.trie.PatriciaTrie;
 
 import com.google.common.collect.ImmutableSet;
 import org.kframework.builtin.Sorts;
@@ -24,7 +20,7 @@ import org.kframework.utils.errorsystem.KEMException;
  * @author YilongL
  *
  */
-public final class Sort extends org.kframework.kore.AbstractSort implements MaximalSharing, Serializable {
+public final class Sort extends org.kframework.kore.AbstractSort implements Serializable {
 
     private static final ConcurrentMap<String, Sort> cache = new ConcurrentHashMap<>();
 

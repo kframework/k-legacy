@@ -11,7 +11,7 @@ import org.kframework.kil.ASTNode;
  *
  * @author AndreiS
  */
-public final class Hole extends Term implements MaximalSharing {
+public final class Hole extends Term {
 
     public static final Hole HOLE = new Hole();
 
@@ -42,11 +42,6 @@ public final class Hole extends Term implements MaximalSharing {
     @Override
     protected int computeHash() {
         return System.identityHashCode(this);
-    }
-
-    @Override
-    protected boolean computeMutability() {
-        return false;
     }
 
     @Override

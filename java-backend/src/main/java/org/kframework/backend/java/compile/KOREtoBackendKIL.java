@@ -277,26 +277,6 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
         }
     }
 
-    private Term CellCollection(org.kframework.kore.KLabel klabel, org.kframework.kore.KList klist) {
-        final CellCollection.Builder builder = CellCollection.builder(
-                definition.configurationInfo().getCellForConcat(klabel).get(),
-                definition);
-        Assoc.flatten(klabel, klist.items(), module).stream().forEach(k -> {
-            if (k instanceof KApply) {
-                builder.put(
-                        CellLabel.of(((KApply) k).klabel().name()),
-                        KList(((KApply) k).klist().items()));
-            } else if (k instanceof KVariable) {
-                // TODO(AndreiS): ensure the ... variables do not have sort K
-                // assert k.att().contains(Attribute.SORT_KEY);
-                builder.concatenate(new Variable(((org.kframework.kore.KVariable) k).name(), Sort.BAG));
-            } else {
-                assert false : "unexpected CellCollection term " + k;
-            }
-        });
-        return builder.build();
-    }
-
     public Term convert(org.kframework.kore.K k) {
         if (k instanceof Term)
             return (Term) k;
@@ -389,11 +369,6 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
                 Collections.emptySet(),
                 Collections.emptySet(),
                 lookups,
-                false,
-                null,
-                null,
-                null,
-                null,
                 oldRule,
                 global);
         /* rename variables in function, anywhere, and pattern rules to avoid name conflicts

@@ -20,7 +20,7 @@ public interface Transformer {
     ASTNode transform(BuiltinList builtinList);
     ASTNode transform(BuiltinMap builtinMap);
     ASTNode transform(BuiltinSet builtinSet);
-    ASTNode transform(CellCollection cellCollection);
+
     ASTNode transform(Collection collection);
     ASTNode transform(ConjunctiveFormula conjunctiveFormula);
     ASTNode transform(ConstrainedTerm constrainedTerm);
@@ -29,7 +29,7 @@ public interface Transformer {
     ASTNode transform(Hole hole);
     ASTNode transform(IntToken intToken);
     ASTNode transform(KLabelConstant kLabelConstant);
-    ASTNode transform(KLabelFreezer kLabelFreezer);
+
     ASTNode transform(KLabelInjection kLabelInjection);
     ASTNode transform(KItemProjection kItemProjection);
     ASTNode transform(KItem kItem);

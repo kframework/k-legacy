@@ -67,11 +67,6 @@ public class KItemProjection extends Term {
     }
 
     @Override
-    protected boolean computeMutability() {
-        return term.isMutable();
-    }
-
-    @Override
     public boolean equals(Object object) {
         if (this == object) {
             return true;
