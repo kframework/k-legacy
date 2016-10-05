@@ -363,11 +363,11 @@ public class Main {
                 System.out.println("usage: <smt-prelude> <def0> <mod0> <def1> <mod1> <def2> <mod2> <spec>");
                 return 1;
             }
-            String def0 = FileUtil.load(new File(args[1])); // "require \"domains.k\" module A syntax KItem ::= \"run\" endmodule"
+            String def0 = FileUtil.load(new File(args[1]), workingDir); // "require \"domains.k\" module A syntax KItem ::= \"run\" endmodule"
             String mod0 = args[2]; // "A"
-            String def1 = FileUtil.load(new File(args[3])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
+            String def1 = FileUtil.load(new File(args[3]), workingDir); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
             String mod1 = args[4]; // "A"
-            String def2 = FileUtil.load(new File(args[5])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
+            String def2 = FileUtil.load(new File(args[5]), workingDir); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
             String mod2 = args[6]; // "A"
             //
             String prelude = args[0];
