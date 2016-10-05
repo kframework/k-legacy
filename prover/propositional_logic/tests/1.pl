@@ -1,1 +1,1 @@
-A implies (B iff C) or (B implies (C iff A))
+(A implies B) or (B implies A)
