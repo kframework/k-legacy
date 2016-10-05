@@ -1,0 +1,1 @@
+(A implies B) or (B implies A)
