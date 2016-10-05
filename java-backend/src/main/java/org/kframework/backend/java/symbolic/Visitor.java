@@ -19,7 +19,7 @@ public interface Visitor {
     void visit(BuiltinList builtinList);
     void visit(BuiltinMap builtinMap);
     void visit(BuiltinSet builtinSet);
-    void visit(CellCollection cellCollection);
+
     void visit(Collection collection);
     void visit(ConjunctiveFormula node);
     void visit(ConstrainedTerm constrainedTerm);
@@ -27,7 +27,7 @@ public interface Visitor {
     void visit(Hole hole);
     void visit(IntToken intToken);
     void visit(KLabelConstant kLabelConstant);
-    void visit(KLabelFreezer kLabelFreezer);
+
     void visit(KLabelInjection kLabelInjection);
     void visit(KItem kItem);
     void visit(KItemProjection kItemProjection);

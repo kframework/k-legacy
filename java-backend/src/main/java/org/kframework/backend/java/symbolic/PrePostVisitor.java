@@ -76,20 +76,6 @@ public class PrePostVisitor implements Visitor {
     }
 
     @Override
-    public void visit(CellCollection cellCollection) {
-        preVisitor.resetProceed();
-        cellCollection.accept(preVisitor);
-        if (!preVisitor.isProceed()) return;
-        for (CellCollection.Cell cell : cellCollection.cells().values()) {
-            cell.content().accept(this);
-        }
-        for (Term term : cellCollection.baseTerms()) {
-            term.accept(this);
-        }
-        cellCollection.accept(postVisitor);
-    }
-
-    @Override
     public void visit(Collection collection) {
         throw new UnsupportedOperationException();
     }
@@ -108,15 +94,6 @@ public class PrePostVisitor implements Visitor {
         kLabelConstant.accept(preVisitor);
         if (!preVisitor.isProceed()) return;
         kLabelConstant.accept(postVisitor);
-    }
-
-    @Override
-    public void visit(KLabelFreezer kLabelFreezer) {
-        preVisitor.resetProceed();
-        kLabelFreezer.accept(preVisitor);
-        if (!preVisitor.isProceed()) return;
-        kLabelFreezer.term().accept(this);
-        kLabelFreezer.accept(postVisitor);
     }
 
     @Override

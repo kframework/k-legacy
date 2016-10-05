@@ -79,11 +79,6 @@ public class CombinedLocalTransformer extends LocalTransformer {
     }
 
     @Override
-    public ASTNode transform(CellCollection node) {
-        return transformAll(node);
-    }
-
-    @Override
     public ASTNode transform(Collection node) {
         return transformAll(node);
     }
@@ -105,11 +100,6 @@ public class CombinedLocalTransformer extends LocalTransformer {
 
     @Override
     public ASTNode transform(KLabelConstant node) {
-        return transformAll(node);
-    }
-
-    @Override
-    public ASTNode transform(KLabelFreezer node) {
         return transformAll(node);
     }
 

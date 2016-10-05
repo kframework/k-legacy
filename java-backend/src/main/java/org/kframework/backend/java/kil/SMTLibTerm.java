@@ -49,11 +49,6 @@ public class SMTLibTerm extends Term {
     }
 
     @Override
-    protected boolean computeMutability() {
-        return false;
-    }
-
-    @Override
     public boolean equals(Object object) {
         return this == object;
     }

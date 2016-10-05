@@ -5,7 +5,6 @@ import org.kframework.backend.java.kil.Bottom;
 import org.kframework.backend.java.kil.BuiltinList;
 import org.kframework.backend.java.kil.BuiltinMap;
 import org.kframework.backend.java.kil.BuiltinSet;
-import org.kframework.backend.java.kil.CellCollection;
 import org.kframework.backend.java.kil.Hole;
 import org.kframework.backend.java.kil.InjectedKLabel;
 import org.kframework.backend.java.kil.KItem;
@@ -32,7 +31,7 @@ public interface Unifier {
     void unify(BuiltinList builtinList, BuiltinList term);
     void unify(BuiltinMap builtinMap, BuiltinMap term);
     void unify(BuiltinSet builtinSet, BuiltinSet term);
-    void unify(CellCollection cellCollection, CellCollection term);
+
     void unify(Hole hole, Hole term);
     void unify(KItem kItem, KItem term);
     void unify(KLabelConstant kLabelConstant, KLabelConstant term);
