@@ -2,45 +2,35 @@
 
 package org.kframework.definition
 
-import java.util.function.BiFunction
-
 import org.kframework.attributes.{Location, Source}
 import org.kframework.definition
 import org.kframework.kore.K
 import org.kframework.utils.errorsystem.KEMException
+
 import collection.JavaConverters._
 import collection._
 
 object ModuleTransformer {
-  def fromSentenceTransformer(f: java.util.function.UnaryOperator[Sentence], name: String): MemoizingModuleTransformer =
-    new BasicModuleTransformer {
-      override protected def process(inputModule: Module, alreadyProcessedImports: Set[Module]): Module = {
-        Module(inputModule.name, alreadyProcessedImports, inputModule.localSentences.map(s => try {
-          f(s)
-        } catch {
-          case e: KEMException =>
-            if (e.exception.getLocation == null)
-              throw new KEMException(e.exception.copy(s.att.get(classOf[Location]).orNull))
-            else
-              throw e
-        }
-        ))
-      }
+  def fromSentenceTransformer(sentenceTransformer: java.util.function.UnaryOperator[Sentence], passName: String): MemoizingModuleTransformer =
+    new SentenceBasedModule {
+      override val name = passName
+      def f(s: Sentence) = sentenceTransformer(s)
     }
 
   def fromSentenceTransformer(f: (Module, Sentence) => Sentence, passName: String): HybridMemoizingModuleTransformer =
     new HybridMemoizingModuleTransformer {
       override def processHybridModule(m: Module): Module = {
-        val newSentences = m.localSentences map { s =>
-          try {
-            f(m, s)
-          } catch {
-            case e: KEMException =>
-              e.exception.addTraceFrame("while executing phase \"" + name + "\" on sentence at"
-                + "\n\t" + s.att.get(classOf[Source]).map(_.toString).getOrElse("<none>")
-                + "\n\t" + s.att.get(classOf[Location]).map(_.toString).getOrElse("<none>"))
-              throw e
-          }
+        val newSentences = m.localSentences map {
+          s =>
+            try {
+              f(m, s)
+            } catch {
+              case e: KEMException =>
+                e.exception.addTraceFrame("while executing phase \"" + name + "\" on sentence at"
+                  + "\n\t" + s.att.get(classOf[Source]).map(_.toString).getOrElse("<none>")
+                  + "\n\t" + s.att.get(classOf[Location]).map(_.toString).getOrElse("<none>"))
+                throw e
+            }
         }
         if (newSentences != m.localSentences)
           Module(m.name, m.imports, newSentences, m.att)
@@ -51,7 +41,10 @@ object ModuleTransformer {
     }
 
   def fromRuleBodyTranformer(f: K => K, name: String): MemoizingModuleTransformer =
-    fromSentenceTransformer(_ match { case r: Rule => r.copy(body = f(r.body)); case s => s }, name)
+    fromSentenceTransformer(_ match {
+      case r: Rule => r.copy(body = f(r.body));
+      case s => s
+    }, name)
 
   def fromKTransformerWithModuleInfo(ff: Module => K => K, name: String): HybridMemoizingModuleTransformer =
     fromSentenceTransformer((module, sentence) => {
@@ -112,8 +105,6 @@ abstract class MemoizingModuleTransformer extends ModuleTransformer {
   protected def processModule(inputModule: Module): Module
 }
 
-abstract class AbstractMemoizingModuleTransformer extends MemoizingModuleTransformer
-
 /**
   * Marker trait for a ModuleTransformer having access to the entire original definition
   */
@@ -125,7 +116,8 @@ trait WithInputDefinition {
   * The processHybridModule function take a module with all the imported modules already transformed,
   * and uses it to create the updated module.
   *
-  * Natural to use but a bit risky as the "hybrid" module may not be consistent.
+  * Natural to use but risky as the "hybrid" module may not be consistent. It is better not to use it as we might
+  * deprecate it in the future.
   */
 trait HybridModuleTransformer extends ModuleTransformer {
   def apply(input: Module): Module = wrapExceptions({
@@ -139,12 +131,28 @@ trait HybridModuleTransformer extends ModuleTransformer {
   protected def processHybridModule(hybridModule: Module): Module
 }
 
-abstract class BasicModuleTransformer extends MemoizingModuleTransformer {
+trait BasicModuleTransformer extends MemoizingModuleTransformer {
   def processModule(input: Module): Module = wrapExceptions({
     process(input, input.imports map this)
   })
 
   protected def process(inputModule: Module, alreadyProcessedImports: Set[Module]): Module
+}
+
+trait SentenceBasedModule extends BasicModuleTransformer {
+  def f(s: Sentence): Sentence
+  override protected def process(inputModule: Module, alreadyProcessedImports: Set[Module]): Module = {
+    Module(inputModule.name, alreadyProcessedImports, inputModule.localSentences.map(s => try {
+      f(s)
+    } catch {
+      case e: KEMException =>
+        if (e.exception.getLocation == null)
+          throw new KEMException(e.exception.copy(s.att.get(classOf[Location]).orNull))
+        else
+          throw e
+    }
+    ))
+  }
 }
 
 abstract class WithInputDefinitionModuleTransformer(inputDefinition: Definition) extends BasicModuleTransformer {
