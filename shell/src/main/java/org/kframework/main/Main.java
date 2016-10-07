@@ -363,11 +363,14 @@ public class Main {
                 System.out.println("usage: <smt-prelude> <def0> <mod0> <def1> <mod1> <def2> <mod2> <spec>");
                 return 1;
             }
-            String def0 = FileUtil.load(new File(args[1])); // "require \"domains.k\" module A syntax KItem ::= \"run\" endmodule"
+            File file0 = new File(args[1]);
+            String def0 = FileUtil.load(file0); // "require \"domains.k\" module A syntax KItem ::= \"run\" endmodule"
             String mod0 = args[2]; // "A"
-            String def1 = FileUtil.load(new File(args[3])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
+            File file1 = new File(args[3]);
+            String def1 = FileUtil.load(file1); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
             String mod1 = args[4]; // "A"
-            String def2 = FileUtil.load(new File(args[5])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
+            File file2 = new File(args[5]);
+            String def2 = FileUtil.load(file2); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
             String mod2 = args[6]; // "A"
             //
             String prelude = args[0];
@@ -376,9 +379,9 @@ public class Main {
             Kapi kapi = new Kapi();
 
             // kompile
-            CompiledDefinition compiledDef0 = kapi.kompile(def0, mod0);
-            CompiledDefinition compiledDef1 = kapi.kompile(def1, mod1);
-            CompiledDefinition compiledDef2 = kapi.kompile(def2, mod2);
+            CompiledDefinition compiledDef0 = kapi.kompile(file0, def0, mod0);
+            CompiledDefinition compiledDef1 = kapi.kompile(file1, def1, mod1);
+            CompiledDefinition compiledDef2 = kapi.kompile(file2, def2, mod2);
 
             // kequiv
             Kapi.kequiv(compiledDef0, compiledDef1, compiledDef2, prove, prelude);

@@ -1,6 +1,7 @@
 // Copyright (c) 2016 K Team. All Rights Reserved.
 package org.kframework;
 
+import com.google.common.collect.Lists;
 import org.kframework.RewriterResult;
 import org.kframework.attributes.Att;
 import org.kframework.attributes.Source;
@@ -71,9 +72,13 @@ public class Kapi {
         this(new KapiGlobal());
     }
 
-    public CompiledDefinition kompile(String def, String mainModuleName) {
+    public CompiledDefinition kompile(File definitionFile, String def, String mainModuleName) {
+        // add . to lookup directories for requires
+        List<File> allLookupDirectories = Lists.newArrayList(Kompile.BUILTIN_DIRECTORY);
+        allLookupDirectories.add(0, definitionFile.getParentFile());
+
         // parse
-        Definition parsedDef = DefinitionParser.from(def, mainModuleName);
+        Definition parsedDef = DefinitionParser.from(def, mainModuleName, Source.apply("generated"), allLookupDirectories);
 
         // compile (translation pipeline)
         Function<Definition, Definition> pipeline = new JavaBackend(kapiGlobal).steps();
@@ -178,14 +183,18 @@ public class Kapi {
             System.out.println("usage: <def> <main-module> <pgm>");
             return;
         }
-        String def0 = FileUtil.load(new File(args[0])); // "require \"domains.k\" module A syntax KItem ::= \"run\" endmodule"
+
+        File file0 = new File(args[0]);
+        String def0 = FileUtil.load(file0); // "require \"domains.k\" module A syntax KItem ::= \"run\" endmodule"
         String mod0 = args[1]; // "A"
 
-        String def1 = FileUtil.load(new File(args[2])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
+        File file1 = new File(args[2]);
+        String def1 = FileUtil.load(file1); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
         String mod1 = args[3]; // "A"
         String pgm1 = FileUtil.load(new File(args[4])); // "run"
 
-        String def2 = FileUtil.load(new File(args[5])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
+        File file2 = new File(args[5]);
+        String def2 = FileUtil.load(file2); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
         String mod2 = args[6]; // "A"
         String pgm2 = FileUtil.load(new File(args[7])); // "run"
 
@@ -195,9 +204,9 @@ public class Kapi {
         Kapi kapi = new Kapi();
 
         // kompile
-        CompiledDefinition compiledDef0 = kapi.kompile(def0, mod0);
-        CompiledDefinition compiledDef1 = kapi.kompile(def1, mod1);
-        CompiledDefinition compiledDef2 = kapi.kompile(def2, mod2);
+        CompiledDefinition compiledDef0 = kapi.kompile(file0, def0, mod0);
+        CompiledDefinition compiledDef1 = kapi.kompile(file1, def1, mod1);
+        CompiledDefinition compiledDef2 = kapi.kompile(file2, def2, mod2);
 
         // krun
         RewriterResult result1 = kapi.krun(pgm1, null, compiledDef1);
