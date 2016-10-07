@@ -2,16 +2,12 @@
 package org.kframework.krun;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
-//import org.kframework.backend.java.symbolic.InitializeRewriter;
-//import org.kframework.backend.java.symbolic.JavaExecutionOptions;
 import org.kframework.builtin.Sorts;
 import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
 import org.kframework.kompile.CompiledDefinition;
-import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KToken;
@@ -19,10 +15,7 @@ import org.kframework.kore.KVariable;
 import org.kframework.kore.Sort;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
-import org.kframework.krun.api.io.FileSystem;
-import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import org.kframework.krun.modes.ExecutionMode;
-import org.kframework.main.GlobalOptions;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.binary.BinaryParser;
 import org.kframework.parser.kore.KoreParser;
@@ -43,10 +36,8 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.invoke.MethodHandle;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,6 +50,10 @@ import java.util.stream.Collectors;
 
 import static org.kframework.Collections.*;
 import static org.kframework.kore.KORE.*;
+
+//import org.kframework.backend.java.symbolic.InitializeRewriter;
+//import org.kframework.backend.java.symbolic.JavaExecutionOptions;
+//import org.kframework.parser.kore.KoreParser;
 
 /**
  * The KORE-based KRun
@@ -142,9 +137,8 @@ public class KRun {
             ByteArrayOutputStream sb1 = new ByteArrayOutputStream();
             ByteArrayOutputStream sb2 = new ByteArrayOutputStream();
             prettyPrintSubstitution(substitution, result.getParsedRule(), compiledDef, options.output, v -> sb1.write(v, 0, v.length));
-            if (options.printConstraint) {
-                prettyPrint(compiledDef, options.output, v -> sb2.write(v, 0, v.length), constraints.get(i++));
-            }
+            prettyPrint(compiledDef, options.output, v -> sb2.write(v, 0, v.length), constraints.get(i++));
+
             //Note that this is actually unsafe, but we are here assuming that --search is not used with --output binary
             results.add(new Tuple2<>(new String(sb1.toByteArray()), new String(sb2.toByteArray())));
         }
@@ -155,7 +149,7 @@ public class KRun {
             sb.append("Solution ").append(i++).append(":\n");
             sb.append(solution._1());
             sb.append("\n");
-            if (options.printConstraint) {
+            if (!solution._2().toString().startsWith("true")) {
                 sb.append("Constraint \n");
                 sb.append(solution._2() + "\n");
             }
