@@ -5,14 +5,13 @@ import java.util.Optional
 
 import org.kframework.RewriterResult
 import org.kframework.attributes.Att
-import org.kframework.builtin.{KLabels, Sorts}
+import org.kframework.builtin.Sorts
 import org.kframework.definition._
+import org.kframework.kore
 import org.kframework.kore._
 import org.kframework.rewriter.SearchType
 
 import collection._
-import org.kframework.kale
-import org.kframework.kore.SortedADT.SortedKVariable
 import org.kframework.kore.Unapply.KRewrite
 
 object KaleRewriter {
@@ -36,8 +35,6 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
 
   private val assocProductions: Set[Sentence] = productionWithUniqueSorts.filter(p => KaleRewriter.isEffectivelyAssoc(p.att)).toSet
 
-  println(assocProductions.size)
-
   private val nonAssocProductions = (productionWithUniqueSorts | syntaxSortDeclarations) &~ assocProductions
 
   implicit val env = Environment()
@@ -48,6 +45,23 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   val hooks: Map[String, Label] = Map(
 
   )
+
+  case class IsSort(s: Sort)(implicit val env: Environment) extends {
+    val name = "is" + s.name
+  } with PurelyFunctionalLabel1 {
+    override def f(_1: Term): Option[Term] = _1 match {
+      case v: Variable => None
+      case _ => Some(BOOLEAN(m.subsorts.<(kSoftOf(_1), m.resolve(kore.KORE.Sort(s.name)))))
+    }
+
+    private def kSoftOf(t: Term): kore.Sort = m.sortFor.getOrElse(
+      KORE.KLabel(t.label.name),
+      t.label match {
+        case tokenLabel: GENERIC_TOKEN => m.resolve(kore.KORE.Sort(tokenLabel.sort.name))
+        case BOOLEAN => m.resolve(Sorts.Bool)
+        case INT => m.resolve(Sorts.Int)
+      })
+  }
 
   def relativeHook(relativeHook: String): Option[Label] = relativeHook.split('.').toSeq match {
     case Seq(baseLabel: String, hookName: String) => relativeHookByBaseLabel(baseLabel, hookName)
@@ -75,13 +89,28 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
         } else {
           if (p.klabel.isDefined) {
             val nonTerminals = items.filter(_.isInstanceOf[NonTerminal])
-            Some(nonTerminals match {
-              case Seq() => FreeLabel0(p.klabel.get.name)
-              case Seq(_) => FreeLabel1(p.klabel.get.name)
-              case Seq(_, _) => FreeLabel2(p.klabel.get.name)
-              case Seq(_, _, _) => FreeLabel3(p.klabel.get.name)
-              case Seq(_, _, _, _) => FreeLabel4(p.klabel.get.name)
-            })
+            Some(
+              if (att.contains(Att.Function) && !att.contains(Att.hook)) {
+                if (p.klabel.get.name.startsWith("is")) {
+                  IsSort(Sort(p.klabel.get.name.substring(2)))
+                } else {
+                  nonTerminals match {
+                    case Seq() => FunctionDefinedByRewritingLabel0(p.klabel.get.name)(env)
+                    case Seq(_) => FunctionDefinedByRewritingLabel1(p.klabel.get.name)(env)
+                    case Seq(_, _) => FunctionDefinedByRewritingLabel2(p.klabel.get.name)(env)
+                    case Seq(_, _, _) => FunctionDefinedByRewritingLabel3(p.klabel.get.name)(env)
+                    case Seq(_, _, _, _) => FunctionDefinedByRewritingLabel4(p.klabel.get.name)(env)
+                  }
+                }
+              } else {
+                nonTerminals match {
+                  case Seq() => FreeLabel0(p.klabel.get.name)
+                  case Seq(_) => FreeLabel1(p.klabel.get.name)
+                  case Seq(_, _) => FreeLabel2(p.klabel.get.name)
+                  case Seq(_, _, _) => FreeLabel3(p.klabel.get.name)
+                  case Seq(_, _, _, _) => FreeLabel4(p.klabel.get.name)
+                }
+              })
           } else
             None
         }
@@ -123,12 +152,6 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
       relativeHook(att.get(Att.relativeHook).get)
   }
 
-  env.seal()
-
-  val unifier = Matcher(env)
-  val substitutionApplier = SubstitutionApply(env)
-  val rewriterConstructor = Rewriter(substitutionApplier, unifier, env) _
-
   def convert(body: K): Term = body match {
     case Unapply.KToken(s, sort) => sort match {
       case Sorts.Bool => BOOLEAN(s.toBoolean)
@@ -142,22 +165,27 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     case r: KRewrite => Rewrite(convert(r.left), convert(r.right))
   }
 
-  val rules = m.rules map {
-    case rule@Rule(KRewrite(l, r), requires, ensures, att) =>
-      println(rule, att)
-      if (att.contains(Att.`macro`)) {
-        ???
-        Rewrite(AnywhereContext(Variable("CONTEXT"), And(convert(l), Equality(convert(requires)), BOOLEAN(true))),
-          AnywhereContext(Variable("CONTEXT"), convert(r)))
-      } else {
-        l match {
-          case t@Unapply.KApply(klabel, _) if m.attributesFor(klabel).contains(Att.`Function`) =>
-            Rewrite(AnywhereContext(Variable("CONTEXT"), And(convert(l), Equality(convert(requires), BOOLEAN(true)))),
-              AnywhereContext(Variable("CONTEXT"), convert(r)))
-          case _ => Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r))
-        }
-      }
+  val rules: Set[Rewrite] = m.rules collect {
+    case rule@Rule(KRewrite(l@Unapply.KApply(klabel, _), r), requires, ensures, att)
+      if !att.contains(Att.`macro`) && !m.attributesFor(klabel).contains(Att.`Function`) =>
+      Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r))
   }
+
+  val functionRules: Map[Label, Set[Rewrite]] = m.rules collect {
+    case rule@Rule(KRewrite(l@Unapply.KApply(klabel, _), r), requires, ensures, att)
+      if m.attributesFor(klabel).contains(Att.`Function`) && !m.attributesFor(klabel).contains(Att.hook) && !m.attributesFor(klabel).contains(Att.relativeHook) =>
+      (env.label(klabel.name), Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r)))
+  } groupBy (_._1) mapValues (_ map (_._2))
+
+  env.labels.collect({
+    case l: FunctionDefinedByRewriting => l.setRules(functionRules(l))
+  })
+
+  env.seal()
+
+  val unifier = Matcher(env)
+  val substitutionApplier = SubstitutionApply(env)
+  val rewriterConstructor = Rewriter(substitutionApplier, unifier, env) _
 
   println(rules.mkString("\n"))
 
