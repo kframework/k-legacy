@@ -92,6 +92,7 @@ public class ConstrainedTerm extends JavaSymbolicObject {
      * if initialize by a @term and a @context, then initialize
      * it as if there is a conjunctive formula that is obtained
      * from the @context. Details are to follow.
+     * Xiaohong, xc3@illinois.edu, Oct 10 2016
      */
     public ConstrainedTerm(Term term, TermContext context) {
         this(term, ConjunctiveFormula.of(context.global()), context);
@@ -115,15 +116,25 @@ public class ConstrainedTerm extends JavaSymbolicObject {
         return conjunctiveFormula != null;
     }
 
+    /**
+     * In order to understand this method, one needs to firstly understand
+     * the PatternExpander class.
+     * Xiaohong, xc3@illinois, Oct 10, 2016
+     * @param narrowing
+     * @return
+     */
     public ConstrainedTerm expandPatterns(boolean narrowing) {
         ConstrainedTerm result = this;
         while (true) {
+
             PatternExpander patternExpander = new PatternExpander(
                     result.constraint(),
                     narrowing,
                     context);
             ConstrainedTerm expandedTerm = (ConstrainedTerm) result.accept(patternExpander);
+
             if (expandedTerm == result) {
+
                 break;
             }
             result = new ConstrainedTerm(
