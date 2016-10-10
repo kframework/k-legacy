@@ -51,6 +51,11 @@ public class ConstrainedTerm extends JavaSymbolicObject {
         }
 
         @Override
+        /*****
+         * A Data data is equal to the other data, if
+         * their term and constraint are equal.
+         * Xiaohong, xc3@illinois.edu, Oct 09, 2016
+         */
         public boolean equals(Object obj) {
             if (this == obj)
                 return true;
@@ -83,6 +88,11 @@ public class ConstrainedTerm extends JavaSymbolicObject {
         this.context = context;
     }
 
+    /**
+     * if initialize by a @term and a @context, then initialize
+     * it as if there is a conjunctive formula that is obtained
+     * from the @context. Details are to follow.
+     */
     public ConstrainedTerm(Term term, TermContext context) {
         this(term, ConjunctiveFormula.of(context.global()), context);
     }
@@ -95,6 +105,11 @@ public class ConstrainedTerm extends JavaSymbolicObject {
         return data.constraint;
     }
 
+    /**
+     *
+     * @param constrainedTerm
+     * @return
+     */
     public boolean implies(ConstrainedTerm constrainedTerm) {
         ConjunctiveFormula conjunctiveFormula = matchImplies(constrainedTerm, true);
         return conjunctiveFormula != null;
