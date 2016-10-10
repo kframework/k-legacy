@@ -23,7 +23,23 @@ public class PatternExpander extends CopyOnWriteTransformer {
     private final ConjunctiveFormula constraint;
     private final boolean narrowing;
 
+    /**
+     * TODO: What does this extraConstraint do?
+     * Xiaohong xc3@illinois Oct 10, 2016
+     */
     private ConjunctiveFormula extraConstraint;
+
+    /**
+     * The constructor of PatternExpander needs not only a @constraint and
+     * a boolean narrowing, but also needs a context, which will firstly be
+     * super(context), i.e., to be called by the constructor of CopyOnWriteTransformer
+     * class, and then used to construct the this.extraConstrain, by a method in
+     * ConjunctiveFormula.
+     * Xiaohong xc3@illinois Oct 10 2016
+     * @param constraint
+     * @param narrowing
+     * @param context
+     */
 
     public PatternExpander(ConjunctiveFormula constraint, boolean narrowing, TermContext context) {
         super(context);
@@ -36,16 +52,30 @@ public class PatternExpander extends CopyOnWriteTransformer {
         return extraConstraint;
     }
 
+    /**
+     * TODO: What does this function do?
+     * First guess: From its name, it transforms a K item to its AST:
+     * patternExpander.transform(kItem)
+     * @param kItem
+     * @return
+     */
     @Override
     public ASTNode transform(KItem kItem) {
+        // First use the super transform() method, which is a method of
+        // CopyOnWriteTransformer class
         kItem = (KItem) super.transform(kItem);
         if (constraint == null) {
+            // do no extra thing if this pattern expander does not have a constraint
             return kItem;
         }
 
         if (!(kItem.kLabel() instanceof KLabelConstant
                 && ((KLabelConstant) kItem.kLabel()).isPattern()
                 && kItem.kList() instanceof KList)) {
+            // do no extra thing if all of the following satisfies:
+            // (1) the k item is not a constant
+            // (2) the k item TODO: I don't get this. I need to check kItem class first, and come
+            // back later.
             return kItem;
         }
         KLabelConstant kLabel = (KLabelConstant) kItem.kLabel();
