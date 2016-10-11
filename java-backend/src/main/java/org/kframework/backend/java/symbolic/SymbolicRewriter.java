@@ -19,6 +19,7 @@ import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.FindK;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
+import org.kframework.kore.KORE;
 import org.kframework.krun.api.KRunState;
 import org.kframework.utils.BitSet;
 import org.kframework.rewriter.SearchType;
@@ -401,10 +402,11 @@ public class SymbolicRewriter {
      * up to the bound as were found, and returns {@code true} if the bound has been reached.
      */
     private boolean addSearchResult(
-            HashSet<Tuple2<Substitution<Variable, Term>, K>> searchResults,
+            List<K> searchResults,
             ConstrainedTerm subject,
             Rule pattern,
-            int bound) {
+            int bound,
+            TermContext context) {
         assert Sets.intersection(subject.term().variableSet(),
                 subject.constraint().substitution().keySet()).isEmpty();
         assert pattern.requires().stream().allMatch(BoolToken.TRUE::equals) && pattern.lookups().getKComponents().isEmpty();
@@ -413,10 +415,16 @@ public class SymbolicRewriter {
                 pattern.leftHandSide(),
                 subject.termContext());
         for (Substitution<Variable, Term> searchResult : discoveredSearchResults) {
+            RenameAnonymousVariables renameAnonymousVariables = new RenameAnonymousVariables();
+            BuiltinMap.Builder mapBuilder = BuiltinMap.builder(context.global());
+            searchResult.entrySet().stream().forEach(x -> {
+                mapBuilder.put(renameAnonymousVariables.getRenamedVariable(x.getKey()), renameAnonymousVariables.apply(x.getValue()));
+            });
+            K constrainedTerm = mapBuilder.build();
             if (subject.constraint().isTrue()) {
-                searchResults.add(new Tuple2<>(searchResult, BoolToken.TRUE));
+                searchResults.add(KORE.KApply(KORE.KLabel(KLabels.AND), constrainedTerm, BoolToken.TRUE));
             } else {
-                searchResults.add(new Tuple2<>(searchResult, subject.constraint()));
+                searchResults.add(KORE.KApply(KORE.KLabel(KLabels.AND), constrainedTerm, renameAnonymousVariables.apply(subject.constraint())));
             }
             if (searchResults.size() == bound) {
                 return true;
@@ -433,7 +441,7 @@ public class SymbolicRewriter {
      * @param searchType  defines when we will attempt to match the pattern
      * @return a list of substitution mappings for results that matched the pattern
      */
-    public Set<Tuple2<Substitution<Variable, Term>, K>> search(
+    public K search(
             Term initialTerm,
             Rule pattern,
             int bound,
@@ -442,7 +450,7 @@ public class SymbolicRewriter {
             TermContext context) {
         stopwatch.start();
 
-        HashSet<Tuple2<Substitution<Variable, Term>, K>> searchResults = Sets.newHashSet();
+        List<K> searchResults = new ArrayList<>();
         Set<ConstrainedTerm> visited = Sets.newHashSet();
 
         ConstrainedTerm initCnstrTerm = new ConstrainedTerm(initialTerm, context);
@@ -451,11 +459,11 @@ public class SymbolicRewriter {
         // A more clean solution would require a bit of a rework to how patterns
         // are handled in krun.Main when not doing search.
         if (depth == 0) {
-            addSearchResult(searchResults, initCnstrTerm, pattern, bound);
+            addSearchResult(searchResults, initCnstrTerm, pattern, bound, context);
             stopwatch.stop();
             if (context.global().krunOptions.experimental.statistics)
                 System.err.println("[" + visited.size() + "states, " + 0 + "steps, " + stopwatch + "]");
-            return searchResults;
+            return KORE.KApply(KORE.KLabel(KLabels.OR), KORE.KList(searchResults));
         }
 
         // The search queues will map terms to their depth in terms of transitions.
@@ -469,11 +477,11 @@ public class SymbolicRewriter {
             depth = 1;
         }
         if (searchType == SearchType.STAR) {
-            if (addSearchResult(searchResults, initCnstrTerm, pattern, bound)) {
+            if (addSearchResult(searchResults, initCnstrTerm, pattern, bound, context)) {
                 stopwatch.stop();
                 if (context.global().krunOptions.experimental.statistics)
                     System.err.println("[" + visited.size() + "states, " + 0 + "steps, " + stopwatch + "]");
-                return searchResults;
+                return KORE.KApply(KORE.KLabel(KLabels.OR), KORE.KList(searchResults));
             }
         }
 
@@ -490,7 +498,7 @@ public class SymbolicRewriter {
                 List<ConstrainedTerm> results = computeRewriteStep(term, step, false);
 
                 if (results.isEmpty() && searchType == SearchType.FINAL) {
-                    if (addSearchResult(searchResults, term, pattern, bound)) {
+                    if (addSearchResult(searchResults, term, pattern, bound, context)) {
                         break label;
                     }
                 }
@@ -508,7 +516,7 @@ public class SymbolicRewriter {
                         // If we aren't searching for only final results, then
                         // also add this as a result if it matches the pattern.
                         if (searchType != SearchType.FINAL || currentDepth + 1 == depth) {
-                            if (addSearchResult(searchResults, result, pattern, bound)) {
+                            if (addSearchResult(searchResults, result, pattern, bound, context)) {
                                 break label;
                             }
                         }
@@ -528,16 +536,7 @@ public class SymbolicRewriter {
         if (context.global().krunOptions.experimental.statistics) {
             System.err.println("[" + visited.size() + "states, " + step + "steps, " + stopwatch + "]");
         }
-
-
-        Set<Tuple2<Substitution<Variable, Term>, K>> adaptedResults = searchResults.stream().map(x -> {
-            RenameAnonymousVariables renameAnonymousVariables = new RenameAnonymousVariables();
-            Substitution<Variable, Term> subs = new HashMapSubstitution();
-            x._1().forEach((k, v) -> subs.plus(renameAnonymousVariables.getRenamedVariable(k), renameAnonymousVariables.apply(v)));
-            return new Tuple2<Substitution<Variable, Term>, K>(subs, renameAnonymousVariables.apply((Term) x._2()));
-        }).collect(Collectors.toSet());
-
-        return adaptedResults;
+        return KORE.KApply(KORE.KLabel(KLabels.OR), KORE.KList(searchResults));
     }
 
     public List<ConstrainedTerm> proveRule(
