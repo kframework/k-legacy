@@ -173,6 +173,8 @@ public class Kapi {
         KRun.prettyPrint(compiledDef, krunOptions.output, s -> KRun.outputFile(s, krunOptions, files), result.k());
     }
 
+    @Deprecated
+    // TODO(Daejun): replace this with unit tests as examples of kapi usage
     public static void main(String[] args) {
         if (args.length < 10) {
             System.out.println("usage: <def> <main-module> <pgm>");
