@@ -370,8 +370,8 @@ public class Main {
             String def2 = FileUtil.load(new File(args[5]), workingDir); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
             String mod2 = args[6]; // "A"
             //
-            String prelude = args[0];
-            String prove = args[7];
+            String prelude = FileUtil.resolveWorkingDirectory(new File(args[0]), workingDir).getAbsolutePath();
+            String prove   = FileUtil.resolveWorkingDirectory(new File(args[7]), workingDir).getAbsolutePath();
 
             Kapi kapi = new Kapi();
 
