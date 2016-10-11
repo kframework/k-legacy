@@ -165,23 +165,49 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     case r: KRewrite => Rewrite(convert(r.left), convert(r.right))
   }
 
+  val pairs = m.rules collect {
+    case rule@Rule(KRewrite(l@Unapply.KApply(klabel, _), r), requires, ensures, att)
+      if m.attributesFor(klabel).contains(Att.`Function`) && !m.attributesFor(klabel).contains(Att.hook) && !m.attributesFor(klabel).contains(Att.relativeHook) =>
+      (env.label(klabel.name), Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r)))
+  }
+
+  val groups = pairs groupBy (_._1)
+
+  val functionRules: Map[Label, Set[Rewrite]] = groups map { case (k, v) => (k, v map (_._2)) }
+
+  var renamedFunctionRules: Map[Label, Set[Rewrite]] = functionRules map { case (k, v) => (k, v map env.renameVariables) }
+
+  println(renamedFunctionRules)
+
+  env.seal()
+
+  println(renamedFunctionRules)
+
+  def setFunctionRules(functionRules: Map[Label, Set[Rewrite]]) {
+    env.labels.collect({
+      case l: FunctionDefinedByRewriting => l.setRules(functionRules(l))
+    })
+  }
+
+  setFunctionRules(renamedFunctionRules)
+
+  def reconstruct(inhibitForLabel: Label)(t: Term): Term = t match {
+    case Node(label, children) if label != inhibitForLabel => label(children map reconstruct(inhibitForLabel) toIterable)
+    case t => t
+  }
+
+  def resolveFunctionRHS(functionRules: Map[Label, Set[Rewrite]]): Map[Label, Set[Rewrite]] = {
+    functionRules map { case (label, rewrites) => (label, rewrites map (rw => reconstruct(label)(rw).asInstanceOf[Rewrite])) } toMap
+  }
+
+  val finalFunctionRules = Util.fixpoint(resolveFunctionRHS)(functionRules)
+  setFunctionRules(finalFunctionRules)
+
   val rules: Set[Rewrite] = m.rules collect {
     case rule@Rule(KRewrite(l@Unapply.KApply(klabel, _), r), requires, ensures, att)
       if !att.contains(Att.`macro`) && !m.attributesFor(klabel).contains(Att.`Function`) =>
       Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r))
   }
-
-  val functionRules: Map[Label, Set[Rewrite]] = m.rules collect {
-    case rule@Rule(KRewrite(l@Unapply.KApply(klabel, _), r), requires, ensures, att)
-      if m.attributesFor(klabel).contains(Att.`Function`) && !m.attributesFor(klabel).contains(Att.hook) && !m.attributesFor(klabel).contains(Att.relativeHook) =>
-      (env.label(klabel.name), Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r)))
-  } groupBy (_._1) mapValues (_ map (_._2))
-
-  env.labels.collect({
-    case l: FunctionDefinedByRewriting => l.setRules(functionRules(l))
-  })
-
-  env.seal()
 
   val unifier = Matcher(env)
   val substitutionApplier = SubstitutionApply(env)
