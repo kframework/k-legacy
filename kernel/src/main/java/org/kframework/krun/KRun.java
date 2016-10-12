@@ -3,16 +3,23 @@ package org.kframework.krun;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.attributes.Source;
+import org.kframework.builtin.KLabels;
 import org.kframework.builtin.Sorts;
 import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
+import org.kframework.kil.Variable;
 import org.kframework.kompile.CompiledDefinition;
+import org.kframework.kore.Assoc;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
+import org.kframework.kore.KLabel;
+import org.kframework.kore.KList;
+import org.kframework.kore.KORE;
 import org.kframework.kore.KToken;
 import org.kframework.kore.KVariable;
 import org.kframework.kore.Sort;
+import org.kframework.kore.Unapply;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.modes.ExecutionMode;
@@ -30,7 +37,9 @@ import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.file.FileUtil;
+import scala.Some;
 import scala.Tuple2;
+import scala.collection.immutable.Seq;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -72,6 +81,21 @@ public class KRun {
         this.isNailgun = isNailgun;
     }
 
+    private SearchResult extractMaps(scala.collection.Seq<K> flatList) {
+
+        flatList.toStream()
+    }
+    private Object processResult(K result) {
+
+        Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> deconstructor = Unapply.KApply.unapply((KApply) result);
+        if (deconstructor != null) {
+            if (deconstructor.get()._1().equals(KLabel(KLabels.OR))) {
+                scala.collection.Seq<K> flatList = Assoc.flatten(KORE.KLabel(KLabels.OR), deconstructor.get()._2(), KLabel(KLabels.OR));
+
+            }
+        }
+    }
+
     public int run(CompiledDefinition compiledDef, KRunOptions options, Function<Module, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
         String pgmFileName = options.configurationCreation.pgm();
         K program;
@@ -89,6 +113,7 @@ public class KRun {
         Rewriter rewriter = rewriterGenerator.apply(compiledDef.executionModule());
 
         Object result = executionMode.execute(program, rewriter, compiledDef);
+
 
         if (result instanceof K) {
             prettyPrint(compiledDef, options.output, s -> outputFile(s, options), (K) result);
