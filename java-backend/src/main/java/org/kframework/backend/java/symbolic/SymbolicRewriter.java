@@ -543,11 +543,7 @@ public class SymbolicRewriter {
         if (results.size() == 1) {
             return results.get(0);
         }
-        K prev = KORE.KApply(KORE.KLabel(KLabels.OR), results.get(results.size() - 1), BoolToken.FALSE);
-        for(int i = results.size() - 2; i >= 0; --i) {
-            prev = KORE.KApply(KORE.KLabel(KLabels.OR), results.get(i), prev);
-        }
-        return prev;
+        return results.stream().reduce(BoolToken.FALSE, (x, y) -> KORE.KApply(KORE.KLabel(KLabels.OR), x, y));
     }
 
     public List<ConstrainedTerm> proveRule(
