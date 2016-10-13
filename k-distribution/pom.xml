@@ -62,7 +62,7 @@
             <configuration>
               <target>
 
-                <exec dir="${ktestDir}/tests/equiv" executable="${project.build.directory}/release/k/bin/ktest${native.script.extension}">
+                <exec dir="${ktestDir}/tests/equiv" executable="${project.build.directory}/release/k/bin/ktest${native.script.extension}" failonerror="true" >
                   <arg value="config.xml" />
                   <arg value="-v" />
                   <arg value="--report" />
