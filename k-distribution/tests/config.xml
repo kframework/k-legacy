@@ -19,8 +19,10 @@
            directory="samples-kore/kernelc"
            skip="pdf" />
 
+<!--
   <include file     =      "equiv/config.xml"
            directory="tests/equiv" />
+-->
 
 </tests>
 
