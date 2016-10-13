@@ -8,13 +8,11 @@ import org.kframework.builtin.Sorts;
 import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
-import org.kframework.kil.Variable;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kore.Assoc;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KLabel;
-import org.kframework.kore.KList;
 import org.kframework.kore.KORE;
 import org.kframework.kore.KToken;
 import org.kframework.kore.KVariable;
@@ -39,17 +37,13 @@ import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.file.FileUtil;
 import scala.Some;
 import scala.Tuple2;
-import scala.collection.immutable.Seq;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -81,20 +75,6 @@ public class KRun {
         this.isNailgun = isNailgun;
     }
 
-    private SearchResult extractMaps(scala.collection.Seq<K> flatList) {
-
-        flatList.toStream()
-    }
-    private Object processResult(K result) {
-
-        Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> deconstructor = Unapply.KApply.unapply((KApply) result);
-        if (deconstructor != null) {
-            if (deconstructor.get()._1().equals(KLabel(KLabels.OR))) {
-                scala.collection.Seq<K> flatList = Assoc.flatten(KORE.KLabel(KLabels.OR), deconstructor.get()._2(), KLabel(KLabels.OR));
-
-            }
-        }
-    }
 
     public int run(CompiledDefinition compiledDef, KRunOptions options, Function<Module, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
         String pgmFileName = options.configurationCreation.pgm();
@@ -117,11 +97,11 @@ public class KRun {
 
         if (result instanceof K) {
             prettyPrint(compiledDef, options.output, s -> outputFile(s, options), (K) result);
-            if (options.exitCodePattern != null) {
-                Rule exitCodePattern = compilePattern(files, kem, options.exitCodePattern, options, compiledDef, Source.apply("<command line: --exit-code>"));
-                K res = rewriter.match((K) result, exitCodePattern);
-                return getExitCode(kem, res);
-            }
+//            if (options.exitCodePattern != null) {
+//                Rule exitCodePattern = compilePattern(files, kem, options.exitCodePattern, options, compiledDef, Source.apply("<command line: --exit-code>"));
+//                K res = rewriter.match((K) result, exitCodePattern);
+//                return getExitCode(kem, res);
+//            }
         } else if (result instanceof Tuple2) {
             Tuple2<?, ?> tuple = (Tuple2<?, ?>) result;
             if (tuple._1() instanceof K && tuple._2() instanceof Integer) {
@@ -146,72 +126,46 @@ public class KRun {
     }
 
     private void printSearchResult(SearchResult result, KRunOptions options, CompiledDefinition compiledDef) {
-        Set<Map<? extends KVariable, ? extends K>> searchResult = new HashSet<>();
-        ArrayList<K> constraints = new ArrayList<>();
-        result.getSearchList().forEach(tuple -> {
-            searchResult.add(filterAnonymousVariables(tuple._1(), result.getParsedRule()));
-            constraints.add(tuple._2());
-        });
-        outputFile("Search results:\n\n", options);
-        if (searchResult.isEmpty()) {
-            outputFile("No search results \n", options);
+        Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = Unapply.KApply.unapply((KApply) result.getSolutions());
+        if (searchResults.get() != null && searchResults.get()._1().equals(KLabels.OR)) {
+            scala.collection.Seq<K> resultList = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
+            resultList.forall(x ->  {prettyPrint(compiledDef, options.output, s -> outputFile(s, options), x); return x;});
+            return;
         }
-        int i = 0;
-        List<Tuple2<String, String>> results = new ArrayList<>();
-        for (Map<? extends KVariable, ? extends K> substitution : searchResult) {
-            ByteArrayOutputStream sb1 = new ByteArrayOutputStream();
-            ByteArrayOutputStream sb2 = new ByteArrayOutputStream();
-            prettyPrintSubstitution(substitution, result.getParsedRule(), compiledDef, options.output, v -> sb1.write(v, 0, v.length));
-            prettyPrint(compiledDef, options.output, v -> sb2.write(v, 0, v.length), constraints.get(i++));
-
-            //Note that this is actually unsafe, but we are here assuming that --search is not used with --output binary
-            results.add(new Tuple2<>(new String(sb1.toByteArray()), new String(sb2.toByteArray())));
-        }
-        results.sort(Comparator.comparing(x -> x._1()));
-        i = 1;
-        StringBuilder sb = new StringBuilder();
-        for (Tuple2 solution : results) {
-            sb.append("Solution ").append(i++).append(":\n");
-            sb.append(solution._1());
-            sb.append("\n");
-            if (!solution._2().toString().startsWith("true")) {
-                sb.append("Constraint \n");
-                sb.append(solution._2() + "\n");
-            }
-        }
-        outputFile(sb.toString(), options);
+        prettyPrint(compiledDef, options.output, s -> outputFile(s, options), result.getSolutions());
     }
 
-    /**
-     * Function to return the exit code specified by the user given a substitution
-     *
-     * @param kem ExcpetionManager object
-     * @param res The substitution from the match of the user specified pattern on the Final Configuration.
-     * @return An int representing the error code.
-     */
-    public static int getExitCode(KExceptionManager kem, K res) {
-        if (res.size() != 1) {
-            kem.registerCriticalWarning("Found " + res.size() + " solutions to exit code pattern. Returning 112.");
-            return 112;
-        }
-        Map<? extends KVariable, ? extends K> solution = res.get(0)._1();
-        Set<Integer> vars = new HashSet<>();
-        for (K t : solution.values()) {
-            // TODO(andreistefanescu): fix Token.sort() to return a kore.Sort that obeys kore.Sort's equality contract.
-            if (t instanceof KToken && Sorts.Int().equals(((KToken) t).sort())) {
-                try {
-                    vars.add(Integer.valueOf(((KToken) t).s()));
-                } catch (NumberFormatException e) {
-                    throw KEMException.criticalError("Exit code found was not in the range of an integer. Found: " + ((KToken) t).s(), e);
-                }
-            }
-        }
-        if (vars.size() != 1) {
-            kem.registerCriticalWarning("Found " + vars.size() + " integer variables in exit code pattern. Returning 111.");
-            return 111;
-        }
-        return vars.iterator().next();
-    }
+//    /**
+//     * Function to return the exit code specified by the user given a substitution
+//     *
+//     * @param kem ExcpetionManager object
+//     * @param res The substitution from the match of the user specified pattern on the Final Configuration.
+//     * @return An int representing the error code.
+//     */
+//    public static int getExitCode(KExceptionManager kem, K res) {
+//        Assoc.flatten(KORE.KLabel(KLabels.OR), res, )
+//        if (res.size() != 1) {
+//            kem.registerCriticalWarning("Found " + res.size() + " solutions to exit code pattern. Returning 112.");
+//            return 112;
+//        }
+//        Map<? extends KVariable, ? extends K> solution = res.get(0)._1();
+//        Set<Integer> vars = new HashSet<>();
+//        for (K t : solution.values()) {
+//            // TODO(andreistefanescu): fix Token.sort() to return a kore.Sort that obeys kore.Sort's equality contract.
+//            if (t instanceof KToken && Sorts.Int().equals(((KToken) t).sort())) {
+//                try {
+//                    vars.add(Integer.valueOf(((KToken) t).s()));
+//                } catch (NumberFormatException e) {
+//                    throw KEMException.criticalError("Exit code found was not in the range of an integer. Found: " + ((KToken) t).s(), e);
+//                }
+//            }
+//        }
+//        if (vars.size() != 1) {
+//            kem.registerCriticalWarning("Found " + vars.size() + " integer variables in exit code pattern. Returning 111.");
+//            return 111;
+//        }
+//        return vars.iterator().next();
+//    }
 
     //TODO(dwightguth): use Writer
     public void outputFile(String output, KRunOptions options) {
