@@ -299,21 +299,22 @@ public class Commands {
         }
 
         private void prettyPrintSubstitution(DebuggerMatchResult result, CompiledDefinition compiledDefinition) {
-            if (disableOutput) {
-                return;
-            }
-            if (result.getSubstitutions().isEmpty()) {
-                System.out.println("No Substitutions");
-                return;
-            }
-            result.getSubstitutions().forEach(subst -> {
-                KRun.prettyPrintSubstitution(
-                        KRun.filterAnonymousVariables(subst._1(), result.getParsedRule()),
-                        result.getParsedRule(),
-                        compiledDefinition,
-                        OutputModes.PRETTY,
-                        new CommandUtils(false)::print);
-            });
+//            if (disableOutput) {
+//                return;
+//            }
+//            if (result.getSubstitutions().isEmpty()) {
+//                System.out.println("No Substitutions");
+//                return;
+//            }
+//            result.getSubstitutions().forEach(subst -> {
+//                KRun.prettyPrintSubstitution(
+//                        KRun.filterAnonymousVariables(subst._1(), result.getParsedRule()),
+//                        result.getParsedRule(),
+//                        compiledDefinition,
+//                        OutputModes.PRETTY,
+//                        new CommandUtils(false)::print);
+//            });
+            return;
         }
 
         private void print(byte[] bytes){
