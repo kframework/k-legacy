@@ -51,7 +51,9 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   } with PurelyFunctionalLabel1 {
     override def f(_1: Term): Option[Term] = _1 match {
       case v: Variable => None
-      case _ => Some(BOOLEAN(m.subsorts.<(kSoftOf(_1), m.resolve(kore.KORE.Sort(s.name)))))
+      case _ =>
+        val x = Some(BOOLEAN(m.subsorts.<(kSoftOf(_1), m.resolve(kore.KORE.Sort(s.name)))))
+        x
     }
 
     private def kSoftOf(t: Term): kore.Sort = m.sortFor.getOrElse(
@@ -89,28 +91,28 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
         } else {
           if (p.klabel.isDefined) {
             val nonTerminals = items.filter(_.isInstanceOf[NonTerminal])
-            Some(
-              if (att.contains(Att.Function) && !att.contains(Att.hook)) {
-                if (p.klabel.get.name.startsWith("is")) {
-                  IsSort(Sort(p.klabel.get.name.substring(2)))
-                } else {
-                  nonTerminals match {
-                    case Seq() => FunctionDefinedByRewritingLabel0(p.klabel.get.name)(env)
-                    case Seq(_) => FunctionDefinedByRewritingLabel1(p.klabel.get.name)(env)
-                    case Seq(_, _) => FunctionDefinedByRewritingLabel2(p.klabel.get.name)(env)
-                    case Seq(_, _, _) => FunctionDefinedByRewritingLabel3(p.klabel.get.name)(env)
-                    case Seq(_, _, _, _) => FunctionDefinedByRewritingLabel4(p.klabel.get.name)(env)
-                  }
-                }
+            val label = if (att.contains(Att.Function)) {
+              if (p.klabel.get.name.startsWith("is")) {
+                IsSort(Sort(p.klabel.get.name.substring(2)))
               } else {
                 nonTerminals match {
-                  case Seq() => FreeLabel0(p.klabel.get.name)
-                  case Seq(_) => FreeLabel1(p.klabel.get.name)
-                  case Seq(_, _) => FreeLabel2(p.klabel.get.name)
-                  case Seq(_, _, _) => FreeLabel3(p.klabel.get.name)
-                  case Seq(_, _, _, _) => FreeLabel4(p.klabel.get.name)
+                  case Seq() => FunctionDefinedByRewritingLabel0(p.klabel.get.name)(env)
+                  case Seq(_) => FunctionDefinedByRewritingLabel1(p.klabel.get.name)(env)
+                  case Seq(_, _) => FunctionDefinedByRewritingLabel2(p.klabel.get.name)(env)
+                  case Seq(_, _, _) => FunctionDefinedByRewritingLabel3(p.klabel.get.name)(env)
+                  case Seq(_, _, _, _) => FunctionDefinedByRewritingLabel4(p.klabel.get.name)(env)
                 }
-              })
+              }
+            } else {
+              nonTerminals match {
+                case Seq() => FreeLabel0(p.klabel.get.name)
+                case Seq(_) => FreeLabel1(p.klabel.get.name)
+                case Seq(_, _) => FreeLabel2(p.klabel.get.name)
+                case Seq(_, _, _) => FreeLabel3(p.klabel.get.name)
+                case Seq(_, _, _, _) => FreeLabel4(p.klabel.get.name)
+              }
+            }
+            Some(label)
           } else
             None
         }
@@ -167,7 +169,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
 
   val pairs = m.rules collect {
     case rule@Rule(KRewrite(l@Unapply.KApply(klabel, _), r), requires, ensures, att)
-      if m.attributesFor(klabel).contains(Att.`Function`) && !m.attributesFor(klabel).contains(Att.hook) && !m.attributesFor(klabel).contains(Att.relativeHook) =>
+      if m.attributesFor(klabel).contains(Att.`Function`) =>
       (env.label(klabel.name), Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r)))
   }
 
@@ -177,15 +179,12 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
 
   var renamedFunctionRules: Map[Label, Set[Rewrite]] = functionRules map { case (k, v) => (k, v map env.renameVariables) }
 
-  println(renamedFunctionRules)
-
   env.seal()
-
-  println(renamedFunctionRules)
 
   def setFunctionRules(functionRules: Map[Label, Set[Rewrite]]) {
     env.labels.collect({
-      case l: FunctionDefinedByRewriting => l.setRules(functionRules(l))
+      // TODO: Add an warning for when a function is not defined by either a hook or rules
+      case l: FunctionDefinedByRewriting => l.setRules(functionRules.getOrElse(l, Set()))
     })
   }
 
