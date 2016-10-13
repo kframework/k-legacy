@@ -17,9 +17,7 @@ import org.kframework.main.GlobalOptions;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.parser.outer.Outer;
 import org.kframework.utils.errorsystem.KEMException;
-import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
-import org.kframework.utils.file.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
