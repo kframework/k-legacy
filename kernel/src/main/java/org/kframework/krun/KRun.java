@@ -18,6 +18,7 @@ import org.kframework.kore.KToken;
 import org.kframework.kore.KVariable;
 import org.kframework.kore.Sort;
 import org.kframework.kore.Unapply;
+import org.kframework.kore.Unapply.*;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.modes.ExecutionMode;
@@ -126,7 +127,7 @@ public class KRun {
     }
 
     private void printSearchResult(SearchResult result, KRunOptions options, CompiledDefinition compiledDef) {
-        Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = Unapply.KApply.unapply((KApply) result.getSolutions());
+        Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = KApply$.MODULE$.unapply((KApply) result.getSolutions());
         if (searchResults.get() != null && searchResults.get()._1().equals(KLabels.OR)) {
             scala.collection.Seq<K> resultList = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
             resultList.forall(x ->  {prettyPrint(compiledDef, options.output, s -> outputFile(s, options), x); return x;});
