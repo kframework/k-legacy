@@ -54,10 +54,6 @@ import java.util.stream.Collectors;
 import static org.kframework.Collections.*;
 import static org.kframework.kore.KORE.*;
 
-//import org.kframework.backend.java.symbolic.InitializeRewriter;
-//import org.kframework.backend.java.symbolic.JavaExecutionOptions;
-//import org.kframework.parser.kore.KoreParser;
-
 /**
  * The KORE-based KRun
  */
@@ -125,16 +121,29 @@ public class KRun {
         return 0;
     }
 
+    private void printConjunction(K conjunction, KRunOptions options, CompiledDefinition compiledDef) {
+        Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = KApply$.MODULE$.unapply((KApply) conjunction);
+        if (searchResults != null && searchResults.get()._1().equals(KLabel(KLabels.AND)) && searchResults.get()._2().size() >= 2) {
+            prettyPrint(compiledDef, options.output, s -> outputFile(s, options), searchResults.get()._2().apply(0));
+            outputFile("Constraint \n", options);
+            prettyPrint(compiledDef, options.output, s -> outputFile(s, options), searchResults.get()._2().apply(1));
+            return;
+        }
+        prettyPrint(compiledDef, options.output, s -> outputFile(s, options), conjunction);
+
+    }
     private void printSearchResult(SearchResult result, KRunOptions options, CompiledDefinition compiledDef) {
         Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = KApply$.MODULE$.unapply((KApply) result.getSolutions());
         if (searchResults.get() != null && searchResults.get()._1().equals(KLabel(KLabels.OR))) {
             scala.collection.Seq<K> resultList = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
-            resultList.slice(1, resultList.size()).foreach(x -> {
-                prettyPrint(compiledDef, options.output, s -> outputFile(s, options), x);
-                return null;
-            });
+            int i = 1;
+            while (i < resultList.size()) {
+                outputFile("Solution " + i + "\n", options);
+                printConjunction(resultList.apply(i++), options, compiledDef);
+            }
             return;
         }
+        outputFile("Solution " + 1 + "\n", options);
         prettyPrint(compiledDef, options.output, s -> outputFile(s, options), result.getSolutions());
     }
 
