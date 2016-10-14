@@ -433,7 +433,7 @@ public class SymbolicRewriter {
             });
             K constrainedTerm = mapBuilder.build();
             if (subject.constraint().isTrue()) {
-                searchResults.add(KORE.KApply(KORE.KLabel(KLabels.AND), constrainedTerm, BoolToken.TRUE));
+                searchResults.add(constrainedTerm);
             } else {
                 searchResults.add(KORE.KApply(KORE.KLabel(KLabels.AND), constrainedTerm, renameAnonymousVariables.apply(subject.constraint())));
             }
