@@ -129,7 +129,7 @@ public class KRun {
 
     }
 
-    private void printK(K result, KRunOptions options, CompiledDefinition compiledDef) {
+    public void printK(K result, KRunOptions options, CompiledDefinition compiledDef) {
         Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = KApply$.MODULE$.unapply((KApply) result);
         if (searchResults.get() != null && searchResults.get()._1().equals(KLabel(KLabels.OR))) {
             scala.collection.Seq<K> resultList = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
