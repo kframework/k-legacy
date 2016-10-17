@@ -5,6 +5,7 @@ package org.kframework.kore.compile;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.kframework.attributes.Source;
+import org.kframework.backend.Backends;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.Module;
 import org.kframework.kale.KaleBackend;
@@ -59,6 +60,7 @@ public class IMPonKale {
         KExceptionManager kem = new KExceptionManager(new GlobalOptions());
         File definitionFile = testResource(fileName);
         KompileOptions kompileOptions = new KompileOptions();
+        kompileOptions.backend = Backends.KALE;
         GlobalOptions globalOptions = new GlobalOptions();
         globalOptions.debug = true;
         globalOptions.warnings = GlobalOptions.Warnings.ALL;

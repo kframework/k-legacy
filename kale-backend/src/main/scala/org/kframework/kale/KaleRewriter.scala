@@ -42,27 +42,43 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   import env._
   import env.builtin._
 
-  val hooks: Map[String, Label] = Map(
-
+  val hooks: Map[String, Label] = Map[String, Label](
+    "INT.le" -> env.builtin.`<=Int`,
+    "INT.add" -> env.builtin.`+Int`,
+    "BOOL.and" -> PrimitiveFunction2[Boolean]("_andBool_", BOOLEAN, _ && _)(env),
+    "BOOL.or" -> PrimitiveFunction2[Boolean]("_orBool_", BOOLEAN, _ || _)(env),
+    "BOOL.not" -> PrimitiveFunction1[Boolean]("notBool_", BOOLEAN, !_)(env)
   )
 
   case class IsSort(s: Sort)(implicit val env: Environment) extends {
     val name = "is" + s.name
-  } with PurelyFunctionalLabel1 {
-    override def f(_1: Term): Option[Term] = _1 match {
-      case v: Variable => None
-      case _ =>
-        val x = Some(BOOLEAN(m.subsorts.<(kSoftOf(_1), m.resolve(kore.KORE.Sort(s.name)))))
-        x
-    }
+  } with PurelyFunctionalLabel1 with FormulaLabel {
+    override def f(_1: Term): Option[Term] =
+      kSortOf(_1).map(ss => BOOLEAN(m.subsorts.<=(ss, m.resolve(kore.KORE.Sort(s.name)))))
 
-    private def kSoftOf(t: Term): kore.Sort = m.sortFor.getOrElse(
-      KORE.KLabel(t.label.name),
-      t.label match {
-        case tokenLabel: GENERIC_TOKEN => m.resolve(kore.KORE.Sort(tokenLabel.sort.name))
-        case BOOLEAN => m.resolve(Sorts.Bool)
-        case INT => m.resolve(Sorts.Int)
-      })
+    private def kSortOf(t: Term): Option[kore.Sort] =
+      if (!t.isGround)
+        None
+      else
+        m.sortFor
+          .get(KORE.KLabel(t.label.name))
+          .orElse(
+            t.label match {
+              case tokenLabel: GENERIC_TOKEN => Some(m.resolve(kore.KORE.Sort(tokenLabel.sort.name)))
+              case BOOLEAN => Some(m.resolve(Sorts.Bool))
+              case INT =>
+                Some(m.resolve(Sorts.Int))
+              case STRING => Some(m.resolve(Sorts.String))
+              case `kseq` => Some(m.Sort("KItem"))
+              case `emptyKSeq` => Some(m.Sort("K"))
+              //            case And =>
+              //              val nonFormulas = And.asSubstitutionAndTerms(t)._2.filter(!_.label.isInstanceOf[FormulaLabel])
+              //              if (nonFormulas.size == 1)
+              //                kSortOf(nonFormulas.head)
+              //              else
+              //                ??? // we have more than one non-formula term. computer the least sort?
+              case Variable => None
+            })
   }
 
   def relativeHook(relativeHook: String): Option[Label] = relativeHook.split('.').toSeq match {
@@ -128,8 +144,8 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     case l: NodeLabel => (l.name, l)
   } toMap
 
-  private val emptyKSeq = FreeLabel0(".")(env)()
-  private val kseq = new AssocWithIdListLabel("~>", emptyKSeq)
+  private val emptyKSeq = FreeLabel0(".")(env)
+  private val kseq = new AssocWithIdListLabel("~>", emptyKSeq())
 
   def getLabelForAtt(p: Production, att: String): Label = {
     val labels = nonAssocLabels.filter(l => l.name == p.att.get[String](att).get)
@@ -164,13 +180,21 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     case Unapply.KApply(klabel, list) if klabel.name == "#KSequence" => kseq(list map convert)
     case Unapply.KApply(klabel, list) => env.label(klabel.name).asInstanceOf[NodeLabel](list map convert)
     case v: KVariable => Variable(v.name)
+    //      val kaleV = Variable(v.name)
+    //      v.att.get(Att.sort)
+    //        .map(sort => env.And(
+    //          kaleV,
+    //          Equality(env.label("is" + sort.name).asInstanceOf[Label1](kaleV), BOOLEAN(true)))
+    //        )
+    //        .getOrElse(kaleV)
     case r: KRewrite => Rewrite(convert(r.left), convert(r.right))
   }
 
   val pairs = m.rules collect {
     case rule@Rule(KRewrite(l@Unapply.KApply(klabel, _), r), requires, ensures, att)
       if m.attributesFor(klabel).contains(Att.`Function`) =>
-      (env.label(klabel.name), Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r)))
+      val res = (env.label(klabel.name), Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r)))
+      res
   }
 
   val groups = pairs groupBy (_._1)
@@ -205,18 +229,26 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   val rules: Set[Rewrite] = m.rules collect {
     case rule@Rule(KRewrite(l@Unapply.KApply(klabel, _), r), requires, ensures, att)
       if !att.contains(Att.`macro`) && !m.attributesFor(klabel).contains(Att.`Function`) =>
-      Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r))
+      val rw = Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r))
+      rw
   }
 
   val unifier = Matcher(env)
   val substitutionApplier = SubstitutionApply(env)
   val rewriterConstructor = Rewriter(substitutionApplier, unifier, env) _
 
+  println("\nFunction rules\n")
+
+  finalFunctionRules.foreach({ case (l, rules) => println(l); println(rules.map("  " + _).mkString("\n")) })
+
+  println("\nRewriting rules\n")
+
   println(rules.mkString("\n"))
 
   val rewrite = rewriterConstructor(rules)
 
   def convertBack(term: Term): K = {
+    println(term)
     ???
   }
 
@@ -224,12 +256,16 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     var i = 0
     var term: Term = null
     var next = convert(k)
+    val startTime = System.nanoTime()
     do {
       term = next
-      println("step " + i + " : " + next)
+      if (i % 100 == 0)
+        println("step " + i + " : " + next)
       next = rewrite.executionStep(term)
       i += 1
     } while (term != next)
+    val endTime = System.nanoTime()
+    println((endTime - startTime) / Math.pow(10, 9))
     new RewriterResult(Optional.of(0), convertBack(term))
   }
 
