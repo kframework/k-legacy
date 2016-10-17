@@ -259,8 +259,10 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     val startTime = System.nanoTime()
     do {
       term = next
-      if (i % 100 == 0)
+      if (i % 100 == 0) {
         println("step " + i + " : " + next)
+//        println(rewrite.sortedRules.toStream.map(r => (r, rewrite.ruleHits(r))).mkString("\n"))
+      }
       next = rewrite.executionStep(term)
       i += 1
     } while (term != next)
