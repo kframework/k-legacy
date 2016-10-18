@@ -67,7 +67,7 @@ module MAP
   syntax Map ::= removeAll(Map, Set)            [function, hook(MAP.removeAll)]
 
   /*@ Get a Set consisting of all keys in the Map:*/
-  syntax Set ::= keys(Map)                      [function, hook(MAP.keys)]
+  syntax Set ::= keys(Map)                      [function, hook(MAP.keys), relativeHook(_Map_.keys)]
 
   syntax Bool ::= K "in_keys" "(" Map ")"       [function, hook(MAP.in_keys)]
 

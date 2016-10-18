@@ -47,7 +47,10 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     "INT.add" -> env.builtin.`+Int`,
     "BOOL.and" -> PrimitiveFunction2[Boolean]("_andBool_", BOOLEAN, _ && _)(env),
     "BOOL.or" -> PrimitiveFunction2[Boolean]("_orBool_", BOOLEAN, _ || _)(env),
-    "BOOL.not" -> PrimitiveFunction1[Boolean]("notBool_", BOOLEAN, !_)(env)
+    "BOOL.not" -> PrimitiveFunction1[Boolean]("notBool_", BOOLEAN, !_)(env),
+    "SET.unit" -> env.builtin.BuiltinSetUnit,
+    "SET.concat" -> env.builtin.BuiltinSet,
+    "SET.in" -> env.builtin.BuiltinSet.in
   )
 
   case class IsSort(s: Sort)(implicit val env: Environment) extends {
@@ -89,6 +92,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   def relativeHookByBaseLabel(baseLabel: String, hookName: String): Option[Label] = env.label(baseLabel) match {
     case l: MapLabel => hookName match {
       case "lookup" => Some(l.lookup)
+      case "keys" => Some(l.keys)
       case _ => None
     }
     case _ => None
@@ -157,18 +161,27 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     case p@Production(s, items, att) =>
       val theUnit = getLabelForAtt(p, "unit").asInstanceOf[Label0]
       val labelName = p.klabel.get.name
-      val index = att.get[String]("index")
-      if (index.isDefined && att.contains(Att.comm)) {
-        def indexFunction(t: Term): Term = t.iterator().toList(index.get.toInt)
-        MapLabel(labelName, indexFunction, theUnit())(env)
-      } else
-        new AssocWithIdListLabel(labelName, theUnit())(env)
+      env.uniqueLabels.getOrElse(labelName, {
+        val index = att.get[String]("index")
+        if (index.isDefined && att.contains(Att.comm)) {
+          def indexFunction(t: Term): Term = t.iterator().toList(index.get.toInt)
+          MapLabel(labelName, indexFunction, theUnit())(env)
+        } else {
+          new AssocWithIdListLabel(labelName, theUnit())(env)
+        }
+      })
   }
 
   nonAssocProductions collect {
     case p@Production(s, items, att) if att.contains(Att.relativeHook) =>
       relativeHook(att.get(Att.relativeHook).get)
   }
+
+  def renames(labelName: String) = Map(
+    "keys" -> "_Map_.keys",
+    "lookup" -> "_Map_.lookup",
+    "Set:in" -> "_Set_.in"
+  ).getOrElse(labelName, labelName)
 
   def convert(body: K): Term = body match {
     case Unapply.KToken(s, sort) => sort match {
@@ -178,7 +191,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
       case _ => uninterpretedTokenLabels(Sort(sort.name))(s)
     }
     case Unapply.KApply(klabel, list) if klabel.name == "#KSequence" => kseq(list map convert)
-    case Unapply.KApply(klabel, list) => env.label(klabel.name).asInstanceOf[NodeLabel](list map convert)
+    case Unapply.KApply(klabel, list) => env.label(renames(klabel.name)).asInstanceOf[NodeLabel](list map convert)
     case v: KVariable => Variable(v.name)
     //      val kaleV = Variable(v.name)
     //      v.att.get(Att.sort)
@@ -261,7 +274,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
       term = next
       if (i % 100 == 0) {
         println("step " + i + " : " + next)
-//        println(rewrite.sortedRules.toStream.map(r => (r, rewrite.ruleHits(r))).mkString("\n"))
+        //        println(rewrite.sortedRules.toStream.map(r => (r, rewrite.ruleHits(r))).mkString("\n"))
       }
       next = rewrite.executionStep(term)
       i += 1

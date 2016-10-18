@@ -37,9 +37,8 @@ module IMP
   rule I1 / I2 => I1 /Int I2  requires I2 =/=Int 0
   rule I1 + I2 => I1 +Int I2
 // BExp
-  rule I1:Int <= I2:Int => I1 <=Int I2
-  rule ! true => false
-  rule ! false => true
+  rule I1 <= I2 => I1 <=Int I2
+  rule ! T => notBool T
   rule true && B => B
   rule false && _ => false
 // Block
@@ -53,7 +52,7 @@ module IMP
   rule while (B) S => if (B) {S while (B) S} else {}  [structural]
 // Pgm
   rule <k> int (X,Xs => Xs);_ </k> <state> Rho:Map (.Map => X|->0) </state>
-//    requires notBool (X in keys(Rho))
+    requires notBool (X in keys(Rho))
   rule int .Ids; S => S  [structural]
 
 // verification ids
