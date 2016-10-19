@@ -56,7 +56,7 @@
     <dependency>
       <groupId>org.kframework.kale</groupId>
       <artifactId>kale_2.12.0-M5</artifactId>
-      <version>0.1.5-SNAPSHOT</version>
+      <version>0.3-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
