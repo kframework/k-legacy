@@ -13,6 +13,7 @@ import org.kframework.rewriter.SearchType
 
 import collection._
 import org.kframework.kore.Unapply.KRewrite
+import collection.JavaConverters._
 
 object KaleRewriter {
   val self = this
@@ -250,12 +251,14 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   val finalFunctionRules = Util.fixpoint(resolveFunctionRHS)(functionRules)
   setFunctionRules(finalFunctionRules)
 
-  val rules: Set[Rewrite] = m.rules collect {
+  def convertRule(r: Rule): Rewrite = r match {
     case rule@Rule(KRewrite(l@Unapply.KApply(klabel, _), r), requires, ensures, att)
       if !att.contains(Att.`macro`) && !m.attributesFor(klabel).contains(Att.`Function`) =>
       val rw = Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r))
       rw
   }
+
+  val rules: Set[Rewrite] = m.rules map convertRule
 
   val unifier = Matcher(env).default
   val substitutionApplier = SubstitutionApply(env)
@@ -283,7 +286,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     var i = 0
     var term: Term = null
     var next = convert(k)
-    while (term != next) {
+    while (term != next && depth.map[Boolean](i == _).orElse(false)) {
       term = next
       next = rewrite.executionStep(term)
       i += 1
@@ -291,7 +294,15 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     new RewriterResult(Optional.of(0), convertBack(term))
   }
 
-  override def `match`(k: K, rule: Rule): util.List[_ <: util.Map[_ <: KVariable, _ <: K]] = ???
+  override def `match`(k: K, rule: Rule): util.List[_ <: util.Map[_ <: KVariable, _ <: K]] = {
+    val kaleO = convert(k)
+    val kaleRule = convertRule(rule)
+    val res = unifier(kaleRule._1, kaleO)
+    (Or.asSet(res).toList map { case t: Substitution => (And.asMap(t) map {
+      case (k: Variable, v: Term) => (convertBack(k).asInstanceOf[KVariable], convertBack(v))
+    }).asJava
+    }).asJava
+  }
 
   override def search(initialConfiguration: K, depth: Optional[Integer], bound: Optional[Integer], pattern: Rule, searchType: SearchType): util.List[_ <: util.Map[_ <: KVariable, _ <: K]] = ???
 
