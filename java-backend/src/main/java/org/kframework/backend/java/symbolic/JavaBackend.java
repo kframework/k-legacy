@@ -73,26 +73,6 @@ public class JavaBackend implements Backend {
         this(kapiGlobal.kem, kapiGlobal.files, kapiGlobal.globalOptions, kapiGlobal.kompileOptions);
     }
 
-    DefinitionTransformer moduleQualifySortPredicates = DefinitionTransformer.fromKTransformerWithModuleInfo((Module m, K k) -> {
-        return new TransformK() {
-            @Override
-            public K apply(KApply kk) {
-                KApply k = (KApply) super.apply(kk);
-                if (!k.klabel().name().startsWith("is"))
-                    return k;
-
-                Sort possibleSort = KORE.Sort(k.klabel().name().substring("is".length()));
-                Option<ADT.Sort> resolvedSort = m.sortResolver().get(possibleSort);
-
-                if (resolvedSort.isDefined()) {
-                    return KORE.KApply(KORE.KLabel("is" + resolvedSort.get().name()), k.klist());
-                } else {
-                    return k;
-                }
-            }
-        }.apply(k);
-    }, "Module-qualify sort predicates");
-
     /**
      * @param the generic {@link Kompile}
      * @return the special steps for the Java backend
