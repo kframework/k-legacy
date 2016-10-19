@@ -9,6 +9,7 @@ import org.kframework.utils.errorsystem.KEMException
 
 import collection.JavaConverters._
 import collection._
+import scala.collection.immutable.Stack
 
 object ModuleTransformer {
   def fromSentenceTransformer(sentenceTransformer: java.util.function.UnaryOperator[Sentence], passName: String): MemoizingModuleTransformer =
@@ -109,15 +110,15 @@ abstract class ModuleTransformer extends (Module => Module) {
   * A module transformer with memoization
   */
 abstract class MemoizingModuleTransformer extends ModuleTransformer {
-  val memoization = collection.concurrent.TrieMap[Module, Module]()
-  val currentProcessedModules = new java.util.concurrent.LinkedBlockingDeque[Module]()
+  val memoization = mutable.Map[Module, Module]()
+  var currentProcessedModules = Stack[Module]()
 
-  override def apply(input: Module): Module = {
+  override def apply(input: Module): Module = this.synchronized {
     if (currentProcessedModules.contains(input))
-      throw new AssertionError("Found a cycle on: " + input.name + " with chain: " + currentProcessedModules.asScala.map(_.name).toList.reverse.mkString(" -> "))
-    currentProcessedModules.push(input)
+      throw new AssertionError("Found a cycle on: " + input.name + " with chain: " + currentProcessedModules.map(_.name).toList.reverse.mkString(" -> "))
+    currentProcessedModules = currentProcessedModules.push(input)
     val res = wrapExceptions(memoization.getOrElseUpdate(input, {processModule(input)}))
-    currentProcessedModules.pop()
+    currentProcessedModules = currentProcessedModules.pop
     res
   }
 
