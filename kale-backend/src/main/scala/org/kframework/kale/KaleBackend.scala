@@ -1,15 +1,12 @@
 package org.kframework.kale
 
-import java.util
 import java.util.function.Function
 
-import org.kframework.Strategy
-import org.kframework.backend.Backends
 import org.kframework.compile.{AddBottomSortForListsWithIdenticalLabels, NormalizeKSeq}
-import org.kframework.definition.{Definition, DefinitionTransformer, Module, Sentence}
+import org.kframework.definition.{Definition, DefinitionTransformer}
 import org.kframework.kompile.{CompiledDefinition, Kompile, KompileOptions}
 import org.kframework.kore.KORE
-import org.kframework.kore.compile.{GenerateSortPredicateSyntax, _}
+import org.kframework.kore.compile._
 import org.kframework.utils.errorsystem.KExceptionManager
 
 class KaleBackend(kompileOptions: KompileOptions, kem: KExceptionManager) extends Backend {
