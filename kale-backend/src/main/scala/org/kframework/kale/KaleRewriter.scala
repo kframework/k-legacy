@@ -75,30 +75,31 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     override def f(_1: Term): Option[Term] =
       kSortOf(_1).map(ss => BOOLEAN(m.subsorts.<=(ss, m.resolve(kore.KORE.Sort(s.name)))))
 
-    private def kSortOf(t: Term): Option[kore.Sort] =
-      if (!t.isGround)
-        None
-      else
-        m.sortFor
-          .get(KORE.KLabel(t.label.name))
-          .orElse(
-            t.label match {
-              case tokenLabel: GENERIC_TOKEN => Some(m.resolve(kore.KORE.Sort(tokenLabel.sort.name)))
-              case BOOLEAN => Some(m.resolve(Sorts.Bool))
-              case INT =>
-                Some(m.resolve(Sorts.Int))
-              case STRING => Some(m.resolve(Sorts.String))
-              case `kseq` => Some(m.Sort("KItem"))
-              case `emptyKSeq` => Some(m.Sort("K"))
-              //            case And =>
-              //              val nonFormulas = And.asSubstitutionAndTerms(t)._2.filter(!_.label.isInstanceOf[FormulaLabel])
-              //              if (nonFormulas.size == 1)
-              //                kSortOf(nonFormulas.head)
-              //              else
-              //                ??? // we have more than one non-formula term. computer the least sort?
-              case Variable => None
-            })
   }
+
+  def kSortOf(t: Term): Option[kore.Sort] =
+    if (!t.isGround)
+      None
+    else
+      m.sortFor
+        .get(KORE.KLabel(t.label.name))
+        .orElse(
+          t.label match {
+            case tokenLabel: GENERIC_TOKEN => Some(m.resolve(kore.KORE.Sort(tokenLabel.sort.name)))
+            case BOOLEAN => Some(m.resolve(Sorts.Bool))
+            case INT =>
+              Some(m.resolve(Sorts.Int))
+            case STRING => Some(m.resolve(Sorts.String))
+            case `kseq` => Some(m.Sort("KItem"))
+            case `emptyKSeq` => Some(m.Sort("K"))
+            //            case And =>
+            //              val nonFormulas = And.asSubstitutionAndTerms(t)._2.filter(!_.label.isInstanceOf[FormulaLabel])
+            //              if (nonFormulas.size == 1)
+            //                kSortOf(nonFormulas.head)
+            //              else
+            //                ??? // we have more than one non-formula term. computer the least sort?
+            case Variable => None
+          })
 
   private val nonAssocLabels: Set[Label] = nonAssocProductions flatMap {
     case SyntaxSort(s, att) => None
@@ -150,7 +151,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     case l: NodeLabel => (l.name, l)
   } toMap
 
-  private val emptyKSeq = FreeLabel0(".")(env)
+  private val emptyKSeq = FreeLabel0(".K")(env)
   private val kseq = new AssocWithIdListLabel("~>", emptyKSeq())
 
   def getLabelForAtt(p: Production, att: String): Label = {
@@ -252,37 +253,31 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   val substitutionApplier = SubstitutionApply(env)
   val rewriterConstructor = Rewriter(substitutionApplier, unifier, env) _
 
-  println("\nFunction rules\n")
-
-  finalFunctionRules.foreach({ case (l, rules) => println(l); println(rules.map("  " + _).mkString("\n")) })
-
-  println("\nRewriting rules\n")
-
-  println(rules.mkString("\n"))
+  // TODO: log this information cleanly
+  //  println("\nFunction rules\n")
+  //  finalFunctionRules.foreach({ case (l, rules) => println(l); println(rules.map("  " + _).mkString("\n")) })
+  //  println("\nRewriting rules\n")
+  //  println(rules.mkString("\n"))
 
   val rewrite = rewriterConstructor(rules)
 
-  def convertBack(term: Term): K = {
-    println(term)
-    ???
+  def convertBack(term: Term): K = term match {
+    case Variable(x) => KORE.KVariable(x)
+    case emptyKSeq() => KORE.KSequence()
+    case t@Node(`kseq`, _) => KORE.KSequence(kseq.asList(t).toList map convertBack: _*)
+    case Node(label, subterms) => KORE.KApply(KORE.KLabel(label.name), (subterms map convertBack).toSeq: _*)
+    case t@Constant(label, value) => KORE.KToken(value.toString, kSortOf(t).get)
   }
 
   override def execute(k: K, depth: Optional[Integer]): RewriterResult = {
     var i = 0
     var term: Term = null
     var next = convert(k)
-    val startTime = System.nanoTime()
-    do {
+    while (term != next && depth.map(i != _).orElse(true)) {
       term = next
-      if (i % 100 == 0) {
-        println("step " + i + " : " + next)
-        //        println(rewrite.sortedRules.toStream.map(r => (r, rewrite.ruleHits(r))).mkString("\n"))
-      }
       next = rewrite.executionStep(term)
       i += 1
-    } while (term != next)
-    val endTime = System.nanoTime()
-    println((endTime - startTime) / Math.pow(10, 9))
+    }
     new RewriterResult(Optional.of(0), convertBack(term))
   }
 
