@@ -48,7 +48,7 @@ public class IMPonKale {
     public void simple() throws IOException, URISyntaxException {
         String fileName = "tutorial/1_k/2_imp/lesson_4/imp.k";
         String program = "int n, sum;\n" +
-                "n = 100;\n" +
+                "n = 10;\n" +
                 "sum = 0;\n" +
                 "while (!(n <= 0)) {\n" +
                 "  sum = sum + n;\n" +
@@ -88,6 +88,6 @@ public class IMPonKale {
 
         String actual = KOREToTreeNodes.toString(new AddBrackets(unparsingModule).addBrackets((ProductionReference) KOREToTreeNodes.apply(KOREToTreeNodes.up(unparsingModule, kResult), unparsingModule)));
 
-        assertEquals("Execution failed", "<k> 1 </k>", actual);
+        assertEquals("Execution failed", "<T> <k> . </k> <state> sum |-> 55 n |-> 0 </state> </T>", actual);
     }
 }
