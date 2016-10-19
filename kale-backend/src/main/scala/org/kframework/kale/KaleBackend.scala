@@ -7,22 +7,21 @@ import org.kframework.Strategy
 import org.kframework.backend.Backends
 import org.kframework.compile.{AddBottomSortForListsWithIdenticalLabels, NormalizeKSeq}
 import org.kframework.definition.{Definition, DefinitionTransformer, Module, Sentence}
-import org.kframework.kompile.{CompiledDefinition, Kompile}
+import org.kframework.kompile.{CompiledDefinition, Kompile, KompileOptions}
 import org.kframework.kore.KORE
 import org.kframework.kore.compile.{GenerateSortPredicateSyntax, _}
+import org.kframework.utils.errorsystem.KExceptionManager
 
-class KaleBackend extends Backend {
+class KaleBackend(kompileOptions: KompileOptions, kem: KExceptionManager) extends Backend {
   override def accept(d: CompiledDefinition): Unit = {
     // probably a redundant function
   }
 
-  override def steps(kompile: Kompile): Function[Definition, Definition] = d => defaultSteps(kompile)(d)
+  override def steps(): Function[Definition, Definition] = d => defaultSteps()(d)
 
-  def defaultSteps(kompile: Kompile): Definition => Definition = {
-    val kompileOptions = kompile.kompileOptions
+  def defaultSteps(): Definition => Definition = {
 
-
-    (d => kompile.defaultSteps()(d))
+    (d => Kompile.defaultSteps(kompileOptions, kem)(d))
       .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop.rewriteToTop, "rewrite to top"))
       .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE), "normalize assoc"))
       .andThen(DefinitionTransformer.fromHybrid(AddBottomSortForListsWithIdenticalLabels, "AddBottomSortForListsWithIdenticalLabels"))

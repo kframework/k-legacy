@@ -67,7 +67,7 @@ public class IMPonKale {
 
         Kompile kompile = new Kompile(kompileOptions, FileUtil.testFileUtil(), kem, false);
 
-        CompiledDefinition compiledDef = kompile.run(definitionFile, mainModuleName, mainModuleName,  new KaleBackend().steps(kompile));
+        CompiledDefinition compiledDef = kompile.run(definitionFile, mainModuleName, mainModuleName,  new KaleBackend(kompileOptions, kem).steps());
 
         BiFunction<String, Source, K> programParser = compiledDef.getProgramParser(kem);
 
