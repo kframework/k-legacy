@@ -92,6 +92,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
             case STRING => Some(m.resolve(Sorts.String))
             case `kseq` => Some(m.Sort("KItem"))
             case `emptyKSeq` => Some(m.Sort("K"))
+            // TODO: handle sorting for conjunctions
             //            case And =>
             //              val nonFormulas = And.asSubstitutionAndTerms(t)._2.filter(!_.label.isInstanceOf[FormulaLabel])
             //              if (nonFormulas.size == 1)
@@ -180,11 +181,18 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
       relativeHook(att.get(Att.relativeHook).get)
   }
 
-  def renames(labelName: String) = Map(
+  val klabelToLabelRename = Map(
     "keys" -> "_Map_.keys",
     "lookup" -> "_Map_.lookup",
-    "Set:in" -> "_Set_.in"
-  ).getOrElse(labelName, labelName)
+    "Set:in" -> "_Set_.in",
+    "Map:lookup" -> "_Map_.lookup"
+  )
+
+  val labelToKLabelRename = klabelToLabelRename.map(p => (p._2, p._1)).toMap
+
+  def renames(labelName: String) = klabelToLabelRename.getOrElse(labelName, labelName)
+
+  def convert(klabel: KLabel): Label = label(klabelToLabelRename.getOrElse(klabel.name, klabel.name))
 
   def convert(body: K): Term = body match {
     case Unapply.KToken(s, sort) => sort match {
@@ -194,7 +202,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
       case _ => uninterpretedTokenLabels(Sort(sort.name))(s)
     }
     case Unapply.KApply(klabel, list) if klabel.name == "#KSequence" => kseq(list map convert)
-    case Unapply.KApply(klabel, list) => env.label(renames(klabel.name)).asInstanceOf[NodeLabel](list map convert)
+    case Unapply.KApply(klabel, list) => convert(klabel).asInstanceOf[NodeLabel](list map convert)
     case v: KVariable => Variable(v.name)
     //      val kaleV = Variable(v.name)
     //      v.att.get(Att.sort)
@@ -261,11 +269,13 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
 
   val rewrite = rewriterConstructor(rules)
 
+  def convertBack(l: Label): KLabel = KORE.KLabel(labelToKLabelRename.getOrElse(l.name, l.name))
+
   def convertBack(term: Term): K = term match {
     case Variable(x) => KORE.KVariable(x)
     case emptyKSeq() => KORE.KSequence()
     case t@Node(`kseq`, _) => KORE.KSequence(kseq.asList(t).toList map convertBack: _*)
-    case Node(label, subterms) => KORE.KApply(KORE.KLabel(label.name), (subterms map convertBack).toSeq: _*)
+    case Node(label, subterms) => KORE.KApply(convertBack(label), (subterms map convertBack).toSeq: _*)
     case t@Constant(label, value) => KORE.KToken(value.toString, kSortOf(t).get)
   }
 
@@ -273,7 +283,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     var i = 0
     var term: Term = null
     var next = convert(k)
-    while (term != next && depth.map(i != _).orElse(true)) {
+    while (term != next) {
       term = next
       next = rewrite.executionStep(term)
       i += 1

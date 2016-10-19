@@ -78,8 +78,6 @@ public class IMPonKale {
 
         KApply input = KORE.KApply(compiledDef.topCellInitializer, map.entrySet().stream().map(e -> KApply(KLabel("_|->_"), e.getKey(), e.getValue())).reduce(KApply(KLabel(".Map")), (a, b) -> KApply(KLabel("_Map_"), a, b)));
 
-//        System.out.println(compiledDef.executionModule().sentences().mkString("\n"));
-
         KaleRewriter kaleRewriter = new KaleRewriter(compiledDef.executionModule());
 
         K kResult = kaleRewriter.execute(input, Optional.<Integer>empty()).k();
