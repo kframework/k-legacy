@@ -10,26 +10,19 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
-import com.google.common.reflect.TypeToken;
-import com.google.inject.Inject;
-import com.google.inject.name.Names;
 import org.kframework.attributes.Att;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
-import org.kframework.backend.java.indexing.IndexingTable;
-import org.kframework.backend.java.indexing.RuleIndex;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Subsorts;
 import org.kframework.builtin.Sorts;
 import org.kframework.compile.ConfigurationInfo;
 import org.kframework.compile.ConfigurationInfoFromModule;
-import org.kframework.compile.utils.ConfigurationStructureMap;
 import org.kframework.definition.Module;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.Attributes;
 import org.kframework.kil.DataStructureSort;
-import org.kframework.kil.Production;
 import org.kframework.kil.loader.Context;
 import org.kframework.kore.KORE;
 import org.kframework.kore.convertors.KOREtoKIL;
@@ -66,48 +59,27 @@ public class Definition extends JavaSymbolicObject {
 
     private static class DefinitionData implements Serializable {
         public final Subsorts subsorts;
-        public final Set<Sort> builtinSorts;
         public final Map<org.kframework.kore.Sort, DataStructureSort> dataStructureSorts;
         public final SetMultimap<String, SortSignature> signatures;
         public final ImmutableMap<String, Attributes> kLabelAttributes;
         public final Map<Sort, String> freshFunctionNames;
         public final Map<Sort, Sort> smtSortFlattening;
-        public final Map<CellLabel, ConfigurationInfo.Multiplicity> cellLabelMultiplicity;
-        public final ConfigurationInfo configurationInfo;
-        public final ConfigurationStructureMap configurationStructureMap;
 
         private DefinitionData(
                 Subsorts subsorts,
-                Set<Sort> builtinSorts,
                 Map<org.kframework.kore.Sort, DataStructureSort> dataStructureSorts,
                 SetMultimap<String, SortSignature> signatures,
                 ImmutableMap<String, Attributes> kLabelAttributes,
                 Map<Sort, String> freshFunctionNames,
-                Map<Sort, Sort> smtSortFlattening,
-                Map<CellLabel, ConfigurationInfo.Multiplicity> cellLabelMultiplicity,
-                ConfigurationInfo configurationInfo,
-                ConfigurationStructureMap configurationStructureMap) {
+                Map<Sort, Sort> smtSortFlattening) {
             this.subsorts = subsorts;
-            this.builtinSorts = builtinSorts;
             this.dataStructureSorts = dataStructureSorts;
             this.signatures = signatures;
             this.kLabelAttributes = kLabelAttributes;
             this.freshFunctionNames = freshFunctionNames;
             this.smtSortFlattening = smtSortFlattening;
-            this.cellLabelMultiplicity = cellLabelMultiplicity;
-            this.configurationInfo = configurationInfo;
-            this.configurationStructureMap = configurationStructureMap;
         }
     }
-
-    public static final Set<Sort> TOKEN_SORTS = ImmutableSet.of(
-            Sort.BOOL,
-            Sort.INT,
-            Sort.FLOAT,
-            Sort.STRING,
-            Sort.LIST,
-            Sort.SET,
-            Sort.MAP);
 
     private final List<Rule> rules = Lists.newArrayList();
     private final List<Rule> macros = Lists.newArrayList();
@@ -124,9 +96,6 @@ public class Definition extends JavaSymbolicObject {
 
     private transient KExceptionManager kem;
 
-    private RuleIndex index;
-    public final IndexingTable.Data indexingData;
-
     // new indexing data
     /**
      * the automaton rule used by {@link org.kframework.backend.java.symbolic.FastRuleMatcher}
@@ -140,81 +109,6 @@ public class Definition extends JavaSymbolicObject {
     public final Map<Integer, Integer> reverseRuleTable = new HashMap<>();
 
     private final Map<KItem.CacheTableColKey, KItem.CacheTableValue> sortCacheTable = new HashMap<>();
-
-    public Definition(Context context, KExceptionManager kem, IndexingTable.Data indexingData) {
-        kLabels = new HashSet<>();
-        this.kem = kem;
-        this.indexingData = indexingData;
-        this.module = null;
-
-        ImmutableSet.Builder<Sort> builder = ImmutableSet.builder();
-        // TODO(YilongL): this is confusing; give a better name to tokenSorts
-        builder.addAll(Sort.of(context.getTokenSorts())); // e.g., [#String, #Int, Id, #Float]
-        builder.addAll(TOKEN_SORTS); // [Bool, Int, Float, Char, String, List, Set, Map]
-
-        ImmutableSetMultimap.Builder<String, SortSignature> signaturesBuilder = ImmutableSetMultimap.builder();
-        for (Map.Entry<String, Production> entry : context.klabels.entries()) {
-            ImmutableList.Builder<Sort> sortsBuilder = ImmutableList.builder();
-            for (int i = 0; i < entry.getValue().getArity(); ++i) {
-                sortsBuilder.add(Sort.of(entry.getValue().getChildSort(i)));
-            }
-            signaturesBuilder.put(
-                    entry.getKey(),
-                    new SortSignature(sortsBuilder.build(), Sort.of(entry.getValue().getSort())));
-        }
-        context.listKLabels.entries().stream().forEach(e -> {
-            signaturesBuilder.put(
-                    e.getKey(),
-                    new SortSignature(ImmutableList.of(), Sort.of(e.getValue().getSort())));
-        });
-
-        ImmutableMap.Builder<String, Attributes> attributesBuilder = ImmutableMap.builder();
-        for (Map.Entry<String, Collection<Production>> entry : context.klabels.asMap().entrySet()) {
-            final Attributes attributes = new Attributes();
-            entry.getValue().stream().filter(p -> !p.isLexical()).forEach(p -> {
-                attributes.putAll(p.getAttributes());
-                if (p.containsAttribute("binder")) {
-                    attributes.add(new Attribute<>(
-                            Attribute.Key.get(
-                                    new TypeToken<Multimap<Integer, Integer>>() {},
-                                    Names.named("binder")),
-                            p.getBinderMap()));
-                }
-                if (p.containsAttribute("metabinder")) {
-                    attributes.add(new Attribute<>(
-                            Attribute.Key.get(
-                                    new TypeToken<Multimap<Integer, Integer>>() {
-                                    },
-                                    Names.named("metabinder")),
-                            p.getBinderMap()));
-                }
-            });
-            // TODO(AndreiS): fix the definitions to pass this assertion
-            //entry.getValue().stream().filter(p -> !p.isLexical()).forEach(p -> {
-            //    assert p.getAttributes().equals(attributes) : "attribute mismatch:\n" + entry.getValue();
-            //});
-            attributesBuilder.put(entry.getKey(), attributes);
-        }
-        context.listKLabels.keySet().stream().forEach(key -> {
-            attributesBuilder.put(key, new Attributes());
-        });
-
-        definitionData = new DefinitionData(
-                new Subsorts(context),
-                builder.build(),
-                context.getDataStructureSorts().entrySet().stream().collect(Collectors.toMap(e -> Sort(e.getKey().getName()), Map.Entry::getValue)),
-                signaturesBuilder.build(),
-                attributesBuilder.build(),
-                context.freshFunctionNames.entrySet().stream().collect(Collectors.toMap(e -> Sort.of(e.getKey()), Map.Entry::getValue)),
-                context.smtSortFlattening.entrySet().stream().collect(Collectors.toMap(e -> Sort.of(e.getKey()), e -> Sort.of(e.getValue()))),
-                context.getConfigurationStructureMap().entrySet().stream().collect(Collectors.toMap(
-                        e -> CellLabel.of(e.getKey()),
-                        e -> KOREtoBackendKIL.kil2koreMultiplicity(e.getValue().multiplicity))),
-                null,
-                context.getConfigurationStructureMap());
-        this.context = context;
-        this.ruleTable = new HashMap<>();
-    }
 
     public Definition(org.kframework.definition.Module module, KExceptionManager kem) {
         this.module = module;
@@ -237,28 +131,18 @@ public class Definition extends JavaSymbolicObject {
             attributesBuilder.put(e.getKey().name(), new KOREtoKIL().convertAttributes(e.getValue()));
         });
 
-        ConfigurationInfo configurationInfo = new ConfigurationInfoFromModule(module);
-
         definitionData = new DefinitionData(
                 new Subsorts(module),
-                ImmutableSet.<Sort>builder()
-                        .addAll(TOKEN_SORTS)
-                        .build(),
                 getDataStructureSorts(module),
                 signaturesBuilder.build(),
                 attributesBuilder.build(),
                 JavaConverters.mapAsJavaMapConverter(module.freshFunctionFor()).asJava().entrySet().stream().collect(Collectors.toMap(
                         e -> Sort.of(e.getKey().name()),
                         e -> e.getValue().name())),
-                Collections.emptyMap(),
-                configurationInfo.getCellSorts().stream().collect(Collectors.toMap(
-                        s -> CellLabel.of(configurationInfo.getCellLabel(s).name()),
-                        configurationInfo::getMultiplicity)),
-                configurationInfo,
-                null);
+                Collections.emptyMap()
+        );
         context = null;
 
-        this.indexingData = new IndexingTable.Data();
         this.ruleTable = new HashMap<>();
     }
 
@@ -331,15 +215,9 @@ public class Definition extends JavaSymbolicObject {
         }
     }
 
-    @Inject
-    public Definition(DefinitionData definitionData, KExceptionManager kem, IndexingTable.Data indexingData) {
-        this(definitionData, kem, indexingData, new HashMap<>(), null);
-    }
-
-    public Definition(DefinitionData definitionData, KExceptionManager kem, IndexingTable.Data indexingData, Map<Integer, Rule> ruleTable, Rule automaton) {
+    public Definition(DefinitionData definitionData, KExceptionManager kem, Map<Integer, Rule> ruleTable, Rule automaton) {
         kLabels = new HashSet<>();
         this.kem = kem;
-        this.indexingData = indexingData;
         this.ruleTable = ruleTable;
         this.automaton = automaton;
         this.module = null;
@@ -388,14 +266,6 @@ public class Definition extends JavaSymbolicObject {
         for (Rule rule : rules) {
             addRule(rule);
         }
-    }
-
-    /**
-     * TODO(YilongL): this name is really confusing; looks like it's only used
-     * in building index;
-     */
-    public Set<Sort> builtinSorts() {
-        return definitionData.builtinSorts;
     }
 
     public Set<Sort> allSorts() {
@@ -467,14 +337,6 @@ public class Definition extends JavaSymbolicObject {
         throw new UnsupportedOperationException();
     }
 
-    public void setIndex(RuleIndex index) {
-        this.index = index;
-    }
-
-    public RuleIndex getIndex() {
-        return index;
-    }
-
     public KItem.CacheTableValue getSortCacheValue(KItem.CacheTableColKey key) {
         synchronized (sortCacheTable) {
             return sortCacheTable.get(key);
@@ -500,10 +362,6 @@ public class Definition extends JavaSymbolicObject {
         return Optional.ofNullable(definitionData.kLabelAttributes.get(label)).orElse(new Attributes());
     }
 
-    public ConfigurationStructureMap getConfigurationStructureMap() {
-        return definitionData.configurationStructureMap;
-    }
-
     public DataStructureSort dataStructureSortOf(Sort sort) {
         return definitionData.dataStructureSorts.get(KORE.Sort(sort.name()));
     }
@@ -514,14 +372,6 @@ public class Definition extends JavaSymbolicObject {
 
     public Map<Sort, Sort> smtSortFlattening() {
         return definitionData.smtSortFlattening;
-    }
-
-    public ConfigurationInfo.Multiplicity cellMultiplicity(CellLabel label) {
-        return definitionData.cellLabelMultiplicity.get(label);
-    }
-
-    public ConfigurationInfo configurationInfo() {
-        return definitionData.configurationInfo;
     }
 
     public DefinitionData definitionData() {

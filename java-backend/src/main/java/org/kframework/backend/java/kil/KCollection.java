@@ -80,16 +80,6 @@ public abstract class KCollection extends Collection implements Iterable<Term>, 
     }
 
     @Override
-    protected final boolean computeMutability() {
-        for (Term term : getContents()) {
-            if (term.isMutable()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
     public String toString() {
         Joiner joiner = Joiner.on(getSeparatorName());
         StringBuilder stringBuilder = new StringBuilder();

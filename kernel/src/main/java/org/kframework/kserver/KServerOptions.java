@@ -2,12 +2,10 @@
 package org.kframework.kserver;
 
 import org.kframework.main.GlobalOptions;
-import org.kframework.utils.inject.RequestScoped;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParametersDelegate;
 
-@RequestScoped
 public class KServerOptions {
 
     @ParametersDelegate

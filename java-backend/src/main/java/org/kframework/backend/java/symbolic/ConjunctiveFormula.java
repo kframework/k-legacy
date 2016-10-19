@@ -14,6 +14,7 @@ import org.kframework.backend.java.util.Constants;
 import org.kframework.kil.ASTNode;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -92,6 +93,9 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
             Equality falsifyingEquality,
             GlobalContext global) {
         super(Kind.KITEM);
+
+        // assert that there is no equality between an empty list and a list containing an element (the equality should be false instead)
+        assert !equalities.stream().anyMatch(e -> e.leftHandSide() instanceof BuiltinList && ((BuiltinList) e.leftHandSide()).isEmpty() && e.rightHandSide() instanceof BuiltinList && !((BuiltinList) e.rightHandSide()).isEmpty() && ((BuiltinList) e.rightHandSide()).isElement(0));
 
         this.substitution = substitution;
         this.equalities = equalities;
@@ -233,6 +237,16 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
     }
 
     public ConjunctiveFormula add(Term leftHandSide, Term rightHandSide) {
+        if (leftHandSide instanceof KList && rightHandSide instanceof KList) {
+            assert ((KList) leftHandSide).size() == ((KList) rightHandSide).size();
+            ConjunctiveFormula formula = this;
+            for (int i = 0; i < ((KList) leftHandSide).size(); i++) {
+                formula = formula.add(((KList) leftHandSide).get(i), ((KList) rightHandSide).get(i));
+            }
+            return formula;
+        }
+
+        assert !(leftHandSide instanceof KList) && !(rightHandSide instanceof KList);
         return add(new Equality(leftHandSide, rightHandSide, global));
     }
 
@@ -623,6 +637,27 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
         return global.constraintOps.checkUnsat(this);
     }
 
+    public boolean smartImplies(ConjunctiveFormula constraint) {
+
+        /* TODO: from org.kframework.backend.java.kil.ConstrainedTerm.matchImplies
+        context.setTopConstraint(data.constraint);
+        constraint = (ConjunctiveFormula) constraint.evaluate(context);
+
+        Set<Variable> rightOnlyVariables = Sets.difference(constraint.variableSet(), variableSet());
+        constraint = constraint.orientSubstitution(rightOnlyVariables);
+
+        ConjunctiveFormula leftHandSide = data.constraint;
+        ConjunctiveFormula rightHandSide = constraint.removeBindings(rightOnlyVariables);
+        rightHandSide = (ConjunctiveFormula) rightHandSide.substitute(leftHandSide.substitution());
+        if (!leftHandSide.implies(rightHandSide, rightOnlyVariables)) {
+            return null;
+        }
+         */
+
+        constraint = (ConjunctiveFormula) constraint.substitute(this.substitution());
+        return implies(constraint, Collections.emptySet());
+    }
+
     public boolean implies(ConjunctiveFormula constraint, Set<Variable> rightOnlyVariables) {
         // TODO(AndreiS): this can prove "stuff -> false", it needs fixing
         assert !constraint.isFalse();
@@ -748,11 +783,6 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
     @Override
     public Sort sort() {
         return Sort.BOOL;
-    }
-
-    @Override
-    protected boolean computeMutability() {
-        return false;
     }
 
     @Override

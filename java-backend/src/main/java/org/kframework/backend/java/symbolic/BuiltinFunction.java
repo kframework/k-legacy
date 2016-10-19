@@ -11,8 +11,6 @@ import org.kframework.kil.Attributes;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
-import org.kframework.utils.inject.Builtins;
-import org.kframework.utils.inject.RequestScoped;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -22,16 +20,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-
 /**
  * Utility class that handles the builtin (hooked) operations and their Java
  * implementations.
  *
  * @author AndreiS
  */
-@RequestScoped
 public class BuiltinFunction {
 
     /**
@@ -48,12 +42,8 @@ public class BuiltinFunction {
      * The "impure" attribute on productions is used to exclude functions from evaluation during compilation,
      * when each rule's right-hand side and condition are partially evaluated. Certain functions, like functions
      * performing I/O operations or meta operations should only be evaluated at runtime.
-     *
-     * @see org.kframework.backend.java.symbolic.KILtoBackendJavaKILTransformer#evaluateDefinition(org.kframework.backend.java.kil.Definition)
-     * @see org.kframework.backend.java.symbolic.KILtoBackendJavaKILTransformer#evaluateRule(org.kframework.backend.java.kil.Rule, org.kframework.backend.java.kil.Definition)
      */
-    @Inject
-    public BuiltinFunction(Definition definition, @Builtins Map<String, Provider<MethodHandle>> hookProvider, KExceptionManager kem, Stage stage) {
+    public BuiltinFunction(Definition definition, Map<String, MethodHandle> hookProvider, KExceptionManager kem, Stage stage) {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         MethodType hookType = MethodType.methodType(Term.class, Object[].class);
         MethodHandle throwImpureExceptionHandle;
@@ -84,7 +74,7 @@ public class BuiltinFunction {
                     continue;
                 }
 
-                table.put(KLabelConstant.of(entry.getKey(), definition), hookProvider.get(hookAttribute).get());
+                table.put(KLabelConstant.of(entry.getKey(), definition), hookProvider.get(hookAttribute));
             }
         }
     }

@@ -19,8 +19,9 @@ object Constructors {
   def Definition(mainModule: Module, modules: Set[Module], att: Att) =
     definition.Definition(mainModule, modules, att)
 
-  def Module(name: String, imports: Set[Module], sentences: Set[Sentence], att: attributes.Att) =
-    definition.Module(name, imports, sentences, att)
+  def Module(name: String, sentences: Set[Sentence]) = definition.Module(name, Set(), sentences, Att())
+  def Module(name: String, sentences: Set[Sentence], att: attributes.Att) = definition.Module(name, Set(), sentences, att)
+  def Module(name: String, imports: Set[Module], sentences: Set[Sentence], att: attributes.Att) = definition.Module(name, imports, sentences, att)
 
   def SyntaxSort(sort: Sort) = definition.SyntaxSort(sort)
   def SyntaxSort(sort: Sort, att: attributes.Att) = definition.SyntaxSort(sort, att)

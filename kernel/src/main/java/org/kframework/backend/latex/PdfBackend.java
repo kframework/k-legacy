@@ -10,7 +10,6 @@ import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.file.FileUtil;
 
-import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 import java.io.*;
@@ -21,14 +20,12 @@ public class PdfBackend extends PosterBackend {
     private final FileUtil files;
     private final Provider<ProcessBuilder> pb;
 
-    @Inject
     PdfBackend(
             Stopwatch sw,
-            Context context,
             LatexBackend latexBackend,
             FileUtil files,
             Provider<ProcessBuilder> pb) {
-        super(sw, context);
+        super(sw);
         this.latexBackend = latexBackend;
         this.files = files;
         this.pb = pb;
@@ -76,8 +73,8 @@ public class PdfBackend extends PosterBackend {
     }
 
     @Override
-    public void run(Definition definition) {
-        latexBackend.compile(definition);
+    public void run() {
+//        latexBackend.compile(definition);
         String latexFile = latexBackend.getLatexFile();
         String pdfFile = generatePdf(files.resolveTemp(latexFile));
         files.copyTempFileToDefinitionDirectory(pdfFile);

@@ -8,9 +8,7 @@ import org.kframework.krun.api.io.FileSystem;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.inject.RequestScoped;
 
-import com.google.inject.Inject;
 import java.io.EOFException;
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
@@ -20,7 +18,6 @@ import java.io.RandomAccessFile;
 import java.util.HashMap;
 import java.util.Map;
 
-@RequestScoped
 public class PortableFileSystem implements FileSystem {
 
     private BidiMap<Long, FileDescriptor> descriptors = new DualHashBidiMap<Long, FileDescriptor>();
@@ -30,7 +27,6 @@ public class PortableFileSystem implements FileSystem {
     private final FileUtil fileUtil;
     private final KExceptionManager kem;
 
-    @Inject
     public PortableFileSystem(KExceptionManager kem, FileUtil fileUtil) {
         this.fileUtil = fileUtil;
         this.kem = kem;

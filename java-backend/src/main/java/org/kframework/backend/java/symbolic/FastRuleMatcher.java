@@ -292,7 +292,7 @@ public class FastRuleMatcher {
         if (subject instanceof KItem && pattern instanceof KItem) {
             KLabelConstant subjectKLabel = (KLabelConstant) ((KItem) subject).kLabel();
             KLabelConstant patternKLabel = (KLabelConstant) ((KItem) pattern).klabel();
-            if (subjectKLabel != patternKLabel) {
+            if (!subjectKLabel.name().equals(patternKLabel.name())) { // subjectKLabel != patternKLabel
                 return empty;
             }
 
@@ -362,7 +362,6 @@ public class FastRuleMatcher {
      */
     private BitSet matchAssoc(BuiltinList subject, int subjectIndex, BuiltinList pattern, int patternIndex, BitSet ruleMask, scala.collection.immutable.List<Pair<Integer, Integer>> path) {
         assert subject.sort.equals(pattern.sort);
-        //assert subject.isConcreteCollection();
 
         /* match prefix of elements in subject and pattern */
         if (subjectIndex == subject.size() && patternIndex == pattern.size()) {
@@ -375,8 +374,19 @@ public class FastRuleMatcher {
             return empty;
         }
 
-
         BuiltinList.ElementTailSplit patternElementTailSplit = pattern.splitElementTail(patternIndex, ruleCount);
+
+        /* if the subject is not a list consisting only of elements, then the current algorithm removes a equal number
+        of elements from the head of both the subject and the pattern, and creates an equality between the remaining
+        tail of the subject and the pattern */
+        if (subjectIndex < subject.size() && !subject.isElement(subjectIndex) && !ruleMask.subset(patternElementTailSplit.tailMask)) {
+            return addUnification(
+                    subject.range(subjectIndex, subject.size()),
+                    pattern.range(patternIndex, pattern.size()),
+                    ruleMask,
+                    subject instanceof BuiltinList.SingletonBuiltinList ? path : path.$colon$colon(Pair.of(subjectIndex, subject.size())));
+        }
+
         if (ruleMask.subset(patternElementTailSplit.combinedMask)) {
             BitSet elementMask;
             if (subjectIndex == subject.size()) {
@@ -403,6 +413,14 @@ public class FastRuleMatcher {
             BitSet resultSet = elementMask.clone();
             resultSet.or(tailMask);
             return resultSet;
+        }
+
+        if (!subject.isConcreteCollection()) {
+            return addUnification(
+                    subject.range(subjectIndex, subject.size()),
+                    pattern.range(patternIndex, pattern.size()),
+                    ruleMask,
+                    subject instanceof BuiltinList.SingletonBuiltinList ? path : path.$colon$colon(Pair.of(subjectIndex, subject.size())));
         }
 
         ListMultimap<Integer, ConjunctiveFormula> nestedConstraints = ArrayListMultimap.create();
@@ -484,6 +502,10 @@ public class FastRuleMatcher {
         for (int i = ruleMask.nextSetBit(0); i >= 0; i = ruleMask.nextSetBit(i + 1)) {
             Term leftHandSide = getLeftHandSide(pattern, i);
             Term rightHandSide = getRightHandSide(pattern, i);
+            if (leftHandSide instanceof Variable
+                    && ((Variable) leftHandSide).name().equals(KOREtoBackendKIL.THE_VARIABLE)) {
+                continue;
+            }
 
             constraints[i] = constraints[i].add(subject, leftHandSide);
             if (continuousSimplification) {
@@ -542,8 +564,13 @@ public class FastRuleMatcher {
                     return (Term) super.transform(kItem);
                 }
 
+                Term rhs = ((InnerRHSRewrite) kItem.klist().items().get(1)).theRHS[i];
+                if (rhs == null) {
+                    return (Term) ((Term) kItem.klist().items().get(0)).accept(this);
+                }
+
                 hasRewrite[0] = true;
-                return ((InnerRHSRewrite) kItem.klist().items().get(1)).theRHS[i];
+                return rhs;
             }
         });
         return hasRewrite[0] ? result : null;

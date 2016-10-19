@@ -162,6 +162,7 @@ object Att {
   val unit = "unit"
   val bag = "bag"
   val syntaxModule = "syntaxModule"
+  val latex = "latex"
   val variable = "variable"
   val token = "token"
   val hook = "hook"
@@ -178,6 +179,8 @@ object Att {
   val keyMap: Map[String, TypedKey[_]] = Map(
     "sort" -> sort
   )
+
+  val klabel = "klabel"
 
   def generatedByAtt(c: Class[_]) = Att().add(Att.generatedBy, c.getName)
 }

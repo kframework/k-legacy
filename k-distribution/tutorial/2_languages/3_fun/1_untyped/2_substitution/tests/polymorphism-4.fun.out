@@ -2,4 +2,5 @@ Search results:
 
 Solution 1:
 V:K@SORT-K -->
-fun ( ( x -> ( ( fun ( ( [ y , .Exps ] -> y ) | .TypeCases ) ) [ x , .Exps ] ) ) | .TypeCases )
+fun ( ( x -> ( ( fun ( ( [ y , .Exps ] -> y ) | .Cases ) ) [ x , .Exps ] ) ) | .Cases )
+

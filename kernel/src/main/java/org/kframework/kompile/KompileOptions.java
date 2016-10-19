@@ -7,7 +7,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.kframework.backend.Backends;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.inject.RequestScoped;
 import org.kframework.utils.options.OuterParsingOptions;
 import org.kframework.utils.options.SMTOptions;
 import org.kframework.utils.options.StringListConverter;
@@ -17,7 +16,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@RequestScoped
 public class KompileOptions implements Serializable {
 
 

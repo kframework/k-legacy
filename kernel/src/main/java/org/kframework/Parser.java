@@ -26,7 +26,12 @@ public class Parser {
     private final ParseInModule parseInModule;
 
     private Parser(Module module) {
-        this.parseInModule = new ParseInModule(module);
+        // TODO: remove hack once the frontend is cleaner; also remove the IOException once the hack is cleared
+        if (module.name().endsWith(RuleGrammarGenerator.RULE_CELLS)) {
+            this.parseInModule = RuleGrammarGenerator.getCombinedGrammar(module, false); // not sure isString should be false
+        } else {
+            this.parseInModule = new ParseInModule(module);
+        }
     }
 
     /**

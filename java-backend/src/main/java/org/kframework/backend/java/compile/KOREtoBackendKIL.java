@@ -140,6 +140,12 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
             return BuiltinList.kSequenceBuilder(global).addAll(convertedKList.getContents()).build();
         }
 
+        // make assoc-comm operators right-associative
+        if (definition.kLabelAttributesOf(klabel.name()).containsKey(Attribute.keyOf(Att.assoc()))
+                && definition.kLabelAttributesOf(klabel.name()).containsKey(Attribute.keyOf(Att.comm()))) {
+            return convertedKList.getContents().stream().reduce((a, b) -> KItem.of(convertedKLabel, KList.concatenate(a, b), global)).get();
+        }
+
         // we've encountered a regular KApply
         BitSet[] childrenDontCareRuleMask = constructDontCareRuleMask(convertedKList);
         KItem kItem = KItem.of(convertedKLabel, convertedKList, global, childrenDontCareRuleMask == null ? null : childrenDontCareRuleMask);
@@ -271,26 +277,6 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
         }
     }
 
-    private Term CellCollection(org.kframework.kore.KLabel klabel, org.kframework.kore.KList klist) {
-        final CellCollection.Builder builder = CellCollection.builder(
-                definition.configurationInfo().getCellForConcat(klabel).get(),
-                definition);
-        Assoc.flatten(klabel, klist.items(), module).stream().forEach(k -> {
-            if (k instanceof KApply) {
-                builder.put(
-                        CellLabel.of(((KApply) k).klabel().name()),
-                        KList(((KApply) k).klist().items()));
-            } else if (k instanceof KVariable) {
-                // TODO(AndreiS): ensure the ... variables do not have sort K
-                // assert k.att().contains(Attribute.SORT_KEY);
-                builder.concatenate(new Variable(((org.kframework.kore.KVariable) k).name(), Sort.BAG));
-            } else {
-                assert false : "unexpected CellCollection term " + k;
-            }
-        });
-        return builder.build();
-    }
-
     public Term convert(org.kframework.kore.K k) {
         if (k instanceof Term)
             return (Term) k;
@@ -323,6 +309,11 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
             if (leftHandSide instanceof KApply && module.get().attributesFor().apply(((KApply) leftHandSide).klabel()).contains(Attribute.FUNCTION_KEY)) {
                 oldRule.putAttribute(Attribute.FUNCTION_KEY, "");
             }
+        }
+
+        Term convertedLeftHandSide = convert(leftHandSide);
+        if (oldRule.containsAttribute(Attribute.PATTERN_KEY) || oldRule.containsAttribute(Attribute.PATTERN_FOLDING_KEY)) {
+            convertedLeftHandSide = convertedLeftHandSide.evaluate(TermContext.builder(global).build());
         }
 
         KLabelConstant matchLabel = KLabelConstant.of("#match", definition);
@@ -371,25 +362,20 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
 
         Rule backendKILRule = new Rule(
                 "",
-                convert(leftHandSide),
+                convertedLeftHandSide,
                 convert(RewriteToTop.toRight(rule.body())),
                 requires,
                 ensures,
                 Collections.emptySet(),
                 Collections.emptySet(),
                 lookups,
-                false,
-                null,
-                null,
-                null,
-                null,
                 oldRule,
                 global);
         /* rename variables in function, anywhere, and pattern rules to avoid name conflicts
         with automaton variables and with each other */
         if (backendKILRule.containsAttribute(Attribute.FUNCTION_KEY)
                 || backendKILRule.containsAttribute(Attribute.ANYWHERE_KEY)
-                ||backendKILRule.containsAttribute(Attribute.PATTERN_KEY)
+                || backendKILRule.containsAttribute(Attribute.PATTERN_KEY)
                 || backendKILRule.containsAttribute(Attribute.PATTERN_FOLDING_KEY)) {
             backendKILRule = backendKILRule.renameVariables();
         }

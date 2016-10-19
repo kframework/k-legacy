@@ -112,6 +112,7 @@ module CONFIG-CELLS
 
   syntax Cell ::= "<" #CellName #CellProperties ">" K "</" #CellName ">" [klabel(#configCell)]
   syntax Cell ::= "<" #CellName "/>" [klabel(#externalCell)]
+  syntax Cell ::= "<br" "/>" [klabel(#breakCell)]
 
   syntax #CellProperties ::= #CellProperty #CellProperties [klabel(#cellPropertyList)]
                            | ""                            [klabel(#cellPropertyListTerminator)]
@@ -123,12 +124,12 @@ endmodule
 module REQUIRES-ENSURES
   imports BASIC-K
 
-  syntax RuleContent ::= K                                 [klabel("#ruleNoConditions"), allowChainSubsort]
-                       | K "requires" K                    [klabel("#ruleRequires")]
-                       | K "when" K                        [klabel("#ruleRequires")]
-                       | K "ensures"  K                    [klabel("#ruleEnsures")]
-                       | K "requires" K "ensures" K        [klabel("#ruleRequiresEnsures")]
-                       | K "when" K "ensures" K            [klabel("#ruleRequiresEnsures")]
+  syntax RuleContent ::= K                                 [klabel("#ruleNoConditions"), allowChainSubsort, latex({#1}{}{})]
+                       | K "requires" K                    [klabel("#ruleRequires"), latex({#1}{#2}{})]
+                       | K "when" K                        [klabel("#ruleRequires"), latex({#1}{#2}{})]
+                       | K "ensures"  K                    [klabel("#ruleEnsures"), latex({#1}{}{#3})]
+                       | K "requires" K "ensures" K        [klabel("#ruleRequiresEnsures"), latex({#1}{#2}{#3})]
+                       | K "when" K "ensures" K            [klabel("#ruleRequiresEnsures"), latex({#1}{#2}{#3})]
 endmodule
 
 module K-TOP-SORT

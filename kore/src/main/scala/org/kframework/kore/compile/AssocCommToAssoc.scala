@@ -24,7 +24,7 @@ class AssocCommToAssoc(c: Constructors[K]) extends (Module => Module) {
 
   def apply(s: Sentence)(implicit m: Module): List[Sentence] = s match {
     //TODO(AndreiS): handle AC in requires and ensures
-    case r: Rule =>
+    case r: Rule if !r.att.contains("pattern-folding") =>
       val newBodies = apply(r.body)
       val substitutionOfVariables: Map[KVariable, K] = new FoldK[Map[KVariable, K]]() {
         type E = Map[KVariable, K]

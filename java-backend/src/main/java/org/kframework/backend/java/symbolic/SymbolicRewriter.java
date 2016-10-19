@@ -4,16 +4,13 @@ package org.kframework.backend.java.symbolic;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
 import org.kframework.Strategy;
 import org.kframework.attributes.Att;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.FreshOperations;
 import org.kframework.backend.java.builtins.MetaK;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
-import org.kframework.backend.java.indexing.RuleIndex;
 import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.strategies.TransitionCompositeStrategy;
 import org.kframework.backend.java.util.JavaKRunState;
@@ -43,7 +40,6 @@ import java.util.stream.Collectors;
  */
 public class SymbolicRewriter {
 
-    private final JavaExecutionOptions javaOptions;
     private final TransitionCompositeStrategy strategy;
     private final List<String> transitions;
     private final Stopwatch stopwatch = Stopwatch.createUnstarted();
@@ -51,27 +47,26 @@ public class SymbolicRewriter {
     private boolean transition;
     private final Set<ConstrainedTerm> superheated = Sets.newHashSet();
     private final Set<ConstrainedTerm> newSuperheated = Sets.newHashSet();
-    private final RuleIndex ruleIndex;
     private final KRunState.Counter counter;
-    private final Map<ConstrainedTerm, Set<Rule>> subject2DisabledRules = new HashMap<>();
     private final FastRuleMatcher theFastMatcher;
     private final Definition definition;
     private final BitSet allRuleBits;
 
-    @Inject
-    public SymbolicRewriter(GlobalContext global, KompileOptions kompileOptions, JavaExecutionOptions javaOptions,
+    public SymbolicRewriter(GlobalContext global, KompileOptions kompileOptions,
                             KRunState.Counter counter, KOREtoBackendKIL constructor) {
         this.constructor = constructor;
         this.definition = global.getDefinition();
         this.allRuleBits = BitSet.apply(definition.ruleTable.size());
         this.allRuleBits.makeOnes(definition.ruleTable.size());
-        this.javaOptions = javaOptions;
-        this.ruleIndex = definition.getIndex();
         this.counter = counter;
         this.strategy = new TransitionCompositeStrategy(kompileOptions.transition);
         this.transitions = kompileOptions.transition;
         this.theFastMatcher = new FastRuleMatcher(global, definition.ruleTable.size());
         this.transition = true;
+    }
+
+    public KOREtoBackendKIL getConstructor() {
+        return constructor;
     }
 
     public KRunState rewrite(ConstrainedTerm constrainedTerm, int bound) {
@@ -151,7 +146,7 @@ public class SymbolicRewriter {
         throw new UnsupportedOperationException();
     }
 
-    private List<ConstrainedTerm> fastComputeRewriteStep(ConstrainedTerm subject, boolean computeOne, boolean narrowing, boolean proofFlag) {
+    public List<ConstrainedTerm> fastComputeRewriteStep(ConstrainedTerm subject, boolean computeOne, boolean narrowing, boolean proofFlag) {
         List<ConstrainedTerm> results = new ArrayList<>();
         if (definition.automaton == null) {
             return results;
@@ -294,7 +289,7 @@ public class SymbolicRewriter {
                 KItem kItemSubject = (KItem) subject;
                 List<Term> newContents = new ArrayList<>(((KList) kItemSubject.kList()).getContents());
                 newContents.set(path.head().getLeft(), buildRHS(newContents.get(path.head().getLeft()), substitution, (scala.collection.immutable.List<Pair<Integer, Integer>>) path.tail(), rhs, context));
-                return KItem.of(kItemSubject.kLabel(), KList.concatenate(newContents), context.global()).applyAnywhereRules(false, context);
+                return KItem.of(kItemSubject.kLabel(), KList.concatenate(newContents), context.global()).applyAnywhereRules(context);
             } else if (subject instanceof BuiltinList) {
                 BuiltinList builtinListSubject = (BuiltinList) subject;
                 List<Term> newContents = new ArrayList<>(builtinListSubject.children);
@@ -342,7 +337,7 @@ public class SymbolicRewriter {
         }
 
         if (subject instanceof KItem) {
-            return KItem.of(((KItem) subject).kLabel(), KList.concatenate(newContents), context.global()).applyAnywhereRules(false, context);
+            return KItem.of(((KItem) subject).kLabel(), KList.concatenate(newContents), context.global()).applyAnywhereRules(context);
         } else if (subject instanceof BuiltinList) {
             return BuiltinList
                     .builder(((BuiltinList) subject).sort, ((BuiltinList) subject).operatorKLabel, ((BuiltinList) subject).unitKLabel, ((BuiltinList) subject).globalContext())
@@ -391,9 +386,6 @@ public class SymbolicRewriter {
 
         ConstrainedTerm result = new ConstrainedTerm(term, constraint, context);
         if (expandPattern) {
-            if (rule.isCompiledForFastRewriting()) {
-                result = new ConstrainedTerm(term.substituteAndEvaluate(constraint.substitution(), context), constraint, context);
-            }
             // TODO(AndreiS): move these some other place
             result = result.expandPatterns(true);
             if (result.constraint().isFalse() || result.constraint().checkUnsat()) {
@@ -566,8 +558,9 @@ public class SymbolicRewriter {
                     continue;
                 }
 
-                List<Term> leftKContents = term.term().getCellContentsByName(CellLabel.K);
-                List<Term> rightKContents = targetTerm.term().getCellContentsByName(CellLabel.K);
+                /* TODO(AndreiS): terminate the proof with failure based on the klabel _~>_
+                List<Term> leftKContents = term.term().getCellContentsByName("<k>");
+                List<Term> rightKContents = targetTerm.term().getCellContentsByName("<k>");
                 // TODO(YilongL): the `get(0)` seems hacky
                 if (leftKContents.size() == 1 && rightKContents.size() == 1) {
                     Pair<Term, Variable> leftKPattern = KSequence.splitContentAndFrame(leftKContents.get(0));
@@ -583,7 +576,7 @@ public class SymbolicRewriter {
                             continue;
                         }
                     }
-                }
+                }*/
 
                 if (guarded) {
                     ConstrainedTerm result = applySpecRules(term, specRules);

@@ -2,7 +2,6 @@
 package org.kframework.backend.java.rewritemachine;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimaps;
 import org.kframework.backend.java.builtins.UninterpretedToken;
 import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.rewritemachine.RHSInstruction.Constructor;
@@ -10,7 +9,6 @@ import org.kframework.backend.java.rewritemachine.RHSInstruction.Constructor.Con
 import org.kframework.backend.java.symbolic.BottomUpVisitor;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -32,7 +30,7 @@ public class GenerateRHSInstructions extends BottomUpVisitor {
 
     @Override
     public void visit(BuiltinMap node) {
-        if (node.isGround() && node.isNormal() && !node.isMutable()) {
+        if (node.isGround() && node.isNormal()) {
             rhsSchedule.add(RHSInstruction.PUSH(node));
         } else {
             int sizeBase = 0;
@@ -53,7 +51,7 @@ public class GenerateRHSInstructions extends BottomUpVisitor {
 
     @Override
     public void visit(BuiltinSet node) {
-        if (node.isGround() && node.isNormal() && !node.isMutable()) {
+        if (node.isGround() && node.isNormal()) {
             rhsSchedule.add(RHSInstruction.PUSH(node));
         } else {
             int sizeBase = 0;
@@ -72,36 +70,13 @@ public class GenerateRHSInstructions extends BottomUpVisitor {
     }
 
     @Override
-    public void visit(CellCollection node) {
-        if (node.isGround() && node.isNormal() && !node.isMutable()) {
-            rhsSchedule.add(RHSInstruction.PUSH(node));
-        } else {
-            int sizeBase = 0;
-            for (Term base : node.baseTerms()) {
-                base.accept(this);
-                sizeBase++;
-            }
-            List<CellLabel> cellLabels = new ArrayList<>();
-            for (Map.Entry<CellLabel, List<CellCollection.Cell>> entry : Multimaps.asMap(node.cells()).entrySet()) {
-                for (int i = entry.getValue().size() - 1; i >= 0; i--) {
-                    entry.getValue().get(i).content().accept(this);
-                    cellLabels.add(entry.getKey());
-                }
-            }
-            Collections.reverse(cellLabels);
-            rhsSchedule.add(RHSInstruction.CONSTRUCT(new Constructor(
-                    ConstructorType.CELL_COLLECTION, sizeBase, cellLabels, node.cellSort())));
-        }
-    }
-
-    @Override
     public void visit(Hole hole) {
         rhsSchedule.add(RHSInstruction.PUSH(hole));
     }
 
     @Override
     public void visit(KItem node) {
-        if (node.isGround() && node.isNormal() && !node.isMutable()) {
+        if (node.isGround() && node.isNormal()) {
             rhsSchedule.add(RHSInstruction.PUSH(node));
         } else {
             node.kList().accept(this);
@@ -118,19 +93,8 @@ public class GenerateRHSInstructions extends BottomUpVisitor {
     }
 
     @Override
-    public void visit(KLabelFreezer node) {
-        if (node.isGround() && node.isNormal() && !node.isMutable()) {
-            rhsSchedule.add(RHSInstruction.PUSH(node));
-        } else {
-            node.term().accept(this);
-            rhsSchedule.add(RHSInstruction.CONSTRUCT(
-                    new Constructor(ConstructorType.KLABEL_FREEZER)));
-        }
-    }
-
-    @Override
     public void visit(KList node) {
-        if (node.isGround() && node.isNormal() && !node.isMutable()) {
+        if (node.isGround() && node.isNormal()) {
             rhsSchedule.add(RHSInstruction.PUSH(node));
         } else {
             int size = 0;
@@ -150,7 +114,7 @@ public class GenerateRHSInstructions extends BottomUpVisitor {
 
     @Override
     public void visit(KSequence node) {
-        if (node.isGround() && node.isNormal() && !node.isMutable()) {
+        if (node.isGround() && node.isNormal()) {
             rhsSchedule.add(RHSInstruction.PUSH(node));
         } else {
             int size = 0;
@@ -171,7 +135,7 @@ public class GenerateRHSInstructions extends BottomUpVisitor {
 
     @Override
     public void visit(KItemProjection node) {
-        if (node.isGround() && node.isNormal() && !node.isMutable()) {
+        if (node.isGround() && node.isNormal()) {
             rhsSchedule.add(RHSInstruction.PUSH(node));
         } else {
             node.term().accept(this);
@@ -183,7 +147,7 @@ public class GenerateRHSInstructions extends BottomUpVisitor {
 
     @Override
     public void visit(KLabelInjection node) {
-        if (node.isGround() && node.isNormal() && !node.isMutable()) {
+        if (node.isGround() && node.isNormal()) {
             rhsSchedule.add(RHSInstruction.PUSH(node));
         } else {
             node.term().accept(this);
@@ -194,7 +158,7 @@ public class GenerateRHSInstructions extends BottomUpVisitor {
 
     @Override
     public void visit(InjectedKLabel node) {
-        if (node.isGround() && node.isNormal() && !node.isMutable()) {
+        if (node.isGround() && node.isNormal()) {
             rhsSchedule.add(RHSInstruction.PUSH(node));
         } else {
             node.injectedKLabel().accept(this);

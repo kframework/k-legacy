@@ -52,6 +52,7 @@ case class Ambiguity(items: Set[Term])
   }
   def map(newChildren: Collection[Term]) = Ambiguity(new HashSet[Term](newChildren))
   override def toString() = "amb(" + (items.asScala mkString ",") + ")"
+  
 }
 
 case class KList(items: PStack[Term])

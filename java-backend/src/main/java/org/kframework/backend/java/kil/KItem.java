@@ -2,18 +2,16 @@
 package org.kframework.backend.java.kil;
 
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 import com.google.inject.Provider;
-import org.kframework.attributes.Att;
 import org.kframework.attributes.Location;
 import org.kframework.attributes.Source;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.MetaK;
 import org.kframework.backend.java.builtins.SortMembership;
-import org.kframework.backend.java.rewritemachine.KAbstractRewriteMachine;
 import org.kframework.backend.java.symbolic.*;
 import org.kframework.backend.java.util.ImpureFunctionException;
 import org.kframework.backend.java.util.Profiler;
+import org.kframework.backend.java.util.RewriteEngineUtils;
 import org.kframework.backend.java.util.Subsorts;
 import org.kframework.backend.java.util.Constants;
 import org.kframework.builtin.KLabels;
@@ -243,10 +241,16 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
          */
         Sort sort = sorts.isEmpty() ? kind.asSort() : subsorts.getGLBSort(sorts);
         if (sort == null) {
-            throw KExceptionManager.criticalError("Cannot compute least sort of term: " +
-                    this.toString() + "\nPossible least sorts are: " + sorts +
-                    "\nAll terms must have a unique least sort; " +
-                    "consider assigning unique KLabels to overloaded productions", this);
+            throw KExceptionManager.criticalError("Cannot compute least sort of term: " + this.toString() + ".\n"
+                    + "Possible sorts are " + sorts + "\n."
+                    + "All terms must have a unique least sort; "
+                    + "consider assigning unique KLabels to overloaded productions.", this);
+        }
+        if (!sorts.isEmpty() && !sorts.contains(sort)) {
+            throw KExceptionManager.criticalError("Cannot compute least sort of term: " + this.toString() + ".\n"
+                    + "Possible sorts are " + sorts + ", but their least common subsort is " + sort + ", which is not a possible sort."
+                    + "All terms must have a unique least sort; "
+                    + "consider assigning unique KLabels to overloaded productions/completing the subsort lattice.", this);
         }
         /* the sort is exact iff the klabel is a constructor and there is no other possible sort */
         boolean isExactSort = kLabelConstant.isConstructor() && possibleSorts.isEmpty();
@@ -267,12 +271,12 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
         return global.kItemOps.isEvaluable(this, global.getDefinition());
     }
 
-    public Term evaluateFunction(boolean copyOnShareSubstAndEval, TermContext context) {
-        return global.kItemOps.evaluateFunction(this, copyOnShareSubstAndEval, context);
+    public Term evaluateFunction(TermContext context) {
+        return global.kItemOps.evaluateFunction(this, context);
     }
 
-    public Term resolveFunctionAndAnywhere(boolean copyOnShareSubstAndEval, TermContext context) {
-        return global.kItemOps.resolveFunctionAndAnywhere(this, copyOnShareSubstAndEval, context);
+    public Term resolveFunctionAndAnywhere(TermContext context) {
+        return global.kItemOps.resolveFunctionAndAnywhere(this, context);
     }
 
     @Override
@@ -295,20 +299,19 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
     public static class KItemOperations {
 
         private final Stage stage;
-        private final JavaExecutionOptions javaOptions;
+        private final boolean deterministicFunctions;
         private final KExceptionManager kem;
         private final Provider<BuiltinFunction> builtins;
         private final GlobalOptions options;
 
-        @Inject
         public KItemOperations(
                 Stage stage,
-                JavaExecutionOptions javaOptions,
+                boolean deterministicFunctions,
                 KExceptionManager kem,
                 Provider<BuiltinFunction> builtins,
                 GlobalOptions options) {
             this.stage = stage;
-            this.javaOptions = javaOptions;
+            this.deterministicFunctions = deterministicFunctions;
             this.kem = kem;
             this.builtins = builtins;
             this.options = options;
@@ -320,20 +323,12 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
          * Evaluates this {@code KItem} if it is a predicate or function; otherwise,
          * applies [anywhere] rules associated with this {@code KItem}
          *
-         * @param copyOnShareSubstAndEval
-         *            specifies whether to use
-         *            {@link CopyOnShareSubstAndEvalTransformer} when applying rules
-         *
-         * @param context
-         *            a term context
-         *
+         * @param context                 a term context
          * @return the reduced result on success, or this {@code KItem} otherwise
          */
-        public Term resolveFunctionAndAnywhere(KItem kItem, boolean copyOnShareSubstAndEval, TermContext context) {
+        public Term resolveFunctionAndAnywhere(KItem kItem, TermContext context) {
             try {
-                Term result = kItem.isEvaluable() ?
-                        evaluateFunction(kItem, copyOnShareSubstAndEval, context) :
-                        kItem.applyAnywhereRules(copyOnShareSubstAndEval, context);
+                Term result = kItem.isEvaluable() ? evaluateFunction(kItem, context) : kItem.applyAnywhereRules(context);
                 if (result instanceof KItem && ((KItem) result).isEvaluable() && result.isGround()) {
                     // we do this check because this warning message can be very large and cause OOM
                     if (options.warnings.includesExceptionType(ExceptionType.HIDDENWARNING) && stage == Stage.REWRITING) {
@@ -390,17 +385,10 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
         /**
          * Evaluates this {@code KItem} if it is a predicate or function
          *
-         * @param copyOnShareSubstAndEval
-         *            specifies whether to use
-         *            {@link CopyOnShareSubstAndEvalTransformer} when applying
-         *            user-defined function rules
-         *
-         * @param context
-         *            a term context
-         *
+         * @param context                 a term context
          * @return the evaluated result on success, or this {@code KItem} otherwise
          */
-        public Term evaluateFunction(KItem kItem, boolean copyOnShareSubstAndEval, TermContext context) {
+        public Term evaluateFunction(KItem kItem, TermContext context) {
             if (!kItem.isEvaluable()) {
                 return kItem;
             }
@@ -421,12 +409,12 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                             return result.evaluate(context);
                         }
                     } catch (ClassCastException e) {
-                    // DISABLE EXCEPTION CHECKSTYLE
+                        // DISABLE EXCEPTION CHECKSTYLE
                     } catch (ImpureFunctionException e) {
                         // do not do anything further: immediately assume this function is not ready to be evaluated yet.
                         return kItem;
                     } catch (Throwable t) {
-                    // ENABLE EXCEPTION CHECKSTYLE
+                        // ENABLE EXCEPTION CHECKSTYLE
                         if (t instanceof Error) {
                             throw (Error) t;
                         }
@@ -472,7 +460,7 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                                 continue;
                             } else {
                                 if (matches.size() > 1) {
-                                    if (javaOptions.deterministicFunctions) {
+                                    if (deterministicFunctions) {
                                         throw KEMException.criticalError("More than one possible match. " +
                                                 "Function " + kLabelConstant + " might be non-deterministic.");
                                     }
@@ -488,12 +476,10 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                                     solution = solution.plus(freshVar, freshVar.getFreshCopy());
                                 }
                             }
-                            Term rightHandSide = KAbstractRewriteMachine.construct(
+                            Term rightHandSide = RewriteEngineUtils.construct(
                                     rule.rhsInstructions(),
                                     solution,
-                                    copyOnShareSubstAndEval ? rule.reusableVariables().elementSet() : null,
-                                    context,
-                                    false);
+                                    context);
 
                             if (rule.containsAttribute("owise")) {
                                 if (owiseResult != null) {
@@ -515,7 +501,7 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                              * If the function definitions do not need to be deterministic, try them in order
                              * and apply the first one that matches.
                              */
-                            if (!javaOptions.deterministicFunctions && result != null) {
+                            if (!deterministicFunctions && result != null) {
                                 return result;
                             }
                         } finally {
@@ -579,24 +565,17 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
 
         anywhereApplicable = (kLabel instanceof KLabelConstant)
                 && !context.definition().anywhereRules()
-                        .get((KLabelConstant) kLabel).isEmpty();
+                .get((KLabelConstant) kLabel).isEmpty();
         return anywhereApplicable;
     }
 
     /**
      * Apply [anywhere] associated with this {@code KItem}.
      *
-     * @param copyOnShareSubstAndEval
-     *            specifies whether to use
-     *            {@link CopyOnShareSubstAndEvalTransformer} when applying
-     *            [anywhere] rules
-     *
-     * @param context
-     *            a term context
-     *
+     * @param context                 a term context
      * @return the result on success, or this {@code KItem} otherwise
      */
-    public Term applyAnywhereRules(boolean copyOnShareSubstAndEval, TermContext context) {
+    public Term applyAnywhereRules(TermContext context) {
         // apply a .K ~> K => K normalization
         if ((kLabel instanceof KLabelConstant) && ((KLabelConstant) kLabel).name().equals(KLabels.KSEQ)
                 && kList instanceof KList
@@ -633,14 +612,7 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
 
                 RuleAuditing.succeed(rule);
                 Term rightHandSide = rule.rightHandSide();
-                if (copyOnShareSubstAndEval) {
-                    rightHandSide = rightHandSide.copyOnShareSubstAndEval(
-                            solution,
-                            rule.reusableVariables().elementSet(),
-                            context);
-                } else {
-                    rightHandSide = rightHandSide.substituteAndEvaluate(solution, context);
-                }
+                rightHandSide = rightHandSide.substituteAndEvaluate(solution, context);
                 return rightHandSide;
             } finally {
                 if (RuleAuditing.isAuditBegun()) {
@@ -721,11 +693,6 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
         hashCode = hashCode * Constants.HASH_PRIME + kLabel.hashCode();
         hashCode = hashCode * Constants.HASH_PRIME + kList.hashCode();
         return hashCode;
-    }
-
-    @Override
-    protected boolean computeMutability() {
-        return kLabel.isMutable() || kList.isMutable();
     }
 
     @Override
@@ -813,6 +780,7 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
 
     /**
      * When serializing a KItem, compute its sort so that we don't end up serializing the TermContext
+     *
      * @param out
      * @throws IOException
      */

@@ -1,11 +1,9 @@
 // Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.kframework.backend.java.kil.CellLabel;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.JavaSymbolicObject;
 import org.kframework.backend.java.kil.KItem;
@@ -34,12 +32,17 @@ public class MacroExpander extends CopyOnWriteTransformer {
         this.kem = kem;
     }
 
+    public static Term expandAndEvaluate(TermContext termContext, KExceptionManager kem, Term term) {
+        term = new MacroExpander(termContext, kem).processTerm(term);
+        term = term.evaluate(termContext);
+        return term;
+    }
+
     public Definition processDefinition() {
         Definition definition = context.definition();
         Definition processedDefinition = new Definition(
                 definition.definitionData(),
                 kem,
-                definition.indexingData,
                 definition.ruleTable,
                 definition.automaton);
         processedDefinition.addKLabelCollection(definition.kLabels());
@@ -76,19 +79,6 @@ public class MacroExpander extends CopyOnWriteTransformer {
         ConjunctiveFormula processedLookups
             = (ConjunctiveFormula) processTerm(rule.lookups());
 
-        Map<CellLabel, Term> processedLhsOfReadCell = null;
-        Map<CellLabel, Term> processedRhsOfWriteCell = null;
-        if (rule.isCompiledForFastRewriting()) {
-            processedLhsOfReadCell = new HashMap<>();
-            for (Map.Entry<CellLabel, Term> entry : rule.lhsOfReadCell().entrySet()) {
-                processedLhsOfReadCell.put(entry.getKey(), processTerm(entry.getValue()));
-            }
-            processedRhsOfWriteCell = new HashMap<>();
-            for (Map.Entry<CellLabel, Term> entry : rule.rhsOfWriteCell().entrySet()) {
-                processedRhsOfWriteCell.put(entry.getKey(), processTerm(entry.getValue()));
-            }
-        }
-
         return new Rule(
                 rule.label(),
                 processedLeftHandSide,
@@ -98,11 +88,6 @@ public class MacroExpander extends CopyOnWriteTransformer {
                 rule.freshConstants(),
                 rule.freshVariables(),
                 processedLookups,
-                rule.isCompiledForFastRewriting(),
-                processedLhsOfReadCell,
-                processedRhsOfWriteCell,
-                rule.cellsToCopy(),
-                rule.matchingInstructions(),
                 rule,
                 rule.globalContext());
     }

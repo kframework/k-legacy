@@ -76,11 +76,6 @@ public class KLabelInjection extends KLabel {
     }
 
     @Override
-    protected final boolean computeMutability() {
-        return term.isMutable();
-    }
-
-    @Override
     public String toString() {
         return "(# " + term + ")";
     }

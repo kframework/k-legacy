@@ -1,7 +1,6 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import com.google.inject.Inject;
 import org.kframework.attributes.Att;
 import org.kframework.backend.java.kore.compile.ExpandMacros;
 import org.kframework.compile.NormalizeKSeq;
@@ -58,7 +57,6 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
     private final FileUtil files;
     private final GlobalOptions globalOptions;
 
-    @Inject
     public ProofExecutionMode(KExceptionManager kem, KRunOptions options, Stopwatch sw, FileUtil files, GlobalOptions globalOptions) {
         this.kem = kem;
         this.options = options;
@@ -163,11 +161,11 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
         return rewriter.prove(rules);
     }
 
-    private Rule transformFunction(Function<K, K> f, Rule r) {
+    public static Rule transformFunction(Function<K, K> f, Rule r) {
         return Rule.apply(f.apply(r.body()), f.apply(r.requires()), f.apply(r.ensures()), r.att());
     }
 
-    private Rule transform(Function1<K, K> f, Rule r) {
+    public static Rule transform(Function1<K, K> f, Rule r) {
         return Rule.apply(f.apply(r.body()), f.apply(r.requires()), f.apply(r.ensures()), r.att());
     }
 
