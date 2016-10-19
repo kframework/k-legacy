@@ -42,16 +42,32 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   import env._
   import env.builtin._
 
-  val hooks: Map[String, Label] = Map[String, Label](
-    "INT.le" -> env.builtin.`<=Int`,
-    "INT.add" -> env.builtin.`+Int`,
-    "BOOL.and" -> PrimitiveFunction2[Boolean]("_andBool_", BOOLEAN, _ && _)(env),
-    "BOOL.or" -> PrimitiveFunction2[Boolean]("_orBool_", BOOLEAN, _ || _)(env),
-    "BOOL.not" -> PrimitiveFunction1[Boolean]("notBool_", BOOLEAN, !_)(env),
-    "SET.unit" -> env.builtin.BuiltinSetUnit,
-    "SET.concat" -> env.builtin.BuiltinSet,
-    "SET.in" -> env.builtin.BuiltinSet.in
-  )
+  def hook(hookName: String, labelName: String): Option[Label] = Some(hookName) collect {
+    case "INT.le" => PrimitiveFunction2(labelName, INT, BOOLEAN, (a: Int, b: Int) => a <= b)(env)
+    case "INT.add" => PrimitiveFunction2(labelName, INT, (a: Int, b: Int) => a + b)(env)
+    case "BOOL.and" => PrimitiveFunction2[Boolean](labelName, BOOLEAN, _ && _)(env)
+    case "BOOL.or" => PrimitiveFunction2[Boolean](labelName, BOOLEAN, _ || _)(env)
+    case "BOOL.not" => PrimitiveFunction1[Boolean](labelName, BOOLEAN, !_)(env)
+    case "SET.unit" => env.builtin.BuiltinSetUnit
+    case "SET.concat" => env.builtin.BuiltinSet
+  }
+
+  def relativeHook(relativeHook: String): Option[Label] = relativeHook.split('.').toSeq match {
+    case Seq(baseLabel: String, hookName: String) => relativeHookByBaseLabel(baseLabel, hookName)
+    case _ => None
+  }
+
+  def relativeHookByBaseLabel(baseLabel: String, hookName: String): Option[Label] = env.label(baseLabel) match {
+    case l: MapLabel => hookName match {
+      case "lookup" => Some(l.lookup)
+      case "keys" => Some(l.keys)
+      case _ => None
+    }
+    case s: SetLabel => hookName match {
+      case "in" => Some(s.in)
+    }
+    case _ => None
+  }
 
   case class IsSort(s: Sort)(implicit val env: Environment) extends {
     val name = "is" + s.name
@@ -84,25 +100,11 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
             })
   }
 
-  def relativeHook(relativeHook: String): Option[Label] = relativeHook.split('.').toSeq match {
-    case Seq(baseLabel: String, hookName: String) => relativeHookByBaseLabel(baseLabel, hookName)
-    case _ => None
-  }
-
-  def relativeHookByBaseLabel(baseLabel: String, hookName: String): Option[Label] = env.label(baseLabel) match {
-    case l: MapLabel => hookName match {
-      case "lookup" => Some(l.lookup)
-      case "keys" => Some(l.keys)
-      case _ => None
-    }
-    case _ => None
-  }
-
   private val nonAssocLabels: Set[Label] = nonAssocProductions flatMap {
-    case SyntaxSort(s, att) => att.get(Att.hook) flatMap hooks.get
+    case SyntaxSort(s, att) => None
     case p@Production(s, items, att) if !att.contains(Att.relativeHook) =>
       implicit val envv = env
-      att.get(Att.hook).flatMap(hooks.get).orElse({
+      att.get(Att.hook).flatMap({ hookName: String => hook(hookName, p.klabel.get.name) }).orElse({
         if (att.contains(Att.token)) {
           if (!env.labels.exists(l => l.name == "TOKEN_" + s.name))
             Some(GENERIC_TOKEN(Sort(s.name)))
@@ -246,7 +248,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
       rw
   }
 
-  val unifier = Matcher(env)
+  val unifier = Matcher(env).default
   val substitutionApplier = SubstitutionApply(env)
   val rewriterConstructor = Rewriter(substitutionApplier, unifier, env) _
 

@@ -112,7 +112,7 @@ module SET
   syntax Set ::= Set "-Set" Set           [function, hook(SET.difference), latex({#1}-_{\it Set}{#2}), klabel(Set:difference)]
 
   /*@ Check element membership in a set ($a \in A$) */
-  syntax Bool ::= K "in" Set              [function, hook(SET.in), klabel(Set:in)]
+  syntax Bool ::= K "in" Set              [function, hook(SET.in), klabel(Set:in), relativeHook(_Set_.in)]
 
   /*@ Check set inclusion ($A \subseteq B$) */
   syntax Bool ::= Set "<=Set" Set         [function, hook(SET.inclusion)]
