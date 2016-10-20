@@ -137,10 +137,9 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
         public K match(K k, org.kframework.definition.Rule rule) {
             TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
-            Term javaTerm = MacroExpander.expandAndEvaluate(termContext, kem, converter.convert(k));
-            org.kframework.backend.java.kil.Rule javaPattern = converter.convert(Optional.empty(), rule);
+            Term javaTerm = MacroExpander.expandAndEvaluate(termContext, kem, converter.convert(k);
             this.rewriter = new SymbolicRewriter(rewritingContext, kompileOptions, new KRunState.Counter(), converter);
-            return rewriter.match(javaTerm, javaPattern, termContext);
+            return rewriter.
         }
 
 
