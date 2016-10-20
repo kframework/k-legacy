@@ -63,8 +63,8 @@ object ModuleTransformer {
       }
     }, name)
 
-  def fromKTransformer(f: K => K, name: String): HybridMemoizingModuleTransformer =
-    fromKTransformerWithModuleInfo((m: Module) => f, name)
+  def fromKTransformer(f: K => K, name: String): MemoizingModuleTransformer =
+    fromKTransformerWithModuleInfoClean((m: Module) => f, name)
 
   def fromKTransformerWithModuleInfoClean(ff: Module => K => K, name: String): BasicModuleTransformer =
     fromSentenceTransformerClean((module, sentence) => {
@@ -207,7 +207,7 @@ object DefinitionTransformer {
     new DefinitionTransformer(ModuleTransformer.fromRuleBodyTranformer(f, name))
 
   def fromKTransformer(f: K => K, name: String): DefinitionTransformer =
-    DefinitionTransformer(ModuleTransformer.fromKTransformer(f, name))
+    DefinitionTransformer.apply1(ModuleTransformer.fromKTransformer(f, name))
 
   def fromKTransformerWithModuleInfo(f: (Module, K) => K, name: String): DefinitionTransformer =
     DefinitionTransformer(ModuleTransformer.fromKTransformerWithModuleInfo(f.curried, name))
