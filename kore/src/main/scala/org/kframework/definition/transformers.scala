@@ -12,9 +12,9 @@ import collection._
 
 object ModuleTransformer {
   def fromSentenceTransformer(sentenceTransformer: java.util.function.UnaryOperator[Sentence], passName: String): MemoizingModuleTransformer =
-    new SentenceBasedModule {
+    new SentenceBasedModuleTransformer {
       override val name = passName
-      def f(s: Sentence) = sentenceTransformer(s)
+      override def f(s: Sentence) = sentenceTransformer(s)
     }
 
   def fromSentenceTransformer(f: (Module, Sentence) => Sentence, passName: String): HybridMemoizingModuleTransformer =
@@ -40,6 +40,12 @@ object ModuleTransformer {
       override val name: String = passName
     }
 
+  def fromSentenceTransformerClean(sentenceTransformer: (Module, Sentence) => Sentence, passName: String): BasicModuleTransformer =
+    new SentenceBasedModuleTransformer {
+      override val name = passName
+      override def f(s: Sentence, inputModule: Module) = sentenceTransformer(inputModule, s)
+    }
+
   def fromRuleBodyTranformer(f: K => K, name: String): MemoizingModuleTransformer =
     fromSentenceTransformer(_ match {
       case r: Rule => r.copy(body = f(r.body));
@@ -58,6 +64,19 @@ object ModuleTransformer {
 
   def fromKTransformer(f: K => K, name: String): HybridMemoizingModuleTransformer =
     fromKTransformerWithModuleInfo((m: Module) => f, name)
+
+  def fromKTransformerWithModuleInfoClean(ff: Module => K => K, name: String): BasicModuleTransformer =
+    fromSentenceTransformerClean((module, sentence) => {
+      val f: K => K = ff(module)
+      sentence match {
+        case r: Rule => Rule.apply(f(r.body), f(r.requires), f(r.ensures), r.att)
+        case c: Context => Context.apply(f(c.body), f(c.requires), c.att)
+        case o => o
+      }
+    }, name)
+
+  def fromKTransformerClean(f: K => K, name: String): BasicModuleTransformer =
+    fromKTransformerWithModuleInfoClean((m: Module) => f, name)
 
   def fromHybrid(f: Module => Module, name: String): HybridMemoizingModuleTransformer = {
     val lName = name
@@ -139,19 +158,28 @@ trait BasicModuleTransformer extends MemoizingModuleTransformer {
   protected def process(inputModule: Module, alreadyProcessedImports: Set[Module]): Module
 }
 
-trait SentenceBasedModule extends BasicModuleTransformer {
-  def f(s: Sentence): Sentence
-  override protected def process(inputModule: Module, alreadyProcessedImports: Set[Module]): Module = {
-    Module(inputModule.name, alreadyProcessedImports, inputModule.localSentences.map(s => try {
-      f(s)
-    } catch {
-      case e: KEMException =>
-        if (e.exception.getLocation == null)
-          throw new KEMException(e.exception.copy(s.att.get(classOf[Location]).orNull))
-        else
-          throw e
+
+abstract class SentenceBasedModuleTransformer extends BasicModuleTransformer {
+  def f(s: Sentence, inputModule: Module, alreadyProcessedModules: Set[Module]): Sentence = f(s, inputModule)
+
+  def f(s: Sentence, inputModule: Module): Sentence = f(s)
+
+  def f(s: Sentence): Sentence = s
+
+  override def process(inputModule: Module, alreadyProcessedImports: Set[Module]): Module = {
+    val newSentences = inputModule.localSentences map {
+      s =>
+        try {
+          f(s, inputModule, alreadyProcessedImports)
+        } catch {
+          case e: KEMException =>
+            e.exception.addTraceFrame("while executing phase \"" + name + "\" on sentence at"
+              + "\n\t" + s.att.get(classOf[Source]).map(_.toString).getOrElse("<none>")
+              + "\n\t" + s.att.get(classOf[Location]).map(_.toString).getOrElse("<none>"))
+            throw e
+        }
     }
-    ))
+    Module(inputModule.name, alreadyProcessedImports, newSentences, inputModule.att)
   }
 }
 
@@ -186,6 +214,8 @@ object DefinitionTransformer {
   def fromHybrid(f: Module => Module, name: String): DefinitionTransformer = DefinitionTransformer(ModuleTransformer.fromHybrid(f, name))
 
   def apply(f: HybridMemoizingModuleTransformer): DefinitionTransformer = new DefinitionTransformer(f)
+
+  def apply1(f: MemoizingModuleTransformer): DefinitionTransformer = new DefinitionTransformer(f)
 
   def fromWithInputDefinitionTransformerClass(c: Class[_]): (Definition => Definition) = (d: Definition) => c.getConstructor(classOf[Definition]).newInstance(d).asInstanceOf[WithInputDefinitionModuleTransformer].outputDefinition
 
