@@ -157,84 +157,100 @@ public class SymbolicRewriter {
         throw new UnsupportedOperationException();
     }
 
-    public List<ConstrainedTerm> fastComputeRewriteStep(ConstrainedTerm subject, boolean computeOne, boolean narrowing, boolean proofFlag) {
-        List<ConstrainedTerm> results = new ArrayList<>();
-        if (definition.automaton == null) {
-            return results;
+    public K match(Term pattern1, Rule pattern2,  TermContext context) {
+        ConstrainedTerm constrainedPattern = new ConstrainedTerm(pattern1, context);
+        BuiltinMap.Builder mapBuilder = BuiltinMap.builder(context.global());
+        List<Substitution<Variable, Term>> discoveredSearchResults = FastRuleMatcher.match(
+                constrainedPattern.term(),
+                pattern2.leftHandSide(),
+                constrainedPattern.termContext());
+        for (Substitution<Variable, Term> searchResult : discoveredSearchResults) {
+            RenameAnonymousVariables renameAnonymousVariables = new RenameAnonymousVariables();
+            searchResult.entrySet().stream().forEach(x -> {
+                mapBuilder.put(renameAnonymousVariables.getRenamedVariable(x.getKey()), renameAnonymousVariables.apply(x.getValue()));
+            });
         }
-        List<FastRuleMatcher.RuleMatchResult> matches = theFastMatcher.matchRulePattern(
-                subject,
-                definition.automaton.leftHandSide(),
-                allRuleBits,
-                narrowing,
-                computeOne,
-                transitions,
-                proofFlag,
-                subject.termContext());
-        for (FastRuleMatcher.RuleMatchResult matchResult : matches) {
-            Rule rule = definition.ruleTable.get(matchResult.ruleIndex);
-            Substitution<Variable, Term> substitution =
-                    rule.containsAttribute(Att.refers_THIS_CONFIGURATION()) ?
-                            matchResult.constraint.substitution().plus(new Variable(KLabels.THIS_CONFIGURATION, Sort.KSEQUENCE), filterOurStrategyCell(subject.term())) :
-                            matchResult.constraint.substitution();
-            // start the optimized substitution
-
-            // get a map from AST paths to (fine-grained, inner) rewrite RHSs
-            assert (matchResult.rewrites.size() > 0);
-            Term theNew;
-            if (matchResult.rewrites.size() == 1)
-            // use the more efficient implementation if we only have one rewrite
-            {
-                theNew = buildRHS(subject.term(), substitution, matchResult.rewrites.keySet().iterator().next(),
-                        matchResult.rewrites.values().iterator().next(), subject.termContext());
-            } else {
-                theNew = buildRHS(subject.term(), substitution,
-                        matchResult.rewrites.entrySet().stream().map(e -> Pair.of(e.getKey(), e.getValue())).collect(Collectors.toList()),
-                        subject.termContext());
+        return mapBuilder.build();
+    }
+        public List<ConstrainedTerm> fastComputeRewriteStep (ConstrainedTerm subject,boolean computeOne,
+        boolean narrowing, boolean proofFlag){
+            List<ConstrainedTerm> results = new ArrayList<>();
+            if (definition.automaton == null) {
+                return results;
             }
+            List<FastRuleMatcher.RuleMatchResult> matches = theFastMatcher.matchRulePattern(
+                    subject,
+                    definition.automaton.leftHandSide(),
+                    allRuleBits,
+                    narrowing,
+                    computeOne,
+                    transitions,
+                    proofFlag,
+                    subject.termContext());
+            for (FastRuleMatcher.RuleMatchResult matchResult : matches) {
+                Rule rule = definition.ruleTable.get(matchResult.ruleIndex);
+                Substitution<Variable, Term> substitution =
+                        rule.containsAttribute(Att.refers_THIS_CONFIGURATION()) ?
+                                matchResult.constraint.substitution().plus(new Variable(KLabels.THIS_CONFIGURATION, Sort.KSEQUENCE), filterOurStrategyCell(subject.term())) :
+                                matchResult.constraint.substitution();
+                // start the optimized substitution
 
-            if (!matchResult.isMatching) {
-                theNew = theNew.substituteAndEvaluate(substitution, subject.termContext());
-            }
+                // get a map from AST paths to (fine-grained, inner) rewrite RHSs
+                assert (matchResult.rewrites.size() > 0);
+                Term theNew;
+                if (matchResult.rewrites.size() == 1)
+                // use the more efficient implementation if we only have one rewrite
+                {
+                    theNew = buildRHS(subject.term(), substitution, matchResult.rewrites.keySet().iterator().next(),
+                            matchResult.rewrites.values().iterator().next(), subject.termContext());
+                } else {
+                    theNew = buildRHS(subject.term(), substitution,
+                            matchResult.rewrites.entrySet().stream().map(e -> Pair.of(e.getKey(), e.getValue())).collect(Collectors.toList()),
+                            subject.termContext());
+                }
 
-            theNew = restoreConfigurationIfNecessary(subject, rule, theNew);
+                if (!matchResult.isMatching) {
+                    theNew = theNew.substituteAndEvaluate(substitution, subject.termContext());
+                }
+
+                theNew = restoreConfigurationIfNecessary(subject, rule, theNew);
 
             /* eliminate bindings of the substituted variables */
-            ConjunctiveFormula constraint = matchResult.constraint;
-            constraint = constraint.removeBindings(rule.variableSet());
+                ConjunctiveFormula constraint = matchResult.constraint;
+                constraint = constraint.removeBindings(rule.variableSet());
 
             /* get fresh substitutions of rule variables */
-            Map<Variable, Variable> renameSubst = Variable.rename(rule.variableSet());
+                Map<Variable, Variable> renameSubst = Variable.rename(rule.variableSet());
 
             /* rename rule variables in both the term and the constraint */
-            theNew = theNew.substituteWithBinders(renameSubst);
-            constraint = ((ConjunctiveFormula) constraint.substituteWithBinders(renameSubst)).simplify(subject.termContext());
+                theNew = theNew.substituteWithBinders(renameSubst);
+                constraint = ((ConjunctiveFormula) constraint.substituteWithBinders(renameSubst)).simplify(subject.termContext());
 
-            ConstrainedTerm result = new ConstrainedTerm(theNew, constraint, subject.termContext());
-            if (!matchResult.isMatching) {
-                // TODO(AndreiS): move these some other place
-                result = result.expandPatterns(true);
-                if (result.constraint().isFalse() || result.constraint().checkUnsat()) {
-                    continue;
+                ConstrainedTerm result = new ConstrainedTerm(theNew, constraint, subject.termContext());
+                if (!matchResult.isMatching) {
+                    // TODO(AndreiS): move these some other place
+                    result = result.expandPatterns(true);
+                    if (result.constraint().isFalse() || result.constraint().checkUnsat()) {
+                        continue;
+                    }
                 }
-            }
 
             /* TODO(AndreiS): remove this hack for super strictness after strategies work */
-            if (rule.containsAttribute(Att.heat()) && transitions.stream().anyMatch(rule::containsAttribute)) {
-                newSuperheated.add(result);
-            } else if (rule.containsAttribute(Att.cool()) && transitions.stream().anyMatch(rule::containsAttribute) && superheated.contains(subject)) {
-                continue;
+                if (rule.containsAttribute(Att.heat()) && transitions.stream().anyMatch(rule::containsAttribute)) {
+                    newSuperheated.add(result);
+                } else if (rule.containsAttribute(Att.cool()) && transitions.stream().anyMatch(rule::containsAttribute) && superheated.contains(subject)) {
+                    continue;
+                }
+
+                results.add(result);
             }
 
-            results.add(result);
-        }
+            if (results.isEmpty()) {
+                addStuckFlagIfNotThere(subject).ifPresent(results::add);
+            }
 
-        if (results.isEmpty()) {
-            addStuckFlagIfNotThere(subject).ifPresent(results::add);
+            return results;
         }
-
-        return results;
-    }
 
     private Term restoreConfigurationIfNecessary(ConstrainedTerm subject, Rule rule, Term theNew) {
         if (rule.containsAttribute(Att.refers_RESTORE_CONFIGURATION())) {
@@ -418,27 +434,6 @@ public class SymbolicRewriter {
             int bound) {
         assert Sets.intersection(subject.term().variableSet(),
                 subject.constraint().substitution().keySet()).isEmpty();
-//        List<Substitution<Variable, Term>> discoveredSearchResults = FastRuleMatcher.match(
-//                subject.term(),
-//                pattern.leftHandSide(),
-//                subject.termContext());
-//        for (Substitution<Variable, Term> searchResult : discoveredSearchResults) {
-//            RenameAnonymousVariables renameAnonymousVariables = new RenameAnonymousVariables();
-//            BuiltinMap.Builder mapBuilder = BuiltinMap.builder(context.global());
-//            searchResult.entrySet().stream().forEach(x -> {
-//                mapBuilder.put(renameAnonymousVariables.getRenamedVariable(x.getKey()), renameAnonymousVariables.apply(x.getValue()));
-//            });
-//            K constrainedTerm = mapBuilder.build();
-//            if (subject.constraint().isTrue()) {
-//                searchResults.add(constrainedTerm);
-//            } else {
-//                searchResults.add(KORE.KApply(KORE.KLabel(KLabels.AND), constrainedTerm, renameAnonymousVariables.apply(subject.constraint())));
-//            }
-//            if (searchResults.size() == bound) {
-//                return true;
-//            }
-//        }
-//        return false;
         RenameAnonymousVariables renameAnonymousVariables = new RenameAnonymousVariables();
         K pattern = renameAnonymousVariables.apply(subject.term());
         if (subject.constraint().isTrue()) {

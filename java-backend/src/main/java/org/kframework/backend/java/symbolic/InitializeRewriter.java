@@ -135,7 +135,11 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
 
         @Override
         public K match(K k, org.kframework.definition.Rule rule) {
-            return search(k, Optional.of(0), Optional.empty(), rule, SearchType.STAR);
+            TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
+            KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
+            Term javaTerm = MacroExpander.expandAndEvaluate(termContext, kem, converter.convert(k);
+            this.rewriter = new SymbolicRewriter(rewritingContext, kompileOptions, new KRunState.Counter(), converter);
+            return rewriter.
         }
 
 

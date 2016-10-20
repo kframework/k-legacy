@@ -23,7 +23,7 @@ trait Rewriter {
   def execute(k: kore.K, depth: Optional[Integer]): RewriterResult
 
 
-  def `match`(k: kore.K, rule: Rule): kore.K
+  def `match`(k: kore.K, pattern: Rule): kore.K
 
 
   /**
