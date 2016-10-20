@@ -415,38 +415,46 @@ public class SymbolicRewriter {
     private boolean addSearchResult(
             List<K> searchResults,
             ConstrainedTerm subject,
-            Rule pattern,
-            int bound,
-            TermContext context) {
+            int bound) {
         assert Sets.intersection(subject.term().variableSet(),
                 subject.constraint().substitution().keySet()).isEmpty();
-        assert pattern.requires().stream().allMatch(BoolToken.TRUE::equals) && pattern.lookups().getKComponents().isEmpty();
-        List<Substitution<Variable, Term>> discoveredSearchResults = FastRuleMatcher.match(
-                subject.term(),
-                pattern.leftHandSide(),
-                subject.termContext());
-        for (Substitution<Variable, Term> searchResult : discoveredSearchResults) {
-            RenameAnonymousVariables renameAnonymousVariables = new RenameAnonymousVariables();
-            BuiltinMap.Builder mapBuilder = BuiltinMap.builder(context.global());
-            searchResult.entrySet().stream().forEach(x -> {
-                mapBuilder.put(renameAnonymousVariables.getRenamedVariable(x.getKey()), renameAnonymousVariables.apply(x.getValue()));
-            });
-            K constrainedTerm = mapBuilder.build();
-            if (subject.constraint().isTrue()) {
-                searchResults.add(constrainedTerm);
-            } else {
-                searchResults.add(KORE.KApply(KORE.KLabel(KLabels.AND), constrainedTerm, renameAnonymousVariables.apply(subject.constraint())));
-            }
-            if (searchResults.size() == bound) {
-                return true;
-            }
+//        List<Substitution<Variable, Term>> discoveredSearchResults = FastRuleMatcher.match(
+//                subject.term(),
+//                pattern.leftHandSide(),
+//                subject.termContext());
+//        for (Substitution<Variable, Term> searchResult : discoveredSearchResults) {
+//            RenameAnonymousVariables renameAnonymousVariables = new RenameAnonymousVariables();
+//            BuiltinMap.Builder mapBuilder = BuiltinMap.builder(context.global());
+//            searchResult.entrySet().stream().forEach(x -> {
+//                mapBuilder.put(renameAnonymousVariables.getRenamedVariable(x.getKey()), renameAnonymousVariables.apply(x.getValue()));
+//            });
+//            K constrainedTerm = mapBuilder.build();
+//            if (subject.constraint().isTrue()) {
+//                searchResults.add(constrainedTerm);
+//            } else {
+//                searchResults.add(KORE.KApply(KORE.KLabel(KLabels.AND), constrainedTerm, renameAnonymousVariables.apply(subject.constraint())));
+//            }
+//            if (searchResults.size() == bound) {
+//                return true;
+//            }
+//        }
+//        return false;
+        RenameAnonymousVariables renameAnonymousVariables = new RenameAnonymousVariables();
+        K pattern = renameAnonymousVariables.apply(subject.term());
+        if (subject.constraint().isTrue()) {
+            searchResults.add(pattern);
+        } else {
+            searchResults.add(KORE.KApply(KORE.KLabel(KLabels.AND), pattern, renameAnonymousVariables.apply(subject.constraint())));
+        }
+        if (searchResults.size() == bound) {
+            return true;
         }
         return false;
+
     }
 
     /**
      * @param initialTerm
-     * @param pattern     the pattern we are searching for
      * @param bound       a negative value specifies no bound
      * @param depth       a negative value specifies no bound
      * @param searchType  defines when we will attempt to match the pattern
@@ -454,7 +462,6 @@ public class SymbolicRewriter {
      */
     public K search(
             Term initialTerm,
-            Rule pattern,
             int bound,
             int depth,
             SearchType searchType,
@@ -470,7 +477,7 @@ public class SymbolicRewriter {
         // A more clean solution would require a bit of a rework to how patterns
         // are handled in krun.Main when not doing search.
         if (depth == 0) {
-            addSearchResult(searchResults, initCnstrTerm, pattern, bound, context);
+            addSearchResult(searchResults, initCnstrTerm, bound);
             stopwatch.stop();
             if (context.global().krunOptions.experimental.statistics)
                 System.err.println("[" + visited.size() + "states, " + 0 + "steps, " + stopwatch + "]");
@@ -488,7 +495,7 @@ public class SymbolicRewriter {
             depth = 1;
         }
         if (searchType == SearchType.STAR) {
-            if (addSearchResult(searchResults, initCnstrTerm, pattern, bound, context)) {
+            if (addSearchResult(searchResults, initCnstrTerm, bound)) {
                 stopwatch.stop();
                 if (context.global().krunOptions.experimental.statistics)
                     System.err.println("[" + visited.size() + "states, " + 0 + "steps, " + stopwatch + "]");
@@ -509,7 +516,7 @@ public class SymbolicRewriter {
                 List<ConstrainedTerm> results = computeRewriteStep(term, step, false);
 
                 if (results.isEmpty() && searchType == SearchType.FINAL) {
-                    if (addSearchResult(searchResults, term, pattern, bound, context)) {
+                    if (addSearchResult(searchResults, term, bound)) {
                         break label;
                     }
                 }
@@ -527,7 +534,7 @@ public class SymbolicRewriter {
                         // If we aren't searching for only final results, then
                         // also add this as a result if it matches the pattern.
                         if (searchType != SearchType.FINAL || currentDepth + 1 == depth) {
-                            if (addSearchResult(searchResults, result, pattern, bound, context)) {
+                            if (addSearchResult(searchResults, result, bound)) {
                                 break label;
                             }
                         }
