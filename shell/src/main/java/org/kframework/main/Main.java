@@ -13,12 +13,15 @@ import org.kframework.backend.java.symbolic.JavaBackend;
 import org.kframework.backend.java.symbolic.JavaExecutionOptions;
 import org.kframework.backend.java.symbolic.ProofExecutionMode;
 import org.kframework.definition.Module;
+import org.kframework.kale.KaleBackend;
+import org.kframework.kale.KaleRewriter;
 import org.kframework.kast.KastFrontEnd;
 import org.kframework.kast.KastOptions;
 import org.kframework.kdep.KDepFrontEnd;
 import org.kframework.kdep.KDepOptions;
 import org.kframework.kdoc.KDocFrontEnd;
 import org.kframework.kdoc.KDocOptions;
+import org.kframework.kil.Rewrite;
 import org.kframework.kil.loader.Context;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
@@ -69,8 +72,7 @@ import java.util.function.Function;
 public class Main {
 
     /**
-     * @param args
-     *            - the running arguments for the K3 tool. First argument must be one of the following: kompile|kast|krun.
+     * @param args - the running arguments for the K3 tool. First argument must be one of the following: kompile|kast|krun.
      * @throws IOException when loadDefinition fails
      */
     public static void main(String[] args) {
@@ -113,7 +115,7 @@ public class Main {
             // parsing options
             Set<Object> options = ImmutableSet.of(kompileOptions);
             Set<Class<?>> experimentalOptions = ImmutableSet.of(kompileOptions.experimental.getClass(),      // KompileOptions.Experimental.class
-                                                                kompileOptions.experimental.smt.getClass()); // SMTOptions.class
+                    kompileOptions.experimental.smt.getClass()); // SMTOptions.class
             JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
             String usage = JCommanderModule.usage(jc);
             String experimentalUsage = JCommanderModule.experimentalUsage(jc);
@@ -126,8 +128,13 @@ public class Main {
             FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, kompileOptions.global, env);
 
             // kompile
-            assert (kompileOptions.backend.equals(Backends.JAVA)); // TODO: support other backends
-            Backend koreBackend = new JavaBackend(kem, files, kompileOptions.global, kompileOptions);
+            Backend koreBackend;
+            if (kompileOptions.backend.equals(Backends.JAVA)) {
+                koreBackend = new JavaBackend(kem, files, kompileOptions.global, kompileOptions);
+            } else if (kompileOptions.backend.equals(Backends.KALE)) {
+                koreBackend = new KaleBackend(kompileOptions, kem);
+            } else
+                throw new AssertionError("Backend not hooked to the shell.");
             KompileFrontEnd frontEnd = new KompileFrontEnd(kompileOptions, koreBackend, sw, kem, loader, files);
 
             return runApplication(frontEnd, kem);
@@ -209,8 +216,8 @@ public class Main {
             // parsing options
             Set<Object> options = ImmutableSet.of(kRunOptions, javaExecutionOptions);
             Set<Class<?>> experimentalOptions = ImmutableSet.of(kRunOptions.experimental.getClass(),        // KRunOptions.Experimental.class
-                                                                kRunOptions.experimental.smt.getClass(),    // SMTOptions.class
-                                                                javaExecutionOptions.getClass());           // JavaExecutionOptions.class
+                    kRunOptions.experimental.smt.getClass(),    // SMTOptions.class
+                    javaExecutionOptions.getClass());           // JavaExecutionOptions.class
             JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
             String usage = JCommanderModule.usage(jc);
             String experimentalUsage = JCommanderModule.experimentalUsage(jc);
@@ -229,11 +236,22 @@ public class Main {
             KompileOptions kompileOptions = DefinitionLoadingModule.kompileOptions(context, compiledDef, files);
 
             // krun
-            assert (kompileOptions.backend.equals(Backends.JAVA)); // TODO: support other backends
-            //
-            Map<String, MethodHandle> hookProvider = HookProvider.get(kem);
-            InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
-            //
+
+            Function<Module, Rewriter> initializeRewriter;
+            if (kompileOptions.backend.equals(Backends.JAVA)) {
+                //
+                Map<String, MethodHandle> hookProvider = HookProvider.get(kem);
+                InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
+                //
+
+                //
+                initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions, kRunOptions, files, initializeDefinition);
+            } else if (kompileOptions.backend.equals(Backends.KALE)) {
+                initializeRewriter = KaleRewriter::apply;
+            } else {
+                throw new AssertionError("Backend not hooked to the shell.");
+            }
+
             ExecutionMode executionMode;
             boolean isProofMode = kRunOptions.experimental.prove != null;
             boolean isDebugMode = kRunOptions.experimental.debugger();
@@ -245,8 +263,7 @@ public class Main {
             } else {
                 executionMode = new KRunExecutionMode(kRunOptions, kem, files);
             }
-            //
-            InitializeRewriter initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions, kRunOptions, files, initializeDefinition);
+
             KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, kompiledDir, kem, kRunOptions, files, compiledDef, initializeRewriter, executionMode, ttyInfo, isNailgun);
 
             return runApplication(frontEnd, kem);
