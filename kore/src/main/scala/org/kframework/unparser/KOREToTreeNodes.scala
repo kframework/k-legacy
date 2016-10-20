@@ -55,11 +55,15 @@ object KOREToTreeNodes {
         }
         case RegexTerminal(_, _, _) => throw new AssertionError("Unimplemented yet")
       }
-      if (p.att.contains("format")) {
+        
+      unparsedItems.mkString(" ")
+
+      //TODO: Recover this code to enable format attribute (in PRETTY output mode).      
+      /*if (p.att.contains("format")) {
         p.att.get[String]("format").get.format(unparsedItems: _*)
       } else {
         unparsedItems.mkString(" ")
-      }
+      }*/
     }
   }
 }
