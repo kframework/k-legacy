@@ -200,7 +200,7 @@ object DefinitionTransformer {
     new DefinitionTransformer(ModuleTransformer.fromSentenceTransformer(f(_), name))
 
   def fromSentenceTransformer(f: (Module, Sentence) => Sentence, name: String): DefinitionTransformer =
-    DefinitionTransformer(ModuleTransformer.fromSentenceTransformer(f, name))
+    DefinitionTransformer.apply1(ModuleTransformer.fromSentenceTransformerClean(f, name))
 
   def fromRuleBodyTranformer(f: K => K, name: String): DefinitionTransformer =
     new DefinitionTransformer(ModuleTransformer.fromRuleBodyTranformer(f, name))
