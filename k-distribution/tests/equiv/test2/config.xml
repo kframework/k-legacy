@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2016 K Team. All Rights Reserved. -->
+<tests>
+    <test definition="dummy.k"
+          extension="k"
+          programs="tests"
+          results="tests"
+          customKrunCmd="keq"
+          skip="kompile pdf" >
+      <all-programs>
+        <krun-option name="--def0" value="imp.k" />
+        <krun-option name="--def1" value="imp1.k" />
+        <krun-option name="--def2" value="imp2.k" />
+        <krun-option name="--mod0" value="IMP" />
+        <krun-option name="--mod1" value="IMP" />
+        <krun-option name="--mod2" value="IMP" />
+        <krun-option name="--smt_prelude" value="../../../../k-distribution/include/z3/basic.smt2" />
+      </all-programs>
+    </test>
+</tests>
