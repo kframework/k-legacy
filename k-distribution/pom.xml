@@ -61,6 +61,16 @@
             <phase>pre-integration-test</phase>
             <configuration>
               <target>
+
+                <exec dir="${ktestDir}/tests/equiv" executable="${project.build.directory}/release/k/bin/ktest${native.script.extension}" failonerror="true" >
+                  <arg value="config.xml" />
+                  <arg value="-v" />
+                  <arg value="--report" />
+                  <arg value="--debug" />
+                  <arg value="--warnings-to-errors" />
+                </exec>
+                <sleep seconds="5" />
+
                 <exec executable="${project.build.directory}/release/k/bin/kserver${native.script.extension}" spawn="true">
                 </exec>
                 <sleep seconds="5" />
