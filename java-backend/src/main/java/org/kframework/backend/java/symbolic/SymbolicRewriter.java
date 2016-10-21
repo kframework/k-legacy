@@ -442,10 +442,11 @@ public class SymbolicRewriter {
                         searchResults.add(KORE.KApply(KORE.KLabel(KLabels.AND), constrainedTerm, renameAnonymousVariables.apply(subject.constraint())));
                     }
                 }
+            } else {
+                searchResults.add(KORE.KApply(KORE.KLabel(KLabels.AND), renameAnonymousVariables.apply(subject.term()), renameAnonymousVariables.apply(subject.constraint())));
             }
-            searchResults.add(KORE.KApply(KORE.KLabel(KLabels.AND), renameAnonymousVariables.apply(subject.term()), renameAnonymousVariables.apply(subject.constraint())));
         }
-        if (searchResults.size() > bound) {
+        if (searchResults.size() == bound) {
             return true;
         }
         return false;
