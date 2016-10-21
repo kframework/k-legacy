@@ -17,8 +17,13 @@ public class ExecNames {
         return getExecutable("kompile");
     }
 
+    public static String getKrun(String customKrunCmd) {
+        String cmd = customKrunCmd != null ? customKrunCmd : "krun";
+        return getExecutable(cmd);
+    }
+
     public static String getKrun() {
-        return getExecutable("krun");
+        return getKrun(null);
     }
 
     public static String getKast() {
