@@ -38,8 +38,13 @@ public class GenerateSortPredicateSyntax extends WithInputDefinitionModuleTransf
         if (mod.name().equals("BOOL-SYNTAX")) {
             newImports = alreadyProcessedImports;
             res.add(getIsSortProduction(Sorts.K()));
-        } else
-            newImports = Collections.add(apply("BOOL-SYNTAX"), alreadyProcessedImports);
+        } else {
+            if (alreadyProcessedImports.exists(i -> i.name().equals("BOOL-SYNTAX"))) {
+                newImports = alreadyProcessedImports;
+            } else{
+                newImports = Collections.add(apply("BOOL-SYNTAX"), alreadyProcessedImports);
+            }
+        }
 
 
         return Module(mod.name(), newImports, (scala.collection.Set<Sentence>) mod.localSentences().$bar(immutable(res)), mod.att());
