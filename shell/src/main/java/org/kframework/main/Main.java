@@ -3,6 +3,7 @@ package org.kframework.main;
 
 import com.beust.jcommander.JCommander;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.martiansoftware.nailgun.NGContext;
 import org.fusesource.jansi.AnsiConsole;
 import org.kframework.HookProvider;
@@ -381,12 +382,22 @@ public class Main {
             File kompiledDir = null;
             FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, keqOptions.global, env);
 
-            String def0 = FileUtil.load(new File(keqOptions.def0), workingDir); // "require \"domains.k\" module A syntax KItem ::= \"run\" endmodule"
-            String mod0 = keqOptions.mod0; // "A"
-            String def1 = FileUtil.load(new File(keqOptions.def1), workingDir); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
-            String mod1 = keqOptions.mod1; // "A"
-            String def2 = FileUtil.load(new File(keqOptions.def2), workingDir); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
-            String mod2 = keqOptions.mod2; // "A"
+
+            File def0File = FileUtil.resolveWorkingDirectory(new File(keqOptions.def0), workingDir);
+            File def1File = FileUtil.resolveWorkingDirectory(new File(keqOptions.def1), workingDir);
+            File def2File = FileUtil.resolveWorkingDirectory(new File(keqOptions.def2), workingDir);
+            //
+            String def0 = FileUtil.load(def0File);
+            String def1 = FileUtil.load(def1File);
+            String def2 = FileUtil.load(def2File);
+            //
+            List<File> def0LookupDirectories = Lists.newArrayList(def0File.getParentFile(), Kompile.BUILTIN_DIRECTORY);
+            List<File> def1LookupDirectories = Lists.newArrayList(def1File.getParentFile(), Kompile.BUILTIN_DIRECTORY);
+            List<File> def2LookupDirectories = Lists.newArrayList(def2File.getParentFile(), Kompile.BUILTIN_DIRECTORY);
+            //
+            String mod0 = keqOptions.mod0;
+            String mod1 = keqOptions.mod1;
+            String mod2 = keqOptions.mod2;
             //
             String prelude = FileUtil.resolveWorkingDirectory(new File(keqOptions.smt.smtPrelude), workingDir).getAbsolutePath();
             String prove   = FileUtil.resolveWorkingDirectory(new File(keqOptions.parameters.get(0)), workingDir).getAbsolutePath();
@@ -394,9 +405,9 @@ public class Main {
             Kapi kapi = new Kapi();
 
             // kompile
-            CompiledDefinition compiledDef0 = kapi.kompile(def0, mod0);
-            CompiledDefinition compiledDef1 = kapi.kompile(def1, mod1);
-            CompiledDefinition compiledDef2 = kapi.kompile(def2, mod2);
+            CompiledDefinition compiledDef0 = kapi.kompile(def0, mod0, def0LookupDirectories);
+            CompiledDefinition compiledDef1 = kapi.kompile(def1, mod1, def1LookupDirectories);
+            CompiledDefinition compiledDef2 = kapi.kompile(def2, mod2, def2LookupDirectories);
 
             // kequiv
             Kapi.kequiv(compiledDef0, compiledDef1, compiledDef2, prove, prelude);
