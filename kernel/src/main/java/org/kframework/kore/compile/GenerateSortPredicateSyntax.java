@@ -34,9 +34,6 @@ public class GenerateSortPredicateSyntax extends WithInputDefinitionModuleTransf
             if (!mod.productions().contains(prod))
                 res.add(prod);
         }
-        if (!res.isEmpty()) {
-            res.add(SyntaxSort(Sorts.K()));
-        }
         scala.collection.Set<Module> newImports;
         if (mod.name().equals("BOOL-SYNTAX")) {
             newImports = alreadyProcessedImports;
