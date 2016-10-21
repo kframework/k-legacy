@@ -29,7 +29,7 @@ public class GenerateSortPredicateSyntax extends WithInputDefinitionModuleTransf
             return mod;
 
         Set<Sentence> res = new HashSet<>();
-        for (Sort sort : iterable(mod.definedSorts())) {
+        for (Sort sort : iterable(mod.localSorts())) {
             Production prod = getIsSortProduction(sort);
             if (!mod.productions().contains(prod))
                 res.add(prod);
