@@ -187,7 +187,7 @@ public class KoreKDebug implements KDebug {
 
     @Override
     public K search(Rule searchPattern, Optional<Integer> depth, Optional<Integer> bounds) {
-        return rewriter.search(stateList.get(activeStateIndex).getCurrentK(), depth, bounds, searchPattern, SearchType.FINAL);
+        return rewriter.search(stateList.get(activeStateIndex).getCurrentK(), depth, bounds, searchPattern, SearchType.FINAL, true);
     }
 
     @Override
