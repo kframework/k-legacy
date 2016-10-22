@@ -24,5 +24,8 @@
            directory="tests/equiv" />
 -->
 
+  <include file     =      "examples/symbolic/config.xml"
+           directory="tests/examples/symbolic" />
+
 </tests>
 
