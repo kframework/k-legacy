@@ -38,7 +38,7 @@ public class DefinitionParser {
         return Source.apply("generated");
     }
 
-    private static List<File> defaultLookupDirectories() {
+    public static List<File> defaultLookupDirectories() {
         return Lists.newArrayList(Kompile.BUILTIN_DIRECTORY);
     }
 
@@ -56,6 +56,13 @@ public class DefinitionParser {
      */
     public static org.kframework.definition.Definition from(String definitionText, String mainModuleName) {
         return from(definitionText, mainModuleName, defaultMainSyntaxModuleName(mainModuleName), defaultSource(), defaultLookupDirectories());
+    }
+
+    /**
+     * Parses the text to create a {@link Definition} object.
+     */
+    public static org.kframework.definition.Definition from(String definitionText, String mainModuleName, List<File> lookupDirectories) {
+        return from(definitionText, mainModuleName, defaultMainSyntaxModuleName(mainModuleName), defaultSource(), lookupDirectories);
     }
 
     /**

@@ -293,7 +293,7 @@ public class RuleGrammarGenerator {
                     // avoid creating cycles in module inclusion
                     Module ruleCellsOriginal = apply(extensionM.importedModules().find(m1 -> m1.name().equals(RULE_CELLS)).get());
                     if (!m.name().equals(RULE_CELLS) && !ruleCellsOriginal.importedModules().exists(m1 -> m1.name().equals(mName))) {
-                        Module ruleCells = apply(ruleCellsOriginal);
+//                        Module ruleCells = apply(ruleCellsOriginal);
                         Set<Sentence> newProds = stream(m.localSentences()).flatMap(s -> {
                             if (s instanceof Production && s.att().contains(Attribute.CELL_COLLECTION)) {
                                 // remove from parsing the productions added by the configuration concretization for
@@ -325,7 +325,7 @@ public class RuleGrammarGenerator {
                             }
                             return Stream.of(s);
                         }).collect(Collectors.toSet());
-                        m = Module(m.name(), Collections.add(ruleCells, m.imports()), immutable(newProds), m.att());
+                        m = Module(m.name(), Collections.add(ruleCellsOriginal, m.imports()), immutable(newProds), m.att());
                     }
                 }
 

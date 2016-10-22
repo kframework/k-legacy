@@ -29,20 +29,22 @@ public class GenerateSortPredicateSyntax extends WithInputDefinitionModuleTransf
             return mod;
 
         Set<Sentence> res = new HashSet<>();
-        for (Sort sort : iterable(mod.definedSorts())) {
+        for (Sort sort : iterable(mod.localSorts())) {
             Production prod = getIsSortProduction(sort);
             if (!mod.productions().contains(prod))
                 res.add(prod);
-        }
-        if (!res.isEmpty()) {
-            res.add(SyntaxSort(Sorts.K()));
         }
         scala.collection.Set<Module> newImports;
         if (mod.name().equals("BOOL-SYNTAX")) {
             newImports = alreadyProcessedImports;
             res.add(getIsSortProduction(Sorts.K()));
-        } else
-            newImports = Collections.add(apply("BOOL-SYNTAX"), alreadyProcessedImports);
+        } else {
+            if (alreadyProcessedImports.exists(i -> i.name().equals("BOOL-SYNTAX"))) {
+                newImports = alreadyProcessedImports;
+            } else{
+                newImports = Collections.add(apply("BOOL-SYNTAX"), alreadyProcessedImports);
+            }
+        }
 
 
         return Module(mod.name(), newImports, (scala.collection.Set<Sentence>) mod.localSentences().$bar(immutable(res)), mod.att());
