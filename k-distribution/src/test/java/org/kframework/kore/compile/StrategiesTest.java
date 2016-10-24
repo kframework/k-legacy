@@ -85,8 +85,8 @@ public class StrategiesTest {
         Module unparsingModule = utils.getUnparsingModule();
         List<String> results = new ArrayList<>();
         if (searchResults.get() != null && searchResults.get()._1().equals(KORE.KLabel(KLabels.OR))) {
-            scala.collection.Seq<K> resultList = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE)).splitAt(1)._2();
-            resultList.foreach(x -> {
+            scala.collection.Seq<K> resultList = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
+            resultList.splitAt(1)._2().foreach(x -> {
                 results.add(KOREToTreeNodes.toString(new AddBrackets(unparsingModule).addBrackets((ProductionReference) KOREToTreeNodes.apply(KOREToTreeNodes.up(unparsingModule, x), unparsingModule))));
                 return null;
             });
