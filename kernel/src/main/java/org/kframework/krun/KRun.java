@@ -119,12 +119,6 @@ public class KRun {
 
     private void printConjunction(K conjunction, KRunOptions options, CompiledDefinition compiledDef) {
         Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = KApply$.MODULE$.unapply((KApply) conjunction);
-//        if (searchResults != null && searchResults.get()._1().toString().equals(KLabels.AND) && searchResults.get()._2().size() >= 2) {
-//            prettyPrint(compiledDef, options.output, s -> outputFile(s, options), searchResults.get()._2().apply(0));
-//        outputFile("Constraint \n", options);
-//        prettyPrint(compiledDef, options.output, s -> outputFile(s, options), searchResults.get()._2().apply(1));
-//        return;
-//    }
         prettyPrint(compiledDef, options.output, s -> outputFile(s, options), conjunction);
 
     }
