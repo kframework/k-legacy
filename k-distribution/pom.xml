@@ -68,6 +68,7 @@
                   <arg value="--report" />
                   <arg value="--debug" />
                   <arg value="--warnings-to-errors" />
+                  <arg line="--threads 1" />
                 </exec>
                 <sleep seconds="5" />
 
