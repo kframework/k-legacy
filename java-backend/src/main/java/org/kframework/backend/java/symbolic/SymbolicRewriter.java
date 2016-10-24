@@ -479,7 +479,7 @@ public class SymbolicRewriter {
             stopwatch.stop();
             if (context.global().krunOptions.experimental.statistics)
                 System.err.println("[" + visited.size() + "states, " + 0 + "steps, " + stopwatch + "]");
-            return disjunctResults(searchResults, context);
+            return disjunctResults(searchResults);
         }
 
         // The search queues will map terms to their depth in terms of transitions.
@@ -497,7 +497,7 @@ public class SymbolicRewriter {
                 stopwatch.stop();
                 if (context.global().krunOptions.experimental.statistics)
                     System.err.println("[" + visited.size() + "states, " + 0 + "steps, " + stopwatch + "]");
-                return disjunctResults(searchResults, context);
+                return disjunctResults(searchResults);
             }
         }
 
@@ -552,12 +552,10 @@ public class SymbolicRewriter {
         if (context.global().krunOptions.experimental.statistics) {
             System.err.println("[" + visited.size() + "states, " + step + "steps, " + stopwatch + "]");
         }
-        return disjunctResults(searchResults, context);
+        return disjunctResults(searchResults);
     }
 
-    private K disjunctResults(List<K> results, TermContext context) {
-//        DisjunctiveFormula disjuct = new DisjunctiveFormula(results, context.global());
-//        return new RenameAnonymousVariables().apply(disjuct);
+    private K disjunctResults(List<K> results) {
           return results.stream().reduce(BoolToken.FALSE, (x, y) -> KORE.KApply(KORE.KLabel(KLabels.OR), x, y));
     }
 
