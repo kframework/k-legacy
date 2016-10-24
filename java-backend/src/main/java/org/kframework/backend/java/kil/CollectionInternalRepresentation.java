@@ -2,6 +2,7 @@
 package org.kframework.backend.java.kil;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 public interface CollectionInternalRepresentation extends KItemRepresentation {
@@ -13,6 +14,8 @@ public interface CollectionInternalRepresentation extends KItemRepresentation {
     @Override
     default Term toKore() {
         List<Term> components = getKComponents();
+        
+        components = components.stream().sorted().collect(Collectors.toList());
 
         if (components.isEmpty()) {
             return unit();

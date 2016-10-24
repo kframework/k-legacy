@@ -36,6 +36,7 @@ import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.file.FileUtil;
 import scala.Some;
 import scala.Tuple2;
+import scala.math.Ordering;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -117,21 +118,18 @@ public class KRun {
         return 0;
     }
 
-    private void printConjunction(K conjunction, KRunOptions options, CompiledDefinition compiledDef) {
-        Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = KApply$.MODULE$.unapply((KApply) conjunction);
-        prettyPrint(compiledDef, options.output, s -> outputFile(s, options), conjunction);
-
-    }
 
     public void printK(K result, KRunOptions options, CompiledDefinition compiledDef) {
         Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = KApply$.MODULE$.unapply((KApply) result);
         if (searchResults.get() != null && searchResults.get()._1().equals(KLabel(KLabels.OR))) {
             scala.collection.Seq<K> resultList = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
-            resultList = resultList.sortWith((K1, K2) -> K1.toString().compareTo(K2.toString()) >= 0? K1: K2);
+            List<K> javaResults = mutable(resultList);
+//            resultList = resultList.sortWith((K1, K2) -> K1.toString().compareTo(K2.toString()) >= 0);
+            resultList = resultList.sortBy(Object::toString, StringOrdering());
             int i = 1;
             while (i < resultList.size()) {
                 outputFile("Solution " + i + "\n", options);
-                printConjunction(resultList.apply(i++), options, compiledDef);
+                prettyPrint(compiledDef, options.output, s -> outputFile(s, options), resultList.apply(i++));
             }
             return;
         }
