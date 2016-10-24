@@ -11,7 +11,6 @@ import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.builtins.FreshOperations;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.kil.BuiltinList;
-import org.kframework.backend.java.kil.BuiltinMap;
 import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.GlobalContext;
@@ -426,24 +425,19 @@ public class SymbolicRewriter {
                 subject.term(),
                 pattern.leftHandSide(),
                 subject.termContext());
-
+        RenameAnonymousVariables renameAnonymousVariables = new RenameAnonymousVariables();
         if (!discoveredSearchResults.isEmpty()) {
-            RenameAnonymousVariables renameAnonymousVariables = new RenameAnonymousVariables();
             if (subsitution) {
                 for (Substitution<Variable, Term> searchResult : discoveredSearchResults) {
-                    BuiltinMap.Builder mapBuilder = BuiltinMap.builder(context.global());
-                    searchResult.entrySet().stream().forEach(x -> {
-                        mapBuilder.put(renameAnonymousVariables.getRenamedVariable(x.getKey()), renameAnonymousVariables.apply(x.getValue()));
-                    });
-                    K constrainedTerm = mapBuilder.build();
-                    if (subject.constraint().isTrue()) {
-                        searchResults.add(constrainedTerm);
-                    } else {
-                        searchResults.add(KORE.KApply(KORE.KLabel(KLabels.AND), constrainedTerm, renameAnonymousVariables.apply(subject.constraint())));
-                    }
+                    ConjunctiveFormula conjunct = new ConjunctiveFormula(searchResult, subject.constraint().equalities(), PersistentUniqueList.empty(), subject.constraint().truthValue(), context.global());
+                    searchResults.add(renameAnonymousVariables.apply(conjunct));
                 }
             } else {
-                searchResults.add(KORE.KApply(KORE.KLabel(KLabels.AND), renameAnonymousVariables.apply(subject.term()), renameAnonymousVariables.apply(subject.constraint())));
+                if (!subject.constraint().isTrue()) {
+                    searchResults.add(KORE.KApply(KORE.KLabel(KLabels.AND), renameAnonymousVariables.apply(subject.term()), renameAnonymousVariables.apply(subject.constraint())));
+                } else {
+                    searchResults.add(renameAnonymousVariables.apply(subject.term()));
+                }
             }
         }
         if (searchResults.size() == bound) {
@@ -485,7 +479,7 @@ public class SymbolicRewriter {
             stopwatch.stop();
             if (context.global().krunOptions.experimental.statistics)
                 System.err.println("[" + visited.size() + "states, " + 0 + "steps, " + stopwatch + "]");
-            return disjunctResults(searchResults);
+            return disjunctResults(searchResults, context);
         }
 
         // The search queues will map terms to their depth in terms of transitions.
@@ -503,7 +497,7 @@ public class SymbolicRewriter {
                 stopwatch.stop();
                 if (context.global().krunOptions.experimental.statistics)
                     System.err.println("[" + visited.size() + "states, " + 0 + "steps, " + stopwatch + "]");
-                return disjunctResults(searchResults);
+                return disjunctResults(searchResults, context);
             }
         }
 
@@ -558,11 +552,13 @@ public class SymbolicRewriter {
         if (context.global().krunOptions.experimental.statistics) {
             System.err.println("[" + visited.size() + "states, " + step + "steps, " + stopwatch + "]");
         }
-        return disjunctResults(searchResults);
+        return disjunctResults(searchResults, context);
     }
 
-    private K disjunctResults(List<K> results) {
-        return results.stream().reduce(BoolToken.FALSE, (x, y) -> KORE.KApply(KORE.KLabel(KLabels.OR), x, y));
+    private K disjunctResults(List<K> results, TermContext context) {
+//        DisjunctiveFormula disjuct = new DisjunctiveFormula(results, context.global());
+//        return new RenameAnonymousVariables().apply(disjuct);
+          return results.stream().reduce(BoolToken.FALSE, (x, y) -> KORE.KApply(KORE.KLabel(KLabels.OR), x, y));
     }
 
     public List<ConstrainedTerm> proveRule(
