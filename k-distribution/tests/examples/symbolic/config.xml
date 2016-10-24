@@ -12,6 +12,7 @@
       </all-programs>
       <program name="4.a">
         <krun-option name="--prove" value="spec.k" />
+        <krun-option name="--z3-executable" />
       </program>
     </test>
 </tests>
