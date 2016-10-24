@@ -176,6 +176,10 @@ public class FileUtil {
     }
 
     public File resolveWorkingDirectory(File file) {
+        return resolveWorkingDirectory(file, workingDir);
+    }
+
+    public static File resolveWorkingDirectory(File file, File workingDir) {
         if (file.isAbsolute()) return file;
         return new File(workingDir, file.getPath());
     }
@@ -242,6 +246,10 @@ public class FileUtil {
         } catch (IOException e) {
             throw KEMException.criticalError("Could not read from file " + file.getAbsolutePath(), e);
         }
+    }
+
+    public static String load(File file, File workingDir) {
+        return load(resolveWorkingDirectory(file, workingDir));
     }
 
     public static byte[] loadBytes(File file) {

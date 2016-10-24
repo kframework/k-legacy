@@ -3,6 +3,7 @@ package org.kframework.main;
 
 import com.beust.jcommander.JCommander;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.martiansoftware.nailgun.NGContext;
 import org.fusesource.jansi.AnsiConsole;
 import org.kframework.HookProvider;
@@ -19,6 +20,7 @@ import org.kframework.kdep.KDepFrontEnd;
 import org.kframework.kdep.KDepOptions;
 import org.kframework.kdoc.KDocFrontEnd;
 import org.kframework.kdoc.KDocOptions;
+import org.kframework.keq.KeqOptions;
 import org.kframework.kil.loader.Context;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
@@ -358,32 +360,38 @@ public class Main {
         }
 
         if (toolName.equals("-keq")) {
+            Tool tool = Tool.KEQ;
 
-            if (args.length < 8) {
-                System.out.println("usage: <smt-prelude> <def0> <mod0> <def1> <mod1> <def2> <mod2> <spec>");
-                return 1;
-            }
-            String def0 = FileUtil.load(new File(args[1])); // "require \"domains.k\" module A syntax KItem ::= \"run\" endmodule"
-            String mod0 = args[2]; // "A"
-            String def1 = FileUtil.load(new File(args[3])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
-            String mod1 = args[4]; // "A"
-            String def2 = FileUtil.load(new File(args[5])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
-            String mod2 = args[6]; // "A"
+            // basics
+            KeqOptions keqOptions = new KeqOptions();
+            KExceptionManager kem = new KExceptionManager(keqOptions.global);
+            Stopwatch sw = new Stopwatch(keqOptions.global);
+            BinaryLoader loader = new BinaryLoader(kem);
+            JarInfo jarInfo = new JarInfo(kem);
+
+            // parsing options
+            Set<Object> options = ImmutableSet.of(keqOptions);
+            Set<Class<?>> experimentalOptions = ImmutableSet.of();
+            JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
+            String usage = JCommanderModule.usage(jc);
+            String experimentalUsage = JCommanderModule.experimentalUsage(jc);
+            usage(keqOptions.global, usage, experimentalUsage, jarInfo);
+
+            File def0File = FileUtil.resolveWorkingDirectory(new File(keqOptions.def0), workingDir);
+            File def1File = FileUtil.resolveWorkingDirectory(new File(keqOptions.def1), workingDir);
+            File def2File = FileUtil.resolveWorkingDirectory(new File(keqOptions.def2), workingDir);
             //
-            String prelude = args[0];
-            String prove = args[7];
+            String prelude = FileUtil.resolveWorkingDirectory(new File(keqOptions.smt.smtPrelude), workingDir).getAbsolutePath();
+            String prove   = FileUtil.resolveWorkingDirectory(new File(keqOptions.parameters.get(0)), workingDir).getAbsolutePath();
 
-            Kapi kapi = new Kapi();
-
-            // kompile
-            CompiledDefinition compiledDef0 = kapi.kompile(def0, mod0);
-            CompiledDefinition compiledDef1 = kapi.kompile(def1, mod1);
-            CompiledDefinition compiledDef2 = kapi.kompile(def2, mod2);
+            CompiledDefinition compiledDef0 = loader.loadOrDie(CompiledDefinition.class, new File(def0File, "compiled.bin"));
+            CompiledDefinition compiledDef1 = loader.loadOrDie(CompiledDefinition.class, new File(def1File, "compiled.bin"));
+            CompiledDefinition compiledDef2 = loader.loadOrDie(CompiledDefinition.class, new File(def2File, "compiled.bin"));
 
             // kequiv
             Kapi.kequiv(compiledDef0, compiledDef1, compiledDef2, prove, prelude);
 
-            return 1;
+            return 0;
         }
 
         invalidJarArguments();

@@ -42,9 +42,9 @@ public class KRunProgram {
     /**
      * @return command array to pass process builder
      */
-    public String[] getKrunCmd() {
+    public String[] getKrunCmd(String customKrunCmd) {
         List<String> stringArgs = new ArrayList<>();
-        stringArgs.add(ExecNames.getKrun());
+        stringArgs.add(ExecNames.getKrun(customKrunCmd));
         stringArgs.add(pgmPath);
         for (PgmArg arg : args) {
             stringArgs.addAll(arg.toStringList());

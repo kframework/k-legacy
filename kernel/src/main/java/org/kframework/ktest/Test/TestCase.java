@@ -75,6 +75,12 @@ public class TestCase {
     private String posixInitScript;
 
     /**
+     * Custom krun command.
+     * {@code null} if not available.
+     */
+    private String customKrunCmd;
+
+    /**
      * Full path of -d argument. {@code null} if -d is not provided.
      * NOTE: This should be generated again after calling {@link #setKompileOpts}.
      */
@@ -193,7 +199,7 @@ public class TestCase {
         List<Proc<KRunProgram>> procs = new ArrayList<>();
 
         for (KRunProgram program : getPrograms()) {
-            String[] args = program.getKrunCmd();
+            String[] args = program.getKrunCmd(getCustomKrunCmd());
 
             // passing null to Proc is OK, it means `ignore'
             String inputContents = null, outputContents = null, errorContents = null;
@@ -288,6 +294,10 @@ public class TestCase {
         this.posixInitScript = posixInitScript;
     }
 
+    public void setCustomKrunCmd(String customKrunCmd) {
+        this.customKrunCmd = customKrunCmd;
+    }
+
     public void addProgram(Annotated<String, LocationData> program) {
         programs.add(program);
     }
@@ -298,6 +308,10 @@ public class TestCase {
 
     public String getPosixInitScript() {
         return posixInitScript;
+    }
+
+    public String getCustomKrunCmd() {
+        return customKrunCmd;
     }
 
     /**

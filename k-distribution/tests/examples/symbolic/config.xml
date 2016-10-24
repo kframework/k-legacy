@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2016 K Team. All Rights Reserved. -->
+<tests>
+    <test definition="a.k"
+          extension="a"
+          programs="."
+          results="."
+          skip="pdf" >
+      <all-programs>
+        <krun-option name="--search" />
+      </all-programs>
+    </test>
+</tests>
