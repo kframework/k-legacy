@@ -127,7 +127,7 @@ public class KRun {
         Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = KApply$.MODULE$.unapply((KApply) result);
         if (searchResults.get() != null && searchResults.get()._1().equals(KLabel(KLabels.OR))) {
             scala.collection.Seq<K> resultList = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
-            resultList = resultList.sortWith((K1, K2) -> K1.toString().compareTo(K2.toString()) >= 0? Boolean.TRUE: Boolean.FALSE);
+            resultList = resultList.sortWith((K1, K2) -> K1.toString().compareTo(K2.toString()) >= 0? K1: K2);
             int i = 1;
             while (i < resultList.size()) {
                 outputFile("Solution " + i + "\n", options);
