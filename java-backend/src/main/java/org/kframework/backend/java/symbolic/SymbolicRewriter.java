@@ -30,6 +30,7 @@ import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.FindK;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
+import org.kframework.kore.KLabel;
 import org.kframework.kore.KORE;
 import org.kframework.krun.api.KRunState;
 import org.kframework.rewriter.SearchType;
@@ -556,7 +557,10 @@ public class SymbolicRewriter {
     }
 
     private K disjunctResults(List<K> results) {
-          return results.stream().reduce(BoolToken.FALSE, (x, y) -> KORE.KApply(KORE.KLabel(KLabels.OR), x, y));
+        if (results.isEmpty()) {
+            return KORE.KApply(KORE.KLabel(KLabels.OR), BoolToken.FALSE, BoolToken.FALSE);
+        }
+        return results.stream().reduce(BoolToken.FALSE, (x, y) -> KORE.KApply(KORE.KLabel(KLabels.OR), x, y));
     }
 
     public List<ConstrainedTerm> proveRule(

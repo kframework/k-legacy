@@ -128,12 +128,13 @@ public class KRun {
             List<K> resultList = mutable(seq).stream().filter(x -> !x.getClass().toString().contains("BoolToken")).collect(Collectors.toList());
             resultList.sort(Comparator.comparing(K::toString));
             if (resultList.size() == 0) {
-                outputFile("No Results", options);
-            }
-            int i = 0;
-            while (i < resultList.size()) {
-                outputFile("Solution " + (i + 1)  + "\n", options);
-                prettyPrint(compiledDef, options.output, s -> outputFile(s, options), resultList.get(i++));
+                outputFile("No Substitutions\n", options);
+            } else {
+                int i = 0;
+                while (i < resultList.size()) {
+                    outputFile("Solution " + (i + 1) + "\n", options);
+                    prettyPrint(compiledDef, options.output, s -> outputFile(s, options), resultList.get(i++));
+                }
             }
             return;
         }
