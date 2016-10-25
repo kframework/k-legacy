@@ -14,7 +14,6 @@ public interface CollectionInternalRepresentation extends KItemRepresentation {
     @Override
     default Term toKore() {
         List<Term> components = getKComponents();
-        components = components.stream().sorted().collect(Collectors.toList());
 
         if (components.isEmpty()) {
             return unit();
