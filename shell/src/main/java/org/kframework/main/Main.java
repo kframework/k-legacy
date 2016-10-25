@@ -382,9 +382,9 @@ public class Main {
             File def2File = FileUtil.resolveWorkingDirectory(new File(keqOptions.def2), workingDir);
             //
             String prelude = FileUtil.resolveWorkingDirectory(new File(keqOptions.smt.smtPrelude), workingDir).getAbsolutePath();
-            // TODO: make it optional
-            String prove1  = FileUtil.resolveWorkingDirectory(new File(keqOptions.parameters.get(0)), workingDir).getAbsolutePath();
-            String prove2  = FileUtil.resolveWorkingDirectory(new File(keqOptions.parameters.get(1)), workingDir).getAbsolutePath();
+            //
+            String prove1  = FileUtil.resolveWorkingDirectory(new File(keqOptions.prove1), workingDir).getAbsolutePath();
+            String prove2  = FileUtil.resolveWorkingDirectory(new File(keqOptions.prove2), workingDir).getAbsolutePath();
 
             CompiledDefinition compiledDef0 = loader.loadOrDie(CompiledDefinition.class, new File(def0File, "compiled.bin"));
             CompiledDefinition compiledDef1 = loader.loadOrDie(CompiledDefinition.class, new File(def1File, "compiled.bin"));
