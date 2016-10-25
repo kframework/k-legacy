@@ -50,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.kframework.Collections.*;
 import static org.kframework.kore.KORE.*;
@@ -122,12 +123,15 @@ public class KRun {
     public void printK(K result, KRunOptions options, CompiledDefinition compiledDef) {
         Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = KApply$.MODULE$.unapply((KApply) result);
         if (searchResults.get() != null && searchResults.get()._1().equals(KLabel(KLabels.OR))) {
-            scala.collection.Seq<K> resultList = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
-            resultList = resultList.sortBy(Object::toString, StringOrdering());
-            int i = 1;
+            scala.collection.Seq<K> seq = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
+            List<K> resultList = mutable(seq).stream().filter(x -> !x.getClass().toString().contains("BoolToken")).sorted().collect(Collectors.toList());
+            if (resultList.size() == 0) {
+                outputFile("No Results", options);
+            }
+            int i = 0;
             while (i < resultList.size()) {
-                outputFile("Solution " + i + "\n", options);
-                prettyPrint(compiledDef, options.output, s -> outputFile(s, options), resultList.apply(i++));
+                outputFile("Solution " + (i + 1)  + "\n", options);
+                prettyPrint(compiledDef, options.output, s -> outputFile(s, options), resultList.get(i++));
             }
             return;
         }

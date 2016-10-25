@@ -17,8 +17,6 @@ import collection._
 object Collections {
   def asScalaFunc[U, V](f: Function[U, V]): (U => V) = f
 
-  val StringOrdering = Ordering.String
-
   def immutable[T](s: java.lang.Iterable[T]): Iterable[T] = s.asScala
   def immutable[T](s: java.util.Set[T]): Set[T] = s.asScala.toSet
   def immutable[T](s: java.util.List[T]): Seq[T] = s.asScala
