@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright (c) 2016 K Team. All Rights Reserved. -->
 <tests>
-    <test definition="common.k"
+    <test definition="imp.k"
           extension="keq"
           programs="."
           results="."
