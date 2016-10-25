@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -124,7 +125,8 @@ public class KRun {
         Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = KApply$.MODULE$.unapply((KApply) result);
         if (searchResults.get() != null && searchResults.get()._1().equals(KLabel(KLabels.OR))) {
             scala.collection.Seq<K> seq = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
-            List<K> resultList = mutable(seq).stream().filter(x -> !x.getClass().toString().contains("BoolToken")).sorted().collect(Collectors.toList());
+            List<K> resultList = mutable(seq).stream().filter(x -> !x.getClass().toString().contains("BoolToken")).collect(Collectors.toList());
+            resultList.sort(Comparator.comparing(K::toString));
             if (resultList.size() == 0) {
                 outputFile("No Results", options);
             }
