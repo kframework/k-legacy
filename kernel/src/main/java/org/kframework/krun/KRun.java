@@ -2,6 +2,7 @@
 package org.kframework.krun;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
 import org.kframework.builtin.KLabels;
 import org.kframework.builtin.Sorts;
@@ -102,10 +103,11 @@ public class KRun {
             }
         } else if (result instanceof Tuple2) {
             Tuple2<?, ?> tuple = (Tuple2<?, ?>) result;
-            if (tuple._1() instanceof K && tuple._2() instanceof Integer) {
-                prettyPrint(compiledDef, options.output, s -> outputFile(s, options), (K) tuple._1());
-                return (Integer) tuple._2();
+
+            if (tuple._1() instanceof RewriterResult && tuple._2() instanceof K) {
+                printK((K) tuple._2(), options, compiledDef);
             }
+
             if (tuple._1() instanceof K && tuple._2() instanceof Integer) {
                 printK((K) tuple._1(), options, compiledDef);
                 return (Integer) tuple._2();
