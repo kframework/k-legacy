@@ -4,7 +4,6 @@ import org.kframework.attributes.Att
 
 import org.kframework.kore._
 
-
 /**
   * Created by lpena on 10/11/16.
   */
@@ -24,7 +23,7 @@ object test {
   }
 
   case class BecomingToken(sort: ADT.SortLookup, pis: Seq[ProductionItem]) {
-    def att(atts: String*): Production = Production(sort, pis, atts.foldLeft(Att() + "token")(_+_))
+    def att(atts: K*): Production = Production(sort, pis, atts.foldLeft(Att() + "token")(_+_))
   }
 
   implicit def tokenWithoutAttributes(bp: BecomingToken) : Production =
@@ -35,7 +34,7 @@ object test {
   }
 
   case class BecomingSyntax(sort: ADT.SortLookup, pis: Seq[ProductionItem]) {
-    def att(atts: String*): Production = Production(sort, pis, atts.foldLeft(Att())(_+_))
+    def att(atts: K*): Production = Production(sort, pis, atts.foldLeft(Att())(_+_))
   }
 
   implicit def syntaxWithoutAttributes(bp: BecomingSyntax) : Production =
@@ -48,7 +47,7 @@ object test {
   def axiom(ax: String): BecomingAxiom = BecomingAxiom(ax)
 
   case class BecomingAxiom(ax: String) {
-    def att(atts: String*): Axiom = Axiom(ax, atts.foldLeft(Att())(_+_))
+    def att(atts: K*): Axiom = Axiom(ax, atts.foldLeft(Att())(_+_))
   }
 
   implicit def axiomWithoutAttributes(bax: BecomingAxiom) : Axiom =
@@ -259,10 +258,10 @@ object test {
 
   val EXP = Module("EXP", imports(), sentences(
 
-    syntax(Exp) is "0",
-    syntax(Exp) is "1",
-    syntax(Exp) is (Exp, "+", Exp),
-    syntax(Exp) is (Exp, "*", Exp)
+    syntax(Exp) is "0" att Att.asK("klabel", "zero"),
+    syntax(Exp) is "1" att Att.asK("klabel", "one"),
+    syntax(Exp) is (Exp, "+", Exp) att Att.asK("klabel", "plus"),
+    syntax(Exp) is (Exp, "*", Exp) att Att.asK("klabel", "mult")
 
   ))
 
