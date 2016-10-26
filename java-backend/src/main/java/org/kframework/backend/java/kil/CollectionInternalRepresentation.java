@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -17,6 +18,8 @@ public interface CollectionInternalRepresentation extends KItemRepresentation {
         if (components.isEmpty()) {
             return unit();
         }
+
+        components.sort(Comparator.comparing(x -> x.toString()));
 
         Term result = components.get(components.size() - 1);
         for (int i = components.size() - 2; i >= 0; --i) {
