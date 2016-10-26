@@ -557,9 +557,6 @@ public class SymbolicRewriter {
     }
 
     private K disjunctResults(List<K> results) {
-        if (results.isEmpty()) {
-            return KORE.KApply(KORE.KLabel(KLabels.OR), BoolToken.FALSE, BoolToken.FALSE);
-        }
         return results.stream().reduce(BoolToken.FALSE, (x, y) -> KORE.KApply(KORE.KLabel(KLabels.OR), x, y));
     }
 

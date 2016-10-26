@@ -9,6 +9,7 @@ import org.kframework.builtin.Sorts;
 import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
+import org.kframework.kil.KApp;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kore.Assoc;
 import org.kframework.kore.K;
@@ -124,23 +125,27 @@ public class KRun {
 
 
     public void printK(K result, KRunOptions options, CompiledDefinition compiledDef) {
-        Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = KApply$.MODULE$.unapply((KApply) result);
-        if (searchResults.get() != null && searchResults.get()._1().equals(KLabel(KLabels.OR))) {
-            scala.collection.Seq<K> seq = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
-            List<K> resultList = mutable(seq).stream().filter(x -> !x.getClass().toString().contains("BoolToken")).collect(Collectors.toList());
-            resultList.sort(Comparator.comparing(K::toString));
-            if (resultList.size() == 0) {
-                outputFile("No Substitutions\n", options);
-            } else {
-                int i = 0;
-                while (i < resultList.size()) {
-                    outputFile("Solution " + (i + 1) + "\n", options);
-                    prettyPrint(compiledDef, options.output, s -> outputFile(s, options), resultList.get(i++));
+        if (result instanceof KApply) {
+            Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = KApply$.MODULE$.unapply((KApply) result);
+            if (searchResults.get() != null && searchResults.get()._1().equals(KLabel(KLabels.OR))) {
+                scala.collection.Seq<K> seq = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
+                List<K> resultList = mutable(seq).stream().filter(x -> !x.getClass().toString().contains("BoolToken")).collect(Collectors.toList());
+                resultList.sort(Comparator.comparing(K::toString));
+                if (resultList.size() == 0) {
+                    outputFile("No Substitutions\n", options);
+                } else {
+                    int i = 0;
+                    while (i < resultList.size()) {
+                        outputFile("Solution " + (i + 1) + "\n", options);
+                        prettyPrint(compiledDef, options.output, s -> outputFile(s, options), resultList.get(i++));
+                    }
                 }
+                return;
             }
-            return;
-        }
-        prettyPrint(compiledDef, options.output, s -> outputFile(s, options), result);
+        } else if (result.getClass().toString().contains("BoolToken")) {
+            outputFile("No Substitutions\n", options);
+        } else
+            prettyPrint(compiledDef, options.output, s -> outputFile(s, options), result);
     }
 
     /**
