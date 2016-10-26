@@ -1,4 +1,2 @@
-Search results:
-
-Solution 1:
-Empty substitution
+Solution 1
+DotVar0 ==K <gtenv> z |-> int y |-> int x |-> int g |-> ( ( void , .Exps ) -> void ) main |-> ( ( void , .Exps ) -> void ) f |-> ( ( void , .Exps ) -> void ) </gtenv>

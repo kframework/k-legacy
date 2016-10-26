@@ -1,8 +1,4 @@
-Search results:
-
-Solution 1:
-<k> false </k>
-
-Solution 2:
-<k> true </k>
-
+Solution 1
+<k> false </k> andBool V0 ==K false
+Solution 2
+<k> true </k> andBool V0 ==K true

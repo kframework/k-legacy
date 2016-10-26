@@ -1,6 +1,2 @@
-Search results:
-
-Solution 1:
-V:K@SORT-K -->
-closure ( f02 |-> 3 f01 |-> 2 f00 |-> 1 f03 |-> 4 , ( x -> ( f03 ( f03 x ) ) ) | .Cases )
-
+Solution 1
+V ==K closure ( f02 |-> 3 f01 |-> 2 f00 |-> 1 f03 |-> 4 , ( x -> ( f03 ( f03 x ) ) ) | .Cases ) andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 1 |-> closure ( .Map , ( x -> fun ( ( y -> x ) | .Cases ) ) | .Cases ) 2 |-> closure ( f00 |-> 1 , ( x -> ( f00 ( f00 x ) ) ) | .Cases ) 3 |-> closure ( f01 |-> 2 f00 |-> 1 , ( x -> ( f01 ( f01 x ) ) ) | .Cases ) 4 |-> closure ( f02 |-> 3 f01 |-> 2 f00 |-> 1 , ( x -> ( f02 ( f02 x ) ) ) | .Cases ) 5 |-> closure ( f02 |-> 3 f01 |-> 2 f00 |-> 1 f03 |-> 4 , ( x -> ( f03 ( f03 x ) ) ) | .Cases ) </store> )

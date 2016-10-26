@@ -1,4 +1,2 @@
-Search results:
-
-Solution 1:
-Empty substitution
+Solution 1
+DotVar0 ==K <gtenv> insertionSort |-> ( ( int [ ] , .Exps ) -> void ) bubbleSort |-> ( ( int [ ] , .Exps ) -> void ) printArray |-> ( ( int [ ] , .Exps ) -> void ) heapSort |-> ( ( int [ ] , .Exps ) -> void ) reverse |-> ( ( int [ ] , .Exps ) -> void ) init |-> ( ( int , .Exps ) -> int [ ] ) map |-> ( ( string [ ] , ( ( ( int [ ] , .Exps ) -> void ) [ ] , ( int [ ] , .Exps ) ) ) -> void ) main |-> ( ( void , .Exps ) -> void ) siftDown |-> ( ( int [ ] , ( int , ( int , .Exps ) ) ) -> void ) </gtenv>

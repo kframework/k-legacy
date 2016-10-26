@@ -1,5 +1,2 @@
-Search results:
-
-Solution 1:
-V:K@SORT-K -->
-closure ( x |-> 2 , y , x y )
+Solution 1
+V ==K closure ( x |-> 2 , y , x y ) andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 1 |-> closure ( .Map , x , lambda y . ( x y ) ) 2 |-> closure ( .Map , x , lambda y . ( x y ) ) </store> )

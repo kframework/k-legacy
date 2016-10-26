@@ -1,9 +1,4 @@
-Search results:
-
-Solution 1:
-V:K@SORT-K -->
-3
-
-Solution 2:
-V:K@SORT-K -->
-4
+Solution 1
+V ==K 3 andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 8 |-> 1 1 |-> 1 3 |-> cc ( #freezer__0 ( closure ( x |-> 1 , a , ( lambda b . ( a + b ) ) x ) ) ~> .Map ) 5 |-> 2 6 |-> 2 </store> )
+Solution 2
+V ==K 4 andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 9 |-> 2 1 |-> 1 2 |-> cc ( #freezer__0 ( lambda a . ( ( lambda b . ( a + b ) ) x ) ) ~> .Map ) 4 |-> 2 7 |-> 2 </store> )

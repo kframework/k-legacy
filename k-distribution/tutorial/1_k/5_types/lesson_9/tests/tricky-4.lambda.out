@@ -1,5 +1,2 @@
-Search results:
-
-Solution 1:
-T:Type@LAMBDA -->
-int -> int
+Solution 1
+DotVar0 ==K <tenv> .Map </tenv> andBool T ==K ( int -> int )

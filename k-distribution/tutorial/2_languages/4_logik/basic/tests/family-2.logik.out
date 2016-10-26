@@ -1,14 +1,20 @@
-Search results:
-
-Solution 1:
-Solution:Map@MAP -->
-X:Term@LOGIK-COMMON |-> david
-
-Solution 2:
-Solution:Map@MAP -->
-X:Term@LOGIK-COMMON |-> jim
-
-Solution 3:
-Solution:Map@MAP -->
-X:Term@LOGIK-COMMON |-> steve
-
+Solution 1
+DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> david )
+Solution 2
+DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> david )
+Solution 3
+DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> david )
+Solution 4
+DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> jim )
+Solution 5
+DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> jim )
+Solution 6
+DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> jim )
+Solution 7
+DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> jim )
+Solution 8
+DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> steve )
+Solution 9
+DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> steve )
+Solution 10
+DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> steve )
