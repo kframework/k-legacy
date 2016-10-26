@@ -55,16 +55,17 @@ object test {
 
   def imports(s: Module*): Set[Module] = s.toSet
   def sentences(s: Sentence*): Set[Sentence] = s.toSet
+  def klabel(label: String): K = Att.asK("klabel", label)
 
   // module KTOKENS
   //   .KImportList
   //
-  //   token KString       ::= r"\"[a-zA-Z0-9\\-]*\"" [.Attributes]
-  //   token KSort         ::= r"[A-Z][A-Za-z0-9]*" [.Attributes]
-  //   token KAttributeKey ::= r"[a-z][A-Za-z\\-0-9]*" [.Attributes]
-  //   token KModuleName   ::= r"[A-Z][A-Z]*" [.Attributes]
-  //   token K             ::= "(" K ")" [.Attributes]
+  //   token KString       ::= r"\"[a-zA-Z0-9\\-]*\"" [klabel(KString), .Attributes]
+  //   token KSort         ::= r"[A-Z][A-Za-z0-9]*" [klabel(KSort), .Attributes]
+  //   token KAttributeKey ::= r"[a-z][A-Za-z\\-0-9]*" [klabel(KAttributeKey), .Attributes]
+  //   token KModuleName   ::= r"[A-Z][A-Z]*" [klabel(KModuleName), .Attributes]
   //
+  //   .KSentenceList
   // endmodule
 
   val KString = Sort("KString")
@@ -74,28 +75,29 @@ object test {
 
   val KTOKENS = Module("KTOKENS", imports(), sentences(
 
-    token(KString) is regex("\"[a-zA-Z0-9\\-]*\""),
-    token(KSort) is regex("[A-Z][A-Za-z0-9]*"),
-    token(KAttributeKey) is regex("[a-z][A-Za-z\\-0-9]*"),
-    token(KModuleName) is regex("[A-Z][A-Z\\-]*")
+    token(KString) is regex("\"[a-zA-Z0-9\\-]*\"") att klabel("KString"),
+    token(KSort) is regex("[A-Z][A-Za-z0-9]*") att klabel("KSort"),
+    token(KAttributeKey) is regex("[a-z][A-Za-z\\-0-9]*") att klabel("KAttributeKey"),
+    token(KModuleName) is regex("[A-Z][A-Z\\-]*") att klabel("KModuleName")
 
   ))
 
   // module KML
   //   imports KTOKENS .KImportList
   //
-  //   syntax KMLVar ::= "mlvar" "(" KString ")"
+  //   syntax KMLVar ::= "mlvar" "(" KString ")" [klabel(mlvar(_)), .KAttributes]
   //
-  //   syntax KMLFormula ::= "KMLtrue" [.KAttributes]
-  //   syntax KMLFormula ::= "KMLfalse" [.KAttributes]
-  //   syntax KMLFormula ::= KMLFormula "KMLand" KMLFormula [.KAttributes]
-  //   syntax KMLFormula ::= KMLFormula "KMLor" KMLFormula [.KAttributes]
-  //   syntax KMLFormula ::= "KMLnot" KMLFormula [.KAttributes]
-  //   syntax KMLFormula ::= "KMLexists" KMLVar "." KMLFormula [.KAttributes]
-  //   syntax KMLFormula ::= "KMLforall" KMLVar "." KMLVar [.KAttributes]
-  //   syntax KMLFormula ::= KMLFormula "K=>" KMLFormula [.KAttributes]
-  //   syntax KMLFormula ::= "KMLnext" KMLFormula [.KAttributes]
+  //   syntax KMLFormula ::= KMLVar [.KAttributes]
+  //   syntax KMLFormula ::= "KMLtrue" [klabel(KMLtrue), .KAttributes]
+  //   syntax KMLFormula ::= "KMLfalse" [klabel(KMLfalse), .KAttributes]
+  //   syntax KMLFormula ::= KMLFormula "KMLand" KMLFormula [klabel(_KMLand_), .KAttributes]
+  //   syntax KMLFormula ::= KMLFormula "KMLor" KMLFormula [klabel(_KMLor_), .KAttributes]
+  //   syntax KMLFormula ::= "KMLnot" KMLFormula [klabel(KMLnot_), .KAttributes]
+  //   syntax KMLFormula ::= "KMLexists" KMLVar "." KMLFormula [klabel(KMLexists_._), .KAttributes]
+  //   syntax KMLFormula ::= "KMLforall" KMLVar "." KMLVar [klabel(KMLforall_._), .KAttributes]
+  //   syntax KMLFormula ::= KMLFormula "K=>" KMLFormula [klabel(_K=>_), .KAttributes]
   //
+  //   .KSentenceList
   // endmodule
 
   val KMLVar = Sort("MLVar")
@@ -103,18 +105,17 @@ object test {
 
   val KML = Module("KML", imports(KTOKENS), sentences(
 
-    syntax(KMLVar) is ("mlvar", "(", KString, ")"),
+    syntax(KMLVar) is ("mlvar", "(", KString, ")") att klabel("mlvar(_)"),
 
     syntax(KMLFormula) is KMLVar,
-    syntax(KMLFormula) is "KMLtrue",
-    syntax(KMLFormula) is "KMLfalse",
-    syntax(KMLFormula) is (KMLFormula, "KMLand", KMLFormula),
-    syntax(KMLFormula) is (KMLFormula, "KMLor", KMLFormula),
-    syntax(KMLFormula) is ("KMLnot", KMLFormula),
-    syntax(KMLFormula) is ("Kexists", KMLVar, ".", KMLFormula),
-    syntax(KMLFormula) is ("Kforall", KMLVar, ".", KMLVar),
-    syntax(KMLFormula) is (KMLFormula, "K=>", KMLFormula),
-    syntax(KMLFormula) is ("Knext", KMLFormula)
+    syntax(KMLFormula) is "KMLtrue" att klabel("KMLtrue"),
+    syntax(KMLFormula) is "KMLfalse" att klabel("KMLfalse"),
+    syntax(KMLFormula) is (KMLFormula, "KMLand", KMLFormula) att klabel("_KMLand_"),
+    syntax(KMLFormula) is (KMLFormula, "KMLor", KMLFormula) att klabel("_KMLor_"),
+    syntax(KMLFormula) is ("KMLnot", KMLFormula) att klabel("KMLnot_"),
+    syntax(KMLFormula) is ("KMLexists", KMLVar, ".", KMLFormula) att klabel("KMLexists_._"),
+    syntax(KMLFormula) is ("KMLforall", KMLVar, ".", KMLVar) att klabel("KMLforall._"),
+    syntax(KMLFormula) is (KMLFormula, "K=>", KMLFormula) att klabel("_K=>_")
 
   ))
 
@@ -122,13 +123,14 @@ object test {
   //   imports KTOKENS .KImportList
   //
   //   syntax KKeyList ::= KAttributeKey [.KAttributes]
-  //   syntax KKeyList ::= KAttributeKey "," KKeyList [.KAttributes]
+  //   syntax KKeyList ::= KAttributeKey "," KKeyList [klabel(_,_), .KAttributes]
   //
   //   syntax KAttribute ::= KAttributeKey [.Attributes]
-  //   syntax KAttribute ::= KAttributeKey "(" KKeyList ")" [.KAttributes]
-  //   syntax KAttributes ::= ".KAttributes" [.KAttributes]
-  //   syntax KAttributes ::= KAttribute "," KAttributes [.KAttributes]
+  //   syntax KAttribute ::= KAttributeKey "(" KKeyList ")" [klabel(_(_)), .KAttributes]
+  //   syntax KAttributes ::= ".KAttributes" [klabel(.KAttributes), .KAttributes]
+  //   syntax KAttributes ::= KAttribute "," KAttributes [klabel(_,_), .KAttributes]
   //
+  //   .KSentenceList
   // endmodule
 
   val KKeyList = Sort("KeyList")
@@ -138,37 +140,38 @@ object test {
   val KATTRIBUTES = Module("KATTRIBUTES", imports(KTOKENS), sentences(
 
     syntax(KKeyList) is KAttributeKey,
-    syntax(KKeyList) is (KAttributeKey, ",", KKeyList),
+    syntax(KKeyList) is (KAttributeKey, ",", KKeyList) att klabel("_,_"),
 
     syntax(KAttribute) is KAttributeKey,
-    syntax(KAttribute) is (KAttributeKey, "(", KKeyList, ")"),
-    syntax(KAttributes) is ".KAttributes",
-    syntax(KAttributes) is (KAttribute, ",", KAttributes)
+    syntax(KAttribute) is (KAttributeKey, "(", KKeyList, ")") att klabel("_(_)"),
+    syntax(KAttributes) is ".KAttributes" att klabel(".KAttributes"),
+    syntax(KAttributes) is (KAttribute, ",", KAttributes) att klabel("_,_")
 
   ))
 
   // module KSENTENCES
   //   imports KATTRIBUTES .KImportList
   //
-  //   syntax KImport = "imports" KModuleName [.KAttributes]
-  //   syntax KImportList = ".KImportList" [.KAttributes]
-  //   syntax KImportList = KImport KImportList [.KAttributes]
+  //   syntax KImport = "imports" KModuleName [klabel(imports_), .KAttributes]
+  //   syntax KImportList = ".KImportList" [klabel(.KImportList), .KAttributes]
+  //   syntax KImportList = KImport KImportList [klabel(__), .KAttributes]
   //
   //   syntax KTerminal ::= KString [.KAttributes]
   //   syntax KNonTerminal ::= KSort [.KAttributes]
   //   syntax KProductionItem ::= KTerminal [.KAttributes]
   //   syntax KProductionItem ::= KNonTerminal [.KAttributes]
   //   syntax KProduction ::= KProductionItem [.KAttributes]
-  //   syntax KProduction ::= KProductionItem KProduction [.KAttributes]
+  //   syntax KProduction ::= KProductionItem KProduction [klabel(__), .KAttributes]
   //
-  //   syntax KPreSentence = "token" KSort "::=" KProduction [.KAttributes]
-  //   syntax KPreSentence = "syntax" KSort "::=" KProduction [.KAttributes]
-  //   syntax KPreSentence = "axiom" KMLFormula [.KAttributes]
+  //   syntax KPreSentence = "token" KSort "::=" KProduction [klabel(token_::=_), .KAttributes]
+  //   syntax KPreSentence = "syntax" KSort "::=" KProduction [klabel(syntax_::=_), .KAttributes]
+  //   syntax KPreSentence = "axiom" KMLFormula [klabel(axiom_), .KAttributes]
   //
-  //   syntax KSentence = KPreStentence "[" KAttributes "]" [.KAttributes]
-  //   syntax KSentenceList = ".KSentenceList" [.KAttributes]
-  //   syntax KSentenceList = KSentence KSentenceList [.KAttributes]
+  //   syntax KSentence = KPreStentence "[" KAttributes "]" [klabel(_[_]), .KAttributes]
+  //   syntax KSentenceList = ".KSentenceList" [klabel(.KSentenceList), .KAttributes]
+  //   syntax KSentenceList = KSentence KSentenceList [klabel(__), .KAttributes]
   //
+  //   .KSentenceList
   // endmodule
 
   val KImport = Sort("KImport")
@@ -185,24 +188,24 @@ object test {
 
   val KSENTENCES = Module("KSENTENCES", imports(KATTRIBUTES, KML), sentences(
 
-    syntax(KImport) is ("imports", KModuleName),
-    syntax(KImportList) is ".KImportList",
-    syntax(KImportList) is (KImport, KImportList),
+    syntax(KImport) is ("imports", KModuleName) att klabel("imports_"),
+    syntax(KImportList) is ".KImportList" att klabel(".KImportList"),
+    syntax(KImportList) is (KImport, KImportList) att klabel("__"),
 
     syntax(KTerminal) is KString,
     syntax(KNonTerminal) is KSort,
     syntax(KProductionItem) is KTerminal,
     syntax(KProductionItem) is KNonTerminal,
     syntax(KProduction) is KProductionItem,
-    syntax(KProduction) is (KProductionItem, KProduction),
+    syntax(KProduction) is (KProductionItem, KProduction) att klabel("__"),
 
-    syntax(KPreSentence) is ("token", KSort, "::=", KProduction),
-    syntax(KPreSentence) is ("syntax", KSort, "::=", KProduction),
-    syntax(KPreSentence) is ("axiom", KMLFormula),
+    syntax(KPreSentence) is ("token", KSort, "::=", KProduction) att klabel("token_::=_"),
+    syntax(KPreSentence) is ("syntax", KSort, "::=", KProduction) att klabel("syntax_::=_"),
+    syntax(KPreSentence) is ("axiom", KMLFormula) att klabel("axiom_"),
 
-    syntax(KSentence) is (KPreSentence, "[", KAttributes, "]"),
-    syntax(KSentenceList) is (KSentence),
-    syntax(KSentenceList) is (KSentence, KSentenceList)
+    syntax(KSentence) is (KPreSentence, "[", KAttributes, "]") att klabel("_[_]"),
+    syntax(KSentenceList) is ".KSentenceList" att klabel(".KSentenceList"),
+    syntax(KSentenceList) is (KSentence, KSentenceList) att klabel("__")
 
   ))
 
@@ -211,16 +214,17 @@ object test {
   //
   //   // Attributes on modules perhaps?
   //
-  //   syntax KModule ::= "module" KModuleName KImportList KSentenceList "endmodule" [.KAttribute]
+  //   syntax KModule ::= "module" KModuleName KImportList KSentenceList "endmodule" [klabel(module___endmodule), .KAttribute]
   //   syntax KModuleList = KModule [.KAttribute]
-  //   syntax KModuleList = KModule KModuleList [.KAttribute]
+  //   syntax KModuleList = KModule KModuleList [klabel(__), .KAttribute]
   //
-  //   syntax KRequire ::= "require" KString [.KAttribute]
-  //   syntax KRequireList ::= ".KRequireList" [.KAttribute]
-  //   syntax KRequireList ::= Require RequireList [.KAttribute]
+  //   syntax KRequire ::= "require" KString [klabel(require_), .KAttribute]
+  //   syntax KRequireList ::= ".KRequireList" [klabel(.KRequireList), .KAttribute]
+  //   syntax KRequireList ::= Require RequireList [klabel(__), .KAttribute]
   //
-  //   syntax KDefinition ::= KRequireList KModuleList [.KAttribute]
+  //   syntax KDefinition ::= KRequireList KModuleList [klabel(__), .KAttribute]
   //
+  //   .KSentenceList
   // endmodule
 
   val KModule = Sort("KModule")
@@ -232,36 +236,37 @@ object test {
 
   val KDEFINITION = Module("KDEFINITION", imports(KSENTENCES), sentences(
 
-    syntax(KModule) is ("module", KModuleName, KImportList, KSentenceList, "endmodule"),
+    syntax(KModule) is ("module", KModuleName, KImportList, KSentenceList, "endmodule") att klabel("module___endmodule"),
     syntax(KModuleList) is KModule,
-    syntax(KModuleList) is (KModule, KModuleList),
+    syntax(KModuleList) is (KModule, KModuleList) att klabel("__"),
 
-    syntax(KRequire) is ("require", KString),
-    syntax(KRequireList) is ".KRequireList",
-    syntax(KRequireList) is (KRequire, KRequireList),
+    syntax(KRequire) is ("require", KString) att klabel("require_"),
+    syntax(KRequireList) is ".KRequireList" att klabel(".KRequireList"),
+    syntax(KRequireList) is (KRequire, KRequireList) att klabel("__"),
 
-    syntax(KDefinition) is (KRequireList, KModuleList)
+    syntax(KDefinition) is (KRequireList, KModuleList) att klabel("__")
 
   ))
 
   // module EXP
   //   .KImportList
   //
-  //   syntax Exp ::= "0"
-  //   syntax Exp ::= "1"
-  //   syntax Exp ::= Exp "+" Exp
-  //   syntax Exp ::= Exp "*" Exp
+  //   syntax Exp ::= "0" [klabel(0), .KAttributes]
+  //   syntax Exp ::= "1" [klabel(1), .KAttributes]
+  //   syntax Exp ::= Exp "+" Exp [klabel(_+_), .KAttributes]
+  //   syntax Exp ::= Exp "*" Exp [klabel(_*_), .KAttributes]
   //
+  //   .KSentenceList
   // endmodule
 
   val Exp = Sort("Exp")
 
   val EXP = Module("EXP", imports(), sentences(
 
-    syntax(Exp) is "0" att Att.asK("klabel", "zero"),
-    syntax(Exp) is "1" att Att.asK("klabel", "one"),
-    syntax(Exp) is (Exp, "+", Exp) att Att.asK("klabel", "plus"),
-    syntax(Exp) is (Exp, "*", Exp) att Att.asK("klabel", "mult")
+    syntax(Exp) is "0" att klabel("0"),
+    syntax(Exp) is "1" att klabel("1"),
+    syntax(Exp) is (Exp, "+", Exp) att klabel("_+_"),
+    syntax(Exp) is (Exp, "*", Exp) att klabel("_*_")
 
   ))
 
