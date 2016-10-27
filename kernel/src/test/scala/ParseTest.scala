@@ -11,7 +11,7 @@ class ParseTest {
   val kParser = new ParseInModule(test.KDEFINITION)
 
   @Test def simpExp(): Unit = {
-    println(kParser.parseString("0 + 0", test.Exp, Source("")))
+    println(expParser.parseString("0 + 0", test.Exp, Source("")))
     assertTrue(true)
   }
 
