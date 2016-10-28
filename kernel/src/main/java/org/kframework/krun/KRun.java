@@ -16,6 +16,7 @@ import org.kframework.kore.KApply;
 import org.kframework.kore.KLabel;
 import org.kframework.kore.KORE;
 import org.kframework.kore.KToken;
+import org.kframework.kore.KVariable;
 import org.kframework.kore.Sort;
 import org.kframework.kore.Unapply.KApply$;
 import org.kframework.kore.VisitK;
@@ -121,12 +122,52 @@ public class KRun {
         return 0;
     }
 
+    private void filterAnonVarsAndPrint(K result, Set<String> filterSet, CompiledDefinition compiledDef, KRunOptions options) {
+        if (result instanceof KApply && ((KApply) result).klabel().toString().equals(KLabels.AND)) {
+            List<K> conjunctions = mutable(Assoc.flatten(KLabel(KLabels.AND), immutable(((KApply) result).items()), KLabel(KLabels.ML_TRUE)));
+            conjunctions = conjunctions.stream().filter(x -> {
+                if (x instanceof KApply && ((KApply) x).klabel().toString().equals(KLabels.EQUALS)) {
+                    K var = ((KApply) x).klist().items().get(0);
+                    if (var instanceof KVariable && filterSet.contains(((KVariable) var).name())) {
+                        return true;
+                    }
+                    return false;
+                }
+                if (x.getClass().toString().contains("BoolToken")) {
+                    return false;
+                }
+                return true;
+            }).collect(Collectors.toList());
+            conjunctions.sort(Comparator.comparing(K::toString));
+            if (conjunctions.size() > 1) {
+                conjunctions.subList(0, conjunctions.size() - 2).forEach(x -> {
+                    prettyPrint(compiledDef, options.output, s -> outputFile(s, options), x);
+                    outputFile(" " + KLabels.AND + " ", options);
+                });
+            }
+            if (!conjunctions.isEmpty()) {
+                prettyPrint(compiledDef, options.output, s -> outputFile(s, options), conjunctions.get(conjunctions.size() - 1));
+            }
+        } else
+            prettyPrint(compiledDef, options.output, s -> outputFile(s, options), result);
+    }
 
     public void printK(K result, KRunOptions options, CompiledDefinition compiledDef) {
+        Set<String> patternVariables = new HashSet<>();
+        if (options.pattern != null) {
+            new VisitK() {
+                @Override
+                public void apply(KVariable k) {
+                    patternVariables.add(k.name());
+                    super.apply(k);
+                }
+            }.apply(parsePattern(files, kem, options.pattern, compiledDef, Source.apply("<command line: --pattern>")).body());
+        }
         if (result instanceof KApply && ((KApply) result).klabel().equals(KLabel(KLabels.OR))) {
             Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = KApply$.MODULE$.unapply((KApply) result);
             scala.collection.Seq<K> seq = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
             List<K> resultList = mutable(seq).stream().filter(x -> !x.getClass().toString().contains("BoolToken")).collect(Collectors.toList());
+
             resultList.sort(Comparator.comparing(K::toString));
             if (resultList.size() == 0) {
                 outputFile("No Substitutions\n", options);
@@ -134,7 +175,7 @@ public class KRun {
                 int i = 0;
                 while (i < resultList.size()) {
                     outputFile("Solution " + (i + 1) + "\n", options);
-                    prettyPrint(compiledDef, options.output, s -> outputFile(s, options), resultList.get(i++));
+                    filterAnonVarsAndPrint(resultList.get(i++), patternVariables, compiledDef, options);
                 }
             }
             return;
@@ -142,7 +183,7 @@ public class KRun {
             outputFile("No Substitutions\n", options);
             return;
         }
-        prettyPrint(compiledDef, options.output, s -> outputFile(s, options), result);
+        filterAnonVarsAndPrint(result, patternVariables, compiledDef, options);
     }
 
     /**

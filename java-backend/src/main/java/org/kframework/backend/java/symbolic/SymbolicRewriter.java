@@ -15,6 +15,7 @@ import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.KItem;
+import org.kframework.backend.java.kil.KLabel;
 import org.kframework.backend.java.kil.KLabelConstant;
 import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.Rule;
@@ -27,14 +28,15 @@ import org.kframework.backend.java.util.JavaKRunState;
 import org.kframework.builtin.KLabels;
 import org.kframework.kil.ASTNode;
 import org.kframework.kompile.KompileOptions;
+import org.kframework.kore.Assoc;
 import org.kframework.kore.FindK;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
-import org.kframework.kore.KLabel;
 import org.kframework.kore.KORE;
 import org.kframework.krun.api.KRunState;
 import org.kframework.rewriter.SearchType;
 import org.kframework.utils.BitSet;
+import scala.collection.JavaConverters;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -556,8 +558,38 @@ public class SymbolicRewriter {
         return disjunctResults(searchResults);
     }
 
+    private boolean isConjunction(K k) {
+        return k instanceof KItem && ((KItem) k).klabel().toString().equals(KLabels.AND);
+    }
+
+    private K kApplyConversion(K k) {
+        if (k instanceof KItem) {
+            KItem kItem = (KItem) k;
+            return KORE.KApply(kItem.klabel(), kItem.klist());
+        }
+        return k;
+    }
+
+    private void flattenList(List<K> unflat, List<K> flat) {
+        unflat.forEach(x -> {
+            if(isConjunction(x)) {
+                flattenList(((KItem) x).items(), flat);
+            } else {
+                flat.add(x);
+            }
+        });
+    }
+
+    private K processConjuncts(ConjunctiveFormula conjunct) {
+        List<K> kList= conjunct.items();
+        List<K> flatList = new ArrayList();
+        flattenList(kList, flatList);
+        flatList = flatList.stream().map(this::kApplyConversion).collect(Collectors.toList());
+        return flatList.stream().reduce(BoolToken.TRUE, (x, y) -> KORE.KApply(KORE.KLabel(KLabels.AND), x, y));
+    }
     private K disjunctResults(List<K> results) {
-        return results.stream().reduce(BoolToken.FALSE, (x, y) -> KORE.KApply(KORE.KLabel(KLabels.OR), x, y));
+        return results.stream().map(x -> x instanceof ConjunctiveFormula ? processConjuncts((ConjunctiveFormula) x) : x)
+                .reduce(BoolToken.FALSE, (x, y) -> KORE.KApply(KORE.KLabel(KLabels.OR), x, y));
     }
 
     public List<ConstrainedTerm> proveRule(

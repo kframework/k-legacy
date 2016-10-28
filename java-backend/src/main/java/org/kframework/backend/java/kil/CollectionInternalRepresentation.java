@@ -19,8 +19,6 @@ public interface CollectionInternalRepresentation extends KItemRepresentation {
             return unit();
         }
 
-        components.sort(Comparator.comparing(x -> x.toString()));
-
         Term result = components.get(components.size() - 1);
         for (int i = components.size() - 2; i >= 0; --i) {
             Term component = components.get(i);
