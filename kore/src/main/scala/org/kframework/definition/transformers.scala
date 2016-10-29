@@ -12,7 +12,7 @@ import collection._
 import scala.collection.immutable.Stack
 
 object ModuleTransformer {
-  def fromSentenceTransformer(sentenceTransformer: java.util.function.UnaryOperator[Sentence], passName: String): MemoizingModuleTransformer =
+  def fromSentenceTransformer(sentenceTransformer: Sentence => Sentence, passName: String): MemoizingModuleTransformer =
     new SentenceBasedModuleTransformer {
       override val name = passName
       override def f(s: Sentence) = sentenceTransformer(s)
@@ -53,8 +53,8 @@ object ModuleTransformer {
       case s => s
     }, name)
 
-  def fromKTransformerWithModuleInfo(ff: Module => K => K, name: String): HybridMemoizingModuleTransformer =
-    fromSentenceTransformer((module, sentence) => {
+  def fromKTransformerWithModuleInfo(ff: Module => K => K, name: String): MemoizingModuleTransformer =
+    fromSentenceTransformerClean((module, sentence) => {
       val f: K => K = ff(module)
       sentence match {
         case r: Rule => Rule.apply(f(r.body), f(r.requires), f(r.ensures), r.att)
@@ -201,22 +201,20 @@ object DefinitionTransformer {
     new DefinitionTransformer(ModuleTransformer.fromSentenceTransformer(f(_), name))
 
   def fromSentenceTransformer(f: (Module, Sentence) => Sentence, name: String): DefinitionTransformer =
-    DefinitionTransformer.apply1(ModuleTransformer.fromSentenceTransformerClean(f, name))
+    DefinitionTransformer(ModuleTransformer.fromSentenceTransformerClean(f, name))
 
   def fromRuleBodyTranformer(f: K => K, name: String): DefinitionTransformer =
     new DefinitionTransformer(ModuleTransformer.fromRuleBodyTranformer(f, name))
 
   def fromKTransformer(f: K => K, name: String): DefinitionTransformer =
-    DefinitionTransformer.apply1(ModuleTransformer.fromKTransformer(f, name))
+    DefinitionTransformer(ModuleTransformer.fromKTransformer(f, name))
 
   def fromKTransformerWithModuleInfo(f: (Module, K) => K, name: String): DefinitionTransformer =
     DefinitionTransformer(ModuleTransformer.fromKTransformerWithModuleInfo(f.curried, name))
 
   def fromHybrid(f: Module => Module, name: String): DefinitionTransformer = DefinitionTransformer(ModuleTransformer.fromHybrid(f, name))
 
-  def apply(f: HybridMemoizingModuleTransformer): DefinitionTransformer = new DefinitionTransformer(f)
-
-  def apply1(f: MemoizingModuleTransformer): DefinitionTransformer = new DefinitionTransformer(f)
+  def apply(f: MemoizingModuleTransformer): DefinitionTransformer = new DefinitionTransformer(f)
 
   def fromWithInputDefinitionTransformerClass(c: Class[_]): (Definition => Definition) = (d: Definition) => c.getConstructor(classOf[Definition]).newInstance(d).asInstanceOf[WithInputDefinitionModuleTransformer].outputDefinition
 

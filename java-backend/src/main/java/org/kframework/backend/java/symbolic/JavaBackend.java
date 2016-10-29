@@ -87,7 +87,7 @@ public class JavaBackend implements Backend {
                 Option<ADT.Sort> resolvedSort = m.sortResolver().get(possibleSort);
 
                 if (resolvedSort.isDefined()) {
-                    return KORE.KApply(KORE.KLabel("is" + resolvedSort.get().name()), k.klist());
+                    return KORE.KApply(KORE.KLabel("is" + resolvedSort.get().name()), k.klist(), kk.att());
                 } else {
                     return k;
                 }
