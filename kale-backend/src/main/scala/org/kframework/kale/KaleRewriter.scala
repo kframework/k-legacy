@@ -5,7 +5,6 @@ import java.util.Optional
 
 import org.kframework.RewriterResult
 import org.kframework.attributes.Att
-import org.kframework.builtin.Sorts
 import org.kframework.definition._
 import org.kframework.kore
 import org.kframework.kore._
@@ -15,7 +14,6 @@ import collection._
 import org.kframework.kore.Unapply.KRewrite
 
 import collection.JavaConverters._
-import scala.Predef.Map
 
 object KaleRewriter {
   val self = this

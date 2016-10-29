@@ -4,6 +4,7 @@ package org.kframework
 import java.util
 import java.util.Optional
 import collection._
+import collection.JavaConverters._
 
 case class CircularityException[T](cycle: Seq[T]) extends Exception(cycle.mkString(" < "))
 
@@ -111,24 +112,22 @@ class POSet[T](directRelations: Set[(T, T)]) extends Serializable {
     * Return the subset of items from the argument which are not
     * less than any other item.
     */
-  def maximal(sorts : Iterable[T]) : Set[T] =
-    sorts.filter(s1 => !sorts.exists(s2 => lessThan(s1,s2))).toSet
+  def maximal(sorts: Iterable[T]): Set[T] =
+    sorts.filter(s1 => !sorts.exists(s2 => lessThan(s1, s2))).toSet
 
-  def maximal(sorts : util.Collection[T]) : util.Set[T] = {
-    import scala.collection.JavaConversions._
-    maximal(sorts : Iterable[T])
+  def maximal(sorts: util.Collection[T]): util.Set[T] = {
+    maximal(sorts.asScala).asJava
   }
 
   /**
     * Return the subset of items from the argument which are not
     * greater than any other item.
     */
-  def minimal(sorts : Iterable[T]) : Set[T] =
-    sorts.filter(s1 => !sorts.exists(s2 => >(s1,s2))).toSet
+  def minimal(sorts: Iterable[T]): Set[T] =
+    sorts.filter(s1 => !sorts.exists(s2 => >(s1, s2))).toSet
 
-  def minimal(sorts : util.Collection[T]) : util.Set[T] = {
-    import scala.collection.JavaConversions._
-    maximal(sorts : Iterable[T])
+  def minimal(sorts: util.Collection[T]): util.Set[T] = {
+    maximal(sorts.asScala).asJava
   }
 
   override def toString() = {
