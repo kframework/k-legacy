@@ -16,7 +16,7 @@ class Strategy(heatCool: Boolean) {
 
   val addStrategyCellToRulesTransformer =
     DefinitionTransformer(
-      ModuleTransformer.fromSentenceTransformerClean({
+      ModuleTransformer.fromSentenceTransformer({
         (module, r) =>
           val rich = kore.Rich(module)
 

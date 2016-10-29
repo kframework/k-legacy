@@ -18,30 +18,7 @@ object ModuleTransformer {
       override def f(s: Sentence) = sentenceTransformer(s)
     }
 
-  def fromSentenceTransformer(f: (Module, Sentence) => Sentence, passName: String): HybridMemoizingModuleTransformer =
-    new HybridMemoizingModuleTransformer {
-      override def processHybridModule(m: Module): Module = {
-        val newSentences = m.localSentences map {
-          s =>
-            try {
-              f(m, s)
-            } catch {
-              case e: KEMException =>
-                e.exception.addTraceFrame("while executing phase \"" + name + "\" on sentence at"
-                  + "\n\t" + s.att.get(classOf[Source]).map(_.toString).getOrElse("<none>")
-                  + "\n\t" + s.att.get(classOf[Location]).map(_.toString).getOrElse("<none>"))
-                throw e
-            }
-        }
-        if (newSentences != m.localSentences)
-          Module(m.name, m.imports, newSentences, m.att)
-        else
-          m
-      }
-      override val name: String = passName
-    }
-
-  def fromSentenceTransformerClean(sentenceTransformer: (Module, Sentence) => Sentence, passName: String): BasicModuleTransformer =
+  def fromSentenceTransformer(sentenceTransformer: (Module, Sentence) => Sentence, passName: String): BasicModuleTransformer =
     new SentenceBasedModuleTransformer {
       override val name = passName
       override def f(s: Sentence, inputModule: Module) = sentenceTransformer(inputModule, s)
@@ -53,21 +30,11 @@ object ModuleTransformer {
       case s => s
     }, name)
 
-  def fromKTransformerWithModuleInfo(ff: Module => K => K, name: String): MemoizingModuleTransformer =
-    fromSentenceTransformerClean((module, sentence) => {
-      val f: K => K = ff(module)
-      sentence match {
-        case r: Rule => Rule.apply(f(r.body), f(r.requires), f(r.ensures), r.att)
-        case c: Context => Context.apply(f(c.body), f(c.requires), c.att)
-        case o => o
-      }
-    }, name)
-
   def fromKTransformer(f: K => K, name: String): MemoizingModuleTransformer =
-    fromKTransformerWithModuleInfoClean((m: Module) => f, name)
+    fromKTransformerWithModuleInfo((m: Module) => f, name)
 
-  def fromKTransformerWithModuleInfoClean(ff: Module => K => K, name: String): BasicModuleTransformer =
-    fromSentenceTransformerClean((module, sentence) => {
+  def fromKTransformerWithModuleInfo(ff: Module => K => K, name: String): BasicModuleTransformer =
+    fromSentenceTransformer((module, sentence) => {
       val f: K => K = ff(module)
       sentence match {
         case r: Rule => Rule.apply(f(r.body), f(r.requires), f(r.ensures), r.att)
@@ -75,9 +42,6 @@ object ModuleTransformer {
         case o => o
       }
     }, name)
-
-  def fromKTransformerClean(f: K => K, name: String): BasicModuleTransformer =
-    fromKTransformerWithModuleInfoClean((m: Module) => f, name)
 
   def fromHybrid(f: Module => Module, name: String): HybridMemoizingModuleTransformer = {
     val lName = name
@@ -201,7 +165,7 @@ object DefinitionTransformer {
     new DefinitionTransformer(ModuleTransformer.fromSentenceTransformer(f(_), name))
 
   def fromSentenceTransformer(f: (Module, Sentence) => Sentence, name: String): DefinitionTransformer =
-    DefinitionTransformer(ModuleTransformer.fromSentenceTransformerClean(f, name))
+    DefinitionTransformer(ModuleTransformer.fromSentenceTransformer(f, name))
 
   def fromRuleBodyTranformer(f: K => K, name: String): DefinitionTransformer =
     new DefinitionTransformer(ModuleTransformer.fromRuleBodyTranformer(f, name))
