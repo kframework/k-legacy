@@ -15,7 +15,7 @@ public class TestParserOnKORE extends BaseTest {
         org.kframework.definition.Definition koreDef = kilToKore.apply(defWithContext.definition);
 
         BubbleParsing bubbleParsing = new BubbleParsing();
-        Module koreModule = bubbleParsing.parseBubbles(koreDef.getModule("TEST").get());
+        Module koreModule = bubbleParsing.apply(koreDef.getModule("TEST").get());
 
         return koreModule.toString();
     }

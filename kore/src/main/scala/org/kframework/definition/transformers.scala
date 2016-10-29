@@ -125,7 +125,6 @@ abstract class BasicModuleTransformer extends MemoizingModuleTransformer {
   protected def process(inputModule: Module, alreadyProcessedImports: Set[Module]): Module
 }
 
-
 abstract class SentenceBasedModuleTransformer extends BasicModuleTransformer {
   def f(s: Sentence, inputModule: Module, alreadyProcessedModules: Set[Module]): Sentence = f(s, inputModule)
 
