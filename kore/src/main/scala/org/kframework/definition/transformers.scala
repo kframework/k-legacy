@@ -88,7 +88,7 @@ abstract class MemoizingModuleTransformer extends ModuleTransformer {
 
   protected def processModule(inputModule: Module): Module
 
-  lazy val lift = DefinitionTransformer(this)
+  def lift = DefinitionTransformer(this)
 }
 
 /**
@@ -117,7 +117,7 @@ trait HybridModuleTransformer extends ModuleTransformer {
   protected def processHybridModule(hybridModule: Module): Module
 }
 
-trait BasicModuleTransformer extends MemoizingModuleTransformer {
+abstract class BasicModuleTransformer extends MemoizingModuleTransformer {
   final def processModule(input: Module): Module = wrapExceptions({
     process(input, input.imports map this)
   })
