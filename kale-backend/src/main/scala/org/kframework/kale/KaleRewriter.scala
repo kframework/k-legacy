@@ -13,7 +13,9 @@ import org.kframework.rewriter.SearchType
 
 import collection._
 import org.kframework.kore.Unapply.KRewrite
+
 import collection.JavaConverters._
+import scala.Predef.Map
 
 object KaleRewriter {
   val self = this
@@ -26,7 +28,7 @@ object KaleRewriter {
 
 class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
 
-  private val productionWithUniqueSorts: Set[Sentence] = (m.sentences.collect({
+  private val productionWithUniqueKLabel: Set[Sentence] = (m.sentences.collect({
     case p: Production if p.klabel.isDefined => p
   }) groupBy {_.klabel.get} map {_._2.head}).toSet
 
@@ -34,9 +36,9 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     case p: SyntaxSort => p
   }) toSet
 
-  private val assocProductions: Set[Sentence] = productionWithUniqueSorts.filter(p => KaleRewriter.isEffectivelyAssoc(p.att)).toSet
+  private val assocProductions: Set[Sentence] = productionWithUniqueKLabel.filter(p => KaleRewriter.isEffectivelyAssoc(p.att)).toSet
 
-  private val nonAssocProductions = (productionWithUniqueSorts | syntaxSortDeclarations) &~ assocProductions
+  private val nonAssocProductions = (productionWithUniqueKLabel | syntaxSortDeclarations) &~ assocProductions
 
   implicit val env = Environment()
 
@@ -47,10 +49,8 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
 
   import converters._
 
-  case class IsSort(s: Sort)(implicit val env: Environment) extends {
-    val name = "is" + s.name
-  } with PurelyFunctionalLabel1 with FormulaLabel {
-    override def f(_1: Term): Option[Term] =
+  case class IsSort(s: Sort)(implicit val env: Environment) extends Named("is" + s.name) with PurelyFunctionalLabel1 with FormulaLabel {
+    def f(_1: Term): Option[Term] =
       kSortOf(_1).map(ss => BOOLEAN(m.subsorts.<=(ss, m.resolve(kore.KORE.Sort(s.name)))))
   }
 
@@ -58,8 +58,11 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     case SyntaxSort(s, att) => None
     case p@Production(s, items, att) if !att.contains(Att.relativeHook) =>
       implicit val envv = env
-      att.get(Att.hook).flatMap({ hookName: String => Hook(hookName, p.klabel.get.name) }).orElse({
+      att.get(Att.hook)
+        .flatMap({ hookName: String => Hook(hookName, p.klabel.get.name) }) // use the hook if there
+        .orElse({
         if (att.contains(Att.token)) {
+          // it is a token, but not hooked
           if (!env.labels.exists(l => l.name == "TOKEN_" + s.name))
             Some(GENERIC_TOKEN(Sort(s.name)))
           else
@@ -106,17 +109,17 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     labels.head
   }
 
-  assocProductions map {
+  assocProductions foreach {
     case p@Production(s, items, att) =>
-      val theUnit = getLabelForAtt(p, "unit").asInstanceOf[Label0]
-      val labelName = p.klabel.get.name
-      env.uniqueLabels.getOrElse(labelName, {
+      val unitLabel = getLabelForAtt(p, "unit").asInstanceOf[Label0]
+      val opLabelName = p.klabel.get.name
+      env.uniqueLabels.getOrElse(opLabelName, {
         val index = att.get[String]("index")
         if (index.isDefined && att.contains(Att.comm)) {
           def indexFunction(t: Term): Term = t.iterator().toList(index.get.toInt)
-          MapLabel(labelName, indexFunction, theUnit())(env)
+          MapLabel(opLabelName, indexFunction, unitLabel())(env)
         } else {
-          new AssocWithIdListLabel(labelName, theUnit())(env)
+          new AssocWithIdListLabel(opLabelName, unitLabel())(env)
         }
       })
   }
@@ -126,18 +129,16 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
       Hook.relativeHook(att.get(Att.relativeHook).get)(env)
   }
 
-  val pairs = m.rules collect {
+  val functionRulesAsLeftRight: Set[(Label, Rewrite)] = m.rules collect {
     case rule@Rule(KRewrite(l@Unapply.KApply(klabel, _), r), requires, ensures, att)
       if m.attributesFor(klabel).contains(Att.`Function`) =>
       val res = (env.label(klabel.name), Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r)))
       res
   }
 
-  val groups = pairs groupBy (_._1)
+  val functionRules: Map[Label, Set[Rewrite]] = functionRulesAsLeftRight groupBy (_._1) map { case (k, set) => (k, set.map(_._2)) }
 
-  val functionRules: Map[Label, Set[Rewrite]] = groups map { case (k, v) => (k, v map (_._2)) }
-
-  var renamedFunctionRules: Map[Label, Set[Rewrite]] = functionRules map { case (k, v) => (k, v map env.renameVariables) }
+  var functionRulesWithRenamedVariables: Map[Label, Set[Rewrite]] = functionRules map { case (k, v) => (k, v map env.renameVariables) }
 
   env.seal()
 
@@ -148,7 +149,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     })
   }
 
-  setFunctionRules(renamedFunctionRules)
+  setFunctionRules(functionRulesWithRenamedVariables)
 
   def reconstruct(inhibitForLabel: Label)(t: Term): Term = t match {
     case Node(label, children) if label != inhibitForLabel => label(children map reconstruct(inhibitForLabel) toIterable)

@@ -4,15 +4,15 @@ object Hook {
   def apply(hookName: String, labelName: String)(implicit env: Environment): Option[Label] = {
     import env.builtin.{INT, BOOLEAN}
     Some(hookName) collect {
-      case "INT.le" => PrimitiveFunction2(labelName, INT, BOOLEAN, (a: Int, b: Int) => a <= b)
+      case "INT.le" => Operator(labelName, INT, BOOLEAN, (a: Int, b: Int) => a <= b)
       case "INT.add" => PrimitiveFunction2(labelName, INT, (a: Int, b: Int) => a + b)
       case "INT.tdiv" => PrimitiveFunction2(labelName, INT, (a: Int, b: Int) => a / b)
-      case "INT.ne" => PrimitiveFunction2(labelName, INT, BOOLEAN, (a: Int, b: Int) => a != b)
+      case "INT.ne" => Operator(labelName, INT, BOOLEAN, (a: Int, b: Int) => a != b)
       case "BOOL.and" => PrimitiveFunction2[Boolean](labelName, BOOLEAN, _ && _)
       case "BOOL.or" => PrimitiveFunction2[Boolean](labelName, BOOLEAN, _ || _)
       case "BOOL.not" => PrimitiveFunction1[Boolean](labelName, BOOLEAN, !_)
-      case "SET.unit" => env.builtin.BuiltinSetUnit
-      case "SET.concat" => env.builtin.BuiltinSet
+      case "SET.unit" => assert(labelName == ".Set"); env.builtin.BuiltinSetUnit
+      case "SET.concat" => assert(labelName == "_Set_"); env.builtin.BuiltinSet
     }
   }
 
