@@ -87,6 +87,8 @@ abstract class MemoizingModuleTransformer extends ModuleTransformer {
   }
 
   protected def processModule(inputModule: Module): Module
+
+  lazy val lift = DefinitionTransformer(this)
 }
 
 /**
