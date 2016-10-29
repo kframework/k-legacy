@@ -116,7 +116,7 @@ trait HybridModuleTransformer extends ModuleTransformer {
 }
 
 trait BasicModuleTransformer extends MemoizingModuleTransformer {
-  def processModule(input: Module): Module = wrapExceptions({
+  final def processModule(input: Module): Module = wrapExceptions({
     process(input, input.imports map this)
   })
 
