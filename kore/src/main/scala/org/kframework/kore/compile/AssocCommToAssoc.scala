@@ -2,15 +2,17 @@ package org.kframework.kore.compile
 
 import org.kframework.Collections._
 import org.kframework.attributes.Att
-import org.kframework.definition.{Module, Rule, Sentence}
+import org.kframework.definition.{BasicModuleTransformer, Module, Rule, Sentence}
 import org.kframework.kore.SortedADT.SortedKVariable
 import org.kframework.kore._
+
 import collection.JavaConverters._
+import scala.collection.Set
 
 /**
   * Compiler pass for merging the rules as expected by FastRuleMatcher
   */
-class AssocCommToAssoc(c: Constructors[K]) extends (Module => Module) {
+class AssocCommToAssoc(c: Constructors[K]) extends BasicModuleTransformer {
 
   import c._
 
@@ -18,11 +20,11 @@ class AssocCommToAssoc(c: Constructors[K]) extends (Module => Module) {
 
   import s._
 
-  override def apply(m: Module): Module = {
-    Module(m.name, m.imports, m.localSentences flatMap {apply(_)(m)}, m.att)
+  override def process(m: Module, alreadyProcessedImports: Set[Module]) = {
+    Module(m.name, alreadyProcessedImports, m.localSentences flatMap {apply(_)(m)}, m.att)
   }
 
-  def apply(s: Sentence)(implicit m: Module): List[Sentence] = s match {
+  private def apply(s: Sentence)(implicit m: Module): List[Sentence] = s match {
     //TODO(AndreiS): handle AC in requires and ensures
     case r: Rule if !r.att.contains("pattern-folding") =>
       val newBodies = apply(r.body)
@@ -53,7 +55,7 @@ class AssocCommToAssoc(c: Constructors[K]) extends (Module => Module) {
     case _ => List(s)
   }
 
-  def apply(k: K)(implicit m: Module): List[K] = k match {
+  private def apply(k: K)(implicit m: Module): List[K] = k match {
     case Unapply.KApply(label: KLabel, children: List[K]) if isAssocComm(label) =>
       convert(label, children)
     case Unapply.KApply(label: KLabel, children: List[K]) =>
@@ -64,12 +66,12 @@ class AssocCommToAssoc(c: Constructors[K]) extends (Module => Module) {
       List(k)
   }
 
-  def isAssocComm(label: KLabel)(implicit m: Module): Boolean = {
+  private def isAssocComm(label: KLabel)(implicit m: Module): Boolean = {
     val att: Att = m.attributesFor.getOrElse(label, Att())
     att.contains(Att.assoc) && att.contains(Att.comm)
   }
 
-  def convert(label: KLabel, children: List[K])(implicit m: Module): List[K] = {
+  private def convert(label: KLabel, children: List[K])(implicit m: Module): List[K] = {
     val opSort: Sort = m.signatureFor(label).head._2
 
     val (elements: Seq[K], nonElements: Seq[K]) = children partition {
@@ -98,7 +100,7 @@ class AssocCommToAssoc(c: Constructors[K]) extends (Module => Module) {
     convertedChildren flatMap { cs => crossProduct(cs map apply) } map {label(_: _*)}
   }
 
-  def computeSubstitution(label: KLabel, children: List[K])(implicit m: Module): Map[KVariable, K] = {
+  private def computeSubstitution(label: KLabel, children: List[K])(implicit m: Module): Map[KVariable, K] = {
     val opSort: Sort = m.signatureFor(label).head._2
 
     val (elements: Seq[K], nonElements: Seq[K]) = children partition {
@@ -117,13 +119,13 @@ class AssocCommToAssoc(c: Constructors[K]) extends (Module => Module) {
     }
   }
 
-  def substituteFrame(k: K, name: String, substitute: K): K = k match {
+  private def substituteFrame(k: K, name: String, substitute: K): K = k match {
     case Unapply.KApply(label: KLabel, children: List[K]) => label(children map {substituteFrame(_, name, substitute)}: _*)
     case Unapply.KVariable(`name`) => substitute
     case _: K => k
   }
 
-  def crossProduct[T](lls: List[List[T]]): List[List[T]] = {
+  private def crossProduct[T](lls: List[List[T]]): List[List[T]] = {
     lls match {
       case (head: List[T]) :: (tail: List[List[T]]) =>
         for {x <- head; (xs: List[T]) <- crossProduct(tail)} yield x :: xs
@@ -131,8 +133,8 @@ class AssocCommToAssoc(c: Constructors[K]) extends (Module => Module) {
     }
   }
 
-  def anonymousVariable(s: Sort): K = SortedADT.SortedKVariable("THE_VARIABLE", Att().add(Att.sort, s))
+  private def anonymousVariable(s: Sort): K = SortedADT.SortedKVariable("THE_VARIABLE", Att().add(Att.sort, s))
 
-  def dotVariable(s: Sort, n: Int): K = SortedADT.SortedKVariable(s.name + "_DotVar" + n, Att().add(Att.sort, s))
+  private def dotVariable(s: Sort, n: Int): K = SortedADT.SortedKVariable(s.name + "_DotVar" + n, Att().add(Att.sort, s))
 
 }

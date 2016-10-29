@@ -118,7 +118,7 @@ public class JavaBackend implements Backend {
                 .andThen(JavaBackend::markRegularRules)
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new AddConfigurationRecoveryFlags()::apply, "add refers_THIS_CONFIGURATION_marker"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(JavaBackend::markSingleVariables, "mark single variables"))
-                .andThen(DefinitionTransformer.fromHybrid(new AssocCommToAssoc(KORE.c()), "convert assoc/comm to assoc"))
+                .andThen(new AssocCommToAssoc(KORE.c()).lift())
                 .andThen(DefinitionTransformer.fromHybrid(new MergeRules(KORE.c()), "generate matching automaton"))
                 .andThen(DefinitionTransformer.fromKTransformerWithModuleInfo(JavaBackend::moduleQualifySortPredicates, "Module-qualify sort predicates"))
                 .apply(d);
