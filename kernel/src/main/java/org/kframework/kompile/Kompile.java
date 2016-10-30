@@ -135,18 +135,15 @@ public class Kompile {
     }
 
     public static Function<Definition, Definition> defaultSteps(KompileOptions kompileOptions, KExceptionManager kem) {
-        DefinitionTransformer convertStrictToContexts = new ConvertStrictToContexts(kompileOptions).lift();
-        DefinitionTransformer resolveHeatCoolAttribute = DefinitionTransformer.fromSentenceTransformer(new ResolveHeatCoolAttribute(new HashSet<>(kompileOptions.transition))::resolve, "resolving heat and cool attributes");
-        DefinitionTransformer convertAnonVarsToNamedVars = DefinitionTransformer.fromSentenceTransformer(new ResolveAnonVar()::resolve, "resolving \"_\" vars");
         DefinitionTransformer resolveSemanticCasts =
                 DefinitionTransformer.fromSentenceTransformer(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve, "resolving semantic casts");
 
         return d -> {
-            d = new ResolveIOStreams(d, kem).lift().apply(d);
-            d = convertStrictToContexts.apply(d);
-            d = convertAnonVarsToNamedVars.apply(d);
+            d = new ResolveIOStreams(d, kem).apply(d);
+            d = new ConvertStrictToContexts(kompileOptions).apply(d);
+            d = new ResolveAnonVar().apply(d);
             d = new ConvertContextsToHeatCoolRules(kompileOptions).resolve(d);
-            d = resolveHeatCoolAttribute.apply(d);
+            d = new ResolveHeatCoolAttribute(new HashSet<>(kompileOptions.transition)).apply(d);
             d = resolveSemanticCasts.apply(d);
             d = DefinitionTransformer.fromWithInputDefinitionTransformerClass(GenerateSortPredicateSyntax.class).apply(d);
             d = resolveFreshConstants(d);
@@ -209,7 +206,7 @@ public class Kompile {
     }
 
     public Rule compileRule(CompiledDefinition compiledDef, Rule parsedRule) {
-        return (Rule) asScalaFunc(new ResolveAnonVar()::resolve)
+        return (Rule) asScalaFunc((Sentence s) -> new ResolveAnonVar().f(s))
                 .andThen(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve)
                 .andThen(s -> concretizeSentence(s, compiledDef.kompiledDefinition))
                 .apply(parsedRule);

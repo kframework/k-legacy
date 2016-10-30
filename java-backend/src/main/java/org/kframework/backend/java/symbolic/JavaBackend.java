@@ -125,11 +125,10 @@ public class JavaBackend implements Backend {
     }
 
     public Function<Definition, Definition> stepsForProverRules() {
-        DefinitionTransformer resolveAnonVars = DefinitionTransformer.fromSentenceTransformer(new ResolveAnonVar()::resolve, "resolving \"_\" vars");
         DefinitionTransformer resolveSemanticCasts = DefinitionTransformer.fromSentenceTransformer(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve, "resolving semantic casts");
         ExpandMacrosDefinitionTransformer expandMacrosDefinitionTransformer = new ExpandMacrosDefinitionTransformer(kem, files, globalOptions, kompileOptions);
 
-        return d -> resolveAnonVars
+        return d -> new ResolveAnonVar().lift()
                 .andThen(resolveSemanticCasts)
                 .andThen(AddImplicitComputationCell::transformDefinition)
                 .andThen(ConcretizeCells::transformDefinition)
