@@ -135,8 +135,6 @@ public class Kompile {
     }
 
     public static Function<Definition, Definition> defaultSteps(KompileOptions kompileOptions, KExceptionManager kem) {
-        DefinitionTransformer resolveSemanticCasts =
-                DefinitionTransformer.fromSentenceTransformer(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve, "resolving semantic casts");
 
         return d -> {
             d = new ResolveIOStreams(d, kem).apply(d);
@@ -144,7 +142,7 @@ public class Kompile {
             d = new ResolveAnonVar().apply(d);
             d = new ConvertContextsToHeatCoolRules(kompileOptions).resolve(d);
             d = new ResolveHeatCoolAttribute(new HashSet<>(kompileOptions.transition)).apply(d);
-            d = resolveSemanticCasts.apply(d);
+            d = new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA)).apply(d);
             d = DefinitionTransformer.fromWithInputDefinitionTransformerClass(GenerateSortPredicateSyntax.class).apply(d);
             d = resolveFreshConstants(d);
             d = AddImplicitComputationCell.transformDefinition(d);
@@ -207,7 +205,7 @@ public class Kompile {
 
     public Rule compileRule(CompiledDefinition compiledDef, Rule parsedRule) {
         return (Rule) asScalaFunc((Sentence s) -> new ResolveAnonVar().f(s))
-                .andThen(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve)
+                .andThen((Sentence s) ->  new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA)).f(s))
                 .andThen(s -> concretizeSentence(s, compiledDef.kompiledDefinition))
                 .apply(parsedRule);
     }
