@@ -134,10 +134,6 @@ public class Kompile {
         return definitionParsing.parseDefinitionAndResolveBubbles(definitionFile, mainModuleName, mainProgramsModule);
     }
 
-    public static Definition resolveIOStreams(Definition d, KExceptionManager kem) {
-        return DefinitionTransformer.fromHybrid(new ResolveIOStreams(d, kem)::resolve, "resolving io streams").apply(d);
-    }
-
     public static Function<Definition, Definition> defaultSteps(KompileOptions kompileOptions, KExceptionManager kem) {
         DefinitionTransformer convertStrictToContexts = new ConvertStrictToContexts(kompileOptions).lift();
         DefinitionTransformer resolveHeatCoolAttribute = DefinitionTransformer.fromSentenceTransformer(new ResolveHeatCoolAttribute(new HashSet<>(kompileOptions.transition))::resolve, "resolving heat and cool attributes");
@@ -146,7 +142,7 @@ public class Kompile {
                 DefinitionTransformer.fromSentenceTransformer(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve, "resolving semantic casts");
 
         return d -> {
-            d = resolveIOStreams(d, kem);
+            d = new ResolveIOStreams(d, kem).lift().apply(d);
             d = convertStrictToContexts.apply(d);
             d = convertAnonVarsToNamedVars.apply(d);
             d = new ConvertContextsToHeatCoolRules(kompileOptions).resolve(d);

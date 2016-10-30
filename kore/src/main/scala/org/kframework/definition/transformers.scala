@@ -149,7 +149,7 @@ abstract class SentenceBasedModuleTransformer extends BasicModuleTransformer {
   }
 }
 
-abstract class WithInputDefinitionModuleTransformer(inputDefinition: Definition) extends BasicModuleTransformer {
+abstract class WithInputDefinitionModuleTransformer(val inputDefinition: Definition) extends BasicModuleTransformer {
   def apply(moduleName: String): Module = this (inputDefinition.getModule(moduleName).get)
   def outputDefinition = new DefinitionTransformer(this).apply(inputDefinition)
 }
