@@ -89,6 +89,8 @@ abstract class MemoizingModuleTransformer extends ModuleTransformer {
   protected def processModule(inputModule: Module): Module
 
   def lift = DefinitionTransformer(this)
+
+  def apply(d: Definition): Definition = lift(d)
 }
 
 /**
