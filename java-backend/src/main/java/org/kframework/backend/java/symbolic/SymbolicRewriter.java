@@ -581,7 +581,7 @@ public class SymbolicRewriter {
     }
 
     private K processConjuncts(ConjunctiveFormula conjunct) {
-        if (conjunct.klabel().equals(KORE.KLabel(KLabels.AND))) {
+        if (conjunct.klabel().toString().equals(KLabels.AND)) {
             List<K> kList = conjunct.items();
             List<K> flatList = new ArrayList();
             flattenList(kList, flatList);

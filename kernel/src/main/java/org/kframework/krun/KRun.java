@@ -123,7 +123,8 @@ public class KRun {
         return 0;
     }
 
-    private void filterAnonVarsAndPrint(K result, Set<String> filterSet, CompiledDefinition compiledDef, KRunOptions options, StringBuilder sb) {
+    private StringBuilder filterAnonVarsAndPrint(K result, Set<String> filterSet, CompiledDefinition compiledDef, KRunOptions options) {
+        StringBuilder sb = new StringBuilder();
         ByteArrayOutputStream bs = new ByteArrayOutputStream();
         if (result instanceof KApply && ((KApply) result).klabel().toString().equals(KLabels.AND)) {
             List<K> conjunctions = mutable(Assoc.flatten(KLabel(KLabels.AND), immutable(((KApply) result).items()), KLabel(KLabels.ML_TRUE)));
@@ -152,11 +153,11 @@ public class KRun {
                 prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), conjunctions.get(conjunctions.size() - 1));
             }
             sb.append(new String(bs.toByteArray()));
-            outputFile(sb.toString(), options);
+            return sb;
         } else {
             prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), result);
             sb.append(new String(bs.toByteArray()));
-            outputFile(sb.toString(), options);
+            return sb;
         }
     }
 
@@ -176,23 +177,27 @@ public class KRun {
             Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = KApply$.MODULE$.unapply((KApply) result);
             scala.collection.Seq<K> seq = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
             List<K> resultList = mutable(seq).stream().filter(x -> !x.getClass().toString().contains("BoolToken")).collect(Collectors.toList());
-
             resultList.sort(Comparator.comparing(K::toString));
+            Set<StringBuilder> observedResults = new HashSet<>();
             if (resultList.size() == 0) {
-                outputFile("No Search Results\n", options);
+                sb.append("No Search Results\n");
             } else {
-                int i = 0;
-                while (i < resultList.size()) {
-                    sb.append("Solution " + (i + 1) + "\n");
-                    filterAnonVarsAndPrint(resultList.get(i++), patternVariables, compiledDef, options, sb);
+                for (int i = 0; i < resultList.size(); ++i){
+                    StringBuilder conjunctString = filterAnonVarsAndPrint(resultList.get(i), patternVariables, compiledDef, options);
+                    if(! observedResults.contains(conjunctString)) {
+                        sb.append("Solution " + (i + 1) + "\n");
+                        sb.append(conjunctString);
+                        observedResults.add(conjunctString);
+                    }
                 }
             }
+            outputFile(sb.toString(), options);
             return;
         } else if (result.getClass().toString().contains("BoolToken")) {
             outputFile("No Search Results\n", options);
             return;
         }
-        filterAnonVarsAndPrint(result, patternVariables, compiledDef, options, sb);
+        outputFile(filterAnonVarsAndPrint(result, patternVariables, compiledDef, options).toString(), options);
     }
 
     /**
