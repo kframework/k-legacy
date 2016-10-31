@@ -1,4 +1,4 @@
 Solution 1
-DotVar0 ==K .TCell andBool L ==K ( ListItem ( #ostream ( 1 ) ) ListItem ( "off" ) ListItem ( #buffer ( "Class \"C1\" is in a cycle!\n" ) ) )
+L ==K ( ListItem ( #ostream ( 1 ) ) ListItem ( "off" ) ListItem ( #buffer ( "Class \"C1\" is in a cycle!\n" ) ) )
 Solution 2
-DotVar0 ==K .TCell andBool L ==K ( ListItem ( #ostream ( 1 ) ) ListItem ( "off" ) ListItem ( #buffer ( "Class \"C2\" is in a cycle!\n" ) ) )
+L ==K ( ListItem ( #ostream ( 1 ) ) ListItem ( "off" ) ListItem ( #buffer ( "Class \"C2\" is in a cycle!\n" ) ) )

@@ -1,36 +1,12 @@
 Solution 1
-V ==K [ 7 , ( 8 , ( 9 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 1 |-> 9 17 |-> 1 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) 5 |-> 1 </store> )
+V ==K [ 7 , ( 8 , ( 9 , .Exps ) ) ]
 Solution 2
-V ==K [ 7 , ( 8 , ( 9 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 1 |-> 9 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) 27 |-> 1 13 |-> 1 </store> )
+V ==K [ 7 , ( 9 , ( 8 , .Exps ) ) ]
 Solution 3
-V ==K [ 7 , ( 8 , ( 9 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 1 |-> 9 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) 28 |-> 1 14 |-> 1 </store> )
+V ==K [ 8 , ( 8 , ( 9 , .Exps ) ) ]
 Solution 4
-V ==K [ 7 , ( 9 , ( 8 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 1 |-> 9 18 |-> 1 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) 6 |-> 1 </store> )
+V ==K [ 8 , ( 9 , ( 8 , .Exps ) ) ]
 Solution 5
-V ==K [ 7 , ( 9 , ( 8 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 1 |-> 9 25 |-> 1 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) 11 |-> 1 </store> )
+V ==K [ 9 , ( 8 , ( 9 , .Exps ) ) ]
 Solution 6
-V ==K [ 7 , ( 9 , ( 8 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 1 |-> 9 26 |-> 1 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) 12 |-> 1 </store> )
-Solution 7
-V ==K [ 8 , ( 8 , ( 9 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 1 |-> 9 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) 3 |-> 1 20 |-> 1 </store> )
-Solution 8
-V ==K [ 8 , ( 8 , ( 9 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 1 |-> 9 9 |-> 1 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) 31 |-> 1 </store> )
-Solution 9
-V ==K [ 8 , ( 8 , ( 9 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 32 |-> 1 1 |-> 9 10 |-> 1 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) </store> )
-Solution 10
-V ==K [ 8 , ( 9 , ( 8 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 1 |-> 9 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) 29 |-> 1 7 |-> 1 </store> )
-Solution 11
-V ==K [ 8 , ( 9 , ( 8 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 1 |-> 9 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) 4 |-> 1 23 |-> 1 </store> )
-Solution 12
-V ==K [ 8 , ( 9 , ( 8 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 8 |-> 1 1 |-> 9 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) 30 |-> 1 </store> )
-Solution 13
-V ==K [ 9 , ( 8 , ( 9 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 1 |-> 9 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) 3 |-> 1 15 |-> 1 </store> )
-Solution 14
-V ==K [ 9 , ( 8 , ( 9 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 1 |-> 9 9 |-> 1 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) 22 |-> 1 </store> )
-Solution 15
-V ==K [ 9 , ( 8 , ( 9 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 24 |-> 1 1 |-> 9 10 |-> 1 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) </store> )
-Solution 16
-V ==K [ 9 , ( 9 , ( 8 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 1 |-> 9 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) 19 |-> 1 7 |-> 1 </store> )
-Solution 17
-V ==K [ 9 , ( 9 , ( 8 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 16 |-> 1 1 |-> 9 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) 4 |-> 1 </store> )
-Solution 18
-V ==K [ 9 , ( 9 , ( 8 , .Exps ) ) ] andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 8 |-> 1 1 |-> 9 2 |-> closure ( .Map , ( x -> ( x := @ x + 1 ) ) | .Cases ) 21 |-> 1 </store> )
+V ==K [ 9 , ( 9 , ( 8 , .Exps ) ) ]

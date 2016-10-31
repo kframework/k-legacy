@@ -1,7 +1,6 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
-import java.util.Comparator;
 import java.util.List;
 
 

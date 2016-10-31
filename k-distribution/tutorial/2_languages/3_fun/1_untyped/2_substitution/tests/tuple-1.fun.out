@@ -1,2 +1,2 @@
 Solution 1
-DotVar0 ==K <store> .Map </store> andBool V ==K fun ( ( Triple ( x , ( y , ( z , .Exps ) ) ) -> y ) | .Cases )
+V ==K fun ( ( Triple ( x , ( y , ( z , .Exps ) ) ) -> y ) | .Cases )

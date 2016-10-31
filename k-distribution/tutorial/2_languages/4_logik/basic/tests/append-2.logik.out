@@ -1,4 +1,4 @@
 Solution 1
-DotVar0 ==K .TCell andBool Solution ==K ( L1:Term@LOGIK-COMMON |-> nil L2:Term@LOGIK-COMMON |-> ( cons ( b , ( cons ( a , ( nil , .Terms ) ) , .Terms ) ) ) )
+Solution ==K ( L1:Term@LOGIK-COMMON |-> nil L2:Term@LOGIK-COMMON |-> ( cons ( b , ( cons ( a , ( nil , .Terms ) ) , .Terms ) ) ) )
 Solution 2
-DotVar0 ==K .TCell andBool Solution ==K ( L1:Term@LOGIK-COMMON |-> ( cons ( a , ( cons ( b , ( nil , .Terms ) ) , .Terms ) ) ) L2:Term@LOGIK-COMMON |-> nil )
+Solution ==K ( L1:Term@LOGIK-COMMON |-> ( cons ( a , ( cons ( b , ( nil , .Terms ) ) , .Terms ) ) ) L2:Term@LOGIK-COMMON |-> nil )

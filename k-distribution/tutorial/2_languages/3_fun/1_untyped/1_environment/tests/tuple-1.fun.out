@@ -1,2 +1,2 @@
 Solution 1
-V ==K closure ( .Map , ( Triple ( x , ( y , ( z , .Exps ) ) ) -> y ) | .Cases ) andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> .Map </store> )
+V ==K closure ( .Map , ( Triple ( x , ( y , ( z , .Exps ) ) ) -> y ) | .Cases )

@@ -1,2 +1,2 @@
 Solution 1
-DotVar0 ==K .TCell andBool Solution ==K ( Y:Term@LOGIK-COMMON |-> V0 Z:Term@LOGIK-COMMON |-> ( cons ( a , ( V0 , .Terms ) ) ) )
+Solution ==K ( Y:Term@LOGIK-COMMON |-> V0 Z:Term@LOGIK-COMMON |-> ( cons ( a , ( V0 , .Terms ) ) ) )

@@ -1,2 +1,2 @@
 Solution 1
-DotVar0 ==K .TCell andBool Solution ==K ( A:Term@LOGIK-COMMON |-> V0 B:Term@LOGIK-COMMON |-> V1 C:Term@LOGIK-COMMON |-> V0 )
+Solution ==K ( A:Term@LOGIK-COMMON |-> V0 B:Term@LOGIK-COMMON |-> V1 C:Term@LOGIK-COMMON |-> V0 )

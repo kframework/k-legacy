@@ -1,2 +1,2 @@
 Solution 1
-V ==K ( x ~> #freezer_,_1 ( .Exps ) ~> #freezer_,_0 ( 2 ) ~> #freezerassignTo0 ( x , ( y , .Exps ) ) ~> y ~> env ( x |-> 1 ) ~> env ( .Map ) ) andBool ( _0 ==K <env> x |-> 2 y |-> 3 </env> andBool _1 ==K <store> 1 |-> 1 </store> )
+V ==K ( x ~> #freezer_,_1 ( .Exps ) ~> #freezer_,_0 ( 2 ) ~> #freezerassignTo0 ( x , ( y , .Exps ) ) ~> y ~> env ( x |-> 1 ) ~> env ( .Map ) )

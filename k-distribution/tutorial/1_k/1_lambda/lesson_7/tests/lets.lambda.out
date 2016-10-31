@@ -1,2 +1,2 @@
 Solution 1
-V ==K true andBool ( _0 ==K <env> .Map </env> andBool _1 ==K <store> 1 |-> 1 2 |-> 2 3 |-> 3 4 |-> 4 </store> )
+V ==K true

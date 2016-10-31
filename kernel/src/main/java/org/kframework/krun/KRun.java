@@ -178,16 +178,17 @@ public class KRun {
             scala.collection.Seq<K> seq = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
             List<K> resultList = mutable(seq).stream().filter(x -> !x.getClass().toString().contains("BoolToken")).collect(Collectors.toList());
             resultList.sort(Comparator.comparing(K::toString));
-            Set<StringBuilder> observedResults = new HashSet<>();
+            Set<String> observedResults = new HashSet<>();
             if (resultList.size() == 0) {
                 sb.append("No Search Results\n");
             } else {
+                int index = 1;
                 for (int i = 0; i < resultList.size(); ++i){
                     StringBuilder conjunctString = filterAnonVarsAndPrint(resultList.get(i), patternVariables, compiledDef, options);
-                    if(! observedResults.contains(conjunctString)) {
-                        sb.append("Solution " + (i + 1) + "\n");
+                    if(! observedResults.contains(conjunctString.toString())) {
+                        sb.append("Solution " + index++ + "\n");
                         sb.append(conjunctString);
-                        observedResults.add(conjunctString);
+                        observedResults.add(conjunctString.toString());
                     }
                 }
             }

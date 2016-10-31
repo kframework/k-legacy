@@ -1,4 +1,4 @@
 Solution 1
-S ==K "2 5\n" andBool ( _0 ==K <threads> .ThreadCellBag </threads> andBool ( _1 ==K <genv> main |-> 0 </genv> andBool ( _2 ==K <store> 1 |-> undefined 0 |-> lambda ( .Exps , { var e , .Exps ; try { ( var x , .Exps ; ( ( x = 2 ) ; ) ) print ( x , ( " " , .Exps ) ) ; throw ++ x + x ; } catch ( e ) { print ( e , ( "\n" , .Exps ) ) ; } } ) 2 |-> 3 3 |-> 5 </store> andBool ( _3 ==K <busy> .Set </busy> andBool ( _4 ==K <terminated> SetItem ( 0 ) </terminated> andBool ( _5 ==K <in> ListItem ( #buffer ( "" ) ) ListItem ( "off" ) ListItem ( #istream ( 0 ) ) </in> andBool _6 ==K <nextLoc> 4 </nextLoc> ) ) ) ) ) )
+S ==K "2 5\n"
 Solution 2
-S ==K "2 6\n" andBool ( _0 ==K <threads> .ThreadCellBag </threads> andBool ( _1 ==K <genv> main |-> 0 </genv> andBool ( _2 ==K <store> 1 |-> undefined 0 |-> lambda ( .Exps , { var e , .Exps ; try { ( var x , .Exps ; ( ( x = 2 ) ; ) ) print ( x , ( " " , .Exps ) ) ; throw ++ x + x ; } catch ( e ) { print ( e , ( "\n" , .Exps ) ) ; } } ) 2 |-> 3 3 |-> 6 </store> andBool ( _3 ==K <busy> .Set </busy> andBool ( _4 ==K <terminated> SetItem ( 0 ) </terminated> andBool ( _5 ==K <in> ListItem ( #buffer ( "" ) ) ListItem ( "off" ) ListItem ( #istream ( 0 ) ) </in> andBool _6 ==K <nextLoc> 4 </nextLoc> ) ) ) ) ) )
+S ==K "2 6\n"

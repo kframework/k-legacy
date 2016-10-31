@@ -1,10 +1,10 @@
 Solution 1
-DotVar0 ==K .TCell andBool Solution ==K ( L:Term@LOGIK-COMMON |-> nil )
+Solution ==K ( L:Term@LOGIK-COMMON |-> nil )
 Solution 2
-DotVar0 ==K .TCell andBool Solution ==K ( L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( nil , .Terms ) ) ) )
+Solution ==K ( L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( nil , .Terms ) ) ) )
 Solution 3
-DotVar0 ==K .TCell andBool Solution ==K ( L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) ) )
+Solution ==K ( L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) ) )
 Solution 4
-DotVar0 ==K .TCell andBool Solution ==K ( L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( V1 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) , .Terms ) ) ) )
+Solution ==K ( L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( V1 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) , .Terms ) ) ) )
 Solution 5
-DotVar0 ==K .TCell andBool Solution ==K ( L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( V1 , ( cons ( V1 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) , .Terms ) ) , .Terms ) ) ) )
+Solution ==K ( L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( V1 , ( cons ( V1 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) , .Terms ) ) , .Terms ) ) ) )

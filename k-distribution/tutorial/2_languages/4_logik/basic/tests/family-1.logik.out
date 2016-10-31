@@ -1,20 +1,20 @@
 Solution 1
-DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> david A:Term@LOGIK-COMMON |-> jim B:Term@LOGIK-COMMON |-> john )
+Solution ==K ( X:Term@LOGIK-COMMON |-> david A:Term@LOGIK-COMMON |-> jim B:Term@LOGIK-COMMON |-> john )
 Solution 2
-DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> david A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> john )
+Solution ==K ( X:Term@LOGIK-COMMON |-> david A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> john )
 Solution 3
-DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> david A:Term@LOGIK-COMMON |-> steve B:Term@LOGIK-COMMON |-> john )
+Solution ==K ( X:Term@LOGIK-COMMON |-> david A:Term@LOGIK-COMMON |-> steve B:Term@LOGIK-COMMON |-> john )
 Solution 4
-DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> david )
+Solution ==K ( X:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> david )
 Solution 5
-DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> john )
+Solution ==K ( X:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> john )
 Solution 6
-DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> steve B:Term@LOGIK-COMMON |-> david )
+Solution ==K ( X:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> steve B:Term@LOGIK-COMMON |-> david )
 Solution 7
-DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> steve B:Term@LOGIK-COMMON |-> john )
+Solution ==K ( X:Term@LOGIK-COMMON |-> jim A:Term@LOGIK-COMMON |-> steve B:Term@LOGIK-COMMON |-> john )
 Solution 8
-DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> steve A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> david )
+Solution ==K ( X:Term@LOGIK-COMMON |-> steve A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> david )
 Solution 9
-DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> steve A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> jim )
+Solution ==K ( X:Term@LOGIK-COMMON |-> steve A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> jim )
 Solution 10
-DotVar0 ==K .TCell andBool Solution ==K ( X:Term@LOGIK-COMMON |-> steve A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> john )
+Solution ==K ( X:Term@LOGIK-COMMON |-> steve A:Term@LOGIK-COMMON |-> nathan B:Term@LOGIK-COMMON |-> john )

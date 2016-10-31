@@ -1,2 +1,2 @@
 Solution 1
-DotVar0 ==K <store> .Map </store> andBool V ==K ( Tree ( Tree ( Tree ( Leaf ( 5 , .Exps ) , ( Leaf ( 4 , .Exps ) , .Exps ) ) , ( Leaf ( 3 , .Exps ) , .Exps ) ) , ( Tree ( Leaf ( 2 , .Exps ) , ( Leaf ( 1 , .Exps ) , .Exps ) ) , .Exps ) ) )
+V ==K ( Tree ( Tree ( Tree ( Leaf ( 5 , .Exps ) , ( Leaf ( 4 , .Exps ) , .Exps ) ) , ( Leaf ( 3 , .Exps ) , .Exps ) ) , ( Tree ( Leaf ( 2 , .Exps ) , ( Leaf ( 1 , .Exps ) , .Exps ) ) , .Exps ) ) )

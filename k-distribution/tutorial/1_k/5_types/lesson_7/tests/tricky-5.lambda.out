@@ -1,2 +1,2 @@
 Solution 1
-DotVar0 ==K <tenv> .Map </tenv> andBool T ==K ( ( V0 -> V1 ) -> ( V0 -> V1 ) )
+T ==K ( ( V0 -> V1 ) -> ( V0 -> V1 ) )

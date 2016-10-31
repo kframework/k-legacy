@@ -1,24 +1,8 @@
 Solution 1
-_0 ==K #ostream ( 1 ) andBool ( _1 ==K "off" andBool ( _2 ==K <threads> .ThreadCellBag </threads> andBool ( _3 ==K <in> ListItem ( #buffer ( "" ) ) ListItem ( "off" ) ListItem ( #istream ( 0 ) ) </in> andBool ( Out ==K "x = 11\n" andBool Store ==K ( 1 |-> 11 ) ) ) ) )
+Store ==K ( 1 |-> 11 )
 Solution 2
-_0 ==K #ostream ( 1 ) andBool ( _1 ==K "off" andBool ( _2 ==K <threads> .ThreadCellBag </threads> andBool ( _3 ==K <in> ListItem ( #buffer ( "" ) ) ListItem ( "off" ) ListItem ( #istream ( 0 ) ) </in> andBool ( Out ==K "x = 11\n" andBool Store ==K ( 1 |-> 21 ) ) ) ) )
+Store ==K ( 1 |-> 21 )
 Solution 3
-_0 ==K #ostream ( 1 ) andBool ( _1 ==K "off" andBool ( _2 ==K <threads> .ThreadCellBag </threads> andBool ( _3 ==K <in> ListItem ( #buffer ( "" ) ) ListItem ( "off" ) ListItem ( #istream ( 0 ) ) </in> andBool ( Out ==K "x = 11\n" andBool Store ==K ( 1 |-> 33 ) ) ) ) )
+Store ==K ( 1 |-> 33 )
 Solution 4
-_0 ==K #ostream ( 1 ) andBool ( _1 ==K "off" andBool ( _2 ==K <threads> .ThreadCellBag </threads> andBool ( _3 ==K <in> ListItem ( #buffer ( "" ) ) ListItem ( "off" ) ListItem ( #istream ( 0 ) ) </in> andBool ( Out ==K "x = 16\n" andBool Store ==K ( 1 |-> 16 ) ) ) ) )
-Solution 5
-_0 ==K #ostream ( 1 ) andBool ( _1 ==K "off" andBool ( _2 ==K <threads> .ThreadCellBag </threads> andBool ( _3 ==K <in> ListItem ( #buffer ( "" ) ) ListItem ( "off" ) ListItem ( #istream ( 0 ) ) </in> andBool ( Out ==K "x = 21\n" andBool Store ==K ( 1 |-> 21 ) ) ) ) )
-Solution 6
-_0 ==K #ostream ( 1 ) andBool ( _1 ==K "off" andBool ( _2 ==K <threads> .ThreadCellBag </threads> andBool ( _3 ==K <in> ListItem ( #buffer ( "" ) ) ListItem ( "off" ) ListItem ( #istream ( 0 ) ) </in> andBool ( Out ==K "x = 23\n" andBool Store ==K ( 1 |-> 11 ) ) ) ) )
-Solution 7
-_0 ==K #ostream ( 1 ) andBool ( _1 ==K "off" andBool ( _2 ==K <threads> .ThreadCellBag </threads> andBool ( _3 ==K <in> ListItem ( #buffer ( "" ) ) ListItem ( "off" ) ListItem ( #istream ( 0 ) ) </in> andBool ( Out ==K "x = 23\n" andBool Store ==K ( 1 |-> 16 ) ) ) ) )
-Solution 8
-_0 ==K #ostream ( 1 ) andBool ( _1 ==K "off" andBool ( _2 ==K <threads> .ThreadCellBag </threads> andBool ( _3 ==K <in> ListItem ( #buffer ( "" ) ) ListItem ( "off" ) ListItem ( #istream ( 0 ) ) </in> andBool ( Out ==K "x = 23\n" andBool Store ==K ( 1 |-> 21 ) ) ) ) )
-Solution 9
-_0 ==K #ostream ( 1 ) andBool ( _1 ==K "off" andBool ( _2 ==K <threads> .ThreadCellBag </threads> andBool ( _3 ==K <in> ListItem ( #buffer ( "" ) ) ListItem ( "off" ) ListItem ( #istream ( 0 ) ) </in> andBool ( Out ==K "x = 23\n" andBool Store ==K ( 1 |-> 33 ) ) ) ) )
-Solution 10
-_0 ==K #ostream ( 1 ) andBool ( _1 ==K "off" andBool ( _2 ==K <threads> .ThreadCellBag </threads> andBool ( _3 ==K <in> ListItem ( #buffer ( "" ) ) ListItem ( "off" ) ListItem ( #istream ( 0 ) ) </in> andBool ( Out ==K "x = 33\n" andBool Store ==K ( 1 |-> 11 ) ) ) ) )
-Solution 11
-_0 ==K #ostream ( 1 ) andBool ( _1 ==K "off" andBool ( _2 ==K <threads> .ThreadCellBag </threads> andBool ( _3 ==K <in> ListItem ( #buffer ( "" ) ) ListItem ( "off" ) ListItem ( #istream ( 0 ) ) </in> andBool ( Out ==K "x = 33\n" andBool Store ==K ( 1 |-> 16 ) ) ) ) )
-Solution 12
-_0 ==K #ostream ( 1 ) andBool ( _1 ==K "off" andBool ( _2 ==K <threads> .ThreadCellBag </threads> andBool ( _3 ==K <in> ListItem ( #buffer ( "" ) ) ListItem ( "off" ) ListItem ( #istream ( 0 ) ) </in> andBool ( Out ==K "x = 33\n" andBool Store ==K ( 1 |-> 33 ) ) ) ) )
+Store ==K ( 1 |-> 16 )
