@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.krun;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
@@ -122,7 +123,8 @@ public class KRun {
         return 0;
     }
 
-    private void filterAnonVarsAndPrint(K result, Set<String> filterSet, CompiledDefinition compiledDef, KRunOptions options) {
+    private void filterAnonVarsAndPrint(K result, Set<String> filterSet, CompiledDefinition compiledDef, KRunOptions options, StringBuilder sb) {
+        ByteArrayOutputStream bs = new ByteArrayOutputStream();
         if (result instanceof KApply && ((KApply) result).klabel().toString().equals(KLabels.AND)) {
             List<K> conjunctions = mutable(Assoc.flatten(KLabel(KLabels.AND), immutable(((KApply) result).items()), KLabel(KLabels.ML_TRUE)));
             conjunctions = conjunctions.stream().filter(x -> {
@@ -141,19 +143,26 @@ public class KRun {
             conjunctions.sort(Comparator.comparing(K::toString));
             if (conjunctions.size() > 1) {
                 conjunctions.subList(0, conjunctions.size() - 2).forEach(x -> {
-                    prettyPrint(compiledDef, options.output, s -> outputFile(s, options), x);
-                    outputFile(" " + KLabels.AND + " ", options);
+                    prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), x);
+                    sb.append(new String(bs.toByteArray()));
+                    sb.append(" " + KLabels.AND + " ");
                 });
             }
             if (!conjunctions.isEmpty()) {
-                prettyPrint(compiledDef, options.output, s -> outputFile(s, options), conjunctions.get(conjunctions.size() - 1));
+                prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), conjunctions.get(conjunctions.size() - 1));
             }
-        } else
-            prettyPrint(compiledDef, options.output, s -> outputFile(s, options), result);
+            sb.append(new String(bs.toByteArray()));
+            outputFile(sb.toString(), options);
+        } else {
+            prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), result);
+            sb.append(new String(bs.toByteArray()));
+            outputFile(sb.toString(), options);
+        }
     }
 
     public void printK(K result, KRunOptions options, CompiledDefinition compiledDef) {
         Set<String> patternVariables = new HashSet<>();
+        StringBuilder sb = new StringBuilder();
         if (options.pattern != null) {
             new VisitK() {
                 @Override
@@ -170,20 +179,20 @@ public class KRun {
 
             resultList.sort(Comparator.comparing(K::toString));
             if (resultList.size() == 0) {
-                outputFile("No Substitutions\n", options);
+                outputFile("No Search Results\n", options);
             } else {
                 int i = 0;
                 while (i < resultList.size()) {
-                    outputFile("Solution " + (i + 1) + "\n", options);
-                    filterAnonVarsAndPrint(resultList.get(i++), patternVariables, compiledDef, options);
+                    sb.append("Solution " + (i + 1) + "\n");
+                    filterAnonVarsAndPrint(resultList.get(i++), patternVariables, compiledDef, options, sb);
                 }
             }
             return;
         } else if (result.getClass().toString().contains("BoolToken")) {
-            outputFile("No Substitutions\n", options);
+            outputFile("No Search Results\n", options);
             return;
         }
-        filterAnonVarsAndPrint(result, patternVariables, compiledDef, options);
+        filterAnonVarsAndPrint(result, patternVariables, compiledDef, options, sb);
     }
 
     /**
