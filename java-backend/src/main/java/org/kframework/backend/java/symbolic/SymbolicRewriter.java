@@ -572,7 +572,7 @@ public class SymbolicRewriter {
 
     private void flattenList(List<K> unflat, List<K> flat) {
         unflat.forEach(x -> {
-            if(isConjunction(x)) {
+            if (isConjunction(x)) {
                 flattenList(((KItem) x).items(), flat);
             } else {
                 flat.add(x);
@@ -581,12 +581,16 @@ public class SymbolicRewriter {
     }
 
     private K processConjuncts(ConjunctiveFormula conjunct) {
-        List<K> kList= conjunct.items();
-        List<K> flatList = new ArrayList();
-        flattenList(kList, flatList);
-        flatList = flatList.stream().map(this::kApplyConversion).collect(Collectors.toList());
-        return flatList.stream().reduce(BoolToken.TRUE, (x, y) -> KORE.KApply(KORE.KLabel(KLabels.AND), x, y));
+        if (conjunct.klabel().equals(KORE.KLabel(KLabels.AND))) {
+            List<K> kList = conjunct.items();
+            List<K> flatList = new ArrayList();
+            flattenList(kList, flatList);
+            flatList = flatList.stream().map(this::kApplyConversion).collect(Collectors.toList());
+            return flatList.stream().reduce(BoolToken.TRUE, (x, y) -> KORE.KApply(KORE.KLabel(KLabels.AND), x, y));
+        }
+        return kApplyConversion(conjunct.toKore());
     }
+
     private K disjunctResults(List<K> results) {
         return results.stream().map(x -> x instanceof ConjunctiveFormula ? processConjuncts((ConjunctiveFormula) x) : x)
                 .reduce(BoolToken.FALSE, (x, y) -> KORE.KApply(KORE.KLabel(KLabels.OR), x, y));
