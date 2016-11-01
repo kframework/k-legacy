@@ -1,4 +1,6 @@
 Solution 1
-<k> false </k> andBool V0 ==K false
+<k> false </k>
+ _andBool_ V0 ==K false
 Solution 2
-<k> true </k> andBool V0 ==K true
+<k> true </k>
+ _andBool_ V0 ==K true

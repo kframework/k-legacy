@@ -129,30 +129,31 @@ public class KRun {
         if (result instanceof KApply && ((KApply) result).klabel().toString().equals(KLabels.AND)) {
             List<K> conjunctions = mutable(Assoc.flatten(KLabel(KLabels.AND), immutable(((KApply) result).items()), KLabel(KLabels.ML_TRUE)));
             conjunctions = conjunctions.stream().filter(x -> {
-                if (x instanceof KApply && ((KApply) x).klabel().toString().equals(KLabels.EQUALS)) {
+                if (x.getClass().toString().contains("BoolToken")) {
+                    return false;
+                }
+                if (!filterSet.isEmpty() && x instanceof KApply && ((KApply) x).klabel().toString().equals(KLabels.EQUALS)) {
                     K var = ((KApply) x).klist().items().get(0);
                     if (var instanceof KVariable && filterSet.contains(((KVariable) var).name())) {
                         return true;
                     }
                     return false;
                 }
-                if (x.getClass().toString().contains("BoolToken")) {
-                    return false;
-                }
                 return true;
             }).collect(Collectors.toList());
             conjunctions.sort(Comparator.comparing(K::toString));
             if (conjunctions.size() > 1) {
-                conjunctions.subList(0, conjunctions.size() - 2).forEach(x -> {
+                conjunctions.subList(0, conjunctions.size() - 1).forEach(x -> {
                     prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), x);
                     sb.append(new String(bs.toByteArray()));
                     sb.append(" " + KLabels.AND + " ");
                 });
             }
             if (!conjunctions.isEmpty()) {
+                bs.reset();
                 prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), conjunctions.get(conjunctions.size() - 1));
+                sb.append(new String(bs.toByteArray()));
             }
-            sb.append(new String(bs.toByteArray()));
             return sb;
         } else {
             prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), result);

@@ -1,4 +1,6 @@
 Solution 1
-<k> 0 </k> andBool V0 ==K 0
+<k> 0 </k>
+ _andBool_ V0 ==K 0
 Solution 2
-<k> 1 </k> andBool V0 ==K 1
+<k> 1 </k>
+ _andBool_ V0 ==K 1
