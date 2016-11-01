@@ -235,7 +235,7 @@ public class Kapi {
 
         specModule = new JavaBackend(kem, files, globalOptions, kompileOptions)
                 .stepsForProverRules()
-                .apply(Definition.apply(specModule, org.kframework.Collections.add(specModule, alsoIncluded), Att.apply()))
+                .apply(Definition.apply(specModule, org.kframework.Collections.<Module>add(specModule, alsoIncluded), Att.apply()))
                 .getModule(specModule.name()).get();
 
         ExpandMacros macroExpander = new ExpandMacros(compiledDef0.executionModule(), kem, files, globalOptions, kompileOptions);
@@ -244,7 +244,7 @@ public class Kapi {
                 .filter(r -> r.toString().contains("spec.k"))
                 .map(r -> (Rule) macroExpander.expand(r))
                 .map(r -> ProofExecutionMode.transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
-                .map(r -> ProofExecutionMode.transformFunction(JavaBackend::convertKSeqToKApply, r))
+                .map(r -> ProofExecutionMode.transformFunction(Kompile::convertKSeqToKApply, r))
                 .map(r -> ProofExecutionMode.transform(NormalizeKSeq.self(), r))
                         //.map(r -> kompile.compileRule(compiledDefinition, r))
                 .collect(Collectors.toList());
@@ -395,7 +395,7 @@ public class Kapi {
                 .filter(r -> r.toString().contains("spec.k"))
                 .map(r -> (Rule) macroExpander.expand(r))
                 .map(r -> ProofExecutionMode.transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
-                .map(r -> ProofExecutionMode.transformFunction(JavaBackend::convertKSeqToKApply, r))
+                .map(r -> ProofExecutionMode.transformFunction(Kompile::convertKSeqToKApply, r))
                 .map(r -> ProofExecutionMode.transform(NormalizeKSeq.self(), r))
                         //.map(r -> kompile.compileRule(compiledDefinition, r))
                 .collect(Collectors.toList());

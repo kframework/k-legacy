@@ -28,6 +28,8 @@ object RewriteToTop {
     case other => other
   }
 
+  def rewriteToTop(k: K): K = ADT.KRewrite(toLeft(k), toRight(k))
+
   def bubbleRewriteToTopInsideCells(k: K): K = k match {
     case kapp: KApply =>
       if (isCell(kapp) && nonCell(kapp.items.get(0)))
