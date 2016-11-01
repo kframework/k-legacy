@@ -5,12 +5,11 @@ import java.util.Optional
 
 import org.kframework.attributes.Att
 import org.kframework.definition._
-import org.kframework.{RewriterResult, kore}
 import org.kframework.kore.Unapply.KRewrite
 import org.kframework.kore._
 import org.kframework.rewriter.SearchType
+import org.kframework.{RewriterResult, kore}
 
-import scala.collection.JavaConverters._
 import scala.collection._
 
 object KaleRewriter {
@@ -191,7 +190,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     new RewriterResult(Optional.of(0), convertBack(term))
   }
 
-  override def `match`(k: K, rule: Rule):K= {
+  override def `match`(k: K, rule: Rule): K = {
     val kaleO = convert(k)
     val kaleRule = rule match {
       case rule@Rule(KRewrite(l@Unapply.KApply(klabel, _), r), requires, ensures, att) =>
@@ -205,7 +204,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
 
   override def search(initialConfiguration: K, depth: Optional[Integer], bound: Optional[Integer], pattern: Rule, searchType: SearchType, subsitution: Boolean): K = ???
 
-  override def executeAndMatch(k: K, depth: Optional[Integer], rule: Rule): (RewriterResult, util.List[_ <: util.Map[_ <: KVariable, _ <: K]]) = ???
-
+  override def executeAndMatch(k: K, depth: Optional[Integer], rule: Rule): (RewriterResult, K) = ???
+  
   override def prove(rules: util.List[Rule]): util.List[K] = ???
 }
