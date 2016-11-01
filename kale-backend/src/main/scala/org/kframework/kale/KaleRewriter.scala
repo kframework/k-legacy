@@ -3,17 +3,15 @@ package org.kframework.kale
 import java.util
 import java.util.Optional
 
-import org.kframework.RewriterResult
 import org.kframework.attributes.Att
 import org.kframework.definition._
-import org.kframework.kore
+import org.kframework.{RewriterResult, kore}
+import org.kframework.kore.Unapply.KRewrite
 import org.kframework.kore._
 import org.kframework.rewriter.SearchType
 
-import collection._
-import org.kframework.kore.Unapply.KRewrite
-
-import collection.JavaConverters._
+import scala.collection.JavaConverters._
+import scala.collection._
 
 object KaleRewriter {
   val self = this
@@ -193,7 +191,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
     new RewriterResult(Optional.of(0), convertBack(term))
   }
 
-  override def `match`(k: K, rule: Rule): util.List[_ <: util.Map[_ <: KVariable, _ <: K]] = {
+  override def `match`(k: K, rule: Rule):K= {
     val kaleO = convert(k)
     val kaleRule = rule match {
       case rule@Rule(KRewrite(l@Unapply.KApply(klabel, _), r), requires, ensures, att) =>
@@ -201,13 +199,11 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
         rw
     }
     val res = matcher(kaleRule._1, kaleO)
-    (Or.asSet(res).toList map { case t: Substitution => (And.asMap(t) map {
-      case (k: Variable, v: Term) => (convertBack(k).asInstanceOf[KVariable], convertBack(v))
-    }).asJava
-    }).asJava
+    convertBack(res)
   }
 
-  override def search(initialConfiguration: K, depth: Optional[Integer], bound: Optional[Integer], pattern: Rule, searchType: SearchType): util.List[_ <: util.Map[_ <: KVariable, _ <: K]] = ???
+
+  override def search(initialConfiguration: K, depth: Optional[Integer], bound: Optional[Integer], pattern: Rule, searchType: SearchType, subsitution: Boolean): K = ???
 
   override def executeAndMatch(k: K, depth: Optional[Integer], rule: Rule): (RewriterResult, util.List[_ <: util.Map[_ <: KVariable, _ <: K]]) = ???
 
