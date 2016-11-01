@@ -14,7 +14,6 @@ import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KLabel;
 import org.kframework.kore.KORE;
-import org.kframework.kore.KVariable;
 import org.kframework.kore.Unapply;
 import org.kframework.main.GlobalOptions;
 import org.kframework.parser.ProductionReference;
@@ -32,10 +31,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 

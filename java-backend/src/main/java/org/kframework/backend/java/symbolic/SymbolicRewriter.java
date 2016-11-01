@@ -555,10 +555,6 @@ public class SymbolicRewriter {
         return disjunctResults(searchResults);
     }
 
-    private boolean isConjunction(K k) {
-        return k instanceof KItem && ((KItem) k).klabel().toString().equals(KLabels.AND);
-    }
-
     private K kApplyConversion(K k) {
         if (k instanceof KItem) {
             KItem kItem = (KItem) k;
@@ -569,7 +565,7 @@ public class SymbolicRewriter {
 
     private void flattenList(List<K> unflat, List<K> flat) {
         unflat.forEach(x -> {
-            if (isConjunction(x)) {
+            if (x instanceof KItem && ((KItem) x).klabel().toString().equals(KLabels.AND)) {
                 flattenList(((KItem) x).items(), flat);
             } else {
                 flat.add(x);

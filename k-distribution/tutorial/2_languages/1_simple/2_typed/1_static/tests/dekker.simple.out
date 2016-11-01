@@ -1,2 +1,1 @@
-Solution 1
-DotVar0 ==K <gtenv> dekker2 |-> ( ( void , .Exps ) -> void ) dekker1 |-> ( ( void , .Exps ) -> void ) critical1 |-> bool flag2 |-> bool critical2 |-> bool flag1 |-> bool main |-> ( ( void , .Exps ) -> void ) turn |-> int </gtenv>
+No Search Results
