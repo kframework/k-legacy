@@ -136,7 +136,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
 
   val functionRules: Map[Label, Set[Rewrite]] = functionRulesAsLeftRight groupBy (_._1) map { case (k, set) => (k, set.map(_._2)) }
 
-  var functionRulesWithRenamedVariables: Map[Label, Set[Rewrite]] = functionRules map { case (k, v) => (k, v map env.renameVariables) }
+  val functionRulesWithRenamedVariables: Map[Label, Set[Rewrite]] = functionRules map { case (k, v) => (k, v map env.renameVariables) }
 
   env.seal()
 
@@ -168,9 +168,9 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
       rw
   }
 
-  val unifier = Matcher(env).default
+  val matcher = Matcher(env).default
   val substitutionApplier = SubstitutionApply(env)
-  val rewriterConstructor = Rewriter(substitutionApplier, unifier, env) _
+  val rewriterConstructor = Rewriter(substitutionApplier, matcher, env) _
 
   // TODO: log this information cleanly
   //  println("\nFunction rules\n")
@@ -183,10 +183,10 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   override def execute(k: K, depth: Optional[Integer]): RewriterResult = {
     var i = 0
     var term: Term = null
-    var next = convert(k)
+    var next: Term = convert(k)
     while (term != next && depth.map[Boolean](i == _).orElse(true)) {
       term = next
-      next = rewrite.executionStep(term)
+      next = rewrite.step(term).headOption.getOrElse(term)
       i += 1
     }
     term = next
@@ -200,7 +200,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
         val rw = Rewrite(And(convert(l), Equality(convert(requires), BOOLEAN(true))), convert(r))
         rw
     }
-    val res = unifier(kaleRule._1, kaleO)
+    val res = matcher(kaleRule._1, kaleO)
     (Or.asSet(res).toList map { case t: Substitution => (And.asMap(t) map {
       case (k: Variable, v: Term) => (convertBack(k).asInstanceOf[KVariable], convertBack(v))
     }).asJava
