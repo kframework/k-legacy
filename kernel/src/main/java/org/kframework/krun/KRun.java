@@ -132,15 +132,11 @@ public class KRun {
                 if (x.getClass().toString().contains("BoolToken")) {
                     return false;
                 }
-                if (!filterSet.isEmpty() && x instanceof KApply && ((KApply) x).klabel().toString().equals(KLabels.EQUALS)) {
+                if ((options.pattern != null) && x instanceof KApply && ((KApply) x).klabel().toString().equals(KLabels.EQUALS)) {
                     K var = ((KApply) x).klist().items().get(0);
-                    if (var instanceof KVariable && filterSet.contains(((KVariable) var).name())) {
-                        if (((KVariable) var).name().startsWith("DotVar")) {
-                            return false;
-                        }
-                        return true;
+                    if (var instanceof KVariable) {
+                        return filterSet.contains(((KVariable) var).name());
                     }
-                    return false;
                 }
                 return true;
             }).collect(Collectors.toList());
@@ -187,13 +183,16 @@ public class KRun {
                 sb.append("No Search Results\n");
             } else {
                 int index = 1;
-                for (int i = 0; i < resultList.size(); ++i){
-                    StringBuilder conjunctString = filterAnonVarsAndPrint(resultList.get(i), patternVariables, compiledDef, options);
-                    if(! observedResults.contains(conjunctString.toString())) {
+                for (int i = 0; i < resultList.size(); ++i) {
+                    String conjunctString = filterAnonVarsAndPrint(resultList.get(i), patternVariables, compiledDef, options).toString();
+                    if (!(conjunctString.trim().isEmpty()) && !observedResults.contains(conjunctString)) {
                         sb.append("Solution " + index++ + "\n");
                         sb.append(conjunctString);
-                        observedResults.add(conjunctString.toString());
+                        observedResults.add(conjunctString);
                     }
+                }
+                if (index == 1) {
+                    sb.append("No Search Results\n");
                 }
             }
             outputFile(sb.toString(), options);

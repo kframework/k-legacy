@@ -585,7 +585,7 @@ public class SymbolicRewriter {
             flatList = flatList.stream().map(this::kApplyConversion).collect(Collectors.toList());
             return flatList.stream().reduce(BoolToken.TRUE, (x, y) -> KORE.KApply(KORE.KLabel(KLabels.AND), x, y));
         }
-        return kApplyConversion(conjunct.toKore());
+        return KORE.KApply(KORE.KLabel(KLabels.AND), kApplyConversion(conjunct.toKore()), BoolToken.TRUE);
     }
 
     private K disjunctResults(List<K> results) {
