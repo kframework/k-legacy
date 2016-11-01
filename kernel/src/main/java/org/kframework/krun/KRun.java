@@ -135,6 +135,9 @@ public class KRun {
                 if (!filterSet.isEmpty() && x instanceof KApply && ((KApply) x).klabel().toString().equals(KLabels.EQUALS)) {
                     K var = ((KApply) x).klist().items().get(0);
                     if (var instanceof KVariable && filterSet.contains(((KVariable) var).name())) {
+                        if (((KVariable) var).name().startsWith("DotVar")) {
+                            return false;
+                        }
                         return true;
                     }
                     return false;
