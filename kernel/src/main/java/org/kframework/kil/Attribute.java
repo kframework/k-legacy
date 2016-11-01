@@ -18,7 +18,6 @@ import java.lang.annotation.Annotation;
  * The inherited member attributes is used for location information
  * if this represents an explicitly written attribute.
  */
-@Deprecated
 public class Attribute<T> extends ASTNode {
 
     public static final String BUILTIN_KEY = "builtin";

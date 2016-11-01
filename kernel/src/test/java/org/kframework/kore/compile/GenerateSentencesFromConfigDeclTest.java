@@ -117,7 +117,7 @@ public class GenerateSentencesFromConfigDeclTest {
                                                 KApply(KLabel(KLabels.CELLS))), false)),
                         BooleanUtils.TRUE, BooleanUtils.TRUE, initializerAtts),
                 Rule(KRewrite(KApply(KLabel("initKCell"), KVariable("Init")),
-                                IncompleteCellUtils.make(KLabel("<k>"), false, KApply(KLabel("#SemanticCastToKItem@BASIC-K"), KApply(KLabel("Map:lookup"),
+                                IncompleteCellUtils.make(KLabel("<k>"), false, KApply(KLabel("#SemanticCastToKItem@BASIC-K"), KApply(KLabel(KLabels.MAP_LOOKUP),
                                         KVariable("Init"),
                                         KToken("$PGM", Sorts.KConfigVar()))), false)),
                         BooleanUtils.TRUE, BooleanUtils.TRUE, initializerAtts),

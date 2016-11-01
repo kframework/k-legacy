@@ -31,6 +31,11 @@
         </dependency>
         <dependency>
             <groupId>org.kframework.k</groupId>
+            <artifactId>kale-backend</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kframework.k</groupId>
             <artifactId>api</artifactId>
             <version>${project.version}</version>
         </dependency>
