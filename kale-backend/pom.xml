@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Copyright (c) 2014-2016 K Team. All Rights Reserved. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.kframework.k</groupId>
+    <artifactId>parent</artifactId>
+    <version>4.0.1-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <artifactId>kale-backend</artifactId>
+  <packaging>jar</packaging>
+
+  <name>K Framework Kale Backend</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.kframework.k</groupId>
+      <artifactId>kernel</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.kframework.kale</groupId>
+      <artifactId>kale_2.12.0-M5</artifactId>
+      <version>0.3-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>net.alchim31.maven</groupId>
+        <artifactId>scala-maven-plugin</artifactId>
+        <version>3.2.2</version>
+        <executions>
+          <execution>
+            <id>scala-compile-first</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>add-source</goal>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>scala-test-compile</id>
+            <phase>process-test-resources</phase>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <args>
+            <arg>-Xexperimental</arg>
+            <arg>-feature</arg>
+            <arg>-deprecation</arg>
+            <arg>-language:implicitConversions</arg>
+            <arg>-language:postfixOps</arg>
+          </args>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

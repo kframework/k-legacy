@@ -15,7 +15,13 @@ import org.kframework.definition.DefinitionTransformer;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
+import org.kframework.kore.ADT;
+import org.kframework.kore.K;
+import org.kframework.kore.KApply;
+import org.kframework.kore.KORE;
+import org.kframework.kore.KSequence;
 import org.kframework.kore.Sort;
+import org.kframework.kore.TransformK;
 import org.kframework.kore.compile.AddImplicitComputationCell;
 import org.kframework.kore.compile.ConcretizeCells;
 import org.kframework.kore.compile.GenerateSortPredicateSyntax;
@@ -39,6 +45,8 @@ import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
+import scala.Function1;
+import scala.Option;
 
 import java.io.File;
 import java.util.HashSet;
@@ -57,7 +65,6 @@ import static org.kframework.definition.Constructors.*;
 public class Kompile {
     public static final File BUILTIN_DIRECTORY = JarInfo.getKIncludeDir().resolve("builtin").toFile();
     public static final String REQUIRE_PRELUDE_K = "requires \"prelude.k\"\n";
-
     public final KompileOptions kompileOptions;
     private final FileUtil files;
     public final KExceptionManager kem;
@@ -219,5 +226,35 @@ public class Kompile {
         LabelInfo labelInfo = new LabelInfoFromModule(input.mainModule());
         SortInfo sortInfo = SortInfo.fromModule(input.mainModule());
         return new ConcretizeCells(configInfo, labelInfo, sortInfo, input.mainModule()).concretize(s);
+    }
+
+    public static DefinitionTransformer moduleQualifySortPredicates = DefinitionTransformer.fromKTransformerWithModuleInfo(
+            (Module m, K k) -> new TransformK() {
+                @Override
+                public K apply(KApply kk) {
+                    KApply k = (KApply) super.apply(kk);
+                    if (!k.klabel().name().startsWith("is"))
+                        return k;
+
+                    Sort possibleSort = KORE.Sort(k.klabel().name().substring("is".length()));
+                    Option<ADT.Sort> resolvedSort = m.sortResolver().get(possibleSort);
+
+                    if (resolvedSort.isDefined()) {
+                        return KORE.KApply(KORE.KLabel("is" + resolvedSort.get().name()), k.klist());
+                    } else {
+                        return k;
+                    }
+                }
+            }.apply(k), "Module-qualify sort predicates");
+
+    /**
+     * In the Java backend, {@link KSequence}s are treated like {@link KApply}s, so tranform them.
+     */
+    public static K convertKSeqToKApply(K ruleBody) {
+        return new TransformK() {
+            public K apply(KSequence kseq) {
+                return super.apply(((ADT.KSequence) kseq).kApply());
+            }
+        }.apply(ruleBody);
     }
 }

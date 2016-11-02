@@ -164,6 +164,11 @@ object Att {
   val syntaxModule = "syntaxModule"
   val latex = "latex"
   val variable = "variable"
+  val token = "token"
+  val hook = "hook"
+  val relativeHook = "relativeHook"
+  val `macro` = "macro"
+
   val sort = TypedKey[Sort]("sort", {
     s: Sort => KORE.KToken(s.name, Sorts.String)
   }, {
