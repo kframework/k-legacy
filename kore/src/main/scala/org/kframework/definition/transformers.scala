@@ -127,6 +127,10 @@ abstract class BasicModuleTransformer extends MemoizingModuleTransformer {
   protected def process(inputModule: Module, alreadyProcessedImports: Set[Module]): Module
 }
 
+/**
+  * Define a [[Module]] transformer by overriding any of the [[process]] methods.
+  * All other wiring (e.g., recursion over [[Module]]s is already handled by the class.
+  */
 abstract class SentenceBasedModuleTransformer extends BasicModuleTransformer {
   def process(s: Sentence, inputModule: Module, alreadyProcessedModules: Set[Module]): Sentence = process(s, inputModule)
 
