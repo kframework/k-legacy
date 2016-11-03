@@ -94,7 +94,6 @@ public class BubbleParsing extends BasicModuleTransformer {
     }
 
     /**
-     * TODO(radu): generalize this function, and eliminate duplicates
      * Replaces the bubbles in m with their parsing.
      */
     @Override
