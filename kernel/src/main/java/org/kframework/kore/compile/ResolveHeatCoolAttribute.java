@@ -56,7 +56,7 @@ public class ResolveHeatCoolAttribute extends SentenceBasedModuleTransformer {
         throw new AssertionError("unreachable");
     }
 
-    public Sentence f(Sentence s) {
+    public Sentence process(Sentence s) {
         if (!s.att().contains("heat") && !s.att().contains("cool")) {
             return s;
         }

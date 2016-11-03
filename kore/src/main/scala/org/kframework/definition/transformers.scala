@@ -15,13 +15,13 @@ object ModuleTransformer {
   def fromSentenceTransformer(sentenceTransformer: Sentence => Sentence, passName: String): MemoizingModuleTransformer =
     new SentenceBasedModuleTransformer {
       override val name = passName
-      override def f(s: Sentence) = sentenceTransformer(s)
+      override def process(s: Sentence) = sentenceTransformer(s)
     }
 
   def fromSentenceTransformer(sentenceTransformer: (Module, Sentence) => Sentence, passName: String): BasicModuleTransformer =
     new SentenceBasedModuleTransformer {
       override val name = passName
-      override def f(s: Sentence, inputModule: Module) = sentenceTransformer(inputModule, s)
+      override def process(s: Sentence, inputModule: Module) = sentenceTransformer(inputModule, s)
     }
 
   def fromRuleBodyTranformer(f: K => K, name: String): MemoizingModuleTransformer =
@@ -128,17 +128,17 @@ abstract class BasicModuleTransformer extends MemoizingModuleTransformer {
 }
 
 abstract class SentenceBasedModuleTransformer extends BasicModuleTransformer {
-  def f(s: Sentence, inputModule: Module, alreadyProcessedModules: Set[Module]): Sentence = f(s, inputModule)
+  def process(s: Sentence, inputModule: Module, alreadyProcessedModules: Set[Module]): Sentence = process(s, inputModule)
 
-  def f(s: Sentence, inputModule: Module): Sentence = f(s)
+  def process(s: Sentence, inputModule: Module): Sentence = process(s)
 
-  def f(s: Sentence): Sentence = s
+  def process(s: Sentence): Sentence = s
 
   override def process(inputModule: Module, alreadyProcessedImports: Set[Module]): Module = {
     val newSentences = inputModule.localSentences map {
       s =>
         try {
-          f(s, inputModule, alreadyProcessedImports)
+          process(s, inputModule, alreadyProcessedImports)
         } catch {
           case e: KEMException =>
             e.exception.addTraceFrame("while executing phase \"" + name + "\" on sentence at"

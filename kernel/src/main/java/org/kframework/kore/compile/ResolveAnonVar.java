@@ -44,7 +44,7 @@ public class ResolveAnonVar extends SentenceBasedModuleTransformer {
                 context.att());
     }
 
-    public synchronized Sentence f(Sentence s) {
+    public synchronized Sentence process(Sentence s) {
         if (s instanceof Rule) {
             return resolve((Rule) s);
         } else if (s instanceof Context) {

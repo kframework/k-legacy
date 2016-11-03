@@ -45,7 +45,6 @@ import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
-import scala.Function1;
 import scala.Option;
 
 import java.io.File;
@@ -211,8 +210,8 @@ public class Kompile {
     }
 
     public Rule compileRule(CompiledDefinition compiledDef, Rule parsedRule) {
-        return (Rule) asScalaFunc((Sentence s) -> new ResolveAnonVar().f(s))
-                .andThen((Sentence s) ->  new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA)).f(s))
+        return (Rule) asScalaFunc((Sentence s) -> new ResolveAnonVar().process(s))
+                .andThen((Sentence s) ->  new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA)).process(s))
                 .andThen(s -> concretizeSentence(s, compiledDef.kompiledDefinition))
                 .apply(parsedRule);
     }
