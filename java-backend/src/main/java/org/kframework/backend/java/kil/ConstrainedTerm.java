@@ -197,7 +197,9 @@ public class ConstrainedTerm extends JavaSymbolicObject {
 
     /**
      * Unifies this constrained term with another constrained term. Returns a list of solutions for the unification problem.
-     * Each solution is a triple of (1) the unification constraint, (2) whether the constraint is a matching of the variables of the argument constrainedTerm,
+     * Each solution is a triple of
+     * (1) the unification constraint,
+     * (2) whether the constraint is a matching of the variables of the argument constrainedTerm,
      * and (3) the inner rewrites from the constrainedTerm.
      */
     public List<Triple<ConjunctiveFormula, Boolean, Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>>> unify(
