@@ -4,6 +4,7 @@ package org.kframework
 import java.util
 import java.util.Optional
 import collection._
+import collection.JavaConverters._
 
 case class CircularityException[T](cycle: Seq[T]) extends Exception(cycle.mkString(" < "))
 
@@ -55,26 +56,28 @@ class POSet[T](directRelations: Set[(T, T)]) extends Serializable {
   val relations = transitiveClosure(directRelationsMap)
 
   def <(x: T, y: T): Boolean = relations.get(x).exists(_.contains(y))
+  def <=(x: T, y: T): Boolean = <(x, y) || x == y
   def >(x: T, y: T): Boolean = relations.get(y).exists(_.contains(x))
+  def >=(x: T, y: T): Boolean = >(x, y) || x == y
   def ~(x: T, y: T) = <(x, y) || <(y, x)
 
   /**
    * Returns true if x < y
    */
   def lessThan(x: T, y: T): Boolean = <(x, y)
-  def lessThanEq(x: T, y: T): Boolean = <(x, y) | x == y
+  def lessThanEq(x: T, y: T): Boolean = <=(x, y)
   def directlyLessThan(x: T, y: T): Boolean = directRelationsMap.get(x).exists(_.contains(y))
   /**
    * Returns true if y < x
    */
   def greaterThan(x: T, y: T): Boolean = >(x, y)
-  def greaterThanEq(x: T, y: T): Boolean = >(x, y) | x == y
+  def greaterThanEq(x: T, y: T): Boolean = >=(x, y)
   def directlyGreaterThan(x: T, y: T): Boolean = directRelationsMap.get(y).exists(_.contains(x))
   /**
    * Returns true if y < x or y < x
    */
   def inSomeRelation(x: T, y: T) = this.~(x, y)
-  def inSomeRelationEq(x: T, y: T) = this.~(x, y) | x == y
+  def inSomeRelationEq(x: T, y: T) = this.~(x, y) || x == y
 
   /**
    * Returns an Optional of the least upper bound if it exists, or an empty Optional otherwise.
@@ -109,24 +112,22 @@ class POSet[T](directRelations: Set[(T, T)]) extends Serializable {
     * Return the subset of items from the argument which are not
     * less than any other item.
     */
-  def maximal(sorts : Iterable[T]) : Set[T] =
-    sorts.filter(s1 => !sorts.exists(s2 => lessThan(s1,s2))).toSet
+  def maximal(sorts: Iterable[T]): Set[T] =
+    sorts.filter(s1 => !sorts.exists(s2 => lessThan(s1, s2))).toSet
 
-  def maximal(sorts : util.Collection[T]) : util.Set[T] = {
-    import scala.collection.JavaConversions._
-    maximal(sorts : Iterable[T])
+  def maximal(sorts: util.Collection[T]): util.Set[T] = {
+    maximal(sorts.asScala).asJava
   }
 
   /**
     * Return the subset of items from the argument which are not
     * greater than any other item.
     */
-  def minimal(sorts : Iterable[T]) : Set[T] =
-    sorts.filter(s1 => !sorts.exists(s2 => >(s1,s2))).toSet
+  def minimal(sorts: Iterable[T]): Set[T] =
+    sorts.filter(s1 => !sorts.exists(s2 => >(s1, s2))).toSet
 
-  def minimal(sorts : util.Collection[T]) : util.Set[T] = {
-    import scala.collection.JavaConversions._
-    maximal(sorts : Iterable[T])
+  def minimal(sorts: util.Collection[T]): util.Set[T] = {
+    maximal(sorts.asScala).asJava
   }
 
   override def toString() = {

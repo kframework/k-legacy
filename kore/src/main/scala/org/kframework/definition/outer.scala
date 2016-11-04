@@ -121,7 +121,7 @@ case class Module(val name: String, val imports: Set[Module], unresolvedLocalSen
     override def getMessage() = "While constructing module " + name + ": " + m
   }
 
-  val localSorts: Set[ADT.Sort] = lookingToDefineSorts map sortResolver.get flatten
+  val localSorts: Set[ADT.Sort] = ((lookingToDefineSorts map sortResolver.get).flatten).filter(_.moduleName.s == name)
 
   def makeTooManySortsErrorMessage(name: String, sortSet: Set[ADT.Sort]): String = {
     "While defining module " + this.name + ": "
@@ -177,7 +177,7 @@ case class Module(val name: String, val imports: Set[Module], unresolvedLocalSen
 
   private val importedSentences = imports flatMap {_.sentences}
 
-  val listProductions = computeFromSentences(afterResolvingSorts | importedSentences)
+  val listProductions = computeFromSentences(afterResolvingSorts | importedSentences).diff(importedSentences)
 
   val localSentences = afterResolvingSorts | listProductions
 

@@ -48,6 +48,16 @@
       <artifactId>shell</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.kframework.k</groupId>
+      <artifactId>kale-backend</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.kframework.kale</groupId>
+      <artifactId>kale_2.12.0-M5</artifactId>
+      <version>0.3-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -61,6 +71,17 @@
             <phase>pre-integration-test</phase>
             <configuration>
               <target>
+
+                <exec dir="${ktestDir}/tests/equiv" executable="${project.build.directory}/release/k/bin/ktest${native.script.extension}" failonerror="true" >
+                  <arg value="config.xml" />
+                  <arg value="-v" />
+                  <arg value="--report" />
+                  <arg value="--debug" />
+                  <arg value="--warnings-to-errors" />
+                  <arg line="--threads 1" />
+                </exec>
+                <sleep seconds="5" />
+
                 <exec executable="${project.build.directory}/release/k/bin/kserver${native.script.extension}" spawn="true">
                 </exec>
                 <sleep seconds="5" />

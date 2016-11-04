@@ -295,6 +295,7 @@ public class ConfigFileParser {
         String[] excludes = splitNodeValue(testAttrs.getNamedItem("exclude"));
         Set<KTestStep> skips = parseSkips(testAttrs.getNamedItem("skip"), location);
         String posixOnly = parsePosixOnly(testAttrs.getNamedItem("posixInitScript"));
+        String customKrunCmd = parseCustomKrunCmd(testAttrs.getNamedItem("customKrunCmd"));
         boolean warnings2errors;
         if (testAttrs.getNamedItem("warnings2errors") != null) {
             warnings2errors = Boolean.parseBoolean(testAttrs.getNamedItem("warnings2errors").getNodeValue());
@@ -314,6 +315,9 @@ public class ConfigFileParser {
                 kompileOpts, krunOpts, pgmSpecificKRunOpts, skips, cmdArgs, kem, files, env, warnings2errors);
         if (posixOnly != null) {
             ret.setPosixInitScript(posixOnly);
+        }
+        if (customKrunCmd != null) {
+            ret.setCustomKrunCmd(customKrunCmd);
         }
         ret.validate();
         return ret;
@@ -347,6 +351,13 @@ public class ConfigFileParser {
             return null;
         }
         return normalize(node.getNodeValue(), cmdArgs.getDirectory());
+    }
+
+    private String parseCustomKrunCmd(Node node) {
+        if (node == null) {
+            return null;
+        }
+        return node.getNodeValue().trim();
     }
 
     private Annotated<String, LocationData> annotate(String str, LocationData location) {

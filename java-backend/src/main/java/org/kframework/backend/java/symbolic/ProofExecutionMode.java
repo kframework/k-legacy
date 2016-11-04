@@ -5,7 +5,6 @@ import org.kframework.attributes.Att;
 import org.kframework.backend.java.kore.compile.ExpandMacros;
 import org.kframework.compile.NormalizeKSeq;
 import org.kframework.definition.Definition;
-import org.kframework.definition.ModuleTransformer;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.RewriterResult;
@@ -155,7 +154,7 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
                         r.att()))
                 .map(r -> (Rule) macroExpander.expand(r))
                 .map(r -> transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
-                .map(r -> transformFunction(JavaBackend::convertKSeqToKApply, r))
+                .map(r -> transformFunction(Kompile::convertKSeqToKApply, r))
                 .map(r -> transform(NormalizeKSeq.self(), r))
                 //.map(r -> kompile.compileRule(compiledDefinition, r))
                 .collect(Collectors.toList());

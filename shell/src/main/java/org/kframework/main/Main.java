@@ -3,6 +3,7 @@ package org.kframework.main;
 
 import com.beust.jcommander.JCommander;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.martiansoftware.nailgun.NGContext;
 import org.fusesource.jansi.AnsiConsole;
 import org.kframework.HookProvider;
@@ -13,12 +14,16 @@ import org.kframework.backend.java.symbolic.JavaBackend;
 import org.kframework.backend.java.symbolic.JavaExecutionOptions;
 import org.kframework.backend.java.symbolic.ProofExecutionMode;
 import org.kframework.definition.Module;
+import org.kframework.kale.KaleBackend;
+import org.kframework.kale.KaleRewriter;
 import org.kframework.kast.KastFrontEnd;
 import org.kframework.kast.KastOptions;
 import org.kframework.kdep.KDepFrontEnd;
 import org.kframework.kdep.KDepOptions;
 import org.kframework.kdoc.KDocFrontEnd;
 import org.kframework.kdoc.KDocOptions;
+import org.kframework.keq.KeqOptions;
+import org.kframework.kil.Rewrite;
 import org.kframework.kil.loader.Context;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
@@ -69,8 +74,7 @@ import java.util.function.Function;
 public class Main {
 
     /**
-     * @param args
-     *            - the running arguments for the K3 tool. First argument must be one of the following: kompile|kast|krun.
+     * @param args - the running arguments for the K3 tool. First argument must be one of the following: kompile|kast|krun.
      * @throws IOException when loadDefinition fails
      */
     public static void main(String[] args) {
@@ -113,7 +117,7 @@ public class Main {
             // parsing options
             Set<Object> options = ImmutableSet.of(kompileOptions);
             Set<Class<?>> experimentalOptions = ImmutableSet.of(kompileOptions.experimental.getClass(),      // KompileOptions.Experimental.class
-                                                                kompileOptions.experimental.smt.getClass()); // SMTOptions.class
+                    kompileOptions.experimental.smt.getClass()); // SMTOptions.class
             JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
             String usage = JCommanderModule.usage(jc);
             String experimentalUsage = JCommanderModule.experimentalUsage(jc);
@@ -126,8 +130,13 @@ public class Main {
             FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, kompileOptions.global, env);
 
             // kompile
-            assert (kompileOptions.backend.equals(Backends.JAVA)); // TODO: support other backends
-            Backend koreBackend = new JavaBackend(kem, files, kompileOptions.global, kompileOptions);
+            Backend koreBackend;
+            if (kompileOptions.backend.equals(Backends.JAVA)) {
+                koreBackend = new JavaBackend(kem, files, kompileOptions.global, kompileOptions);
+            } else if (kompileOptions.backend.equals(Backends.KALE)) {
+                koreBackend = new KaleBackend(kompileOptions, kem);
+            } else
+                throw new AssertionError("Backend not hooked to the shell.");
             KompileFrontEnd frontEnd = new KompileFrontEnd(kompileOptions, koreBackend, sw, kem, loader, files);
 
             return runApplication(frontEnd, kem);
@@ -209,8 +218,8 @@ public class Main {
             // parsing options
             Set<Object> options = ImmutableSet.of(kRunOptions, javaExecutionOptions);
             Set<Class<?>> experimentalOptions = ImmutableSet.of(kRunOptions.experimental.getClass(),        // KRunOptions.Experimental.class
-                                                                kRunOptions.experimental.smt.getClass(),    // SMTOptions.class
-                                                                javaExecutionOptions.getClass());           // JavaExecutionOptions.class
+                    kRunOptions.experimental.smt.getClass(),    // SMTOptions.class
+                    javaExecutionOptions.getClass());           // JavaExecutionOptions.class
             JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
             String usage = JCommanderModule.usage(jc);
             String experimentalUsage = JCommanderModule.experimentalUsage(jc);
@@ -229,11 +238,22 @@ public class Main {
             KompileOptions kompileOptions = DefinitionLoadingModule.kompileOptions(context, compiledDef, files);
 
             // krun
-            assert (kompileOptions.backend.equals(Backends.JAVA)); // TODO: support other backends
-            //
-            Map<String, MethodHandle> hookProvider = HookProvider.get(kem);
-            InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
-            //
+
+            Function<Module, Rewriter> initializeRewriter;
+            if (kompileOptions.backend.equals(Backends.JAVA)) {
+                //
+                Map<String, MethodHandle> hookProvider = HookProvider.get(kem);
+                InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
+                //
+
+                //
+                initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions, kRunOptions, files, initializeDefinition);
+            } else if (kompileOptions.backend.equals(Backends.KALE)) {
+                initializeRewriter = KaleRewriter::apply;
+            } else {
+                throw new AssertionError("Backend not hooked to the shell.");
+            }
+
             ExecutionMode executionMode;
             boolean isProofMode = kRunOptions.experimental.prove != null;
             boolean isDebugMode = kRunOptions.experimental.debugger();
@@ -245,8 +265,7 @@ public class Main {
             } else {
                 executionMode = new KRunExecutionMode(kRunOptions, kem, files);
             }
-            //
-            InitializeRewriter initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions, kRunOptions, files, initializeDefinition);
+
             KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, kompiledDir, kem, kRunOptions, files, compiledDef, initializeRewriter, executionMode, ttyInfo, isNailgun);
 
             return runApplication(frontEnd, kem);
@@ -358,32 +377,38 @@ public class Main {
         }
 
         if (toolName.equals("-keq")) {
+            Tool tool = Tool.KEQ;
 
-            if (args.length < 8) {
-                System.out.println("usage: <smt-prelude> <def0> <mod0> <def1> <mod1> <def2> <mod2> <spec>");
-                return 1;
-            }
-            String def0 = FileUtil.load(new File(args[1])); // "require \"domains.k\" module A syntax KItem ::= \"run\" endmodule"
-            String mod0 = args[2]; // "A"
-            String def1 = FileUtil.load(new File(args[3])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
-            String mod1 = args[4]; // "A"
-            String def2 = FileUtil.load(new File(args[5])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
-            String mod2 = args[6]; // "A"
+            // basics
+            KeqOptions keqOptions = new KeqOptions();
+            KExceptionManager kem = new KExceptionManager(keqOptions.global);
+            Stopwatch sw = new Stopwatch(keqOptions.global);
+            BinaryLoader loader = new BinaryLoader(kem);
+            JarInfo jarInfo = new JarInfo(kem);
+
+            // parsing options
+            Set<Object> options = ImmutableSet.of(keqOptions);
+            Set<Class<?>> experimentalOptions = ImmutableSet.of();
+            JCommander jc = JCommanderModule.jcommander(args, tool, options, experimentalOptions, kem, sw);
+            String usage = JCommanderModule.usage(jc);
+            String experimentalUsage = JCommanderModule.experimentalUsage(jc);
+            usage(keqOptions.global, usage, experimentalUsage, jarInfo);
+
+            File def0File = FileUtil.resolveWorkingDirectory(new File(keqOptions.def0), workingDir);
+            File def1File = FileUtil.resolveWorkingDirectory(new File(keqOptions.def1), workingDir);
+            File def2File = FileUtil.resolveWorkingDirectory(new File(keqOptions.def2), workingDir);
             //
-            String prelude = args[0];
-            String prove = args[7];
+            String prelude = FileUtil.resolveWorkingDirectory(new File(keqOptions.smt.smtPrelude), workingDir).getAbsolutePath();
+            String prove   = FileUtil.resolveWorkingDirectory(new File(keqOptions.parameters.get(0)), workingDir).getAbsolutePath();
 
-            Kapi kapi = new Kapi();
-
-            // kompile
-            CompiledDefinition compiledDef0 = kapi.kompile(def0, mod0);
-            CompiledDefinition compiledDef1 = kapi.kompile(def1, mod1);
-            CompiledDefinition compiledDef2 = kapi.kompile(def2, mod2);
+            CompiledDefinition compiledDef0 = loader.loadOrDie(CompiledDefinition.class, new File(def0File, "compiled.bin"));
+            CompiledDefinition compiledDef1 = loader.loadOrDie(CompiledDefinition.class, new File(def1File, "compiled.bin"));
+            CompiledDefinition compiledDef2 = loader.loadOrDie(CompiledDefinition.class, new File(def2File, "compiled.bin"));
 
             // kequiv
             Kapi.kequiv(compiledDef0, compiledDef1, compiledDef2, prove, prelude);
 
-            return 1;
+            return 0;
         }
 
         invalidJarArguments();

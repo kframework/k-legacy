@@ -21,13 +21,11 @@ import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.ADT;
-import org.kframework.kore.KToken;
 import org.kframework.kore.Sort;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KORE;
-import org.kframework.kore.KSequence;
 import org.kframework.kore.KVariable;
 import org.kframework.kore.SortedADT;
 import org.kframework.kore.compile.AddImplicitComputationCell;
@@ -75,7 +73,7 @@ public class JavaBackend implements Backend {
         this(kapiGlobal.kem, kapiGlobal.files, kapiGlobal.globalOptions, kapiGlobal.kompileOptions);
     }
 
-    DefinitionTransformer moduleQualifySortPredicates = DefinitionTransformer.fromKTransformerWithModuleInfo((Module m, K k) -> {
+    public static K moduleQualifySortPredicates(Module m, K k) {
         return new TransformK() {
             @Override
             public K apply(KApply kk) {
@@ -93,7 +91,7 @@ public class JavaBackend implements Backend {
                 }
             }
         }.apply(k);
-    }, "Module-qualify sort predicates");
+    }
 
     /**
      * @param the generic {@link Kompile}
@@ -108,19 +106,19 @@ public class JavaBackend implements Backend {
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(DefinitionTransformer.fromHybrid(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))
-                .andThen(moduleQualifySortPredicates)
+                .andThen(DefinitionTransformer.fromKTransformerWithModuleInfo(JavaBackend::moduleQualifySortPredicates, "Module-qualify sort predicates"))
                 .andThen(expandMacrosDefinitionTransformer::apply)
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(convertDataStructureToLookup)
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
-                .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::convertKSeqToKApply, "kseq to kapply"))
+                .andThen(DefinitionTransformer.fromRuleBodyTranformer(Kompile::convertKSeqToKApply, "kseq to kapply"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(NormalizeKSeq.self(), "normalize kseq"))
                 .andThen(JavaBackend::markRegularRules)
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new AddConfigurationRecoveryFlags()::apply, "add refers_THIS_CONFIGURATION_marker"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(JavaBackend::markSingleVariables, "mark single variables"))
                 .andThen(DefinitionTransformer.fromHybrid(new AssocCommToAssoc(KORE.c()), "convert assoc/comm to assoc"))
                 .andThen(DefinitionTransformer.fromHybrid(new MergeRules(KORE.c()), "generate matching automaton"))
-                .andThen(moduleQualifySortPredicates)
+                .andThen(DefinitionTransformer.fromKTransformerWithModuleInfo(JavaBackend::moduleQualifySortPredicates, "Module-qualify sort predicates"))
                 .apply(d);
     }
 
@@ -135,10 +133,10 @@ public class JavaBackend implements Backend {
                 .andThen(ConcretizeCells::transformDefinition)
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
                 .andThen(DefinitionTransformer.fromHybrid(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))
-                .andThen(moduleQualifySortPredicates)
+                .andThen(DefinitionTransformer.fromKTransformerWithModuleInfo(JavaBackend::moduleQualifySortPredicates, "Module-qualify sort predicates"))
                 .andThen(expandMacrosDefinitionTransformer::apply)
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
-                .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::convertKSeqToKApply, "kseq to kapply"))
+                .andThen(DefinitionTransformer.fromRuleBodyTranformer(Kompile::convertKSeqToKApply, "kseq to kapply"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(NormalizeKSeq.self(), "normalize kseq"))
                 .andThen(JavaBackend::markRegularRules)
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new AddConfigurationRecoveryFlags()::apply, "add refers_THIS_CONFIGURATION_marker"))
@@ -169,17 +167,6 @@ public class JavaBackend implements Backend {
         return new TransformK() {
             public K apply(KVariable kvar) {
                 return new SortedADT.SortedKVariable(kvar.name(), kvar.att());
-            }
-        }.apply(ruleBody);
-    }
-
-    /**
-     * In the Java backend, {@link KSequence}s are treated like {@link KApply}s, so tranform them.
-     */
-    public static K convertKSeqToKApply(K ruleBody) {
-        return new TransformK() {
-            public K apply(KSequence kseq) {
-                return super.apply(((ADT.KSequence) kseq).kApply());
             }
         }.apply(ruleBody);
     }

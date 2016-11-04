@@ -58,6 +58,26 @@ import static org.kframework.Collections.*;
 
 /**
  * KRunAPI
+ *
+ * Example usage:
+ *
+ *   String def = FileUtil.load(new File(args[0])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
+ *   String mod = args[1]; // "A"
+ *   String pgm = FileUtil.load(new File(args[2])); // "run"
+ *
+ *   String prove = args[3]; // *_spec.k
+ *   String prelude = args[4]; // *.smt2
+ *
+ *   // kompile
+ *   CompiledDefinition compiledDef = kapi.kompile(def, mod);
+ *
+ *   // krun
+ *   RewriterResult result = kapi.krun(pgm, null, compiledDef);
+ *   kprint(compiledDef, result);
+ *
+ *   // kprove
+ *   kapi.kprove(prove, prelude, compiledDef);
+ *
  */
 public class Kapi {
 
@@ -72,8 +92,12 @@ public class Kapi {
     }
 
     public CompiledDefinition kompile(String def, String mainModuleName) {
+        return kompile(def, mainModuleName, DefinitionParser.defaultLookupDirectories());
+    }
+
+    public CompiledDefinition kompile(String def, String mainModuleName, List<File> lookupDirectories) {
         // parse
-        Definition parsedDef = DefinitionParser.from(def, mainModuleName);
+        Definition parsedDef = DefinitionParser.from(def, mainModuleName, lookupDirectories);
 
         // compile (translation pipeline)
         Function<Definition, Definition> pipeline = new JavaBackend(kapiGlobal).steps();
@@ -173,47 +197,6 @@ public class Kapi {
         KRun.prettyPrint(compiledDef, krunOptions.output, s -> KRun.outputFile(s, krunOptions, files), result.k());
     }
 
-    public static void main(String[] args) {
-        if (args.length < 10) {
-            System.out.println("usage: <def> <main-module> <pgm>");
-            return;
-        }
-        String def0 = FileUtil.load(new File(args[0])); // "require \"domains.k\" module A syntax KItem ::= \"run\" endmodule"
-        String mod0 = args[1]; // "A"
-
-        String def1 = FileUtil.load(new File(args[2])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
-        String mod1 = args[3]; // "A"
-        String pgm1 = FileUtil.load(new File(args[4])); // "run"
-
-        String def2 = FileUtil.load(new File(args[5])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
-        String mod2 = args[6]; // "A"
-        String pgm2 = FileUtil.load(new File(args[7])); // "run"
-
-        String prove = args[8];
-        String prelude = args[9];
-
-        Kapi kapi = new Kapi();
-
-        // kompile
-        CompiledDefinition compiledDef0 = kapi.kompile(def0, mod0);
-        CompiledDefinition compiledDef1 = kapi.kompile(def1, mod1);
-        CompiledDefinition compiledDef2 = kapi.kompile(def2, mod2);
-
-        // krun
-        RewriterResult result1 = kapi.krun(pgm1, null, compiledDef1);
-        kprint(compiledDef1, result1);
-        RewriterResult result2 = kapi.krun(pgm2, null, compiledDef2);
-        kprint(compiledDef2, result2);
-
-        // kprove
-        kapi.kprove(prove, prelude, compiledDef0);
-
-        // kequiv
-        kequiv(compiledDef0, compiledDef1, compiledDef2, prove, prelude);
-
-        return;
-    }
-
     /**
      * compiledDef0: for parsing spec rules
      * compiledDef1: for symbolic execution
@@ -252,7 +235,7 @@ public class Kapi {
 
         specModule = new JavaBackend(kem, files, globalOptions, kompileOptions)
                 .stepsForProverRules()
-                .apply(Definition.apply(specModule, org.kframework.Collections.add(specModule, alsoIncluded), Att.apply()))
+                .apply(Definition.apply(specModule, org.kframework.Collections.<Module>add(specModule, alsoIncluded), Att.apply()))
                 .getModule(specModule.name()).get();
 
         ExpandMacros macroExpander = new ExpandMacros(compiledDef0.executionModule(), kem, files, globalOptions, kompileOptions);
@@ -261,7 +244,7 @@ public class Kapi {
                 .filter(r -> r.toString().contains("spec.k"))
                 .map(r -> (Rule) macroExpander.expand(r))
                 .map(r -> ProofExecutionMode.transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
-                .map(r -> ProofExecutionMode.transformFunction(JavaBackend::convertKSeqToKApply, r))
+                .map(r -> ProofExecutionMode.transformFunction(Kompile::convertKSeqToKApply, r))
                 .map(r -> ProofExecutionMode.transform(NormalizeKSeq.self(), r))
                         //.map(r -> kompile.compileRule(compiledDefinition, r))
                 .collect(Collectors.toList());
@@ -412,7 +395,7 @@ public class Kapi {
                 .filter(r -> r.toString().contains("spec.k"))
                 .map(r -> (Rule) macroExpander.expand(r))
                 .map(r -> ProofExecutionMode.transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
-                .map(r -> ProofExecutionMode.transformFunction(JavaBackend::convertKSeqToKApply, r))
+                .map(r -> ProofExecutionMode.transformFunction(Kompile::convertKSeqToKApply, r))
                 .map(r -> ProofExecutionMode.transform(NormalizeKSeq.self(), r))
                         //.map(r -> kompile.compileRule(compiledDefinition, r))
                 .collect(Collectors.toList());
