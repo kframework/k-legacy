@@ -6,6 +6,7 @@ import org.kframework.builtin.BooleanUtils;
 import org.kframework.definition.Context;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
+import org.kframework.definition.SentenceBasedModuleTransformer;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.Sort;
 import org.kframework.kompile.KompileOptions;
@@ -17,7 +18,7 @@ import java.util.Set;
 import static org.kframework.definition.Constructors.*;
 import static org.kframework.kore.KORE.*;
 
-public class ResolveHeatCoolAttribute {
+public class ResolveHeatCoolAttribute extends SentenceBasedModuleTransformer {
 
     private Set<String> transitions;
 
@@ -55,7 +56,7 @@ public class ResolveHeatCoolAttribute {
         throw new AssertionError("unreachable");
     }
 
-    public Sentence resolve(Sentence s) {
+    public Sentence process(Sentence s) {
         if (!s.att().contains("heat") && !s.att().contains("cool")) {
             return s;
         }

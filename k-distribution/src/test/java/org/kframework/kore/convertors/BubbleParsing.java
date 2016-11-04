@@ -5,10 +5,12 @@ package org.kframework.kore.convertors;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import org.kframework.attributes.Source;
+import org.kframework.definition.BasicModuleTransformer;
 import org.kframework.definition.Bubble;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
 import org.kframework.definition.Module;
+import org.kframework.definition.ModuleTransformer;
 import org.kframework.definition.Sentence;
 import org.kframework.kore.K;
 import org.kframework.parser.Ambiguity;
@@ -41,7 +43,7 @@ import static org.kframework.definition.Constructors.Rule;
  * TODO: WORK IN PROGRESS
  */
 
-public class BubbleParsing {
+public class BubbleParsing extends BasicModuleTransformer {
 
     private final Grammar.NonTerminal startNonterminal;
 
@@ -92,11 +94,10 @@ public class BubbleParsing {
     }
 
     /**
-     * TODO(radu): generalize this function, and eliminate duplicates
      * Replaces the bubbles in m with their parsing.
      */
-    public Module parseBubbles(Module m) {
-        Set<Module> newImports = stream(m.imports()).map(this::parseBubbles).collect(Collectors.toSet());
+    @Override
+    public Module process(Module m, scala.collection.Set<Module> alreadyProcessedImports) {
 
         Set<Sentence> newSentences = stream(m.localSentences()).map(s -> {
             if (s instanceof Bubble) {
@@ -125,13 +126,6 @@ public class BubbleParsing {
             }
         }).collect(Collectors.toSet());
 
-        return Module(m.name(), immutable(newImports), immutable(newSentences), m.att());
-    }
-
-    /**
-     * Parse bubbles in all modules of d.
-     */
-    public Definition parseBubbles(Definition d) {
-        return DefinitionTransformer.fromHybrid(this::parseBubbles, "parsing rules").apply(d);
+        return Module(m.name(), alreadyProcessedImports, immutable(newSentences), m.att());
     }
 }

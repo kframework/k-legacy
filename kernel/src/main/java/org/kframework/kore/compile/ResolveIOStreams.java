@@ -4,11 +4,13 @@ package org.kframework.kore.compile;
 import org.kframework.attributes.Location;
 import org.kframework.builtin.KLabels;
 import org.kframework.builtin.Sorts;
+import org.kframework.definition.BasicModuleTransformer;
 import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
 import org.kframework.definition.Production;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
+import org.kframework.definition.WithInputDefinitionModuleTransformer;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KLabel;
@@ -35,14 +37,12 @@ import static org.kframework.kore.KORE.*;
 /**
  * Created by daejunpark on 9/6/15.
  */
-public class ResolveIOStreams {
-
-    private final Definition definition;
+public class ResolveIOStreams extends WithInputDefinitionModuleTransformer {
 
     private final KExceptionManager kem;
 
     public ResolveIOStreams(Definition definition, KExceptionManager kem) {
-        this.definition = definition;
+        super(definition);
         this.kem = kem;
     }
 
@@ -55,7 +55,7 @@ public class ResolveIOStreams {
      * 2. Update rules that refer to 'stdin' stream.
      * 3. Import rules from *-STREAM modules (with modification of cell names).
      */
-    public Module resolve(Module m) {
+    public Module process(Module m, scala.collection.Set<Module> alreadyProcessed) {
         java.util.Set<Production> streamProductions = getStreamProductions(m);
         if (streamProductions.isEmpty()) {
             return m;
@@ -79,7 +79,7 @@ public class ResolveIOStreams {
             for (Production p : streamProductions) {
                 sentences.addAll(getStreamModuleSentences(p));
             }
-            return Module(m.name(), m.imports(), immutable(sentences), m.att());
+            return Module(m.name(), alreadyProcessed, immutable(sentences), m.att());
         }
     }
 
@@ -216,7 +216,7 @@ public class ResolveIOStreams {
     private Module getStreamModule(String streamName) {
         // TODO(Daejun): fix hard-coded stream module naming convention
         String moduleName = streamName.toUpperCase() + "-STREAM";
-        Option<Module> module = definition.getModule(moduleName);
+        Option<Module> module = inputDefinition().getModule(moduleName);
         if (module.isDefined()) {
             return module.get();
         } else {

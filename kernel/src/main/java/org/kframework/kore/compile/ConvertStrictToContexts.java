@@ -1,7 +1,9 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.kore.compile;
 
+import org.kframework.Collections;
 import org.kframework.builtin.BooleanUtils;
+import org.kframework.definition.BasicModuleTransformer;
 import org.kframework.definition.Context;
 import org.kframework.definition.Module;
 import org.kframework.definition.NonTerminal;
@@ -28,11 +30,11 @@ import static org.kframework.definition.Constructors.Att;
 import static org.kframework.definition.Constructors.*;
 import static org.kframework.kore.KORE.*;
 
-public class ResolveStrict {
+public class ConvertStrictToContexts extends BasicModuleTransformer {
 
     private final KompileOptions kompileOptions;
 
-    public ResolveStrict(KompileOptions kompileOptions) {
+    public ConvertStrictToContexts(KompileOptions kompileOptions) {
         this.kompileOptions = kompileOptions;
     }
 
@@ -119,11 +121,11 @@ public class ResolveStrict {
         return contexts;
     }
 
-    public Module resolve(Module input) {
+    public Module process(Module input, scala.collection.Set<Module> processedImports) {
         Set<Sentence> contextsToAdd = resolve(stream(input.localSentences())
                 .filter(s -> s instanceof Production)
                 .map(s -> (Production) s)
                 .filter(p -> p.att().contains("strict") || p.att().contains("seqstrict")).collect(Collectors.toSet()));
-        return Module(input.name(), input.imports(), (scala.collection.Set<Sentence>) input.localSentences().$bar(immutable(contextsToAdd)), input.att());
+        return Module(input.name(), processedImports, Collections.addAll(input.localSentences(), immutable(contextsToAdd)), input.att());
     }
 }
