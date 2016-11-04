@@ -14,9 +14,7 @@ import java.util.List;
  */
 public class KeqOptions {
 
-    /**
-     * Equivalence specification, *_spec.k file.
-     */
+    // TODO(Daejun): drop this
     @Parameter(description="<file>")
     public List<String> parameters;
 
@@ -30,22 +28,27 @@ public class KeqOptions {
     @ParametersDelegate
     public DefinitionLoadingOptions definitionLoading = new DefinitionLoadingOptions();
 
-    @Parameter(names="--def0", description="K definition of aggregated configuration.")
+    @Parameter(names="--def0", description="K kompiled definition of common language.")
     public String def0;
 
-    @Parameter(names="--def1", description="K definition of 1st language.")
+    @Parameter(names="--def1", description="K kompiled definition of 1st language.")
     public String def1;
 
-    @Parameter(names="--def2", description="K definition of 2nd language.")
+    @Parameter(names="--def2", description="K kompiled definition of 2nd language.")
     public String def2;
 
-    @Parameter(names="--mod0", description="Main module name of def0")
-    public String mod0;
+//    @Parameter(names="--mod0", description="Main module name of def0")
+//    public String mod0;
+//
+//    @Parameter(names="--mod1", description="Main module name of def1")
+//    public String mod1;
+//
+//    @Parameter(names="--mod2", description="Main module name of def2")
+//    public String mod2;
 
-    @Parameter(names="--mod1", description="Main module name of def1")
-    public String mod1;
+    @Parameter(names="--prove1", description="Specification for 1st language.")
+    public String prove1;
 
-    @Parameter(names="--mod2", description="Main module name of def2")
-    public String mod2;
-
+    @Parameter(names="--prove2", description="Specification for 2nd language.")
+    public String prove2;
 }
