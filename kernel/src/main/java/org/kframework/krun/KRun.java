@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -126,13 +127,10 @@ public class KRun {
     private StringBuilder filterAnonVarsAndPrint(K result, Set<String> filterSet, CompiledDefinition compiledDef, KRunOptions options) {
         StringBuilder sb = new StringBuilder();
         ByteArrayOutputStream bs = new ByteArrayOutputStream();
-        if (result instanceof KApply && ((KApply) result).klabel().toString().equals(KLabels.AND)) {
-            List<K> conjunctions = mutable(Assoc.flatten(KLabel(KLabels.AND), immutable(((KApply) result).items()), KLabel(KLabels.ML_TRUE)));
+        if (result instanceof KApply && ((KApply) result).klabel().toString().equals(KLabels.ML_AND)) {
+            List<K> conjunctions = mutable(Assoc.flatten(KLabel(KLabels.ML_AND), immutable(((KApply) result).items()), KLabel(KLabels.ML_TRUE)));
             conjunctions = conjunctions.stream().filter(x -> {
-                if (x.getClass().toString().contains("BoolToken")) {
-                    return false;
-                }
-                if ((options.pattern != null) && x instanceof KApply && ((KApply) x).klabel().toString().equals(KLabels.EQUALS)) {
+                if ((options.pattern != null) && x instanceof KApply && ((KApply) x).klabel().name().equals(KLabels.EQUALS)) {
                     K var = ((KApply) x).klist().items().get(0);
                     if (var instanceof KVariable) {
                         return filterSet.contains(((KVariable) var).name());
@@ -145,7 +143,7 @@ public class KRun {
                 conjunctions.subList(0, conjunctions.size() - 1).forEach(x -> {
                     prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), x);
                     sb.append(new String(bs.toByteArray()));
-                    sb.append(" " + KLabels.AND + " ");
+                    sb.append(" " + KLabels.ML_AND + " ");
                 });
             }
             if (!conjunctions.isEmpty()) {
@@ -173,11 +171,8 @@ public class KRun {
                 }
             }.apply(parsePattern(files, kem, options.pattern, compiledDef, Source.apply("<command line: --pattern>")).body());
         }
-        if (result instanceof KApply && ((KApply) result).klabel().equals(KLabel(KLabels.OR))) {
-            Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = KApply$.MODULE$.unapply((KApply) result);
-            scala.collection.Seq<K> seq = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
-            List<K> resultList = mutable(seq).stream().filter(x -> !x.getClass().toString().contains("BoolToken")).collect(Collectors.toList());
-            resultList.sort(Comparator.comparing(K::toString));
+        if (result instanceof KApply && ((KApply) result).klabel().equals(KLabel(KLabels.ML_OR))) {
+            List<K> resultList = Assoc.flatten(KLabel(KLabels.OR), ((KApply) result).items(), KLabel(KLabels.ML_FALSE));
             Set<String> observedResults = new HashSet<>();
             if (resultList.size() == 0) {
                 sb.append("No Search Results\n");

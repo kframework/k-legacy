@@ -565,7 +565,7 @@ public class SymbolicRewriter {
 
     private void flattenList(List<K> unflat, List<K> flat) {
         unflat.forEach(x -> {
-            if (x instanceof KItem && ((KItem) x).klabel().toString().equals(KLabels.AND)) {
+            if (x instanceof KItem && ((KItem) x).klabel().name().equals(KLabels.AND)) {
                 flattenList(((KItem) x).items(), flat);
             } else {
                 flat.add(x);
@@ -574,19 +574,19 @@ public class SymbolicRewriter {
     }
 
     private K processConjuncts(ConjunctiveFormula conjunct) {
-        if (conjunct.klabel().toString().equals(KLabels.AND)) {
+        if (conjunct.klabel().name().equals(KLabels.AND)) {
             List<K> kList = conjunct.items();
             List<K> flatList = new ArrayList();
             flattenList(kList, flatList);
             flatList = flatList.stream().map(this::kApplyConversion).collect(Collectors.toList());
-            return flatList.stream().reduce(BoolToken.TRUE, (x, y) -> KORE.KApply(KORE.KLabel(KLabels.AND), x, y));
+            return flatList.stream().reduce(KORE.KApply(KORE.KLabel(KLabels.ML_TRUE)), (x, y) -> KORE.KApply(KORE.KLabel(KLabels.ML_AND), x, y));
         }
-        return KORE.KApply(KORE.KLabel(KLabels.AND), kApplyConversion(conjunct.toKore()), BoolToken.TRUE);
+        return KORE.KApply(KORE.KLabel(KLabels.ML_AND), kApplyConversion(conjunct.toKore()), KORE.KApply(KORE.KLabel(KLabels.ML_TRUE)));
     }
 
     private K disjunctResults(List<K> results) {
         return results.stream().map(x -> x instanceof ConjunctiveFormula ? processConjuncts((ConjunctiveFormula) x) : x)
-                .reduce(BoolToken.FALSE, (x, y) -> KORE.KApply(KORE.KLabel(KLabels.OR), x, y));
+                .reduce(KORE.KApply(KORE.KLabel(KLabels.ML_FALSE)), (x, y) -> KORE.KApply(KORE.KLabel(KLabels.ML_OR), x, y));
     }
 
     public List<ConstrainedTerm> proveRule(
