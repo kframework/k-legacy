@@ -80,9 +80,9 @@ public class StrategiesTest {
         Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = Unapply.KApply$.MODULE$.unapply((KApply) res);
         Module unparsingModule = utils.getUnparsingModule();
         List<String> results = new ArrayList<>();
-        if (searchResults.get() != null && searchResults.get()._1().equals(KORE.KLabel(KLabels.OR))) {
-            scala.collection.Seq<K> resultList = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
-            resultList.splitAt(1)._2().foreach(x -> {
+        if (searchResults.get() != null && searchResults.get()._1().equals(KORE.KLabel(KLabels.ML_OR))) {
+            scala.collection.Seq<K> resultList = Assoc.flatten(KORE.KLabel(KLabels.ML_OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
+            resultList.foreach(x -> {
                 results.add(KOREToTreeNodes.toString(new AddBrackets(unparsingModule).addBrackets((ProductionReference) KOREToTreeNodes.apply(KOREToTreeNodes.up(unparsingModule, x), unparsingModule))));
                 return null;
             });
