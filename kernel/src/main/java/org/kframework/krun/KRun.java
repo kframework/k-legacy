@@ -171,7 +171,8 @@ public class KRun {
             }.apply(parsePattern(files, kem, options.pattern, compiledDef, Source.apply("<command line: --pattern>")).body());
         }
         if (result instanceof KApply && ((KApply) result).klabel().equals(KLabel(KLabels.ML_OR))) {
-            List<K> resultList = Assoc.flatten(KLabel(KLabels.ML_OR), ((KApply) result).items(), KLabel(KLabels.ML_FALSE));
+            List<K> resultList = Assoc.flatten(KLabel(KLabels.ML_OR), ((KApply) result).items(), KLabel(KLabels.ML_FALSE))
+                    .stream().sorted(Comparator.comparing(K::toString)).collect(Collectors.toList());
             Set<String> observedResults = new HashSet<>();
             if (resultList.size() == 0) {
                 sb.append("No Search Results\n");

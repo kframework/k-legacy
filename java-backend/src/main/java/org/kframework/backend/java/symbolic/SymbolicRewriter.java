@@ -434,7 +434,7 @@ public class SymbolicRewriter {
                 }
             } else {
                 if (!subject.constraint().isTrue()) {
-                    searchResults.add(KORE.KApply(KORE.KLabel(KLabels.AND), renameAnonymousVariables.apply(subject.term()), renameAnonymousVariables.apply(subject.constraint())));
+                    searchResults.add(KORE.KApply(KORE.KLabel(KLabels.ML_AND), renameAnonymousVariables.apply(subject.term()), renameAnonymousVariables.apply(subject.constraint())));
                 } else {
                     searchResults.add(renameAnonymousVariables.apply(subject.term()));
                 }
