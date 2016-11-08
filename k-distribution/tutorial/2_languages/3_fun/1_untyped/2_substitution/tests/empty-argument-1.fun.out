@@ -1,6 +1,2 @@
-Search results:
-
-Solution 1:
-V:K@SORT-K -->
-fun ( ( Nothing -> 7 ) | .Cases )
-
+Solution 1
+V ==K fun ( ( Nothing -> 7 ) | .Cases )

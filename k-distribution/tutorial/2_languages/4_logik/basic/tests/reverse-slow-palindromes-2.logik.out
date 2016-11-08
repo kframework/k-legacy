@@ -1,6 +1,2 @@
-Search results:
-
-Solution 1:
-Solution:Map@MAP -->
-A:Term@LOGIK-COMMON |-> V0 B:Term@LOGIK-COMMON |-> V1 C:Term@LOGIK-COMMON |-> V0
-
+Solution 1
+Solution ==K ( A:Term@LOGIK-COMMON |-> V0 B:Term@LOGIK-COMMON |-> V1 C:Term@LOGIK-COMMON |-> V0 )

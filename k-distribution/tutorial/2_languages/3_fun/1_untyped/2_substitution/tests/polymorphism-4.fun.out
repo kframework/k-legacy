@@ -1,6 +1,2 @@
-Search results:
-
-Solution 1:
-V:K@SORT-K -->
-fun ( ( x -> ( ( fun ( ( [ y , .Exps ] -> y ) | .Cases ) ) [ x , .Exps ] ) ) | .Cases )
-
+Solution 1
+V ==K fun ( ( x -> ( ( fun ( ( [ y , .Exps ] -> y ) | .Cases ) ) [ x , .Exps ] ) ) | .Cases )
