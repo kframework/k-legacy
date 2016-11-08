@@ -85,7 +85,7 @@ public class JavaBackend implements Backend {
                 Option<ADT.Sort> resolvedSort = m.sortResolver().get(possibleSort);
 
                 if (resolvedSort.isDefined()) {
-                    return KORE.KApply(KORE.KLabel("is" + resolvedSort.get().name()), k.klist());
+                    return KORE.KApply(KORE.KLabel("is" + resolvedSort.get().name()), k.klist(), kk.att());
                 } else {
                     return k;
                 }
@@ -105,7 +105,7 @@ public class JavaBackend implements Backend {
         return d -> (func((Definition dd) -> Kompile.defaultSteps(kompileOptions, kem).apply(dd)))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
-                .andThen(DefinitionTransformer.fromHybrid(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))
+                .andThen(AddBottomSortForListsWithIdenticalLabels.singleton().lift())
                 .andThen(DefinitionTransformer.fromKTransformerWithModuleInfo(JavaBackend::moduleQualifySortPredicates, "Module-qualify sort predicates"))
                 .andThen(expandMacrosDefinitionTransformer::apply)
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
@@ -116,23 +116,21 @@ public class JavaBackend implements Backend {
                 .andThen(JavaBackend::markRegularRules)
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new AddConfigurationRecoveryFlags()::apply, "add refers_THIS_CONFIGURATION_marker"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(JavaBackend::markSingleVariables, "mark single variables"))
-                .andThen(DefinitionTransformer.fromHybrid(new AssocCommToAssoc(KORE.c()), "convert assoc/comm to assoc"))
-                .andThen(DefinitionTransformer.fromHybrid(new MergeRules(KORE.c()), "generate matching automaton"))
+                .andThen(new AssocCommToAssoc(KORE.c()).lift())
+                .andThen(new MergeRules(KORE.c()).lift())
                 .andThen(DefinitionTransformer.fromKTransformerWithModuleInfo(JavaBackend::moduleQualifySortPredicates, "Module-qualify sort predicates"))
                 .apply(d);
     }
 
     public Function<Definition, Definition> stepsForProverRules() {
-        DefinitionTransformer resolveAnonVars = DefinitionTransformer.fromSentenceTransformer(new ResolveAnonVar()::resolve, "resolving \"_\" vars");
-        DefinitionTransformer resolveSemanticCasts = DefinitionTransformer.fromSentenceTransformer(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve, "resolving semantic casts");
         ExpandMacrosDefinitionTransformer expandMacrosDefinitionTransformer = new ExpandMacrosDefinitionTransformer(kem, files, globalOptions, kompileOptions);
 
-        return d -> resolveAnonVars
-                .andThen(resolveSemanticCasts)
+        return d -> new ResolveAnonVar().lift()
+                .andThen(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA)).lift())
                 .andThen(AddImplicitComputationCell::transformDefinition)
                 .andThen(ConcretizeCells::transformDefinition)
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
-                .andThen(DefinitionTransformer.fromHybrid(AddBottomSortForListsWithIdenticalLabels.singleton(), "AddBottomSortForListsWithIdenticalLabels"))
+                .andThen(AddBottomSortForListsWithIdenticalLabels.singleton().lift())
                 .andThen(DefinitionTransformer.fromKTransformerWithModuleInfo(JavaBackend::moduleQualifySortPredicates, "Module-qualify sort predicates"))
                 .andThen(expandMacrosDefinitionTransformer::apply)
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))

@@ -4,6 +4,7 @@ package org.kframework.kore.compile;
 import org.kframework.definition.Context;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
+import org.kframework.definition.SentenceBasedModuleTransformer;
 import org.kframework.kore.*;
 
 import java.util.HashSet;
@@ -11,7 +12,7 @@ import java.util.Set;
 
 import static org.kframework.kore.KORE.*;
 
-public class ResolveAnonVar {
+public class ResolveAnonVar extends SentenceBasedModuleTransformer {
 
     public static KVariable ANON_VAR = KVariable("_");
 
@@ -43,7 +44,7 @@ public class ResolveAnonVar {
                 context.att());
     }
 
-    public synchronized Sentence resolve(Sentence s) {
+    public synchronized Sentence process(Sentence s) {
         if (s instanceof Rule) {
             return resolve((Rule) s);
         } else if (s instanceof Context) {

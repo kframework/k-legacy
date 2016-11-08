@@ -12,9 +12,7 @@ import org.kframework.compile.LabelInfoFromModule;
 import org.kframework.definition.Constructors;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
-import org.kframework.definition.HybridMemoizingModuleTransformer;
 import org.kframework.definition.Module;
-import org.kframework.definition.ModuleTransformer;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
 import org.kframework.kore.ADT;
@@ -33,7 +31,7 @@ import org.kframework.kore.compile.ResolveFreshConstants;
 import org.kframework.kore.compile.ResolveHeatCoolAttribute;
 import org.kframework.kore.compile.ResolveIOStreams;
 import org.kframework.kore.compile.ResolveSemanticCasts;
-import org.kframework.kore.compile.ResolveStrict;
+import org.kframework.kore.compile.ConvertStrictToContexts;
 import org.kframework.kore.compile.SortInfo;
 import org.kframework.kore.compile.checks.CheckConfigurationCells;
 import org.kframework.kore.compile.checks.CheckRHSVariables;
@@ -47,7 +45,6 @@ import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
-import scala.Function1;
 import scala.Option;
 
 import java.io.File;
@@ -143,24 +140,15 @@ public class Kompile {
         return definitionParsing.parseDefinitionAndResolveBubbles(definitionFile, mainModuleName, mainProgramsModule);
     }
 
-    public static Definition resolveIOStreams(Definition d, KExceptionManager kem) {
-        return DefinitionTransformer.fromHybrid(new ResolveIOStreams(d, kem)::resolve, "resolving io streams").apply(d);
-    }
-
     public static Function<Definition, Definition> defaultSteps(KompileOptions kompileOptions, KExceptionManager kem) {
-        DefinitionTransformer convertStrictToContexts = DefinitionTransformer.fromHybrid(new ResolveStrict(kompileOptions)::resolve, "resolving strict and seqstrict attributes");
-        DefinitionTransformer resolveHeatCoolAttribute = DefinitionTransformer.fromSentenceTransformer(new ResolveHeatCoolAttribute(new HashSet<>(kompileOptions.transition))::resolve, "resolving heat and cool attributes");
-        DefinitionTransformer convertAnonVarsToNamedVars = DefinitionTransformer.fromSentenceTransformer(new ResolveAnonVar()::resolve, "resolving \"_\" vars");
-        DefinitionTransformer resolveSemanticCasts =
-                DefinitionTransformer.fromSentenceTransformer(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve, "resolving semantic casts");
 
         return d -> {
-            d = resolveIOStreams(d, kem);
-            d = convertStrictToContexts.apply(d);
-            d = convertAnonVarsToNamedVars.apply(d);
+            d = new ResolveIOStreams(d, kem).apply(d);
+            d = new ConvertStrictToContexts(kompileOptions).apply(d);
+            d = new ResolveAnonVar().apply(d);
             d = new ConvertContextsToHeatCoolRules(kompileOptions).resolve(d);
-            d = resolveHeatCoolAttribute.apply(d);
-            d = resolveSemanticCasts.apply(d);
+            d = new ResolveHeatCoolAttribute(new HashSet<>(kompileOptions.transition)).apply(d);
+            d = new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA)).apply(d);
             d = DefinitionTransformer.fromWithInputDefinitionTransformerClass(GenerateSortPredicateSyntax.class).apply(d);
             d = resolveFreshConstants(d);
             d = AddImplicitComputationCell.transformDefinition(d);
@@ -222,8 +210,8 @@ public class Kompile {
     }
 
     public Rule compileRule(CompiledDefinition compiledDef, Rule parsedRule) {
-        return (Rule) asScalaFunc(new ResolveAnonVar()::resolve)
-                .andThen(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve)
+        return (Rule) asScalaFunc((Sentence s) -> new ResolveAnonVar().process(s))
+                .andThen((Sentence s) ->  new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA)).process(s))
                 .andThen(s -> concretizeSentence(s, compiledDef.kompiledDefinition))
                 .apply(parsedRule);
     }

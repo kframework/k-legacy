@@ -6,10 +6,10 @@ import org.kframework.kore.ADT.Sort
 
 import collection._
 
-object AddBottomSortForListsWithIdenticalLabels extends (Module => Module) {
+object AddBottomSortForListsWithIdenticalLabels extends BasicModuleTransformer {
   val singleton = this
 
-  def apply(m: Module): Module = {
+  override def process(m: Module, alreadyProcessedImports: Set[Module]) = {
     val theAdditionalSubsortingProductions = UserList.apply(m.sentences)
       .groupBy(l => l.klabel)
       .flatMap {
@@ -30,7 +30,7 @@ object AddBottomSortForListsWithIdenticalLabels extends (Module => Module) {
       }
 
     if (theAdditionalSubsortingProductions.nonEmpty)
-      m.copy(unresolvedLocalSentences = m.localSentences ++ theAdditionalSubsortingProductions)
+      m.copy(unresolvedLocalSentences = m.localSentences ++ theAdditionalSubsortingProductions, imports = alreadyProcessedImports)
     else
       m
   }

@@ -6,6 +6,7 @@ import org.kframework.builtin.BooleanUtils;
 import org.kframework.definition.Context;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
+import org.kframework.definition.SentenceBasedModuleTransformer;
 import org.kframework.kore.*;
 
 import java.util.HashMap;
@@ -19,7 +20,7 @@ import static org.kframework.kore.KORE.*;
 /**
  * Created by dwightguth on 4/17/15.
  */
-public class ResolveSemanticCasts {
+public class ResolveSemanticCasts extends SentenceBasedModuleTransformer {
 
     private final boolean skipSortPredicates;
     private Set<KApply> casts = new HashSet<>();
@@ -124,7 +125,7 @@ public class ResolveSemanticCasts {
     }
 
 
-    public synchronized Sentence resolve(Sentence s) {
+    public synchronized Sentence process(Sentence s) {
         if (s instanceof Rule) {
             return resolve((Rule) s);
         } else if (s instanceof Context) {

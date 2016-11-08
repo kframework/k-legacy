@@ -11,7 +11,6 @@ import java.io.Serializable;
 import java.lang.annotation.Annotation;
 
 /**
- * @Deprecated
  * Please use {@link org.kframework.attributes.Att}
  * Represents either an explicit attribute on a {@link Rule} or {@link Production},
  * or node metadata like location.
