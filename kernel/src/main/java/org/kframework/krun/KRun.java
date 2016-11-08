@@ -158,18 +158,24 @@ public class KRun {
         }
     }
 
-    public void printK(K result, KRunOptions options, CompiledDefinition compiledDef) {
-        Set<String> patternVariables = new HashSet<>();
-        StringBuilder sb = new StringBuilder();
+    private Set<String> getPatternVariableNames(KRunOptions options, CompiledDefinition compiledDef) {
+        Set<String> patternVariablesNames = new HashSet<>();
         if (options.pattern != null) {
             new VisitK() {
                 @Override
                 public void apply(KVariable k) {
-                    patternVariables.add(k.name());
+                    patternVariablesNames.add(k.name());
                     super.apply(k);
                 }
             }.apply(parsePattern(files, kem, options.pattern, compiledDef, Source.apply("<command line: --pattern>")).body());
         }
+        return patternVariablesNames;
+    }
+
+
+    public void printK(K result, KRunOptions options, CompiledDefinition compiledDef) {
+        Set<String> patternVariables = getPatternVariableNames(options, compiledDef);
+        StringBuilder sb = new StringBuilder();
         if (result instanceof KApply && ((KApply) result).klabel().equals(KLabel(KLabels.ML_OR))) {
             List<K> resultList = Assoc.flatten(KLabel(KLabels.ML_OR), ((KApply) result).items(), KLabel(KLabels.ML_FALSE))
                     .stream().sorted(Comparator.comparing(K::toString)).collect(Collectors.toList());

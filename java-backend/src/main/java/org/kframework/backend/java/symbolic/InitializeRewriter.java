@@ -140,13 +140,13 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
 
 
         @Override
-        public K search(K initialConfiguration, Optional<Integer> depth, Optional<Integer> bound, Rule pattern, SearchType searchType, boolean substitution) {
+        public K search(K initialConfiguration, Optional<Integer> depth, Optional<Integer> bound, Rule pattern, SearchType searchType, boolean resultsAsSubstitution) {
             TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
             Term javaTerm = MacroExpander.expandAndEvaluate(termContext, kem, converter.convert(initialConfiguration));
             org.kframework.backend.java.kil.Rule javaPattern = converter.convert(Optional.empty(), pattern);
             this.rewriter = new SymbolicRewriter(rewritingContext, kompileOptions, new KRunState.Counter(), converter);
-            return rewriter.search(javaTerm, javaPattern, bound.orElse(NEGATIVE_VALUE), depth.orElse(NEGATIVE_VALUE), searchType, termContext, substitution);
+            return rewriter.search(javaTerm, javaPattern, bound.orElse(NEGATIVE_VALUE), depth.orElse(NEGATIVE_VALUE), searchType, termContext, resultsAsSubstitution);
         }
 
 

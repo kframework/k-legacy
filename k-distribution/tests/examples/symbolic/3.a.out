@@ -1,9 +1,9 @@
 Solution 1
 <k> "default" </k>
- _andBool_ V0 ==K ""
+ AND V0 ==K ""
 Solution 2
 <k> "f" </k>
- _andBool_ V0 ==K "f"
+ AND V0 ==K "f"
 Solution 3
 <k> "t" </k>
- _andBool_ V0 ==K "t"
+ AND V0 ==K "t"

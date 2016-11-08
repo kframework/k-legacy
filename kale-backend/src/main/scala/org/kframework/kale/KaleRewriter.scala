@@ -202,7 +202,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
   }
 
 
-  override def search(initialConfiguration: K, depth: Optional[Integer], bound: Optional[Integer], pattern: Rule, searchType: SearchType, subsitution: Boolean): K = ???
+  override def search(initialConfiguration: K, depth: Optional[Integer], bound: Optional[Integer], pattern: Rule, searchType: SearchType, resultsAsSubstitution: Boolean): K = ???
 
   override def executeAndMatch(k: K, depth: Optional[Integer], rule: Rule): (RewriterResult, K) = ???
 
