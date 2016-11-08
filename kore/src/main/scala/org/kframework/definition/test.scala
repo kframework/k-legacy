@@ -119,19 +119,17 @@ object test {
 
   ))
 
-  // module KATTRIBUTES
-  //   imports KTOKENS .KImportList
-  //
-  //   syntax KKeyList ::= KAttributeKey [.KAttributes]
-  //   syntax KKeyList ::= KAttributeKey "," KKeyList [klabel(_,_), .KAttributes]
-  //
-  //   syntax KAttribute ::= KAttributeKey [.Attributes]
-  //   syntax KAttribute ::= KAttributeKey "(" KKeyList ")" [klabel(_(_)), .KAttributes]
-  //   syntax KAttributes ::= ".KAttributes" [klabel(.KAttributes), .KAttributes]
-  //   syntax KAttributes ::= KAttribute "," KAttributes [klabel(_,_), .KAttributes]
-  //
-  //   .KSentenceList
-  // endmodule
+  val KATTRIBUTES_STRING =
+    "module KATTRIBUTES" +
+      "imports KTOKENS .KImportList" +
+      "syntax KKeyList ::= KAttributeKey [.KAttributes]" +
+      "syntax KKeyList ::= KAttributeKey "," KKeyList [klabel(_,_), .KAttributes]" +
+      "syntax KAttribute ::= KAttributeKey [.Attributes]" +
+      "syntax KAttribute ::= KAttributeKey "(" KKeyList ")" [klabel(_(_)), .KAttributes]" +
+      "syntax KAttributes ::= ".KAttributes" [klabel(.KAttributes), .KAttributes]" +
+      "syntax KAttributes ::= KAttribute "," KAttributes [klabel(_,_), .KAttributes]" +
+      ".KSentenceList" +
+    "endmodule"
 
   val KKeyList = Sort("KeyList")
   val KAttribute = Sort("Attribute")
