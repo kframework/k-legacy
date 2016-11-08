@@ -45,7 +45,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -192,7 +191,8 @@ public class KRun {
             }
             outputFile(sb.toString(), options);
             return;
-        } else if (result.getClass().toString().contains("BoolToken")) {
+        }
+        if (result instanceof KApply && ((KApply) result).klabel().name().equals(KLabels.ML_FALSE)) {
             outputFile("No Search Results\n", options);
             return;
         }
