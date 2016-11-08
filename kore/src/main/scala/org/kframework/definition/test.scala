@@ -82,23 +82,21 @@ object test {
 
   ))
 
-  // module KML
-  //   imports KTOKENS .KImportList
-  //
-  //   syntax KMLVar ::= "kmlvar" "(" KString ")" [klabel(kmlvar(_)), .KAttributes]
-  //
-  //   syntax KMLFormula ::= KMLVar [.KAttributes]
-  //   syntax KMLFormula ::= "KMLtrue" [klabel(KMLtrue), .KAttributes]
-  //   syntax KMLFormula ::= "KMLfalse" [klabel(KMLfalse), .KAttributes]
-  //   syntax KMLFormula ::= KMLFormula "KMLand" KMLFormula [klabel(_KMLand_), .KAttributes]
-  //   syntax KMLFormula ::= KMLFormula "KMLor" KMLFormula [klabel(_KMLor_), .KAttributes]
-  //   syntax KMLFormula ::= "KMLnot" KMLFormula [klabel(KMLnot_), .KAttributes]
-  //   syntax KMLFormula ::= "KMLexists" KMLVar "." KMLFormula [klabel(KMLexists_._), .KAttributes]
-  //   syntax KMLFormula ::= "KMLforall" KMLVar "." KMLFormula [klabel(KMLforall_._), .KAttributes]
-  //   syntax KMLFormula ::= KMLFormula "KML=>" KMLFormula [klabel(_KML=>_), .KAttributes]
-  //
-  //   .KSentenceList
-  // endmodule
+  val KML_STRING =
+    "module KML" +
+      "imports KTOKENS .KImportList" +
+      "syntax KMLVar ::= \"kmlvar\" \"(\" KString \")\" [klabel(kmlvar(_)), .KAttributes]" +
+      "syntax KMLFormula ::= KMLVar [.KAttributes]" +
+      "syntax KMLFormula ::= \"KMLtrue\" [klabel(KMLtrue), .KAttributes]" +
+      "syntax KMLFormula ::= \"KMLfalse\" [klabel(KMLfalse), .KAttributes]" +
+      "syntax KMLFormula ::= KMLFormula \"KMLand\" KMLFormula [klabel(_KMLand_), .KAttributes]" +
+      "syntax KMLFormula ::= KMLFormula \"KMLor\" KMLFormula [klabel(_KMLor_), .KAttributes]" +
+      "syntax KMLFormula ::= \"KMLnot\" KMLFormula [klabel(KMLnot_), .KAttributes]" +
+      "syntax KMLFormula ::= \"KMLexists\" KMLVar \".\" KMLFormula [klabel(KMLexists_._), .KAttributes]" +
+      "syntax KMLFormula ::= \"KMLforall\" KMLVar \".\" KMLFormula [klabel(KMLforall_._), .KAttributes]" +
+      "syntax KMLFormula ::= KMLFormula \"KML=>\" KMLFormula [klabel(_KML=>_), .KAttributes]" +
+      ".KSentenceList" +
+    "endmodule"
 
   val KMLVar = Sort("MLVar")
   val KMLFormula = Sort("MLFormula")
@@ -126,7 +124,7 @@ object test {
       "syntax KKeyList ::= KAttributeKey "," KKeyList [klabel(_,_), .KAttributes]" +
       "syntax KAttribute ::= KAttributeKey [.Attributes]" +
       "syntax KAttribute ::= KAttributeKey "(" KKeyList ")" [klabel(_(_)), .KAttributes]" +
-      "syntax KAttributes ::= ".KAttributes" [klabel(.KAttributes), .KAttributes]" +
+      "syntax KAttributes ::= \".KAttributes\" [klabel(.KAttributes), .KAttributes]" +
       "syntax KAttributes ::= KAttribute "," KAttributes [klabel(_,_), .KAttributes]" +
       ".KSentenceList" +
     "endmodule"
@@ -147,30 +145,26 @@ object test {
 
   ))
 
-  // module KSENTENCES
-  //   imports KATTRIBUTES .KImportList
-  //
-  //   syntax KImport = "imports" KModuleName [klabel(imports_), .KAttributes]
-  //   syntax KImportList = ".KImportList" [klabel(.KImportList), .KAttributes]
-  //   syntax KImportList = KImport KImportList [klabel(__), .KAttributes]
-  //
-  //   syntax KTerminal ::= KString [.KAttributes]
-  //   syntax KNonTerminal ::= KSort [.KAttributes]
-  //   syntax KProductionItem ::= KTerminal [.KAttributes]
-  //   syntax KProductionItem ::= KNonTerminal [.KAttributes]
-  //   syntax KProduction ::= KProductionItem [.KAttributes]
-  //   syntax KProduction ::= KProductionItem KProduction [klabel(__), .KAttributes]
-  //
-  //   syntax KPreSentence = "token" KSort "::=" KProduction [klabel(token_::=_), .KAttributes]
-  //   syntax KPreSentence = "syntax" KSort "::=" KProduction [klabel(syntax_::=_), .KAttributes]
-  //   syntax KPreSentence = "axiom" KMLFormula [klabel(axiom_), .KAttributes]
-  //
-  //   syntax KSentence = KPreStentence "[" KAttributes "]" [klabel(_[_]), .KAttributes]
-  //   syntax KSentenceList = ".KSentenceList" [klabel(.KSentenceList), .KAttributes]
-  //   syntax KSentenceList = KSentence KSentenceList [klabel(__), .KAttributes]
-  //
-  //   .KSentenceList
-  // endmodule
+  val KSENTENCES_STRING =
+    "module KSENTENCES" +
+      "imports KATTRIBUTES .KImportList" +
+      "syntax KImport = \"imports\" KModuleName [klabel(imports_), .KAttributes]" +
+      "syntax KImportList = \".KImportList\" [klabel(.KImportList), .KAttributes]" +
+      "syntax KImportList = KImport KImportList [klabel(__), .KAttributes]" +
+      "syntax KTerminal ::= KString [.KAttributes]" +
+      "syntax KNonTerminal ::= KSort [.KAttributes]" +
+      "syntax KProductionItem ::= KTerminal [.KAttributes]" +
+      "syntax KProductionItem ::= KNonTerminal [.KAttributes]" +
+      "syntax KProduction ::= KProductionItem [.KAttributes]" +
+      "syntax KProduction ::= KProductionItem KProduction [klabel(__), .KAttributes]" +
+      "syntax KPreSentence = \"token\" KSort \"::=\" KProduction [klabel(token_::=_), .KAttributes]" +
+      "syntax KPreSentence = \"syntax\" KSort \"::=\" KProduction [klabel(syntax_::=_), .KAttributes]" +
+      "syntax KPreSentence = \"axiom\" KMLFormula [klabel(axiom_), .KAttributes]" +
+      "syntax KSentence = KPreStentence \"[\" KAttributes \"]\" [klabel(_[_]), .KAttributes]" +
+      "syntax KSentenceList = \".KSentenceList\" [klabel(.KSentenceList), .KAttributes]" +
+      "syntax KSentenceList = KSentence KSentenceList [klabel(__), .KAttributes]" +
+      ".KSentenceList" +
+    "endmodule"
 
   val KImport = Sort("KImport")
   val KImportList = Sort("KImportList")
@@ -207,23 +201,18 @@ object test {
 
   ))
 
-  // module KDEFINITION
-  //   imports KSENTENCES .KImportList
-  //
-  //   // Attributes on modules perhaps?
-  //
-  //   syntax KModule ::= "module" KModuleName KImportList KSentenceList "endmodule" [klabel(module___endmodule), .KAttribute]
-  //   syntax KModuleList = KModule [.KAttribute]
-  //   syntax KModuleList = KModule KModuleList [klabel(__), .KAttribute]
-  //
-  //   syntax KRequire ::= "require" KString [klabel(require_), .KAttribute]
-  //   syntax KRequireList ::= ".KRequireList" [klabel(.KRequireList), .KAttribute]
-  //   syntax KRequireList ::= Require RequireList [klabel(__), .KAttribute]
-  //
-  //   syntax KDefinition ::= KRequireList KModuleList [klabel(__), .KAttribute]
-  //
-  //   .KSentenceList
-  // endmodule
+  val KDEFINITION_STRING =
+    "module KDEFINITION" +
+      "imports KSENTENCES .KImportList" +
+      "syntax KModule ::= \"module\" KModuleName KImportList KSentenceList \"endmodule\" [klabel(module___endmodule), .KAttribute]" +
+      "syntax KModuleList = KModule [.KAttribute]" +
+      "syntax KModuleList = KModule KModuleList [klabel(__), .KAttribute]" +
+      "syntax KRequire ::= \"require\" KString [klabel(require_), .KAttribute]" +
+      "syntax KRequireList ::= \".KRequireList\" [klabel(.KRequireList), .KAttribute]" +
+      "syntax KRequireList ::= Require RequireList [klabel(__), .KAttribute]" +
+      "syntax KDefinition ::= KRequireList KModuleList [klabel(__), .KAttribute]" +
+      ".KSentenceList" +
+    "endmodule"
 
   val KModule = Sort("KModule")
   val KModuleList = Sort("KModuleList")
@@ -246,16 +235,15 @@ object test {
 
   ))
 
-  // module EXP
-  //   .KImportList
-  //
-  //   syntax Exp ::= "0" [klabel(0), .KAttributes]
-  //   syntax Exp ::= "1" [klabel(1), .KAttributes]
-  //   syntax Exp ::= Exp "+" Exp [klabel(_+_), .KAttributes]
-  //   syntax Exp ::= Exp "*" Exp [klabel(_*_), .KAttributes]
-  //
-  //   .KSentenceList
-  // endmodule
+  val EXP_STRING =
+    "module EXP" +
+      ".KImportList" +
+      "syntax Exp ::= \"0\" [klabel(0), .KAttributes]" +
+      "syntax Exp ::= \"1\" [klabel(1), .KAttributes]" +
+      "syntax Exp ::= Exp \"+\" Exp [klabel(_+_), .KAttributes]" +
+      "syntax Exp ::= Exp \"*\" Exp [klabel(_*_), .KAttributes]" +
+      ".KSentenceList" +
+    "endmodule"
 
   val Exp = Sort("Exp")
 
