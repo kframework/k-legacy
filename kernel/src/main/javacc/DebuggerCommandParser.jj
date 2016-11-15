@@ -51,6 +51,7 @@ TOKEN: /*RESERVED TOKENS */
     |  <GETSTATE: "get-states" | "gs">
     |  <SELECT: "select">
     |  <SOURCE:"source" | "src"> : STRING_STATE
+    |  <SOURCEPATTERN:"psource" | "psrc"> : STRING_STATE
     |  <COPY: "copy" | "cp">
     |  <WATCH: "watch" | "w"> : STRING_STATE
     |  <NUMBER: (["0" - "9"])+>
@@ -88,6 +89,7 @@ Command command() throws NumberFormatException:
     |   LOOKAHEAD(2)
         <WATCH> (pattern = parsePattern())? {return new WatchCommand(Optional.ofNullable(pattern));}
     |   <SOURCE> (pattern = parsePattern()) {return new SourceCommand(pattern.trim());}
+    |   <SOURCEPATTERN> (pattern = parsePattern()) {return new PatternSourceCommand(pattern.trim());}
     |   <REMWATCH> (stateNum = parseNum()) {return new RemoveWatchCommand(stateNum);}
     |   <COPY> (stateNum = parseNum()) {return new CopyCommand(stateNum);}
     |   <GETSTATE> {return new GetStatesCommand();}

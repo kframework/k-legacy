@@ -240,6 +240,24 @@ public class Commands {
         }
     }
 
+    public static class PatternSourceCommand implements Command {
+        private String sourceFile;
+
+        public PatternSourceCommand(String sourceFile) {
+            this.sourceFile = sourceFile;
+        }
+
+        public String getPatternSourceFile() {
+            return sourceFile;
+        }
+
+        @Override
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
+            CommandUtils utils = new CommandUtils(isSource);
+            session.addPatternSourceFile(this.getPatternSourceFile());
+        }
+    }
+
     public static class RemoveWatchCommand implements Command {
         private int watchNum;
 

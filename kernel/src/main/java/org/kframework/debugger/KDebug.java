@@ -132,5 +132,12 @@ public interface KDebug {
      * @return The watch number of the watch removed, or -1 if watch not found in the list.
      */
     public int removeWatch(int watchNum);
+
+    /**
+     * Given a filename, parses and loads the pattern specified in the filename.
+     * @param filename
+     */
+    public void addPatternSourceFile(String filename);
+
 }
 

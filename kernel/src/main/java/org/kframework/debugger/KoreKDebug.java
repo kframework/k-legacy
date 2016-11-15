@@ -2,19 +2,19 @@
 package org.kframework.debugger;
 
 
-import org.kframework.rewriter.Rewriter;
+import org.kframework.Kapi;
 import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Rule;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kore.K;
-import org.kframework.kore.KVariable;
 import org.kframework.krun.KRun;
 import org.kframework.krun.KRunOptions;
+import org.kframework.rewriter.Rewriter;
 import org.kframework.rewriter.SearchType;
+import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import scala.Tuple2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,10 +38,10 @@ public class KoreKDebug implements KDebug {
     private final KExceptionManager kem;
     private KRunOptions options;
     private CompiledDefinition compiledDef;
+    private Stopwatch sw;
 
     /**
      * Start a Debugger Session. The initial Configuration becomes a part of the new and only state of the Debugger
-     *
      * @param initialK The initial Configuration.
      * @param rewriter The Rewriter being used.
      */
@@ -65,6 +65,7 @@ public class KoreKDebug implements KDebug {
         DebuggerState initialState = new DebuggerState(initialK, DEFAULT_ID, checkpointMap, watchList);
         stateList.add(initialState);
         activeStateIndex = DEFAULT_ID;
+        this.sw = sw;
     }
 
     @Override
@@ -284,4 +285,11 @@ public class KoreKDebug implements KDebug {
         );
         return watchNum;
     }
+
+    @Override
+    public void addPatternSourceFile(String filename) {
+        K result = Kapi.parseAndConcretizePattern(filename, compiledDef);
+
+    }
+
 }

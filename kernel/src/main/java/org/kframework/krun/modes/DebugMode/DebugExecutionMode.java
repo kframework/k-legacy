@@ -9,7 +9,6 @@ import jline.console.completer.Completer;
 import jline.console.completer.FileNameCompleter;
 import jline.console.completer.NullCompleter;
 import jline.console.completer.StringsCompleter;
-import org.kframework.rewriter.Rewriter;
 import org.kframework.debugger.KDebug;
 import org.kframework.debugger.KoreKDebug;
 import org.kframework.kompile.CompiledDefinition;
@@ -17,6 +16,8 @@ import org.kframework.kore.K;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.modes.ExecutionMode;
+import org.kframework.rewriter.Rewriter;
+import org.kframework.utils.Stopwatch;
 import org.kframework.utils.debugparser.ParseException;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -44,14 +45,16 @@ public class DebugExecutionMode implements ExecutionMode<Void> {
     private final FileUtil files;
     private final FileSystem fileSystem;
     private int checkpointInterval;
+    private Stopwatch sw;
 
 
-    public DebugExecutionMode(KRunOptions kRunOptions, KExceptionManager kem, FileUtil files, Integer checkpointInterval, FileSystem fileSystem) {
+    public DebugExecutionMode(KRunOptions kRunOptions, KExceptionManager kem, FileUtil files, Integer checkpointInterval, FileSystem fileSystem, Stopwatch sw) {
         this.kRunOptions = kRunOptions;
         this.kem = kem;
         this.files = files;
         this.checkpointInterval = checkpointInterval;
         this.fileSystem = fileSystem;
+        this.sw = sw;
     }
 
 

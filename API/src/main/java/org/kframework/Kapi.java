@@ -1,7 +1,6 @@
 // Copyright (c) 2016 K Team. All Rights Reserved.
 package org.kframework;
 
-import org.kframework.RewriterResult;
 import org.kframework.attributes.Att;
 import org.kframework.attributes.Source;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
@@ -46,9 +45,10 @@ import scala.Tuple2;
 
 import java.io.File;
 import java.lang.invoke.MethodHandle;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -58,26 +58,25 @@ import static org.kframework.Collections.*;
 
 /**
  * KRunAPI
- *
+ * <p>
  * Example usage:
- *
- *   String def = FileUtil.load(new File(args[0])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
- *   String mod = args[1]; // "A"
- *   String pgm = FileUtil.load(new File(args[2])); // "run"
- *
- *   String prove = args[3]; // *_spec.k
- *   String prelude = args[4]; // *.smt2
- *
- *   // kompile
- *   CompiledDefinition compiledDef = kapi.kompile(def, mod);
- *
- *   // krun
- *   RewriterResult result = kapi.krun(pgm, null, compiledDef);
- *   kprint(compiledDef, result);
- *
- *   // kprove
- *   kapi.kprove(prove, prelude, compiledDef);
- *
+ * <p>
+ * String def = FileUtil.load(new File(args[0])); // "require \"domains.k\" module A syntax KItem ::= \"run\" rule run => ... endmodule"
+ * String mod = args[1]; // "A"
+ * String pgm = FileUtil.load(new File(args[2])); // "run"
+ * <p>
+ * String prove = args[3]; // *_spec.k
+ * String prelude = args[4]; // *.smt2
+ * <p>
+ * // kompile
+ * CompiledDefinition compiledDef = kapi.kompile(def, mod);
+ * <p>
+ * // krun
+ * RewriterResult result = kapi.krun(pgm, null, compiledDef);
+ * kprint(compiledDef, result);
+ * <p>
+ * // kprove
+ * kapi.kprove(prove, prelude, compiledDef);
  */
 public class Kapi {
 
@@ -134,7 +133,7 @@ public class Kapi {
     // rewrite up to the given depth
     public RewriterResult rewrite(K program, CompiledDefinition compiledDef, Integer depth) {
         // initialize rewriter
-        Tuple2<SymbolicRewriter,TermContext> tuple = getRewriter(compiledDef);
+        Tuple2<SymbolicRewriter, TermContext> tuple = getRewriter(compiledDef);
         SymbolicRewriter rewriter = tuple._1();
         TermContext rewritingContext = tuple._2();
         KOREtoBackendKIL converter = rewriter.getConstructor();
@@ -151,7 +150,7 @@ public class Kapi {
         return resultInScala;
     }
 
-    public Tuple2<SymbolicRewriter,TermContext> getRewriter(CompiledDefinition compiledDef) {
+    public Tuple2<SymbolicRewriter, TermContext> getRewriter(CompiledDefinition compiledDef) {
         // TODO: simplify. skip to read.
 
         Map<String, MethodHandle> hookProvider = HookProvider.get(kapiGlobal.kem);
@@ -246,7 +245,7 @@ public class Kapi {
                 .map(r -> ProofExecutionMode.transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
                 .map(r -> ProofExecutionMode.transformFunction(Kompile::convertKSeqToKApply, r))
                 .map(r -> ProofExecutionMode.transform(NormalizeKSeq.self(), r))
-                        //.map(r -> kompile.compileRule(compiledDefinition, r))
+                //.map(r -> kompile.compileRule(compiledDefinition, r))
                 .collect(Collectors.toList());
 
         //// creating rewritingContext
@@ -360,6 +359,85 @@ public class Kapi {
         return;
     }
 
+    public static K parseAndConcretizePattern(String patternFile, CompiledDefinition compiledDef) {
+
+        GlobalOptions globalOptions = new GlobalOptions();
+        KompileOptions kompileOptions = new KompileOptions();
+        KRunOptions krunOptions = new KRunOptions();
+        JavaExecutionOptions javaExecutionOptions = new JavaExecutionOptions();
+
+        KExceptionManager kem = new KExceptionManager(globalOptions);
+        Stopwatch sw = new Stopwatch(globalOptions);
+        FileUtil files = FileUtil.get(globalOptions, System.getenv());
+
+        FileSystem fs = new PortableFileSystem(kem, files);
+        Map<String, MethodHandle> hookProvider = HookProvider.get(kem); // new HashMap<>();
+        InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
+
+        //// setting options
+
+        krunOptions.experimental.prove = patternFile;
+
+        //// parse spec file
+
+        Kompile kompile = new Kompile(kompileOptions, globalOptions, files, kem, sw, false);
+        Module specModule = kompile.parseModule(compiledDef, files.resolveWorkingDirectory(patternFile).getAbsoluteFile());
+
+        scala.collection.Set<Module> alsoIncluded = Stream.of("K-TERM", "K-REFLECTION", RuleGrammarGenerator.ID_PROGRAM_PARSING)
+                .map(mod -> compiledDef.getParsedDefinition().getModule(mod).get())
+                .collect(org.kframework.Collections.toSet());
+
+        specModule = new JavaBackend(kem, files, globalOptions, kompileOptions)
+                .stepsForProverRules()
+                .apply(Definition.apply(specModule, org.kframework.Collections.<Module>add(specModule, alsoIncluded), Att.apply()))
+                .getModule(specModule.name()).get();
+
+        ExpandMacros macroExpander = new ExpandMacros(compiledDef.executionModule(), kem, files, globalOptions, kompileOptions);
+
+        List<Rule> specRules = stream(specModule.localRules())
+                .filter(r -> r.toString().contains("-pattern.k"))
+                .map(r -> (Rule) macroExpander.expand(r))
+                .map(r -> ProofExecutionMode.transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
+                .map(r -> ProofExecutionMode.transformFunction(Kompile::convertKSeqToKApply, r))
+                .map(r -> ProofExecutionMode.transform(NormalizeKSeq.self(), r))
+                //.map(r -> kompile.compileRule(compiledDefinition, r))
+                .collect(Collectors.toList());
+
+        SMTOptions smtOptions = krunOptions.experimental.smt;
+
+        GlobalContext initializingContextGlobal = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING);
+
+        TermContext initializingContext = TermContext.builder(initializingContextGlobal).freshCounter(0).build();
+
+        org.kframework.backend.java.kil.Definition evaluatedDef = initializeDefinition.invoke(compiledDef.executionModule(), kem, initializingContext.global());
+
+        GlobalContext rewritingContextGlobal = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
+
+        rewritingContextGlobal.setDefinition(evaluatedDef);
+
+        TermContext rewritingContext = TermContext.builder(rewritingContextGlobal).freshCounter(initializingContext.getCounterValue()).build();
+
+        KOREtoBackendKIL converter = new KOREtoBackendKIL(compiledDef.executionModule(), evaluatedDef, rewritingContext.global(), false);
+
+        List<org.kframework.backend.java.kil.Rule> javaRules = specRules.stream()
+                .map(r -> converter.convert(Optional.<Module>empty(), r))
+                .map(r -> new org.kframework.backend.java.kil.Rule(
+                        r.label(),
+                        r.leftHandSide().evaluate(rewritingContext), // TODO: drop?
+                        r.rightHandSide().evaluate(rewritingContext), // TODO: drop?
+                        r.requires(),
+                        r.ensures(),
+                        r.freshConstants(),
+                        r.freshVariables(),
+                        r.lookups(),
+                        r,
+                        rewritingContext.global())) // register definition to be used for execution of the current rule
+                .collect(Collectors.toList());
+
+        return javaRules.get(0).leftHandSide();
+
+    }
+
     /**
      * compiledDef0: for parsing spec rules
      * compiledDef1: for symbolic execution
@@ -369,7 +447,7 @@ public class Kapi {
         kapiGlobal.setSmtPrelude(prelude);
 
         // initialize rewriter
-        Tuple2<SymbolicRewriter,TermContext> tuple = getRewriter(compiledDef);
+        Tuple2<SymbolicRewriter, TermContext> tuple = getRewriter(compiledDef);
         SymbolicRewriter rewriter = tuple._1();
         TermContext rewritingContext = tuple._2();
         KOREtoBackendKIL converter = rewriter.getConstructor();
@@ -397,7 +475,7 @@ public class Kapi {
                 .map(r -> ProofExecutionMode.transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
                 .map(r -> ProofExecutionMode.transformFunction(Kompile::convertKSeqToKApply, r))
                 .map(r -> ProofExecutionMode.transform(NormalizeKSeq.self(), r))
-                        //.map(r -> kompile.compileRule(compiledDefinition, r))
+                //.map(r -> kompile.compileRule(compiledDefinition, r))
                 .collect(Collectors.toList());
 
         //// massage spec rules
@@ -429,7 +507,7 @@ public class Kapi {
 
         List<ConstrainedTerm> proofResults = javaRules.stream()
                 .filter(r -> !r.containsAttribute(Attribute.TRUSTED_KEY))
-                .map(r -> rewriter.proveRule(r.createLhsPattern(rewritingContext,1), r.createRhsPattern(1), allRules))
+                .map(r -> rewriter.proveRule(r.createLhsPattern(rewritingContext, 1), r.createRhsPattern(1), allRules))
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
 
