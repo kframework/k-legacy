@@ -165,11 +165,6 @@
       <classifier>windows</classifier>
       <type>exe</type>
     </dependency>
-      <dependency>
-          <groupId>org.kframework.k</groupId>
-          <artifactId>api</artifactId>
-          <version>4.0.1-SNAPSHOT</version>
-      </dependency>
   </dependencies>
 
   <build>

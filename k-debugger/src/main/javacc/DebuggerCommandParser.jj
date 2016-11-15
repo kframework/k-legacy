@@ -14,9 +14,9 @@ package org.kframework.utils.debugparser;
 import java.io.StringReader;
 import java.io.Reader;
 import java.util.Optional;
-import org.kframework.krun.modes.DebugMode.Command;
+import org.kframework.DebugMode.Command;
 
-import static org.kframework.krun.modes.DebugMode.Commands.*;
+import static org.kframework.DebugMode.Commands.*;
 
 public class DebuggerCommandParser {
     public static Command parseCommand(String command) throws NumberFormatException, ParseException

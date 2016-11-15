@@ -30,7 +30,7 @@ import org.kframework.krun.KRunFrontEnd;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
-import org.kframework.krun.modes.DebugMode.DebugExecutionMode;
+import org.kframework.DebugMode.DebugExecutionMode;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.krun.modes.KRunExecutionMode;
 import org.kframework.kserver.KServerFrontEnd;
@@ -247,7 +247,7 @@ public class Main {
             if (isProofMode) {
                 executionMode = new ProofExecutionMode(kem, kRunOptions, sw, files, kRunOptions.global);
             } else if (isDebugMode) {
-                executionMode = new DebugExecutionMode(kRunOptions, kem, files, 500, fs, );
+                executionMode = new DebugExecutionMode(kRunOptions, kem, files, 500, fs);
             } else {
                 executionMode = new KRunExecutionMode(kRunOptions, kem, files);
             }

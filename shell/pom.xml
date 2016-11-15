@@ -39,6 +39,11 @@
             <artifactId>api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.kframework.k</groupId>
+            <artifactId>k-debugger</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 <!-- from java-backend/pom.xml

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
-package org.kframework.krun.modes.DebugMode;
+package org.kframework.DebugMode;
 
 
 import org.kframework.debugger.KDebug;

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
-package org.kframework.krun.modes.DebugMode;
+package org.kframework.DebugMode;
 
 import jline.console.ConsoleReader;
 import jline.console.UserInterruptException;
@@ -17,7 +17,6 @@ import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.rewriter.Rewriter;
-import org.kframework.utils.Stopwatch;
 import org.kframework.utils.debugparser.ParseException;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -45,16 +44,13 @@ public class DebugExecutionMode implements ExecutionMode<Void> {
     private final FileUtil files;
     private final FileSystem fileSystem;
     private int checkpointInterval;
-    private Stopwatch sw;
 
-
-    public DebugExecutionMode(KRunOptions kRunOptions, KExceptionManager kem, FileUtil files, Integer checkpointInterval, FileSystem fileSystem, Stopwatch sw) {
+    public DebugExecutionMode(KRunOptions kRunOptions, KExceptionManager kem, FileUtil files, Integer checkpointInterval, FileSystem fileSystem) {
         this.kRunOptions = kRunOptions;
         this.kem = kem;
         this.files = files;
         this.checkpointInterval = checkpointInterval;
         this.fileSystem = fileSystem;
-        this.sw = sw;
     }
 
 

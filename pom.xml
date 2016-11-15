@@ -19,6 +19,7 @@
     <module>kdoc</module>
     <module>shell</module>
     <module>kale-backend</module>
+      <module>k-debugger</module>
   </modules>
 
   <scm>

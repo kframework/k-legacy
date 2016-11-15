@@ -1,19 +1,17 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
-package org.kframework.krun.modes.DebugMode;
+package org.kframework.DebugMode;
 
-import org.kframework.krun.KRunOptions;
-import org.kframework.unparser.OutputModes;
 import org.kframework.debugger.DebuggerMatchResult;
 import org.kframework.debugger.DebuggerState;
 import org.kframework.debugger.KDebug;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.krun.KRun;
+import org.kframework.unparser.OutputModes;
 import org.kframework.utils.errorsystem.KEMException;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import static org.kframework.krun.KRun.*;
 
@@ -21,7 +19,7 @@ import static org.kframework.krun.KRun.*;
  * Created by Manasvi on 7/22/15.
  * <p>
  * Classes concerned with TUI commands go under this class.
- * Commands must implement {@link org.kframework.krun.modes.DebugMode.Command}.
+ * Commands must implement {@link org.kframework.DebugMode.Command}.
  */
 public class Commands {
 
