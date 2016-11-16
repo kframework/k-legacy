@@ -310,8 +310,8 @@ public class KoreKDebug implements KDebug {
         if (stateList.isEmpty()) {
             return null;
         }
-//        K searchResult = rewriter.search(stateList.get(activeStateIndex).getCurrentK(), Optional.empty(), Optional.empty(),SearchType.FINAL, false);
-        
+        K searchResult = rewriter.search(stateList.get(activeStateIndex).getCurrentK(), Optional.empty(), Optional.empty(), Rule.apply(matchPattern, null, null, null), SearchType.FINAL, false);
+        return new DebuggerState(searchResult, activeStateIndex + 1, new TreeMap<>(), new ArrayList<>());
 
     }
 }
