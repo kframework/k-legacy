@@ -12,7 +12,6 @@ import org.kframework.krun.KRun;
 import org.kframework.krun.KRunOptions;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.rewriter.SearchType;
-import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 
@@ -38,7 +37,6 @@ public class KoreKDebug implements KDebug {
     private final KExceptionManager kem;
     private KRunOptions options;
     private CompiledDefinition compiledDef;
-    private Stopwatch sw;
 
     /**
      * Start a Debugger Session. The initial Configuration becomes a part of the new and only state of the Debugger
@@ -60,12 +58,14 @@ public class KoreKDebug implements KDebug {
         this.options = options;
         this.compiledDef = compiledDef;
         NavigableMap<Integer, K> checkpointMap = new TreeMap<>();
-        checkpointMap.put(DEFAULT_ID, initialK);
         List<DebuggerMatchResult> watchList = new ArrayList<>();
-        DebuggerState initialState = new DebuggerState(initialK, DEFAULT_ID, checkpointMap, watchList);
-        stateList.add(initialState);
-        activeStateIndex = DEFAULT_ID;
-        this.sw = sw;
+        activeStateIndex = -1;
+        if (initialK != null) {
+            checkpointMap.put(DEFAULT_ID, initialK);
+            DebuggerState initialState = new DebuggerState(initialK, DEFAULT_ID, checkpointMap, watchList);
+            stateList.add(initialState);
+            activeStateIndex = DEFAULT_ID;
+        }
     }
 
     @Override
@@ -75,6 +75,9 @@ public class KoreKDebug implements KDebug {
 
     @Override
     public DebuggerState step(int currentStateIndex, int steps) {
+        if (currentStateIndex == -1) {
+            return null;
+        }
         DebuggerState currentState = stateList.get(currentStateIndex);
         K currentK = currentState.getCurrentK();
         int activeStateCheckpoint = currentState.getStepNum();
@@ -287,9 +290,28 @@ public class KoreKDebug implements KDebug {
     }
 
     @Override
-    public void addPatternSourceFile(String filename) {
+    public DebuggerState addPatternSourceFile(String filename) {
         K result = Kapi.parseAndConcretizePattern(filename, compiledDef);
+        if (stateList.isEmpty()) {
+            NavigableMap<Integer, K> checkpointMap = new TreeMap<>();
+            checkpointMap.put(DEFAULT_ID, result);
+            DebuggerState initialState = new DebuggerState(result, DEFAULT_ID, checkpointMap, new ArrayList<>());
+            stateList.add(initialState);
+            activeStateIndex = DEFAULT_ID;
+            return initialState;
+        }
+        return null;
 
     }
 
+    @Override
+    public DebuggerState matchUntilPattern(String filename) {
+        K matchPattern = Kapi.parseAndConcretizePattern(filename, compiledDef);
+        if (stateList.isEmpty()) {
+            return null;
+        }
+//        K searchResult = rewriter.search(stateList.get(activeStateIndex).getCurrentK(), Optional.empty(), Optional.empty(),SearchType.FINAL, false);
+        
+
+    }
 }

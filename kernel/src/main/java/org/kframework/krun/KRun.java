@@ -78,22 +78,21 @@ public class KRun {
 
     public int run(CompiledDefinition compiledDef, KRunOptions options, Function<Module, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
         String pgmFileName = options.configurationCreation.pgm();
-        K program;
+        K program = null;
         if (options.configurationCreation.term()) {
             program = externalParse(options.configurationCreation.parser(compiledDef.executionModule().name()),
                     pgmFileName, compiledDef.programStartSymbol, Source.apply("<parameters>"), compiledDef, files);
-        } else {
+        } else if (options.experimental.debugger() && pgmFileName != null){
             program = parseConfigVars(options, compiledDef, kem, files, ttyStdin, isNailgun, null);
+            program = new KTokenVariablesToTrueVariables()
+                    .apply(compiledDef.kompiledDefinition.getModule(compiledDef.mainSyntaxModuleName()).get(), program);
         }
 
-        program = new KTokenVariablesToTrueVariables()
-                .apply(compiledDef.kompiledDefinition.getModule(compiledDef.mainSyntaxModuleName()).get(), program);
 
 
         Rewriter rewriter = rewriterGenerator.apply(compiledDef.executionModule());
 
         Object result = executionMode.execute(program, rewriter, compiledDef);
-
 
         if (result instanceof K) {
             printK((K) result, options, compiledDef);

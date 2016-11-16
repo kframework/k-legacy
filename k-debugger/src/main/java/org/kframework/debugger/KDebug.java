@@ -134,7 +134,14 @@ public interface KDebug {
      * Given a filename, parses and loads the pattern specified in the filename.
      * @param filename
      */
-    public void addPatternSourceFile(String filename);
+    public DebuggerState addPatternSourceFile(String filename);
+
+    /**
+     * Rewrite until a given pattern is reached in the transition system.
+     * @param filename
+     * @return
+     */
+    public DebuggerState matchUntilPattern(String filename);
 
 }
 

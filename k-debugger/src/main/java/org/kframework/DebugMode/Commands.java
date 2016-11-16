@@ -252,7 +252,9 @@ public class Commands {
         @Override
         public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
             CommandUtils utils = new CommandUtils(isSource);
-            session.addPatternSourceFile(this.getPatternSourceFile());
+            DebuggerState res = session.addPatternSourceFile(this.getPatternSourceFile());
+            if(res != null)
+                prettyPrint(compiledDefinition, OutputModes.PRETTY, x -> utils.print(x), res.getCurrentK());
         }
     }
 
