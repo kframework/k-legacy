@@ -3,8 +3,6 @@ module EXP-SYNTAX
   // grammar: BNF = Backus-Naur Form
 
   syntax Exp ::= Int
-               | Exp "+" Exp [left, strict]
-               | "(" Exp ")" [bracket]
 
 endmodule
 
@@ -13,12 +11,10 @@ module EXP
 
   syntax KResult ::= Int
 
-  configuration <T>
-                  <k> $PGM </k>
-                </T>
+  configuration <T> <k> $PGM </k> </T>
 
-  rul <T> <k> I1:Int + I2:Int </k> </T>
+  rule <T> <k> I1:Int </k> </T>
       =>
-      <T> <k> I1 +Int I2 </k> </T>
+      <T> <k> 1 </k> </T>
 
 endmodule
