@@ -307,6 +307,9 @@ public class KRun {
         case BINARY:
             print.accept(ToBinary.apply(result));
             break;
+        case FORMAT:
+            print.accept((ToKast.apply(result) + "\n").getBytes());
+            break;
         default:
             throw KEMException.criticalError("Unsupported output mode: " + output);
         }

@@ -13,12 +13,12 @@ module IMP-SYNTAX
   syntax Block ::= "{" "}"
                  | "{" Stmt "}"
   syntax Stmt  ::= Block
-                 | Id "=" AExp ";"            [strict(2)]
+                 | Id "=" AExp ";"            [strict(2), format(i s s s d)]
                  | "if" "(" BExp ")"
                    Block "else" Block         [strict(1)]
-                 | "while" "(" BExp ")" Block
+                 | "while" "(" BExp ")" Block [format(i s s s n d)]
                  > Stmt Stmt                  [left]
-  syntax Pgm ::= "int" Ids ";" Stmt
+  syntax Pgm ::= "int" Ids ";" Stmt           [format(i s s n d)]
   syntax Ids ::= List{Id,","}
 endmodule
 
@@ -27,9 +27,9 @@ module IMP
   imports IMP-SYNTAX
   syntax KResult ::= Int | Bool
 
-  configuration <T color="yellow">
-                  <k color="green"> $PGM:Pgm </k>
-                  <state color="red"> .Map </state>
+  configuration <T color="yellow" format="d n++ n n d">
+                  <k color="green" format="i n++ n--i d"> $PGM:Pgm </k>
+                  <state color="red" format="i n++ n--i d"> .Map </state>
                 </T>
 
 // AExp
