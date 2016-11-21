@@ -1,6 +1,2 @@
-Search results:
-
-Solution 1:
-V:K@SORT-K -->
-Pair ( Pair ( 1 , ( Wrapper ( 2 , .Exps ) , .Exps ) ) , ( Pair ( 3 , ( 4 , .Exps ) ) , .Exps ) )
-
+Solution 1
+V ==K ( Pair ( Pair ( 1 , ( Wrapper ( 2 , .Exps ) , .Exps ) ) , ( Pair ( 3 , ( 4 , .Exps ) ) , .Exps ) ) )
