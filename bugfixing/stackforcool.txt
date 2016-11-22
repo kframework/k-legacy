@@ -1,0 +1,23 @@
+org.kframework.utils.errorsystem.KEMException: [Error] Compiler: Had 2 parsing errors.
+        at org.kframework.utils.errorsystem.KEMException.create(KEMException.java:109)
+        at org.kframework.utils.errorsystem.KEMException.compilerError(KEMException.java:71)
+        at org.kframework.kompile.DefinitionParsing.throwExceptionIfThereAreErrors(DefinitionParsing.java:163)
+        at org.kframework.kompile.DefinitionParsing.saveCachesAndReportParsingErrors(DefinitionParsing.java:133)
+        at org.kframework.kompile.DefinitionParsing.parseDefinitionAndResolveBubbles(DefinitionParsing.java:156)
+        at org.kframework.kompile.DefinitionParsing.parseDefinitionAndResolveBubbles(DefinitionParsing.java:149)
+        at org.kframework.kompile.Kompile.parseDefinition(Kompile.java:140)
+        at org.kframework.kompile.Kompile.run(Kompile.java:122)
+        at org.kframework.kompile.KompileFrontEnd.run(KompileFrontEnd.java:47)
+        at org.kframework.main.FrontEnd.main(FrontEnd.java:34)
+        at org.kframework.main.Main.runApplication(Main.java:420)
+        at org.kframework.main.Main.runApplication(Main.java:142)
+        at org.kframework.main.Main.main(Main.java:84)
+[Error] Compiler: Had 2 parsing errors.
+[Error] Inner Parser: Parse error: unexpected character '*'.
+        Source(./cool.k)
+        Location(10,29,10,30)
+[Error] Inner Parser: Parse error: unexpected character '*'.
+        Source(./cool.k)
+        Location(11,24,11,25)
+[Warning] Compiler: Could not find main syntax module with name COOL-SYNTAX in
+definition.  Use --syntax-module to specify one. Using COOL as default.

@@ -10,10 +10,14 @@ import org.kframework.kil.Attribute;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KLabel;
+import org.kframework.kore.KList;
 import org.kframework.kore.KRewrite;
+import org.kframework.kore.Unapply;
 
 import java.util.List;
 import java.util.stream.Stream;
+import static org.kframework.definition.Constructors.*;
+import static org.kframework.kore.KORE.*;
 
 /**
  * This pass adds the implicit top and k cells to
@@ -46,6 +50,37 @@ public class AddTopCellToRules {
         if (term instanceof KApply && ((KApply) term).klabel().equals(root)) {
             return term;
         } else {
+            if (term instanceof KRewrite &&
+                    ((KRewrite) term).left() instanceof KApply &&
+                    ((KApply)((KRewrite) term).left()).klabel().equals(root)){
+// CS427 TODO::
+                // To Mo Tao:
+                // We need to fix things like this:
+                // term is a rewrite rule: something => something
+                // and the two somthings are top level cells, i.e., HCells
+                // <H> ... </H> => <H> ... </H>
+                // The ... could be a list of something, we refer to then as left and right:
+                // term is <H> left </H> => <H> right </H>
+
+                // We used to call the following ImcompleteCellUtils.make to make a new rule by
+                // wrapping it with the missing outer cells. So from the term we get
+                // <H> <H> left </H> => <H> right </H> </H>
+                // which makes the error.
+
+                // 现在我们的做法是，如果我们发现term本身就是一个toplevel的cell的rewrite rull，我们就
+                // 把他的左边 <H> left </H> and right handside <H> right </H> 变成 left and right.
+                // And we make a new rule left => right (by calling KRewrite. it seems that KRewrite
+                // is a scala function so you can call it like below, no new keyword)
+                // this new rule is called rl, then we call IncompleteCellUtils.
+
+                // You can follow this idea to make sure that we fix the bug. TODO::You can try old tests
+                // TODO:: to make sure that the fixing does not break things, etc.
+
+                KApply left = (KApply) ((KApply) ((KRewrite) term).left()).klist().stream().toArray()[1];
+                KApply right = (KApply) ((KApply) ((KRewrite) term).right()).klist().stream().toArray()[1];
+                KRewrite rl = KRewrite(left, right, term.att());
+                return IncompleteCellUtils.make(root, true, rl, true);
+            }
             return IncompleteCellUtils.make(root, true, term, true);
         }
     }

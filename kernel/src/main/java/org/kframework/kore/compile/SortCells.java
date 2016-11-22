@@ -380,6 +380,7 @@ public class SortCells {
                     for (K item : k.klist().items()) {
                         Map<Sort, K> split = getSplit(item);
                         for (Map.Entry<Sort, K> e : split.entrySet()) {
+                            //TODO:: What does this code do?
                             int idx = order.indexOf(e.getKey());
                             if (ordered.get(idx) != null) {
                                 ordered.set(idx, concatenateStarCells(e.getKey(), Arrays.asList(ordered.get(idx), e.getValue())));
