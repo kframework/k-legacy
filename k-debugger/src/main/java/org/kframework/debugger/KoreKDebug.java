@@ -2,16 +2,22 @@
 package org.kframework.debugger;
 
 
+import org.jgrapht.DirectedGraph;
+import org.jgrapht.graph.DefaultDirectedGraph;
 import org.kframework.Kapi;
 import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
+import org.kframework.builtin.KLabels;
 import org.kframework.definition.Rule;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kore.K;
+import org.kframework.kore.KORE;
 import org.kframework.krun.KRun;
 import org.kframework.krun.KRunOptions;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.rewriter.SearchType;
+import org.kframework.utils.PatternNode;
+import org.kframework.utils.ProofTransition;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 
@@ -37,6 +43,7 @@ public class KoreKDebug implements KDebug {
     private final KExceptionManager kem;
     private KRunOptions options;
     private CompiledDefinition compiledDef;
+    private DirectedGraph<PatternNode, ProofTransition> proofTree;
 
     /**
      * Start a Debugger Session. The initial Configuration becomes a part of the new and only state of the Debugger
@@ -57,6 +64,7 @@ public class KoreKDebug implements KDebug {
         this.kem = kem;
         this.options = options;
         this.compiledDef = compiledDef;
+        this.proofTree = new DefaultDirectedGraph<>(ProofTransition.class);
         NavigableMap<Integer, K> checkpointMap = new TreeMap<>();
         List<DebuggerMatchResult> watchList = new ArrayList<>();
         activeStateIndex = -1;
@@ -310,7 +318,7 @@ public class KoreKDebug implements KDebug {
         if (stateList.isEmpty()) {
             return null;
         }
-        K searchResult = rewriter.search(stateList.get(activeStateIndex).getCurrentK(), Optional.empty(), Optional.empty(), Rule.apply(matchPattern, null, null, null), SearchType.FINAL, false);
+        K searchResult = rewriter.search(stateList.get(activeStateIndex).getCurrentK(), Optional.empty(), Optional.empty(), Rule.apply(matchPattern, KORE.KApply(KORE.KLabel(KLabels.ML_TRUE)), KORE.KApply(KORE.KLabel(KLabels.ML_TRUE)), matchPattern.att()), SearchType.FINAL, false);
         return new DebuggerState(searchResult, activeStateIndex + 1, new TreeMap<>(), new ArrayList<>());
 
     }

@@ -102,7 +102,7 @@ public class DebugExecutionMode implements ExecutionMode<Void> {
                     processSourceCommand(source, debugger, compiledDefinition);
                     System.out.println("File " + source + " Sourced");
                 }
-                command.runCommand(debugger, compiledDefinition, false);
+                command.runCommand(debugger, compiledDefinition, false, files, kem);
             } catch (KEMException e) {
                 System.out.println(e.getMessage());
             } catch (ParseException parseException) {
@@ -133,7 +133,7 @@ public class DebugExecutionMode implements ExecutionMode<Void> {
                     continue;
                 }
                 command = parseCommand(line);
-                command.runCommand(debugger, compiledDef, true);
+                command.runCommand(debugger, compiledDef, true, files, kem);
             } catch (ParseException e) {
                 System.out.println("File " + srcFile + " Line " + lineCount);
                 System.out.println(e.getMessage());

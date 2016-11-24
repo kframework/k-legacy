@@ -8,6 +8,8 @@ import org.kframework.kompile.CompiledDefinition;
 import org.kframework.krun.KRun;
 import org.kframework.unparser.OutputModes;
 import org.kframework.utils.errorsystem.KEMException;
+import org.kframework.utils.errorsystem.KExceptionManager;
+import org.kframework.utils.file.FileUtil;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,7 +34,7 @@ public class Commands {
         }
 
         @Override
-        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             CommandUtils utils = new CommandUtils(isSource);
             int activeStateId = session.getActiveStateId();
             DebuggerState prevState = session.getStates().get(activeStateId);
@@ -55,7 +57,7 @@ public class Commands {
         }
 
         @Override
-        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             CommandUtils utils = new CommandUtils(isSource);
             pattern.ifPresent(pattern -> {
                 if (isSource) {
@@ -74,7 +76,7 @@ public class Commands {
     public static class PeekCommand implements Command {
 
         @Override
-        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             CommandUtils utils = new CommandUtils(isSource);
             DebuggerState requestedState = session.getActiveState();
             if (requestedState != null) {
@@ -94,7 +96,7 @@ public class Commands {
         }
 
         @Override
-        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             int activeConfigurationId = session.getActiveState().getStepNum();
             CommandUtils utils = new CommandUtils(isSource);
             if (backStepCount > 1 && (backStepCount) > activeConfigurationId) {
@@ -118,7 +120,7 @@ public class Commands {
         }
 
         @Override
-        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             DebuggerState selectedState = session.setState(stateNum);
             if (selectedState == null) {
                 throw KEMException.debuggerError("Requested State not Present in List of states");
@@ -140,7 +142,7 @@ public class Commands {
         }
 
         @Override
-        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             int requestedState = stateNum.orElse(session.getActiveStateId());
             CommandUtils utils = new CommandUtils(isSource);
             DebuggerState nextState = session.setState(requestedState);
@@ -169,14 +171,14 @@ public class Commands {
     public static class QuitCommand implements Command {
 
         @Override
-        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             return;
         }
     }
 
     public static class ResumeCommand implements Command {
         @Override
-        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             DebuggerState currentState = session.getStates().get(session.getActiveStateId());
             DebuggerState finalState = session.resume();
             CommandUtils utils = new CommandUtils(isSource);
@@ -193,7 +195,7 @@ public class Commands {
         }
 
         @Override
-        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             CommandUtils utils = new CommandUtils(isSource);
             if (checkpointInterval <= 0) {
                 KEMException.debuggerError("Checkpoint Value must be >= 1");
@@ -213,7 +215,7 @@ public class Commands {
         }
 
         @Override
-        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             DebuggerMatchResult result = session.match(pattern, "<Command Line>");
             CommandUtils utils = new CommandUtils(isSource);
             utils.prettyPrintSubstitution(result, compiledDefinition);
@@ -233,11 +235,31 @@ public class Commands {
         }
 
         @Override
-        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             return;
         }
     }
 
+    public static class MatchUntilCommand implements Command {
+        private String sourceFile;
+
+        public MatchUntilCommand(String sourceFile) {
+            this.sourceFile = sourceFile;
+        }
+
+        public String getPatternSourceFile() {
+            return sourceFile;
+        }
+
+        @Override
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
+            CommandUtils utils = new CommandUtils(isSource);
+            DebuggerState res = session.matchUntilPattern(this.getPatternSourceFile());
+            if (res != null) {
+                KRun.printK(res.getCurrentK(), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
+            }
+        }
+    }
     public static class PatternSourceCommand implements Command {
         private String sourceFile;
 
@@ -250,7 +272,7 @@ public class Commands {
         }
 
         @Override
-        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             CommandUtils utils = new CommandUtils(isSource);
             DebuggerState res = session.addPatternSourceFile(this.getPatternSourceFile());
             if(res != null)
@@ -266,7 +288,7 @@ public class Commands {
         }
 
         @Override
-        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             if (session.removeWatch(watchNum) < 0) {
                 throw KEMException.debuggerError("Watch Doesn't Exists");
             }
@@ -283,7 +305,7 @@ public class Commands {
         }
 
         @Override
-        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             if (session.createCopy(stateNum) == null) {
                 throw KEMException.debuggerError("StateNumber Speicified doesn't exist");
             }
@@ -294,7 +316,7 @@ public class Commands {
 
     public static class GetStatesCommand implements Command {
         @Override
-        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource) {
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             List<DebuggerState> stateList = session.getStates();
             int activeStateIndex = session.getActiveStateId();
             int i = 0;

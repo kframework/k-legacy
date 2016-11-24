@@ -52,6 +52,7 @@ TOKEN: /*RESERVED TOKENS */
     |  <SELECT: "select">
     |  <SOURCE:"source" | "src"> : STRING_STATE
     |  <SOURCEPATTERN:"psource" | "psrc"> : STRING_STATE
+    |  <MATCHUNTIL:"muntil" | "until"> : STRING_STATE
     |  <COPY: "copy" | "cp">
     |  <WATCH: "watch" | "w"> : STRING_STATE
     |  <NUMBER: (["0" - "9"])+>
@@ -90,6 +91,7 @@ Command command() throws NumberFormatException:
         <WATCH> (pattern = parsePattern())? {return new WatchCommand(Optional.ofNullable(pattern));}
     |   <SOURCE> (pattern = parsePattern()) {return new SourceCommand(pattern.trim());}
     |   <SOURCEPATTERN> (pattern = parsePattern()) {return new PatternSourceCommand(pattern.trim());}
+    |   <MATCHUNTIL> (pattern = parsePattern()) {return new MatchUntilCommand(pattern.trim());}
     |   <REMWATCH> (stateNum = parseNum()) {return new RemoveWatchCommand(stateNum);}
     |   <COPY> (stateNum = parseNum()) {return new CopyCommand(stateNum);}
     |   <GETSTATE> {return new GetStatesCommand();}

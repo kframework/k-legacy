@@ -82,12 +82,11 @@ public class KRun {
         if (options.configurationCreation.term()) {
             program = externalParse(options.configurationCreation.parser(compiledDef.executionModule().name()),
                     pgmFileName, compiledDef.programStartSymbol, Source.apply("<parameters>"), compiledDef, files);
-        } else if (options.experimental.debugger() && pgmFileName != null){
+        } else if (options.experimental.debugger() && pgmFileName != null) {
             program = parseConfigVars(options, compiledDef, kem, files, ttyStdin, isNailgun, null);
             program = new KTokenVariablesToTrueVariables()
                     .apply(compiledDef.kompiledDefinition.getModule(compiledDef.mainSyntaxModuleName()).get(), program);
         }
-
 
 
         Rewriter rewriter = rewriterGenerator.apply(compiledDef.executionModule());
@@ -95,7 +94,7 @@ public class KRun {
         Object result = executionMode.execute(program, rewriter, compiledDef);
 
         if (result instanceof K) {
-            printK((K) result, options, compiledDef);
+            printK((K) result, options.pattern, options.output, options.outputFile, compiledDef, files, kem);
             if (options.exitCodePattern != null) {
                 Rule exitCodePattern = compilePattern(files, kem, options.exitCodePattern, options, compiledDef, Source.apply("<command line: --exit-code>"));
                 K res = rewriter.match((K) result, exitCodePattern);
@@ -105,11 +104,11 @@ public class KRun {
             Tuple2<?, ?> tuple = (Tuple2<?, ?>) result;
 
             if (tuple._1() instanceof RewriterResult && tuple._2() instanceof K) {
-                printK((K) tuple._2(), options, compiledDef);
+                printK((K) tuple._2(), options.pattern, options.output, options.outputFile, compiledDef, files, kem);
             }
 
             if (tuple._1() instanceof K && tuple._2() instanceof Integer) {
-                printK((K) tuple._1(), options, compiledDef);
+                printK((K) tuple._1(), options.pattern, options.output, options.outputFile, compiledDef, files, kem);
                 return (Integer) tuple._2();
             }
         } else if (options.experimental.prove != null) {
@@ -122,13 +121,13 @@ public class KRun {
         return 0;
     }
 
-    private StringBuilder filterAnonVarsAndPrint(K result, Set<String> filterSet, CompiledDefinition compiledDef, KRunOptions options) {
+    private static StringBuilder filterAnonVarsAndPrint(K result, Set<String> filterSet, CompiledDefinition compiledDef, OutputModes outputMode) {
         StringBuilder sb = new StringBuilder();
         ByteArrayOutputStream bs = new ByteArrayOutputStream();
         if (result instanceof KApply && ((KApply) result).klabel().toString().equals(KLabels.ML_AND)) {
             List<K> conjunctions = mutable(Assoc.flatten(KLabel(KLabels.ML_AND), immutable(((KApply) result).items()), KLabel(KLabels.ML_TRUE)));
             conjunctions = conjunctions.stream().filter(x -> {
-                if ((options.pattern != null) && x instanceof KApply && ((KApply) x).klabel().name().equals(KLabels.EQUALS)) {
+                if (!filterSet.isEmpty() && x instanceof KApply && ((KApply) x).klabel().name().equals(KLabels.EQUALS)) {
                     K var = ((KApply) x).klist().items().get(0);
                     if (var instanceof KVariable) {
                         return filterSet.contains(((KVariable) var).name());
@@ -139,41 +138,44 @@ public class KRun {
             conjunctions.sort(Comparator.comparing(K::toString));
             if (conjunctions.size() > 1) {
                 conjunctions.subList(0, conjunctions.size() - 1).forEach(x -> {
-                    prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), x);
+                    prettyPrint(compiledDef, outputMode, s -> bs.write(s, 0, s.length), x);
                     sb.append(new String(bs.toByteArray()));
                     sb.append(" " + KLabels.ML_AND + " ");
                 });
             }
             if (!conjunctions.isEmpty()) {
                 bs.reset();
-                prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), conjunctions.get(conjunctions.size() - 1));
+                prettyPrint(compiledDef, outputMode, s -> bs.write(s, 0, s.length), conjunctions.get(conjunctions.size() - 1));
                 sb.append(new String(bs.toByteArray()));
             }
             return sb;
         } else {
-            prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), result);
+            prettyPrint(compiledDef, outputMode, s -> bs.write(s, 0, s.length), result);
             sb.append(new String(bs.toByteArray()));
             return sb;
         }
     }
 
-    private Set<String> getPatternVariableNames(KRunOptions options, CompiledDefinition compiledDef) {
+    private static Set<String> getPatternVariableNames(K parsedPattern) {
         Set<String> patternVariablesNames = new HashSet<>();
-        if (options.pattern != null) {
+        if (parsedPattern != null)
             new VisitK() {
                 @Override
                 public void apply(KVariable k) {
                     patternVariablesNames.add(k.name());
                     super.apply(k);
                 }
-            }.apply(parsePattern(files, kem, options.pattern, compiledDef, Source.apply("<command line: --pattern>")).body());
-        }
+            }.apply(parsedPattern);
         return patternVariablesNames;
     }
 
 
-    public void printK(K result, KRunOptions options, CompiledDefinition compiledDef) {
-        Set<String> patternVariables = getPatternVariableNames(options, compiledDef);
+    public static void printK(K result, String patternString, OutputModes outputMode, String outputFile, CompiledDefinition compiledDef, FileUtil files, KExceptionManager kem) {
+        K parsedPattern = null;
+        if (patternString != null) {
+            parsedPattern = parsePattern(files, kem, patternString, compiledDef, Source.apply("<Command-Line>")).body();
+        }
+        Set<String> patternVariables = getPatternVariableNames(parsedPattern);
         StringBuilder sb = new StringBuilder();
         if (result instanceof KApply && ((KApply) result).klabel().equals(KLabel(KLabels.ML_OR))) {
             List<K> resultList = Assoc.flatten(KLabel(KLabels.ML_OR), ((KApply) result).items(), KLabel(KLabels.ML_FALSE))
@@ -184,7 +186,7 @@ public class KRun {
             } else {
                 int index = 1;
                 for (int i = 0; i < resultList.size(); ++i) {
-                    String conjunctString = filterAnonVarsAndPrint(resultList.get(i), patternVariables, compiledDef, options).toString();
+                    String conjunctString = filterAnonVarsAndPrint(resultList.get(i), patternVariables, compiledDef, outputMode).toString();
                     if (!(conjunctString.trim().isEmpty()) && !observedResults.contains(conjunctString)) {
                         sb.append("Solution " + index++ + "\n");
                         sb.append(conjunctString);
@@ -195,14 +197,14 @@ public class KRun {
                     sb.append("No Search Results\n");
                 }
             }
-            outputFile(sb.toString(), options);
+            outputFile(sb.toString(), outputFile, files);
             return;
         }
         if (result instanceof KApply && ((KApply) result).klabel().name().equals(KLabels.ML_FALSE)) {
-            outputFile("No Search Results\n", options);
+            outputFile("No Search Results\n", outputFile, files);
             return;
         }
-        outputFile(filterAnonVarsAndPrint(result, patternVariables, compiledDef, options).toString(), options);
+        outputFile(filterAnonVarsAndPrint(result, patternVariables, compiledDef, outputMode).toString(), outputFile, files);
     }
 
     /**
@@ -243,23 +245,27 @@ public class KRun {
     }
 
     //TODO(dwightguth): use Writer
-    public void outputFile(String output, KRunOptions options) {
-        outputFile(output.getBytes(), options);
+    public void outputFile(String output, String outputFile) {
+        outputFile(output.getBytes(), outputFile);
     }
 
-    public void outputFile(byte[] output, KRunOptions options) {
-        outputFile(output, options, files);
+    public static void outputFile(String output, String outputFile, FileUtil files) {
+        outputFile(output.getBytes(), outputFile, files);
     }
 
-    public static void outputFile(byte[] output, KRunOptions options, FileUtil files) {
-        if (options.outputFile == null) {
+    public void outputFile(byte[] output, String outputFile) {
+        outputFile(output, outputFile, files);
+    }
+
+    public static void outputFile(byte[] output, String outputFile, FileUtil files) {
+        if (outputFile == null) {
             try {
                 System.out.write(output);
             } catch (IOException e) {
                 throw KEMException.internalError(e.getMessage(), e);
             }
         } else {
-            files.saveToWorkingDirectory(options.outputFile, output);
+            files.saveToWorkingDirectory(outputFile, output);
         }
     }
 

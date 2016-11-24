@@ -193,7 +193,7 @@ public class Kapi {
 
         // print output
         // from org.kframework.krun.KRun.run()
-        KRun.prettyPrint(compiledDef, krunOptions.output, s -> KRun.outputFile(s, krunOptions, files), result.k());
+        KRun.prettyPrint(compiledDef, krunOptions.output, s -> KRun.outputFile(s, krunOptions.outputFile, files), result.k());
     }
 
     /**
@@ -434,7 +434,7 @@ public class Kapi {
                         rewritingContext.global())) // register definition to be used for execution of the current rule
                 .collect(Collectors.toList());
 
-        return javaRules.get(0).leftHandSide();
+        return javaRules.get(0).createLhsPattern(rewritingContext).term();
 
     }
 
