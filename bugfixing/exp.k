@@ -13,10 +13,10 @@ module EXP
 
   syntax KResult ::= Int | Bool
 
-  configuration <H> <k> $PGM:Pgm </k> </H>
+  configuration <H> <k> $PGM:Pgm </k> <state> .Map </state> </H>
 
-  rule <H> <k> 1 </k> </H>
-    => <H> <k> 2 </k> </H>
+  rule <H> <k> 1 </k> <state> .Map </state> </H>
+    => <H> <k> 2 </k> <state> .Map </state> </H>
 
 
 endmodule

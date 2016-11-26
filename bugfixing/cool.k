@@ -7,8 +7,8 @@ module COOL
              | "a"
              | "b"
   syntax KItem ::= foo(S)
-  rule <k> 0 => foo(`b * b` * `a * b`) </k>
-  rule <k> foo(`X * a` * Y) => 1 </k>
+  rule <k> 0 => foo((b * b) * (a * b)) </k>
+  rule <k> foo((X * a) * Y) => 1 </k>
 
-  configuration <k> 0 </k>
+  configuration <k> $PGM:Int </k>
 endmodule
