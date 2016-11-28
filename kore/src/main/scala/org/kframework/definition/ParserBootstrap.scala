@@ -89,10 +89,8 @@ object KParserBootsrap {
   }
 
   def productionSeq(prod: K, sorts: Map[String, (ADT.SortLookup, Set[K])]): Seq[ProductionItem] = prod match {
-    case KApply(KLabelLookup("__"), KList(KToken(str, KString@KTOKENS, _) :: rest :: _), _) =>
-      Terminal(str) +: productionSeq(rest, sorts)
-    case KApply(KLabelLookup("__"), KList(KToken(sortName, KString@KTOKENS, _) :: rest :: _), _) =>
-      NonTerminal(sorts(sortName)._1) +: productionSeq(rest, sorts)
+    case KApply(KLabelLookup("__"), KList(KToken(str, KString, _) :: rest :: _), _) => Terminal(str) +: productionSeq(rest, sorts)
+    case KApply(KLabelLookup("__"), KList(KToken(sortName, KSort, _) :: rest :: _), _) => NonTerminal(sorts(sortName)._1) +: productionSeq(rest, sorts)
   }
 
   def downSentence(parsedSentence: K, sorts: Map[String, (ADT.SortLookup, Set[K])]): Production = parsedSentence match {
