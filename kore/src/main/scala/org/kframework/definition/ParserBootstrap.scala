@@ -59,6 +59,7 @@ object KParserBootsrap {
   def sentences(s: Sentence*): Set[Sentence] = s.toSet
   def klabel(label: String): K = Att.asK("klabel", label)
 
+  // TODO: Suggestion: Change `getASTNodes` to `byLabel`
   def getASTNodes(parsed: K, nodeLabel: String): List[K] = parsed match {
     case node@KApply(nl, klist, _) => klist.items.asScala.flatMap(x => getASTNodes(x, nodeLabel)).toList ++ (if (nl == KLabelLookup(nodeLabel)) List(node) else List.empty)
     case _ => List.empty
@@ -87,25 +88,28 @@ object KParserBootsrap {
       (name, getASTNodes(importList, "imports_").map { case KApply(_, KList(KToken(mn, _, _) :: _), _) => mn }.toSet)
   }
 
-  def downSentence(parsedSentence: K, sorts: Map[String, ADT.SortLookup]): Production = ???
+  def productionSeq(prod: K, sorts: Map[String, (ADT.SortLookup, Set[K])]): Seq[ProductionItem] = prod match {
+    case KApply(KLabelLookup("__"), KList(KToken(str, KString@KTOKENS, _) :: rest :: _), _) =>
+      Terminal(str) +: productionSeq(rest, sorts)
+    case KApply(KLabelLookup("__"), KList(KToken(sortName, KString@KTOKENS, _) :: rest :: _), _) =>
+      NonTerminal(sorts(sortName)._1) +: productionSeq(rest, sorts)
+  }
 
-//  def downModuleWith(parsedModule: K, sorts: Map[String, ADT.SortLookup], downedModules: Map[String, Module]): Module = {
-//    val imports = getImports(parsedModule)._2.map(downedModules(_))
-//    val sentences = getASTNodes(parsedModule, "syntax_::=_").map(downSentence(_, sorts))
-//  }
+  def downSentence(parsedSentence: K, sorts: Map[String, (ADT.SortLookup, Set[K])]): Production = parsedSentence match {
+    case KApply(KLabelLookup("syntax_::=_"), KList(KToken(sortName, _, _) :: production :: _), atts) => {
+      Production(sorts(sortName)._1, productionSeq(production, sorts), atts)
+    }
+  }
 
   def getParsedModule(ASTNodes: List[K], moduleName: String): K =
     ASTNodes.find{ case KApply(_, KList(KToken(mn, _, _) :: _), _) => mn == moduleName }.get
-    //ASTNodes.find( (elt: K) => elt == KApply(_, KList(KToken(moduleName, _, _) :: _), _))
 
   def sortModules(decomposedModules: List[(String, Set[String], Map[String, (ADT.SortLookup, Set[K])])], orderedModules: List[String]): List[String] = ???
-
 
   def down(downedModules: Map[String, Module], moduleName: String, importSet: Set[String], sortInfo: Map[String, (SortLookup, Set[K])]): Module = ???
 
   def getAllDownModules(parsed: K): Map[String, Module] = {
     var decomposedModules = getASTNodes(parsed, "module__endmodule") map decomposeModule
-
     var downedModules = Map.empty : Map[String, Module]
 
     while (decomposedModules.nonEmpty) {
@@ -114,22 +118,7 @@ object KParserBootsrap {
       downedModules += moduleName -> down(downedModules, moduleName, importSet, sortInfo)
     }
     downedModules
-
-
-
-//    val decomposedModules = getASTNodes(parsed, "module___endmodule") map decomposeModule
-//    var sorts = Map.empty: Map[String, ADT.SortLookup]
-//    var downedModules = Map.empty : Map[String, Module]
-//    val nonDownedModules = getASTModules(parsed)
-//    while(downedModules.size > 0) {
-//      val nextModule = nextDownModuleName(nonDownedModules.map(getImports).toSet, downedModules.keySet).get
-//      sorts = sorts ++ getSortMap(getParsedModule(nonDownedModules, nextModule))
-//      downedModules = downedModules + (nextModule -> downModuleWith(getParsedModule(nonDownedModules, nextModule), sorts, downedModules))
-//    }
-//    downedModules
   }
-
-
 
 
   // module KTOKENS
