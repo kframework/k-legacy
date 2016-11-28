@@ -45,6 +45,7 @@ public class KoreKDebug implements KDebug {
     private CompiledDefinition compiledDef;
     private DirectedGraph<PatternNode, ProofTransition> proofTree;
 
+
     /**
      * Start a Debugger Session. The initial Configuration becomes a part of the new and only state of the Debugger
      * @param initialK The initial Configuration.
