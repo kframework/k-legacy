@@ -32,6 +32,13 @@ import static org.junit.Assert.*;
  */
 public class TstKompileOnKORE_IT extends AbstractTest {
 
+    /* *
+     * kompileEmptyModuleTest simulates the command for bug#2219
+     * `-kompile --no-prelude --debug k-distribution/src/test/resources/compiler-tests/empty-module.k`
+     * The empty-module.k is created with no imports, syntax, rules, and configuration in it.
+     * Before bug2219 is fixed, an NoSuchElementException is thrown.
+     * After the bug is fixed, a compiledDefinition is expected to be generated with an exit code 0.
+     */
     @Test
     public void kompileEmptyModuleTest() {
         // set --no-prelude option
