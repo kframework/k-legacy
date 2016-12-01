@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.kompile;
 
+import org.kframework.Collections;
 import org.kframework.KapiGlobal;
 import org.kframework.Strategy;
 import org.kframework.attributes.Source;
@@ -10,29 +11,9 @@ import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.compile.LabelInfo;
 import org.kframework.compile.LabelInfoFromModule;
 import org.kframework.definition.Constructors;
-import org.kframework.definition.Definition;
-import org.kframework.definition.DefinitionTransformer;
-import org.kframework.definition.Module;
-import org.kframework.definition.Rule;
-import org.kframework.definition.Sentence;
-import org.kframework.kore.ADT;
-import org.kframework.kore.K;
-import org.kframework.kore.KApply;
-import org.kframework.kore.KORE;
-import org.kframework.kore.KSequence;
-import org.kframework.kore.Sort;
-import org.kframework.kore.TransformK;
-import org.kframework.kore.compile.AddImplicitComputationCell;
-import org.kframework.kore.compile.ConcretizeCells;
-import org.kframework.kore.compile.GenerateSortPredicateSyntax;
-import org.kframework.kore.compile.ResolveAnonVar;
-import org.kframework.kore.compile.ConvertContextsToHeatCoolRules;
-import org.kframework.kore.compile.ResolveFreshConstants;
-import org.kframework.kore.compile.ResolveHeatCoolAttribute;
-import org.kframework.kore.compile.ResolveIOStreams;
-import org.kframework.kore.compile.ResolveSemanticCasts;
-import org.kframework.kore.compile.ConvertStrictToContexts;
-import org.kframework.kore.compile.SortInfo;
+import org.kframework.definition.*;
+import org.kframework.kore.*;
+import org.kframework.kore.compile.*;
 import org.kframework.kore.compile.checks.CheckConfigurationCells;
 import org.kframework.kore.compile.checks.CheckRHSVariables;
 import org.kframework.kore.compile.checks.CheckSortTopUniqueness;
@@ -133,7 +114,12 @@ public class Kompile {
 
         ConfigurationInfoFromModule configInfo = new ConfigurationInfoFromModule(kompiledDefinition.mainModule());
 
-        return new CompiledDefinition(kompileOptions, parsedDef, kompiledDefinition, configInfo.getDefaultCell(configInfo.topCell()).klabel());
+        //check if configInfo contains no cells before getDefaultCell
+        KLabel kLabel = null;
+        if(configInfo.topCell() != null){
+            kLabel = configInfo.getDefaultCell(configInfo.topCell()).klabel();
+        }
+        return new CompiledDefinition(kompileOptions, parsedDef, kompiledDefinition, kLabel);
     }
 
     public Definition parseDefinition(File definitionFile, String mainModuleName, String mainProgramsModule) {
@@ -195,11 +181,14 @@ public class Kompile {
         Module withKSeq = Constructors.Module("SEMANTICS", Set(d.mainModule()), immutable(prods), Att());
         java.util.Set<Module> allModules = mutable(d.modules());
         allModules.add(withKSeq);
+        // We need to check whether ktermModule and ruleModule are empty before extracting data
+        scala.collection.Set<Module> moduleSet = Set(d.mainModule());
+        Option<Module> ktermModule = d.getModule("K-TERM");
+        Option<Module> ruleModule = d.getModule(RuleGrammarGenerator.ID_PROGRAM_PARSING);
+        if(ktermModule.nonEmpty()) moduleSet = Collections.add(ktermModule.get(), moduleSet);
+        if(ruleModule.nonEmpty())  moduleSet = Collections.add(ruleModule.get(),  moduleSet);
 
-        Module languageParsingModule = Constructors.Module("LANGUAGE-PARSING",
-                Set(d.mainModule(),
-                        d.getModule("K-TERM").get(),
-                        d.getModule(RuleGrammarGenerator.ID_PROGRAM_PARSING).get()), Set(), Att());
+        Module languageParsingModule = Constructors.Module("LANGUAGE-PARSING", moduleSet, Set(), Att());
         allModules.add(languageParsingModule);
         return Constructors.Definition(withKSeq, immutable(allModules), d.att());
     }

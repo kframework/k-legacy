@@ -7,15 +7,7 @@ import org.apache.commons.collections15.ListUtils;
 import org.kframework.Collections;
 import org.kframework.attributes.Source;
 import org.kframework.builtin.BooleanUtils;
-import org.kframework.definition.Bubble;
-import org.kframework.definition.Context;
-import org.kframework.definition.Definition;
-import org.kframework.definition.DefinitionTransformer;
-import org.kframework.definition.HybridMemoizingModuleTransformer;
-import org.kframework.definition.Module;
-import org.kframework.definition.ModuleName;
-import org.kframework.definition.Rule;
-import org.kframework.definition.Sentence;
+import org.kframework.definition.*;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.Sort;
@@ -31,6 +23,7 @@ import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.file.FileUtil;
+import scala.Option;
 import scala.Tuple2;
 import scala.collection.Set;
 import scala.util.Either;
@@ -50,9 +43,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.kframework.Collections.*;
-import static org.kframework.definition.Constructors.Att;
 import static org.kframework.definition.Constructors.*;
-import static org.kframework.kore.KORE.*;
+import static org.kframework.kore.KORE.KApply;
+import static org.kframework.kore.KORE.Sort;
 
 /**
  * A bundle of code doing various aspects of definition parsing.
@@ -186,7 +179,12 @@ public class DefinitionParsing {
             definitionWithConfigBubble = DefinitionTransformer.fromHybrid(mod -> {
                 if (mod == definition.mainModule()) {
                     java.util.Set<Module> imports = mutable(mod.imports());
-                    imports.add(definition.getModule("DEFAULT-CONFIGURATION").get());
+                    // check whether no module is imported before add Module into imports
+                    Option<Module> defaultModule = definition.getModule("DEFAULT-CONFIGURATION");
+                    if(!defaultModule.isEmpty()){
+                        imports.add(defaultModule.get());
+                    }
+
                     return Module(mod.name(), (Set<Module>) immutable(imports), mod.localSentences(), mod.att());
                 }
                 return mod;
@@ -292,16 +290,16 @@ public class DefinitionParsing {
         KApply ruleContents = (KApply) contents;
         List<org.kframework.kore.K> items = ruleContents.klist().items();
         switch (ruleContents.klabel().name()) {
-        case "#ruleNoConditions":
-            return Rule(items.get(0), BooleanUtils.TRUE, BooleanUtils.TRUE, ruleContents.att());
-        case "#ruleRequires":
-            return Rule(items.get(0), items.get(1), BooleanUtils.TRUE, ruleContents.att());
-        case "#ruleEnsures":
-            return Rule(items.get(0), BooleanUtils.TRUE, items.get(1), ruleContents.att());
-        case "#ruleRequiresEnsures":
-            return Rule(items.get(0), items.get(1), items.get(2), ruleContents.att());
-        default:
-            throw new AssertionError("Wrong KLabel for rule content");
+            case "#ruleNoConditions":
+                return Rule(items.get(0), BooleanUtils.TRUE, BooleanUtils.TRUE, ruleContents.att());
+            case "#ruleRequires":
+                return Rule(items.get(0), items.get(1), BooleanUtils.TRUE, ruleContents.att());
+            case "#ruleEnsures":
+                return Rule(items.get(0), BooleanUtils.TRUE, items.get(1), ruleContents.att());
+            case "#ruleRequiresEnsures":
+                return Rule(items.get(0), items.get(1), items.get(2), ruleContents.att());
+            default:
+                throw new AssertionError("Wrong KLabel for rule content");
         }
     }
 
@@ -309,12 +307,12 @@ public class DefinitionParsing {
         KApply ruleContents = (KApply) contents;
         List<K> items = ruleContents.klist().items();
         switch (ruleContents.klabel().name()) {
-        case "#ruleNoConditions":
-            return Context(items.get(0), BooleanUtils.TRUE, ruleContents.att());
-        case "#ruleRequires":
-            return Context(items.get(0), items.get(1), ruleContents.att());
-        default:
-            throw KEMException.criticalError("Illegal context with ensures clause detected.", contents);
+            case "#ruleNoConditions":
+                return Context(items.get(0), BooleanUtils.TRUE, ruleContents.att());
+            case "#ruleRequires":
+                return Context(items.get(0), items.get(1), ruleContents.att());
+            default:
+                throw KEMException.criticalError("Illegal context with ensures clause detected.", contents);
         }
     }
 

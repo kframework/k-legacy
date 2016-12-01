@@ -42,17 +42,20 @@ public class GenerateSortPredicateSyntax extends WithInputDefinitionModuleTransf
             if (alreadyProcessedImports.exists(i -> i.name().equals("BOOL-SYNTAX"))) {
                 newImports = alreadyProcessedImports;
             } else{
-                newImports = Collections.add(apply("BOOL-SYNTAX"), alreadyProcessedImports);
+                //check if apply("BOOL-SYNTAX") returns None before adding BOOL-SYNTAX module into newImports
+                if(inputDefinition().getModule("BOOL-SYNTAX").isEmpty()){
+                    newImports = alreadyProcessedImports;
+                } else {
+                    newImports = Collections.add(apply("BOOL-SYNTAX"), alreadyProcessedImports);
+                }
             }
         }
-
-
         return Module(mod.name(), newImports, (scala.collection.Set<Sentence>) mod.localSentences().$bar(immutable(res)), mod.att());
     }
 
     private Production getIsSortProduction(Sort sort) {
         return Production("is" + sort.name(), Sorts.Bool(),
-                        Seq(Terminal("is" + sort.name()), Terminal("("), NonTerminal(Sorts.K()), Terminal(")")),
-                        Att().add(Attribute.FUNCTION_KEY).add(Attribute.PREDICATE_KEY, sort.name()));
+                Seq(Terminal("is" + sort.name()), Terminal("("), NonTerminal(Sorts.K()), Terminal(")")),
+                Att().add(Attribute.FUNCTION_KEY).add(Attribute.PREDICATE_KEY, sort.name()));
     }
 }
