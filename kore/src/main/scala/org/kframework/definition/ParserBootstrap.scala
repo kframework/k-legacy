@@ -67,6 +67,7 @@ object KParserBootsrap {
     case node@KApply(nl, klist, _) => klist.items.asScala.flatMap(x => getASTNodes(x, nodeLabel)).toSet ++ (if (nl == KLabelLookup(nodeLabel)) Set(node) else Set.empty)
     case _ => Set.empty
   }
+  def getASTNodes(parsed: K, nodeLabels: String*): Set[K] = nodeLabels.foldLeft(Set.empty: Set[K]) ((curr:Set[K], nL:String) => getASTNodes(parsed, nL) ++ curr)
 
   def getASTModules(parsed: K): Set[K] = getASTNodes(parsed, "module___endmodule")
 
@@ -82,10 +83,14 @@ object KParserBootsrap {
     case KToken(sortName, KSort, _) => Seq(NonTerminal(Sort(sortName)))
   }
 
-  def downAttributes(parsedAttributes: K): Att = parsedAttributes match {
-    case KApply(KLabelLookup("_,_"), KList(KToken(str, KAttributeKey, _) :: rest :: _), _) => downAttributes(rest) + str
-    case _ => Att()
+  def downAttribute(attr: K): K = attr match {
+    case KApply(KLabelLookup("KAttribute"), KList(KToken(str, KAttributeKey, _) :: _), _) => KString(str)
+    case KApply(KLabelLookup("KAttributeApply"), KList(KToken(str, KAttributeKey, _) :: keyList :: _), _) => KApply(KString(str), getASTNodes(keyList, "KAttributeKey").toList, Att())
+    case _ => curr
   }
+
+  def downAttributes(parsedAttributes: K): Att =
+    getASTNodes(parsedAttributes, "KAttribute", "KAttributeApply").foldLeft(Att()) ((curr, next) -> curr.add(downAttribute(next)))
 
   def downSentence(parsedSentence: K): Production = parsedSentence match {
     case KApply(KLabelLookup("syntax_::=_[_]"), KList(KToken(sortName, _, _) :: production :: atts :: _), _) =>
@@ -104,16 +109,19 @@ object KParserBootsrap {
     downedModules
   }
 
-  // module KTOKENS
-  //   .KImportList
-  //
-  //   token KString       ::= r"\"[a-zA-Z0-9\\-]*\"" [klabel(KString), .Attributes]
-  //   token KSort         ::= r"[A-Z][A-Za-z0-9]*" [klabel(KSort), .Attributes]
-  //   token KAttributeKey ::= r"[a-z][A-Za-z\\-0-9]*" [klabel(KAttributeKey), .Attributes]
-  //   token KModuleName   ::= r"[A-Z][A-Z]*" [klabel(KModuleName), .Attributes]
-  //
-  //   .KSentenceList
-  // endmodule
+  val KTOKENS_STRING =
+    """
+    module KTOKENS
+      .KImportList
+
+      token KString       ::= r"\"[a-zA-Z0-9\\-]*\"" [klabel(KString), .Attributes]
+      token KSort         ::= r"[A-Z][A-Za-z0-9]*" [klabel(KSort), .Attributes]
+      token KAttributeKey ::= r"[a-z][A-Za-z\\-0-9]*" [klabel(KAttributeKey), .Attributes]
+      token KModuleName   ::= r"[A-Z][A-Z]*" [klabel(KModuleName), .Attributes]
+
+      .KSentenceList
+    endmodule
+    """
 
   val KString = Sort("KString")
   val KSort = Sort("KSort")
@@ -187,10 +195,10 @@ object KParserBootsrap {
   val KATTRIBUTES = Module("KATTRIBUTES", imports(KTOKENS), sentences(
 
     syntax(KKeyList) is KAttributeKey,
-    syntax(KKeyList) is (KAttributeKey, ",", KKeyList) att klabel("_,_"),
+    syntax(KKeyList) is (KAttributeKey, ",", KKeyList),
 
-    syntax(KAttribute) is KAttributeKey,
-    syntax(KAttribute) is (KAttributeKey, "(", KKeyList, ")") att klabel("_(_)"),
+    syntax(KAttribute) is KAttributeKey att klabel("KAttribute"),
+    syntax(KAttribute) is (KAttributeKey, "(", KKeyList, ")") att klabel("KAttributeApply"),
     syntax(KAttributes) is ".KAttributes" att klabel(".KAttributes"),
     syntax(KAttributes) is (KAttribute, ",", KAttributes) att klabel("_,_")
 
