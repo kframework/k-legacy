@@ -35,7 +35,7 @@ public class RuleGrammarTest {
     private final static Sort startSymbol = DefinitionParsing.START_SYMBOL;
     private String baseKText;
 
-    // Tests in this file test rule grammar. And they are prefect tests to test whether the program works
+    // Tests in this file test rule grammar. And they are perfect tests to test whether the program works
     // if we rename syntax Bag to CellBag.
     @Before
     public void setUp() throws Exception {
@@ -220,7 +220,7 @@ public class RuleGrammarTest {
                 "syntax KCell ::= \"<k>\" K \"</k>\" [klabel(<k>), cell] " +
                 "syntax StateCell ::= \"<state>\" K \"</state>\" [klabel(<state>), cell] " +
                 "endmodule";
-        parseRule("<T> <k>...1+2*3...</k> (<state> A => .::K ...</state> => .::Bag) ...</T>", def, 1, false);
+        parseRule("<T> <k>...1+2*3...</k> (<state> A => .::K ...</state> => .::CellBag) ...</T>", def, 1, false);
     }
 
     // test rule cells
@@ -246,7 +246,7 @@ public class RuleGrammarTest {
                 "| r\"[0-9]+\" [token] " +
                 "syntax K " +
                 "endmodule";
-        parseConfig("<T multiplicity=\"*\"> <k> 1+2*3 </k> (<state> A => .::K </state> => .::Bag) </T>", def, 1, false);
+        parseConfig("<T multiplicity=\"*\"> <k> 1+2*3 </k> (<state> A => .::K </state> => .::CellBag) </T>", def, 1, false);
     }
 
     // test variable disambiguation when all variables are being inferred

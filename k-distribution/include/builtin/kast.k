@@ -79,8 +79,8 @@ module KCELLS
   // To distinguish data structure Bag and syntax Bag, we rename the syntax Bag to CellBag
   syntax Cell
   syntax CellBag ::= CellBag CellBag  [left, assoc, klabel(#cells), unit(#cells)]
-               | ".Bag"   [klabel(#cells)]
-               | ".::Bag" [klabel(#cells)]
+               | ".CellBag"   [klabel(#cells)]
+               | ".::CellBag" [klabel(#cells)]
                | Cell     [allowChainSubsort]
   syntax CellBag ::= "(" CellBag ")" [bracket]
   syntax K ::= CellBag
