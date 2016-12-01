@@ -1,19 +1,12 @@
 // Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
-import java.util.List;
-import java.util.Map;
-
-import org.kframework.backend.java.kil.Definition;
-import org.kframework.backend.java.kil.JavaSymbolicObject;
-import org.kframework.backend.java.kil.KItem;
-import org.kframework.backend.java.kil.Rule;
-import org.kframework.backend.java.kil.Term;
-import org.kframework.backend.java.kil.TermContext;
-import org.kframework.backend.java.kil.Variable;
+import com.google.common.collect.Lists;
+import org.kframework.backend.java.kil.*;
 import org.kframework.utils.errorsystem.KExceptionManager;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -33,6 +26,10 @@ public class MacroExpander extends CopyOnWriteTransformer {
     }
 
     public static Term expandAndEvaluate(TermContext termContext, KExceptionManager kem, Term term) {
+        if(term == null) {
+            return null;
+        }
+
         term = new MacroExpander(termContext, kem).processTerm(term);
         term = term.evaluate(termContext);
         return term;

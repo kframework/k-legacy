@@ -89,7 +89,13 @@ public class SymbolicRewriter {
             step++;
         }
 
-        ConstrainedTerm afterVariableRename = new ConstrainedTerm(new RenameAnonymousVariables().apply(constrainedTerm.term()), constrainedTerm.termContext());
+        // disable the process to rename anonymous variable if there is no term within defintion: krun empty module
+        ConstrainedTerm afterVariableRename;
+        if(constrainedTerm.term() == null){
+            afterVariableRename = constrainedTerm;
+        } else {
+            afterVariableRename = new ConstrainedTerm(new RenameAnonymousVariables().apply(constrainedTerm.term()), constrainedTerm.termContext());
+        }
 
         KRunState finalState = new JavaKRunState(afterVariableRename, counter, Optional.of(step));
 
