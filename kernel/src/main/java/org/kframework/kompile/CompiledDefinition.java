@@ -151,6 +151,10 @@ public class CompiledDefinition implements Serializable {
         ParseInModule parseInModule = RuleGrammarGenerator.getCombinedGrammar(module, kompileOptions.strict());
 
         return (BiFunction<String, Source, K> & Serializable) (s, source) -> {
+            // if there is no prelude and no cells in compiledDefinition, there is no need to parse. return null.
+            if(noPrelude && topCellInitializer == null){
+                return null;
+            }
             Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>> res = parseInModule.parseString(s, programStartSymbol, source);
             kem.addAllKException(res._2().stream().map(e -> e.getKException()).collect(Collectors.toSet()));
             if (res._1().isLeft()) {
@@ -178,9 +182,5 @@ public class CompiledDefinition implements Serializable {
         stream.defaultReadObject();
         cachedcompiledPatterns = new ConcurrentHashMap<>();
         cachedParsedPatterns = new ConcurrentHashMap<>();
-    }
-
-    public boolean hasPrelude(){
-        return !noPrelude;
     }
 }
