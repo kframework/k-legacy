@@ -9,7 +9,7 @@ import org.kframework.definition.SyntaxSort;
 import org.kframework.kore.Sort;
 import org.kframework.utils.errorsystem.KEMException;
 
-import static org.kframework.kore.KORE.Sort;
+import static org.kframework.kore.KORE.*;
 
 import java.util.Set;
 
@@ -52,10 +52,11 @@ public class CheckSortTopUniqueness {
     }
 
     private void check(Sort s, Sentence p) {
+        //Term Bag here stands for syntax Bag, so we rename it to CellBag to distinguish data structure Bag and syntax Bag
         if (!s.equals(Sort("Cell", ModuleName.apply("KCELLS"))) &&
                 module.subsorts().lessThan(s, Sort("KList")) &&
-                module.subsorts().lessThan(s, Sort("Bag"))) {
-            errors.add(KEMException.compilerError("Multiple top sorts found for " + s.name() + ": KList and Bag.", p));
+                module.subsorts().lessThan(s, Sort("CellBag"))) {
+            errors.add(KEMException.compilerError("Multiple top sorts found for " + s.name() + ": KList and CellBag.", p));
         }
     }
 }

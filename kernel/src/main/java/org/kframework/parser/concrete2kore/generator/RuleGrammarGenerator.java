@@ -310,7 +310,8 @@ public class RuleGrammarGenerator {
                                 if (cfgInfo.isLeafCell(p.sort())) {
                                     body = p.items().tail().head();
                                 } else {
-                                    body = NonTerminal(Sort("Bag"));
+                                    //Term Bag here stands for syntax Bag, so we rename it to CellBag to distinguish data structure Bag and syntax Bag
+                                    body = NonTerminal(Sort("CellBag"));
                                 }
                                 final ProductionItem optDots = NonTerminal(Sort("#OptionalDots"));
                                 Seq<ProductionItem> pi = Seq(p.items().head(), optDots, body, optDots, p.items().last());

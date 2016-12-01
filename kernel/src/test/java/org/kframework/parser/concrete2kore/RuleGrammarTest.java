@@ -35,6 +35,8 @@ public class RuleGrammarTest {
     private final static Sort startSymbol = DefinitionParsing.START_SYMBOL;
     private String baseKText;
 
+    // Tests in this file test rule grammar. And they are prefect tests to test whether the program works
+    // if we rename syntax Bag to CellBag.
     @Before
     public void setUp() throws Exception {
         /*
