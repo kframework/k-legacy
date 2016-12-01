@@ -106,9 +106,9 @@ public class Kompile {
         return run(parsedDef, pipeline);
     }
 
+
     public CompiledDefinition run(Definition parsedDef, Function<Definition, Definition> pipeline) {
         checkDefinition(parsedDef);
-
         Definition kompiledDefinition = pipeline.apply(parsedDef);
         sw.printIntermediate("Apply compile pipeline");
 
@@ -119,7 +119,8 @@ public class Kompile {
         if(configInfo.topCell() != null){
             kLabel = configInfo.getDefaultCell(configInfo.topCell()).klabel();
         }
-        return new CompiledDefinition(kompileOptions, parsedDef, kompiledDefinition, kLabel);
+        // parse noPrelude flag to be saved into CompiledDefinition
+        return new CompiledDefinition(kompileOptions, parsedDef, kompiledDefinition, kLabel, kompileOptions.outerParsing.noPrelude);
     }
 
     public Definition parseDefinition(File definitionFile, String mainModuleName, String mainProgramsModule) {
