@@ -141,11 +141,11 @@ public class TstKRunOnKORE_IT extends AbstractTest {
                 "\u0003\u0000$\u0000I\u0000O\u0000\u0000\u0000\u0006\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000" +
                 "\u0004\u0000\"\u0000o\u0000n\u0000\"\u0000\u0000\u0000\u0005\u0002\u0000\u0000\u0000\u0004\u0000\u0000" +
                 "\u0000\u0000\u0002\u0002\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0002\u0002\u0000\u0000\u0000" +
-                "\u0000\u0001\u0007\n");
+                "\u0000\u0001\u0007");
     }
 
     @Test
-    public void krunHasPreludeNonEmptyModuleTest(){
+    public void krunHasPreludeNonEmptyModuleTest() {
         // set --debug options (default to be false)
         globalOptions.debug = true;
 
@@ -173,24 +173,25 @@ public class TstKRunOnKORE_IT extends AbstractTest {
         K kastResult = kapi.kast(pgm, compiledDef);
         String kastOutString = getPrettyPrintOutput(kastResult, compiledDef);
         assertEquals(kastOutString, "initTCell ( .Map $STDIN |-> \"\" $IO |-> \"on\" $PGM |-> int n , ( sum , .Ids ) ;"
-                            +" ( n = 100 ; sum = 0 ; while ( ! ( n <= 0 ) ) { sum = sum + n ; n = n + -1 ; } ) )\n");
+                + " ( n = 100 ; sum = 0 ; while ( ! ( n <= 0 ) ) { sum = sum + n ; n = n + -1 ; } ) )\n");
 
         // pretty print in KAST mode
         kRunOptions.output = OutputModes.KAST;
         String KASTModeString = getPrettyPrintOutput(kastResult, compiledDef);
-        assertEquals(KASTModeString, "initTCell(`_Map_`(`_Map_`(`_Map_`(`.Map`(.KList),`_|->_`"+
-                "(#token(\"$STDIN\",\"KConfigVar@BASIC-K\"),#token(\"\\\"\\\"\",\"String@STRING-SYNTAX\"))),"+"" +
-                "`_|->_`(#token(\"$IO\",\"KConfigVar@BASIC-K\"),#token(\"\\\"on\\\"\",\"String@STRING-SYNTAX\"))),"+"" +
-                "`_|->_`(#token(\"$PGM\",\"KConfigVar@BASIC-K\"),`int_;_`(`_,_`(#token(\"n\",\"Id@ID\"),"+
-                "`_,_`(#token(\"sum\",\"Id@ID\"),`.List{\"_,_\"}`(.KList))),"+
-                "`__`(`__`(`_=_;`(#token(\"n\",\"Id@ID\"),#token(\"100\",\"Int@INT-SYNTAX\")),"+
-                "`_=_;`(#token(\"sum\",\"Id@ID\"),#token(\"0\",\"Int@INT-SYNTAX\"))),"+
-                "`while(_)_`(`!_`(`_<=_`(#token(\"n\",\"Id@ID\"),#token(\"0\",\"Int@INT-SYNTAX\"))),"+
-                "`{_}`(`__`(`_=_;`(#token(\"sum\",\"Id@ID\"),`_+_`(#token(\"sum\",\"Id@ID\"),"+
-                "#token(\"n\",\"Id@ID\"))),`_=_;`(#token(\"n\",\"Id@ID\"),`_+_`(#token(\"n\",\"Id@ID\"),"+
+        assertEquals(KASTModeString, "initTCell(`_Map_`(`_Map_`(`_Map_`(`.Map`(.KList),`_|->_`" +
+                "(#token(\"$STDIN\",\"KConfigVar@BASIC-K\"),#token(\"\\\"\\\"\",\"String@STRING-SYNTAX\")))," + "" +
+                "`_|->_`(#token(\"$IO\",\"KConfigVar@BASIC-K\"),#token(\"\\\"on\\\"\",\"String@STRING-SYNTAX\")))," + "" +
+                "`_|->_`(#token(\"$PGM\",\"KConfigVar@BASIC-K\"),`int_;_`(`_,_`(#token(\"n\",\"Id@ID\")," +
+                "`_,_`(#token(\"sum\",\"Id@ID\"),`.List{\"_,_\"}`(.KList)))," +
+                "`__`(`__`(`_=_;`(#token(\"n\",\"Id@ID\"),#token(\"100\",\"Int@INT-SYNTAX\"))," +
+                "`_=_;`(#token(\"sum\",\"Id@ID\"),#token(\"0\",\"Int@INT-SYNTAX\")))," +
+                "`while(_)_`(`!_`(`_<=_`(#token(\"n\",\"Id@ID\"),#token(\"0\",\"Int@INT-SYNTAX\")))," +
+                "`{_}`(`__`(`_=_;`(#token(\"sum\",\"Id@ID\"),`_+_`(#token(\"sum\",\"Id@ID\")," +
+                "#token(\"n\",\"Id@ID\"))),`_=_;`(#token(\"n\",\"Id@ID\"),`_+_`(#token(\"n\",\"Id@ID\")," +
                 "#token(\"-1\",\"Int@INT-SYNTAX\")))))))))))\n");
 
         // pretty print in BINARY mode
         kRunOptions.output = OutputModes.BINARY;
         String BINARYModeString = getPrettyPrintOutput(kastResult, compiledDef);
+    }
 }
