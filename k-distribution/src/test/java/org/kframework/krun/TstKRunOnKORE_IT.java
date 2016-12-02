@@ -1,27 +1,21 @@
 package org.kframework.krun;
 import com.beust.jcommander.JCommander;
-import org.junit.Before;
 import org.junit.Test;
 import org.kframework.AbstractTest;
 import org.kframework.Kapi;
 import org.kframework.RewriterResult;
-import org.kframework.attributes.Source;
 import org.kframework.backend.java.symbolic.JavaBackend;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
-import org.kframework.kore.K;
-import org.kframework.kore.compile.KtoKORE;
 import org.kframework.main.GlobalOptions;
-import org.kframework.utils.KoreUtils;
 import org.kframework.utils.file.FileUtil;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
-import java.net.URISyntaxException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.Assert.*;
  
 public class TstKRunOnKORE_IT extends AbstractTest {
     /* *
@@ -64,9 +58,9 @@ public class TstKRunOnKORE_IT extends AbstractTest {
         RewriterResult krunResult = new Kapi().krun(pgm, null, compiledDef);
         KRun.prettyPrint(compiledDef, kRunOptions.output, s -> KRun.outputFile(s, kRunOptions, files), krunResult.k());
 
-        // test, the krun should has an empty output with exit code 0
+        // test, the krun should output nothing but a new line with exit code 0
         String outstr = baos.toString();
-        assertTrue(outstr.length() == 0);
+        assertEquals(outstr, "\n");
 
         // redirect output to stdout again
         System.setOut(old);

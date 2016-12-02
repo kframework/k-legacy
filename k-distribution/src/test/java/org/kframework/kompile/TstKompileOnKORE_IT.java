@@ -58,7 +58,7 @@ public class TstKompileOnKORE_IT extends AbstractTest {
         CompiledDefinition compiledDef = kompile.run(defintionFile, mainModuleName, mainProgramsModuleName,
                 new JavaBackend(kem, FileUtil.testFileUtil(), globalOptions, kompileOptions).steps());
 
-        // assertEquals(utils.compiledDef.topCellInitializer, null);
+        assertEquals(compiledDef.topCellInitializer, null);
     }
 
 }

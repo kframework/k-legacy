@@ -76,6 +76,7 @@ object ToKast {
    * @param k The term to print
    */
   def unparse(b:StringBuilder, inParen: Boolean, prec: Int, k: K): Unit = k match {
+    case null => b
     case KToken(s, sort) => b ++= "#token(\"" + escape(s) + "\",\"" + escape(sort.name) + "\")"
     case InjectedKLabel(l) => b ++= "#klabel("+apply(l)+")"
     case KVariable(v) => b ++= v.toString
