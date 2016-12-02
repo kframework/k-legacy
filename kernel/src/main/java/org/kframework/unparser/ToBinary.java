@@ -71,7 +71,9 @@ public class ToBinary {
                 traverse(item);
             }
             data.writeByte(BinaryParser.KAPPLY);
-            writeString(app.klabel().name());
+            if(app.klabel() != null){
+                writeString(app.klabel().name());
+            }
             data.writeBoolean(app.klabel() instanceof KVariable);
             data.writeInt(app.size());
 

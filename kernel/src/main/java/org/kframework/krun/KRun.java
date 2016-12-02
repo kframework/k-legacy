@@ -420,6 +420,12 @@ public class KRun {
             return "";
         }
 
+        if(input instanceof KApply){
+            if(((KApply)input).klabel() == null){
+                return "";
+            }
+        }
+
         return KOREToTreeNodes.toString(
                 new AddBrackets(test).addBrackets((ProductionReference)
                         KOREToTreeNodes.apply(KOREToTreeNodes.up(test, input), test)));
