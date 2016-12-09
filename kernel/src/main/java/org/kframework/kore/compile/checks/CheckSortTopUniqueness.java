@@ -1,17 +1,13 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.kore.compile.checks;
 
-import org.kframework.definition.Module;
-import org.kframework.definition.ModuleName;
-import org.kframework.definition.Production;
-import org.kframework.definition.Sentence;
-import org.kframework.definition.SyntaxSort;
+import org.kframework.definition.*;
 import org.kframework.kore.Sort;
 import org.kframework.utils.errorsystem.KEMException;
 
-import static org.kframework.kore.KORE.*;
-
 import java.util.Set;
+
+import static org.kframework.kore.KORE.Sort;
 
 /**
  * Check that every sort has an unique top (super) sort.
@@ -52,7 +48,6 @@ public class CheckSortTopUniqueness {
     }
 
     private void check(Sort s, Sentence p) {
-        //Term Bag here stands for syntax Bag, so we rename it to CellBag to distinguish data structure Bag and syntax Bag
         if (!s.equals(Sort("Cell", ModuleName.apply("KCELLS"))) &&
                 module.subsorts().lessThan(s, Sort("KList")) &&
                 module.subsorts().lessThan(s, Sort("CellBag"))) {
