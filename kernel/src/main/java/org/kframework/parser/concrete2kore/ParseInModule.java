@@ -96,7 +96,7 @@ public class ParseInModule implements Serializable {
      * @return the Term representation of the parsed input.
      */
     public Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>>
-            parseProgramString(String input, Sort startSymbol, Source source) {
+            parseStringWithoutTypecheck(String input, Sort startSymbol, Source source) {
         return parseString(input, startSymbol, source, 1, 1, false);
     }
 
