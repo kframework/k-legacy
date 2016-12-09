@@ -50,9 +50,9 @@ public class CompiledDefinition implements Serializable {
     private final Module languageParsingModule;
     private transient Map<String, Rule> cachedcompiledPatterns;
     private transient Map<String, Rule> cachedParsedPatterns;
+    private final boolean noPrelude;
 
-
-    public CompiledDefinition(KompileOptions kompileOptions, Definition parsedDefinition, Definition kompiledDefinition, KLabel topCellInitializer) {
+    public CompiledDefinition(KompileOptions kompileOptions, Definition parsedDefinition, Definition kompiledDefinition, KLabel topCellInitializer, boolean noPrelude) {
         this.kompileOptions = kompileOptions;
         this.parsedDefinition = parsedDefinition;
         this.kompiledDefinition = kompiledDefinition;
@@ -60,6 +60,7 @@ public class CompiledDefinition implements Serializable {
         this.programStartSymbol = configurationVariableDefaultSorts.getOrDefault("$PGM", Sorts.K());
         this.topCellInitializer = topCellInitializer;
         this.languageParsingModule = kompiledDefinition.getModule("LANGUAGE-PARSING").get();
+        this.noPrelude = noPrelude;
     }
 
     private void initializeConfigurationVariableDefaultSorts() {
@@ -150,6 +151,10 @@ public class CompiledDefinition implements Serializable {
         ParseInModule parseInModule = RuleGrammarGenerator.getCombinedGrammar(module, kompileOptions.strict());
 
         return (BiFunction<String, Source, K> & Serializable) (s, source) -> {
+            // if there is no prelude and no cells in compiledDefinition, there is no need to parse. return null.
+            if(noPrelude && topCellInitializer == null){
+                return null;
+            }
             Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>> res = parseInModule.parseString(s, programStartSymbol, source);
             kem.addAllKException(res._2().stream().map(e -> e.getKException()).collect(Collectors.toSet()));
             if (res._1().isLeft()) {

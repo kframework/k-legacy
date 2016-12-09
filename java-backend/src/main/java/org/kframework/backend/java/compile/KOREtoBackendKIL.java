@@ -99,6 +99,10 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
      * TODO: rename the method to KApply when the backend fully implements KORE
      */
     public Term KApply1(org.kframework.kore.KLabel klabel, org.kframework.kore.KList klist, Att att) {
+        if(klabel == null){
+            return null;
+        }
+
         if (klabel.name().equals(KLabels.KREWRITE)) {
             return convertKRewrite(klabel, klist);
         }

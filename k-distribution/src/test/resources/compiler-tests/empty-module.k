@@ -1,0 +1,2 @@
+module EMPTY-MODULE
+endmodule

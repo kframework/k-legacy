@@ -55,7 +55,9 @@ public class ToBinary {
     }
 
     private void traverse(K k) throws IOException {
-        if (k instanceof KToken) {
+        if (k == null){
+            return;
+        } else if (k instanceof KToken) {
             KToken tok = (KToken) k;
 
             data.writeByte(BinaryParser.KTOKEN);
@@ -69,7 +71,9 @@ public class ToBinary {
                 traverse(item);
             }
             data.writeByte(BinaryParser.KAPPLY);
-            writeString(app.klabel().name());
+            if(app.klabel() != null){
+                writeString(app.klabel().name());
+            }
             data.writeBoolean(app.klabel() instanceof KVariable);
             data.writeInt(app.size());
 

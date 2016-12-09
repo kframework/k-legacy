@@ -22,7 +22,7 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
     m.productions.filter(_.att.contains("cell")).map(p => (p.sort, p)).toMap
   // TODO (brandon): can all assoc prods can be cell productions? I (radu) had some weird issues where isLeafCell failed
   private val cellBagProductions: Map[Sort,Production] =
-    m.productions.filter(_.att.contains("assoc")).map(p => (p.sort, p)).toMap
+  m.productions.filter(_.att.contains("assoc")).map(p => (p.sort, p)).toMap
   private val cellBagSubsorts: Map[Sort, Set[Sort]] = cellBagProductions.values.map(p => (p.sort, getCellSortsOfCellBag(p.sort))).toMap
   private val cellSorts: Set[Sort] = cellProductions.keySet
   private val cellBagSorts: Set[Sort] = cellBagProductions.keySet
@@ -69,8 +69,11 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
   lazy val topCell: Sort = {
     if (topCells.size > 1)
       throw new AssertionError("Too many top cells:" + topCells)
-
-    topCells.head
+    // we should check whether topCell is empty before using it
+    if (topCells.size != 0)
+      topCells.head
+    else
+      null
   }
   private val sortedSorts: Seq[Sort] = tsort(edges).toSeq
   lazy val levels: Map[Sort, Int] = edges.toList.sortWith((l, r) => sortedSorts.indexOf(l._1) < sortedSorts.indexOf(r._1)).foldLeft(Map(topCell -> 0)) {

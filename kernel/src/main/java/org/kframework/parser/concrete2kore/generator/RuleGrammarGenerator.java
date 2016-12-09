@@ -148,7 +148,15 @@ public class RuleGrammarGenerator {
     public static Module getProgramsGrammar(Module mod, Definition baseK) {
         assert baseK.modules().contains(mod);
         // import PROGRAM-LISTS so user lists are modified to parse programs
-        scala.collection.Set<Module> modules = Set(mod, baseK.getModule(PROGRAM_LISTS).get(), baseK.getModule(SORT_K).get());
+
+        scala.collection.Set<Module> modules = Set(mod);
+        // check whether PROGRAM_LISTS and SORT_K modules exist before adding them to modules
+        if(baseK.getModule(PROGRAM_LISTS).nonEmpty()) {
+            modules = Collections.add(baseK.getModule(PROGRAM_LISTS).get(), modules);
+        }
+        if(baseK.getModule(SORT_K).nonEmpty()){
+            modules = Collections.add(baseK.getModule(SORT_K).get(), modules);
+        }
 
         if (!mod.name().endsWith(POSTFIX) && stream(mod.importedModules()).anyMatch(m -> m.name().equals(ID))) {
             Module idProgramParsingModule = baseK.getModule(ID_PROGRAM_PARSING).get();

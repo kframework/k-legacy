@@ -59,13 +59,18 @@ public class Subsorts implements Serializable {
                 .map(s -> Sort.of(s.name()))
                 .collect(Collectors.toSet());
 
-        this.subsort = ArrayTable.create(sorts, sorts);
-        for (org.kframework.kore.Sort sort1 : Collections.iterable(module.definedSorts())) {
-            for (org.kframework.kore.Sort sort2 : Collections.iterable(module.definedSorts())) {
-                subsort.put(
-                        Sort.of(sort1.name()),
-                        Sort.of(sort2.name()),
-                        module.subsorts().$greater(sort1, sort2));
+        // check sorts is empty or not before creating an ArrayTable for subsort
+        if(sorts.isEmpty()){
+            this.subsort = null;
+        } else {
+            this.subsort = ArrayTable.create(sorts, sorts);
+            for (org.kframework.kore.Sort sort1 : Collections.iterable(module.definedSorts())) {
+                for (org.kframework.kore.Sort sort2 : Collections.iterable(module.definedSorts())) {
+                    subsort.put(
+                            Sort.of(sort1.name()),
+                            Sort.of(sort2.name()),
+                            module.subsorts().$greater(sort1, sort2));
+                }
             }
         }
     }
@@ -75,6 +80,10 @@ public class Subsorts implements Serializable {
     }
 
     public boolean isSubsorted(Sort bigSort, Sort smallSort) {
+        if(subsort == null) {
+            return false;
+        }
+
         Boolean isSubsorted = subsort.get(bigSort, smallSort);
         if (isSubsorted == null) {
             if (subsort.containsRow(bigSort)) {

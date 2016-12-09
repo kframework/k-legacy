@@ -45,6 +45,10 @@ public class JavaKRunState extends KRunState {
             return rawResult;
         }
 
+        if(javaTerm == null){
+            return null;
+        }
+
         rawResult = (Term) javaTerm.accept(new BackendJavaKILtoKILTransformer(context));
         return rawResult;
     }
