@@ -10,10 +10,14 @@ import org.kframework.kil.Attribute;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KLabel;
+import org.kframework.kore.KList;
 import org.kframework.kore.KRewrite;
+import org.kframework.kore.Unapply;
 
 import java.util.List;
 import java.util.stream.Stream;
+import static org.kframework.definition.Constructors.*;
+import static org.kframework.kore.KORE.*;
 
 /**
  * This pass adds the implicit top and k cells to
@@ -46,6 +50,21 @@ public class AddTopCellToRules {
         if (term instanceof KApply && ((KApply) term).klabel().equals(root)) {
             return term;
         } else {
+            /**
+             * Fix bug #2122.
+             * If term is a rewrite rule that mentions two top cells
+             * We need to remove the top cells before we apply IncomleteCellUtils.make
+             * Otherwise, the IncomleteCellUtils.make method will wrap the rewrite rule
+             * with a top cell, which makes the rule wrong.
+             */
+            if (term instanceof KRewrite &&
+                    ((KRewrite) term).left() instanceof KApply &&
+                    ((KApply)((KRewrite) term).left()).klabel().equals(root)){
+                KApply left = (KApply) ((KApply) ((KRewrite) term).left()).klist().stream().toArray()[1];
+                KApply right = (KApply) ((KApply) ((KRewrite) term).right()).klist().stream().toArray()[1];
+                KRewrite rl = KRewrite(left, right, term.att());
+                return IncompleteCellUtils.make(root, true, rl, true);
+            }
             return IncompleteCellUtils.make(root, true, term, true);
         }
     }
