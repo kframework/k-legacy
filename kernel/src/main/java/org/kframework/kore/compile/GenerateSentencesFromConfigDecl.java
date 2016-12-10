@@ -76,7 +76,10 @@ public class GenerateSentencesFromConfigDecl {
      *                it is not the top cell of a configuration declaration.
      * @param cfgAtt The attributes of the configuration declaration. Appended to all cell productions generated.
      * @param m The module the configuration declaration is in. Used to get the sort of leaf cells.
-     * @return A tuple of the sentences generated, a list of the sorts of the children of the cell, and the body of the initializer.
+     * @return A tuple of the sentences generated, a list of the sorts of the children of the cell, the body of the initializer, and a Boolean indication：
+     *          If the term instanceof KApply, indicate if it is a leafCell for #configCell and #cells, indicate if it is a cell or inherited cell for other cases.
+     *          If the term instanceof types other than KApply, indicates that it is not a cell
+     *          this Boolean indication is added to handle inheritance breaks fragment problem
      */
     private static Tuple4<Set<Sentence>, List<Sort>, K, Boolean> genInternal(K term, K ensures, Att cfgAtt, Module m) {
         if (term instanceof KApply) {
@@ -164,13 +167,9 @@ public class GenerateSentencesFromConfigDecl {
             //TODO: call generic getSort method of some kind
             // child of a leaf cell. Generate no productions, but inform parent that it has a child of a particular sort.
             // A leaf cell initializes to the value specified in the configuration declaration.
-            boolean isLeafCell;
-            if(kapp.klist().size() == 0){
-                isLeafCell = true;
-            }else{
-                isLeafCell = false;
-            }
-            return Tuple4.apply(Set(), Lists.newArrayList(m.sortFor().get(kapp.klabel()).get()), getLeafInitializer(term), !isLeafCell);
+            //deal with inherited cell
+            boolean isCell = m.klabelsDefinedInRules().contains(kapp.klabel()) && m.sortFor().get(kapp.klabel()).get().name().endsWith("Cell");
+            return Tuple4.apply(Set(), Lists.newArrayList(m.sortFor().get(kapp.klabel()).get()), getLeafInitializer(term), isCell);
         } else if (term instanceof KToken) {
             // child of a leaf cell. Generate no productions, but inform parent that it has a child of a particular sort.
             // A leaf cell initializes to the value specified in the configuration declaration.
@@ -271,8 +270,7 @@ public class GenerateSentencesFromConfigDecl {
         Sort sort = Sort(sortName);
 
         if (cellProperties.contains("maincell")) {
-            //assert isLeaf;
-            isLeaf = true;
+            assert isLeaf;
             assert childSorts.size() == 1;
             childSorts = Lists.newArrayList(Sort("K"));
         }
