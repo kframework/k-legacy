@@ -12,6 +12,7 @@ import org.kframework.backend.java.symbolic.JavaBackend;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
+import org.kframework.kore.KORE;
 import org.kframework.kore.compile.Backend;
 import org.kframework.main.GlobalOptions;
 import org.kframework.main.Tool;
@@ -58,7 +59,7 @@ public class TstKompileOnKORE_IT extends AbstractTest {
         CompiledDefinition compiledDef = kompile.run(defintionFile, mainModuleName, mainProgramsModuleName,
                 new JavaBackend(kem, FileUtil.testFileUtil(), globalOptions, kompileOptions).steps());
 
-        assertEquals(compiledDef.topCellInitializer, null);
+        assertEquals(compiledDef.topCellInitializer, KORE.KLabel(""));
     }
 
 }

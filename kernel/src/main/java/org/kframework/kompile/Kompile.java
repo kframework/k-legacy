@@ -114,9 +114,9 @@ public class Kompile {
 
         ConfigurationInfoFromModule configInfo = new ConfigurationInfoFromModule(kompiledDefinition.mainModule());
 
-        //check if configInfo contains no cells before getDefaultCell
-        KLabel kLabel = null;
-        if(configInfo.topCell() != null){
+        //check if configInfo contains no cells before getDefaultCell -- take Sorts.K() as "null" Sort
+        KLabel kLabel = KORE.KLabel("");
+        if(configInfo.topCell() != Sorts.K()){
             kLabel = configInfo.getDefaultCell(configInfo.topCell()).klabel();
         }
         // parse noPrelude flag to be saved into CompiledDefinition

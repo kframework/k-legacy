@@ -73,7 +73,7 @@ class ConfigurationInfoFromModule(val m: Module) extends ConfigurationInfo {
     if (topCells.size != 0)
       topCells.head
     else
-      null
+      Sorts.K
   }
   private val sortedSorts: Seq[Sort] = tsort(edges).toSeq
   lazy val levels: Map[Sort, Int] = edges.toList.sortWith((l, r) => sortedSorts.indexOf(l._1) < sortedSorts.indexOf(r._1)).foldLeft(Map(topCell -> 0)) {

@@ -290,16 +290,16 @@ public class DefinitionParsing {
         KApply ruleContents = (KApply) contents;
         List<org.kframework.kore.K> items = ruleContents.klist().items();
         switch (ruleContents.klabel().name()) {
-            case "#ruleNoConditions":
-                return Rule(items.get(0), BooleanUtils.TRUE, BooleanUtils.TRUE, ruleContents.att());
-            case "#ruleRequires":
-                return Rule(items.get(0), items.get(1), BooleanUtils.TRUE, ruleContents.att());
-            case "#ruleEnsures":
-                return Rule(items.get(0), BooleanUtils.TRUE, items.get(1), ruleContents.att());
-            case "#ruleRequiresEnsures":
-                return Rule(items.get(0), items.get(1), items.get(2), ruleContents.att());
-            default:
-                throw new AssertionError("Wrong KLabel for rule content");
+        case "#ruleNoConditions":
+            return Rule(items.get(0), BooleanUtils.TRUE, BooleanUtils.TRUE, ruleContents.att());
+        case "#ruleRequires":
+            return Rule(items.get(0), items.get(1), BooleanUtils.TRUE, ruleContents.att());
+        case "#ruleEnsures":
+            return Rule(items.get(0), BooleanUtils.TRUE, items.get(1), ruleContents.att());
+        case "#ruleRequiresEnsures":
+            return Rule(items.get(0), items.get(1), items.get(2), ruleContents.att());
+        default:
+            throw new AssertionError("Wrong KLabel for rule content");
         }
     }
 
@@ -307,12 +307,12 @@ public class DefinitionParsing {
         KApply ruleContents = (KApply) contents;
         List<K> items = ruleContents.klist().items();
         switch (ruleContents.klabel().name()) {
-            case "#ruleNoConditions":
-                return Context(items.get(0), BooleanUtils.TRUE, ruleContents.att());
-            case "#ruleRequires":
-                return Context(items.get(0), items.get(1), ruleContents.att());
-            default:
-                throw KEMException.criticalError("Illegal context with ensures clause detected.", contents);
+        case "#ruleNoConditions":
+            return Context(items.get(0), BooleanUtils.TRUE, ruleContents.att());
+        case "#ruleRequires":
+            return Context(items.get(0), items.get(1), ruleContents.att());
+        default:
+            throw KEMException.criticalError("Illegal context with ensures clause detected.", contents);
         }
     }
 
