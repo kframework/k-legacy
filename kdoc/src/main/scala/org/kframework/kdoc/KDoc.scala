@@ -46,7 +46,7 @@ class KDoc(docStyle: String, separator: String = " ") {
       case o => super.apply(o)
     }
 
-    override def apply(k: KToken) = k match {
+    override def apply(k: KToken): K = k match {
       case c@KToken(contents, Sort("Bubble")) =>
         currentParser(ADT.Sort("RuleContent", ModuleName("REQUIRES-ENSURES")), contents) match {
           case (Some(parsedBubble), _) => currentKToLatex(parsedBubble)
