@@ -39,9 +39,6 @@ class Up[K <: kore.K](cons: Constructors[K] with ScalaSugared[K], imports: Set[S
         val klist = cons.KList(elements map apply asJava)
         cons.KApply(cons.KLabel(processName(o.getClass().getName)), klist,
           Att() +(Att.ClassFromUp.toString(), o.getClass().getName()))
-
-      // K stuff
-      case s: Sort => s.name
     }
   }
 
