@@ -86,8 +86,9 @@ public class KRun {
             program = parseConfigVars(options, compiledDef, kem, files, ttyStdin, isNailgun, null);
             program = new KTokenVariablesToTrueVariables()
                     .apply(compiledDef.kompiledDefinition.getModule(compiledDef.mainSyntaxModuleName()).get(), program);
+        } else {
+            program = parseConfigVars(options, compiledDef, kem, files, ttyStdin, isNailgun, null);
         }
-
 
         Rewriter rewriter = rewriterGenerator.apply(compiledDef.executionModule());
 
