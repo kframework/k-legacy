@@ -65,8 +65,8 @@ public class KapiGlobal {
         this.kompileOptions.outerParsing.includes = v;
     }
 
-    public void setNoPrelude(boolean v) {
-        this.kompileOptions.outerParsing.noPrelude = v;
+    public void setNotAutoImportDomain(boolean v) {
+        this.kompileOptions.outerParsing.notAutoImportDomain = v;
     }
 
     public void setSmtPrelude(String v) {

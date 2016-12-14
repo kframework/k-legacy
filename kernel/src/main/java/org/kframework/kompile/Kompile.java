@@ -97,7 +97,7 @@ public class Kompile {
         List<File> lookupDirectories = kompileOptions.outerParsing.includes.stream().map(files::resolveWorkingDirectory).collect(Collectors.toList());
         this.definitionParsing = new DefinitionParsing(
                 lookupDirectories, kompileOptions.strict(), kem,
-                parser, cacheParses, files.resolveKompiled("cache.bin"), !kompileOptions.outerParsing.noPrelude);
+                parser, cacheParses, files.resolveKompiled("cache.bin"), !kompileOptions.outerParsing.notAutoImportDomain);
         this.sw = sw;
     }
 
@@ -217,7 +217,7 @@ public class Kompile {
     }
 
     public Module parseModule(CompiledDefinition definition, File definitionFile) {
-        return definitionParsing.parseModule(definition, definitionFile, !kompileOptions.outerParsing.noPrelude);
+        return definitionParsing.parseModule(definition, definitionFile, !kompileOptions.outerParsing.notAutoImportDomain);
     }
 
     private Sentence concretizeSentence(Sentence s, Definition input) {

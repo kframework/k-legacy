@@ -249,8 +249,7 @@ public class ParserUtils {
             List<File> lookupDirectories,
             boolean autoImportDomains) {
         Set<Module> previousModules = new HashSet<>();
-        if (autoImportDomains)
-            previousModules.addAll(loadModules(new HashSet<>(), Kompile.REQUIRE_PRELUDE_K, source, lookupDirectories, false));
+        previousModules.addAll(loadModules(new HashSet<>(), Kompile.REQUIRE_PRELUDE_K, source, lookupDirectories, false));
         Set<Module> modules = loadModules(previousModules, definitionText, source, lookupDirectories, autoImportDomains);
         modules.addAll(previousModules); // add the previous modules, since load modules is not additive
         Optional<Module> opt = modules.stream().filter(m -> m.name().equals(mainModuleName)).findFirst();
