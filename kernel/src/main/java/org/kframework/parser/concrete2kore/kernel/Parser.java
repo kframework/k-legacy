@@ -578,7 +578,7 @@ public class Parser {
             String msg = content.length() == perror.position ?
                     "Parse error: unexpected end of file." :
                     "Parse error: unexpected character '" + content.charAt(perror.position) + "'.";
-            if (content.toString().indexOf('`')>=0) msg += "Please use '(' or ')' instead of '`'";
+            if (content.toString().indexOf('`')>=0) msg += "Using backtick, '`', for K brackets is deprecated. If you are using it for this purpose, please use regular parenthesis, '(' and ')', instead.";
             Location loc = new Location(perror.line, perror.column,
                     perror.line, perror.column + 1);
             Source source = perror.source;
