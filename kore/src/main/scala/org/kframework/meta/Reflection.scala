@@ -1,9 +1,13 @@
 package org.kframework.meta
 
+import java.lang.reflect.Constructor
+
 import collection.JavaConverters._
 
 object Reflection {
+
   import scala.reflect.runtime.universe._
+
   val m = runtimeMirror(getClass.getClassLoader)
 
   def getTypeTag[T: TypeTag](obj: T) = typeTag[T]
@@ -21,7 +25,8 @@ object Reflection {
     box(b).isAssignableFrom(box(a))
   }
 
-  def <=(a: Seq[Class[_]], b: Seq[Class[_]]): Boolean = { // assuming the seqences are equal
+  def <=(a: Seq[Class[_]], b: Seq[Class[_]]): Boolean = {
+    // assuming the seqences are equal
     !(a.zip(b) exists { case (aa, bb) => ! <=(aa, bb) })
   }
 
@@ -33,28 +38,35 @@ object Reflection {
     case _ => Seq()
   }
 
-  def construct(className: String, args: Seq[Any]) = {
-    val workingConstructors = Class.forName(className).getConstructors filter {
-      case c =>
-        c.getParameterCount == args.size
-      //        should also check for types but the code below fails due to primitive types
-      //        too lazy to build the mapping now
-      //        &&
-      //          !(c.getParameterTypes.zip(args) exists {
-      //            case (param, arg) =>
-      //              isSubclassOf(arg.getClass, param)
-      //          })
-    }
+  val constructorCache = collection.mutable.Map[(String, Int), Constructor[_]]()
 
-    workingConstructors.toList match {
-      case List() => throw new AssertionError("Could not find a constructor for arguments: " + (args map { _.getClass() }))
-      case c :: rest => c.newInstance(args.asInstanceOf[Seq[AnyRef]]: _*) // TODO: fix this, taking the first constructor now
-      case tooMany => throw new AssertionError("Found too many constructors for arguments: " + (args map { _.getClass() }) + "\n The constructors are " + tooMany.mkString(" ; "))
-    }
+  def construct(className: String, args: Seq[Any]) = {
+
+    val theConstructor: Constructor[_] = constructorCache.getOrElseUpdate((className, args.size), {
+      val workingConstructors = Class.forName(className).getConstructors filter {
+        case c =>
+          c.getParameterCount == args.size
+        //        should also check for types but the code below fails due to primitive types
+        //        too lazy to build the mapping now
+        //        &&
+        //          !(c.getParameterTypes.zip(args) exists {
+        //            case (param, arg) =>
+        //              isSubclassOf(arg.getClass, param)
+        //          })
+      }
+
+      workingConstructors.toList match {
+        case List() => throw new AssertionError("Could not find a constructor for arguments: " + (args map {_.getClass()}))
+        case c :: rest => c
+        case tooMany => throw new AssertionError("Found too many constructors for arguments: " + (args map {_.getClass()}) + "\n The constructors are " + tooMany.mkString(" ; "))
+      }
+    })
+
+    theConstructor.newInstance(args.asInstanceOf[Seq[AnyRef]]: _*) // TODO: fix this, taking the first constructor now
   }
 
   def invokeMethod(obj: Any, methodName: String, givenArgsLists: Seq[Seq[Any]]): Any = {
-    val givenArgsTypes = givenArgsLists map { _ map { _.getClass().asInstanceOf[Class[Any]] } }
+    val givenArgsTypes = givenArgsLists map {_ map {_.getClass().asInstanceOf[Class[Any]]}}
 
     val (methodSymbol, paramsListsWithDefauls) = findMethod(obj, methodName, givenArgsTypes)
 
@@ -62,7 +74,7 @@ object Reflection {
 
     val args = completeArgsWithDefaults(paramsListsWithDefauls, givenArgsLists)
 
-    try { methodMirror.apply(args: _*) }
+    try {methodMirror.apply(args: _*)}
     catch {
       case _: IllegalArgumentException => methodMirror.apply(args)
       case _: IndexOutOfBoundsException => methodMirror.apply(args)
@@ -75,7 +87,7 @@ object Reflection {
   }
 
   def typesForArgs(givenArgsLists: Seq[Seq[Any]]) = {
-    givenArgsLists map { _ map { _.getClass().asInstanceOf[Class[Any]] } }
+    givenArgsLists map {_ map {_.getClass().asInstanceOf[Class[Any]]}}
   }
 
   def completeArgsWithDefaults(paramsListsWithDefauls: Seq[Seq[Either[Class[_], reflect.runtime.universe.MethodMirror]]], givenArgsLists: Seq[Seq[Any]]) = {
@@ -112,8 +124,8 @@ object Reflection {
     val methodSymbolAlternatives = termSymbol.asTerm.alternatives
 
     def paramTypesFor(sym: MethodSymbol) = sym.asMethod.paramLists.flatten
-      .map { _.typeSignature.erasure.typeSymbol.asClass }
-      .map { m.runtimeClass(_) }
+      .map {_.typeSignature.erasure.typeSymbol.asClass}
+      .map {m.runtimeClass(_)}
 
     def typeszip(sym: MethodSymbol, argsLists: Seq[Seq[Either[Class[_], MethodMirror]]]) = {
       val paramTypes = paramTypesFor(sym: MethodSymbol)
@@ -129,8 +141,8 @@ object Reflection {
     def isVarArgs(params: List[Symbol]) = params exists isVarArg
 
     val possibleMethods = methodSymbolAlternatives
-      .map { _.asMethod }
-      .filter { _.paramLists.size >= givenArgsLists.size }
+      .map {_.asMethod}
+      .filter {_.paramLists.size >= givenArgsLists.size}
       .filter {
         !_.paramLists.zipAll(givenArgsLists, null, Seq()).exists({
           case (params, givenArgs) =>
@@ -142,7 +154,7 @@ object Reflection {
           .zipAll(givenArgsLists, null, Seq())
           .map {
             case (params, args) =>
-              val res = params.zipAll(args map { Some(_) }, null, None)
+              val res = params.zipAll(args map {Some(_)}, null, None)
               if (isVarArgs(params)) {
                 val cutPos = params indexWhere isVarArg
                 res.slice(0, cutPos)
@@ -163,12 +175,12 @@ object Reflection {
               .map {
                 case ((sym, Some(v)), _) => Some(Left(v))
                 case ((sym, None), index) =>
-                  valueFor(methodName, sym, index) map { Right(_) }
+                  valueFor(methodName, sym, index) map {Right(_)}
               }
             if (argsWithDefaults.contains(None))
               None
             else {
-              Some((argsWithDefaults map { _.get }): List[Either[Class[_], MethodMirror]])
+              Some((argsWithDefaults map {_.get}): List[Either[Class[_], MethodMirror]])
             }
         }
         (methodSymbol, argsLists)
@@ -185,7 +197,7 @@ object Reflection {
       }
     val eliminatedSubsorted = possibleMethods.filter {
       case (sym, argsLists) =>
-        val otherMethods = possibleMethods map { _._1 } filter { _ != sym } map paramTypesFor
+        val otherMethods = possibleMethods map {_._1} filter {_ != sym} map paramTypesFor
         !(otherMethods exists { other => <=(other, paramTypesFor(sym)) })
     }
 

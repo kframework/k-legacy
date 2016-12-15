@@ -9,11 +9,13 @@ class TestMeta {
   import org.junit._
 
   val up = new Up(KORE, Set())
-  val down = Down(Set(
+
+  val down = Down(Down.constructorBased(Set(
     "org.kframework.definition",
     "scala.collection.immutable",
     "org.kframework.kore.ADT",
-    "org.kframework.attributes"))
+    "org.kframework.kore.ADT$",
+    "org.kframework.attributes")))
 
   import org.kframework.kore.KORE._
 
@@ -34,42 +36,22 @@ class TestMeta {
   val m = Module("TEST", Set(), Set(Production("Foo", Sort("Foo"), Seq(Terminal("Bar", Seq())))))
   val d = Definition(m, Set(m), Att())
 
-  val metamodule = 'Module("TEST", 'Set(),
-    'Set('Production("Foo", 'SortLookup("Foo"), 'List('Terminal("Bar")))))
+  val metamodule = 'Module ("TEST", 'Set (),
+    'Set ('Production ('SortLookup ("Foo", 'ModuleName("*")), 'List ('Terminal ("Bar")))))
 
-  val metad = 'Definition(metamodule, 'Set(metamodule), 'Att('Set()))
-
-
-  @Ignore
-  @Test def definitionup() {
-    assertEquals(metad, up(d))
-  }
-
-  //  @Test def assertUpDown() {
-  //    assertEquals(d, down(up(d)))
-  //  }
-
-  @Test def definitionDown() {
-    assertEquals(d, down(metad))
-  }
-
-  //  @Test def testTransformation() {
-  //    val metaT = up(d).searchFor(Anywhere(KRewrite('Sort("Foo"), 'Sort("Bar"))))
-  //  }
+  val metad = 'Definition (metamodule, 'Set (metamodule), 'Att ('Set ()))
 
   @Test def location(): Unit = {
     val imports = Set("org.kframework.attributes")
-    val down = Down(imports)
-    assertEquals(Location(1, 2, 3, 4), down('Location(1, 2, 3, 4)))
+    assertEquals(Location(1, 2, 3, 4), down('Location (1, 2, 3, 4)))
     val up = new Up(KORE, imports)
-    assertEquals('Location(1, 2, 3, 4), up(Location(1, 2, 3, 4)))
+    assertEquals('Location (1, 2, 3, 4), up(Location(1, 2, 3, 4)))
   }
 
   @Test def upDownSort(): Unit = {
     val imports = Set("org.kframework.attributes")
     val sort = Sort("Exp")
     val up = new Up(KORE, imports)
-    val down = Down(imports)
     assertEquals(sort, down(up(sort)))
   }
 
@@ -77,14 +59,13 @@ class TestMeta {
     val imports = Set("org.kframework.attributes")
     val att = Att().add("token", "abc")
     val up = new Up(KORE, imports)
-    val down = Down(imports)
     println(up(att))
     assertEquals(att, down(up(att)))
   }
 
   @Test def upDownList: Unit = {
-    assertEquals('List(), up(List()))
-    assertEquals(List(), down('List()))
+    assertEquals('List (), up(List()))
+    assertEquals(List(), down('List ()))
   }
 
   @Test def upDownProduction: Unit = {

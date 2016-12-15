@@ -6,7 +6,7 @@ import org.kframework.kore.{KApply, Sort, _}
 import org.kframework.meta.{Down, Up}
 
 import scala.collection.JavaConverters._
-import collection._
+import scala.collection._
 import scala.reflect.ClassTag
 
 
@@ -116,9 +116,11 @@ case class TypedKey[T: ClassTag](key: String, up: T => K, down: K => Option[T]) 
 
 object Att {
   @annotation.varargs def apply(atts: K*): Att = Att(atts.toSet)
+  @annotation.varargs def applyVararg(atts: K*): Att = Att(atts.toSet)
 
   val includes = Set("scala.collection.immutable", "org.kframework.attributes")
-  val defaultDown = Down(includes)
+
+  val defaultDown = Down(Down.constructorBased(includes))
 
   def down(k: K) = {
     val downedPossibilities = keyMap.values.flatMap(_.down(k))

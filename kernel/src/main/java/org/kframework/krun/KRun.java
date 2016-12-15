@@ -80,7 +80,7 @@ public class KRun {
         String pgmFileName = options.configurationCreation.pgm();
         K program;
         if (options.configurationCreation.term()) {
-            program = externalParse(options.configurationCreation.parser(compiledDef.executionModule().name()),
+            program = parse(options.configurationCreation.parser(compiledDef.executionModule().name()),
                     pgmFileName, compiledDef.programStartSymbol, Source.apply("<parameters>"), compiledDef, files);
         } else {
             program = parseConfigVars(options, compiledDef, kem, files, ttyStdin, isNailgun, null);
@@ -312,7 +312,7 @@ public class KRun {
         }
     }
 
-    public static Map<KToken, K> getUserConfigVarsMap(KRunOptions options, CompiledDefinition compiledDef, FileUtil files) {
+    public Map<KToken, K> getUserConfigVarsMap(KRunOptions options, CompiledDefinition compiledDef, FileUtil files) {
         Map<KToken, K> output = new HashMap<>();
         for (Map.Entry<String, Pair<String, String>> entry
                 : options.configurationCreation.configVars(compiledDef.getParsedDefinition().mainModule().name()).entrySet()) {
@@ -321,7 +321,7 @@ public class KRun {
             String parser = entry.getValue().getRight();
             Sort sort = compiledDef.configurationVariableDefaultSorts.get("$" + name);
             assert sort != null : "Could not find configuration variable: $" + name;
-            K configVar = externalParse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), compiledDef, files);
+            K configVar = parse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), compiledDef, files);
             output.put(KToken("$" + name, Sorts.KConfigVar()), configVar);
         }
         return output;
@@ -348,7 +348,7 @@ public class KRun {
         return output;
     }
 
-    public static K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef, KExceptionManager kem, FileUtil files, boolean ttyStdin, boolean isNailgun, K pgm) {
+    public K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef, KExceptionManager kem, FileUtil files, boolean ttyStdin, boolean isNailgun, K pgm) {
         Map<KToken, K> output = getUserConfigVarsMap(options, compiledDef, files);
         return getInitConfig(pgm, output, compiledDef, kem, options.io(), ttyStdin, isNailgun);
     }
@@ -421,24 +421,28 @@ public class KRun {
                         KOREToTreeNodes.apply(KOREToTreeNodes.up(test, input), test)));
     }
 
-    public static K externalParse(String parser, String value, Sort startSymbol, Source source, CompiledDefinition compiledDef, FileUtil files) {
-        List<String> tokens = new ArrayList<>(Arrays.asList(parser.split(" ")));
-        tokens.add(value);
-        Map<String, String> environment = new HashMap<>();
-        environment.put("KRUN_SORT", startSymbol.name());
-        environment.put("KRUN_COMPILED_DEF", files.resolveDefinitionDirectory(".").getAbsolutePath());
-        RunProcess.ProcessOutput output = RunProcess.execute(environment, files.getProcessBuilder(), tokens.toArray(new String[tokens.size()]));
-
-        if (output.exitCode != 0) {
-            throw new ParseFailedException(new KException(KException.ExceptionType.ERROR, KException.KExceptionGroup.CRITICAL, "Parser returned a non-zero exit code: "
-                    + output.exitCode + "\nStdout:\n" + new String(output.stdout) + "\nStderr:\n" + new String(output.stderr)));
-        }
-
-        byte[] kast = output.stdout != null ? output.stdout : new byte[0];
-        if (BinaryParser.isBinaryKast(kast)) {
-            return BinaryParser.parse(kast);
+    public K parse(String parser, String value, Sort startSymbol, Source source, CompiledDefinition compiledDef, FileUtil files) {
+        if(parser.endsWith("k/bin/kast")) {
+            return compiledDef.getProgramParser(kem).apply(FileUtil.read(files.readFromWorkingDirectory(value)), source);
         } else {
-            return KoreParser.parse(new String(kast), source);
+            List<String> tokens = new ArrayList<>(Arrays.asList(parser.split(" ")));
+            tokens.add(value);
+            Map<String, String> environment = new HashMap<>();
+            environment.put("KRUN_SORT", startSymbol.name());
+            environment.put("KRUN_COMPILED_DEF", files.resolveDefinitionDirectory(".").getAbsolutePath());
+            RunProcess.ProcessOutput output = RunProcess.execute(environment, files.getProcessBuilder(), tokens.toArray(new String[tokens.size()]));
+
+            if (output.exitCode != 0) {
+                throw new ParseFailedException(new KException(KException.ExceptionType.ERROR, KException.KExceptionGroup.CRITICAL, "Parser returned a non-zero exit code: "
+                        + output.exitCode + "\nStdout:\n" + new String(output.stdout) + "\nStderr:\n" + new String(output.stderr)));
+            }
+
+            byte[] kast = output.stdout != null ? output.stdout : new byte[0];
+            if (BinaryParser.isBinaryKast(kast)) {
+                return BinaryParser.parse(kast);
+            } else {
+                return KoreParser.parse(new String(kast), source);
+            }
         }
     }
 }

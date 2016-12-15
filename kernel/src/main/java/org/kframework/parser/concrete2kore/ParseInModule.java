@@ -4,7 +4,6 @@ package org.kframework.parser.concrete2kore;
 import com.google.common.collect.Sets;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Module;
-import org.kframework.kore.ADT;
 import org.kframework.kore.K;
 import org.kframework.kore.Sort;
 import org.kframework.parser.Term;
@@ -79,13 +78,26 @@ public class ParseInModule implements Serializable {
 
     /**
      * Parse as input the given string and start symbol using the module stored in the object.
+     * All type checks for terms and variables are validated.
      * @param input          the string to parse.
      * @param startSymbol    the start symbol from which to parse.
      * @return the Term representation of the parsed input.
      */
     public Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>>
             parseString(String input, Sort startSymbol, Source source) {
-        return parseString(input, startSymbol, source, 1, 1);
+        return parseString(input, startSymbol, source, 1, 1, true);
+    }
+
+    /**
+     * Parse as input the given string and start symbol using the module stored in the object.
+     * All the type checks are omitted when parsing programs.
+     * @param input          the string to parse.
+     * @param startSymbol    the start symbol from which to parse.
+     * @return the Term representation of the parsed input.
+     */
+    public Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>>
+            parseStringWithoutTypecheck(String input, Sort startSymbol, Source source) {
+        return parseString(input, startSymbol, source, 1, 1, false);
     }
 
     private void getGrammar() {
@@ -97,9 +109,14 @@ public class ParseInModule implements Serializable {
     }
 
     public Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>>
-        parseString(String input, Sort startSymbol, Source source, int startLine, int startColumn) {
+            parseString(String input, Sort startSymbol, Source source, int startLine, int startColumn) {
+        return parseString(input, startSymbol, source, startLine, startColumn, true);
+    }
+
+    private Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>>
+            parseString(String input, Sort startSymbol, Source source, int startLine, int startColumn, boolean typeCheck) {
         final Tuple2<Either<Set<ParseFailedException>, Term>, Set<ParseFailedException>> result
-                = parseStringTerm(input, startSymbol, source, startLine, startColumn);
+                = parseStringTerm(input, startSymbol, source, startLine, startColumn, typeCheck);
         Either<Set<ParseFailedException>, K> parseInfo;
         if (result._1().isLeft()) {
             parseInfo = Left.apply(result._1().left().get());
@@ -124,7 +141,7 @@ public class ParseInModule implements Serializable {
      * @return
      */
     private Tuple2<Either<Set<ParseFailedException>, Term>, Set<ParseFailedException>>
-            parseStringTerm(String input, Sort startSymbol, Source source, int startLine, int startColumn) {
+            parseStringTerm(String input, Sort startSymbol, Source source, int startLine, int startColumn, boolean typeCheck) {
         getGrammar();
 
         Grammar.NonTerminal startSymbolNT = grammar.get(parsingModule.resolve(startSymbol).name());
@@ -155,18 +172,24 @@ public class ParseInModule implements Serializable {
         rez = new CorrectCastPriorityVisitor().apply(rez.right().get());
         if (rez.isLeft())
             return new Tuple2<>(rez, warn);
-        rez = new ApplyTypeCheckVisitor(disambModule.subsorts()).apply(rez.right().get());
-        if (rez.isLeft())
-            return new Tuple2<>(rez, warn);
+        if (typeCheck) {
+            rez = new ApplyTypeCheckVisitor(disambModule.subsorts()).apply(rez.right().get());
+            if (rez.isLeft())
+                return new Tuple2<>(rez, warn);
+        }
         rez = new PriorityVisitor(disambModule.priorities(), disambModule.leftAssoc(), disambModule.rightAssoc()).apply(rez.right().get());
         if (rez.isLeft())
             return new Tuple2<>(rez, warn);
-        Tuple2<Either<Set<ParseFailedException>, Term>, Set<ParseFailedException>> rez2 = new VariableTypeInferenceFilter(disambModule.subsorts(), disambModule.definedSorts(), disambModule.productionsFor(), strict).apply(rez.right().get());
-        if (rez2._1().isLeft())
-            return rez2;
-        warn = rez2._2();
+        Tuple2<Either<Set<ParseFailedException>, Term>, Set<ParseFailedException>> rez2;
+        if (typeCheck) {
+            rez2 = new VariableTypeInferenceFilter(disambModule.subsorts(), disambModule.definedSorts(), disambModule.productionsFor(), strict).apply(rez.right().get());
+            if (rez2._1().isLeft())
+                return rez2;
+            warn = rez2._2();
+            rez = rez2._1();
+        }
 
-        Term rez3 = new PreferAvoidVisitor().apply(rez2._1().right().get());
+        Term rez3 = new PreferAvoidVisitor().apply(rez.right().get());
         rez2 = new AmbFilter().apply(rez3);
         warn = Sets.union(rez2._2(), warn);
         rez2 = new AddEmptyLists(disambModule).apply(rez2._1().right().get());
