@@ -78,16 +78,14 @@ public class KRun {
 
     public int run(CompiledDefinition compiledDef, KRunOptions options, Function<Module, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
         String pgmFileName = options.configurationCreation.pgm();
-        K program = null;
+        K program;
         if (options.configurationCreation.term()) {
             program = parse(options.configurationCreation.parser(compiledDef.executionModule().name()),
                     pgmFileName, compiledDef.programStartSymbol, Source.apply("<parameters>"), compiledDef, files);
-        } else if (options.experimental.debugger() && pgmFileName != null) {
+        } else {
             program = parseConfigVars(options, compiledDef, kem, files, ttyStdin, isNailgun, null);
             program = new KTokenVariablesToTrueVariables()
                     .apply(compiledDef.kompiledDefinition.getModule(compiledDef.mainSyntaxModuleName()).get(), program);
-        } else {
-            program = parseConfigVars(options, compiledDef, kem, files, ttyStdin, isNailgun, null);
         }
 
         Rewriter rewriter = rewriterGenerator.apply(compiledDef.executionModule());
@@ -428,7 +426,7 @@ public class KRun {
     }
 
     public K parse(String parser, String value, Sort startSymbol, Source source, CompiledDefinition compiledDef, FileUtil files) {
-        if(parser.endsWith("k/bin/kast")) {
+        if (parser.endsWith("k/bin/kast")) {
             return compiledDef.getProgramParser(kem).apply(FileUtil.read(files.readFromWorkingDirectory(value)), source);
         } else {
             List<String> tokens = new ArrayList<>(Arrays.asList(parser.split(" ")));
