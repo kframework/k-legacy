@@ -82,6 +82,8 @@ public class KRun {
         if (options.configurationCreation.term()) {
             program = parse(options.configurationCreation.parser(compiledDef.executionModule().name()),
                     pgmFileName, compiledDef.programStartSymbol, Source.apply("<parameters>"), compiledDef, files);
+        } else if (options.experimental.debugger() && pgmFileName == null) {
+            program = null;
         } else {
             program = parseConfigVars(options, compiledDef, kem, files, ttyStdin, isNailgun, null);
             program = new KTokenVariablesToTrueVariables()
