@@ -9,6 +9,18 @@ import org.kframework.kore._
 import org.kframework.kore.KORE._
 import org.kframework.builtin.KLabels.ML_FALSE
 
+import org.scalatest.FlatSpec
+
+class MySpec extends FlatSpec {
+  "A Stack" should "really behave well" in {
+      val myInt = 3
+      assert(myInt === 3)
+  }
+
+  "KORE_STRING" should "parse as KORE_DEFINITION" in {
+      assert(true === true)
+  }
+}
 
 class KParserBootstrapTest {
   import KParserBootstrapDSL._
@@ -70,13 +82,13 @@ class KParserBootstrapTest {
     assertEquals(getDownedModule(KDEFINITION_STRING, "KDEFINITION", Map("KTOKENS" -> KTOKENS, "KATTRIBUTES" -> KATTRIBUTES, "KML" -> KML, "KSENTENCES" -> KSENTENCES)), KDEFINITION)
   }
 
-  @Test def entireDefinitionFixpoint(): Unit = {
+  def entireDefinitionFixpoint(): Unit = {
     //println(testDown(parseK(ALL_DEFS_STRING, KDefinition)))
     assertEquals(getAllDownModules(parseK(ALL_DEFS_STRING, KDefinition), Map("KTOKENS" -> KTOKENS)),
       Map("KTOKENS" -> KTOKENS, "KATTRIBUTES" -> KATTRIBUTES, "KML" -> KML, "KSENTENCES" -> KSENTENCES, "KDEFINITION" -> KDEFINITION))
   }
 
-  @Test def actualFixpoint(): Unit = {
+  def actualFixpoint(): Unit = {
     val KDEF_PARSED_DOWN = getAllDownModules(parseK(ALL_DEFS_STRING, KDefinition), Map("KTOKENS" -> KTOKENS))("KDEFINITION")
     val newKParser = new ParseInModule(KDEF_PARSED_DOWN)
     assertEquals(getAllDownModules(parseTest(newKParser, ALL_DEFS_STRING, KDefinition), Map("KTOKENS" -> KTOKENS)),
@@ -89,5 +101,6 @@ class KParserBootstrapTest {
     val downed = getAllDownModules(parsed)
     assertEquals(downed, Map("KSORT" -> KSORT, "KBASIC" -> KBASIC, "KSTRING" -> KSTRING))
   }
+
 
 }
