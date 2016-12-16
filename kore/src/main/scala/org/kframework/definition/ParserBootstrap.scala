@@ -31,6 +31,8 @@ object KParserBootstrapDSL {
     def att(atts: K*): Production = Production(sort, pis, atts.foldLeft(Att())(_+_))
   }
 
+  def sort(sort: ADT.SortLookup): BecomingSyntax = BecomingSyntax(sort, Seq.empty)
+
   implicit def syntaxWithoutAttributes(bp: BecomingSyntax) : Production =
     Production(bp.sort, bp.pis, Att())
 
@@ -39,18 +41,28 @@ object KParserBootstrapDSL {
 
   def imports(s: Module*): Set[Module] = s.toSet
   def sentences(s: Sentence*): Set[Sentence] = s.toSet
+  def khook(label: String): K = asKApply("hook", List(label))
   def klabel(label: String): K = asKApply("klabel", List(label))
   def ktoken(label: String): K = asKApply("ktoken", List(label))
   implicit def constAtt(str : String): K = asKApply(str, List.empty)
 
-  val KORE_STRING =
+  var KORE_STRING =
     """
-    module SORT-K
+    module KSORT
       syntax K [hook(K.K)]
     endmodule
+    """
 
-    module BASIC-K
-      imports SORT-K
+  val K = Sort("K")
+  val KSORT = Module("KSORT", Set.empty, sentences(
+    sort K att(hook("K.K"))
+    )
+  )
+
+  KORE_STRING +=
+    """
+    module KBASIC
+      imports KSORT
       syntax KLabel
       syntax KItem        [hook(K.KItem)]
       syntax K ::= KItem  [allowChainSubsort]
@@ -62,6 +74,27 @@ object KParserBootstrapDSL {
       syntax Bottom
     endmodule
     """
+
+  val KLabel = Sort("KLabel")
+  val KItem = Sort("KItem")
+  val KConfigVar = Sort("KConfigVar")
+  val KBott = Sort("KBott")
+  val KList = Sort("KLabelLookup")
+  val KResult = Sort("KResult")
+  val MetaVariable = Sort("MetaVariable")
+  val Bottom = Sort("Bottom")
+  val KBASIC = Module("KBASIC", imports(KSORT), sentences(
+    sort KLabel,
+    sort KItem att(hook("K.KItem")),
+    syntax K is KItem att("allowChainSubsort"),
+    sort KConfigVar,
+    sort KBott,
+    sort KList,
+    sort KResult,
+    sort MetaVariable,
+    sort Bottom
+    )
+  )
 
   val REST_STRING =
     """
