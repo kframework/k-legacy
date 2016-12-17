@@ -16,6 +16,7 @@ object KDefinitionDSL {
 
   def asKApply(label: String, values: List[String]): K =
     KORE.KApply(KORE.KLabel(label), KORE.KList(values map { value => KORE.KToken(value, Sorts.KString, Att()) }), Att())
+  def asKApply(label: String, values: String*): K = asKApply(label, values toList)
 
   implicit def asAttribute(str: String): K = asKApply(str, List.empty)
   implicit def asNonTerminal(s: ADT.SortLookup): NonTerminal = NonTerminal(s)
@@ -53,15 +54,14 @@ object KoreDefintion {
   var KORE_STRING =
     """
     module KSORT
-      syntax K [hook(K.K), .KAttributes]
+      syntax K [hook(K.K)]
     endmodule
     """
 
   val K = Sort("K")
   val KSORT = Module("KSORT", imports(), sentences(
     sort(K) att khook("K.K")
-    )
-  )
+  ))
 
   KORE_STRING +=
     """
@@ -69,14 +69,19 @@ object KoreDefintion {
       imports KSORT
 
       syntax KLabel
-      syntax KItem        [hook(K.KItem), .KAttributes]
-      syntax K ::= KItem  [allowChainSubsort, .KAttributes]
+      syntax KItem        [hook(K.KItem)]
       syntax KConfigVar
       syntax KBott
-      syntax KList
       syntax KResult
       syntax MetaVariable
       syntax Bottom
+
+      syntax K ::= KItem  [allowChainSubsort]
+
+      syntax KList ::= K                 [allowChainSubsort]
+      syntax KList ::= ".KList"          [klabel(#EmptyKList), hook(org.kframework.kore.EmptyKList)]
+      syntax KList ::= ".::KList"        [klabel(#EmptyKList), hook(org.kframework.kore.EmptyKList)]
+      syntax KList ::= KList "," KList   [klabel(#KList), left, assoc, unit(#EmptyKList), hook(org.kframework.kore.KList), prefer]
     endmodule
     """
 
@@ -91,53 +96,84 @@ object KoreDefintion {
   val KBASIC = Module("KBASIC", imports(KSORT), sentences(
     sort(KLabel),
     sort(KItem) att khook("K.KItem"),
-    syntax(K) is KItem att "allowChainSubsort",
     sort(KConfigVar),
     sort(KBott),
-    sort(KList),
     sort(KResult),
     sort(MetaVariable),
-    sort(Bottom)
-    )
-  )
+    sort(Bottom),
+
+    syntax(K) is KItem att "allowChainSubsort",
+
+    syntax(KList) is K att "allowChainSubsort",
+    syntax(KList) is (".KList") att(klabel("#EmptyKList"), khook("org.kframework.kore.EmptyKList")),
+    syntax(KList) is (".::KList") att(klabel("#EmptyKList"), khook("org.kframework.kore.EmptyKList")),
+    syntax(KList) is (KList, ",", KList) att(klabel("#KList"), "left", "assoc", asKApply("unit", "#EmptyKList"), khook("org.kframework.kore.KList"), "prefer")
+  ))
 
   val KStringRegex = """[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"""
   KORE_STRING +=
     """
     module KSTRING
-      syntax KString ::= r""" + "\"" + KStringRegex + "\"" + """ [token, hook(org.kframework.kore.KString), .KAttributes]
+      syntax KString ::= r""" + "\"" + KStringRegex + "\"" + """ [token, hook(org.kframework.kore.KString)]
     endmodule
     """
 
   val KString = Sort("KString")
   val KSTRING = Module("KSTRING", imports(), sentences(
     syntax(KString) is regex(KStringRegex) att("token", khook("org.kframework.kore.KString"))
-
   ))
-  var KORE = Map("KSORT" -> KSORT, "KBASIC" -> KBASIC, "KSTRING" -> KSTRING)
+
+
+  val KRegexAttributeKey1 = """`(\\\\`|\\\\\\\\|[^`\\\\\n\r])+`"""
+  val KRegexAttributeKey2 = """(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"""
+  KORE_STRING +=
+    """
+    module KATTRIBUTES
+      imports KSTRING
+
+      syntax KAttributeKey ::= """ + "r\"" + KRegexAttributeKey1 + "r\"" + """ [token, hook(org.kframework.kore.KLabel)]
+      syntax KAttributeKey ::= """ + "r\"" + KRegexAttributeKey2 + "r\"" + """ [token, hook(org.kframework.kore.KLabel), autoReject]
+
+      syntax KKeyList ::= KAttributeKey
+      syntax KKeyList ::= "" [klabel(.KKeyList)]
+      syntax KKeyList ::= KKeyList "," KKeyList [klabel(KKeyList)]
+
+      syntax KAttribute ::= KAttributeKey
+      syntax KAttribute ::= KAttributeKey "(" KKeyList ")" [klabel(KAttributeApply)]
+
+      syntax KAttributes ::= KAttribute
+      syntax KAttributes ::= "" [klabel(.KAttributes)]
+      syntax KAttributes ::= KAttributes "," KAttributes [klabel(KAttributes)]
+
+      syntax KBott ::= KAttributes
+      syntax KItem ::= KBott                                 [allowChainSubsort]
+    endmodule
+    """
+
+  val KAttributeKey = Sort("KAttributeKey")
+  val KKeyList = Sort("KKeyList")
+  val KAttribute= Sort("KAttribute")
+  val KAttributes= Sort("KAttributes")
+  val KATTRIBUTES = Module("KATTRIBUTES", imports(KSTRING), sentences(
+    syntax(KAttributeKey) is regex(KRegexAttributeKey1) att("token", khook("org.kframework.kore.KLabel")),
+    syntax(KAttributeKey) is regex(KRegexAttributeKey2) att("token", khook("org.kframework.kore.KLabel"), "autoReject"),
+
+    syntax(KKeyList) is KAttributeKey,
+    syntax(KKeyList) is "" att klabel(".KKeyList"),
+    syntax(KKeyList) is (KKeyList, ",", KKeyList) att klabel("KKeyList"),
+
+    syntax(KAttribute) is KAttributeKey,
+    syntax(KAttribute) is (KAttributeKey, "(", KKeyList, ")") att klabel("KAttributeApply"),
+
+    syntax(KAttributes) is KAttribute,
+    syntax(KAttributes) is "" att klabel(".KAttributes"),
+    syntax(KAttributes) is (KAttributes, ",", KAttributes) att klabel("KAttributes")
+  ))
+
+  var KORE = Map("KSORT" -> KSORT, "KBASIC" -> KBASIC, "KSTRING" -> KSTRING, "KATTRIBUTES" -> KATTRIBUTES)
 
   val REST_STRING =
     """
-    module KAST
-      imports BASIC-K
-      imports KSTRING
-      syntax KBott ::= "#token" "(" KString "," KString ")"  [klabel(#KToken), hook(org.kframework.kore.KToken)]
-                     | "#klabel" "(" KLabel ")"              [klabel(#InjectedKLabel), hook(org.kframework.kore.InjectedKLabel)]
-                     | KLabel "(" KList ")"                  [klabel(#KApply), hook(org.kframework.kore.KApply)]
-      syntax KItem ::= KBott                                 [allowChainSubsort]
-
-      syntax KLabel ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\n\r])+`" [token, hook(org.kframework.kore.KLabel)]
-                      | r"(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"               [token, hook(org.kframework.kore.KLabel), autoReject]
-
-      syntax KList ::= K                 [allowChainSubsort]
-                     | ".KList"          [klabel(#EmptyKList), hook(org.kframework.kore.EmptyKList)]
-                     | ".::KList"        [klabel(#EmptyKList), hook(org.kframework.kore.EmptyKList)]
-                     | KList "," KList   [klabel(#KList), left, assoc, unit(#EmptyKList), hook(org.kframework.kore.KList), prefer]
-    //TODO(dwightguth): there is some kind of weird issue with this production which is causing AddEmptyLists to behave incorrectly.
-    // we need to fix this issue so we can add this production back.
-    //                 | KList ",," KList  [klabel(#KList), left, assoc, unit(#EmptyKList), hook(org.kframework.kore.KList), prefer]
-    endmodule
-
     // To be used when parsing/pretty-printing ground configurations
     module KSEQ
       imports KAST
@@ -307,68 +343,57 @@ object KoreDefintion {
     endmodule
     """
 
-  //val KRegexString = "[\\\"].*[\\\"]"
-  val KRegexString =  "[\\\"]([^\\\"\n\r\\\\]|[\\\\][nrtf\\\"\\\\])*[\\\"]"
-  val KRegexString2 = "[\\\"]([^\\\"\\n\\r\\\\]|[\\\\][nrtf\\\"\\\\])*[\\\"]"
-  //val KRegexString = "[\\\"]([^\\\"]|[\\\"])*[\\\"]"
-//  val KRegexString = "[\\\"](([^\\\"\n\r\\\\])" +
-//                           "|([\\\\][nrtf\\\"\\\\])" +
-//                           "|([\\\\][x][0-9a-fA-F]{2})" +
-//                           "|([\\\\][u][0-9a-fA-F]{4})" +
-//                           "|([\\\\][U][0-9a-fA-F]{8})" +
-//                           ")*" +
-//                     "[\\\"]"
-  val KRegexSort = "[A-Z][A-Za-z0-9]*"
-  val KRegexAttributeKey = "[\\.A-Za-z\\-0-9]*"
-  val KRegexModuleName = "[A-Z][A-Z\\-]*"
-  def rString(str: String) : String = "r\"" + str + "\""
+//  val KRegexSort = "[A-Z][A-Za-z0-9]*"
+//  val KRegexAttributeKey = "[\\.A-Za-z\\-0-9]*"
+//  val KRegexModuleName = "[A-Z][A-Z\\-]*"
+//  def rString(str: String) : String = "r\"" + str + "\""
+//
+//  val KTOKENS_STRING =
+//    """
+//    module KTOKENS
+//      imports KSTRING
+//
+//      syntax KString ::= """ + rString(KStringRegex) + """ [token, klabel(KString)]
+//      syntax KSort ::= """ + rString(KRegexSort) + """ [token, klabel(KSort)]
+//      syntax KAttributeKey ::= """ + rString(KRegexAttributeKey) + """ [token, klabel(KAttributeKey)]
+//      syntax KModuleName ::= """ + rString(KRegexModuleName) + """ [token, klabel(KModuleName)]
+//    endmodule
+//    """
 
-  val KTOKENS_STRING =
-    """
-    module KTOKENS
-      syntax KString ::= """ + rString(KStringRegex) + """ [token, klabel(KString), .KAttributes]
-      syntax KSort ::= """ + rString(KRegexSort) + """ [token, klabel(KSort), .KAttributes]
-      syntax KAttributeKey ::= """ + rString(KRegexAttributeKey) + """ [token, klabel(KAttributeKey), .KAttributes]
-      syntax KModuleName ::= """ + rString(KRegexModuleName) + """ [token, klabel(KModuleName), .KAttributes]
-    endmodule
-    """
-
-  //val KString = Sort("KString")
-  val KSort = Sort("KSort")
-  val KAttributeKey = Sort("KAttributeKey")
-  val KModuleName = Sort("KModuleName")
-
-  val KTOKENS = Module("KTOKENS", imports(), sentences(
-
-    syntax(KString) is regex(KStringRegex) att ("token", klabel("KString")),
-    syntax(KSort) is regex(KRegexSort) att ("token", klabel("KSort")),
-    syntax(KAttributeKey) is regex(KRegexAttributeKey) att ("token", klabel("KAttributeKey")),
-    syntax(KModuleName) is regex(KRegexModuleName) att ("token", klabel("KModuleName"))
-
-  ))
+//  val KSort = Sort("KSort")
+//  val KModuleName = Sort("KModuleName")
+//
+//  val KTOKENS = Module("KTOKENS", imports(), sentences(
+//
+//    syntax(KString) is regex(KStringRegex) att ("token", klabel("KString")),
+//    syntax(KSort) is regex(KRegexSort) att ("token", klabel("KSort")),
+//    syntax(KAttributeKey) is regex(KRegexAttributeKey) att ("token", klabel("KAttributeKey")),
+//    syntax(KModuleName) is regex(KRegexModuleName) att ("token", klabel("KModuleName"))
+//
+//  ))
 
   val KML_STRING =
     """
     module KML
-      imports KTOKENS
+      imports KSTRING
 
-      syntax KMLVar ::= "kmlvar" "(" KString ")" [klabel(kmlvar), .KAttributes]
+      syntax KMLVar ::= "kmlvar" "(" KString ")" [klabel(kmlvar)]
       syntax KMLFormula ::= KMLVar
-      syntax KMLFormula ::= "KMLtrue" [klabel(KMLtrue), .KAttributes]
-      syntax KMLFormula ::= "KMLfalse" [klabel(KMLfalse), .KAttributes]
-      syntax KMLFormula ::= KMLFormula "KMLand" KMLFormula [klabel(KMLand), .KAttributes]
-      syntax KMLFormula ::= KMLFormula "KMLor" KMLFormula [klabel(KMLor), .KAttributes]
-      syntax KMLFormula ::= "KMLnot" KMLFormula [klabel(KMLnot), .KAttributes]
-      syntax KMLFormula ::= "KMLexists" KMLVar "." KMLFormula [klabel(KMLexists), .KAttributes]
-      syntax KMLFormula ::= "KMLforall" KMLVar "." KMLFormula [klabel(KMLforall), .KAttributes]
-      syntax KMLFormula ::= KMLFormula "KML=>" KMLFormula [klabel(KMLnext), .KAttributes]
+      syntax KMLFormula ::= "KMLtrue" [klabel(KMLtrue)]
+      syntax KMLFormula ::= "KMLfalse" [klabel(KMLfalse)]
+      syntax KMLFormula ::= KMLFormula "KMLand" KMLFormula [klabel(KMLand)]
+      syntax KMLFormula ::= KMLFormula "KMLor" KMLFormula [klabel(KMLor)]
+      syntax KMLFormula ::= "KMLnot" KMLFormula [klabel(KMLnot)]
+      syntax KMLFormula ::= "KMLexists" KMLVar "." KMLFormula [klabel(KMLexists)]
+      syntax KMLFormula ::= "KMLforall" KMLVar "." KMLFormula [klabel(KMLforall)]
+      syntax KMLFormula ::= KMLFormula "KML=>" KMLFormula [klabel(KMLnext)]
     endmodule
     """
 
   val KMLVar = Sort("KMLVar")
   val KMLFormula = Sort("KMLFormula")
 
-  val KML = Module("KML", imports(KTOKENS), sentences(
+  val KML = Module("KML", imports(KSTRING), sentences(
 
     syntax(KMLVar) is ("kmlvar", "(", KString, ")") att klabel("kmlvar"),
     syntax(KMLFormula) is KMLVar,
@@ -383,69 +408,36 @@ object KoreDefintion {
 
   ))
 
-  val KATTRIBUTES_STRING =
-    """
-    module KATTRIBUTES
-      imports KTOKENS
-
-      syntax KKeyList ::= KAttributeKey
-      syntax KKeyList ::= "" [klabel(.KKeyList), .KAttributes]
-      syntax KKeyList ::= KKeyList "," KKeyList [klabel(KKeyList), .KAttributes]
-
-      syntax KAttribute ::= KAttributeKey [.KAttributes]
-      syntax KAttribute ::= KAttributeKey "(" KKeyList ")" [klabel(KAttributeApply), .KAttributes]
-      syntax KAttributes ::= ".KAttributes" [klabel(.KAttributes), .KAttributes]
-      syntax KAttributes ::= KAttribute "," KAttributes [klabel(KAttributes), .KAttributes]
-    endmodule
-    """
-
-  val KKeyList = Sort("KKeyList")
-  val KAttribute = Sort("KAttribute")
-  val KAttributes = Sort("KAttributes")
-
-  // TODO: Make _,_ on KKeyList have assoc attribute?
-
-  val KATTRIBUTES = Module("KATTRIBUTES", imports(KTOKENS), sentences(
-
-    syntax(KKeyList) is KAttributeKey,
-    syntax(KKeyList) is "" att klabel(".KKeyList"),
-    syntax(KKeyList) is (KKeyList, ",", KKeyList) att klabel("KKeyList"),
-
-    syntax(KAttribute) is KAttributeKey,
-    syntax(KAttribute) is (KAttributeKey, "(", KKeyList, ")") att klabel("KAttributeApply"),
-    syntax(KAttributes) is ".KAttributes" att klabel(".KAttributes"),
-    syntax(KAttributes) is (KAttribute, ",", KAttributes) att klabel("KAttributes")
-
-  ))
-
   val KSENTENCES_STRING =
     """
     module KSENTENCES
       imports KATTRIBUTES
       imports KML
 
-      syntax KImport ::= "imports" KModuleName [klabel(KImport), .KAttributes]
-      syntax KImportList ::= "" [klabel(.KImportList), .KAttributes]
-      syntax KImportList ::= KImport KImportList [klabel(KImportList), .KAttributes]
+      syntax KImport ::= "imports" KModuleName [klabel(KImport)]
+      syntax KImportList ::= "" [klabel(.KImportList)]
+      syntax KImportList ::= KImport KImportList [klabel(KImportList)]
       syntax KTerminal ::= KString [.KAttributes]
-      syntax KTerminal ::= "r" KString [klabel(KRegex), .KAttributes]
+      syntax KTerminal ::= "r" KString [klabel(KRegex)]
       syntax KNonTerminal ::= KSort [.KAttributes]
       syntax KProductionItem ::= KTerminal [.KAttributes]
       syntax KProductionItem ::= KNonTerminal [.KAttributes]
       syntax KProduction ::= KProductionItem [.KAttributes]
-      syntax KProduction ::= KProductionItem KProduction [klabel(KProduction), .KAttributes]
-      syntax KPreSentence ::= "syntax" KSort [klabel(KSortDecl), .KAttributes]
-      syntax KPreSentence ::= "syntax" KSort "::=" KProduction [klabel(KSyntax), .KAttributes]
+      syntax KProduction ::= KProductionItem KProduction [klabel(KProduction)]
+      syntax KPreSentence ::= "syntax" KSort [klabel(KSortDecl)]
+      syntax KPreSentence ::= "syntax" KSort "::=" KProduction [klabel(KSyntax)]
       syntax KSentence ::= KPreSentence [.KAttributes]
-      syntax KSentence ::= KPreSentence "[" KAttributes "]" [klabel(KSentence), .KAttributes]
-      syntax KSentenceList ::= "" [klabel(.KSentenceList), .KAttributes]
-      syntax KSentenceList ::= KSentence KSentenceList [klabel(KSentenceList), .KAttributes]
+      syntax KSentence ::= KPreSentence "[" KAttributes "]" [klabel(KSentence)]
+      syntax KSentenceList ::= "" [klabel(.KSentenceList)]
+      syntax KSentenceList ::= KSentence KSentenceList [klabel(KSentenceList)]
     endmodule
     """
 
+  val KModuleName = Sort("KModuleName")
   val KImport = Sort("KImport")
   val KImportList = Sort("KImportList")
 
+  val KSort = Sort("KSort")
   val KTerminal = Sort("KTerminal")
   val KNonTerminal = Sort("KNonTerminal")
   val KProductionItem = Sort("KProductionItem")
@@ -477,21 +469,25 @@ object KoreDefintion {
 
     syntax(KSentenceList) is "" att klabel(".KSentenceList"),
     syntax(KSentenceList) is (KSentence, KSentenceList) att klabel("KSentenceList")
-
   ))
 
+  val KRegexModuleName = "[A-Z][A-Z\\-]*"
   val KDEFINITION_STRING =
     """
     module KDEFINITION
       imports KSENTENCES
 
-      syntax KModule ::= "module" KModuleName KImportList KSentenceList "endmodule" [klabel(KModule), .KAttributes]
-      syntax KModuleList ::= "" [klabel(.KModuleList), .KAttributes]
-      syntax KModuleList ::= KModule KModuleList [klabel(KModuleList), .KAttributes]
-      syntax KRequire ::= "require" KString [klabel(KRequire), .KAttributes]
-      syntax KRequireList ::= "" [klabel(.KRequireList), .KAttributes]
-      syntax KRequireList ::= KRequire KRequireList [klabel(KRequireList), .KAttributes]
-      syntax KDefinition ::= KRequireList KModuleList [klabel(KDefinition), .KAttributes]
+      syntax(KModuleName) is """ + "r\"" + KRegexModuleName + "\"" + """ [token, klabel(KModuleName)]
+
+      syntax KRequire ::= "require" KString [klabel(KRequire)]
+      syntax KRequireList ::= "" [klabel(.KRequireList)]
+      syntax KRequireList ::= KRequire KRequireList [klabel(KRequireList)]
+
+      syntax KModule ::= "module" KModuleName KImportList KSentenceList "endmodule" [klabel(KModule)]
+      syntax KModuleList ::= "" [klabel(.KModuleList)]
+      syntax KModuleList ::= KModule KModuleList [klabel(KModuleList)]
+
+      syntax KDefinition ::= KRequireList KModuleList [klabel(KDefinition)]
     endmodule
     """
 
@@ -504,20 +500,28 @@ object KoreDefintion {
 
   val KDEFINITION = Module("KDEFINITION", imports(KSENTENCES), sentences(
 
-    syntax(KModule) is ("module", KModuleName, KImportList, KSentenceList, "endmodule") att klabel("KModule"),
-    syntax(KModuleList) is "" att klabel(".KModuleList"),
-    syntax(KModuleList) is (KModule, KModuleList) att klabel("KModuleList"),
+    syntax(KModuleName) is regex(KRegexModuleName) att("token", klabel("KModuleName")),
 
     syntax(KRequire) is ("require", KString) att klabel("KRequire"),
     syntax(KRequireList) is "" att klabel(".KRequireList"),
     syntax(KRequireList) is (KRequire, KRequireList) att klabel("KRequireList"),
 
-    syntax(KDefinition) is (KRequireList, KModuleList) att klabel("KDefinition")
+    syntax(KModule) is ("module", KModuleName, KImportList, KSentenceList, "endmodule") att klabel("KModule"),
+    syntax(KModuleList) is "" att klabel(".KModuleList"),
+    syntax(KModuleList) is (KModule, KModuleList) att klabel("KModuleList"),
 
+    syntax(KDefinition) is (KRequireList, KModuleList) att klabel("KDefinition")
   ))
 
-  val KOREDEF_STRING = KML_STRING + "\n" + KATTRIBUTES_STRING + "\n" + KSENTENCES_STRING + "\n" + KDEFINITION_STRING
-  val KOREDEF = Map("KTOKENS" -> KTOKENS, "KATTRIBUTES" -> KATTRIBUTES, "KML" -> KML, "KSENTENCES" -> KSENTENCES, "KDEFINITION" -> KDEFINITION)
+  val KOREDEF_STRING = KORE_STRING + "\n" + KML_STRING + "\n" + KSENTENCES_STRING + "\n" + KDEFINITION_STRING
+  val KOREDEF = Map( "KSORT" -> KSORT
+                   , "KBASIC" -> KBASIC
+                   , "KSTRING" -> KSTRING
+                   , "KATTRIBUTES" -> KATTRIBUTES
+                   , "KML" -> KML
+                   , "KSENTENCES" -> KSENTENCES
+                   , "KDEFINITION" -> KDEFINITION
+                   )
 }
 
 object KoreDefinitionDown {
@@ -532,9 +536,9 @@ object KoreDefinitionDown {
   }
 
   def downAttributes(parsedAttributes: K): Att = parsedAttributes match {
-    case KApply(KLabelLookup("KAttributes"), KList(att :: rest :: _), _) => downAttributes(att) ++ downAttributes(rest)
+    case KApply(KLabelLookup("KAttributes"), KList(atts1 :: atts2 :: _), _) => downAttributes(atts1) ++ downAttributes(atts2)
     case KApply(KLabelLookup("KAttributeApply"), KList(KToken(fnc, KAttributeKey, _) :: keyList :: _), _) => Att(asKApply(fnc, downKKeyList(keyList)))
-    case KToken(attName, _, _) => Att(attName)
+    case KToken(attName, KAttributeKey, _) => Att(attName)
     case _ => Att()
   }
 
