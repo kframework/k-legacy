@@ -128,7 +128,7 @@ public class KRun {
         if (result instanceof KApply && ((KApply) result).klabel().toString().equals(KLabels.ML_AND)) {
             List<K> conjunctions = mutable(Assoc.flatten(KLabel(KLabels.ML_AND), immutable(((KApply) result).items()), KLabel(KLabels.ML_TRUE)));
             conjunctions = conjunctions.stream().filter(x -> {
-                if (!filterSet.isEmpty() && x instanceof KApply && ((KApply) x).klabel().name().equals(KLabels.EQUALS)) {
+                if (x instanceof KApply && ((KApply) x).klabel().name().equals(KLabels.EQUALS)) {
                     K var = ((KApply) x).klist().items().get(0);
                     if (var instanceof KVariable) {
                         return filterSet.contains(((KVariable) var).name());
