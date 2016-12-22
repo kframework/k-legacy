@@ -44,8 +44,9 @@ public class KoreKDebug implements KDebug {
     private CompiledDefinition compiledDef;
     private DirectedGraph<PatternNode, ProofTransition> proofTree;
     private List<Goal> goalsList;
-
-
+    private final int GOALS_ABSENT_ID = -1;
+    private final int DEFAULT_GOAL_ID = 0;
+    private int activeGoalId;
     /**
      * Start a Debugger Session. The initial Configuration becomes a part of the new and only state of the Debugger
      *
@@ -77,6 +78,7 @@ public class KoreKDebug implements KDebug {
             activeStateIndex = DEFAULT_ID;
         }
         goalsList = new ArrayList<>();
+        this.activeGoalId = GOALS_ABSENT_ID;
     }
 
     @Override
@@ -301,11 +303,13 @@ public class KoreKDebug implements KDebug {
     }
 
     @Override
-    public DebuggerState addPatternSourceFile(String filename) {
+    public ProofState addPatternSourceFile(String filename) {
         List<Rule> result = Kapi.parseAndConcretizePattern(filename, compiledDef);
         result.forEach(x -> goalsList.add(new Goal(x, false)));
-        return null;
-
+        if (activeGoalId == GOALS_ABSENT_ID && !result.isEmpty()) {
+            activeGoalId = DEFAULT_GOAL_ID;
+        }
+        return new ProofState(goalsList, activeGoalId);
     }
 
     @Override

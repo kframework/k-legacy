@@ -4,6 +4,7 @@ package org.kframework.DebugMode;
 import org.kframework.debugger.DebuggerMatchResult;
 import org.kframework.debugger.DebuggerState;
 import org.kframework.debugger.KDebug;
+import org.kframework.debugger.ProofState;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.krun.KRun;
 import org.kframework.unparser.OutputModes;
@@ -274,9 +275,8 @@ public class Commands {
         @Override
         public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             CommandUtils utils = new CommandUtils(isSource);
-            DebuggerState res = session.addPatternSourceFile(this.getPatternSourceFile());
-            if(res != null)
-                prettyPrint(compiledDefinition, OutputModes.PRETTY, x -> utils.print(x), res.getCurrentK());
+            ProofState res = session.addPatternSourceFile(this.getPatternSourceFile());
+            
         }
     }
 
