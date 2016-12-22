@@ -438,8 +438,8 @@ public class Kapi {
 
 
         //TODO: Deal with Attributes?
-        return javaRules.stream().map(x -> Rule.apply(KORE.KApply(x.anywhereKLabel(), x.leftHandSide(), x.rightHandSide()),
-                x.getRequires(), x.getEnsures(), KORE.emptyAtt())).collect(Collectors.toList());
+        return javaRules.stream().map(x -> Rule.apply(KORE.KApply(KORE.KLabel(KLabels.KREWRITE), x.leftHandSide(),
+                x.rightHandSide()), x.getRequires(), x.getEnsures(), KORE.emptyAtt())).collect(Collectors.toList());
     }
 
     /**
