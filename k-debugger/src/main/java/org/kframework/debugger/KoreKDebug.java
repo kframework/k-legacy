@@ -2,21 +2,19 @@
 package org.kframework.debugger;
 
 
-import com.microsoft.z3.Goal;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.kframework.Kapi;
 import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
-import org.kframework.builtin.KLabels;
 import org.kframework.definition.Rule;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kore.K;
-import org.kframework.kore.KORE;
 import org.kframework.krun.KRun;
 import org.kframework.krun.KRunOptions;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.rewriter.SearchType;
+import org.kframework.utils.Goal;
 import org.kframework.utils.PatternNode;
 import org.kframework.utils.ProofTransition;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -50,6 +48,7 @@ public class KoreKDebug implements KDebug {
 
     /**
      * Start a Debugger Session. The initial Configuration becomes a part of the new and only state of the Debugger
+     *
      * @param initialK The initial Configuration.
      * @param rewriter The Rewriter being used.
      */
@@ -77,6 +76,7 @@ public class KoreKDebug implements KDebug {
             stateList.add(initialState);
             activeStateIndex = DEFAULT_ID;
         }
+        goalsList = new ArrayList<>();
     }
 
     @Override
@@ -303,14 +303,7 @@ public class KoreKDebug implements KDebug {
     @Override
     public DebuggerState addPatternSourceFile(String filename) {
         List<Rule> result = Kapi.parseAndConcretizePattern(filename, compiledDef);
-//        if (stateList.isEmpty()) {
-//            NavigableMap<Integer, K> checkpointMap = new TreeMap<>();
-//            checkpointMap.put(DEFAULT_ID, result);
-//            DebuggerState initialState = new DebuggerState(result, DEFAULT_ID, checkpointMap, new ArrayList<>());
-//            stateList.add(initialState);
-//            activeStateIndex = DEFAULT_ID;
-//            return initialState;
-//        }
+        result.forEach(x -> goalsList.add(new Goal(x, false)));
         return null;
 
     }
