@@ -24,6 +24,8 @@ Note that \texttt{<=} is sequentially strict and has a \LaTeX\ attribute
 making it display as $\leq$, and that \texttt{\&\&} is strict only in its first
 argument, because we want to give it a short-circuit semantics. */
 
+  syntax SymInt ::= "#symInt"
+  syntax Int ::= SymInt
   syntax AExp  ::= Int | Id
                  | AExp "/" AExp              [left, strict]
                  > AExp "+" AExp              [left, strict]
@@ -48,6 +50,7 @@ to 0.  \K provides builtin support for generic syntactic lists:
 $\textit{List}\{\textit{Nonterminal},\textit{terminal}\}$ stands for
 \textit{terminal}-separated lists of \textit{Nonterminal} elements. */
 
+  rule #symInt => ?_:Int
   syntax Pgm ::= "int" Ids ";" Stmt
   syntax Ids ::= List{Id,","}
 endmodule
@@ -68,7 +71,7 @@ define the basic semantic infrastructure consisting of definitions for
 IMP only has two types of values, or results of computations: integers
 and Booleans.  We here use the \K builtin variants for both of them. */
 
-  syntax KResult ::= Int | Bool
+  syntax KResult ::= Int | Bool 
 
 /*@ \subsection{Configuration}
 The configuration of IMP is trivial: it only contains two cells, one

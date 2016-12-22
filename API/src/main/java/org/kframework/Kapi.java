@@ -20,6 +20,7 @@ import org.kframework.backend.java.symbolic.ProofExecutionMode;
 import org.kframework.backend.java.symbolic.Stage;
 import org.kframework.backend.java.symbolic.SymbolicRewriter;
 import org.kframework.backend.java.util.JavaKRunState;
+import org.kframework.builtin.KLabels;
 import org.kframework.compile.NormalizeKSeq;
 import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
@@ -29,6 +30,7 @@ import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.K;
+import org.kframework.kore.KORE;
 import org.kframework.krun.KRun;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.KRunState;
@@ -359,7 +361,7 @@ public class Kapi {
         return;
     }
 
-    public static K parseAndConcretizePattern(String patternFile, CompiledDefinition compiledDef) {
+    public static List<Rule> parseAndConcretizePattern(String patternFile, CompiledDefinition compiledDef) {
 
         GlobalOptions globalOptions = new GlobalOptions();
         KompileOptions kompileOptions = new KompileOptions();
@@ -395,7 +397,7 @@ public class Kapi {
         ExpandMacros macroExpander = new ExpandMacros(compiledDef.executionModule(), kem, files, globalOptions, kompileOptions);
 
         List<Rule> specRules = stream(specModule.localRules())
-                .filter(r -> r.toString().contains("-pattern.k"))
+                .filter(r -> r.toString().contains("-spec.k"))
                 .map(r -> (Rule) macroExpander.expand(r))
                 .map(r -> ProofExecutionMode.transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
                 .map(r -> ProofExecutionMode.transformFunction(Kompile::convertKSeqToKApply, r))
@@ -434,8 +436,10 @@ public class Kapi {
                         rewritingContext.global())) // register definition to be used for execution of the current rule
                 .collect(Collectors.toList());
 
-        return javaRules.get(0).createLhsPattern(rewritingContext).term();
 
+        //TODO: Deal with Attributes?
+        return javaRules.stream().map(x -> Rule.apply(KORE.KApply(x.definedKLabel(), x.leftHandSide(), x.rightHandSide()),
+                x.getRequires(), x.getEnsures(), KORE.emptyAtt())).collect(Collectors.toList());
     }
 
     /**

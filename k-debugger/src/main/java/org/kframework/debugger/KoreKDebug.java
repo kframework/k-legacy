@@ -2,6 +2,7 @@
 package org.kframework.debugger;
 
 
+import com.microsoft.z3.Goal;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.kframework.Kapi;
@@ -44,6 +45,7 @@ public class KoreKDebug implements KDebug {
     private KRunOptions options;
     private CompiledDefinition compiledDef;
     private DirectedGraph<PatternNode, ProofTransition> proofTree;
+    private List<Goal> goalsList;
 
 
     /**
@@ -300,27 +302,28 @@ public class KoreKDebug implements KDebug {
 
     @Override
     public DebuggerState addPatternSourceFile(String filename) {
-        K result = Kapi.parseAndConcretizePattern(filename, compiledDef);
-        if (stateList.isEmpty()) {
-            NavigableMap<Integer, K> checkpointMap = new TreeMap<>();
-            checkpointMap.put(DEFAULT_ID, result);
-            DebuggerState initialState = new DebuggerState(result, DEFAULT_ID, checkpointMap, new ArrayList<>());
-            stateList.add(initialState);
-            activeStateIndex = DEFAULT_ID;
-            return initialState;
-        }
+        List<Rule> result = Kapi.parseAndConcretizePattern(filename, compiledDef);
+//        if (stateList.isEmpty()) {
+//            NavigableMap<Integer, K> checkpointMap = new TreeMap<>();
+//            checkpointMap.put(DEFAULT_ID, result);
+//            DebuggerState initialState = new DebuggerState(result, DEFAULT_ID, checkpointMap, new ArrayList<>());
+//            stateList.add(initialState);
+//            activeStateIndex = DEFAULT_ID;
+//            return initialState;
+//        }
         return null;
 
     }
 
     @Override
     public DebuggerState matchUntilPattern(String filename) {
-        K matchPattern = Kapi.parseAndConcretizePattern(filename, compiledDef);
-        if (stateList.isEmpty()) {
-            return null;
-        }
-        K searchResult = rewriter.search(stateList.get(activeStateIndex).getCurrentK(), Optional.empty(), Optional.empty(), Rule.apply(matchPattern, KORE.KApply(KORE.KLabel(KLabels.ML_TRUE)), KORE.KApply(KORE.KLabel(KLabels.ML_TRUE)), matchPattern.att()), SearchType.FINAL, false);
-        return new DebuggerState(searchResult, activeStateIndex + 1, new TreeMap<>(), new ArrayList<>());
+//        K matchPattern = Kapi.parseAndConcretizePattern(filename, compiledDef);
+//        if (stateList.isEmpty()) {
+//            return null;
+//        }
+//        K searchResult = rewriter.search(stateList.get(activeStateIndex).getCurrentK(), Optional.empty(), Optional.empty(), Rule.apply(matchPattern, KORE.KApply(KORE.KLabel(KLabels.ML_TRUE)), KORE.KApply(KORE.KLabel(KLabels.ML_TRUE)), matchPattern.att()), SearchType.FINAL, false);
+//        return new DebuggerState(searchResult, activeStateIndex + 1, new TreeMap<>(), new ArrayList<>());
+        return null;
 
     }
 }
