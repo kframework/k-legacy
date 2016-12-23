@@ -303,6 +303,11 @@ public class KoreKDebug implements KDebug {
     }
 
     @Override
+    public ProofState getProofState() {
+        return new ProofState(goalsList, activeGoalId);
+    }
+
+    @Override
     public ProofState addPatternSourceFile(String filename) {
         List<Rule> result = Kapi.parseAndConcretizePattern(filename, compiledDef);
         result.forEach(x -> goalsList.add(new Goal(x, false)));
@@ -311,6 +316,8 @@ public class KoreKDebug implements KDebug {
         }
         return new ProofState(goalsList, activeGoalId);
     }
+
+
 
     @Override
     public DebuggerState matchUntilPattern(String filename) {

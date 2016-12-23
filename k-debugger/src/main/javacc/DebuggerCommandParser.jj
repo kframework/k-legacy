@@ -46,6 +46,7 @@ TOKEN: /*RESERVED TOKENS */
     |  <CHECKPOINT: "checkpoint" | "ch">
     |  <RESUME: "resume" | "run" | "r">
     |  <PEEK: "p" | "peek">
+    |  <GOALPEEK: "gp" | "gpeek">
     |  <REMWATCH: "remwatch" | "xwatch">
     |  <SHOW: "show"> : STRING_STATE
     |  <GETSTATE: "get-states" | "gs">
@@ -79,6 +80,7 @@ Command command() throws NumberFormatException:
 {
         <STEP> (stepCount = parseNum())? {return new StepCommand(stepCount);}
     |   <PEEK> {return new PeekCommand();}
+    |   <GOALPEEK> {return new GoalPeekCommand();}
     |   <BACKSTEP> (stepCount = parseNum())? {return new BackStepCommand(stepCount);}
     |   LOOKAHEAD(3)
         <JUMPTO> (stateNum = parseNum()) (configurationNum = parseNum()) {return new JumpToCommand(Optional.of(stateNum), Optional.of(configurationNum));}

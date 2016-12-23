@@ -30,4 +30,15 @@ public class Goal {
         return ((KApply) rule.body()).items().get(1);
     }
 
+    public Rule getGoalClaim() {
+        return goalClaim;
+    }
+
+    public boolean isProved() {
+        return proved;
+    }
+
+    public DirectedGraph<PatternNode, ProofTransition> getProofTree() {
+        return proofTree;
+    }
 }

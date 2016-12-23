@@ -8,6 +8,7 @@ import org.kframework.debugger.ProofState;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.krun.KRun;
 import org.kframework.unparser.OutputModes;
+import org.kframework.utils.Goal;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
@@ -276,7 +277,34 @@ public class Commands {
         public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             CommandUtils utils = new CommandUtils(isSource);
             ProofState res = session.addPatternSourceFile(this.getPatternSourceFile());
-            
+            List<Goal> goalList = res.getGoalList();
+            if (!goalList.isEmpty()) {
+                System.out.println(goalList.size() + " goal(s) loaded");
+            }
+
+        }
+    }
+
+    public static class GoalPeekCommand implements Command {
+
+        @Override
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean disableOutput, FileUtil files, KExceptionManager kem) {
+            ProofState proofState = session.getProofState();
+            List<Goal> goals = proofState.getGoalList();
+            CommandUtils utils = new CommandUtils(disableOutput);
+            for(int i = 0; i < goals.size(); ++i ) {
+                if (i == proofState.getActiveId()) {
+                    utils.print("Claim " + i + " * ");
+                    KRun.printK(goals.get(i).getGoalClaim().body(), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
+                } else {
+                    utils.print("Claim " + i);
+                    KRun.printK(goals.get(i).getGoalClaim().body(), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
+                }
+            }
+
+        }
+
+        public GoalPeekCommand() {
         }
     }
 

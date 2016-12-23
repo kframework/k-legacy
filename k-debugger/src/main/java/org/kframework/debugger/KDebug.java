@@ -143,5 +143,11 @@ public interface KDebug {
      */
     public DebuggerState matchUntilPattern(String filename);
 
+    /**
+     * Return the current state of the proof - consists of list of goals, and currently active goal
+     */
+    public ProofState getProofState();
+
+
 }
 
