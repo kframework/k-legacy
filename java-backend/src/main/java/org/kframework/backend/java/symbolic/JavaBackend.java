@@ -120,6 +120,7 @@ public class JavaBackend implements Backend {
                 .andThen(new AssocCommToAssoc(KORE.c()).lift())
                 .andThen(new MergeRules(KORE.c()).lift())
                 .andThen(DefinitionTransformer.fromKTransformerWithModuleInfo(JavaBackend::moduleQualifySortPredicates, "Module-qualify sort predicates"))
+                .andThen(KoreToMiniToKore::apply)
                 .apply(d);
     }
 
@@ -139,7 +140,6 @@ public class JavaBackend implements Backend {
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(NormalizeKSeq.self(), "normalize kseq"))
                 .andThen(JavaBackend::markRegularRules)
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new AddConfigurationRecoveryFlags()::apply, "add refers_THIS_CONFIGURATION_marker"))
-                .andThen(KoreToMiniToKore::apply)
                 .apply(d);
     }
 

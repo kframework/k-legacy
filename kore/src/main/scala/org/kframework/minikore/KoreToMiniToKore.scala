@@ -1,9 +1,9 @@
 package org.kframework.minikore
 
-import org.kframework.definition.Definition
+import org.kframework.definition
 
-object KoreToMiniToKore extends (Definition => Definition) {
-  override def apply(d: Definition): Definition = {
+object KoreToMiniToKore {
+  def apply(d: definition.Definition): definition.Definition = {
     d
   }
 }
