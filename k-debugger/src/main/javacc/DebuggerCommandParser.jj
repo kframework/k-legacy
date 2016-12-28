@@ -40,6 +40,7 @@ SKIP :
 TOKEN: /*RESERVED TOKENS */
 {
        <STEP: (["s", "S"])| "step" >
+    |  <STEPALL: "sall" | "step-all" >
     |  <BACKSTEP:  (["b", "B"])| "back-step">
     |  <JUMPTO: (["j", "J"])| "jump-to">
     |  <QUIT: "quit" | "abort" | "exit">
@@ -79,6 +80,7 @@ Command command() throws NumberFormatException:
 }
 {
         <STEP> (stepCount = parseNum())? {return new StepCommand(stepCount);}
+    |   <STEPALL> (stepCount = parseNum())? {return new StepAllCommand(stepCount);}
     |   <PEEK> {return new PeekCommand();}
     |   <GOALPEEK> {return new GoalPeekCommand();}
     |   <BACKSTEP> (stepCount = parseNum())? {return new BackStepCommand(stepCount);}

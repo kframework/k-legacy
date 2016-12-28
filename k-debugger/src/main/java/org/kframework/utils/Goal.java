@@ -22,11 +22,11 @@ public class Goal {
         proofTree.addVertex(new PatternNode(getRuleLHS(goalClaim), nodeIds++));
     }
 
-    private K getRuleLHS(Rule rule) {
+    public static K getRuleLHS(Rule rule) {
         return ((KApply) rule.body()).items().get(0);
     }
 
-    private K getRuleRHS(Rule rule) {
+    public static K getRuleRHS(Rule rule) {
         return ((KApply) rule.body()).items().get(1);
     }
 
@@ -40,5 +40,13 @@ public class Goal {
 
     public DirectedGraph<PatternNode, ProofTransition> getProofTree() {
         return proofTree;
+    }
+
+    public int getNodeIds() {
+        return nodeIds;
+    }
+
+    public void setNodeIds(int nodeIds) {
+        this.nodeIds = nodeIds;
     }
 }

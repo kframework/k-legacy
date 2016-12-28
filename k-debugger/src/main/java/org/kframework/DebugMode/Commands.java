@@ -5,6 +5,7 @@ import org.kframework.debugger.DebuggerMatchResult;
 import org.kframework.debugger.DebuggerState;
 import org.kframework.debugger.KDebug;
 import org.kframework.debugger.ProofState;
+import org.kframework.definition.Rule;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.krun.KRun;
 import org.kframework.unparser.OutputModes;
@@ -295,16 +296,30 @@ public class Commands {
             for(int i = 0; i < goals.size(); ++i ) {
                 if (i == proofState.getActiveId()) {
                     utils.print("Claim " + i + " * ");
-                    KRun.printK(goals.get(i).getGoalClaim().body(), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
                 } else {
                     utils.print("Claim " + i);
-                    KRun.printK(goals.get(i).getGoalClaim().body(), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
                 }
+                Rule goalRule = goals.get(i).getGoalClaim();
+                KRun.printK(Goal.getRuleLHS(goalRule), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
+                utils.print("=>");
+                KRun.printK(Goal.getRuleRHS(goalRule), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
             }
 
         }
+    }
 
-        public GoalPeekCommand() {
+    public static class StepAllCommand implements Command {
+        private int stepNum;
+
+        public StepAllCommand(int stepNum) {
+            this.stepNum = stepNum;
+        }
+
+        @Override
+        public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean disableOutput, FileUtil files, KExceptionManager kem) {
+            ProofState proofState = session.stepAll(stepNum);
+            CommandUtils utils = new CommandUtils(disableOutput);
+            utils.print(proofState.getGoalList().get(proofState.getActiveId()).getProofTree().toString());
         }
     }
 

@@ -4,12 +4,18 @@ package org.kframework.debugger;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
 import org.kframework.Kapi;
 import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
+import org.kframework.builtin.BooleanUtils;
+import org.kframework.builtin.KLabels;
 import org.kframework.definition.Rule;
 import org.kframework.kompile.CompiledDefinition;
+import org.kframework.kore.Assoc;
 import org.kframework.kore.K;
+import org.kframework.kore.KApply;
+import org.kframework.kore.KORE;
 import org.kframework.krun.KRun;
 import org.kframework.krun.KRunOptions;
 import org.kframework.rewriter.Rewriter;
@@ -21,6 +27,7 @@ import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -47,6 +54,7 @@ public class KoreKDebug implements KDebug {
     private final int GOALS_ABSENT_ID = -1;
     private final int DEFAULT_GOAL_ID = 0;
     private int activeGoalId;
+
     /**
      * Start a Debugger Session. The initial Configuration becomes a part of the new and only state of the Debugger
      *
@@ -317,7 +325,41 @@ public class KoreKDebug implements KDebug {
         return new ProofState(goalsList, activeGoalId);
     }
 
+    @Override
+    public ProofState stepAll(int stepNum) {
+        if (activeGoalId == GOALS_ABSENT_ID) {
+            return null;
+        }
+        Goal currentGoal = goalsList.get(activeGoalId);
 
+        DirectedGraph<PatternNode, ProofTransition> graph = currentGoal.getProofTree();
+        List<PatternNode> leafNodes = graph.vertexSet().stream().filter(x -> graph.outDegreeOf(x) == 0).collect(Collectors.toList());
+        leafNodes.forEach(x -> {
+            K result = rewriter.search(x.getPattern(), Optional.of(stepNum), Optional.empty(), new Rule(KORE.KVariable("X"),
+                    BooleanUtils.TRUE, BooleanUtils.TRUE, KORE.emptyAtt()), SearchType.FINAL, false);
+            List<K> resultList = disjunctPattern(result);
+            resultList.forEach(y -> {
+                int nodeId = currentGoal.getNodeIds();
+                PatternNode newNode = new PatternNode(y, nodeId++);
+                graph.addVertex(newNode);
+                graph.addEdge(x, newNode, new ProofTransition(stepNum, "stepAll"));
+                currentGoal.setNodeIds(nodeId);
+            });
+        });
+        return new ProofState(goalsList, activeGoalId);
+    }
+
+    private List<K> disjunctPattern(K result) {
+        List<K> resultList;
+        if (result instanceof KApply && ((KApply) result).klabel().equals(KORE.KLabel(KLabels.ML_OR))) {
+            resultList = Assoc.flatten(KORE.KLabel(KLabels.ML_OR), ((KApply) result).items(), KORE.KLabel(KLabels.ML_FALSE))
+                    .stream().sorted(Comparator.comparing(K::toString)).collect(Collectors.toList());
+        } else {
+            resultList = new ArrayList<>();
+            resultList.add(result);
+        }
+        return resultList;
+    }
 
     @Override
     public DebuggerState matchUntilPattern(String filename) {

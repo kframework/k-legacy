@@ -148,6 +148,8 @@ public interface KDebug {
      */
     public ProofState getProofState();
 
+    public ProofState stepAll(int stepNum);
+
 
 }
 
