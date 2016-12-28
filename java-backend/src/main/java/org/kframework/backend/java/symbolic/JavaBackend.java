@@ -40,6 +40,7 @@ import org.kframework.kore.compile.ResolveSemanticCasts;
 import org.kframework.kore.compile.RewriteToTop;
 import org.kframework.kore.TransformK;
 import org.kframework.main.GlobalOptions;
+import org.kframework.minikore.KoreToMiniToKore;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import scala.Option;
@@ -138,6 +139,7 @@ public class JavaBackend implements Backend {
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(NormalizeKSeq.self(), "normalize kseq"))
                 .andThen(JavaBackend::markRegularRules)
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new AddConfigurationRecoveryFlags()::apply, "add refers_THIS_CONFIGURATION_marker"))
+                .andThen(KoreToMiniToKore::apply)
                 .apply(d);
     }
 
