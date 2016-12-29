@@ -26,10 +26,10 @@ class KoreToMiniTest {
     )
   }
 
-  @Test def production2(): Unit = {
-    assertEquals(
-      KoreToMini.apply(new definition.Production(Exp, Seq(NonTerminal(Int)), Att())),
-      Syntax(Exp.name, "construct" + Exp.name, Seq(Int.name), Seq(Term("NonTerminal", Seq(S(Int.name)))))
-    )
-  }
+//  @Test def production2(): Unit = {
+//    assertEquals(
+//      KoreToMini.apply(new definition.Production(Exp, Seq(NonTerminal(Int)), Att())),
+//      Syntax(Exp.name, "construct" + Exp.name, Seq(Int.name), Seq(Term("NonTerminal", Seq(S(Int.name)))))
+//    )
+//  }
 }

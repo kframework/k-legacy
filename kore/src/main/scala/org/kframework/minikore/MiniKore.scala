@@ -20,7 +20,7 @@ object MiniKore {
   case class Variable(name: String, sort: String) extends Pattern
   case class S(v: String) extends Pattern
 //case class I(v: Int) extends Pattern
-//case class B(v: Boolean) extends Pattern
+  case class B(v: Boolean) extends Pattern
   //
   case class And(p: Pattern, q: Pattern) extends Pattern
   case class Or(p: Pattern, q: Pattern) extends Pattern
