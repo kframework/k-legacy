@@ -90,8 +90,8 @@ object KoreToMini {
 
   def apply(k: K): Pattern = {
     val p = k match {
-      case kapp: KApply =>
-        Term(encode(kapp.klabel), encode(kapp.klist))
+      case KApply(klabel, klist) =>
+        Term(klabel.name, klist.map(apply))
       case kvar @ SortedKVariable(name, att) =>
         assert(att == k.att)
         Variable(name, kvar.sort.name)
@@ -99,22 +99,30 @@ object KoreToMini {
         // TODO(Daejun): may need to distinguish against SortedKVariable
         apply(SortedKVariable(name, k.att)) // from SortedADT in ADT.scala
       case KToken(s, sort) => Constant(sort.name, s)
-      case KSequence(ks) => ??? // fold
+      case KSequence(ks) => encodeKSeq(ks.map(apply))
       case KRewrite(left, right) => Rewrite(apply(left), apply(right))
       case InjectedKLabel(klabel) => ???
       case _ => ??? // Sort, KLabel, KList // assert false
     }
-    encode(p, k.att)
+    encodePatternAtt(p, apply(k.att))
   }
 
-  def encode(l: KLabel): String = l.name
-
-  def encode(l: KList): Seq[Pattern] = {
-    l.items.asScala.toSeq.map(apply) // from KList in Unapply.scala
+  // encodePatternAtt(p, Seq(a1,a2,a3)) = #(#(#(p,a1),a2),a3) // TODO(Daejun): add test
+  def encodePatternAtt(p: Pattern, att: Att): Pattern = {
+    att.foldLeft(p)((z,a) => {
+      Term("#", Seq(z,a))
+    })
   }
 
-  def encode(p: Pattern, att: attributes.Att): Pattern = {
-    if (att.att.isEmpty) p else ??? // fold
+  // encodeKSeq(Seq(p1,p2,p3,p4)) = #kseq(p1,#kseq(p2,#keq(p3,p4))) // TODO(Daejun): add test
+  def encodeKSeq(ps: Seq[Pattern]): Pattern = {
+    ps.reverse match {
+      case p :: Nil => p
+      case p :: ps =>
+        ps.foldLeft(p)((z,p) => {
+          Term("#kseq", Seq(p,z))
+        })
+    }
   }
 
 }
