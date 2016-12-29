@@ -1,6 +1,6 @@
 package org.kframework.minikore
 
-import collection._
+import scala.collection._
 
 object MiniKore {
 
