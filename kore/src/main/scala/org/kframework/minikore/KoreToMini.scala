@@ -16,7 +16,7 @@ object KoreToMini {
   def apply(d: definition.Definition): Definition = {
     var modules = d.modules.toSeq.map(apply)
     modules = modules.map(m => {
-      if (m.name == d.mainModule.name) m.copy(att = m.att :+ Term("mainModule", Seq()))
+      if (m.name == d.mainModule.name) m.copy(att = Term("mainModule", Seq()) +: m.att)
       else m
     })
     Definition(modules)
@@ -36,9 +36,9 @@ object KoreToMini {
       val newAtt = items.map(encode) ++ apply(att)
       production.klabel match {
         case Some(label) => Syntax(sort.name, label.name, args, newAtt)
-        case None => Syntax(sort.name, "", args, newAtt) // TODO(Daejun): generate injection label
+        case None => Syntax(sort.name, "", args, newAtt) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
       }
-    case definition.SyntaxSort(sort, att) => Syntax(sort.name, "", Seq(), apply(att)) // TODO(Daejun): more encoding
+    case definition.SyntaxSort(sort, att) => Syntax(sort.name, "", Seq(), apply(att)) // TODO(Daejun): encode using dummy sentence
 
     case definition.Rule(body, requires, ensures, att) =>
       val r = apply(requires)
@@ -69,8 +69,14 @@ object KoreToMini {
       case definition.ModuleComment(comment, att) => Term("ModuleComment", Seq(S(comment))) +: apply(att)
       case _ => ??? // assert false
     }
-    Axiom(B(true), att)
+    dummySentence(att)
   }
+
+  def S(s: String): Constant = Constant("S", s)
+  def I(i: Int): Constant = Constant("I", i.toString)
+  def B(b: Boolean): Constant = Constant("B", b.toString)
+
+  def dummySentence(att: Att): Sentence = Axiom(B(true), att)
 
   // Inner
 
@@ -92,7 +98,7 @@ object KoreToMini {
       case KVariable(name) =>
         // TODO(Daejun): may need to distinguish against SortedKVariable
         apply(SortedKVariable(name, k.att)) // from SortedADT in ADT.scala
-      case KToken(s, sort) => ??? // Constant(sort.name, s)
+      case KToken(s, sort) => Constant(sort.name, s)
       case KSequence(ks) => ??? // fold
       case KRewrite(left, right) => Rewrite(apply(left), apply(right))
       case InjectedKLabel(klabel) => ???
