@@ -64,9 +64,11 @@ object KoreToMini {
 
   def encode(s :definition.Sentence): Sentence = {
     val att = s match {
-      case definition.SyntaxPriority(priorities, att) => ???
-      case definition.SyntaxAssociativity(assoc, tags, att) => ???
       case definition.ModuleComment(comment, att) => Term("ModuleComment", Seq(S(comment))) +: apply(att)
+      case definition.SyntaxPriority(priorities, att) => Seq() // TODO(Daejun): implement
+      case definition.SyntaxAssociativity(assoc, tags, att) => Seq() // TODO(Daejun): implement
+      case definition.Bubble(_, _, _) => Seq() // TODO(Daejun): find why it appears here
+      case definition.Context(_, _, _) => Seq() // TODO(Daejun): find why it appears here
       case _ => ??? // assert false
     }
     dummySentence(att)
@@ -117,7 +119,7 @@ object KoreToMini {
   // encodeKSeq(Seq(p1,p2,p3,p4)) = #kseq(p1,#kseq(p2,#keq(p3,p4))) // TODO(Daejun): add test
   def encodeKSeq(ps: Seq[Pattern]): Pattern = {
     ps.reverse match {
-      case p :: Nil => p
+      case Seq(p) => p // NOTE(Daejun): `case p :: Nil` doesn't work (match failure). why??
       case p :: ps =>
         ps.foldLeft(p)((z,p) => {
           Term("#kseq", Seq(p,z))
