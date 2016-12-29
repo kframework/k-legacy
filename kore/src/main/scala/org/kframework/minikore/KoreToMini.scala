@@ -1,60 +1,54 @@
 package org.kframework.minikore
 
+import collection._
+
 import org.kframework.attributes.Att
 import org.kframework.definition
 import org.kframework.attributes
 
-import collection._
+import org.kframework.minikore.MiniKore._
 
-object KoreToMini extends (definition.Definition => Definition) {
+object KoreToMini {
 
-  implicit def symbolToLabel(s: Symbol): Label = Label(s.name)
-
-
-  def apply(d: definition.Definition): Definition = d match {
-    case definition.Definition(mainModule, entryModules, att) =>
-      val modules = entryModules flatMap apply map {
-        case m if m.name == mainModule.name => m.copy(att = m.att + 'mainModule ())
-        case m => m
-      }
-      Definition(modules)
+  def apply(d: definition.Definition): Definition = {
+    var modules = d.modules.toSeq.map(apply)
+    modules = modules.map(m => {
+      if (m.name == d.mainModule.name) m.copy(att = m.att :+ Term("mainModule", Seq()))
+      else m
+    })
+    Definition(modules)
   }
 
-  def apply(m: definition.Module): Set[Module] = {
-    val trasitiveModules = m.imports flatMap apply
-    val importSentences: Set[Sentence] = m.imports map (_.name) map Import
-    val localSentences: Set[Sentence] = m.localSentences map apply
-    val theCurrentModule = Module(m.name, importSentences | localSentences, apply(m.att))
-
-    trasitiveModules + theCurrentModule
+  def apply(m: definition.Module): Module = {
+    val localSentences: Seq[Sentence] = m.localSentences.toSeq.map(apply)
+    val importSentences: Seq[Sentence] = m.imports.toSeq.map(m => Import(m.name))
+    Module(m.name, importSentences ++ localSentences, apply(m.att))
   }
-
-  val nonTerminal = Label("nonTerminal")
 
   def apply(s: definition.Sentence): Sentence = s match {
-    case production@definition.Production(sort, items, atts) =>
-      val constructorSorts: Seq[Sort] = items collect {
-        case definition.NonTerminal(sort) => Sort(sort.name)
-      }
-      val encodedSyntax: Seq[Apply] = items map {
-        case definition.NonTerminal(sort) => 'nonTerminal ('Sort (sort.name))
-        case definition.Terminal(value, follow) =>
-          val convertedFollow: Seq[Constant] = follow map (s => 'regex (s))
-          'terminal ('string (value), 'seq (convertedFollow: _*))
-        case definition.RegexTerminal(precede, regex, follow) =>
-          'regexTerminal ('regex (precede), 'regex (regex), 'regex (follow))
-      }
+    case production @ definition.Production(sort, items, att) =>
+      val args = items.collect({
+        case definition.NonTerminal(sort) => sort.name
+      })
+      val encodedSyntax: Seq[Pattern] = items.map({
+        case definition.NonTerminal(sort) => Term("NonTerminal", Seq(S(sort.name)))
+        case definition.Terminal(value, followRegex) =>
+          Term("Terminal", S(value) +: followRegex.map(s => S(s)))
+        case definition.RegexTerminal(precedeRegex, regex, followRegex) =>
+          Term("RegexTerminal", Seq(S(precedeRegex), S(regex), S(followRegex)))
+      })
       val labelName: String = production.klabel.map(_.name).getOrElse("construct" + production.sort.name)
+      Syntax(sort.name, labelName, args, apply(att) ++ encodedSyntax)
 
-      ConstructorDeclaration(
-        Sort(sort.name),
-        Label(labelName),
-        constructorSorts,
-        apply(atts) ++ encodedSyntax)
-
-    case definition.SyntaxSort(sort, atts) => ???
-    //....
+    case definition.SyntaxSort(sort, att) => ???
+    case rule: definition.Rule => ???
+    case _: definition.SyntaxPriority => ???
+    case _: definition.SyntaxAssociativity => ???
+    case _: definition.ModuleComment => ???
   }
 
-  def apply(att: attributes.Att): Att = ???
+  def apply(att: attributes.Att): MiniKore.Att = {
+    Seq()
+    // att.att.toSeq.map(???)
+  }
 }
