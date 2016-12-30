@@ -336,7 +336,7 @@ public class KoreKDebug implements KDebug {
         List<PatternNode> leafNodes = graph.vertexSet().stream().filter(x -> graph.outDegreeOf(x) == 0).collect(Collectors.toList());
         leafNodes.forEach(x -> {
             K result = rewriter.search(x.getPattern(), Optional.of(stepNum), Optional.empty(), new Rule(KORE.KVariable("X"),
-                    BooleanUtils.TRUE, BooleanUtils.TRUE, KORE.emptyAtt()), SearchType.FINAL, false);
+                    BooleanUtils.TRUE, BooleanUtils.TRUE, KORE.Att()), SearchType.FINAL, false);
             List<K> resultList = disjunctPattern(result);
             resultList.forEach(y -> {
                 int nodeId = currentGoal.getNodeIds();

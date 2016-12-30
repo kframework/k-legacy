@@ -319,7 +319,7 @@ public class Commands {
         public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean disableOutput, FileUtil files, KExceptionManager kem) {
             ProofState proofState = session.stepAll(stepNum);
             CommandUtils utils = new CommandUtils(disableOutput);
-            utils.print(proofState.getGoalList().get(proofState.getActiveId()).getProofTree().toString());
+            utils.print("Took " + stepNum + " step(s)");
         }
     }
 
