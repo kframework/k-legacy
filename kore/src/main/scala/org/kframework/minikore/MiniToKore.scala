@@ -119,11 +119,13 @@ object MiniToKore {
     case Term(`iKSeq`, Seq(p1,p2)) =>
       apply(p2) match {
         case k2: KSequence =>
-          k2.items.add(0, apply(p1))
-          KSequence(k2.items, att ++ k2.att)
-          k2
+          val items = apply(p1) +: k2.items.asScala.toList // from KSequence in Unapply.scala
+          ADT.KSequence(items, att ++ k2.att)
         case _ => ???
       }
+    case Term(`iKSeqNil`, Seq()) =>
+      ADT.KSequence(List(), att)
+
     case Term(`iAtt`, Seq(p1,p2)) =>
       val a2 = apply(Seq(p2))
       apply(att ++ a2)(p1)

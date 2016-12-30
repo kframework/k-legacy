@@ -125,15 +125,12 @@ object KoreToMini {
     })
   }
 
-  // encodeKSeq(Seq(p1,p2,p3,p4)) = #kseq(p1,#kseq(p2,#keq(p3,p4))) // TODO(Daejun): add test
+  // encodeKSeq(Seq(p1,p2,p3)) = #kseq(p1,#kseq(p2,#kseq(p3,#kseqnil))) // TODO(Daejun): add test
   def encodeKSeq(ps: Seq[Pattern]): Pattern = {
-    ps.reverse match {
-      case Seq(p) => p // `case p :: Nil` doesn't work (match failure), since :: and Nil are defined for List not Seq
-      case p +: ps =>
-        ps.foldLeft(p)((z,p) => {
-          Term(iKSeq, Seq(p,z))
-        })
-    }
+    val nil = Term(iKSeqNil, Seq())
+    ps.reverse.foldLeft(nil)((z,p) => {
+      Term(iKSeq, Seq(p,z))
+    })
   }
 
   //
@@ -150,9 +147,7 @@ object KoreToMini {
     iSyntaxAssociativity,
     iBubble,
     iContext,
-    iAtt,
-    iKSeq
-  ) = (
+  _) = (
     "#MainModule",
     "#EntryModules",
     "#NonTerminal",
@@ -164,9 +159,11 @@ object KoreToMini {
     "#SyntaxAssociativity",
     "#Bubble",
     "#Context",
-    "#",
-    "#kseq"
-  )
+  "")
   val encodingLabels = encodingLabelTuple.productIterator.toSet
+
+  val iAtt = "#"
+  val iKSeq = "#kseq"
+  val iKSeqNil = "#kseqnil"
 
 }
