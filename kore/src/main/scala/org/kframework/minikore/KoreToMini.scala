@@ -15,11 +15,11 @@ object KoreToMini {
 
   def apply(d: definition.Definition): Definition = {
     val modules = d.modules.toSeq.map(apply)
-      .map(m => {
-        if (m.name == d.mainModule.name) m.copy(att = Term(iMainModule, Seq()) +: m.att)
-        else m
-      })
-    Definition(modules)
+    val att =
+      Term(iMainModule, Seq(S(d.mainModule.name))) +:
+      Term(iEntryModules, d.entryModules.toSeq.map(m => S(m.name))) +:
+      apply(d.att)
+    Definition(modules, att)
   }
 
   def apply(m: definition.Module): Module = {
@@ -29,16 +29,17 @@ object KoreToMini {
   }
 
   def apply(s: definition.Sentence): Sentence = s match {
-    case production @ definition.Production(sort, items, att) =>
+    case definition.SyntaxSort(sort, att) => DeclSort(sort.name, apply(att))
+
+    case prod @ definition.Production(sort, items, att) =>
       val args = items.collect({
         case definition.NonTerminal(sort) => sort.name
       })
       val newAtt = items.map(encode) ++ apply(att)
-      production.klabel match {
-        case Some(label) => Syntax(sort.name, label.name, args, newAtt)
-        case None => Syntax(sort.name, "", args, newAtt) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
+      prod.klabel match {
+        case Some(label) => DeclFun(sort.name, label.name, args, newAtt)
+        case None => DeclFun(sort.name, "", args, newAtt) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
       }
-    case definition.SyntaxSort(sort, att) => Syntax(sort.name, "", Seq(), apply(att)) // TODO(Daejun): encode using dummy sentence
 
     case definition.Rule(body, requires, ensures, att) =>
       val r = apply(requires)
@@ -55,7 +56,8 @@ object KoreToMini {
   }
 
   def encode(i: definition.ProductionItem): Pattern = i match {
-    case definition.NonTerminal(sort) => Term(iNonTerminal, Seq(S(sort.name)))
+    case definition.NonTerminal(sort) =>
+      Term(iNonTerminal, Seq(S(sort.name)))
     case definition.Terminal(value, followRegex) =>
       Term(iTerminal, S(value) +: followRegex.map(s => S(s)))
     case definition.RegexTerminal(precedeRegex, regex, followRegex) =>
@@ -63,22 +65,34 @@ object KoreToMini {
   }
 
   def encode(s :definition.Sentence): Sentence = {
-    val att = s match {
-      case definition.ModuleComment(comment, att) => Term(iModuleComment, Seq(S(comment))) +: apply(att)
-      case definition.SyntaxPriority(priorities, att) => Seq() // TODO(Daejun): implement
-      case definition.SyntaxAssociativity(assoc, tags, att) => Seq() // TODO(Daejun): implement
-      case definition.Bubble(_, _, _) => Seq() // TODO(Daejun): find why it appears here
-      case definition.Context(_, _, _) => Seq() // TODO(Daejun): find why it appears here
+    val p = s match {
+      case definition.ModuleComment(comment, _) =>
+        Term(iModuleComment, Seq(S(comment)))
+      case definition.SyntaxPriority(priorities, _) =>
+        Term(iSyntaxPriority , priorities.map(prio =>
+          Term(iSyntaxPriorityGroup, prio.toSeq.map(tag => S(tag.name)))
+        ))
+      case definition.SyntaxAssociativity(assoc, tags, _) =>
+        val assocString = assoc match {
+          case definition.Associativity.Left => "left"
+          case definition.Associativity.Right => "right"
+          case definition.Associativity.NonAssoc => "non-assoc"
+        }
+        Term(iSyntaxAssociativity, S(assocString) +: tags.toSeq.map(tag => S(tag.name)))
+      case definition.Bubble(sentence, contents, _) => // TODO(Daejun): find why it appears here
+        Term(iBubble, Seq(S(sentence), S(contents)))
+      case definition.Context(body, requires, _) => // TODO(Daejun): find why it appears here
+        Term(iContext, Seq(apply(body), apply(requires)))
       case _ => ??? // assert false
     }
-    dummySentence(att)
+    dummySentence(p +: apply(s.att))
   }
+
+  def dummySentence(att: Att): Sentence = Axiom(B(true), att)
 
   def S(s: String): Constant = Constant("S", s)
   def I(i: Int): Constant = Constant("I", i.toString)
   def B(b: Boolean): Constant = Constant("B", b.toString)
-
-  def dummySentence(att: Att): Sentence = Axiom(B(true), att)
 
   // Inner
 
@@ -92,14 +106,9 @@ object KoreToMini {
 
   def apply(k: K): Pattern = {
     val p = k match {
-      case KApply(klabel, klist) =>
-        Term(klabel.name, klist.map(apply))
-      case kvar @ SortedKVariable(name, att) =>
-        assert(att == k.att)
-        Variable(name, kvar.sort.name)
-      case KVariable(name) =>
-        // TODO(Daejun): may need to distinguish against SortedKVariable
-        apply(SortedKVariable(name, k.att)) // from SortedADT in ADT.scala
+      case KApply(klabel, klist) => Term(klabel.name, klist.map(apply))
+      case kvar @ SortedKVariable(name, _) => Variable(name, kvar.sort.name) // assert(att == k.att)
+      case KVariable(name) => Variable(name, "") // TODO(Daejun): apply(SortedKVariable(name, k.att)) // from SortedADT in ADT.scala
       case KToken(s, sort) => Constant(sort.name, s)
       case KSequence(ks) => encodeKSeq(ks.map(apply))
       case KRewrite(left, right) => Rewrite(apply(left), apply(right))
@@ -119,7 +128,7 @@ object KoreToMini {
   // encodeKSeq(Seq(p1,p2,p3,p4)) = #kseq(p1,#kseq(p2,#keq(p3,p4))) // TODO(Daejun): add test
   def encodeKSeq(ps: Seq[Pattern]): Pattern = {
     ps.reverse match {
-      case Seq(p) => p // NOTE(Daejun): `case p :: Nil` doesn't work (match failure). why??
+      case Seq(p) => p // `case p :: Nil` doesn't work (match failure), since :: and Nil are defined for List not Seq
       case p +: ps =>
         ps.foldLeft(p)((z,p) => {
           Term(iKSeq, Seq(p,z))
@@ -131,18 +140,30 @@ object KoreToMini {
 
   val encodingLabelTuple @ (
     iMainModule,
+    iEntryModules,
     iNonTerminal,
     iTerminal,
     iRegexTerminal,
     iModuleComment,
+    iSyntaxPriority,
+    iSyntaxPriorityGroup,
+    iSyntaxAssociativity,
+    iBubble,
+    iContext,
     iAtt,
     iKSeq
   ) = (
     "#MainModule",
+    "#EntryModules",
     "#NonTerminal",
     "#Terminal",
     "#RegexTerminal",
     "#ModuleComment",
+    "#SyntaxPriority",
+    "#SyntaxPriorityGroup",
+    "#SyntaxAssociativity",
+    "#Bubble",
+    "#Context",
     "#",
     "#kseq"
   )

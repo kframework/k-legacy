@@ -6,11 +6,12 @@ object MiniKore {
 
   type Att = Seq[Pattern]
 
-  case class Definition(modules: Seq[Module])
+  case class Definition(modules: Seq[Module], att: Att)
   case class Module(name: String, sentences: Seq[Sentence], att: Att)
 
   sealed trait Sentence
-  case class Syntax(sort: String, label: String, args: Seq[String], att: Att) extends Sentence
+  case class DeclSort(sort: String, att: Att) extends Sentence
+  case class DeclFun(sort: String, label: String, args: Seq[String], att: Att) extends Sentence
   case class Rule(pattern: Pattern, att: Att) extends Sentence
   case class Axiom(pattern: Pattern, att: Att) extends Sentence
   case class Import(name: String) extends Sentence
