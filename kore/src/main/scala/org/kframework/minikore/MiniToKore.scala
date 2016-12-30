@@ -35,7 +35,7 @@ object MiniToKore {
     definition.Definition(
       newMainModule,
       newEntryModules.toSet,
-      attributes.Att() // TODO(Daejun): need to preserve definition's att?
+      apply(d.att)
     )
   }
 
