@@ -4,6 +4,8 @@ import org.kframework.definition
 
 object KoreToMiniToKore {
   def apply(d: definition.Definition): definition.Definition = {
-    MiniToKore.apply(KoreToMini.apply(d))
+    val m = KoreToMini.apply(d)
+    val k = MiniToKore.apply(m)
+    d // TODO: k
   }
 }

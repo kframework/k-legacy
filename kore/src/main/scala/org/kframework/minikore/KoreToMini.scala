@@ -14,11 +14,11 @@ object KoreToMini {
   // Outer
 
   def apply(d: definition.Definition): Definition = {
-    var modules = d.modules.toSeq.map(apply)
-    modules = modules.map(m => {
-      if (m.name == d.mainModule.name) m.copy(att = Term("mainModule", Seq()) +: m.att)
-      else m
-    })
+    val modules = d.modules.toSeq.map(apply)
+      .map(m => {
+        if (m.name == d.mainModule.name) m.copy(att = Term(iMainModule, Seq()) +: m.att)
+        else m
+      })
     Definition(modules)
   }
 
@@ -55,16 +55,16 @@ object KoreToMini {
   }
 
   def encode(i: definition.ProductionItem): Pattern = i match {
-    case definition.NonTerminal(sort) => Term("NonTerminal", Seq(S(sort.name)))
+    case definition.NonTerminal(sort) => Term(iNonTerminal, Seq(S(sort.name)))
     case definition.Terminal(value, followRegex) =>
-      Term("Terminal", S(value) +: followRegex.map(s => S(s)))
+      Term(iTerminal, S(value) +: followRegex.map(s => S(s)))
     case definition.RegexTerminal(precedeRegex, regex, followRegex) =>
-      Term("RegexTerminal", Seq(S(precedeRegex), S(regex), S(followRegex)))
+      Term(iRegexTerminal, Seq(S(precedeRegex), S(regex), S(followRegex)))
   }
 
   def encode(s :definition.Sentence): Sentence = {
     val att = s match {
-      case definition.ModuleComment(comment, att) => Term("ModuleComment", Seq(S(comment))) +: apply(att)
+      case definition.ModuleComment(comment, att) => Term(iModuleComment, Seq(S(comment))) +: apply(att)
       case definition.SyntaxPriority(priorities, att) => Seq() // TODO(Daejun): implement
       case definition.SyntaxAssociativity(assoc, tags, att) => Seq() // TODO(Daejun): implement
       case definition.Bubble(_, _, _) => Seq() // TODO(Daejun): find why it appears here
@@ -112,7 +112,7 @@ object KoreToMini {
   // encodePatternAtt(p, Seq(a1,a2,a3)) = #(#(#(p,a1),a2),a3) // TODO(Daejun): add test
   def encodePatternAtt(p: Pattern, att: Att): Pattern = {
     att.foldLeft(p)((z,a) => {
-      Term("#", Seq(z,a))
+      Term(iAtt, Seq(z,a))
     })
   }
 
@@ -120,11 +120,32 @@ object KoreToMini {
   def encodeKSeq(ps: Seq[Pattern]): Pattern = {
     ps.reverse match {
       case Seq(p) => p // NOTE(Daejun): `case p :: Nil` doesn't work (match failure). why??
-      case p :: ps =>
+      case p +: ps =>
         ps.foldLeft(p)((z,p) => {
-          Term("#kseq", Seq(p,z))
+          Term(iKSeq, Seq(p,z))
         })
     }
   }
+
+  //
+
+  val encodingLabelTuple @ (
+    iMainModule,
+    iNonTerminal,
+    iTerminal,
+    iRegexTerminal,
+    iModuleComment,
+    iAtt,
+    iKSeq
+  ) = (
+    "#MainModule",
+    "#NonTerminal",
+    "#Terminal",
+    "#RegexTerminal",
+    "#ModuleComment",
+    "#",
+    "#kseq"
+  )
+  val encodingLabels = encodingLabelTuple.productIterator.toSet
 
 }
