@@ -6,6 +6,7 @@ object KoreToMiniToKore {
   def apply(d: definition.Definition): definition.Definition = {
     val m = KoreToMini.apply(d)
     val k = MiniToKore.apply(m)
-    k // assert(d == k)
+    assert(d == k)
+    k
   }
 }
