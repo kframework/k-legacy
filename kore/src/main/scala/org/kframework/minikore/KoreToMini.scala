@@ -83,6 +83,8 @@ object KoreToMini {
         Term(iBubble, Seq(S(sentence), S(contents)))
       case definition.Context(body, requires, _) => // TODO(Daejun): find why it appears here
         Term(iContext, Seq(apply(body), apply(requires)))
+      case definition.Configuration(body, ensures, _) =>
+        Term(iConfiguration, Seq(apply(body), apply(ensures)))
       case _ => ??? // assert false
     }
     dummySentence(p +: apply(s.att))
@@ -147,6 +149,7 @@ object KoreToMini {
     iSyntaxAssociativity,
     iBubble,
     iContext,
+    iConfiguration,
   _) = (
     "#MainModule",
     "#EntryModules",
@@ -159,6 +162,7 @@ object KoreToMini {
     "#SyntaxAssociativity",
     "#Bubble",
     "#Context",
+    "#Configuration",
   "")
   val encodingLabels = encodingLabelTuple.productIterator.toSet
 

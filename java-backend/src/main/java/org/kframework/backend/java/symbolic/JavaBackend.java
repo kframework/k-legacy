@@ -120,7 +120,7 @@ public class JavaBackend implements Backend {
                 .andThen(new AssocCommToAssoc(KORE.c()).lift())
                 .andThen(new MergeRules(KORE.c()).lift())
                 .andThen(DefinitionTransformer.fromKTransformerWithModuleInfo(JavaBackend::moduleQualifySortPredicates, "Module-qualify sort predicates"))
-                .andThen(KoreToMiniToKore::apply)
+                .andThen(KoreToMiniToKore::apply) // for serialization/deserialization test
                 .apply(d);
     }
 

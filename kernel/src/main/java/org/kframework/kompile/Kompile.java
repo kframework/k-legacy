@@ -38,6 +38,7 @@ import org.kframework.kore.compile.checks.CheckRHSVariables;
 import org.kframework.kore.compile.checks.CheckSortTopUniqueness;
 import org.kframework.kore.compile.checks.CheckStreams;
 import org.kframework.main.GlobalOptions;
+import org.kframework.minikore.KoreToMiniToKore;
 import org.kframework.parser.concrete2kore.ParserUtils;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.utils.Stopwatch;
@@ -122,6 +123,7 @@ public class Kompile {
         Definition parsedDef = parseDefinition(definitionFile, mainModuleName, mainProgramsModuleName);
         sw.printIntermediate("Parse definition [" + definitionParsing.parsedBubbles.get() + "/" + (definitionParsing.parsedBubbles.get() + definitionParsing.cachedBubbles.get()) + " rules]");
 
+        parsedDef = KoreToMiniToKore.apply(parsedDef); // for serialization/deserialization test
         return run(parsedDef, pipeline);
     }
 
