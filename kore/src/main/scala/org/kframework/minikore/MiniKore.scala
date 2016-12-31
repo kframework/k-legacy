@@ -30,5 +30,9 @@ object MiniKore {
   case class Next(p: Pattern) extends Pattern
   case class Implies(p: Pattern, q: Pattern) extends Pattern
   case class Rewrite(p: Pattern, q: Pattern) extends Pattern
+  case class Equal(p: Pattern, q: Pattern) extends Pattern
+  //
+  case class True() extends Pattern
+  case class False() extends Pattern
 
 }
