@@ -83,7 +83,7 @@ object KoreToMini {
         Term(iBubble, Seq(S(sentence), S(contents)))
       case definition.Context(body, requires, _) => // TODO(Daejun): find why it appears here
         Term(iContext, Seq(apply(body), apply(requires)))
-      case definition.Configuration(body, ensures, _) =>
+      case definition.Configuration(body, ensures, _) => // TODO(Daejun): may not be needed, since configuration is already resolved in the parsing step
         Term(iConfiguration, Seq(apply(body), apply(ensures)))
       case _ => ??? // assert false
     }
