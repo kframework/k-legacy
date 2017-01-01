@@ -14,7 +14,7 @@ object MiniKore {
   case class DeclFun(sort: String, label: String, args: Seq[String], att: Att) extends Sentence
   case class Rule(pattern: Pattern, att: Att) extends Sentence
   case class Axiom(pattern: Pattern, att: Att) extends Sentence
-  case class Import(name: String) extends Sentence
+  case class Import(name: String, att: Att) extends Sentence
 
   sealed trait Pattern
   case class Term(label: String, args: Seq[Pattern]) extends Pattern

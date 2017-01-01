@@ -42,9 +42,9 @@ object MiniToKore {
   def apply(origModuleMap: Map[String, Module], newModuleMapRef: mutable.Map[String, definition.Module])
            (m: Module): definition.Module = {
     val imports = m.sentences.collect({
-      case Import(name) => findOrGenModule(origModuleMap,newModuleMapRef)(name)
+      case Import(name, _) => findOrGenModule(origModuleMap,newModuleMapRef)(name)
     })
-    val sentences = m.sentences.filter({ case Import(_) => false; case _ => true })
+    val sentences = m.sentences.filter({ case Import(_, _) => false; case _ => true })
     definition.Module(m.name, imports.toSet, sentences.map(apply).toSet, apply(m.att))
   }
 

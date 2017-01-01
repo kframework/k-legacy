@@ -24,7 +24,7 @@ object KoreToMini {
 
   def apply(m: definition.Module): Module = {
     val localSentences: Seq[Sentence] = m.localSentences.toSeq.map(apply)
-    val importSentences: Seq[Sentence] = m.imports.toSeq.map(m => Import(m.name))
+    val importSentences: Seq[Sentence] = m.imports.toSeq.map(m => Import(m.name, Seq()))
     Module(m.name, importSentences ++ localSentences, apply(m.att))
   }
 
