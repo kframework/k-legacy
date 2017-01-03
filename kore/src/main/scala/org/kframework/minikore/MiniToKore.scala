@@ -59,8 +59,8 @@ object MiniToKore {
   }
 
   def apply(s: Sentence): definition.Sentence = s match {
-    case DeclSort(sort, att) => definition.SyntaxSort(Sort(sort), apply(att))
-    case DeclFun(sort, _, _, att) =>
+    case SortDeclaration(sort, att) => definition.SyntaxSort(Sort(sort), apply(att))
+    case SymbolDeclaration(sort, _, _, att) =>
       val items = att.collect({
         case Term(`iNonTerminal`, Seq(Constant("S", s))) =>
           definition.NonTerminal(Sort(s))

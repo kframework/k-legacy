@@ -29,7 +29,7 @@ object KoreToMini {
   }
 
   def apply(s: definition.Sentence): Sentence = s match {
-    case definition.SyntaxSort(sort, att) => DeclSort(sort.name, apply(att))
+    case definition.SyntaxSort(sort, att) => SortDeclaration(sort.name, apply(att))
 
     case prod @ definition.Production(sort, items, att) =>
       val args = items.collect({
@@ -37,8 +37,8 @@ object KoreToMini {
       })
       val newAtt = items.map(encode) ++ apply(att)
       prod.klabel match {
-        case Some(label) => DeclFun(sort.name, label.name, args, newAtt)
-        case None => DeclFun(sort.name, "", args, newAtt) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
+        case Some(label) => SymbolDeclaration(sort.name, label.name, args, newAtt)
+        case None => SymbolDeclaration(sort.name, "", args, newAtt) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
       }
 
     case definition.Rule(body, requires, ensures, att) =>

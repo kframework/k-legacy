@@ -10,8 +10,8 @@ object MiniKore {
   case class Module(name: String, sentences: Seq[Sentence], att: Attributes)
 
   sealed trait Sentence
-  case class DeclSort(sort: String, att: Attributes) extends Sentence
-  case class DeclFun(sort: String, label: String, args: Seq[String], att: Attributes) extends Sentence
+  case class SortDeclaration(sort: String, att: Attributes) extends Sentence
+  case class SymbolDeclaration(sort: String, label: String, args: Seq[String], att: Attributes) extends Sentence
   case class Rule(pattern: Pattern, att: Attributes) extends Sentence
   case class Axiom(pattern: Pattern, att: Attributes) extends Sentence
   case class Import(name: String, att: Attributes) extends Sentence
