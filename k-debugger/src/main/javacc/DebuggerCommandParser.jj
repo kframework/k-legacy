@@ -75,6 +75,8 @@ Command command() throws NumberFormatException:
     int stepCount = 1;
     Integer stateNum = null;
     Integer configurationNum = null;
+    Integer claimNum = null;
+    Integer termNum = null;
     String pattern = null;
     int checkpointVal;
 }
@@ -82,7 +84,9 @@ Command command() throws NumberFormatException:
         <STEP> (stepCount = parseNum())? {return new StepCommand(stepCount);}
     |   <STEPALL> (stepCount = parseNum())? {return new StepAllCommand(stepCount);}
     |   <PEEK> {return new PeekCommand();}
-    |   <GOALPEEK> {return new GoalPeekCommand();}
+    |   LOOKAHEAD(3)
+        <GOALPEEK> (claimNum = parseNum()) (termNum = parseNum()) {return new GoalPeekCommand(Optional.of(claimNum), Optional.of(termNum));}
+    |   <GOALPEEK> (claimNum = parseNum())? {return new GoalPeekCommand(Optional.ofNullable(claimNum), Optional.ofNullable(termNum));}
     |   <BACKSTEP> (stepCount = parseNum())? {return new BackStepCommand(stepCount);}
     |   LOOKAHEAD(3)
         <JUMPTO> (stateNum = parseNum()) (configurationNum = parseNum()) {return new JumpToCommand(Optional.of(stateNum), Optional.of(configurationNum));}

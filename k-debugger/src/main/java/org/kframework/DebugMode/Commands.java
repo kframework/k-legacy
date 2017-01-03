@@ -7,9 +7,11 @@ import org.kframework.debugger.KDebug;
 import org.kframework.debugger.ProofState;
 import org.kframework.definition.Rule;
 import org.kframework.kompile.CompiledDefinition;
+import org.kframework.kore.K;
 import org.kframework.krun.KRun;
 import org.kframework.unparser.OutputModes;
 import org.kframework.utils.Goal;
+import org.kframework.utils.PatternNode;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
@@ -17,6 +19,7 @@ import org.kframework.utils.file.FileUtil;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.kframework.krun.KRun.*;
 
@@ -263,6 +266,7 @@ public class Commands {
             }
         }
     }
+
     public static class PatternSourceCommand implements Command {
         private String sourceFile;
 
@@ -288,23 +292,56 @@ public class Commands {
 
     public static class GoalPeekCommand implements Command {
 
+        Optional<Integer> claimNum;
+
+        Optional<Integer> termNum;
+
+        public GoalPeekCommand(Optional<Integer> claimNum, Optional<Integer> termNum) {
+            this.claimNum = claimNum;
+            this.termNum = termNum;
+        }
+
+
         @Override
         public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean disableOutput, FileUtil files, KExceptionManager kem) {
             ProofState proofState = session.getProofState();
             List<Goal> goals = proofState.getGoalList();
             CommandUtils utils = new CommandUtils(disableOutput);
-            for(int i = 0; i < goals.size(); ++i ) {
-                if (i == proofState.getActiveId()) {
-                    utils.print("Claim " + i + " * ");
-                } else {
-                    utils.print("Claim " + i);
+            if (claimNum.isPresent()) {
+                Integer currentClaim = claimNum.get();
+                if (currentClaim >= goals.size() || currentClaim < 0) {
+                    throw KEMException.debuggerError(currentClaim + " is not a valid claim id");
                 }
-                Rule goalRule = goals.get(i).getGoalClaim();
-                KRun.printK(Goal.getRuleLHS(goalRule), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
-                utils.print("=>");
-                KRun.printK(Goal.getRuleRHS(goalRule), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
-            }
+                Goal currentGoal = goals.get(currentClaim);
+                if (termNum.isPresent()) {
+                    List<PatternNode> termList = currentGoal.getProofTree().vertexSet().stream().filter(x -> x.getId() == termNum.get()).collect(Collectors.toList());
+                    if (termList.isEmpty()) {
+                        throw KEMException.debuggerError(termNum.get() + " is not a valid term number in " + currentClaim);
+                    }
+                    utils.print("Claim " + claimNum + "Term " + termNum.get() + "\n");
+                    KRun.printK(termList.get(0).getPattern(), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
+                } else {
+                    utils.print("Claim " + claimNum + "\n");
+                    Rule goalRule = currentGoal.getGoalClaim();
+                    KRun.printK(Goal.getRuleLHS(goalRule), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
+                    utils.print("=>");
+                    KRun.printK(Goal.getRuleRHS(goalRule), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
+                }
+            } else {
+                //Default case for neither claimNum nor termNum provided by the user
+                for (int i = 0; i < goals.size(); ++i) {
+                    if (i == proofState.getActiveId()) {
+                        utils.print("Claim " + i + " * ");
+                    } else {
+                        utils.print("Claim " + i);
+                    }
+                    Rule goalRule = goals.get(i).getGoalClaim();
+                    KRun.printK(Goal.getRuleLHS(goalRule), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
+                    utils.print("=>");
+                    KRun.printK(Goal.getRuleRHS(goalRule), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
 
+                }
+            }
         }
     }
 
@@ -389,7 +426,7 @@ public class Commands {
             KRun.prettyPrint(compiledDefinition, OutputModes.PRETTY, s -> System.out.println(s), result.getSubstitutions());
         }
 
-        private void print(byte[] bytes){
+        private void print(byte[] bytes) {
             if (!disableOutput) {
                 try {
                     System.out.write(bytes);
