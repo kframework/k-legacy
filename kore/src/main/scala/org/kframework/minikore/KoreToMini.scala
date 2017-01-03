@@ -81,7 +81,7 @@ object KoreToMini {
         Term(iSyntaxAssociativity, S(assocString) +: tags.toSeq.map(tag => S(tag.name)))
       case definition.Bubble(sentence, contents, _) => // TODO(Daejun): find why it appears here
         Term(iBubble, Seq(S(sentence), S(contents)))
-      case definition.Context(body, requires, _) => // TODO(Daejun): find why it appears here
+      case definition.Context(body, requires, _) => // TODO(Daejun): may be dropped; context may appear only in non-main modules, which will not be used anyway
         Term(iContext, Seq(apply(body), apply(requires)))
       case definition.Configuration(body, ensures, _) => // TODO(Daejun): may not be needed, since configuration is already resolved in the parsing step
         Term(iConfiguration, Seq(apply(body), apply(ensures)))
