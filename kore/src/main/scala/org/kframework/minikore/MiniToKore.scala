@@ -20,13 +20,13 @@ object MiniToKore {
     val origModuleMap: Map[String, Module] = seq2map(d.modules)
 
     val mainModuleName = findAtt(d.att, iMainModule) match {
-      case Seq(Constant("S", name)) => name; case _ => ???
+      case Seq(DomainValue("S", name)) => name; case _ => ???
     }
     val (mainModules, otherModules) = d.modules.partition(m => m.name == mainModuleName)
     val mainModule = mainModules.head; assert(mainModules.size == 1)
 
     val entryModules = findAtt(d.att, iEntryModules).map({
-      case Constant("S", name) => origModuleMap(name); case _ => ???
+      case DomainValue("S", name) => origModuleMap(name); case _ => ???
     })
 
     val newModuleMapRef: mutable.Map[String, definition.Module] = mutable.Map.empty // will dynamically grow during translating modules
@@ -62,33 +62,33 @@ object MiniToKore {
     case SortDeclaration(sort, att) => definition.SyntaxSort(Sort(sort), apply(att))
     case SymbolDeclaration(sort, _, _, att) =>
       val items = att.collect({
-        case Term(`iNonTerminal`, Seq(Constant("S", s))) =>
+        case Application(`iNonTerminal`, Seq(DomainValue("S", s))) =>
           definition.NonTerminal(Sort(s))
-        case Term(`iTerminal`, Constant("S", value) +: followRegex) =>
-          definition.Terminal(value, followRegex.map({ case Constant("S", s) => s; case _ => ??? }))
-        case Term(`iRegexTerminal`, Seq(Constant("S", precede), Constant("S", regex), Constant("S", follow))) =>
+        case Application(`iTerminal`, DomainValue("S", value) +: followRegex) =>
+          definition.Terminal(value, followRegex.map({ case DomainValue("S", s) => s; case _ => ??? }))
+        case Application(`iRegexTerminal`, Seq(DomainValue("S", precede), DomainValue("S", regex), DomainValue("S", follow))) =>
           definition.RegexTerminal(precede, regex, follow)
       })
       definition.Production(Sort(sort), items, apply(att))
     case Rule(Implies(r, And(b, Next(e))), att) =>
       definition.Rule(apply(b), apply(r), apply(e), apply(att))
-    case Axiom(Constant("B", "true"), att) => decode(att)
+    case Axiom(DomainValue("B", "true"), att) => decode(att)
     case _ => ??? // assert false
   }
 
   def decode(att: Attributes): definition.Sentence = att match {
-    case Term(`iModuleComment`, Seq(Constant("S", comment))) +: att =>
+    case Application(`iModuleComment`, Seq(DomainValue("S", comment))) +: att =>
       definition.ModuleComment(comment, apply(att))
-    case Term(`iSyntaxPriority`, prios) +: att =>
+    case Application(`iSyntaxPriority`, prios) +: att =>
       val priorities = prios.map({
-        case Term(`iSyntaxPriorityGroup`, group) =>
+        case Application(`iSyntaxPriorityGroup`, group) =>
           group.map({
-            case Constant("S", tag) => definition.Tag(tag); case _ => ???
+            case DomainValue("S", tag) => definition.Tag(tag); case _ => ???
           }).toSet
         case _ => ???
       })
       definition.SyntaxPriority(priorities, apply(att))
-    case Term(`iSyntaxAssociativity`, Constant("S", assocString) +: tags) +: att =>
+    case Application(`iSyntaxAssociativity`, DomainValue("S", assocString) +: tags) +: att =>
       val assoc = assocString match {
         case "left" => definition.Associativity.Left
         case "right" => definition.Associativity.Right
@@ -96,19 +96,19 @@ object MiniToKore {
         case _ => ???
       }
       val ts = tags.map({
-        case Constant("S", tag) => definition.Tag(tag); case _ => ???
+        case DomainValue("S", tag) => definition.Tag(tag); case _ => ???
       }).toSet
       definition.SyntaxAssociativity(assoc, ts, apply(att))
-    case Term(`iBubble`, Seq(Constant("S", sentence), Constant("S", contents))) +: att =>
+    case Application(`iBubble`, Seq(DomainValue("S", sentence), DomainValue("S", contents))) +: att =>
       definition.Bubble(sentence, contents, apply(att))
-    case Term(`iContext`, Seq(body, requires)) +: att =>
+    case Application(`iContext`, Seq(body, requires)) +: att =>
       definition.Context(apply(body), apply(requires), apply(att))
     case _ => ???
   }
 
   def apply(att: Attributes): attributes.Att = {
     def isDummy(p: Pattern): Boolean = p match {
-      case Term(l, _) => encodingLabels.contains(l); case _ => false
+      case Application(l, _) => encodingLabels.contains(l); case _ => false
     }
     attributes.Att(att.filterNot(isDummy).map(apply).toSet)
   }
@@ -116,22 +116,22 @@ object MiniToKore {
   def apply(p: Pattern): K = apply(attributes.Att())(p)
 
   def apply(att: attributes.Att)(p: Pattern): K = p match {
-    case Term(`iKSeq`, Seq(p1,p2)) =>
+    case Application(`iKSeq`, Seq(p1,p2)) =>
       apply(p2) match {
         case k2: KSequence =>
           val items = apply(p1) +: k2.items.asScala.toList // from KSequence in Unapply.scala
           ADT.KSequence(items, att ++ k2.att)
         case _ => ???
       }
-    case Term(`iKSeqNil`, Seq()) =>
+    case Application(`iKSeqNil`, Seq()) =>
       ADT.KSequence(List(), att)
 
-    case Term(`iAtt`, Seq(p1,p2)) =>
+    case Application(`iAtt`, Seq(p1,p2)) =>
       val a2 = apply(Seq(p2))
       apply(att ++ a2)(p1)
 
-    case Term(label, args) => KApply(KLabel(label), args.map(apply), att)
-    case Constant(label, value) => KToken(value, Sort(label), att)
+    case Application(label, args) => KApply(KLabel(label), args.map(apply), att)
+    case DomainValue(label, value) => KToken(value, Sort(label), att)
     case Variable(name, "") => KVariable(name, att)
     case Variable(name, _) => SortedKVariable(name, att)
     case Rewrite(left, right) => KRewrite(apply(left), apply(right), att)
@@ -140,7 +140,7 @@ object MiniToKore {
 
   def findAtt(att: Attributes, key: String): Seq[Pattern] = {
     val argss = att.collect({
-      case Term(`key`, args) => args
+      case Application(`key`, args) => args
     })
     assert(argss.size == 1)
     argss.head

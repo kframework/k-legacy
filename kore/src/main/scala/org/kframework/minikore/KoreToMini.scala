@@ -16,8 +16,8 @@ object KoreToMini {
   def apply(d: definition.Definition): Definition = {
     val modules = d.modules.toSeq.map(apply)
     val att =
-      Term(iMainModule, Seq(S(d.mainModule.name))) +:
-      Term(iEntryModules, d.entryModules.toSeq.map(m => S(m.name))) +:
+      Application(iMainModule, Seq(S(d.mainModule.name))) +:
+      Application(iEntryModules, d.entryModules.toSeq.map(m => S(m.name))) +:
       apply(d.att)
     Definition(modules, att)
   }
@@ -57,20 +57,20 @@ object KoreToMini {
 
   def encode(i: definition.ProductionItem): Pattern = i match {
     case definition.NonTerminal(sort) =>
-      Term(iNonTerminal, Seq(S(sort.name)))
+      Application(iNonTerminal, Seq(S(sort.name)))
     case definition.Terminal(value, followRegex) =>
-      Term(iTerminal, S(value) +: followRegex.map(s => S(s)))
+      Application(iTerminal, S(value) +: followRegex.map(s => S(s)))
     case definition.RegexTerminal(precedeRegex, regex, followRegex) =>
-      Term(iRegexTerminal, Seq(S(precedeRegex), S(regex), S(followRegex)))
+      Application(iRegexTerminal, Seq(S(precedeRegex), S(regex), S(followRegex)))
   }
 
   def encode(s :definition.Sentence): Sentence = {
     val p = s match {
       case definition.ModuleComment(comment, _) =>
-        Term(iModuleComment, Seq(S(comment)))
+        Application(iModuleComment, Seq(S(comment)))
       case definition.SyntaxPriority(priorities, _) =>
-        Term(iSyntaxPriority , priorities.map(prio =>
-          Term(iSyntaxPriorityGroup, prio.toSeq.map(tag => S(tag.name)))
+        Application(iSyntaxPriority , priorities.map(prio =>
+          Application(iSyntaxPriorityGroup, prio.toSeq.map(tag => S(tag.name)))
         ))
       case definition.SyntaxAssociativity(assoc, tags, _) =>
         val assocString = assoc match {
@@ -78,13 +78,13 @@ object KoreToMini {
           case definition.Associativity.Right => "right"
           case definition.Associativity.NonAssoc => "non-assoc"
         }
-        Term(iSyntaxAssociativity, S(assocString) +: tags.toSeq.map(tag => S(tag.name)))
+        Application(iSyntaxAssociativity, S(assocString) +: tags.toSeq.map(tag => S(tag.name)))
       case definition.Bubble(sentence, contents, _) => // TODO(Daejun): find why it appears here
-        Term(iBubble, Seq(S(sentence), S(contents)))
+        Application(iBubble, Seq(S(sentence), S(contents)))
       case definition.Context(body, requires, _) => // TODO(Daejun): may be dropped; context may appear only in non-main modules, which will not be used anyway
-        Term(iContext, Seq(apply(body), apply(requires)))
+        Application(iContext, Seq(apply(body), apply(requires)))
       case definition.Configuration(body, ensures, _) => // TODO(Daejun): may not be needed, since configuration is already resolved in the parsing step
-        Term(iConfiguration, Seq(apply(body), apply(ensures)))
+        Application(iConfiguration, Seq(apply(body), apply(ensures)))
       case _ => ??? // assert false
     }
     dummySentence(p +: apply(s.att))
@@ -92,9 +92,9 @@ object KoreToMini {
 
   def dummySentence(att: Attributes): Sentence = Axiom(B(true), att)
 
-  def S(s: String): Constant = Constant("S", s)
-  def I(i: Int): Constant = Constant("I", i.toString)
-  def B(b: Boolean): Constant = Constant("B", b.toString)
+  def S(s: String): DomainValue = DomainValue("S", s)
+  def I(i: Int): DomainValue = DomainValue("I", i.toString)
+  def B(b: Boolean): DomainValue = DomainValue("B", b.toString)
 
   // Inner
 
@@ -108,10 +108,10 @@ object KoreToMini {
 
   def apply(k: K): Pattern = {
     val p = k match {
-      case KApply(klabel, klist) => Term(klabel.name, klist.map(apply))
+      case KApply(klabel, klist) => Application(klabel.name, klist.map(apply))
       case kvar @ SortedKVariable(name, _) => Variable(name, kvar.sort.name) // assert(att == k.att)
       case KVariable(name) => Variable(name, "") // TODO(Daejun): apply(SortedKVariable(name, k.att)) // from SortedADT in ADT.scala
-      case KToken(s, sort) => Constant(sort.name, s)
+      case KToken(s, sort) => DomainValue(sort.name, s)
       case KSequence(ks) => encodeKSeq(ks.map(apply))
       case KRewrite(left, right) => Rewrite(apply(left), apply(right))
       case InjectedKLabel(klabel) => ???
@@ -123,15 +123,15 @@ object KoreToMini {
   // encodePatternAtt(p, Seq(a1,a2,a3)) = #(#(#(p,a1),a2),a3) // TODO(Daejun): add test
   def encodePatternAtt(p: Pattern, att: Attributes): Pattern = {
     att.foldLeft(p)((z,a) => {
-      Term(iAtt, Seq(z,a))
+      Application(iAtt, Seq(z,a))
     })
   }
 
   // encodeKSeq(Seq(p1,p2,p3)) = #kseq(p1,#kseq(p2,#kseq(p3,#kseqnil))) // TODO(Daejun): add test
   def encodeKSeq(ps: Seq[Pattern]): Pattern = {
-    val nil = Term(iKSeqNil, Seq())
+    val nil = Application(iKSeqNil, Seq())
     ps.reverse.foldLeft(nil)((z,p) => {
-      Term(iKSeq, Seq(p,z))
+      Application(iKSeq, Seq(p,z))
     })
   }
 

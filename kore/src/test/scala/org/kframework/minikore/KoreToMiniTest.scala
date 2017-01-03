@@ -19,7 +19,7 @@ class KoreToMiniTest {
   val Exp = Sort("Exp", ModuleName("A-SYNTAX"))
 
   @Test def production1(): Unit = {
-    val klabelatt = Term("klabel", Seq(Constant("KString@KSTRING", "_+_")))
+    val klabelatt = Application("klabel", Seq(DomainValue("KString@KSTRING", "_+_")))
     assertEquals(
       KoreToMini.apply(definition.Production.apply("_+_", Exp, Seq(), Att())),
       SymbolDeclaration(Exp.name, "_+_", Seq(), Seq(klabelatt))
@@ -29,7 +29,7 @@ class KoreToMiniTest {
   @Test def production2(): Unit = {
     assertEquals(
       KoreToMini.apply(new definition.Production(Exp, Seq(NonTerminal(Int)), Att())),
-      SymbolDeclaration(Exp.name, "", Seq(Int.name), Seq(Term(iNonTerminal, Seq(S(Int.name)))))
+      SymbolDeclaration(Exp.name, "", Seq(Int.name), Seq(Application(iNonTerminal, Seq(S(Int.name)))))
     )
   }
 

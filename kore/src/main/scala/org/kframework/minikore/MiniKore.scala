@@ -17,8 +17,8 @@ object MiniKore {
   case class Import(name: String, att: Attributes) extends Sentence
 
   sealed trait Pattern
-  case class Term(label: String, args: Seq[Pattern]) extends Pattern
-  case class Constant(label: String, value: String) extends Pattern
+  case class Application(label: String, args: Seq[Pattern]) extends Pattern
+  case class DomainValue(label: String, value: String) extends Pattern
   case class Variable(name: String, sort: String) extends Pattern
   //
   case class And(p: Pattern, q: Pattern) extends Pattern
