@@ -335,7 +335,7 @@ public class KoreKDebug implements KDebug {
         DirectedGraph<PatternNode, ProofTransition> graph = currentGoal.getProofTree();
         List<PatternNode> leafNodes = graph.vertexSet().stream().filter(x -> graph.outDegreeOf(x) == 0).collect(Collectors.toList());
         leafNodes.forEach(x -> {
-            Rule defaultRule = new Rule(KORE.KVariable("X"),
+            Rule defaultRule = new Rule(KORE.KVariable("Default"),
                     BooleanUtils.TRUE, BooleanUtils.TRUE, KORE.Att());
             K result = rewriter.search(x.getPattern(), Optional.of(stepNum), Optional.empty(), defaultRule, SearchType.FINAL, false);
             List<K> resultList = disjunctPattern(result);
