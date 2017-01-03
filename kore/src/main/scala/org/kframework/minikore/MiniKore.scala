@@ -23,7 +23,7 @@ object MiniKore {
   //
   case class And(p: Pattern, q: Pattern) extends Pattern
   case class Or(p: Pattern, q: Pattern) extends Pattern
-  case class Neg(p: Pattern) extends Pattern
+  case class Not(p: Pattern) extends Pattern
   case class Exists(v: Variable, p: Pattern) extends Pattern
   case class ForAll(v: Variable, p: Pattern) extends Pattern
   //
