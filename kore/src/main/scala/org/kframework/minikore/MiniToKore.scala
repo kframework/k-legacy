@@ -76,7 +76,7 @@ object MiniToKore {
     case _ => ??? // assert false
   }
 
-  def decode(att: Att): definition.Sentence = att match {
+  def decode(att: Attributes): definition.Sentence = att match {
     case Term(`iModuleComment`, Seq(Constant("S", comment))) +: att =>
       definition.ModuleComment(comment, apply(att))
     case Term(`iSyntaxPriority`, prios) +: att =>
@@ -106,7 +106,7 @@ object MiniToKore {
     case _ => ???
   }
 
-  def apply(att: Att): attributes.Att = {
+  def apply(att: Attributes): attributes.Att = {
     def isDummy(p: Pattern): Boolean = p match {
       case Term(l, _) => encodingLabels.contains(l); case _ => false
     }
@@ -138,7 +138,7 @@ object MiniToKore {
     case _ => ???
   }
 
-  def findAtt(att: Att, key: String): Seq[Pattern] = {
+  def findAtt(att: Attributes, key: String): Seq[Pattern] = {
     val argss = att.collect({
       case Term(`key`, args) => args
     })

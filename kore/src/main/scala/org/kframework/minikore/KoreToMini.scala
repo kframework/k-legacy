@@ -51,7 +51,7 @@ object KoreToMini {
     case _ => encode(s)
   }
 
-  def apply(att: attributes.Att): Att = {
+  def apply(att: attributes.Att): Attributes = {
     att.att.toSeq.map(apply)
   }
 
@@ -90,7 +90,7 @@ object KoreToMini {
     dummySentence(p +: apply(s.att))
   }
 
-  def dummySentence(att: Att): Sentence = Axiom(B(true), att)
+  def dummySentence(att: Attributes): Sentence = Axiom(B(true), att)
 
   def S(s: String): Constant = Constant("S", s)
   def I(i: Int): Constant = Constant("I", i.toString)
@@ -121,7 +121,7 @@ object KoreToMini {
   }
 
   // encodePatternAtt(p, Seq(a1,a2,a3)) = #(#(#(p,a1),a2),a3) // TODO(Daejun): add test
-  def encodePatternAtt(p: Pattern, att: Att): Pattern = {
+  def encodePatternAtt(p: Pattern, att: Attributes): Pattern = {
     att.foldLeft(p)((z,a) => {
       Term(iAtt, Seq(z,a))
     })
