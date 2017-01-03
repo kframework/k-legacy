@@ -348,7 +348,7 @@ public class Commands {
             DirectedGraph<PatternNode, ProofTransition> graph = goal.getProofTree();
             List<PatternNode> leafNodes = graph.vertexSet().stream().filter(x -> graph.outDegreeOf(x) == 0).collect(Collectors.toList());
             leafNodes.forEach(x -> {
-                utils.print("Term Id " + x.getId());
+                utils.print("\nTerm " + x.getId());
                 KRun.printK(x.getPattern(), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
             });
         }
