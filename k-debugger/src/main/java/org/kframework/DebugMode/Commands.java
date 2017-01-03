@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.DebugMode;
 
+import org.jgrapht.DirectedGraph;
 import org.kframework.debugger.DebuggerMatchResult;
 import org.kframework.debugger.DebuggerState;
 import org.kframework.debugger.KDebug;
@@ -12,6 +13,7 @@ import org.kframework.krun.KRun;
 import org.kframework.unparser.OutputModes;
 import org.kframework.utils.Goal;
 import org.kframework.utils.PatternNode;
+import org.kframework.utils.ProofTransition;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
@@ -318,14 +320,14 @@ public class Commands {
                     if (termList.isEmpty()) {
                         throw KEMException.debuggerError(termNum.get() + " is not a valid term number in " + currentClaim);
                     }
-                    utils.print("Claim " + claimNum + "Term " + termNum.get() + "\n");
+                    utils.print("Claim " + claimNum.get() + "Term " + termNum.get() + "\n");
                     KRun.printK(termList.get(0).getPattern(), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
                 } else {
-                    utils.print("Claim " + claimNum + "\n");
+                    utils.print("Claim " + claimNum.get() + "\n");
                     Rule goalRule = currentGoal.getGoalClaim();
-                    KRun.printK(Goal.getRuleLHS(goalRule), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
-                    utils.print("=>");
-                    KRun.printK(Goal.getRuleRHS(goalRule), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
+                    printReachabilityClaim(compiledDefinition, files, kem, utils, goalRule);
+                    printTerms(currentGoal, disableOutput, compiledDefinition, files, kem);
+
                 }
             } else {
                 //Default case for neither claimNum nor termNum provided by the user
@@ -336,12 +338,25 @@ public class Commands {
                         utils.print("Claim " + i);
                     }
                     Rule goalRule = goals.get(i).getGoalClaim();
-                    KRun.printK(Goal.getRuleLHS(goalRule), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
-                    utils.print("=>");
-                    KRun.printK(Goal.getRuleRHS(goalRule), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
-
+                    printReachabilityClaim(compiledDefinition, files, kem, utils, goalRule);
                 }
             }
+        }
+
+        private void printTerms(Goal goal, boolean disableOutput, CompiledDefinition compiledDefinition, FileUtil files, KExceptionManager kem) {
+            CommandUtils utils = new CommandUtils(disableOutput);
+            DirectedGraph<PatternNode, ProofTransition> graph = goal.getProofTree();
+            List<PatternNode> leafNodes = graph.vertexSet().stream().filter(x -> graph.outDegreeOf(x) == 0).collect(Collectors.toList());
+            leafNodes.forEach(x -> {
+                utils.print("Term Id " + x.getId());
+                KRun.printK(x.getPattern(), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
+            });
+        }
+
+        private void printReachabilityClaim(CompiledDefinition compiledDefinition, FileUtil files, KExceptionManager kem, CommandUtils utils, Rule goalRule) {
+            KRun.printK(Goal.getRuleLHS(goalRule), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
+            utils.print("=>");
+            KRun.printK(Goal.getRuleRHS(goalRule), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
         }
     }
 
