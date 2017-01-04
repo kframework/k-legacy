@@ -1,0 +1,41 @@
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
+// Represents the grammar of the KSEQ module in kast.k
+options {
+  STATIC = false;
+  UNICODE_INPUT = true;
+  SUPPORT_CLASS_VISIBILITY_PUBLIC = false;
+  TOKEN_MANAGER_USES_PARSER = true;
+  // FORCE_LA_CHECK = true; // Useful for development, but causes a warning in Production()
+}
+
+PARSER_BEGIN(MiniKoreParser)
+package org.kframework.parser.minikore;
+
+import org.kframework.kore.minikore.*;
+
+public class MiniKoreParser {
+	public static Definition parse(String definition) throws ParseException {
+	    MiniKoreParser parser = new MiniKoreParser(new StringReader(definition));
+	    return parser.parseDefinition();
+	}
+
+
+}
+PARSER_END(KoreParser)
+
+SKIP :
+{
+	" "
+|	"\t"
+|	"\r"
+|	"\n"
+}
+
+TOKEN :
+{
+      <LSQUARE : "[" >
+    | <RSQUARE : "]" >
+    | <MODULE : "Module">
+    | <COLON : ":">
+    | <COLONCOLONEQUALS : "::=">
+}
