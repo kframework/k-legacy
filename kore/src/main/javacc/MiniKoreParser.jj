@@ -38,6 +38,7 @@ TOKEN :
 {
       <LSQUARE : "[" >
     | <RSQUARE : "]" >
+    | <EMPTYATT: ("[")("]") >
     | <COLON : ":">
     | <COLONCOLONEQUALS : "::=">
     | <LPAREN : "(">
@@ -45,7 +46,6 @@ TOKEN :
     | <MODULE : "module">
     | <ENDMODULE : "endmodule">
     | <IMPORTS: "imports">
-    | <SYNTAX : "syntax">
     | <SYNTAX : "syntax">
     | <RULE : "rule">
     | <AXIOM : "axiom">
@@ -62,9 +62,9 @@ TOKEN :
     | <EQUAL: "\\equal">
     | <COMMA: ",">
     | <VARSTRING: (["A" - "Z"])+ (["A" - "Z", "a" - "z", "0" - "9"])*>
-    | <SORT : (["A" - "Z", "a" - "z", "0" - "9"])*>
-    | <SYMBOL : (["A" - "Z", "a" - "z", "0" - "9", "#"])*>
-    | <ID : (["A" - "Z", "a" - "z", "0" - "9"])*>
+    | <SORT : (["A" - "Z", "a" - "z", "0" - "9"])+>
+    | <SYMBOL : (["A" - "Z", "a" - "z", "0" - "9", "#"])+>
+    | <ID : (["A" - "Z", "a" - "z", "0" - "9"])+>
     | <STRING : (~["\""])+>
 
 }
@@ -88,6 +88,7 @@ List<Module> modules():
     Module m1;
 }
 {
+    LOOKAHEAD(2)
     (m1 = module()) (m2 = modules ())? {return m2.add(m1);}
     | (m1 = module()) {return new ArrayList().add(m1);}
 }
@@ -99,9 +100,10 @@ Attributes attributes():
     Pattern p;
 }
 {
+    LOOKAHEAD(2)
     <LSQUARE> (p = pattern()) <COMMA> (patterns = patterns())+ <RSQUARE> {return patterns.add(pattern);}
     | <LSQUARE> (p = pattern()) <RSQUARE> {return new ArrayList().add(p);}
-    | <LSQUARE> <RSQUARE> {return new ArrayList();}
+    | <EMPTYATT> {return new ArrayList();}
 }
 
 Module module():
@@ -122,6 +124,7 @@ List<Pattern> patterns():
     Pattern pattern;
 }
 {
+    LOOKAHEAD(2)
      (p = pattern()) <COMMA> (patterns = patterns()) {return patterns.add(pattern);}
     | p = pattern() {return new ArrayList().add(p);}
 }
@@ -138,7 +141,8 @@ Pattern pattern():
 }
 {
     (varstring = <VARSTRING>) <COLON> (sort = <SORT>) {return Variable.apply(varstring.image, sort.image);}
-    | (symbol = <SYMBOL>) <LPAREN> (patterns = patterns()) <RPAREN> {return Application.apply(symbol.image, patterns);}
+    | LOOKAHEAD(2)
+    (symbol = <SYMBOL>) <LPAREN> (patterns = patterns()) <RPAREN> {return Application.apply(symbol.image, patterns);}
     | (symbol = <SYMBOL>) <LPAREN> (string = <STRING>) <RPAREN> {return DomainValue.apply(symbol.image, string.image);}
     | <TRUE> <LPAREN> <RPAREN> {return True.apply();}
     | <FALSE> <LPAREN> <RPAREN> {return False.apply();}
@@ -159,6 +163,7 @@ List<Sentence> sentences():
     Sentence sentence;
 }
 {
+    LOOKAHEAD(2)
       (s = sentence()) (sentences = sentences()) {return sentences.add(sentence);}
     | (s = sentence()) {return new ArrayList().add(s);}
 }
@@ -173,9 +178,11 @@ Sentence sentence():
     Pattern p;
 }
 {
+
       <IMPORTS> (name = <VARSTRING>) (att = attributes()) {return Import.apply(name.image, att);}
+    | LOOKAHEAD(3)
+    <SYNTAX> (sort = <SORT>) <COLONCOLONEQUALS> (label = <SYMBOL>) <LPAREN> (sorts = sorts()) <RPAREN> (att = attributes()) {return SymbolDeclaration.apply(sort.image, label.image, sorts, attributes);}
     | <SYNTAX> (sort = <SORT>) (att = attributes()) {return SortDeclaration.apply(sort.image, att);}
-    | <SYNTAX> (sort = <SORT>) <COLONCOLONEQUALS> (label = <SYMBOL>) <LPAREN> (sorts = sorts()) <RPAREN> (att = attributes()) {return SymbolDeclaration.apply(sort.image, label.image, sorts, attributes);}
     | <RULE> (p = pattern()) (att = attributes()) {return Rule.apply(p, att);}
     | <AXIOM> (p = pattern()) (att = attributes()) {return Axiom.apply(p, att);}
 }
@@ -186,6 +193,7 @@ List<String> sorts():
     Token sort;
 }
 {
+    LOOKAHEAD(2)
       (sort = <SORT>) <COMMA> (sorts = sorts()) {return sorts.add(sort.image);}
     | (sort = <SORT>) {return new ArrayList().add(sort.image);}
-}    
+}
