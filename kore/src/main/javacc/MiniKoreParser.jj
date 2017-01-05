@@ -1,5 +1,4 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
-// Represents the grammar of the KSEQ module in kast.k
 options {
   STATIC = false;
   UNICODE_INPUT = true;
@@ -12,12 +11,14 @@ PARSER_BEGIN(MiniKoreParser)
 package org.kframework.parser.minikore;
 
 
-import org.kframework.minikore.MiniKore.*;
+import org.kframework.minikore.MiniKore;
 import java.io.StringReader;
 import java.util.*;
+import static scala.collection.JavaConversions.*;
+import scala.collection.Seq;
 
 public class MiniKoreParser {
-	public static Definition parse(String definition) throws ParseException{
+	public static MiniKore.Definition parse(String definition) throws ParseException{
 	    MiniKoreParser parser = new MiniKoreParser(new StringReader(definition));
 	    return parser.parseDefinition();
 	}
@@ -69,35 +70,35 @@ TOKEN :
 
 }
 
-Definition parserDefinition():
+MiniKore.Definition parseDefinition():
 {
-    List<Module> modules;
-    Attributes att;
+    Seq<MiniKore.Module> modules;
+    MiniKore.Attributes att;
 }
 {
     (att = attributes()) (modules = modules())
     {
-        return Definition.apply(modules, att);
+        return MiniKore.Definition.apply(modules, att);
     }
 
 }
 
-List<Module> modules():
+Seq<MiniKore.Module> modules():
 {
-    List<Module> modules;
-    Module m1;
+    List<MiniKore.Module> modules;
+    MiniKore.Module m1;
 }
 {
     LOOKAHEAD(2)
-    (m1 = module()) (m2 = modules ())? {return m2.add(m1);}
-    | (m1 = module()) {return new ArrayList().add(m1);}
+    (m1 = module()) (m2 = modules ())? {return m2.append(m1);}
+    | (m1 = module()) {return new asScalaBuffer(ArrayList().add(m1)).toSeq();}
 }
 
 
-Attributes attributes():
+MiniKore.Attributes attributes():
 {
-    List<Pattern> patterns;
-    Pattern p;
+    List<MiniKore.Pattern> patterns;
+    MiniKore.Pattern p;
 }
 {
     LOOKAHEAD(2)
@@ -110,18 +111,18 @@ Module module():
 {
     Token id;
     String name;
-    List<Sentence> sentences;
-    Attribute att;
+    List<MiniKore.Sentence> sentences;
+    MiniKore.Attribute att;
 }
 {
     <MODULE> (id = <ID>) (sentences = sentences()) <ENDMODULE> (att = attributes())
     {return Module.apply(id.image, sentences, att);}
 }
 
-List<Pattern> patterns():
+List<MiniKore.Pattern> patterns():
 {
-    List<Pattern> patterns;
-    Pattern pattern;
+    List<MiniKore.Pattern> patterns;
+    MiniKore.Pattern pattern;
 }
 {
     LOOKAHEAD(2)
@@ -135,32 +136,32 @@ Pattern pattern():
     Token sort;
     Token symbol;
     Token string;
-    List<Pattern> patterns;
-    Pattern p1;
-    Pattern p2;
+    List<MiniKore.Pattern> patterns;
+    MiniKore.Pattern p1;
+    MiniKore.Pattern p2;
 }
 {
-    (varstring = <VARSTRING>) <COLON> (sort = <SORT>) {return Variable.apply(varstring.image, sort.image);}
+    (varstring = <VARSTRING>) <COLON> (sort = <SORT>) {return MiniKore.Variable.apply(varstring.image, sort.image);}
     | LOOKAHEAD(2)
-    (symbol = <SYMBOL>) <LPAREN> (patterns = patterns()) <RPAREN> {return Application.apply(symbol.image, patterns);}
-    | (symbol = <SYMBOL>) <LPAREN> (string = <STRING>) <RPAREN> {return DomainValue.apply(symbol.image, string.image);}
-    | <TRUE> <LPAREN> <RPAREN> {return True.apply();}
-    | <FALSE> <LPAREN> <RPAREN> {return False.apply();}
-    | <AND> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return And.apply(p1, p2);}
-    | <OR> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return Or.apply(p1, p2);}
-    | <NOT> <LPAREN> (p1 = pattern()) <RPAREN> {return Not.apply(p1);}
-    | <IMPLIES> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return Implies.apply(p1, p2);}
-    | <EXISTS> <LPAREN> (varstring = <VARSTRING>) (p1 = pattern()) <RPAREN> {return Exists.apply(varstring.image, p1);}
-    | <FORALL> <LPAREN> (varstring = <VARSTRING>) (p1 = pattern()) <RPAREN> {return ForAll.apply(varstring.image, p1);}
-    | <NEXT> <LPAREN> (p1 = pattern()) <RPAREN> {return Not.apply(p1);}
-    | <REWRITE> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return Rewrite.apply(p1, p2);}
-    | <EQUAL> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return Equal.apply(p1, p2);}
+    (symbol = <SYMBOL>) <LPAREN> (patterns = patterns()) <RPAREN> {return MiniKore.Application.apply(symbol.image, patterns);}
+    | (symbol = <SYMBOL>) <LPAREN> (string = <STRING>) <RPAREN> {return MiniKore.DomainValue.apply(symbol.image, string.image);}
+    | <TRUE> <LPAREN> <RPAREN> {return MiniKore.True.apply();}
+    | <FALSE> <LPAREN> <RPAREN> {return MiniKore.False.apply();}
+    | <AND> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return MiniKore.And.apply(p1, p2);}
+    | <OR> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return MiniKore.Or.apply(p1, p2);}
+    | <NOT> <LPAREN> (p1 = pattern()) <RPAREN> {return MiniKore.Not.apply(p1);}
+    | <IMPLIES> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return MiniKore.Implies.apply(p1, p2);}
+    | <EXISTS> <LPAREN> (varstring = <VARSTRING>) (p1 = pattern()) <RPAREN> {return MiniKore.Exists.apply(varstring.image, p1);}
+    | <FORALL> <LPAREN> (varstring = <VARSTRING>) (p1 = pattern()) <RPAREN> {return MiniKore.ForAll.apply(varstring.image, p1);}
+    | <NEXT> <LPAREN> (p1 = pattern()) <RPAREN> {return MiniKore.Not.apply(p1);}
+    | <REWRITE> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return MiniKore.Rewrite.apply(p1, p2);}
+    | <EQUAL> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return MiniKore.Equal.apply(p1, p2);}
 }
 
-List<Sentence> sentences():
+List<MiniKore.Sentence> sentences():
 {
-    List<Sentence> sentences;
-    Sentence sentence;
+    List<MiniKore.Sentence> sentences;
+    MiniKore.Sentence sentence;
 }
 {
     LOOKAHEAD(2)
@@ -168,23 +169,23 @@ List<Sentence> sentences():
     | (s = sentence()) {return new ArrayList().add(s);}
 }
 
-Sentence sentence():
+MiniKore.Sentence sentence():
 {
     Token name;
     Token sort;
     Token label;
-    Attributes att;
+    MiniKore.Attributes att;
     List<String> sorts;
-    Pattern p;
+    MiniKore.Pattern p;
 }
 {
 
-      <IMPORTS> (name = <VARSTRING>) (att = attributes()) {return Import.apply(name.image, att);}
+      <IMPORTS> (name = <VARSTRING>) (att = attributes()) {return MiniKore.Import.apply(name.image, att);}
     | LOOKAHEAD(3)
-    <SYNTAX> (sort = <SORT>) <COLONCOLONEQUALS> (label = <SYMBOL>) <LPAREN> (sorts = sorts()) <RPAREN> (att = attributes()) {return SymbolDeclaration.apply(sort.image, label.image, sorts, attributes);}
-    | <SYNTAX> (sort = <SORT>) (att = attributes()) {return SortDeclaration.apply(sort.image, att);}
-    | <RULE> (p = pattern()) (att = attributes()) {return Rule.apply(p, att);}
-    | <AXIOM> (p = pattern()) (att = attributes()) {return Axiom.apply(p, att);}
+    <SYNTAX> (sort = <SORT>) <COLONCOLONEQUALS> (label = <SYMBOL>) <LPAREN> (sorts = sorts()) <RPAREN> (att = attributes()) {return MiniKore.SymbolDeclaration.apply(sort.image, label.image, sorts, attributes);}
+    | <SYNTAX> (sort = <SORT>) (att = attributes()) {return MiniKore.SortDeclaration.apply(sort.image, att);}
+    | <RULE> (p = pattern()) (att = attributes()) {return MiniKore.Rule.apply(p, att);}
+    | <AXIOM> (p = pattern()) (att = attributes()) {return MiniKore.Axiom.apply(p, att);}
 }
 
 List<String> sorts():
