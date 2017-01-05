@@ -44,6 +44,8 @@ TOKEN :
     | <RPAREN : ")">
     | <MODULE : "module">
     | <ENDMODULE : "endmodule">
+    | <IMPORTS: "imports">
+    | <SYNTAX : "syntax">
     | <SYNTAX : "syntax">
     | <RULE : "rule">
     | <AXIOM : "axiom">
@@ -138,8 +140,8 @@ Pattern pattern():
     (varstring = <VARSTRING>) <COLON> (sort = <SORT>) {return Variable.apply(varstring.image, sort.image);}
     | (symbol = <SYMBOL>) <LPAREN> (patterns = patterns()) <RPAREN> {return Application.apply(symbol.image, patterns);}
     | (symbol = <SYMBOL>) <LPAREN> (string = <STRING>) <RPAREN> {return DomainValue.apply(symbol.image, string.image);}
-    | <TRUE> {return True.apply();}
-    | <FALSE> {return False.apply();}
+    | <TRUE> <LPAREN> <RPAREN> {return True.apply();}
+    | <FALSE> <LPAREN> <RPAREN> {return False.apply();}
     | <AND> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return And.apply(p1, p2);}
     | <OR> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return Or.apply(p1, p2);}
     | <NOT> <LPAREN> (p1 = pattern()) <RPAREN> {return Not.apply(p1);}
@@ -151,15 +153,39 @@ Pattern pattern():
     | <EQUAL> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return Equal.apply(p1, p2);}
 }
 
+List<Sentence> sentences():
+{
+    List<Sentence> sentences;
+    Sentence sentence;
+}
+{
+      (s = sentence()) (sentences = sentences()) {return sentences.add(sentence);}
+    | (s = sentence()) {return new ArrayList().add(s);}
+}
 
+Sentence sentence():
+{
+    Token name;
+    Token sort;
+    Token label;
+    Attributes att;
+    List<String> sorts;
+    Pattern p;
+}
+{
+      <IMPORTS> (name = <VARSTRING>) (att = attributes()) {return Import.apply(name.image, att);}
+    | <SYNTAX> (sort = <SORT>) (att = attributes()) {return SortDeclaration.apply(sort.image, att);}
+    | <SYNTAX> (sort = <SORT>) <COLONCOLONEQUALS> (label = <SYMBOL>) <LPAREN> (sorts = sorts()) <RPAREN> (att = attributes()) {return SymbolDeclaration.apply(sort.image, label.image, sorts, attributes);}
+    | <RULE> (p = pattern()) (att = attributes()) {return Rule.apply(p, att);}
+    | <AXIOM> (p = pattern()) (att = attributes()) {return Axiom.apply(p, att);}
+}
 
-
-
-
-
-
-
-
-
-
-
+List<String> sorts():
+{
+    List<String> sorts;
+    Token sort;
+}
+{
+      (sort = <SORT>) <COMMA> (sorts = sorts()) {return sorts.add(sort.image);}
+    | (sort = <SORT>) {return new ArrayList().add(sort.image);}
+}    
