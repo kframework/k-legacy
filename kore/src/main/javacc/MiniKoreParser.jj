@@ -11,17 +11,20 @@ options {
 PARSER_BEGIN(MiniKoreParser)
 package org.kframework.parser.minikore;
 
-import org.kframework.kore.minikore.*;
+
+import org.kframework.minikore.MiniKore.*;
+import java.io.StringReader;
+import java.util.*;
 
 public class MiniKoreParser {
-	public static Definition parse(String definition) throws ParseException {
+	public static Definition parse(String definition) throws ParseException{
 	    MiniKoreParser parser = new MiniKoreParser(new StringReader(definition));
 	    return parser.parseDefinition();
 	}
 
 
 }
-PARSER_END(KoreParser)
+PARSER_END(MiniKoreParser)
 
 SKIP :
 {
@@ -35,7 +38,128 @@ TOKEN :
 {
       <LSQUARE : "[" >
     | <RSQUARE : "]" >
-    | <MODULE : "Module">
     | <COLON : ":">
     | <COLONCOLONEQUALS : "::=">
+    | <LPAREN : "(">
+    | <RPAREN : ")">
+    | <MODULE : "module">
+    | <ENDMODULE : "endmodule">
+    | <SYNTAX : "syntax">
+    | <RULE : "rule">
+    | <AXIOM : "axiom">
+    | <TRUE : "\\true">
+    | <FALSE : "\\false">
+    | <AND : "\\and">
+    | <OR : "\\or">
+    | <NOT: "\\not">
+    | <IMPLIES: "\\implies">
+    | <EXISTS: "\\exists">
+    | <FORALL: "\\forall">
+    | <NEXT: "\\next">
+    | <REWRITE: "\\rewrite">
+    | <EQUAL: "\\equal">
+    | <COMMA: ",">
+    | <VARSTRING: (["A" - "Z"])+ (["A" - "Z", "a" - "z", "0" - "9"])*>
+    | <SORT : (["A" - "Z", "a" - "z", "0" - "9"])*>
+    | <SYMBOL : (["A" - "Z", "a" - "z", "0" - "9", "#"])*>
+    | <ID : (["A" - "Z", "a" - "z", "0" - "9"])*>
+    | <STRING : (~["\""])+>
+
 }
+
+Definition parserDefinition():
+{
+    List<Module> modules;
+    Attributes att;
+}
+{
+    (att = attributes()) (modules = modules())
+    {
+        return Definition.apply(modules, att);
+    }
+
+}
+
+List<Module> modules():
+{
+    List<Module> modules;
+    Module m1;
+}
+{
+    (m1 = module()) (m2 = modules ())? {return m2.add(m1);}
+    | (m1 = module()) {return new ArrayList().add(m1);}
+}
+
+
+Attributes attributes():
+{
+    List<Pattern> patterns;
+    Pattern p;
+}
+{
+    <LSQUARE> (p = pattern()) <COMMA> (patterns = patterns())+ <RSQUARE> {return patterns.add(pattern);}
+    | <LSQUARE> (p = pattern()) <RSQUARE> {return new ArrayList().add(p);}
+    | <LSQUARE> <RSQUARE> {return new ArrayList();}
+}
+
+Module module():
+{
+    Token id;
+    String name;
+    List<Sentence> sentences;
+    Attribute att;
+}
+{
+    <MODULE> (id = <ID>) (sentences = sentences()) <ENDMODULE> (att = attributes())
+    {return Module.apply(id.image, sentences, att);}
+}
+
+List<Pattern> patterns():
+{
+    List<Pattern> patterns;
+    Pattern pattern;
+}
+{
+     (p = pattern()) <COMMA> (patterns = patterns()) {return patterns.add(pattern);}
+    | p = pattern() {return new ArrayList().add(p);}
+}
+
+Pattern pattern():
+{
+    Token varstring;
+    Token sort;
+    Token symbol;
+    Token string;
+    List<Pattern> patterns;
+    Pattern p1;
+    Pattern p2;
+}
+{
+    (varstring = <VARSTRING>) <COLON> (sort = <SORT>) {return Variable.apply(varstring.image, sort.image);}
+    | (symbol = <SYMBOL>) <LPAREN> (patterns = patterns()) <RPAREN> {return Application.apply(symbol.image, patterns);}
+    | (symbol = <SYMBOL>) <LPAREN> (string = <STRING>) <RPAREN> {return DomainValue.apply(symbol.image, string.image);}
+    | <TRUE> {return True.apply();}
+    | <FALSE> {return False.apply();}
+    | <AND> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return And.apply(p1, p2);}
+    | <OR> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return Or.apply(p1, p2);}
+    | <NOT> <LPAREN> (p1 = pattern()) <RPAREN> {return Not.apply(p1);}
+    | <IMPLIES> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return Implies.apply(p1, p2);}
+    | <EXISTS> <LPAREN> (varstring = <VARSTRING>) (p1 = pattern()) <RPAREN> {return Exists.apply(varstring.image, p1);}
+    | <FORALL> <LPAREN> (varstring = <VARSTRING>) (p1 = pattern()) <RPAREN> {return ForAll.apply(varstring.image, p1);}
+    | <NEXT> <LPAREN> (p1 = pattern()) <RPAREN> {return Not.apply(p1);}
+    | <REWRITE> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return Rewrite.apply(p1, p2);}
+    | <EQUAL> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return Equal.apply(p1, p2);}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
