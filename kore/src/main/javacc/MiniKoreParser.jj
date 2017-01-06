@@ -34,39 +34,41 @@ SKIP :
 |	"\n"
 }
 
-TOKEN :
-{
-      <LSQUARE : "[" >
-    | <RSQUARE : "]" >
-    | <EMPTYATT: ("[")("]") >
-    | <COLON : ":">
-    | <COLONCOLONEQUALS : "::=">
-    | <LPAREN : "(">
-    | <RPAREN : ")">
-    | <MODULE : "module">
-    | <ENDMODULE : "endmodule">
-    | <IMPORTS: "imports">
-    | <SYNTAX : "syntax">
-    | <RULE : "rule">
-    | <AXIOM : "axiom">
-    | <TRUE : "\\true">
-    | <FALSE : "\\false">
-    | <AND : "\\and">
-    | <OR : "\\or">
-    | <NOT: "\\not">
-    | <IMPLIES: "\\implies">
-    | <EXISTS: "\\exists">
-    | <FORALL: "\\forall">
-    | <NEXT: "\\next">
-    | <REWRITE: "\\rewrite">
-    | <EQUAL: "\\equal">
-    | <COMMA: ",">
-    | <VARSTRING: (["A" - "Z"])+ (["A" - "Z", "a" - "z", "0" - "9"])*>
-    | <SORT : (["A" - "Z", "a" - "z", "0" - "9"])+>
-    | <SYMBOL : (["A" - "Z", "a" - "z", "0" - "9", "#"])+>
-    | <ID : (["A" - "Z", "a" - "z", "0" - "9"])+>
-    | <STRING : (~["\""])+>
+<DEFINITION_STATE> TOKEN : {
+       <LSQUARE : "[" >
+     | <RSQUARE : "]" >
+     | <COLON : ":">
+     | <COLONCOLONEQUALS : "::=">
+     | <LPAREN : "(">
+     | <RPAREN : ")">
+     | <MODULE : "module">
+     | <ENDMODULE : "endmodule">
+     | <IMPORTS: "imports">
+     | <SYNTAX : "syntax">
+     | <RULE : "rule">
+     | <AXIOM : "axiom">
+     | <TRUE : "\\true">
+     | <FALSE : "\\false">
+     | <AND : "\\and">
+     | <OR : "\\or">
+     | <NOT: "\\not">
+     | <IMPLIES: "\\implies">
+     | <EXISTS: "\\exists">
+     | <FORALL: "\\forall">
+     | <NEXT: "\\next">
+     | <REWRITE: "\\rewrite">
+     | <EQUAL: "\\equal">
+     | <COMMA: ",">
+     | <VARSTRING: (["A" - "Z"])+ (["A" - "Z", "a" - "z", "0" - "9"])*>
+     | <SORT : (["A" - "Z", "a" - "z", "0" - "9"])+>
+     | <SYMBOL : (["A" - "Z", "a" - "z", "0" - "9", "#"])+>
+     | <ID : (["A" - "Z", "a" - "z", "0" - "9"])+>
+}
 
+
+<STRING_STATE> TOKEN :
+{
+    <STRING : (~["\"", "[", "]", " "])+>
 }
 
 Definition parseDefinition():
@@ -103,10 +105,13 @@ Seq<Pattern> attributes():
     Pattern p;
 }
 {
-    LOOKAHEAD(2)
-    <LSQUARE> (p = pattern()) <COMMA> (patterns = patterns())+ <RSQUARE> {patternList = mutable(patterns); patternList.add(p); return immutable(patternList);}
-    | <LSQUARE> (p = pattern()) <RSQUARE> {return immutable(new ArrayList().add(p));}
-    | <EMPTYATT> {return immutable(new ArrayList());}
+
+      LOOKAHEAD(3)
+      <LSQUARE> (p = pattern()) <COMMA> (patterns = patterns())+ <RSQUARE> {patternList = mutable(patterns); patternList.add(p); return immutable(patternList);}
+    | LOOKAHEAD(2)
+      <LSQUARE> (p = pattern()) <RSQUARE> {return immutable(new ArrayList().add(p));}
+    | <LSQUARE> <RSQUARE> {return immutable(new ArrayList());}
+
 }
 
 Module module():
