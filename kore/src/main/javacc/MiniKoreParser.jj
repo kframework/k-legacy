@@ -89,8 +89,9 @@ Seq<Module> modules():
     List<Module> m3;
 }
 {
-    LOOKAHEAD(2)
-    (m1 = module()) (m2 = modules ()) {m3 = mutable(m2); m3.add(m1); return immutable(m3);}
+    <EOF> {return immutable(new ArrayList());}
+    | LOOKAHEAD(2)
+      (m1 = module()) (m2 = modules ()) {m3 = mutable(m2); m3.add(m1); return immutable(m3);}
     | (m1 = module()) {return immutable(new ArrayList().add(m1));}
 }
 
