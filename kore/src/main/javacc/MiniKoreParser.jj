@@ -34,7 +34,7 @@ SKIP :
 |	"\n"
 }
 
-<DEFINITION_STATE> TOKEN : {
+TOKEN : {
        <LSQUARE : "[" >
      | <RSQUARE : "]" >
      | <COLON : ":">
@@ -58,13 +58,12 @@ SKIP :
      | <NEXT: "\\next">
      | <REWRITE: "\\rewrite">
      | <EQUAL: "\\equal">
+     | <ID : (["A" - "Z", "a" - "z", "0" - "9"])+>
      | <COMMA: ",">
      | <VARSTRING: (["A" - "Z"])+ (["A" - "Z", "a" - "z", "0" - "9"])*>
      | <SORT : (["A" - "Z", "a" - "z", "0" - "9"])+>
      | <SYMBOL : (["A" - "Z", "a" - "z", "0" - "9", "#"])+>
-     | <ID : (["A" - "Z", "a" - "z", "0" - "9"])+>
 }
-
 
 <STRING_STATE> TOKEN :
 {
@@ -122,8 +121,9 @@ Module module():
     Seq<Pattern> att;
 }
 {
-    <MODULE> (id = <ID>) (sentences = sentences()) <ENDMODULE> (att = attributes())
-    {return new Module(id.image, sentences, att);}
+      LOOKAHEAD(2)
+       <MODULE> (id = <ID>) <ENDMODULE> (att = attributes()) {return new Module(id.image, immutable(new ArrayList()), att);}
+     | <MODULE> (id = <ID>) (sentences = sentences()) <ENDMODULE> (att = attributes()) {return new Module(id.image, sentences, att);}
 }
 
 Seq<Pattern> patterns():
