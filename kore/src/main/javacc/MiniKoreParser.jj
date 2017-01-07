@@ -106,7 +106,7 @@ Seq<Pattern> attributes():
 {
 
       LOOKAHEAD(2)
-      <LSQUARE> (p = pattern()) <RSQUARE> {patternList = new ArrayList(); patternList.add(p); return immutable(p);}
+      <LSQUARE> (p = pattern()) <RSQUARE> {patternList = new ArrayList(); patternList.add(p); return immutable(patternList);}
     | LOOKAHEAD(3)
       <LSQUARE> (p = pattern()) <COMMA> (patterns = patterns())+ <RSQUARE> {patternList = mutable(patterns); patternList.add(p); return immutable(patternList);}
     | <LSQUARE> <RSQUARE> {return immutable(new ArrayList());}
@@ -171,12 +171,12 @@ Seq<Sentence> sentences():
 {
     Seq<Sentence> sentences;
     List<Sentence> sentenceList;
-    Sentence s;
+    Sentence s = null;
 }
 {
-    LOOKAHEAD(2)
-       (s = sentence()) {sentenceList = new ArrayList(); sentenceList.add(s); return immutable(sentenceList);}
-    |  (s = sentence()) (sentences = sentences()) {sentenceList = mutable(sentences); sentenceList.add(s); return immutable(sentenceList);}
+         LOOKAHEAD(2)
+         (s = sentence()) (sentences = sentences()) {sentenceList = mutable(sentences); sentenceList.add(s); return immutable(sentenceList);}
+       | (s = sentence())? {sentenceList = new ArrayList(); if(s != null) { sentenceList.add(s);} return immutable(sentenceList);}
 }
 
 Sentence sentence():
@@ -193,7 +193,7 @@ Sentence sentence():
       <IMPORTS> (name = <ID>) (att = attributes()) {return new Import(name.image, att);}
     | LOOKAHEAD(3)
     <SYNTAX> (sort = <SORT>) <COLONCOLONEQUALS> (label = <SYMBOL>) <LPAREN> (sorts = sorts()) <RPAREN> (att = attributes()) {return new SymbolDeclaration(sort.image, label.image, sorts, att);}
-    | <SYNTAX> (sort = <SORT>) (att = attributes()) {return new SortDeclaration(sort.image, att);}
+    | <SYNTAX> (sort = <ID>) (att = attributes()) {return new SortDeclaration(sort.image, att);}
     | <RULE> (p = pattern()) (att = attributes()) {return new Rule(p, att);}
     | <AXIOM> (p = pattern()) (att = attributes()) {return new Axiom(p, att);}
 }
