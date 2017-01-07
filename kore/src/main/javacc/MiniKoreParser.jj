@@ -93,7 +93,7 @@ Seq<Module> modules():
     <EOF> {return immutable(new ArrayList());}
     | LOOKAHEAD(2)
       (m1 = module()) (m2 = modules ()) {m3 = mutable(m2); m3.add(m1); return immutable(m3);}
-    | (m1 = module()) {return immutable(new ArrayList().add(m1));}
+    | (m1 = module()) {m3 = new ArrayList(); m3.add(m1); return immutable(m3);}
 }
 
 
@@ -105,10 +105,10 @@ Seq<Pattern> attributes():
 }
 {
 
-      LOOKAHEAD(3)
+      LOOKAHEAD(2)
+      <LSQUARE> (p = pattern()) <RSQUARE> {patternList = new ArrayList(); patternList.add(p); return immutable(p);}
+    | LOOKAHEAD(3)
       <LSQUARE> (p = pattern()) <COMMA> (patterns = patterns())+ <RSQUARE> {patternList = mutable(patterns); patternList.add(p); return immutable(patternList);}
-    | LOOKAHEAD(2)
-      <LSQUARE> (p = pattern()) <RSQUARE> {return immutable(new ArrayList().add(p));}
     | <LSQUARE> <RSQUARE> {return immutable(new ArrayList());}
 
 }
@@ -121,9 +121,10 @@ Module module():
     Seq<Pattern> att;
 }
 {
-      LOOKAHEAD(2)
+       LOOKAHEAD(3)
+       <MODULE> (id = <ID>) (sentences = sentences()) <ENDMODULE> (att = attributes()) {return new Module(id.image, sentences, att);}
+     | LOOKAHEAD(3)
        <MODULE> (id = <ID>) <ENDMODULE> (att = attributes()) {return new Module(id.image, immutable(new ArrayList()), att);}
-     | <MODULE> (id = <ID>) (sentences = sentences()) <ENDMODULE> (att = attributes()) {return new Module(id.image, sentences, att);}
 }
 
 Seq<Pattern> patterns():
@@ -133,9 +134,9 @@ Seq<Pattern> patterns():
     Pattern p;
 }
 {
-    LOOKAHEAD(2)
-     (p = pattern()) <COMMA> (patterns = patterns()) {patternList = mutable(patterns); patternList.add(p); return immutable(patternList);}
-    | (p = pattern()) {return immutable(new ArrayList().add(p));}
+      (p = pattern()) {patternList = new ArrayList(); patternList.add(p); return immutable(patternList);}
+    | LOOKAHEAD(2)
+      (p = pattern()) <COMMA> (patterns = patterns()) {patternList = mutable(patterns); patternList.add(p); return immutable(patternList);}
 }
 
 Pattern pattern():
@@ -174,8 +175,8 @@ Seq<Sentence> sentences():
 }
 {
     LOOKAHEAD(2)
-      (s = sentence()) (sentences = sentences()) {sentenceList = mutable(sentences); sentenceList.add(s); return immutable(sentenceList);}
-    | (s = sentence()) {return immutable(new ArrayList().add(s));}
+       (s = sentence()) {sentenceList = new ArrayList(); sentenceList.add(s); return immutable(sentenceList);}
+    |  (s = sentence()) (sentences = sentences()) {sentenceList = mutable(sentences); sentenceList.add(s); return immutable(sentenceList);}
 }
 
 Sentence sentence():
@@ -189,7 +190,7 @@ Sentence sentence():
 }
 {
 
-      <IMPORTS> (name = <VARSTRING>) (att = attributes()) {return new Import(name.image, att);}
+      <IMPORTS> (name = <ID>) (att = attributes()) {return new Import(name.image, att);}
     | LOOKAHEAD(3)
     <SYNTAX> (sort = <SORT>) <COLONCOLONEQUALS> (label = <SYMBOL>) <LPAREN> (sorts = sorts()) <RPAREN> (att = attributes()) {return new SymbolDeclaration(sort.image, label.image, sorts, att);}
     | <SYNTAX> (sort = <SORT>) (att = attributes()) {return new SortDeclaration(sort.image, att);}
@@ -206,5 +207,5 @@ Seq<String> sorts():
 {
     LOOKAHEAD(2)
       (sort = <SORT>) <COMMA> (sorts = sorts()) {sortList = mutable(sorts); sortList.add(sort.image); return immutable(sortList);}
-    | (sort = <SORT>) {return immutable(new ArrayList().add(sort.image));}
+    | (sort = <SORT>) {sortList = new ArrayList(); sortList.add(sort.image); return immutable(sortList);}
 }
