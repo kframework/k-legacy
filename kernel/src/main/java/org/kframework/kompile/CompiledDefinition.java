@@ -60,6 +60,8 @@ public class CompiledDefinition implements Serializable {
         this.programStartSymbol = configurationVariableDefaultSorts.getOrDefault("$PGM", Sorts.K());
         this.topCellInitializer = topCellInitializer;
         this.languageParsingModule = kompiledDefinition.getModule("LANGUAGE-PARSING").get();
+        this.cachedcompiledPatterns = new ConcurrentHashMap<>();
+        this.cachedParsedPatterns = new ConcurrentHashMap<>();
     }
 
     private void initializeConfigurationVariableDefaultSorts() {
