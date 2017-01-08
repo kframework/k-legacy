@@ -47,12 +47,16 @@ public class DefinitionLoadingModule {
     }
 
     public static CompiledDefinition koreDefinition(BinaryLoader loader, FileUtil files) {
-        return loader.loadOrDie(CompiledDefinition.class, files.resolveKompiled("compiled.bin"));
+        KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, files.resolveKompiled("kompileOptions.bin"));
+        org.kframework.definition.Definition parsedDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled("parsedDefinition.bin"));
+        org.kframework.definition.Definition kompiledDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled("kompiledDefinition.bin"));
+        org.kframework.kore.KLabel topCellInitializer = loader.loadOrDie(org.kframework.kore.KLabel .class, files.resolveKompiled("topCellInitializer.bin"));
+        return new CompiledDefinition(kompileOptions, parsedDefinition, kompiledDefinition, topCellInitializer);
     }
 
     public static KompileOptions kompileOptions(Context context, CompiledDefinition compiledDef, FileUtil files) {
         // a hack, but it's good enough for what we need from it, which is a temporary solution
-        if (files.resolveKompiled("compiled.bin").exists()) {
+        if (files.resolveKompiled("kompileOptions.bin").exists()) {
             KompileOptions res = compiledDef.kompileOptions;
             return res;
         } else {
