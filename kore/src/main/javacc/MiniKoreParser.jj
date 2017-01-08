@@ -58,9 +58,10 @@ TOKEN : {
      | <NEXT: "\\next">
      | <REWRITE: "\\rewrite">
      | <EQUAL: "\\equal">
-     | <ID : (["A" - "Z", "a" - "z", "0" - "9", "#"])+>
+     | <MODULENAME: (["A" - "Z"]) (["A" - "Z", "-"])*>
+     | <ID : (["A" - "Z"]) (["a" - "z", "A" - "Z"])*>
+     | <SYMBOL : (["a" - "z", "$", "#", "@", "%", "^", "_"])(["A" - "Z", "a" - "z", "0" - "9", "_", "$", "#", "@", "%", "^", "_"])*>
      | <COMMA: ",">
-     | <VARSTRING: (["A" - "Z"])+ (["A" - "Z", "a" - "z", "0" - "9"])*>
      | <STRING: "\"" (~["\""])+ "\"">
 }
 
@@ -95,16 +96,11 @@ Seq<Module> modules():
 Seq<Pattern> attributes():
 {
     Seq<Pattern> patterns;
-    List<Pattern> patternList;
-    Pattern p;
 }
 {
-
-      LOOKAHEAD(2)
-      <LSQUARE> (p = pattern()) <RSQUARE> {patternList = new ArrayList(); patternList.add(0, p); return immutable(patternList);}
-    | LOOKAHEAD(3)
-      <LSQUARE> (p = pattern()) <COMMA> (patterns = patterns()) <RSQUARE> {patternList = mutable(patterns); patternList.add(0, p); return immutable(patternList);}
-    | <LSQUARE> <RSQUARE> {return immutable(new ArrayList());}
+        LOOKAHEAD(2)
+        <LSQUARE> <RSQUARE> {return immutable(new ArrayList());}
+      | <LSQUARE> patterns = patterns() <RSQUARE> {return patterns;}
 
 }
 
@@ -117,45 +113,53 @@ Module module():
 }
 {
        LOOKAHEAD(3)
-       <MODULE> (id = <ID>) (sentences = sentences()) <ENDMODULE> (att = attributes()) {return new Module(id.image, sentences, att);}
+       <MODULE> (id = <MODULENAME>) (sentences = sentences()) <ENDMODULE> (att = attributes()) {return new Module(id.image, sentences, att);}
      | LOOKAHEAD(3)
-       <MODULE> (id = <ID>) <ENDMODULE> (att = attributes()) {return new Module(id.image, immutable(new ArrayList()), att);}
+       <MODULE> (id = <MODULENAME>) <ENDMODULE> (att = attributes()) {return new Module(id.image, immutable(new ArrayList()), att);}
 }
 
 Seq<Pattern> patterns():
 {
-    Seq<Pattern> patterns;
-    List<Pattern> patternList;
-    Pattern p = null;
+    Seq<Pattern> patterns = null;
+    List<Pattern> returnList;
+    Pattern p;
 }
 {
-         (p = pattern())? {patternList = new ArrayList(); if(p != null) patternList.add(0, p); return immutable(patternList);}
-       | (p = pattern()) <COMMA> (patterns = patterns()) {patternList = mutable(patterns); patternList.add(0, p); return immutable(patternList);}
+    (p = pattern()) (<COMMA> patterns = patterns())?  {if (patterns != null) {returnList = mutable(patterns); returnList.add(p); return immutable(returnList);} returnList = new ArrayList(); returnList.add(p); return immutable(returnList);}
 }
 
+
+Variable variable():
+{
+    Token name;
+    Token sort;
+}
+{
+    (name = <ID> | name = <MODULENAME> ) <COLON> (sort = <ID> | sort = <MODULENAME>) {return new Variable(name.image, sort.image);}
+}
 Pattern pattern():
 {
-    Token varstring;
+    Variable v;
     Token sort;
     Token symbol;
-    Token string;
+    Token string = null;
     Seq<Pattern> patterns;
     Pattern p1;
     Pattern p2;
 }
 {
-    (varstring = <VARSTRING>) <COLON> (sort = <ID>) {return new Variable(varstring.image, sort.image);}
+      (v = variable()) {return v;}
     | LOOKAHEAD(3)
-      (symbol = <ID>) <LPAREN> (string = <STRING>) <RPAREN> {return new DomainValue(symbol.image, string.image);}
-    | (symbol = <ID>) <LPAREN> (patterns = patterns()) <RPAREN> {return new Application(symbol.image, patterns);}
+      (symbol = <SYMBOL>) <LPAREN> (string = <STRING>)? <RPAREN> {if (string != null) return new DomainValue(symbol.image, string.image); return new Application(symbol.image, immutable(new ArrayList()));}
+    | (symbol = <SYMBOL>) <LPAREN> (patterns = patterns()) <RPAREN> {return new Application(symbol.image, patterns);}
     | <TRUE> <LPAREN> <RPAREN> {return new True();}
     | <FALSE> <LPAREN> <RPAREN> {return new False();}
     | <AND> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return new And(p1, p2);}
     | <OR> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return new Or(p1, p2);}
     | <NOT> <LPAREN> (p1 = pattern()) <RPAREN> {return new Not(p1);}
     | <IMPLIES> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return new Implies(p1, p2);}
-    | <EXISTS> <LPAREN> (varstring = <VARSTRING>) <COLON> <COMMA> (sort = <ID>) (p1 = pattern()) <RPAREN> {return new Exists(new Variable(varstring.image, sort.image), p1);}
-    | <FORALL> <LPAREN> (varstring = <VARSTRING>) <COLON> <COMMA> (sort = <ID>) (p1 = pattern()) <RPAREN> {return new ForAll(new Variable(varstring.image, sort.image), p1);}
+    | <EXISTS> <LPAREN> (v = variable()) <COMMA> (p1 = pattern()) <RPAREN> {return new Exists(v , p1);}
+    | <FORALL> <LPAREN> (v = variable()) <COMMA> (p1 = pattern()) <RPAREN> {return new ForAll(v , p1);}
     | <NEXT> <LPAREN> (p1 = pattern()) <RPAREN> {return new Next(p1);}
     | <REWRITE> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return new Rewrite(p1, p2);}
     | <EQUAL> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return new Equal(p1, p2);}
@@ -184,10 +188,10 @@ Sentence sentence():
 }
 {
 
-      <IMPORTS> (name = <ID>) (att = attributes()) {return new Import(name.image, att);}
+      <IMPORTS> (name = <MODULENAME>) (att = attributes()) {return new Import(name.image, att);}
     | LOOKAHEAD(3)
-    <SYNTAX> (sort = <ID>) <COLONCOLONEQUALS> (label = <ID>) <LPAREN> (sorts = sorts()) <RPAREN> (att = attributes()) {return new SymbolDeclaration(sort.image, label.image, sorts, att);}
-    | <SYNTAX> (sort = <ID>) (att = attributes()) {return new SortDeclaration(sort.image, att);}
+    <SYNTAX> (sort = <ID> | sort = <MODULENAME>) <COLONCOLONEQUALS> (label = <SYMBOL>) <LPAREN> (sorts = sorts()) <RPAREN> (att = attributes()) {return new SymbolDeclaration(sort.image, label.image, sorts, att);}
+    | <SYNTAX> (sort = <ID> | sort = <MODULENAME>) (att = attributes()) {return new SortDeclaration(sort.image, att);}
     | <RULE> (p = pattern()) (att = attributes()) {return new Rule(p, att);}
     | <AXIOM> (p = pattern()) (att = attributes()) {return new Axiom(p, att);}
 }
@@ -196,10 +200,10 @@ Seq<String> sorts():
 {
     List<String> sortList;
     Seq<String> sorts;
-    Token sort;
+    Token sort = null;
 }
 {
     LOOKAHEAD(2)
-      (sort = <ID>) <COMMA> (sorts = sorts()) {sortList = mutable(sorts); sortList.add(0, sort.image); return immutable(sortList);}
-    | (sort = <ID>) {sortList = new ArrayList(); sortList.add(0, sort.image); return immutable(sortList);}
+      (sort = <ID> | sort = <MODULENAME> ) <COMMA> (sorts = sorts()) {sortList = mutable(sorts); sortList.add(0, sort.image); return immutable(sortList);}
+    | (sort = <ID> | sort = <MODULENAME>)? {sortList = new ArrayList(); if(sort != null) sortList.add(0, sort.image); return immutable(sortList);}
 }
