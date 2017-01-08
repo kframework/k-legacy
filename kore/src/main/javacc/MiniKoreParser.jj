@@ -58,17 +58,12 @@ TOKEN : {
      | <NEXT: "\\next">
      | <REWRITE: "\\rewrite">
      | <EQUAL: "\\equal">
-     | <ID : (["A" - "Z", "a" - "z", "0" - "9"])+>
+     | <ID : (["A" - "Z", "a" - "z", "0" - "9", "#"])+>
      | <COMMA: ",">
      | <VARSTRING: (["A" - "Z"])+ (["A" - "Z", "a" - "z", "0" - "9"])*>
-     | <SORT : (["A" - "Z", "a" - "z", "0" - "9"])+>
-     | <SYMBOL : (["A" - "Z", "a" - "z", "0" - "9", "#"])+>
+     | <STRING: "\"" (~["\""])+ "\"">
 }
 
-<STRING_STATE> TOKEN :
-{
-    <STRING : (~["\"", "[", "]", " "])+>
-}
 
 Definition parseDefinition():
 {
@@ -92,8 +87,8 @@ Seq<Module> modules():
 {
     <EOF> {return immutable(new ArrayList());}
     | LOOKAHEAD(2)
-      (m1 = module()) (m2 = modules ()) {m3 = mutable(m2); m3.add(m1); return immutable(m3);}
-    | (m1 = module()) {m3 = new ArrayList(); m3.add(m1); return immutable(m3);}
+      (m1 = module()) (m2 = modules ()) {m3 = mutable(m2); m3.add(0, m1); return immutable(m3);}
+    | (m1 = module()) {m3 = new ArrayList(); m3.add(0, m1); return immutable(m3);}
 }
 
 
@@ -106,9 +101,9 @@ Seq<Pattern> attributes():
 {
 
       LOOKAHEAD(2)
-      <LSQUARE> (p = pattern()) <RSQUARE> {patternList = new ArrayList(); patternList.add(p); return immutable(patternList);}
+      <LSQUARE> (p = pattern()) <RSQUARE> {patternList = new ArrayList(); patternList.add(0, p); return immutable(patternList);}
     | LOOKAHEAD(3)
-      <LSQUARE> (p = pattern()) <COMMA> (patterns = patterns())+ <RSQUARE> {patternList = mutable(patterns); patternList.add(p); return immutable(patternList);}
+      <LSQUARE> (p = pattern()) <COMMA> (patterns = patterns()) <RSQUARE> {patternList = mutable(patterns); patternList.add(0, p); return immutable(patternList);}
     | <LSQUARE> <RSQUARE> {return immutable(new ArrayList());}
 
 }
@@ -131,12 +126,11 @@ Seq<Pattern> patterns():
 {
     Seq<Pattern> patterns;
     List<Pattern> patternList;
-    Pattern p;
+    Pattern p = null;
 }
 {
-      (p = pattern()) {patternList = new ArrayList(); patternList.add(p); return immutable(patternList);}
-    | LOOKAHEAD(2)
-      (p = pattern()) <COMMA> (patterns = patterns()) {patternList = mutable(patterns); patternList.add(p); return immutable(patternList);}
+         (p = pattern())? {patternList = new ArrayList(); if(p != null) patternList.add(0, p); return immutable(patternList);}
+       | (p = pattern()) <COMMA> (patterns = patterns()) {patternList = mutable(patterns); patternList.add(0, p); return immutable(patternList);}
 }
 
 Pattern pattern():
@@ -150,18 +144,18 @@ Pattern pattern():
     Pattern p2;
 }
 {
-    (varstring = <VARSTRING>) <COLON> (sort = <SORT>) {return new Variable(varstring.image, sort.image);}
-    | LOOKAHEAD(2)
-    (symbol = <SYMBOL>) <LPAREN> (patterns = patterns()) <RPAREN> {return new Application(symbol.image, patterns);}
-    | (symbol = <SYMBOL>) <LPAREN> (string = <STRING>) <RPAREN> {return new DomainValue(symbol.image, string.image);}
+    (varstring = <VARSTRING>) <COLON> (sort = <ID>) {return new Variable(varstring.image, sort.image);}
+    | LOOKAHEAD(3)
+      (symbol = <ID>) <LPAREN> (string = <STRING>) <RPAREN> {return new DomainValue(symbol.image, string.image);}
+    | (symbol = <ID>) <LPAREN> (patterns = patterns()) <RPAREN> {return new Application(symbol.image, patterns);}
     | <TRUE> <LPAREN> <RPAREN> {return new True();}
     | <FALSE> <LPAREN> <RPAREN> {return new False();}
     | <AND> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return new And(p1, p2);}
     | <OR> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return new Or(p1, p2);}
     | <NOT> <LPAREN> (p1 = pattern()) <RPAREN> {return new Not(p1);}
     | <IMPLIES> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return new Implies(p1, p2);}
-    | <EXISTS> <LPAREN> (varstring = <VARSTRING>) <COLON> <COMMA> (sort = <SORT>) (p1 = pattern()) <RPAREN> {return new Exists(new Variable(varstring.image, sort.image), p1);}
-    | <FORALL> <LPAREN> (varstring = <VARSTRING>) <COLON> <COMMA> (sort = <SORT>) (p1 = pattern()) <RPAREN> {return new ForAll(new Variable(varstring.image, sort.image), p1);}
+    | <EXISTS> <LPAREN> (varstring = <VARSTRING>) <COLON> <COMMA> (sort = <ID>) (p1 = pattern()) <RPAREN> {return new Exists(new Variable(varstring.image, sort.image), p1);}
+    | <FORALL> <LPAREN> (varstring = <VARSTRING>) <COLON> <COMMA> (sort = <ID>) (p1 = pattern()) <RPAREN> {return new ForAll(new Variable(varstring.image, sort.image), p1);}
     | <NEXT> <LPAREN> (p1 = pattern()) <RPAREN> {return new Next(p1);}
     | <REWRITE> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return new Rewrite(p1, p2);}
     | <EQUAL> <LPAREN> (p1 = pattern()) <COMMA> (p2 = pattern()) <RPAREN> {return new Equal(p1, p2);}
@@ -175,8 +169,8 @@ Seq<Sentence> sentences():
 }
 {
          LOOKAHEAD(2)
-         (s = sentence()) (sentences = sentences()) {sentenceList = mutable(sentences); sentenceList.add(s); return immutable(sentenceList);}
-       | (s = sentence())? {sentenceList = new ArrayList(); if(s != null) { sentenceList.add(s);} return immutable(sentenceList);}
+         (s = sentence()) (sentences = sentences()) {sentenceList = mutable(sentences); sentenceList.add(0, s); return immutable(sentenceList);}
+       | (s = sentence())? {sentenceList = new ArrayList(); if(s != null) { sentenceList.add(0, s);} return immutable(sentenceList);}
 }
 
 Sentence sentence():
@@ -192,7 +186,7 @@ Sentence sentence():
 
       <IMPORTS> (name = <ID>) (att = attributes()) {return new Import(name.image, att);}
     | LOOKAHEAD(3)
-    <SYNTAX> (sort = <SORT>) <COLONCOLONEQUALS> (label = <SYMBOL>) <LPAREN> (sorts = sorts()) <RPAREN> (att = attributes()) {return new SymbolDeclaration(sort.image, label.image, sorts, att);}
+    <SYNTAX> (sort = <ID>) <COLONCOLONEQUALS> (label = <ID>) <LPAREN> (sorts = sorts()) <RPAREN> (att = attributes()) {return new SymbolDeclaration(sort.image, label.image, sorts, att);}
     | <SYNTAX> (sort = <ID>) (att = attributes()) {return new SortDeclaration(sort.image, att);}
     | <RULE> (p = pattern()) (att = attributes()) {return new Rule(p, att);}
     | <AXIOM> (p = pattern()) (att = attributes()) {return new Axiom(p, att);}
@@ -206,6 +200,6 @@ Seq<String> sorts():
 }
 {
     LOOKAHEAD(2)
-      (sort = <SORT>) <COMMA> (sorts = sorts()) {sortList = mutable(sorts); sortList.add(sort.image); return immutable(sortList);}
-    | (sort = <SORT>) {sortList = new ArrayList(); sortList.add(sort.image); return immutable(sortList);}
+      (sort = <ID>) <COMMA> (sorts = sorts()) {sortList = mutable(sorts); sortList.add(0, sort.image); return immutable(sortList);}
+    | (sort = <ID>) {sortList = new ArrayList(); sortList.add(0, sort.image); return immutable(sortList);}
 }
