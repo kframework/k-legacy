@@ -45,12 +45,12 @@ public class KompileFrontEnd extends FrontEnd {
 
         Kompile kompile = new Kompile(options, files, kem, sw);
         CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps());
-        loader.saveOrDie(files.resolveKompiled("kompiledDefinition.bin"), def.kompiledDefinition);
-        loader.saveOrDie(files.resolveKompiled("extras/kompileOptions.bin"), def.kompileOptions);
-        loader.saveOrDie(files.resolveKompiled("extras/parsedDefinition.bin"), def.getParsedDefinition());
-        loader.saveOrDie(files.resolveKompiled("extras/topCellInitializer.bin"), def.topCellInitializer);
+        loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN), def.kompiledDefinition);
+        loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN), def.kompileOptions);
+        loader.saveOrDie(files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN), def.getParsedDefinition());
+        loader.saveOrDie(files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN), def.topCellInitializer);
         koreBackend.accept(def);
-        loader.saveOrDie(files.resolveKompiled("extras/timestamp"), "");
+        loader.saveOrDie(files.resolveKompiled(FileUtil.TIMESTAMP), "");
         sw.printIntermediate("Save to disk");
         sw.printTotal("Total");
         return 0;

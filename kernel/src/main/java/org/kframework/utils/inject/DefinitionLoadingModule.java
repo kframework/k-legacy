@@ -47,25 +47,16 @@ public class DefinitionLoadingModule {
     }
 
     public static CompiledDefinition koreDefinition(BinaryLoader loader, FileUtil files) {
-        return koreDefinition(loader,
-                files.resolveKompiled("kompiledDefinition.bin"),
-                files.resolveKompiled("extras/kompileOptions.bin"),
-                files.resolveKompiled("extras/parsedDefinition.bin"),
-                files.resolveKompiled("extras/topCellInitializer.bin")
-        );
-    }
-
-    public static CompiledDefinition koreDefinition(BinaryLoader loader, File kompiledDefinitionBin, File kompileOptionsBin, File parsedDefinitionBin, File topCellInitializerBin) {
-        KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, kompileOptionsBin);
-        org.kframework.definition.Definition parsedDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, parsedDefinitionBin);
-        org.kframework.definition.Definition kompiledDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, kompiledDefinitionBin);
-        org.kframework.kore.KLabel topCellInitializer = loader.loadOrDie(org.kframework.kore.KLabel .class, topCellInitializerBin);
+        KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN));
+        org.kframework.definition.Definition parsedDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN));
+        org.kframework.definition.Definition kompiledDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN));
+        org.kframework.kore.KLabel topCellInitializer = loader.loadOrDie(org.kframework.kore.KLabel .class, files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN));
         return new CompiledDefinition(kompileOptions, parsedDefinition, kompiledDefinition, topCellInitializer);
     }
 
     public static KompileOptions kompileOptions(Context context, CompiledDefinition compiledDef, FileUtil files) {
         // a hack, but it's good enough for what we need from it, which is a temporary solution
-        if (files.resolveKompiled("extras/kompileOptions.bin").exists()) {
+        if (files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN).exists()) {
             KompileOptions res = compiledDef.kompileOptions;
             return res;
         } else {
