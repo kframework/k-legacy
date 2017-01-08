@@ -2,6 +2,8 @@
 package org.kframework.kompile;
 
 import org.kframework.main.FrontEnd;
+import org.kframework.minikore.KoreToMini;
+import org.kframework.minikore.KoreToMiniToKore;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KEMException;
@@ -45,7 +47,10 @@ public class KompileFrontEnd extends FrontEnd {
 
         Kompile kompile = new Kompile(options, files, kem, sw);
         CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps());
-        loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN), def.kompiledDefinition);
+        // KoreToMiniToKore.apply(def.kompiledDefinition); // for serialization/deserialization test
+        // KoreToMiniToKore.apply(def.getParsedDefinition()); // for serialization/deserialization test
+        files.saveToKompiled(FileUtil.KORE_TXT, KoreToMini.apply(def.kompiledDefinition).toString());
+        loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN), def.kompiledDefinition); // TODO(Daejun): drop
         loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN), def.kompileOptions);
         loader.saveOrDie(files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN), def.getParsedDefinition());
         loader.saveOrDie(files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN), def.topCellInitializer);

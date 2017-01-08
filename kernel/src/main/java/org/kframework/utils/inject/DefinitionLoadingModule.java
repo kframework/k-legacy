@@ -7,6 +7,7 @@ import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.krun.KRunOptions;
 import org.kframework.main.GlobalOptions;
+import org.kframework.minikore.MiniToKore;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KEMException;
@@ -47,9 +48,10 @@ public class DefinitionLoadingModule {
     }
 
     public static CompiledDefinition koreDefinition(BinaryLoader loader, FileUtil files) {
+//        org.kframework.definition.Definition kompiledDefinition = MiniToKore.apply(parsekore(files.loadFromKompiled(FileUtil.KORE_TXT)));
+        org.kframework.definition.Definition kompiledDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN)); // TODO(Daejun): drop
         KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN));
         org.kframework.definition.Definition parsedDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN));
-        org.kframework.definition.Definition kompiledDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN));
         org.kframework.kore.KLabel topCellInitializer = loader.loadOrDie(org.kframework.kore.KLabel .class, files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN));
         return new CompiledDefinition(kompileOptions, parsedDefinition, kompiledDefinition, topCellInitializer);
     }

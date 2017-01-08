@@ -35,6 +35,7 @@ public class FileUtil {
     private final GlobalOptions options;
     private final Map<String, String> env;
 
+    public static final String KORE_TXT = "kore.txt";
     public static final String KOMPILED_DEFINITION_BIN = "extras/kompiledDefinition.bin";
     public static final String KOMPILE_OPTIONS_BIN = "extras/kompileOptions.bin";
     public static final String PARSED_DEFINITION_BIN = "extras/parsedDefinition.bin";
