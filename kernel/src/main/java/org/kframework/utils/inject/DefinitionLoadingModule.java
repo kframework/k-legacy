@@ -47,8 +47,9 @@ public class DefinitionLoadingModule {
         return loader.loadOrDie(Definition.class, files.resolveKompiled("definition.bin"));
     }
 
+    // NOTE: should be matched with org.kframework.kompile.KompileFrontEnd.save()
     public static CompiledDefinition koreDefinition(BinaryLoader loader, FileUtil files) {
-//        org.kframework.definition.Definition kompiledDefinition = MiniToKore.apply(parsekore(files.loadFromKompiled(FileUtil.KORE_TXT)));
+        // org.kframework.definition.Definition kompiledDefinition = MiniToKore.apply(parsekore(files.loadFromKompiled(FileUtil.KORE_TXT))); // TODO(Daejun): plug in parser
         org.kframework.definition.Definition kompiledDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN)); // TODO(Daejun): drop
         KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN));
         org.kframework.definition.Definition parsedDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN));

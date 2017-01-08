@@ -48,6 +48,16 @@ public class KompileFrontEnd extends FrontEnd {
 
         Kompile kompile = new Kompile(options, files, kem, sw);
         CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps());
+        save(def);
+        koreBackend.accept(def);
+        loader.saveOrDie(files.resolveKompiled(FileUtil.TIMESTAMP), "");
+        sw.printIntermediate("Save to disk");
+        sw.printTotal("Total");
+        return 0;
+    }
+
+    // NOTE: should be matched with org.kframework.utils.inject.DefinitionLoadingModule.koreDefinition()
+    public void save(CompiledDefinition def) {
         // KoreToMiniToKore.apply(def.kompiledDefinition); // for serialization/deserialization test
         // KoreToMiniToKore.apply(def.getParsedDefinition()); // for serialization/deserialization test
         files.saveToKompiled(FileUtil.KORE_TXT, MiniToText.apply(KoreToMini.apply(def.kompiledDefinition)));
@@ -55,11 +65,6 @@ public class KompileFrontEnd extends FrontEnd {
         loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN), def.kompileOptions);
         loader.saveOrDie(files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN), def.getParsedDefinition());
         loader.saveOrDie(files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN), def.topCellInitializer);
-        koreBackend.accept(def);
-        loader.saveOrDie(files.resolveKompiled(FileUtil.TIMESTAMP), "");
-        sw.printIntermediate("Save to disk");
-        sw.printTotal("Total");
-        return 0;
     }
 }
 
