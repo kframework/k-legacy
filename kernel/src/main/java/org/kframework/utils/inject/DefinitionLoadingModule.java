@@ -48,23 +48,14 @@ public class DefinitionLoadingModule {
 
     public static CompiledDefinition koreDefinition(BinaryLoader loader, FileUtil files) {
         return koreDefinition(loader,
-                files.resolveKompiled("kompileOptions.bin"),
-                files.resolveKompiled("parsedDefinition.bin"),
                 files.resolveKompiled("kompiledDefinition.bin"),
-                files.resolveKompiled("topCellInitializer.bin")
+                files.resolveKompiled("extras/kompileOptions.bin"),
+                files.resolveKompiled("extras/parsedDefinition.bin"),
+                files.resolveKompiled("extras/topCellInitializer.bin")
         );
     }
 
-    public static CompiledDefinition koreDefinition(BinaryLoader loader, File kompiledDir) {
-        return koreDefinition(loader,
-                new File(kompiledDir, "kompileOptions.bin"),
-                new File(kompiledDir, "parsedDefinition.bin"),
-                new File(kompiledDir, "kompiledDefinition.bin"),
-                new File(kompiledDir, "topCellInitializer.bin")
-        );
-    }
-
-    public static CompiledDefinition koreDefinition(BinaryLoader loader, File kompileOptionsBin, File parsedDefinitionBin, File kompiledDefinitionBin, File topCellInitializerBin) {
+    public static CompiledDefinition koreDefinition(BinaryLoader loader, File kompiledDefinitionBin, File kompileOptionsBin, File parsedDefinitionBin, File topCellInitializerBin) {
         KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, kompileOptionsBin);
         org.kframework.definition.Definition parsedDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, parsedDefinitionBin);
         org.kframework.definition.Definition kompiledDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, kompiledDefinitionBin);
@@ -74,7 +65,7 @@ public class DefinitionLoadingModule {
 
     public static KompileOptions kompileOptions(Context context, CompiledDefinition compiledDef, FileUtil files) {
         // a hack, but it's good enough for what we need from it, which is a temporary solution
-        if (files.resolveKompiled("kompileOptions.bin").exists()) {
+        if (files.resolveKompiled("extras/kompileOptions.bin").exists()) {
             KompileOptions res = compiledDef.kompileOptions;
             return res;
         } else {

@@ -401,9 +401,9 @@ public class Main {
             String prelude = FileUtil.resolveWorkingDirectory(new File(keqOptions.smt.smtPrelude), workingDir).getAbsolutePath();
             String prove   = FileUtil.resolveWorkingDirectory(new File(keqOptions.parameters.get(0)), workingDir).getAbsolutePath();
 
-            CompiledDefinition compiledDef0 = DefinitionLoadingModule.koreDefinition(loader, def0File); // loader.loadOrDie(CompiledDefinition.class, new File(def0File, "compiled.bin"));
-            CompiledDefinition compiledDef1 = DefinitionLoadingModule.koreDefinition(loader, def1File); // loader.loadOrDie(CompiledDefinition.class, new File(def1File, "compiled.bin"));
-            CompiledDefinition compiledDef2 = DefinitionLoadingModule.koreDefinition(loader, def2File); // loader.loadOrDie(CompiledDefinition.class, new File(def2File, "compiled.bin"));
+            CompiledDefinition compiledDef0 = DefinitionLoadingModule.koreDefinition(loader, new FileUtil(null, null, null, def0File, null, null));
+            CompiledDefinition compiledDef1 = DefinitionLoadingModule.koreDefinition(loader, new FileUtil(null, null, null, def1File, null, null));
+            CompiledDefinition compiledDef2 = DefinitionLoadingModule.koreDefinition(loader, new FileUtil(null, null, null, def2File, null, null));
 
             // kequiv
             Kapi.kequiv(compiledDef0, compiledDef1, compiledDef2, prove, prelude);
