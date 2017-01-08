@@ -47,10 +47,28 @@ public class DefinitionLoadingModule {
     }
 
     public static CompiledDefinition koreDefinition(BinaryLoader loader, FileUtil files) {
-        KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, files.resolveKompiled("kompileOptions.bin"));
-        org.kframework.definition.Definition parsedDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled("parsedDefinition.bin"));
-        org.kframework.definition.Definition kompiledDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled("kompiledDefinition.bin"));
-        org.kframework.kore.KLabel topCellInitializer = loader.loadOrDie(org.kframework.kore.KLabel .class, files.resolveKompiled("topCellInitializer.bin"));
+        return koreDefinition(loader,
+                files.resolveKompiled("kompileOptions.bin"),
+                files.resolveKompiled("parsedDefinition.bin"),
+                files.resolveKompiled("kompiledDefinition.bin"),
+                files.resolveKompiled("topCellInitializer.bin")
+        );
+    }
+
+    public static CompiledDefinition koreDefinition(BinaryLoader loader, File kompiledDir) {
+        return koreDefinition(loader,
+                new File(kompiledDir, "kompileOptions.bin"),
+                new File(kompiledDir, "parsedDefinition.bin"),
+                new File(kompiledDir, "kompiledDefinition.bin"),
+                new File(kompiledDir, "topCellInitializer.bin")
+        );
+    }
+
+    public static CompiledDefinition koreDefinition(BinaryLoader loader, File kompileOptionsBin, File parsedDefinitionBin, File kompiledDefinitionBin, File topCellInitializerBin) {
+        KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, kompileOptionsBin);
+        org.kframework.definition.Definition parsedDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, parsedDefinitionBin);
+        org.kframework.definition.Definition kompiledDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, kompiledDefinitionBin);
+        org.kframework.kore.KLabel topCellInitializer = loader.loadOrDie(org.kframework.kore.KLabel .class, topCellInitializerBin);
         return new CompiledDefinition(kompileOptions, parsedDefinition, kompiledDefinition, topCellInitializer);
     }
 
