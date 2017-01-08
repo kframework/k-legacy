@@ -32,7 +32,7 @@ public class ExpandMacrosDefinitionTransformer implements Function<Definition, D
 
     @Override
     public Definition apply(Definition definition) {
-        ExpandMacros macroExpander = new ExpandMacros(definition.mainModule(), kem, files, globalOptions, kompileOptions);
+        ExpandMacros macroExpander = new ExpandMacros(definition.mainModule(), kem, files, globalOptions, kompileOptions.transition, kompileOptions.experimental.smt);
         MemoizingModuleTransformer expandMacros = (MemoizingModuleTransformer) ModuleTransformer.fromSentenceTransformer(macroExpander::expand, "expand macro rules");
         return new SelectiveDefinitionTransformer(expandMacros).apply(definition);
     }

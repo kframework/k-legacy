@@ -87,7 +87,7 @@ public class KoreUtils {
 
         Map<String, MethodHandle> hookProvider = HookProvider.get(kem);
         InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
-        initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions, krunOptions.global, kem, krunOptions.experimental.smt, hookProvider, kompileOptions, krunOptions, files, initializeDefinition);
+        initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions, krunOptions.global, kem, krunOptions.experimental.smt, hookProvider, kompileOptions.transition, krunOptions, files, initializeDefinition);
     }
 
     public K getParsed(String program, Source source) throws URISyntaxException {

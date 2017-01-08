@@ -143,7 +143,7 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
         };
 
 
-        ExpandMacros macroExpander = new ExpandMacros(compiledDefinition.kompiledDefinition.mainModule(), kem, files, globalOptions, compiledDefinition.kompileOptions);
+        ExpandMacros macroExpander = new ExpandMacros(compiledDefinition.kompiledDefinition.mainModule(), kem, files, globalOptions, compiledDefinition.kompileOptions.transition, compiledDefinition.kompileOptions.experimental.smt);
 
         List<Rule> rules = stream(mod.localRules())
                 .filter(r -> r.toString().contains("spec.k"))

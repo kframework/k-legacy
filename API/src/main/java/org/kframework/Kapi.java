@@ -167,7 +167,7 @@ public class Kapi {
 
         KOREtoBackendKIL converter = new KOREtoBackendKIL(compiledDef.executionModule(), evaluatedDef, rewritingContext.global(), false);
 
-        SymbolicRewriter rewriter = new SymbolicRewriter(rewritingContextGlobal, kapiGlobal.kompileOptions, new KRunState.Counter(), converter); // TODO:DROP
+        SymbolicRewriter rewriter = new SymbolicRewriter(rewritingContextGlobal, kapiGlobal.kompileOptions.transition, new KRunState.Counter(), converter); // TODO:DROP
 
         return Tuple2.apply(rewriter, rewritingContext);
     }
@@ -238,7 +238,7 @@ public class Kapi {
                 .apply(Definition.apply(specModule, org.kframework.Collections.<Module>add(specModule, alsoIncluded), Att.apply()))
                 .getModule(specModule.name()).get();
 
-        ExpandMacros macroExpander = new ExpandMacros(compiledDef0.executionModule(), kem, files, globalOptions, kompileOptions);
+        ExpandMacros macroExpander = new ExpandMacros(compiledDef0.executionModule(), kem, files, globalOptions, kompileOptions.transition, kompileOptions.experimental.smt);
 
         List<Rule> specRules = stream(specModule.localRules())
                 .filter(r -> r.toString().contains("spec.k"))
@@ -321,8 +321,8 @@ public class Kapi {
 
         //// prove spec rules
 
-        SymbolicRewriter rewriter1 = new SymbolicRewriter(rewritingContextGlobal1, kompileOptions, new KRunState.Counter(), converter1);
-        SymbolicRewriter rewriter2 = new SymbolicRewriter(rewritingContextGlobal2, kompileOptions, new KRunState.Counter(), converter2);
+        SymbolicRewriter rewriter1 = new SymbolicRewriter(rewritingContextGlobal1, kompileOptions.transition, new KRunState.Counter(), converter1);
+        SymbolicRewriter rewriter2 = new SymbolicRewriter(rewritingContextGlobal2, kompileOptions.transition, new KRunState.Counter(), converter2);
 
         assert (specRules1.size() == specRules2.size());
         assert (specRules1.size() == targetSpecRules1.size());
@@ -389,7 +389,7 @@ public class Kapi {
                 .apply(Definition.apply(specModule, org.kframework.Collections.add(specModule, alsoIncluded), Att.apply()))
                 .getModule(specModule.name()).get();
 
-        ExpandMacros macroExpander = new ExpandMacros(compiledDef.executionModule(), kapiGlobal.kem, kapiGlobal.files, kapiGlobal.globalOptions, kapiGlobal.kompileOptions);
+        ExpandMacros macroExpander = new ExpandMacros(compiledDef.executionModule(), kapiGlobal.kem, kapiGlobal.files, kapiGlobal.globalOptions, kapiGlobal.kompileOptions.transition, kapiGlobal.kompileOptions.experimental.smt);
 
         List<Rule> specRules = stream(specModule.localRules())
                 .filter(r -> r.toString().contains("spec.k"))
