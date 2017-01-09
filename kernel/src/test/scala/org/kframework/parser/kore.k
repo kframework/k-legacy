@@ -32,7 +32,7 @@ module KATTRIBUTES
   syntax KAttributes ::= KAttributes "," KAttributes [klabel(KAttributes), assoc, comm, unit(.KAttributes)]
 endmodule
 
-module KABSTRACT 
+module KABSTRACT
   imports KATTRIBUTES
 
   syntax KAbstract ::= KAttributeKey
