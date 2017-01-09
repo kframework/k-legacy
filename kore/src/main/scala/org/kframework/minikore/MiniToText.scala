@@ -19,9 +19,9 @@ object MiniToText {
     case Import(name, att) =>
       "imports " + name + " " + apply(att)
     case SortDeclaration(sort, att) =>
-      "syntax " + sort + " " + apply(att)
+      "syntax `" + sort + "` " + apply(att)
     case SymbolDeclaration(sort, label, args, att) =>
-      "syntax " + sort + " ::= " + label + "(" + args.mkString(",") + ") " + apply(att)
+      "syntax `" + sort + "` ::= `" + label + "`(" + args.map(x => "`" + x + "`").mkString(",") + ") " + apply(att)
     case Rule(pattern, att) =>
       "rule " + apply(pattern) + " " + apply(att)
     case Axiom(pattern, att) =>
@@ -29,9 +29,9 @@ object MiniToText {
   }
 
   def apply(pat: Pattern): String = pat match {
-    case Variable(name, sort) => name + ":" + sort
-    case Application(label, args) => label + "(" + args.map(apply).mkString(",") + ")"
-    case DomainValue(label, value) => label + "(\"" + StringEscapeUtils.escapeJava(value) + "\")"
+    case Variable(name, sort) => "`" + name + "`:`" + sort + "`"
+    case Application(label, args) => "`" + label + "`(" + args.map(apply).mkString(",") + ")"
+    case DomainValue(label, value) => "`" + label + "`(\"" + StringEscapeUtils.escapeJava(value) + "\")"
     case True() => "\\true()"
     case False() => "\\false()"
     case And(p, q) => "\\and(" + apply(p) + "," + apply(q) + ")"

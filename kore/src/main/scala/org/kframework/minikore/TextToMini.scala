@@ -384,28 +384,48 @@ object TextToMini {
           s.toString()
       }
     }
+    def loop2(s: StringBuilder): String = {
+      next() match {
+        case '`' =>
+          s.toString()
+        case c =>
+          s += c; loop2(s)
+      }
+    }
     next() match {
+      case '`' =>
+        loop2(new StringBuilder())
       case c if isNameStart(c) => loop(new StringBuilder(c.toString))
-      case _ => ???
+      case err => throw ParseError("Name", err)
     }
   }
   def isNameStart(c: Char): Boolean = {
-    'A' <= c && c <= 'Z'
+    ('A' <= c && c <= 'Z') || c == '#' || c == '_'
   }
 
-  // Symbol = [^[](),:]*
+  // Symbol = [^[](),:]* | ` [^`] `
   def parseSymbol(): String = {
-    def loop(s: StringBuilder): String = {
+    def loop1(s: StringBuilder): String = {
       next() match {
         case c if isSymbolChar(c) =>
-          s += c; loop(s)
+          s += c; loop1(s)
         case c => putback(c)
           s.toString()
       }
     }
+    def loop2(s: StringBuilder): String = {
+      next() match {
+        case '`' =>
+          s.toString()
+        case c =>
+          s += c; loop2(s)
+      }
+    }
     next() match {
+      case '`' =>
+        loop2(new StringBuilder())
       case c if isSymbolChar(c) =>
-        loop(new StringBuilder(c.toString))
+        loop1(new StringBuilder(c.toString))
       case err => throw ParseError("Symbol", err)
     }
   }
