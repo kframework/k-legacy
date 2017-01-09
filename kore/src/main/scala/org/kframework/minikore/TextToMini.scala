@@ -445,7 +445,7 @@ object TextToMini {
   def test(file: java.io.File): Unit = {
     Scanner.init(file)
     println("-------------------------")
-    val now = java.lang.System.nanoTime();
+    val now = java.lang.System.nanoTime()
     try {
       println(next())
       println(next())
@@ -458,7 +458,7 @@ object TextToMini {
       case _: java.io.EOFException => println("end of file")
       case _: Throwable => ???
     }
-    println(java.lang.System.nanoTime() - now);
+    println(java.lang.System.nanoTime() - now)
     println("-------------------------")
   }
 
