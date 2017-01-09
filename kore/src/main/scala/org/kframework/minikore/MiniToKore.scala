@@ -132,7 +132,7 @@ object MiniToKore {
 
     case Application(label, args) => KApply(KLabel(label), args.map(apply), att)
     case DomainValue(label, value) => KToken(value, Sort(label), att)
-    case Variable(name, "") => KVariable(name, att)
+    case Variable(name, "_") => KVariable(name, att)
     case Variable(name, _) => SortedKVariable(name, att)
     case Rewrite(left, right) => KRewrite(apply(left), apply(right), att)
     case _ => ???

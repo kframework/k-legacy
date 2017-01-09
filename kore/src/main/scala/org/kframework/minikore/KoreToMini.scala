@@ -110,7 +110,7 @@ object KoreToMini {
     val p = k match {
       case KApply(klabel, klist) => Application(klabel.name, klist.map(apply))
       case kvar @ SortedKVariable(name, _) => Variable(name, kvar.sort.name) // assert(att == k.att)
-      case KVariable(name) => Variable(name, "") // TODO(Daejun): apply(SortedKVariable(name, k.att)) // from SortedADT in ADT.scala
+      case KVariable(name) => Variable(name, "_") // TODO(Daejun): apply(SortedKVariable(name, k.att)) // from SortedADT in ADT.scala
       case KToken(s, sort) => DomainValue(sort.name, s)
       case KSequence(ks) => encodeKSeq(ks.map(apply))
       case KRewrite(left, right) => Rewrite(apply(left), apply(right))
