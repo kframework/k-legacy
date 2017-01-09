@@ -1,5 +1,6 @@
 package org.kframework.minikore
 
+import org.apache.commons.lang3.StringEscapeUtils
 import org.kframework.minikore.MiniKore._
 
 // directly using BufferedReader without the wrapper of Scala's BufferedSource
@@ -95,7 +96,8 @@ object TextToMini {
   def expect(str: String): Unit = {
     for (c <- str) {
       val n = next()
-      if (n != c) throw ParseError(c, n)
+      if (n == c) ()
+      else throw ParseError(c, n)
     }
   }
 
@@ -341,8 +343,8 @@ object TextToMini {
           s.toString()
         case '\\' =>
           val c = next()
-          ??? // TODO(Daejun): handle escape char
-          s += c; loop(s)
+          val s1 = StringEscapeUtils.unescapeJava("\\" + c)
+          s ++= s1; loop(s)
         case c =>
           s += c; loop(s)
       }
@@ -410,7 +412,7 @@ object TextToMini {
   def isSymbolChar(c: Char): Boolean = {
     val i = c.toInt
     33 <= i && i <= 126 && // non-white-space characters: from ! to ~
-      i != '[' && i != ']' && i != '(' && i != ')' && i != ',' && i != ':' // && i != '='
+      i != '[' && i != ']' && i != '(' && i != ')' && i != ':' // && i != '=' && i != ','
   }
 
   // List{Elem, <sep>, <endsWith>}
@@ -428,7 +430,7 @@ object TextToMini {
         case c if c == sep =>
           val elem = parseElem()
           parseList2(lst :+ elem)
-        case err => throw ParseError(s"$endsWith or $sep", err)
+        case err => throw ParseError(endsWith.toString + " or " + sep, err)
       }
     }
     next() match {
