@@ -7,16 +7,24 @@ object ScannerJava {
   // should be used after `init()`
   private var bufferedReader: java.io.BufferedReader = _
   var input: Iterator[Char] = _
+  var line: String = _
+  var lineNum: Int = _
+  var columnNum: Int = _
   //
   def init(file: java.io.File): Unit = {
     bufferedReader = new java.io.BufferedReader(new java.io.FileReader(file))
+    line = ""
+    lineNum = 0
+    columnNum = 0
     readLine()
   }
   //
   def readLine(): Unit = {
-    val line = bufferedReader.readLine()
+    line = bufferedReader.readLine()
     if (line == null) throw new java.io.EOFException()
     input = line.iterator // TODO(Daejun): how efficient is it to generate iterator view of Java string?
+    lineNum += 1
+    columnNum = 0
   }
 }
 
@@ -25,16 +33,25 @@ object ScannerScala {
   private var stream: io.Source = _
   private var lines: Iterator[String] = _
   var input: Iterator[Char] = _
+  var line: String = _
+  var lineNum: Int = _
+  var columnNum: Int = _
   //
   def init(file: java.io.File): Unit = {
     stream = io.Source.fromFile(file)
     lines = stream.getLines()
+    line = ""
+    lineNum = 0
+    columnNum = 0
     readLine()
   }
   //
   def readLine(): Unit = {
     if (lines.hasNext) {
-      input = lines.next().iterator
+      line = lines.next()
+      input = line.iterator
+      lineNum += 1
+      columnNum = 0
     } else { // end of file
       throw new java.io.EOFException()
     }
@@ -54,8 +71,10 @@ object TextToMini {
         c
       case None =>
         if (Scanner.input.hasNext) {
+          Scanner.columnNum += 1
           Scanner.input.next() match {
-            case ' ' | '\t' => next() // skip white spaces
+            case ' '  => next() // skip white spaces
+            case '\t' => Scanner.columnNum += 3; next() // skip white spaces
             case '\n' | '\r' => ??? // next() // stream.getLines implicitly drops newline characters
             case c => c
           }
@@ -75,8 +94,30 @@ object TextToMini {
   //
   def expect(str: String): Unit = {
     for (c <- str) {
-      if (next() == c) ()
-      else ???
+      val n = next()
+      if (n != c) throw ParseError(c, n)
+    }
+  }
+
+  case class ParseError() extends Exception
+  object ParseError {
+    def apply(expected: String, actual: String): ParseError = {
+      Console.err.println(
+        "ERROR: " + "Line " + Scanner.lineNum + ": Column " + Scanner.columnNum + ": " +
+          "Expected " + expected + ", but " + actual + "\n" +
+          Scanner.line + "\n" +
+          List.fill(Scanner.columnNum - 1)(' ').mkString + "^"
+      )
+      ParseError()
+    }
+    def apply(expected: String, actual: Char): ParseError = {
+      apply(expected, actual.toString)
+    }
+    def apply(expected: Char, actual: String): ParseError = {
+      apply(expected.toString, actual)
+    }
+    def apply(expected: Char, actual: Char): ParseError = {
+      apply(expected.toString, actual.toString)
     }
   }
 
@@ -155,6 +196,7 @@ object TextToMini {
             val (symbol, args, att) = parseSymbolDeclaration()
             val sen = SymbolDeclaration(sort, symbol, args, att)
             parseSentences(sentences :+ sen)
+          case err => throw ParseError("[ or :", err)
         }
       case 'r' => expect("ule")
         val sen = parseRule()
@@ -205,24 +247,16 @@ object TextToMini {
   //         | \true ( )
   //         | \false ( )
   //         | \and ( Pattern , Pattern )
-  //         | ...
+  //         | \or ( Pattern , Pattern )
+  //         | \not ( Pattern )
+  //         | \implies ( Pattern , Pattern )
+  //         | \exists ( Variable , Pattern )
+  //         | \forall ( Variable , Pattern )
+  //         | \next ( Pattern )
+  //         | \rewrite ( Pattern , Pattern )
+  //         | \equal ( Pattern , Pattern )
   def parsePattern(): Pattern = {
     next() match {
-      case c if isNameStart(c) => putback(c)
-        parseVariable()
-      case c if isSymbolStart(c) => putback(c)
-        val symbol = parseSymbol()
-        expect("(")
-        next() match {
-          case '"' => putback('"')
-            val value = parseString()
-            expect(")")
-            DomainValue(symbol, value)
-          case c => putback(c)
-            val args = parseList(parsePattern, ',', ')')
-            expect(")")
-            Application(symbol, args)
-        }
       case '\\' =>
         val c1 = next()
         val c2 = next()
@@ -265,9 +299,27 @@ object TextToMini {
             val p1 = parsePattern(); expect(",")
             val p2 = parsePattern(); expect(")")
             Equal(p1, p2)
-          case _ => ???
+          case err => throw ParseError("matching logic connectives", err.toString())
         }
-      case _ => ???
+      case c => putback(c)
+        val symbol = parseSymbol()
+        next() match {
+          case ':' => // TODO(Daejun): check if symbol is Name
+            val sort = parseName()
+            Variable(symbol, sort)
+          case '(' =>
+            next() match {
+              case '"' => putback('"')
+                val value = parseString()
+                expect(")")
+                DomainValue(symbol, value)
+              case c => putback(c)
+                val args = parseList(parsePattern, ',', ')')
+                expect(")")
+                Application(symbol, args)
+            }
+          case err => throw ParseError(": or (", err)
+        }
     }
   }
 
@@ -297,7 +349,7 @@ object TextToMini {
     }
     next() match {
       case '"' => loop(new StringBuilder())
-      case _ => ???
+      case err => throw ParseError('"', err)
     }
   }
 
@@ -313,38 +365,18 @@ object TextToMini {
     }
     next() match {
       case c if isModuleNameStart(c) => loop(new StringBuilder(c.toString))
-      case _ => ???
+      case err => throw ParseError("ModuleName", err)
     }
   }
   def isModuleNameStart(c: Char): Boolean = {
     'A' <= c && c <= 'Z'
   }
 
-  // Symbol = [a-z#$@%^_][a-zA-Z0-9_]*
-  def parseSymbol(): String = {
-    def loop(s: StringBuilder): String = {
-      next() match {
-        case c if ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '_'  =>
-          s += c; loop(s)
-        case c => putback(c)
-          s.toString()
-      }
-    }
-    next() match {
-      case c if isSymbolStart(c) =>
-        loop(new StringBuilder(c.toString))
-      case _ => ???
-    }
-  }
-  def isSymbolStart(c: Char): Boolean = {
-    ('a' <= c && c <= 'z') || c == '#' || c == '$' || c == '@' || c == '%' || c == '^' || c == '_'
-  }
-
-  // Name = [A-Z][a-zA-Z]*  // for Sort or VariableName
+  // Name = [A-Z][a-zA-Z-@]*  // for Sort or VariableName
   def parseName(): String = {
     def loop(s: StringBuilder): String = {
       next() match {
-        case c if ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') =>
+        case c if ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '@' || c == '-' =>
           s += c; loop(s)
         case c => putback(c)
           s.toString()
@@ -357,6 +389,28 @@ object TextToMini {
   }
   def isNameStart(c: Char): Boolean = {
     'A' <= c && c <= 'Z'
+  }
+
+  // Symbol = [^[](),:]*
+  def parseSymbol(): String = {
+    def loop(s: StringBuilder): String = {
+      next() match {
+        case c if isSymbolChar(c) =>
+          s += c; loop(s)
+        case c => putback(c)
+          s.toString()
+      }
+    }
+    next() match {
+      case c if isSymbolChar(c) =>
+        loop(new StringBuilder(c.toString))
+      case err => throw ParseError("Symbol", err)
+    }
+  }
+  def isSymbolChar(c: Char): Boolean = {
+    val i = c.toInt
+    33 <= i && i <= 126 && // non-white-space characters: from ! to ~
+      i != '[' && i != ']' && i != '(' && i != ')' && i != ',' && i != ':' // && i != '='
   }
 
   // List{Elem, <sep>, <endsWith>}
@@ -374,7 +428,7 @@ object TextToMini {
         case c if c == sep =>
           val elem = parseElem()
           parseList2(lst :+ elem)
-        case _ => ???
+        case err => throw ParseError(s"$endsWith or $sep", err)
       }
     }
     next() match {
