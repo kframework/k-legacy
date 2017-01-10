@@ -66,7 +66,7 @@ class ScannerScala {
 }
 
 class TextToMini {
-  val Scanner = new ScannerScala() // ScannerJava // TODO(Daejun): compare performance against ScannerJava
+  val Scanner = new ScannerScala() // new ScannerJava() // TODO(Daejun): compare performance against ScannerJava
 
   // abstract unreadable stream: next(), putback()
   var lookahead: Option[Char] = None
@@ -135,8 +135,8 @@ class TextToMini {
   //////////////////////////////////////////////////////////
 
   def parse(file: java.io.File): Definition = {
-    Scanner.init(file)
     try {
+      Scanner.init(file)
       parseDefinition()
     } finally {
       Scanner.close()
@@ -201,7 +201,7 @@ class TextToMini {
         val sen = parseImport()
         parseSentences(sentences :+ sen)
       case 's' => expect("yntax")
-        val sort = parseName()
+        val sort = parseSort()
         next() match {
           case '[' => putback('[')
             val att = parseAttributes()
@@ -229,7 +229,7 @@ class TextToMini {
   def parseSymbolDeclaration(): Tuple3[String, Seq[String], Attributes] = {
     val symbol = parseSymbol()
     expect("(")
-    val args = parseList(parseName, ',', ')')
+    val args = parseList(parseSort, ',', ')')
     expect(")")
     val att = parseAttributes()
     (symbol, args, att)
@@ -317,10 +317,10 @@ class TextToMini {
           case err => throw ParseError("matching logic connectives", err.toString())
         }
       case c => putback(c)
-        val symbol = parseSymbol()
+        val symbol = parseSymbol() // or parseName()
         next() match {
           case ':' => // TODO(Daejun): check if symbol is Name
-            val sort = parseName()
+            val sort = parseSort()
             Variable(symbol, sort)
           case '(' =>
             next() match {
@@ -342,7 +342,7 @@ class TextToMini {
   def parseVariable(): Variable = {
     val name = parseName()
     expect(":")
-    val sort = parseName()
+    val sort = parseSort()
     Variable(name, sort)
   }
 
@@ -387,65 +387,83 @@ class TextToMini {
     'A' <= c && c <= 'Z'
   }
 
-  // Name = [A-Z][a-zA-Z-@]*  // for Sort or VariableName
-  def parseName(): String = {
+  // TODO(Daejun): double check Sort, Name, Symbol
+
+  // Sort = Name
+  def parseSort(): String = parseName() // TODO(Daejun): directly alias function name instead of redirection?
+
+  // Name = Symbol
+  def parseName(): String = parseSymbol()
+
+//  // Name = [A-Z][a-zA-Z@-]*  // for Sort or VariableName
+//  //      | EscapedSymbol
+//  def parseName(): String = {
+//    def loop(s: StringBuilder): String = {
+//      next() match {
+//        case c if ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '@' || c == '-' =>
+//          s += c; loop(s)
+//        case c => putback(c)
+//          s.toString()
+//      }
+//    }
+//    next() match {
+//      case '`' => putback('`')
+//        parseEscapedSymbol()
+//      case c if isNameStart(c) =>
+//        loop(new StringBuilder(c.toString))
+//      case err => throw ParseError("Name", err)
+//    }
+//  }
+//  def isNameStart(c: Char): Boolean = {
+//    'A' <= c && c <= 'Z'
+//  }
+
+  // Symbol = SymbolChar+
+  //        | EscapedSymbol
+  def parseSymbol(): String = {
     def loop(s: StringBuilder): String = {
       next() match {
-        case c if ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '@' || c == '-' =>
+        case c if isSymbolChar(c) =>
           s += c; loop(s)
         case c => putback(c)
           s.toString()
       }
     }
-    def loop2(s: StringBuilder): String = {
-      next() match {
-        case '`' =>
-          s.toString()
-        case c =>
-          s += c; loop2(s)
-      }
-    }
     next() match {
-      case '`' =>
-        loop2(new StringBuilder())
-      case c if isNameStart(c) => loop(new StringBuilder(c.toString))
-      case err => throw ParseError("Name", err)
-    }
-  }
-  def isNameStart(c: Char): Boolean = {
-    ('A' <= c && c <= 'Z') || c == '#' || c == '_'
-  }
-
-  // Symbol = [^[](),:]* | ` [^`] `
-  def parseSymbol(): String = {
-    def loop1(s: StringBuilder): String = {
-      next() match {
-        case c if isSymbolChar(c) =>
-          s += c; loop1(s)
-        case c => putback(c)
-          s.toString()
-      }
-    }
-    def loop2(s: StringBuilder): String = {
-      next() match {
-        case '`' =>
-          s.toString()
-        case c =>
-          s += c; loop2(s)
-      }
-    }
-    next() match {
-      case '`' =>
-        loop2(new StringBuilder())
+      case '`' => putback('`')
+        parseEscapedSymbol()
       case c if isSymbolChar(c) =>
-        loop1(new StringBuilder(c.toString))
+        loop(new StringBuilder(c.toString))
       case err => throw ParseError("Symbol", err)
     }
   }
+  // SymbolChar = [a-zA-Z0-9@#$%^_-]+
   def isSymbolChar(c: Char): Boolean = {
-    val i = c.toInt
-    33 <= i && i <= 126 && // non-white-space characters: from ! to ~
-      i != '[' && i != ']' && i != '(' && i != ')' && i != ':' // && i != '=' && i != ','
+    ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') ||
+      c == '@' || c == '#' || c == '$' || c == '%' || c == '^' || c == '_' || c == '-'
+  }
+//  // SymbolChar = [^[]():]
+//  def isSymbolChar(c: Char): Boolean = {
+//    val i = c.toInt
+//    33 <= i && i <= 126 && // non-white-space characters: from ! to ~ except the following:
+//      i != '[' && i != ']' && i != '(' && i != ')' && i != ':' // && i != '=' && i != ','
+//  }
+
+  // EscapedSymbol = ` [^`] `
+  def parseEscapedSymbol(): String = {
+    def loop(s: StringBuilder): String = {
+      next() match {
+        case '`' =>
+          s.toString()
+        case c =>
+          s += c; loop(s)
+      }
+    }
+    next() match {
+      case '`' =>
+        loop(new StringBuilder())
+      case err => throw ParseError('`', err)
+    }
   }
 
   // List{Elem, <sep>, <endsWith>}
