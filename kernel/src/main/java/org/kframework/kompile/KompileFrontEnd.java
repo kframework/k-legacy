@@ -65,7 +65,7 @@ public class KompileFrontEnd extends FrontEnd {
         loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN), def.kompileOptions);
         loader.saveOrDie(files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN), def.getParsedDefinition());
         loader.saveOrDie(files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN), def.topCellInitializer);
-        saveTest(def);
+        // saveTest(def);
     }
 
     public void saveTest(CompiledDefinition def) {
