@@ -7,8 +7,8 @@ import org.kframework.kore.{KApply, KToken, KVariable, _}
 import org.kframework.parser.{Constant, Term, TermCons}
 import org.pcollections.ConsPStack
 
-import collection._
-import JavaConverters._
+import scala.collection.JavaConverters._
+import scala.collection._
 
 object KOREToTreeNodes {
 
@@ -17,9 +17,10 @@ object KOREToTreeNodes {
   def apply(t: K, mod: Module): Term = t match {
     case t: KToken => Constant(t.s, mod.tokenProductionsFor(Sort(t.sort.name)).head, t.att.getOptional[Location]("Location"), t.att.getOptional[Source]("Source"))
     case a: KApply =>
-      val production: Production = if (mod.productionsFor.contains(a.klabel)) mod.productionsFor(KLabel(a.klabel.name)).find(p => p.items.count(_.isInstanceOf[NonTerminal]) == a.klist.size).get else a.klabel.name match {
+      val production: Production = if (mod.productionsFor.contains(a.klabel)) {mod.productionsFor(KLabel(a.klabel.name)).find(p => p.items.count(_.isInstanceOf[NonTerminal]) == a.klist.size).get} else {a.klabel.name match {
         case "#KRewrite" => Production(a.klabel.name, Sort("K"), LinearSeq(NonTerminal("K"), Terminal("=>"), NonTerminal("K")))
-      }
+        case _ => Production(a.klabel.name, Sort("K"), LinearSeq.empty)
+      }}
       TermCons(ConsPStack.from((a.klist.items.asScala map { i: K => apply(i, mod) }).reverse asJava),
         production, t.att.getOptional[Location]("Location"), t.att.getOptional[Source]("Source"))
   }
