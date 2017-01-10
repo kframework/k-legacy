@@ -35,5 +35,4 @@ object MiniKore {
   case class Rewrite(p: Pattern, q: Pattern) extends Pattern
   case class Equal(p: Pattern, q: Pattern) extends Pattern
 
-  def assertequal(d1: Definition, d2: Definition): Unit = assert(d1 == d2)
 }

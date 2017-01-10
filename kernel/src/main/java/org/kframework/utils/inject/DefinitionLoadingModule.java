@@ -7,7 +7,6 @@ import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.krun.KRunOptions;
 import org.kframework.main.GlobalOptions;
-import org.kframework.minikore.MiniKore;
 import org.kframework.minikore.MiniToKore;
 import org.kframework.minikore.TextToMini;
 import org.kframework.utils.BinaryLoader;
@@ -52,6 +51,7 @@ public class DefinitionLoadingModule {
     // NOTE: should be matched with org.kframework.kompile.KompileFrontEnd.save()
     public static CompiledDefinition koreDefinition(BinaryLoader loader, FileUtil files) {
         org.kframework.definition.Definition kompiledDefinition = MiniToKore.apply(new TextToMini().parse(files.resolveKompiled(FileUtil.KORE_TXT)));
+        // org.kframework.definition.Definition kompiledDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN)); // deprecated
         KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN));
         org.kframework.definition.Definition parsedDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN));
         org.kframework.kore.KLabel topCellInitializer = loader.loadOrDie(org.kframework.kore.KLabel .class, files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN));
