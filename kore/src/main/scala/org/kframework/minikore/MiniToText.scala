@@ -4,6 +4,8 @@ import org.apache.commons.lang3.StringEscapeUtils
 import org.kframework.minikore.MiniKore._
 
 object MiniToText {
+  // TODO(Daejun): more efficient implementation using StringBuilder instead of string concatenation
+
   def apply(d: Definition): String = {
     apply(d.att) + "\n\n" +
     d.modules.map(apply).mkString("\n\n")
@@ -19,9 +21,9 @@ object MiniToText {
     case Import(name, att) =>
       "imports " + name + " " + apply(att)
     case SortDeclaration(sort, att) =>
-      "syntax `" + sort + "` " + apply(att)
+      "syntax " + apply(sort) + " " + apply(att)
     case SymbolDeclaration(sort, label, args, att) =>
-      "syntax `" + sort + "` ::= `" + label + "`(" + args.map(x => "`" + x + "`").mkString(",") + ") " + apply(att)
+      "syntax " + apply(sort) + " ::= " + apply(label) + "(" + args.map(apply).mkString(",") + ") " + apply(att)
     case Rule(pattern, att) =>
       "rule " + apply(pattern) + " " + apply(att)
     case Axiom(pattern, att) =>
@@ -29,9 +31,9 @@ object MiniToText {
   }
 
   def apply(pat: Pattern): String = pat match {
-    case Variable(name, sort) => "`" + name + "`:`" + sort + "`"
-    case Application(label, args) => "`" + label + "`(" + args.map(apply).mkString(",") + ")"
-    case DomainValue(label, value) => "`" + label + "`(\"" + StringEscapeUtils.escapeJava(value) + "\")"
+    case Variable(name, sort) => apply(name) + ":" + apply(sort)
+    case Application(label, args) => apply(label) + "(" + args.map(apply).mkString(",") + ")"
+    case DomainValue(label, value) => apply(label) + "(\"" + StringEscapeUtils.escapeJava(value) + "\")"
     case True() => "\\true()"
     case False() => "\\false()"
     case And(p, q) => "\\and(" + apply(p) + "," + apply(q) + ")"
@@ -47,6 +49,12 @@ object MiniToText {
 
   def apply(att: Attributes): String = {
     "[" + att.map(apply).mkString(",") + "]"
+  }
+
+  def apply(s: String): String = {
+    if (s == "" || s.exists(c => !TextToMini.isSymbolChar(c))) {
+      "`" + s + "`"
+    } else s
   }
 
 }

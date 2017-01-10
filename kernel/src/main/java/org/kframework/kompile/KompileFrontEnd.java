@@ -60,14 +60,18 @@ public class KompileFrontEnd extends FrontEnd {
 
     // NOTE: should be matched with org.kframework.utils.inject.DefinitionLoadingModule.koreDefinition()
     public void save(CompiledDefinition def) {
-        // KoreToMiniToKore.apply(def.kompiledDefinition); // for serialization/deserialization test
-        // KoreToMiniToKore.apply(def.getParsedDefinition()); // for serialization/deserialization test
         files.saveToKompiled(FileUtil.KORE_TXT, MiniToText.apply(KoreToMini.apply(def.kompiledDefinition)));
-        // MiniToTextToMini.assertequal(KoreToMini.apply(def.kompiledDefinition), new TextToMini().parse(files.resolveKompiled(FileUtil.KORE_TXT))); // for serialization/deserialization test
         // loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN), def.kompiledDefinition); // deprecated
         loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN), def.kompileOptions);
         loader.saveOrDie(files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN), def.getParsedDefinition());
         loader.saveOrDie(files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN), def.topCellInitializer);
+        saveTest(def);
+    }
+
+    public void saveTest(CompiledDefinition def) {
+        KoreToMiniToKore.apply(def.kompiledDefinition); // for serialization/deserialization test
+        KoreToMiniToKore.apply(def.getParsedDefinition()); // for serialization/deserialization test
+        MiniToTextToMini.assertequal(KoreToMini.apply(def.kompiledDefinition), new TextToMini().parse(files.resolveKompiled(FileUtil.KORE_TXT))); // for serialization/deserialization test
     }
 }
 

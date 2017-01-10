@@ -390,7 +390,7 @@ class TextToMini {
   // TODO(Daejun): double check Sort, Name, Symbol
 
   // Sort = Name
-  def parseSort(): String = parseName() // TODO(Daejun): directly alias function name instead of redirection?
+  def parseSort(): String = parseName() // TODO(Daejun): directly alias function name instead of delegation?
 
   // Name = Symbol
   def parseName(): String = parseSymbol()
@@ -437,17 +437,7 @@ class TextToMini {
       case err => throw ParseError("Symbol", err)
     }
   }
-  // SymbolChar = [a-zA-Z0-9@#$%^_-]+
-  def isSymbolChar(c: Char): Boolean = {
-    ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') ||
-      c == '@' || c == '#' || c == '$' || c == '%' || c == '^' || c == '_' || c == '-'
-  }
-//  // SymbolChar = [^[]():]
-//  def isSymbolChar(c: Char): Boolean = {
-//    val i = c.toInt
-//    33 <= i && i <= 126 && // non-white-space characters: from ! to ~ except the following:
-//      i != '[' && i != ']' && i != '(' && i != ')' && i != ':' // && i != '=' && i != ','
-//  }
+  def isSymbolChar(c: Char): Boolean = TextToMini.isSymbolChar(c) // TODO(Daejun): more efficient way?
 
   // EscapedSymbol = ` [^`] `
   def parseEscapedSymbol(): String = {
@@ -513,4 +503,18 @@ class TextToMini {
     println("-------------------------")
   }
 
+}
+
+object TextToMini {
+  // SymbolChar = [a-zA-Z0-9@#$%^_-]+
+  def isSymbolChar(c: Char): Boolean = {
+    ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') ||
+      c == '@' || c == '#' || c == '$' || c == '%' || c == '^' || c == '_' || c == '-'
+  }
+//  // SymbolChar = [^[]():]
+//  def isSymbolChar(c: Char): Boolean = {
+//    val i = c.toInt
+//    33 <= i && i <= 126 && // non-white-space characters: from ! to ~ except the following:
+//      i != '[' && i != ']' && i != '(' && i != ')' && i != ':' // && i != '=' && i != ','
+//  }
 }
