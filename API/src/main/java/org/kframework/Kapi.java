@@ -366,15 +366,11 @@ public class Kapi {
         GlobalOptions globalOptions = new GlobalOptions();
         KompileOptions kompileOptions = new KompileOptions();
         KRunOptions krunOptions = new KRunOptions();
-        JavaExecutionOptions javaExecutionOptions = new JavaExecutionOptions();
 
         KExceptionManager kem = new KExceptionManager(globalOptions);
         Stopwatch sw = new Stopwatch(globalOptions);
         FileUtil files = FileUtil.get(globalOptions, System.getenv());
 
-        FileSystem fs = new PortableFileSystem(kem, files);
-        Map<String, MethodHandle> hookProvider = HookProvider.get(kem); // new HashMap<>();
-        InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
 
         //// setting options
 
@@ -405,41 +401,8 @@ public class Kapi {
                 //.map(r -> kompile.compileRule(compiledDefinition, r))
                 .collect(Collectors.toList());
 
-        SMTOptions smtOptions = krunOptions.experimental.smt;
+        return specRules;
 
-        GlobalContext initializingContextGlobal = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING);
-
-        TermContext initializingContext = TermContext.builder(initializingContextGlobal).freshCounter(0).build();
-
-        org.kframework.backend.java.kil.Definition evaluatedDef = initializeDefinition.invoke(compiledDef.executionModule(), kem, initializingContext.global());
-
-        GlobalContext rewritingContextGlobal = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
-
-        rewritingContextGlobal.setDefinition(evaluatedDef);
-
-        TermContext rewritingContext = TermContext.builder(rewritingContextGlobal).freshCounter(initializingContext.getCounterValue()).build();
-
-        KOREtoBackendKIL converter = new KOREtoBackendKIL(compiledDef.executionModule(), evaluatedDef, rewritingContext.global(), false);
-
-        List<org.kframework.backend.java.kil.Rule> javaRules = specRules.stream()
-                .map(r -> converter.convert(Optional.<Module>empty(), r))
-                .map(r -> new org.kframework.backend.java.kil.Rule(
-                        r.label(),
-                        r.leftHandSide().evaluate(rewritingContext), // TODO: drop?
-                        r.rightHandSide().evaluate(rewritingContext), // TODO: drop?
-                        r.requires(),
-                        r.ensures(),
-                        r.freshConstants(),
-                        r.freshVariables(),
-                        r.lookups(),
-                        r,
-                        rewritingContext.global())) // register definition to be used for execution of the current rule
-                .collect(Collectors.toList());
-
-
-        //TODO: Deal with Attributes?
-        return javaRules.stream().map(x -> Rule.apply(KORE.KApply(KORE.KLabel(KLabels.KREWRITE), x.leftHandSide(),
-                x.rightHandSide()), x.getRequires(), x.getEnsures(), KORE.emptyAtt())).collect(Collectors.toList());
     }
 
     /**
