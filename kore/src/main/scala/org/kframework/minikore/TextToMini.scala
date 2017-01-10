@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringEscapeUtils
 import org.kframework.minikore.MiniKore._
 
 // directly using BufferedReader without the wrapper of Scala's BufferedSource
-object ScannerJava {
+class ScannerJava {
   // should be used after `init()`
   private var bufferedReader: java.io.BufferedReader = _
   var input: Iterator[Char] = _
@@ -19,6 +19,9 @@ object ScannerJava {
     columnNum = 0
     readLine()
   }
+  def close(): Unit = {
+    bufferedReader.close() // will also close FileReader
+  }
   //
   def readLine(): Unit = {
     line = bufferedReader.readLine()
@@ -29,7 +32,7 @@ object ScannerJava {
   }
 }
 
-object ScannerScala {
+class ScannerScala {
   // should be used after `init()`
   private var stream: io.Source = _
   private var lines: Iterator[String] = _
@@ -62,8 +65,8 @@ object ScannerScala {
   }
 }
 
-object TextToMini {
-  val Scanner = ScannerScala // ScannerJava // TODO(Daejun): compare performance against ScannerJava
+class TextToMini {
+  val Scanner = new ScannerScala() // ScannerJava // TODO(Daejun): compare performance against ScannerJava
 
   // abstract unreadable stream: next(), putback()
   var lookahead: Option[Char] = None

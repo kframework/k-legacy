@@ -9,7 +9,7 @@ object MiniToTextToMini {
     val text = MiniToText.apply(d)
     val file = new java.io.File("/tmp/x")
     FileUtils.writeStringToFile(file, text)
-    val d2 = TextToMini.parse(file)
+    val d2 = new TextToMini().parse(file)
     val text2 = MiniToText.apply(d2)
     assert(d == d2)
     d2
