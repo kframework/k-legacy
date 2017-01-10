@@ -5,6 +5,7 @@ import org.kframework.main.FrontEnd;
 import org.kframework.minikore.KoreToMini;
 import org.kframework.minikore.KoreToMiniToKore;
 import org.kframework.minikore.MiniToText;
+import org.kframework.minikore.MiniToTextToMini;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KEMException;
@@ -60,6 +61,7 @@ public class KompileFrontEnd extends FrontEnd {
     public void save(CompiledDefinition def) {
         // KoreToMiniToKore.apply(def.kompiledDefinition); // for serialization/deserialization test
         // KoreToMiniToKore.apply(def.getParsedDefinition()); // for serialization/deserialization test
+        MiniToTextToMini.apply(KoreToMini.apply(def.kompiledDefinition));
         files.saveToKompiled(FileUtil.KORE_TXT, MiniToText.apply(KoreToMini.apply(def.kompiledDefinition)));
         loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN), def.kompiledDefinition); // TODO(Daejun): drop
         loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN), def.kompileOptions);

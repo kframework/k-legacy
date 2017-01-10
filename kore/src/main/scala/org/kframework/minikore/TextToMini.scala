@@ -46,6 +46,9 @@ object ScannerScala {
     columnNum = 0
     readLine()
   }
+  def close(): Unit = {
+    stream.close()
+  }
   //
   def readLine(): Unit = {
     if (lines.hasNext) {
@@ -65,7 +68,7 @@ object TextToMini {
   // abstract unreadable stream: next(), putback()
   var lookahead: Option[Char] = None
   //
-  def next(): Char = {
+  def nextWithSpaces(): Char = {
     lookahead match {
       case Some(c) =>
         lookahead = None
@@ -73,16 +76,19 @@ object TextToMini {
       case None =>
         if (Scanner.input.hasNext) {
           Scanner.columnNum += 1
-          Scanner.input.next() match {
-            case ' '  => next() // skip white spaces
-            case '\t' => Scanner.columnNum += 3; next() // skip white spaces
-            case '\n' | '\r' => ??? // next() // stream.getLines implicitly drops newline characters
-            case c => c
-          }
+          Scanner.input.next()
         } else { // end of line
           Scanner.readLine()
-          next()
+          nextWithSpaces()
         }
+    }
+  }
+  def next(): Char = {
+    nextWithSpaces() match {
+      case ' '  => next() // skip white spaces
+      case '\t' => Scanner.columnNum += 3; next() // skip white spaces
+      case '\n' | '\r' => ??? // next() // stream.getLines implicitly drops newline characters
+      case c => c
     }
   }
   def putback(c: Char): Unit = {
@@ -127,7 +133,11 @@ object TextToMini {
 
   def parse(file: java.io.File): Definition = {
     Scanner.init(file)
-    parseDefinition()
+    try {
+      parseDefinition()
+    } finally {
+      Scanner.close()
+    }
   }
 
   // Definition = Attributes Modules
@@ -338,7 +348,7 @@ object TextToMini {
   // String = " <char> "
   def parseString(): String = {
     def loop(s: StringBuilder): String = {
-      next() match {
+      nextWithSpaces() match {
         case '"' =>
           s.toString()
         case '\\' =>
