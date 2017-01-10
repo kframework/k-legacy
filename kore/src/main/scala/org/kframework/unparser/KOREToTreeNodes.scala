@@ -17,7 +17,9 @@ object KOREToTreeNodes {
   def apply(t: K, mod: Module): Term = t match {
     case t: KToken => Constant(t.s, mod.tokenProductionsFor(Sort(t.sort.name)).head, t.att.getOptional[Location]("Location"), t.att.getOptional[Source]("Source"))
     case a: KApply =>
-      val production: Production = mod.productionsFor(KLabel(a.klabel.name)).find(p => p.items.count(_.isInstanceOf[NonTerminal]) == a.klist.size).get
+      val production: Production = if (mod.productionsFor.contains(a.klabel)) mod.productionsFor(KLabel(a.klabel.name)).find(p => p.items.count(_.isInstanceOf[NonTerminal]) == a.klist.size).get else a.klabel.name match {
+        case "#KRewrite" => Production(a.klabel.name, Sort("K"), LinearSeq(NonTerminal("K"), Terminal("=>"), NonTerminal("K")))
+      }
       TermCons(ConsPStack.from((a.klist.items.asScala map { i: K => apply(i, mod) }).reverse asJava),
         production, t.att.getOptional[Location]("Location"), t.att.getOptional[Source]("Source"))
   }
@@ -55,10 +57,10 @@ object KOREToTreeNodes {
         }
         case RegexTerminal(_, _, _) => throw new AssertionError("Unimplemented yet")
       }
-        
+
       unparsedItems.mkString(" ")
 
-      //TODO: Recover this code to enable format attribute (in PRETTY output mode).      
+      //TODO: Recover this code to enable format attribute (in PRETTY output mode).
       /*if (p.att.contains("format")) {
         p.att.get[String]("format").get.format(unparsedItems: _*)
       } else {

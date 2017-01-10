@@ -354,9 +354,7 @@ public class Commands {
         }
 
         private void printReachabilityClaim(CompiledDefinition compiledDefinition, FileUtil files, KExceptionManager kem, CommandUtils utils, Rule goalRule) {
-            KRun.printK(Goal.getRuleLHS(goalRule), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
-            utils.print("=>");
-            KRun.printK(Goal.getRuleRHS(goalRule), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
+            KRun.printK(goalRule.body(), null, OutputModes.PRETTY, null, compiledDefinition, files, kem);
         }
     }
 
@@ -402,7 +400,7 @@ public class Commands {
         @Override
         public void runCommand(KDebug session, CompiledDefinition compiledDefinition, boolean isSource, FileUtil files, KExceptionManager kem) {
             if (session.createCopy(stateNum) == null) {
-                throw KEMException.debuggerError("StateNumber Speicified doesn't exist");
+                throw KEMException.debuggerError("StateNumber Specicified doesn't exist");
             }
             CommandUtils utils = new CommandUtils(isSource);
             utils.print("Copied State " + stateNum);
