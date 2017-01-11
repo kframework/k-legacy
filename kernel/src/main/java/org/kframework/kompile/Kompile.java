@@ -97,7 +97,7 @@ public class Kompile {
         List<File> lookupDirectories = kompileOptions.outerParsing.includes.stream().map(files::resolveWorkingDirectory).collect(Collectors.toList());
         this.definitionParsing = new DefinitionParsing(
                 lookupDirectories, kompileOptions.strict(), kem,
-                parser, cacheParses, files.resolveKompiled("cache.bin"), !kompileOptions.outerParsing.noPrelude);
+                parser, cacheParses, files.resolveKompiled(FileUtil.CACHE_BIN), !kompileOptions.outerParsing.noPrelude);
         this.sw = sw;
     }
 

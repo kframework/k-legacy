@@ -62,15 +62,15 @@ public class SymbolicRewriter {
     private final Definition definition;
     private final BitSet allRuleBits;
 
-    public SymbolicRewriter(GlobalContext global, KompileOptions kompileOptions,
+    public SymbolicRewriter(GlobalContext global, List<String> transitions,
                             KRunState.Counter counter, KOREtoBackendKIL constructor) {
         this.constructor = constructor;
         this.definition = global.getDefinition();
         this.allRuleBits = BitSet.apply(definition.ruleTable.size());
         this.allRuleBits.makeOnes(definition.ruleTable.size());
         this.counter = counter;
-        this.strategy = new TransitionCompositeStrategy(kompileOptions.transition);
-        this.transitions = kompileOptions.transition;
+        this.strategy = new TransitionCompositeStrategy(transitions);
+        this.transitions = transitions;
         this.theFastMatcher = new FastRuleMatcher(global, definition.ruleTable.size());
         this.transition = true;
     }

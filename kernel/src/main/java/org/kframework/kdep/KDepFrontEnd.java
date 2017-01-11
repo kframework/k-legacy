@@ -85,7 +85,7 @@ public class KDepFrontEnd extends FrontEnd {
                 source,
                 lookupDirectories));
         Set<File> allFiles = modules.stream().map(m -> new File(m.getSource().source())).collect(Collectors.toSet());
-        System.out.println(files.resolveWorkingDirectory(".").toURI().relativize(files.resolveKompiled("timestamp").toURI()).getPath() + " : \\");
+        System.out.println(files.resolveWorkingDirectory(".").toURI().relativize(files.resolveKompiled(FileUtil.TIMESTAMP).toURI()).getPath() + " : \\");
         for (File file : allFiles) {
             System.out.println("    " + file.getAbsolutePath() + " \\");
         }

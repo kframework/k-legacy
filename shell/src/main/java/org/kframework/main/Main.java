@@ -247,7 +247,7 @@ public class Main {
                 //
 
                 //
-                initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions, kRunOptions, files, initializeDefinition);
+                initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions.transition, kRunOptions, files, initializeDefinition);
             } else if (kompileOptions.backend.equals(Backends.KALE)) {
                 initializeRewriter = KaleRewriter::apply;
             } else {
@@ -401,9 +401,9 @@ public class Main {
             String prelude = FileUtil.resolveWorkingDirectory(new File(keqOptions.smt.smtPrelude), workingDir).getAbsolutePath();
             String prove   = FileUtil.resolveWorkingDirectory(new File(keqOptions.parameters.get(0)), workingDir).getAbsolutePath();
 
-            CompiledDefinition compiledDef0 = loader.loadOrDie(CompiledDefinition.class, new File(def0File, "compiled.bin"));
-            CompiledDefinition compiledDef1 = loader.loadOrDie(CompiledDefinition.class, new File(def1File, "compiled.bin"));
-            CompiledDefinition compiledDef2 = loader.loadOrDie(CompiledDefinition.class, new File(def2File, "compiled.bin"));
+            CompiledDefinition compiledDef0 = DefinitionLoadingModule.koreDefinition(loader, new FileUtil(null, null, null, def0File, null, null));
+            CompiledDefinition compiledDef1 = DefinitionLoadingModule.koreDefinition(loader, new FileUtil(null, null, null, def1File, null, null));
+            CompiledDefinition compiledDef2 = DefinitionLoadingModule.koreDefinition(loader, new FileUtil(null, null, null, def2File, null, null));
 
             // kequiv
             Kapi.kequiv(compiledDef0, compiledDef1, compiledDef2, prove, prelude);

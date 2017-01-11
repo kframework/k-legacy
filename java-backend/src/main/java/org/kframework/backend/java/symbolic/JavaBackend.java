@@ -40,6 +40,7 @@ import org.kframework.kore.compile.ResolveSemanticCasts;
 import org.kframework.kore.compile.RewriteToTop;
 import org.kframework.kore.TransformK;
 import org.kframework.main.GlobalOptions;
+import org.kframework.minikore.KoreToMiniToKore;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import scala.Option;
@@ -119,6 +120,7 @@ public class JavaBackend implements Backend {
                 .andThen(new AssocCommToAssoc(KORE.c()).lift())
                 .andThen(new MergeRules(KORE.c()).lift())
                 .andThen(DefinitionTransformer.fromKTransformerWithModuleInfo(JavaBackend::moduleQualifySortPredicates, "Module-qualify sort predicates"))
+             // .andThen(KoreToMiniToKore::apply) // for serialization/deserialization test
                 .apply(d);
     }
 
