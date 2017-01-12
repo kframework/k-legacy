@@ -237,6 +237,7 @@
             <DYLD_LIBRARY_PATH>${env.DYLD_LIBRARY_PATH}${path.separator}${project.build.directory}/lib/native</DYLD_LIBRARY_PATH>
             <PATH>${env.PATH}${path.separator}${project.build.directory}/lib/native</PATH>
           </environmentVariables>
+          <useSystemClassLoader>false</useSystemClassLoader>
         </configuration>
       </plugin>
       <plugin>
