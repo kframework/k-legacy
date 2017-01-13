@@ -14,6 +14,7 @@ import org.kframework.backend.java.symbolic.JavaBackend;
 import org.kframework.backend.java.symbolic.JavaExecutionOptions;
 import org.kframework.backend.java.symbolic.ProofExecutionMode;
 import org.kframework.definition.Module;
+import org.kframework.definition.ProcessedDefinition;
 import org.kframework.kale.KaleBackend;
 import org.kframework.kale.KaleRewriter;
 import org.kframework.kast.KastFrontEnd;
@@ -235,6 +236,7 @@ public class Main {
             // loading kompiled definition
             Context context = null; // DefinitionLoadingModule.context(loader, kRunOptions.configurationCreation.definitionLoading, kRunOptions.global, sw, kem, files, kRunOptions); // TODO: check if 'context.bin' exists
             CompiledDefinition compiledDef = DefinitionLoadingModule.koreDefinition(loader, files);
+            ProcessedDefinition processedDefinition = DefinitionLoadingModule.miniKoreDefinition(loader, files);
             KompileOptions kompileOptions = DefinitionLoadingModule.kompileOptions(context, compiledDef, files);
 
             // krun

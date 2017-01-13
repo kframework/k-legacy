@@ -1,12 +1,14 @@
 // Copyright (c) 2014-2016 K Team. All Rights Reserved.
 package org.kframework.utils.inject;
 
+import org.kframework.definition.ProcessedDefinition;
 import org.kframework.kil.Definition;
 import org.kframework.kil.loader.Context;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.krun.KRunOptions;
 import org.kframework.main.GlobalOptions;
+import org.kframework.minikore.MiniKore;
 import org.kframework.minikore.MiniToKore;
 import org.kframework.minikore.TextToMini;
 import org.kframework.utils.BinaryLoader;
@@ -56,6 +58,12 @@ public class DefinitionLoadingModule {
         org.kframework.definition.Definition parsedDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN));
         org.kframework.kore.KLabel topCellInitializer = loader.loadOrDie(org.kframework.kore.KLabel .class, files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN));
         return new CompiledDefinition(kompileOptions, parsedDefinition, kompiledDefinition, topCellInitializer);
+    }
+
+    public static ProcessedDefinition miniKoreDefinition(BinaryLoader loader, FileUtil files) {
+        MiniKore.Definition definition = new TextToMini().parse(files.resolveKompiled(FileUtil.KORE_TXT));
+        KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN));
+        return new ProcessedDefinition(kompileOptions, definition);
     }
 
     public static KompileOptions kompileOptions(Context context, CompiledDefinition compiledDef, FileUtil files) {
