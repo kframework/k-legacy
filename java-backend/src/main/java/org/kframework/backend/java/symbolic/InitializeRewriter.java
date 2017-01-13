@@ -86,9 +86,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
     }
 
     @Override
-    public synchronized Rewriter apply(Module module) {
-        TermContext initializingContext = TermContext.builder(new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING))
-                .freshCounter(0).build();
+    public synchronized Rewriter apply(Module module) { TermContext initializingContext = TermContext.builder(new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING)) .freshCounter(0).build();
         Definition evaluatedDef = initializeDefinition.invoke(module, kem, initializingContext.global());
 
         GlobalContext rewritingContext = new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
