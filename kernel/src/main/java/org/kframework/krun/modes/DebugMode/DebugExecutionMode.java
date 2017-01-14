@@ -9,6 +9,8 @@ import jline.console.completer.Completer;
 import jline.console.completer.FileNameCompleter;
 import jline.console.completer.NullCompleter;
 import jline.console.completer.StringsCompleter;
+import org.kframework.definition.ProcessedDefinition;
+import org.kframework.minikore.MiniKore;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.debugger.KDebug;
 import org.kframework.debugger.KoreKDebug;
@@ -81,7 +83,7 @@ public class DebugExecutionMode implements ExecutionMode<Void> {
 
 
     @Override
-    public Void execute(K k, Rewriter rewriter, CompiledDefinition compiledDefinition) {
+    public Void execute(K k, MiniKore.Pattern pattern, Rewriter rewriter, CompiledDefinition compiledDefinition, ProcessedDefinition processedDefinition) {
         KDebug debugger = new KoreKDebug(k, rewriter, checkpointInterval, files, kem, kRunOptions, compiledDefinition);
         ConsoleReader reader = getConsoleReader();
         while (true) {

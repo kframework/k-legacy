@@ -5,6 +5,8 @@ import org.kframework.attributes.Att;
 import org.kframework.backend.java.kore.compile.ExpandMacros;
 import org.kframework.compile.NormalizeKSeq;
 import org.kframework.definition.Definition;
+import org.kframework.definition.ProcessedDefinition;
+import org.kframework.minikore.MiniKore;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.RewriterResult;
@@ -66,7 +68,7 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
     }
 
     @Override
-    public List<K> execute(K k, Rewriter rewriter, CompiledDefinition compiledDefinition) {
+    public List<K> execute(K k, MiniKore.Pattern pattern, Rewriter rewriter, CompiledDefinition compiledDefinition, ProcessedDefinition processedDefinition) {
         String proofFile = options.experimental.prove;
         Kompile kompile = new Kompile(compiledDefinition.kompileOptions, globalOptions, files, kem, sw, false);
         Module mod = kompile.parseModule(compiledDefinition, files.resolveWorkingDirectory(proofFile).getAbsoluteFile());

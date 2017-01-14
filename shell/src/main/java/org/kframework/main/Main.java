@@ -3,7 +3,6 @@ package org.kframework.main;
 
 import com.beust.jcommander.JCommander;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.martiansoftware.nailgun.NGContext;
 import org.fusesource.jansi.AnsiConsole;
 import org.kframework.HookProvider;
@@ -21,17 +20,13 @@ import org.kframework.kast.KastFrontEnd;
 import org.kframework.kast.KastOptions;
 import org.kframework.kdep.KDepFrontEnd;
 import org.kframework.kdep.KDepOptions;
-import org.kframework.kdoc.KDocFrontEnd;
 import org.kframework.kdoc.KDocOptions;
 import org.kframework.keq.KeqOptions;
-import org.kframework.kil.Rewrite;
 import org.kframework.kil.loader.Context;
 import org.kframework.kompile.CompiledDefinition;
-import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileFrontEnd;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.compile.Backend;
-import org.kframework.krun.KRun;
 import org.kframework.krun.KRunFrontEnd;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.io.FileSystem;
@@ -46,8 +41,6 @@ import org.kframework.ktest.KTestFrontEnd;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
-import org.kframework.utils.errorsystem.KEMException;
-import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
@@ -56,19 +49,12 @@ import org.kframework.utils.inject.CommonModule;
 import org.kframework.utils.inject.DefinitionLoadingModule;
 import org.kframework.utils.inject.JCommanderModule;
 import org.kframework.utils.inject.OuterParsingModule;
-import org.kframework.utils.options.OuterParsingOptions;
-import org.kframework.utils.options.SMTOptions;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -268,7 +254,7 @@ public class Main {
                 executionMode = new KRunExecutionMode(kRunOptions, kem, files);
             }
 
-            KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, kompiledDir, kem, kRunOptions, files, compiledDef, initializeRewriter, executionMode, ttyInfo, isNailgun);
+            KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, kompiledDir, kem, kRunOptions, files, compiledDef, processedDefinition, initializeRewriter, executionMode, ttyInfo, isNailgun);
 
             return runApplication(frontEnd, kem);
         }

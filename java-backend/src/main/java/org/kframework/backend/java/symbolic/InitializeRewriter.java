@@ -22,6 +22,7 @@ import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.KRunState;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.main.GlobalOptions;
+import org.kframework.minikore.MiniKore;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.rewriter.SearchType;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -223,6 +224,11 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
 
             cache.put(module, definition);
             return definition;
+        }
+
+        public MiniKore.Definition invoke(MiniKore.Module module, KExceptionManager kExceptionManager) {
+            //TODO: Java Conversions
+            return null;
         }
     }
 }

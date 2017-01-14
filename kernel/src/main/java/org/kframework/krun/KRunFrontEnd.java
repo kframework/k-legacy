@@ -1,22 +1,19 @@
 // Copyright (c) 2012-2016 K Team. All Rights Reserved.
 package org.kframework.krun;
 
-import com.google.common.collect.ImmutableList;
+import org.kframework.definition.Module;
+import org.kframework.definition.ProcessedDefinition;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.main.FrontEnd;
 import org.kframework.main.GlobalOptions;
+import org.kframework.minikore.MiniKore;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.file.JarInfo;
 import org.kframework.utils.file.TTYInfo;
-import org.kframework.utils.inject.CommonModule;
-import org.kframework.utils.inject.DefinitionLoadingModule;
-import org.kframework.utils.inject.JCommanderModule;
 
 import java.io.File;
-import java.util.List;
 import java.util.function.Function;
 
 public class KRunFrontEnd extends FrontEnd {
@@ -31,6 +28,7 @@ public class KRunFrontEnd extends FrontEnd {
     private final ExecutionMode executionMode;
     private final TTYInfo tty;
     private final boolean isNailgun;
+    private final ProcessedDefinition processedDefinition;
 
     public KRunFrontEnd(
             GlobalOptions options,
@@ -39,7 +37,7 @@ public class KRunFrontEnd extends FrontEnd {
             KRunOptions krunOptions,
             FileUtil files,
             CompiledDefinition compiledDef,
-            Function<org.kframework.definition.Module, Rewriter> initializeRewriter,
+            ProcessedDefinition processedDefinition, Function<Module, Rewriter> initializeRewriter,
             ExecutionMode executionMode,
             TTYInfo tty,
             boolean isNailgun) {
@@ -53,6 +51,7 @@ public class KRunFrontEnd extends FrontEnd {
         this.executionMode = executionMode;
         this.tty = tty;
         this.isNailgun = isNailgun;
+        this.processedDefinition = processedDefinition;
     }
 
     /**
@@ -60,14 +59,12 @@ public class KRunFrontEnd extends FrontEnd {
      */
     public int run() {
         for (int i = 0; i < krunOptions.experimental.profile - 1; i++) {
-            new KRun(kem, files, tty.stdin, isNailgun).run(compiledDef,
+            new KRun(kem, files, tty.stdin, isNailgun).run(compiledDef, processedDefinition,
                     krunOptions,
-                    initializeRewriter,
-                    executionMode);
+                    initializeRewriter, executionMode);
         }
-        return new KRun(kem, files, tty.stdin, isNailgun).run(compiledDef,
+        return new KRun(kem, files, tty.stdin, isNailgun).run(compiledDef, processedDefinition,
                 krunOptions,
-                initializeRewriter,
-                executionMode);
+                initializeRewriter, executionMode);
     }
 }

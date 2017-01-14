@@ -9,6 +9,7 @@ import org.kframework.builtin.KLabels;
 import org.kframework.builtin.Sorts;
 import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
+import org.kframework.definition.ProcessedDefinition;
 import org.kframework.definition.Rule;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kore.Assoc;
@@ -23,6 +24,8 @@ import org.kframework.kore.Unapply.KApply$;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.modes.ExecutionMode;
+import org.kframework.minikore.KoreToMini;
+import org.kframework.minikore.MiniKore;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.binary.BinaryParser;
 import org.kframework.parser.kore.KoreParser;
@@ -76,9 +79,10 @@ public class KRun {
     }
 
 
-    public int run(CompiledDefinition compiledDef, KRunOptions options, Function<Module, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
+    public int run(CompiledDefinition compiledDef, ProcessedDefinition processedDefinition, KRunOptions options, Function<Module, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
         String pgmFileName = options.configurationCreation.pgm();
         K program;
+        MiniKore.Pattern miniKoreProgram;
         if (options.configurationCreation.term()) {
             program = parse(options.configurationCreation.parser(compiledDef.executionModule().name()),
                     pgmFileName, compiledDef.programStartSymbol, Source.apply("<parameters>"), compiledDef, files);
@@ -89,10 +93,11 @@ public class KRun {
         program = new KTokenVariablesToTrueVariables()
                 .apply(compiledDef.kompiledDefinition.getModule(compiledDef.mainSyntaxModuleName()).get(), program);
 
+        miniKoreProgram = KoreToMini.apply(program);
 
         Rewriter rewriter = rewriterGenerator.apply(compiledDef.executionModule());
 
-        Object result = executionMode.execute(program, rewriter, compiledDef);
+        Object result = executionMode.execute(program, miniKoreProgram, rewriter, compiledDef, processedDefinition);
 
 
         if (result instanceof K) {
