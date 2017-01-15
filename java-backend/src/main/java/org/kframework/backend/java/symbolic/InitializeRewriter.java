@@ -15,9 +15,7 @@ import org.kframework.backend.java.util.JavaKRunState;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
 import org.kframework.kil.Attribute;
-import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.K;
-import org.kframework.kore.KVariable;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.KRunState;
 import org.kframework.krun.api.io.FileSystem;
@@ -95,7 +93,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
         GlobalContext rewritingContext = new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
         rewritingContext.setDefinition(evaluatedDef);
 
-        return new SymbolicRewriterGlue(module, evaluatedDef, transitions, initializingContext.getCounterValue(), rewritingContext, kem);
+        return new SymbolicRewriterGlue(module, evaluatedDef, , transitions, initializingContext.getCounterValue(), rewritingContext, kem);
     }
 
     public static class SymbolicRewriterGlue implements Rewriter {
@@ -111,7 +109,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
         public SymbolicRewriterGlue(
                 Module module,
                 Definition definition,
-                List<String> transitions,
+                MiniKore.Definition miniKoreDefinition, List<String> transitions,
                 BigInteger initCounterValue,
                 GlobalContext rewritingContext,
                 KExceptionManager kem) {
@@ -226,9 +224,5 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
             return definition;
         }
 
-        public MiniKore.Definition invoke(MiniKore.Module module, KExceptionManager kExceptionManager) {
-            //TODO: Java Conversions
-            return null;
-        }
     }
 }
