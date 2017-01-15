@@ -1,5 +1,5 @@
 <!-- Copyright (c) 2010-2016 K Team. All Rights Reserved. -->
-K tool, version 3.6
+K tool
 -------------------
 
 K is a rewrite-based executable semantic framework in which programming 
