@@ -81,7 +81,7 @@ public class KoreKDebug implements KDebug {
         NavigableMap<Integer, K> checkpointMap = new TreeMap<>(currentState.getCheckpointMap());
         List<DebuggerMatchResult> origWatchList = currentState.getWatchList();
         while (steps >= checkpointInterval) {
-            result = rewriter.execute(currentK, Optional.of(checkpointInterval));
+            result = rewriter.execute(currentK, null, Optional.of(checkpointInterval));
             if (isFinalState(checkpointInterval, result)) {
                 return processStateData(result.k(),
                         activeStateCheckpoint + result.rewriteSteps().get(),
@@ -95,7 +95,7 @@ public class KoreKDebug implements KDebug {
             checkpointMap.put(activeStateCheckpoint, result.k());
             currentK = result.k();
         }
-        result = rewriter.execute(currentK, Optional.of(steps));
+        result = rewriter.execute(currentK, null, Optional.of(steps));
         if (isFinalState(steps, result)) {
             return processStateData(result.k(),
                     activeStateCheckpoint + result.rewriteSteps().get(),
@@ -146,7 +146,7 @@ public class KoreKDebug implements KDebug {
     }
 
     private boolean isFinalConfiguration(K config) {
-        return rewriter.execute(config, Optional.of(1)).equals(config);
+        return rewriter.execute(config, null, Optional.of(1)).equals(config);
     }
 
     @Override

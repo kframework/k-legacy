@@ -82,7 +82,7 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
                 .apply(Definition.apply(mod, org.kframework.Collections.add(mod, alsoIncluded), Att.apply()))
                 .getModule(mod.name()).get();
 
-        RewriterResult executionResult = rewriter.execute(k, Optional.<Integer>empty());
+        RewriterResult executionResult = rewriter.execute(k, null, Optional.<Integer>empty());
 
         ConfigurationInfo configurationInfo = new ConfigurationInfoFromModule(compiledDefinition.executionModule());
         AbstractKTransformer<Map<String, K>> cellPlaceholderSubstitutionCollector = new AbstractKTransformer<Map<String, K>>() {

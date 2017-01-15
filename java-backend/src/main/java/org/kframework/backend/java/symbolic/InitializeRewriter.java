@@ -108,6 +108,8 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Module
         public final GlobalContext rewritingContext;
         private final KExceptionManager kem;
         private final List<String> transitions;
+        private final MiniKore.Definition miniKoreDefinition;
+        private final MiniKore.Module miniKoreModule;
 
         public SymbolicRewriterGlue(
                 Module module,
@@ -119,6 +121,8 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Module
             this.transitions = transitions;
             this.rewriter = null;
             this.definition = definition;
+            this.miniKoreDefinition = miniKoreDefinition;
+            this.miniKoreModule = miniKoreModule;
             this.module = module;
             this.initCounterValue = initCounterValue;
             this.rewritingContext = rewritingContext;
@@ -126,7 +130,7 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Module
         }
 
         @Override
-        public RewriterResult execute(K k, Optional<Integer> depth) {
+        public RewriterResult execute(K k, MiniKore.Pattern pattern, Optional<Integer> depth) {
             TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
             Term backendKil = MacroExpander.expandAndEvaluate(termContext, kem, converter.convert(k));
@@ -153,7 +157,7 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Module
 
 
         public Tuple2<RewriterResult, K> executeAndMatch(K k, Optional<Integer> depth, Rule rule) {
-            RewriterResult res = execute(k, depth);
+            RewriterResult res = execute(k, null, depth);
             return Tuple2.apply(res, match(res.k(), rule));
         }
 

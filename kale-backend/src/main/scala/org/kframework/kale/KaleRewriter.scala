@@ -7,6 +7,7 @@ import org.kframework.attributes.Att
 import org.kframework.definition._
 import org.kframework.kore.Unapply.KRewrite
 import org.kframework.kore._
+import org.kframework.minikore.MiniKore.Pattern
 import org.kframework.rewriter.SearchType
 import org.kframework.{RewriterResult, kore}
 
@@ -177,7 +178,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
 
   val rewrite = rewriterConstructor(rules)
 
-  override def execute(k: K, depth: Optional[Integer]): RewriterResult = {
+  override def execute(k: K, pattern: Pattern, depth: Optional[Integer]): RewriterResult = {
     var i = 0
     var term: Term = null
     var next: Term = convert(k)
