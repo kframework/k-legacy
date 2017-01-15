@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.KapiGlobal;
 import org.kframework.RewriterResult;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
@@ -41,7 +42,7 @@ import java.util.stream.Collectors;
 /**
  * Created by dwightguth on 5/6/15.
  */
-public class InitializeRewriter implements Function<Module, Rewriter> {
+public class InitializeRewriter implements Function<Pair<Module, MiniKore.Module>, Rewriter> {
 
     private final FileSystem fs;
     private final boolean deterministicFunctions;
@@ -85,15 +86,17 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
     }
 
     @Override
-    public synchronized Rewriter apply(Module module) {
+    public synchronized Rewriter apply(Pair<Module, MiniKore.Module> modulePair) {
         TermContext initializingContext = TermContext.builder(new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING))
                 .freshCounter(0).build();
-        Definition evaluatedDef = initializeDefinition.invoke(module, kem, initializingContext.global());
+        Definition evaluatedDef = initializeDefinition.invoke(modulePair.getKey(), kem, initializingContext.global());
+
+        MiniKore.Definition miniKoreDefinition = initializeDefinition.invoke(modulePair.getRight(), kem, initializingContext.global());
 
         GlobalContext rewritingContext = new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
         rewritingContext.setDefinition(evaluatedDef);
 
-        return new SymbolicRewriterGlue(module, evaluatedDef, , transitions, initializingContext.getCounterValue(), rewritingContext, kem);
+        return new SymbolicRewriterGlue(modulePair.getKey(), evaluatedDef, modulePair.getRight(), miniKoreDefinition, transitions, initializingContext.getCounterValue(), rewritingContext, kem);
     }
 
     public static class SymbolicRewriterGlue implements Rewriter {
@@ -109,7 +112,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
         public SymbolicRewriterGlue(
                 Module module,
                 Definition definition,
-                MiniKore.Definition miniKoreDefinition, List<String> transitions,
+                MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition, List<String> transitions,
                 BigInteger initCounterValue,
                 GlobalContext rewritingContext,
                 KExceptionManager kem) {
@@ -222,6 +225,11 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
 
             cache.put(module, definition);
             return definition;
+        }
+
+        public MiniKore.Definition invoke(MiniKore.Module module, KExceptionManager kem, GlobalContext globalContext) {
+            //Todo: Not needed?
+            return null;
         }
 
     }

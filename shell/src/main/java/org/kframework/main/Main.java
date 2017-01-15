@@ -4,6 +4,7 @@ package org.kframework.main;
 import com.beust.jcommander.JCommander;
 import com.google.common.collect.ImmutableSet;
 import com.martiansoftware.nailgun.NGContext;
+import org.apache.commons.lang3.tuple.Pair;
 import org.fusesource.jansi.AnsiConsole;
 import org.kframework.HookProvider;
 import org.kframework.Kapi;
@@ -38,6 +39,7 @@ import org.kframework.kserver.KServerFrontEnd;
 import org.kframework.kserver.KServerOptions;
 import org.kframework.ktest.CmdArgs.KTestOptions;
 import org.kframework.ktest.KTestFrontEnd;
+import org.kframework.minikore.MiniKore;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
@@ -228,13 +230,15 @@ public class Main {
             // krun
 
             Function<Module, Rewriter> initializeRewriter;
+            Function<Pair<Module, MiniKore.Module>, Rewriter> initializeRewriter2;
             if (kompileOptions.backend.equals(Backends.JAVA)) {
                 //
                 Map<String, MethodHandle> hookProvider = HookProvider.get(kem);
                 InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
-                initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions.transition, kRunOptions, files, initializeDefinition);
+                initializeRewriter2 = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions.transition, kRunOptions, files, initializeDefinition);
             } else if (kompileOptions.backend.equals(Backends.KALE)) {
                 initializeRewriter = KaleRewriter::apply;
+                initializeRewriter2 = null;
             } else {
                 throw new AssertionError("Backend not hooked to the shell.");
             }
@@ -251,7 +255,7 @@ public class Main {
                 executionMode = new KRunExecutionMode(kRunOptions, kem, files);
             }
 
-            KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, kompiledDir, kem, kRunOptions, files, compiledDef, processedDefinition, initializeRewriter, executionMode, ttyInfo, isNailgun);
+            KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, kompiledDir, kem, kRunOptions, files, compiledDef, processedDefinition, initializeRewriter2, executionMode, ttyInfo, isNailgun);
 
             return runApplication(frontEnd, kem);
         }
