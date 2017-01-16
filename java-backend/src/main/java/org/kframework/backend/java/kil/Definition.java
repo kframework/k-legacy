@@ -5,7 +5,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -16,8 +15,6 @@ import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Subsorts;
 import org.kframework.builtin.Sorts;
-import org.kframework.compile.ConfigurationInfo;
-import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Attribute;
@@ -26,6 +23,7 @@ import org.kframework.kil.DataStructureSort;
 import org.kframework.kil.loader.Context;
 import org.kframework.kore.KORE;
 import org.kframework.kore.convertors.KOREtoKIL;
+import org.kframework.minikore.MiniKore;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import scala.collection.JavaConversions;
@@ -55,7 +53,9 @@ public class Definition extends JavaSymbolicObject {
 
     public static final String AUTOMATON = "automaton";
 
-    public final Module module;
+    public Module module;
+
+    public MiniKore.Module miniKoreModule;
 
     private static class DefinitionData implements Serializable {
         public final Subsorts subsorts;
@@ -89,9 +89,9 @@ public class Definition extends JavaSymbolicObject {
     private final Multimap<KLabelConstant, Rule> patternRules = ArrayListMultimap.create();
     private final List<Rule> patternFoldingRules = new ArrayList<>();
 
-    private final Set<KLabelConstant> kLabels;
+    private Set<KLabelConstant> kLabels;
 
-    private final DefinitionData definitionData;
+    private DefinitionData definitionData;
     private transient Context context;
 
     private transient KExceptionManager kem;
@@ -104,7 +104,7 @@ public class Definition extends JavaSymbolicObject {
     /**
      * all the rules indexed with the ordinal used by {@link org.kframework.backend.java.symbolic.FastRuleMatcher}
      */
-    public final Map<Integer, Rule> ruleTable;
+    public Map<Integer, Rule> ruleTable;
 
     public final Map<Integer, Integer> reverseRuleTable = new HashMap<>();
 
@@ -144,6 +144,15 @@ public class Definition extends JavaSymbolicObject {
         context = null;
 
         this.ruleTable = new HashMap<>();
+    }
+
+    /**
+     * The Constructor to take a minikore module and construct a Backend Definition.
+     */
+    public Definition(MiniKore.Module module, MiniKore.Definition miniKoreDefinition, KExceptionManager kem) {
+        this.miniKoreModule = module;
+        kLabels = new HashSet<>();
+        this.kem = kem;
     }
 
     private Map<org.kframework.kore.Sort, DataStructureSort> getDataStructureSorts(Module module) {

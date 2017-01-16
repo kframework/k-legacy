@@ -25,7 +25,8 @@ public class ProcessedDefinition {
         if (mainModule != null) {
             return mainModule;
         }
-        return MiniKoreUtils.getMainModule(definition);
+        mainModule = MiniKoreUtils.getMainModule(definition);
+        return mainModule;
     }
 
 }

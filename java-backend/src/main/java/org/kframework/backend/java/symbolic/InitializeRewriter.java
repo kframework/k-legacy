@@ -22,6 +22,7 @@ import org.kframework.krun.api.KRunState;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.main.GlobalOptions;
 import org.kframework.minikore.MiniKore;
+import org.kframework.minikore.MiniKoreUtils;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.rewriter.SearchType;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -42,7 +43,7 @@ import java.util.stream.Collectors;
 /**
  * Created by dwightguth on 5/6/15.
  */
-public class InitializeRewriter implements Function<Pair<Module, MiniKore.Module>, Rewriter> {
+public class InitializeRewriter implements Function<Pair<Module, MiniKore.Definition>, Rewriter> {
 
     private final FileSystem fs;
     private final boolean deterministicFunctions;
@@ -86,35 +87,37 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Module
     }
 
     @Override
-    public synchronized Rewriter apply(Pair<Module, MiniKore.Module> modulePair) {
+    public synchronized Rewriter apply(Pair<Module, MiniKore.Definition> modulePair) {
         TermContext initializingContext = TermContext.builder(new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING))
                 .freshCounter(0).build();
         Definition evaluatedDef = initializeDefinition.invoke(modulePair.getKey(), kem, initializingContext.global());
 
-        MiniKore.Definition miniKoreDefinition = initializeDefinition.invoke(modulePair.getRight(), kem, initializingContext.global());
+        MiniKore.Module mainModule = MiniKoreUtils.getMainModule(modulePair.getRight());
+
+        Definition miniKoreDefinition = initializeDefinition.invoke(mainModule, modulePair.getRight(), kem, initializingContext.global());
 
         GlobalContext rewritingContext = new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
         rewritingContext.setDefinition(evaluatedDef);
 
-        return new SymbolicRewriterGlue(modulePair.getKey(), evaluatedDef, modulePair.getRight(), miniKoreDefinition, transitions, initializingContext.getCounterValue(), rewritingContext, kem);
+        return new SymbolicRewriterGlue(modulePair.getKey(), evaluatedDef, miniKoreDefinition, transitions, initializingContext.getCounterValue(), rewritingContext, kem);
     }
 
     public static class SymbolicRewriterGlue implements Rewriter {
 
         private SymbolicRewriter rewriter;
         public final Definition definition;
+        public Definition miniKoreDefinition;
         public final Module module;
         private final BigInteger initCounterValue;
         public final GlobalContext rewritingContext;
         private final KExceptionManager kem;
         private final List<String> transitions;
-        private final MiniKore.Definition miniKoreDefinition;
-        private final MiniKore.Module miniKoreModule;
 
         public SymbolicRewriterGlue(
                 Module module,
                 Definition definition,
-                MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition, List<String> transitions,
+                Definition miniKoreDefinition,
+                List<String> transitions,
                 BigInteger initCounterValue,
                 GlobalContext rewritingContext,
                 KExceptionManager kem) {
@@ -122,7 +125,6 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Module
             this.rewriter = null;
             this.definition = definition;
             this.miniKoreDefinition = miniKoreDefinition;
-            this.miniKoreModule = miniKoreModule;
             this.module = module;
             this.initCounterValue = initCounterValue;
             this.rewritingContext = rewritingContext;
@@ -231,9 +233,10 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Module
             return definition;
         }
 
-        public MiniKore.Definition invoke(MiniKore.Module module, KExceptionManager kem, GlobalContext globalContext) {
-            //Todo: Not needed?
-            return null;
+        public Definition invoke(MiniKore.Module module, MiniKore.Definition miniKoreDefinition, KExceptionManager kem, GlobalContext globalContext) {
+            // Main MiniKore Definition To BackendKil Definition Conversion.
+            Definition definition = new Definition(module, miniKoreDefinition, kem);
+            return definition;
         }
 
     }

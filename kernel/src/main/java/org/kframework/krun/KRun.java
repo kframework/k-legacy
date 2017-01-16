@@ -79,7 +79,7 @@ public class KRun {
     }
 
 
-    public int run(CompiledDefinition compiledDef, ProcessedDefinition processedDefinition, KRunOptions options, Function<Pair<Module, MiniKore.Module>, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
+    public int run(CompiledDefinition compiledDef, ProcessedDefinition processedDefinition, KRunOptions options, Function<Pair<Module, MiniKore.Definition>, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
         String pgmFileName = options.configurationCreation.pgm();
         K program;
         MiniKore.Pattern miniKoreProgram;
@@ -96,7 +96,7 @@ public class KRun {
         miniKoreProgram = KoreToMini.apply(program);
 
         //Todo: This is probably problematic. The first module in the definition is not guaranteed to be the main module.
-        Rewriter rewriter = rewriterGenerator.apply(Pair.of(compiledDef.executionModule(), mutable(processedDefinition.definition.modules()).get(0)));
+        Rewriter rewriter = rewriterGenerator.apply(Pair.of(compiledDef.executionModule(), processedDefinition.definition));
 
         Object result = executionMode.execute(program, miniKoreProgram, rewriter, compiledDef, processedDefinition);
 

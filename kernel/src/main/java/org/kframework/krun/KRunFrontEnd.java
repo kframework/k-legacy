@@ -25,7 +25,7 @@ public class KRunFrontEnd extends FrontEnd {
     private final KRunOptions krunOptions;
     private final FileUtil files;
     private final CompiledDefinition compiledDef;
-    private final Function<Pair<Module, MiniKore.Module>, Rewriter> initializeRewriter;
+    private final Function<Pair<Module, MiniKore.Definition>, Rewriter> initializeRewriter;
     private final ExecutionMode executionMode;
     private final TTYInfo tty;
     private final boolean isNailgun;
@@ -38,7 +38,7 @@ public class KRunFrontEnd extends FrontEnd {
             KRunOptions krunOptions,
             FileUtil files,
             CompiledDefinition compiledDef,
-            ProcessedDefinition processedDefinition, Function<Pair<Module, MiniKore.Module>, Rewriter> initializeRewriter,
+            ProcessedDefinition processedDefinition, Function<Pair<Module, MiniKore.Definition>, Rewriter> initializeRewriter,
             ExecutionMode executionMode,
             TTYInfo tty,
             boolean isNailgun) {
