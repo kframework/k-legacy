@@ -230,7 +230,7 @@ public class Main {
             // krun
 
             Function<Module, Rewriter> initializeRewriter;
-            Function<Pair<Module, MiniKore.Module>, Rewriter> initializeRewriter2;
+            Function<Pair<Module, MiniKore.Definition>, Rewriter> initializeRewriter2;
             if (kompileOptions.backend.equals(Backends.JAVA)) {
                 //
                 Map<String, MethodHandle> hookProvider = HookProvider.get(kem);
