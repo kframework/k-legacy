@@ -59,7 +59,11 @@ public class SMTOperations {
                         KILtoSMTLib.translateImplication(left, right, rightOnlyVariables),
                         smtOptions.z3ImplTimeout);
             } catch (UnsupportedOperationException e) {
-                e.printStackTrace();
+                if (e.getMessage() != null && e.getMessage().startsWith("missing SMTLib translation for")) {
+                    System.err.println("Warning: z3 couldn't be used due to " + e.getMessage());
+                } else {
+                    e.printStackTrace();
+                }
             } catch (SMTTranslationFailure e) {
                 e.printStackTrace();
             }
