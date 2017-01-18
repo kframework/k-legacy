@@ -242,7 +242,16 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
             return definition;
         }
 
-        public Definition invoke(Module module, KExceptionManager kem, GlobalContext, MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition) {
+        public Definition invoke(Module module, KExceptionManager kem, GlobalContext global, MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition) {
+            Definition definition = new Definition(module, miniKoreModule, miniKoreDefinition, kem);
+
+            global.setDefinition(definition);
+
+            JavaConversions.setAsJavaSet(module.attributesFor().keySet()).stream()
+                    .map(l -> KLabelConstant.of(l.name(), definition))
+                    .forEach(definition::addKLabel);
+            definition.addKoreRules(module, global);
+            return definition;
 
         }
 

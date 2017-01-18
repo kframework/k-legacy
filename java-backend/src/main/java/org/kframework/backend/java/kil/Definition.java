@@ -183,6 +183,17 @@ public class Definition extends JavaSymbolicObject {
             });
         });
 
+        ImmutableSetMultimap.Builder<String, SortSignature> signaturesBuilder2 = ImmutableSetMultimap.builder();
+        JavaConversions.mapAsJavaMap(MiniKoreUtils.signatureFor(miniKoreModule)).entrySet().stream().forEach(e -> {
+            JavaConversions.setAsJavaSet(e.getValue()).stream().forEach(p -> {
+                ImmutableList.Builder<Sort> sortsBuilder = ImmutableList.builder();
+                stream(p._1()).map(s -> Sort.of(s)).forEach(sortsBuilder::add);
+                signaturesBuilder.put(
+                        e.getKey(),
+                        new SortSignature(sortsBuilder.build(), Sort.of(p._2())));
+            });
+        });
+
         ImmutableMap.Builder<String, Attributes> attributesBuilder = ImmutableMap.builder();
         JavaConversions.mapAsJavaMap(module.attributesFor()).entrySet().stream().forEach(e -> {
             attributesBuilder.put(e.getKey().name(), new KOREtoKIL().convertAttributes(e.getValue()));
