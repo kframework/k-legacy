@@ -25,6 +25,7 @@ import org.kframework.minikore.MiniKore;
 import org.kframework.minikore.MiniKoreUtils;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.rewriter.SearchType;
+import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.options.SMTOptions;
@@ -239,6 +240,10 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
             // Main MiniKore Definition To BackendKil Definition Conversion.
             Definition definition = new Definition(module, miniKoreDefinition, kem);
             return definition;
+        }
+
+        public Definition invoke(Module module, KExceptionManager kem, GlobalContext, MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition) {
+
         }
 
     }

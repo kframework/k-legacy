@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import org.kframework.attributes.Att;
+import org.kframework.backend.java.MiniKoreUtils;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
@@ -153,8 +154,60 @@ public class Definition extends JavaSymbolicObject {
         this.miniKoreModule = module;
         kLabels = new HashSet<>();
         this.kem = kem;
+
+        ImmutableSetMultimap.Builder<String, SortSignature> signaturesBuilder = ImmutableSetMultimap.builder();
+        JavaConversions.mapAsJavaMap(MiniKoreUtils.signatureFor(module)).entrySet().stream().forEach(e -> {
+            JavaConversions.setAsJavaSet(e.getValue()).stream().forEach(p -> {
+                ImmutableList.Builder<Sort> sortsBuilder = ImmutableList.builder();
+                stream(p._1()).map(s -> Sort.of(s)).forEach(sortsBuilder::add);
+                signaturesBuilder.put(
+                        e.getKey(),
+                        new SortSignature(sortsBuilder.build(), Sort.of(p._2())));
+            });
+        });
     }
 
+    public Definition(Module module, MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition, KExceptionManager kem) {
+        this.module = module;
+        kLabels = new HashSet<>();
+        this.kem = kem;
+
+        ImmutableSetMultimap.Builder<String, SortSignature> signaturesBuilder = ImmutableSetMultimap.builder();
+        JavaConversions.mapAsJavaMap(module.signatureFor()).entrySet().stream().forEach(e -> {
+            JavaConversions.setAsJavaSet(e.getValue()).stream().forEach(p -> {
+                ImmutableList.Builder<Sort> sortsBuilder = ImmutableList.builder();
+                stream(p._1()).map(s -> Sort.of(s.name())).forEach(sortsBuilder::add);
+                signaturesBuilder.put(
+                        e.getKey().name(),
+                        new SortSignature(sortsBuilder.build(), Sort.of(p._2().name())));
+            });
+        });
+
+        ImmutableMap.Builder<String, Attributes> attributesBuilder = ImmutableMap.builder();
+        JavaConversions.mapAsJavaMap(module.attributesFor()).entrySet().stream().forEach(e -> {
+            attributesBuilder.put(e.getKey().name(), new KOREtoKIL().convertAttributes(e.getValue()));
+        });
+
+        definitionData = new DefinitionData(
+                new Subsorts(module),
+                getDataStructureSorts(module),
+                signaturesBuilder.build(),
+                attributesBuilder.build(),
+                JavaConverters.mapAsJavaMapConverter(module.freshFunctionFor()).asJava().entrySet().stream().collect(Collectors.toMap(
+                        e -> Sort.of(e.getKey().name()),
+                        e -> e.getValue().name())),
+                Collections.emptyMap()
+        );
+        context = null;
+
+        this.ruleTable = new HashMap<>();
+
+    }
+
+    //TODO: Needs implementation minikore module
+    private Map<MiniKore.SortDeclaration, DataStructureSort> getDataStructureSorts(MiniKore.Module module) {
+        return null;
+    }
     private Map<org.kframework.kore.Sort, DataStructureSort> getDataStructureSorts(Module module) {
         ImmutableMap.Builder<org.kframework.kore.Sort, DataStructureSort> builder = ImmutableMap.builder();
         for (org.kframework.definition.Production prod : iterable(module.productions())) {

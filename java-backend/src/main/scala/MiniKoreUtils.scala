@@ -2,7 +2,7 @@ package org.kframework.backend.java
 import org.kframework.minikore.KoreToMini.iMainModule
 import org.kframework.minikore.MiniKore._
 
-import scala.collection.Seq
+import scala.collection.{Seq, mutable}
 
 /**
   * Some utilities needed, for MiniKore to be useful in the Backend.
@@ -25,12 +25,46 @@ object MiniKoreUtils {
     argss.head
   }
 
-  //TODO: signature for method need
-  def signatureFor(m: Module): Map[String, Set[(Seq[SortDeclaration], SortDeclaration)]] = ???
+  def signatureFor(m: Module): Map[String, Set[(Seq[String], String)]] = {
+    val map: Map[String, Set[(Seq[String], String)]] = Map.empty
+    m.sentences.foreach(x => x match {
+      case SymbolDeclaration(sort, label, args, att) => map + (sort -> Set(args, label))
+    })
+    map
+  }
 
-  def attributesFor(m: Module): Map[String, Seq[Pattern]] = ???
+  def attributesFor(m: Module): Map[String, Seq[Pattern]] = {
+    val map: Map[String, Seq[Pattern]] = Map.empty
+    m.sentences.foreach(x => x match {
+      case SymbolDeclaration(_, label, _, att) => map + (label -> att)
+    })
+    map
+  }
 
+  def freshFunctionFor(m: Module): Map[String, String] = {
+    val map: Map[String, String] = Map.empty
+    m.sentences.foreach(x => x match {
+      case SymbolDeclaration(sort, label, _, att) => {
+        if (findAtt(att, "freshGenerator").size == 1) {
+          map + (sort -> label)
+        }
+      }
+    })
+    map
+  }
 
+  def definedSorts(m: Module): Set[SortDeclaration] = ???
+
+//  def productions(m: Module): Set[_] = {
+//    m.sentences match {
+//      case SymbolDeclaration(sort, _, _, att) =>
+//
+//    }
+//  }
+
+  def rules(m: Module): Seq[Rule] = ???
+
+  def localRules(m: Module): Seq[Rule] = ???
 
 
 }

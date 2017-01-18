@@ -277,6 +277,7 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
         }
     }
 
+    //separate functions for separate Minikore classes
     public Term convert(org.kframework.kore.K k) {
         if (k instanceof Term)
             return (Term) k;

@@ -13,6 +13,7 @@ import org.kframework.kil.Term;
 import org.kframework.kore.*;
 import org.kframework.definition.*;
 import org.kframework.kore.Sort;
+import org.kframework.minikore.MiniKore;
 import org.kframework.utils.StringUtil;
 
 import java.math.BigInteger;
@@ -291,6 +292,22 @@ public class KOREtoKIL implements Function<Definition, org.kframework.kil.Defini
 
     public org.kframework.kil.Sort convertSort(Sort sort) {
         return org.kframework.kil.Sort.of(sort.name());
+    }
+
+    //TODO: MiniKore to Kil conversion
+
+    public org.kframework.kil.Attributes convertAttributes(List<MiniKore.Pattern> miniKoreAtts) {
+//        org.kframework.kil.Attributes kilAttributes = new org.kframework.kil.Attributes();
+//        miniKoreAtts.stream().forEach(x -> {
+//            if(x instanceof MiniKore.Application) {
+//                String symbol = ((MiniKore.Application) x).label();
+//
+//                if(symbol.equals(Att.sort().key())) {
+//
+//                }
+//            }
+//        });
+        return null;
     }
 
     public org.kframework.kil.Attributes convertAttributes(Att koreAtt) {
