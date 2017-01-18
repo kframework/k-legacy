@@ -59,7 +59,7 @@ public class KompileFrontEnd extends FrontEnd {
         Definition parsedDef = kompile.parseDefinition(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files));
         CompiledDefinition compiledDef = kompile.compile(parsedDef, koreBackend.steps());
         ParsedDefinitionWrapper wrapper = new ParsedDefinitionWrapper(options, parsedDef);
-        saveParser(wrapper, kem);
+        saveModuleDerivedParser(wrapper, wrapper.mainSyntaxModuleName(), kem);
         save(compiledDef);
         koreBackend.accept(compiledDef);
         loader.saveOrDie(files.resolveKompiled(FileUtil.TIMESTAMP), "");
@@ -68,9 +68,10 @@ public class KompileFrontEnd extends FrontEnd {
         return 0;
     }
 
-    public void saveParser(ParsedDefinitionWrapper wrapper, KExceptionManager kem) {
-        UserParser parser = wrapper.getModuleDerviedParser(wrapper.mainSyntaxModuleName(), kem);
-        loader.saveOrDie(files.resolveKompiled(FileUtil.SYNTAX_PARSER_BIN), parser);
+    public void saveModuleDerivedParser(ParsedDefinitionWrapper wrapper, String moduleName, KExceptionManager kem) {
+        UserParser parser = wrapper.getModuleDerviedParser(moduleName, kem);
+        String fileName = "extras/" + moduleName +"_Parser";
+        loader.saveOrDie(files.resolveKompiled(fileName), parser);
     }
 
     // NOTE: should be matched with org.kframework.utils.inject.DefinitionLoadingModule.koreDefinition()
