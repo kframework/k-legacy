@@ -1,18 +1,24 @@
 // Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.kompile;
 
+import org.kframework.definition.Definition;
+import org.kframework.definition.Module;
 import org.kframework.main.FrontEnd;
 import org.kframework.minikore.KoreToMini;
 import org.kframework.minikore.KoreToMiniToKore;
 import org.kframework.minikore.MiniToText;
 import org.kframework.minikore.MiniToTextToMini;
 import org.kframework.minikore.TextToMini;
+import org.kframework.parser.UserParser;
+import org.kframework.parser.ModuleDerivedParser;
+import org.kframework.parser.concrete2kore.ParseInModule;
+import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KEMException;
+import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.file.JarInfo;
 
 public class KompileFrontEnd extends FrontEnd {
 
@@ -49,13 +55,22 @@ public class KompileFrontEnd extends FrontEnd {
         }
 
         Kompile kompile = new Kompile(options, files, kem, sw);
-        CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps());
-        save(def);
-        koreBackend.accept(def);
+        //CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps());
+        Definition parsedDef = kompile.parseDefinition(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files));
+        CompiledDefinition compiledDef = kompile.compile(parsedDef, koreBackend.steps());
+        ParsedDefinitionWrapper wrapper = new ParsedDefinitionWrapper(options, parsedDef);
+        saveParser(wrapper, kem);
+        save(compiledDef);
+        koreBackend.accept(compiledDef);
         loader.saveOrDie(files.resolveKompiled(FileUtil.TIMESTAMP), "");
         sw.printIntermediate("Save to disk");
         sw.printTotal("Total");
         return 0;
+    }
+
+    public void saveParser(ParsedDefinitionWrapper wrapper, KExceptionManager kem) {
+        UserParser parser = wrapper.getModuleDerviedParser(wrapper.mainSyntaxModuleName(), kem);
+        loader.saveOrDie(files.resolveKompiled(FileUtil.SYNTAX_PARSER_BIN), parser);
     }
 
     // NOTE: should be matched with org.kframework.utils.inject.DefinitionLoadingModule.koreDefinition()
