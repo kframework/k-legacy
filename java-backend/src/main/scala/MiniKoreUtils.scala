@@ -1,4 +1,5 @@
 package org.kframework.backend.java
+
 import org.kframework.minikore.KoreToMini.iMainModule
 import org.kframework.minikore.MiniKore._
 
@@ -9,9 +10,10 @@ import scala.collection.{Seq, mutable}
   */
 object MiniKoreUtils {
 
-  def getMainModule(definition: Definition) : Module  = {
+  def getMainModule(definition: Definition): Module = {
     val mainModuleName = findAtt(definition.att, iMainModule) match {
-      case Seq(DomainValue("S", name)) => name; case _ => ???
+      case Seq(DomainValue("S", name)) => name;
+      case _ => ???
     }
 
     definition.modules.find(p => p.name == mainModuleName).get
@@ -25,18 +27,20 @@ object MiniKoreUtils {
     argss.head
   }
 
-  def signatureFor(m: Module): Map[String, Set[(Seq[String], String)]] = {
-    val map: Map[String, Set[(Seq[String], String)]] = Map.empty
-    m.sentences.foreach(x => x match {
-      case SymbolDeclaration(sort, label, args, att) => map + (sort -> Set(args, label))
-    })
-    map
+  def signatureFor(m: Module, definition: Definition): Map[String, Set[(Seq[String], String)]] = {
+    val mainModuleImports: Set[String] = m.sentences collect { case Import(name, _) => name } toSet
+
+    var importedSentences: Seq[Sentence] = definition.modules collect { case Module(name, sentences, _) => sentences } flatten
+
+    val symboldecs = importedSentences collect { case SymbolDeclaration(sort: String, label: String, args: Seq[String], _) => (label, Set((args, sort))) }
+    symboldecs.toMap filter (p => !(p._1.isEmpty))
   }
 
   def attributesFor(m: Module): Map[String, Seq[Pattern]] = {
     val map: Map[String, Seq[Pattern]] = Map.empty
     m.sentences.foreach(x => x match {
       case SymbolDeclaration(_, label, _, att) => map + (label -> att)
+      case _ => None
     })
     map
   }
@@ -49,18 +53,19 @@ object MiniKoreUtils {
           map + (sort -> label)
         }
       }
+      case _ => None
     })
     map
   }
 
   def definedSorts(m: Module): Set[SortDeclaration] = ???
 
-//  def productions(m: Module): Set[_] = {
-//    m.sentences match {
-//      case SymbolDeclaration(sort, _, _, att) =>
-//
-//    }
-//  }
+  //  def productions(m: Module): Set[_] = {
+  //    m.sentences match {
+  //      case SymbolDeclaration(sort, _, _, att) =>
+  //
+  //    }
+  //  }
 
   def rules(m: Module): Seq[Rule] = ???
 

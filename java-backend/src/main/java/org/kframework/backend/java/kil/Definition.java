@@ -156,7 +156,7 @@ public class Definition extends JavaSymbolicObject {
         this.kem = kem;
 
         ImmutableSetMultimap.Builder<String, SortSignature> signaturesBuilder = ImmutableSetMultimap.builder();
-        JavaConversions.mapAsJavaMap(MiniKoreUtils.signatureFor(module)).entrySet().stream().forEach(e -> {
+        JavaConversions.mapAsJavaMap(MiniKoreUtils.signatureFor(module, miniKoreDefinition)).entrySet().stream().forEach(e -> {
             JavaConversions.setAsJavaSet(e.getValue()).stream().forEach(p -> {
                 ImmutableList.Builder<Sort> sortsBuilder = ImmutableList.builder();
                 stream(p._1()).map(s -> Sort.of(s)).forEach(sortsBuilder::add);
@@ -184,7 +184,7 @@ public class Definition extends JavaSymbolicObject {
         });
 
         ImmutableSetMultimap.Builder<String, SortSignature> signaturesBuilder2 = ImmutableSetMultimap.builder();
-        JavaConversions.mapAsJavaMap(MiniKoreUtils.signatureFor(miniKoreModule)).entrySet().stream().forEach(e -> {
+        JavaConversions.mapAsJavaMap(MiniKoreUtils.signatureFor(miniKoreModule, miniKoreDefinition)).entrySet().stream().forEach(e -> {
             JavaConversions.setAsJavaSet(e.getValue()).stream().forEach(p -> {
                 ImmutableList.Builder<Sort> sortsBuilder = ImmutableList.builder();
                 stream(p._1()).map(s -> Sort.of(s)).forEach(sortsBuilder::add);

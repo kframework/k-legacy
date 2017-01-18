@@ -68,10 +68,10 @@ public class KompileFrontEnd extends FrontEnd {
         // saveTest(def);
     }
 
-    public void saveTest(CompiledDefinition def) {
-        KoreToMiniToKore.apply(def.kompiledDefinition); // for serialization/deserialization test
-        KoreToMiniToKore.apply(def.getParsedDefinition()); // for serialization/deserialization test
-        MiniToTextToMini.assertequal(KoreToMini.apply(def.kompiledDefinition), new TextToMini().parse(files.resolveKompiled(FileUtil.KORE_TXT))); // for serialization/deserialization test
-    }
+//    public void saveTest(CompiledDefinition def) {
+//        KoreToMiniToKore.apply(def.kompiledDefinition); // for serialization/deserialization test
+//        KoreToMiniToKore.apply(def.getParsedDefinition()); // for serialization/deserialization test
+//        MiniToTextToMini.assertequal(KoreToMini.apply(def.kompiledDefinition), new TextToMini().parse(files.resolveKompiled(FileUtil.KORE_TXT))); // for serialization/deserialization test
+//    }
 }
 

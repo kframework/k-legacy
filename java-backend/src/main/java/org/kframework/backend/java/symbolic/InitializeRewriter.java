@@ -4,6 +4,7 @@ package org.kframework.backend.java.symbolic;
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.KapiGlobal;
 import org.kframework.RewriterResult;
+import org.kframework.backend.java.MiniKoreUtils;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.Definition;
@@ -22,7 +23,6 @@ import org.kframework.krun.api.KRunState;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.main.GlobalOptions;
 import org.kframework.minikore.MiniKore;
-import org.kframework.minikore.MiniKoreUtils;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.rewriter.SearchType;
 import org.kframework.utils.errorsystem.KException;
@@ -91,18 +91,18 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
     public synchronized Rewriter apply(Pair<Module, MiniKore.Definition> modulePair) {
         TermContext initializingContext = TermContext.builder(new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING))
                 .freshCounter(0).build();
-        Definition evaluatedDef = initializeDefinition.invoke(modulePair.getKey(), kem, initializingContext.global());
         MiniKore.Module mainModule = null;
-        if (!(modulePair.getRight() == null)) {
+        Definition definition;
+        if (modulePair.getRight() != null) {
             mainModule = MiniKoreUtils.getMainModule(modulePair.getRight());
+            definition = initializeDefinition.invoke(modulePair.getKey(), kem, initializingContext.global(), mainModule, modulePair.getRight());
+        } else {
+            definition = initializeDefinition.invoke(mainModule, modulePair.getRight(), kem, initializingContext.global());
         }
-
-        Definition miniKoreDefinition = initializeDefinition.invoke(mainModule, modulePair.getRight(), kem, initializingContext.global());
-
         GlobalContext rewritingContext = new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
-        rewritingContext.setDefinition(evaluatedDef);
+        rewritingContext.setDefinition(definition);
 
-        return new SymbolicRewriterGlue(modulePair.getKey(), evaluatedDef, miniKoreDefinition, transitions, initializingContext.getCounterValue(), rewritingContext, kem);
+        return new SymbolicRewriterGlue(modulePair.getKey(), definition, definition, transitions, initializingContext.getCounterValue(), rewritingContext, kem);
     }
 
     public static class SymbolicRewriterGlue implements Rewriter {

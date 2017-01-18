@@ -10,6 +10,7 @@ import org.kframework.krun.KRunOptions;
 import org.kframework.main.GlobalOptions;
 import org.kframework.minikore.MiniKore;
 import org.kframework.minikore.MiniToKore;
+import org.kframework.minikore.ParseError;
 import org.kframework.minikore.TextToMini;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
@@ -53,15 +54,26 @@ public class DefinitionLoadingModule {
     // NOTE: should be matched with org.kframework.kompile.KompileFrontEnd.save()
     public static CompiledDefinition koreDefinition(BinaryLoader loader, FileUtil files) {
         // org.kframework.definition.Definition kompiledDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN)); // deprecated
-        org.kframework.definition.Definition kompiledDefinition = MiniToKore.apply(new TextToMini().parse(files.resolveKompiled(FileUtil.KORE_TXT)));
+        org.kframework.definition.Definition kompiledDefinition = null;
+        try {
+            kompiledDefinition = MiniToKore.apply(new TextToMini().parse(files.resolveKompiled(FileUtil.KORE_TXT)));
+        } catch (ParseError e) {
+            System.out.println(e.getMessage());
+        }
         KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN));
         org.kframework.definition.Definition parsedDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN));
-        org.kframework.kore.KLabel topCellInitializer = loader.loadOrDie(org.kframework.kore.KLabel .class, files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN));
+        org.kframework.kore.KLabel topCellInitializer = loader.loadOrDie(org.kframework.kore.KLabel.class, files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN));
         return new CompiledDefinition(kompileOptions, parsedDefinition, kompiledDefinition, topCellInitializer);
     }
 
     public static ProcessedDefinition miniKoreDefinition(BinaryLoader loader, FileUtil files) {
-        MiniKore.Definition definition = new TextToMini().parse(files.resolveKompiled(FileUtil.KORE_TXT));
+        MiniKore.Definition definition = null;
+        try {
+            definition = new TextToMini().parse(files.resolveKompiled(FileUtil.KORE_TXT));
+        } catch (ParseError e) {
+            System.out.println(e.getMessage());
+        }
+
         KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN));
         return new ProcessedDefinition(kompileOptions, definition);
     }
