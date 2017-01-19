@@ -27,12 +27,25 @@ object MiniKoreUtils {
     argss.head
   }
 
+  def allSentences(m: Module, definition: Definition): Seq[Sentence] = {
+    val mainModuleImports: Set[String] = m.sentences collect {
+      case Import(name, _) => name
+    } toSet
+
+    val importedSentences: Seq[Sentence] = definition.modules.filter(p => mainModuleImports.contains(p.name))
+      .flatMap(x => allSentences(x, definition))
+
+    m.sentences ++ importedSentences
+  }
+
   def signatureFor(m: Module, definition: Definition): Map[String, Set[(Seq[String], String)]] = {
     val mainModuleImports: Set[String] = m.sentences collect { case Import(name, _) => name } toSet
 
-    var importedSentences: Seq[Sentence] = definition.modules collect { case Module(name, sentences, _) => sentences } flatten
+    val mainModuleSentences: Seq[Sentence] = allSentences(m, definition)
 
-    val symboldecs = importedSentences collect { case SymbolDeclaration(sort: String, label: String, args: Seq[String], _) => (label, Set((args, sort))) }
+    val symboldecs = mainModuleSentences collect {
+      case SymbolDeclaration(sort: String, label: String, args: Seq[String], _) => (label, Set((args, sort)))
+    }
     symboldecs.toMap filter (p => !(p._1.isEmpty))
   }
 

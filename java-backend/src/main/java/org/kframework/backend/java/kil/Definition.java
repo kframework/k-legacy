@@ -188,7 +188,7 @@ public class Definition extends JavaSymbolicObject {
             JavaConversions.setAsJavaSet(e.getValue()).stream().forEach(p -> {
                 ImmutableList.Builder<Sort> sortsBuilder = ImmutableList.builder();
                 stream(p._1()).map(s -> Sort.of(s)).forEach(sortsBuilder::add);
-                signaturesBuilder.put(
+                signaturesBuilder2.put(
                         e.getKey(),
                         new SortSignature(sortsBuilder.build(), Sort.of(p._2())));
             });
