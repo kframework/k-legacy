@@ -311,6 +311,8 @@ public class Kapi {
 
         //// setting options
 
+        globalOptions.debug = true;
+
         krunOptions.experimental.prove = proofFile;
         krunOptions.experimental.smt.smtPrelude = prelude;
 
