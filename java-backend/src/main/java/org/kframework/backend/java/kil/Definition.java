@@ -172,23 +172,14 @@ public class Definition extends JavaSymbolicObject {
         kLabels = new HashSet<>();
         this.kem = kem;
 
-        ImmutableSetMultimap.Builder<String, SortSignature> signaturesBuilder = ImmutableSetMultimap.builder();
-        JavaConversions.mapAsJavaMap(module.signatureFor()).entrySet().stream().forEach(e -> {
-            JavaConversions.setAsJavaSet(e.getValue()).stream().forEach(p -> {
-                ImmutableList.Builder<Sort> sortsBuilder = ImmutableList.builder();
-                stream(p._1()).map(s -> Sort.of(s.name())).forEach(sortsBuilder::add);
-                signaturesBuilder.put(
-                        e.getKey().name(),
-                        new SortSignature(sortsBuilder.build(), Sort.of(p._2().name())));
-            });
-        });
 
-        ImmutableSetMultimap.Builder<String, SortSignature> signaturesBuilder2 = ImmutableSetMultimap.builder();
+
+        ImmutableSetMultimap.Builder<String, SortSignature> signaturesBuilder = ImmutableSetMultimap.builder();
         JavaConversions.mapAsJavaMap(MiniKoreUtils.signatureFor(miniKoreModule, miniKoreDefinition)).entrySet().stream().forEach(e -> {
             JavaConversions.setAsJavaSet(e.getValue()).stream().forEach(p -> {
                 ImmutableList.Builder<Sort> sortsBuilder = ImmutableList.builder();
                 stream(p._1()).map(s -> Sort.of(s)).forEach(sortsBuilder::add);
-                signaturesBuilder2.put(
+                signaturesBuilder.put(
                         e.getKey(),
                         new SortSignature(sortsBuilder.build(), Sort.of(p._2())));
             });
@@ -198,6 +189,18 @@ public class Definition extends JavaSymbolicObject {
         JavaConversions.mapAsJavaMap(module.attributesFor()).entrySet().stream().forEach(e -> {
             attributesBuilder.put(e.getKey().name(), new KOREtoKIL().convertAttributes(e.getValue()));
         });
+
+//        ImmutableSetMultimap<String, SortSignature> map1 = signaturesBuilder.build();
+//
+//        ImmutableSetMultimap<String, SortSignature> map2 = signaturesBuilder2.build();
+//
+//        map2.entries().forEach(x -> {
+//            if(!(map1.containsKey(x.getKey()))) {
+//                System.out.println("Key" + x.getKey().length() + ((SortSignature) x.getValue()).parameters());
+//            }
+//        });
+
+
 
         definitionData = new DefinitionData(
                 new Subsorts(module),
