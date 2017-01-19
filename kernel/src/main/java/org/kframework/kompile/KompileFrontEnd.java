@@ -66,7 +66,7 @@ public class KompileFrontEnd extends FrontEnd {
 
     public void saveModuleDerivedParser(ParsedDefinitionWrapper wrapper, String moduleName, KExceptionManager kem) {
         UserParser parser = wrapper.getModuleDerviedParser(moduleName, kem);
-        String fileName = "extras/" + moduleName +"_Parser";
+        String fileName = "extras/" + moduleName +"_Parser.bin";
         loader.saveOrDie(files.resolveKompiled(fileName), parser);
     }
 
