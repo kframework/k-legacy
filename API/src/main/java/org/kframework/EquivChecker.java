@@ -126,7 +126,9 @@ public class EquivChecker {
 
         queue.add(currSyncNode.currSyncNode);
 
+        int steps = 0;
         while (!queue.isEmpty()) {
+            ++steps;
             for (ConstrainedTerm curr : queue) {
 
                 java.util.List<ConstrainedTerm> nexts = rewriter.fastComputeRewriteStep(curr, false, true, true);
