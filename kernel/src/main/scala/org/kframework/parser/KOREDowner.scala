@@ -46,7 +46,7 @@ object MiniKoreMeta {
   def upDomainValue(concrete: DomainValue): Application = concrete match { case DomainValue(name, value) => Application("KMLDomainValue", Seq(Application(name, Nil), Application(value, Nil))) }
   def downDomainValue(parsed: Pattern): DomainValue = parsed match { case Application("KMLDomainValue", Application(name, Nil) :: Application(value, Nil) :: Nil) => DomainValue(name, value) }
 
-  def upSymbol(concrete: String): DomainValue = DomainValue("KSymbol@KTOKENS", value)
+  def upSymbol(concrete: String): DomainValue = DomainValue("KSymbol@KTOKENS", concrete)
   def downSymbol(parsed: Pattern): String = downDomainValue(parsed) match { case DomainValue("KSymbol@KTOKENS", value) => value }
 
   def upVariable(concrete: Variable): Application = concrete match { case Variable(name, sort) => Application("KMLVariable", Seq(upSymbol(name), symbol(sort))) }
