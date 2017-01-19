@@ -298,16 +298,28 @@ public class KOREtoKIL implements Function<Definition, org.kframework.kil.Defini
 
     public org.kframework.kil.Attributes convertAttributes(List<MiniKore.Pattern> miniKoreAtts) {
         org.kframework.kil.Attributes kilAttributes = new org.kframework.kil.Attributes();
-//        miniKoreAtts.stream().forEach(x -> {
-//            if(x instanceof MiniKore.Application) {
-//                String symbol = ((MiniKore.Application) x).label();
-//
-//                if(symbol.equals(Att.sort().key())) {
-//
-//                }
-//            }
-//        });
-        miniKoreAtts.stream().forEach(x -> kilAttributes.add(Attribute.of("dummy", "dummy")));
+        miniKoreAtts.stream().forEach(x -> {
+            if (x instanceof MiniKore.Application) {
+                MiniKore.Application application = (MiniKore.Application) x;
+                List<MiniKore.Pattern> args = mutable(application.args());
+                String label = application.label();
+                if (label.equals("sort")) {
+                    MiniKore.DomainValue domainValue = (MiniKore.DomainValue) args.get(0);
+                    kilAttributes.add(Attribute.of("sort", domainValue.value()));
+                } else if (!label.equals("Location") && !label.equals("Source") && !label.equals("org.kframework.attributes.Location") &&
+                        !label.equals("org.kframework.attributes.Source")) {
+                    if (args.size() == 1) {
+                        if (args.get(0) instanceof MiniKore.DomainValue) {
+                            kilAttributes.add(Attribute.of(label, ((MiniKore.DomainValue) args.get(0)).value()));
+                        }
+                    } else if (args.size() == 0) {
+                        kilAttributes.add(Attribute.of(label, ""));
+                    } else {
+                        throw NOT_IMPLEMENTED();
+                    }
+                }
+            }
+        });
         return kilAttributes;
     }
 
