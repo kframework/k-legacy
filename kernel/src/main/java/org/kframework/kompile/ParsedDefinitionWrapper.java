@@ -1,5 +1,5 @@
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.kompile;
-
 
 import org.kframework.Collections;
 import org.kframework.attributes.Att;
@@ -24,38 +24,11 @@ import java.util.HashMap;
 public class ParsedDefinitionWrapper {
     public final KompileOptions kompileOptions;
     public final Definition parsedDefinition;        /*The parsed but uncompiled definition*/
-    public final Sort programStartSymbol;
     public final HashMap<String, Sort> configurationVariableDefaultSorts = new HashMap<>();
 
     public ParsedDefinitionWrapper(KompileOptions options, Definition parsedDefinition) {
         this.kompileOptions = options;
         this.parsedDefinition = parsedDefinition;
-        this.programStartSymbol = configurationVariableDefaultSorts.getOrDefault("$PGM", Sorts.K());
-    }
-
-    private void initializeConfigurationVariableDefaultSorts() {
-        // searching for #SemanticCastTo<Sort>(_Map_.lookup(_, #token(<VarName>, KConfigVar)))
-        Collections.stream(parsedDefinition.mainModule().rules())
-                .forEach(r -> {
-                    new VisitK() {
-                        @Override
-                        public void apply(KApply k) {
-                            if (k.klabel().name().contains("#SemanticCastTo")
-                                    && k.items().size() == 1 && k.items().get(0) instanceof KApply) {
-                                KApply theMapLookup = (KApply) k.items().get(0);
-                                if (theMapLookup.klabel().name().equals(KLabels.MAP_LOOKUP)
-                                        && theMapLookup.size() == 2 && theMapLookup.items().get(1) instanceof KToken) {
-                                    KToken t = (KToken) theMapLookup.items().get(1);
-                                    if (t.sort().equals(Sorts.KConfigVar())) {
-                                        Sort sort = KORE.Sort(k.klabel().name().replace("#SemanticCastTo", ""));
-                                        configurationVariableDefaultSorts.put(t.s(), sort);
-                                    }
-                                }
-                            }
-                            super.apply(k);
-                        }
-                    }.apply(r.body());
-                });
     }
 
     public UserParser getModuleDerviedParser(String moduleName, KExceptionManager kem) {
@@ -92,5 +65,5 @@ public class ParsedDefinitionWrapper {
                 Option.empty();
         return programParsingModuleOption;
     }
-    
+
 }
