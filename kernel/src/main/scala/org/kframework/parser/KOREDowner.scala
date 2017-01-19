@@ -5,8 +5,6 @@ import org.kframework.attributes.Source
 import org.kframework.minikore.KOREDefinition._
 import org.kframework.minikore.KDefinitionDSL._
 import org.kframework.minikore.KoreToMini._
-//import org.kframework.kore.ADT.{KList => Args, _}
-//import org.kframework.kore.K
 
 import org.apache.commons.lang3.StringEscapeUtils
 
