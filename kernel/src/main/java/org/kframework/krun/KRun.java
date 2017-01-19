@@ -25,6 +25,7 @@ import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.minikore.MiniKore;
 import org.kframework.minikore.MiniToKore;
+import org.kframework.parser.ParseResult;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.UserParser;
 import org.kframework.parser.binary.BinaryParser;
@@ -430,8 +431,10 @@ public class KRun {
         String modulePath = "extras/" + moduleDerivedParser + ".bin";
         BinaryLoader loader = new BinaryLoader(kem);
         UserParser parser = loader.loadOrDie(UserParser.class, files.resolveKompiled(modulePath));
-        MiniKore.Pattern result = parser.parse(toParse, source, startSymbol).ast;
-        return MiniToKore.apply(result);
+        ParseResult result = parser.parse(toParse, source.source(), startSymbol.name());
+        MiniKore.Pattern ast = result.ast;
+        kem.addAllKException(result.warnings.stream().map(e->e.getKException()).collect(Collectors.toSet()));
+        return MiniToKore.apply(ast);
     }
 
     public K parse(String parser, String value, Sort startSymbol, Source source, CompiledDefinition compiledDef, FileUtil files) {
@@ -444,6 +447,7 @@ public class KRun {
             String defaultParser = compiledDef.mainSyntaxModuleName() + "_Parser";
             return parse(toParse, source, startSymbol, defaultParser, files);
         } else {
+            // ToDo(Yi): Update this branch when kast interface is nailed down.
             List<String> tokens = new ArrayList<>(Arrays.asList(parser.split(" ")));
             tokens.add(value);
             Map<String, String> environment = new HashMap<>();
