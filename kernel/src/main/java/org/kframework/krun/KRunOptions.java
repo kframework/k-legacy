@@ -59,6 +59,7 @@ public final class KRunOptions {
         public String parser(String mainModuleName) {
             if (parser == null) {
                 if (term()) {
+                    //ToDo(Yi): fix this branch once kast interface is nailed down.
                     return kastBinary + " -m " + mainModuleName;
                 } else {
                     // Using the default parser
