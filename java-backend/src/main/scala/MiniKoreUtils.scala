@@ -27,6 +27,10 @@ object MiniKoreUtils {
     argss.head
   }
 
+
+  /**
+    * Given a module m and a definition, return all sentences from modules imported (recursively) by m.
+    */
   def allSentences(m: Module, definition: Definition): Seq[Sentence] = {
     val mainModuleImports: Set[String] = m.sentences collect {
       case Import(name, _) => name
@@ -39,14 +43,10 @@ object MiniKoreUtils {
   }
 
   def signatureFor(m: Module, definition: Definition): Map[String, Set[(Seq[String], String)]] = {
-    val mainModuleImports: Set[String] = m.sentences collect { case Import(name, _) => name } toSet
-
-    val mainModuleSentences: Seq[Sentence] = allSentences(m, definition)
-
-    val symboldecs = mainModuleSentences collect {
-      case SymbolDeclaration(sort: String, label: String, args: Seq[String], _) => (label, Set((args, sort)))
-    }
-    symboldecs.toMap filter (p => !(p._1.isEmpty))
+    allSentences(m, definition) collect {
+      case SymbolDeclaration(sort: String, label: String, args: Seq[String], _)
+      => (label, Set((args, sort)))
+    } filter (p => !(p._1.isEmpty)) toMap
   }
 
   def attributesFor(m: Module): Map[String, Seq[Pattern]] = {
