@@ -13,6 +13,7 @@ import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
+import org.kframework.utils.inject.DefinitionLoadingModule;
 
 public class KompileFrontEnd extends FrontEnd {
 
@@ -68,10 +69,11 @@ public class KompileFrontEnd extends FrontEnd {
         // saveTest(def);
     }
 
-//    public void saveTest(CompiledDefinition def) {
-//        KoreToMiniToKore.apply(def.kompiledDefinition); // for serialization/deserialization test
-//        KoreToMiniToKore.apply(def.getParsedDefinition()); // for serialization/deserialization test
-//        MiniToTextToMini.assertequal(KoreToMini.apply(def.kompiledDefinition), new TextToMini().parse(files.resolveKompiled(FileUtil.KORE_TXT))); // for serialization/deserialization test
-//    }
+    // for serialization/deserialization test
+    public void saveTest(CompiledDefinition def) {
+        KoreToMiniToKore.apply(def.kompiledDefinition);
+        KoreToMiniToKore.apply(def.getParsedDefinition());
+        MiniToTextToMini.assertequal(KoreToMini.apply(def.kompiledDefinition), DefinitionLoadingModule.parseKore(files));
+    }
 }
 
