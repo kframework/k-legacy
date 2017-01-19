@@ -427,8 +427,8 @@ public class KRun {
     }
 
 
-    public K parse(String toParse, Source source, Sort startSymbol, String moduleDerivedParser, FileUtil files) {
-        String modulePath = "extras/" + moduleDerivedParser + ".bin";
+    public K parse(String toParse, Source source, Sort startSymbol, String moduleName, FileUtil files) {
+        String modulePath = files.moduleDerivedParserPath(moduleName);
         BinaryLoader loader = new BinaryLoader(kem);
         UserParser parser = loader.loadOrDie(UserParser.class, files.resolveKompiled(modulePath));
         ParseResult result = parser.parse(toParse, source.source(), startSymbol.name());
@@ -444,8 +444,7 @@ public class KRun {
         }*/
         if(parser == null) {
             String toParse = FileUtil.read(files.readFromWorkingDirectory(value));
-            String defaultParser = compiledDef.mainSyntaxModuleName() + "_Parser";
-            return parse(toParse, source, startSymbol, defaultParser, files);
+            return parse(toParse, source, startSymbol, compiledDef.mainSyntaxModuleName(), files);
         } else {
             // ToDo(Yi): Update this branch when kast interface is nailed down.
             List<String> tokens = new ArrayList<>(Arrays.asList(parser.split(" ")));

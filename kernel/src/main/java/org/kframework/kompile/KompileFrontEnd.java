@@ -7,15 +7,12 @@ import org.kframework.minikore.KoreToMini;
 import org.kframework.minikore.KoreToMiniToKore;
 import org.kframework.minikore.MiniToText;
 import org.kframework.minikore.MiniToTextToMini;
-import org.kframework.minikore.TextToMini;
 import org.kframework.parser.UserParser;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KEMException;
-import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.file.JarInfo;
 import org.kframework.utils.inject.DefinitionLoadingModule;
 
 public class KompileFrontEnd extends FrontEnd {
@@ -68,8 +65,8 @@ public class KompileFrontEnd extends FrontEnd {
 
     public void saveModuleDerivedParser(ParsedDefinitionWrapper wrapper, String moduleName, KExceptionManager kem) {
         UserParser parser = wrapper.getModuleDerviedParser(moduleName, kem);
-        String fileName = FileUtil.EXTRAS_FOLDER + moduleName +"_Parser.bin";
-        loader.saveOrDie(files.resolveKompiled(fileName), parser);
+        String modulePath = FileUtil.moduleDerivedParserPath(moduleName);
+        loader.saveOrDie(files.resolveKompiled(modulePath), parser);
     }
 
     // NOTE: should be matched with org.kframework.utils.inject.DefinitionLoadingModule.koreDefinition()

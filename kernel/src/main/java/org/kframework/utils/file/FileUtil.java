@@ -76,6 +76,10 @@ public class FileUtil {
         return new FileUtil(workingDir, workingDir, workingDir, workingDir, new GlobalOptions(), System.getenv());
     }
 
+    public static String moduleDerivedParserPath(String moduleName) {
+        return EXTRAS_FOLDER + moduleName + "_Parser.bin";
+    }
+
     public ProcessBuilder getProcessBuilder() {
         ProcessBuilder pb = new ProcessBuilder().directory(workingDir);
         pb.environment().clear();

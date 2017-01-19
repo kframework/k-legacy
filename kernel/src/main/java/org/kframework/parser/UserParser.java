@@ -9,7 +9,7 @@ import java.io.Serializable;
 public interface UserParser extends Serializable {
     /**
      * @param toParse the text to be parsed
-     * @param fromSource the source of the String toParse
+     * @param fromSource the source information of toParse
      * @param startSymbol the program start symbol (non-terminal)
      * @return an object of ParseResult which includes the K ast and the warnings during the parsing.
      */
