@@ -97,7 +97,7 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
             mainModule = MiniKoreUtils.getMainModule(modulePair.getRight());
             definition = initializeDefinition.invoke(modulePair.getKey(), kem, initializingContext.global(), mainModule, modulePair.getRight());
         } else {
-            definition = initializeDefinition.invoke(mainModule, modulePair.getRight(), kem, initializingContext.global());
+            definition = initializeDefinition.invoke(modulePair.getKey(), kem, initializingContext.global());
         }
         GlobalContext rewritingContext = new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
         rewritingContext.setDefinition(definition);

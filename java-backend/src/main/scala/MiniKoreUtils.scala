@@ -51,12 +51,10 @@ object MiniKoreUtils {
 
 
   def attributesFor(m: Module, definition: Definition): Map[String, Seq[Pattern]] = {
-    allSentences(m, definition) collect {match {
-      case SymbolDeclaration(sort:String, label:String, _, att: Attributes) =>
-        if(! label.isEmpty) {
-          (label, att)
-        }
-    }} toMap
+//    allSentences(m, definition) collect {
+//      case SymbolDeclaration(sort:String, label:String, _, att: Attributes) => (label, att)
+//    }.filter
+    null
   }
 
   def freshFunctionFor(m: Module): Map[String, String] = {
