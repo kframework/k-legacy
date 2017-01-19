@@ -189,6 +189,13 @@ public class Definition extends JavaSymbolicObject {
             attributesBuilder.put(e.getKey().name(), new KOREtoKIL().convertAttributes(e.getValue()));
         });
 
+        ImmutableMap.Builder<String, Attributes> attributesBuilder2 = ImmutableMap.builder();
+        JavaConversions.mapAsJavaMap(MiniKoreUtils.attributesFor(miniKoreModule, miniKoreDefinition)).entrySet().stream().forEach(e -> {
+            attributesBuilder2.put(e.getKey(), new KOREtoKIL().convertAttributes(mutable(e.getValue())));
+        });
+
+
+
 //        ImmutableSetMultimap<String, SortSignature> map1 = signaturesBuilder.build();
 //
 //        ImmutableSetMultimap<String, SortSignature> map2 = signaturesBuilder2.build();

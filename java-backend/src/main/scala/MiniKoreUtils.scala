@@ -49,12 +49,11 @@ object MiniKoreUtils {
     } filter (p => !(p._1.isEmpty)) toMap
   }
 
-
   def attributesFor(m: Module, definition: Definition): Map[String, Seq[Pattern]] = {
-//    allSentences(m, definition) collect {
-//      case SymbolDeclaration(sort:String, label:String, _, att: Attributes) => (label, att)
-//    }.filter
-    null
+    val atts = allSentences(m, definition) collect {
+      case SymbolDeclaration(_, label: String, _, att: Attributes) => (label, att)
+    } filter (p => !p._1.isEmpty)
+    atts.groupBy(_._1).mapValues(x => x.flatMap(_._2))
   }
 
   def freshFunctionFor(m: Module): Map[String, String] = {

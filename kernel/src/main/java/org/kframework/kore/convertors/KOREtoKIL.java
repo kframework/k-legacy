@@ -297,7 +297,7 @@ public class KOREtoKIL implements Function<Definition, org.kframework.kil.Defini
     //TODO: MiniKore to Kil conversion
 
     public org.kframework.kil.Attributes convertAttributes(List<MiniKore.Pattern> miniKoreAtts) {
-//        org.kframework.kil.Attributes kilAttributes = new org.kframework.kil.Attributes();
+        org.kframework.kil.Attributes kilAttributes = new org.kframework.kil.Attributes();
 //        miniKoreAtts.stream().forEach(x -> {
 //            if(x instanceof MiniKore.Application) {
 //                String symbol = ((MiniKore.Application) x).label();
@@ -307,7 +307,8 @@ public class KOREtoKIL implements Function<Definition, org.kframework.kil.Defini
 //                }
 //            }
 //        });
-        return null;
+        miniKoreAtts.stream().forEach(x -> kilAttributes.add(Attribute.of("dummy", "dummy")));
+        return kilAttributes;
     }
 
     public org.kframework.kil.Attributes convertAttributes(Att koreAtt) {
