@@ -49,13 +49,14 @@ object MiniKoreUtils {
     } filter (p => !(p._1.isEmpty)) toMap
   }
 
-  def attributesFor(m: Module): Map[String, Seq[Pattern]] = {
-    val map: Map[String, Seq[Pattern]] = Map.empty
-    m.sentences.foreach(x => x match {
-      case SymbolDeclaration(_, label, _, att) => map + (label -> att)
-      case _ => None
-    })
-    map
+
+  def attributesFor(m: Module, definition: Definition): Map[String, Seq[Pattern]] = {
+    allSentences(m, definition) collect {match {
+      case SymbolDeclaration(sort:String, label:String, _, att: Attributes) =>
+        if(! label.isEmpty) {
+          (label, att)
+        }
+    }} toMap
   }
 
   def freshFunctionFor(m: Module): Map[String, String] = {

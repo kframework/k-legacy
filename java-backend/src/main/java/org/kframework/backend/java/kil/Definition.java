@@ -173,7 +173,6 @@ public class Definition extends JavaSymbolicObject {
         this.kem = kem;
 
 
-
         ImmutableSetMultimap.Builder<String, SortSignature> signaturesBuilder = ImmutableSetMultimap.builder();
         JavaConversions.mapAsJavaMap(MiniKoreUtils.signatureFor(miniKoreModule, miniKoreDefinition)).entrySet().stream().forEach(e -> {
             JavaConversions.setAsJavaSet(e.getValue()).stream().forEach(p -> {
@@ -201,7 +200,6 @@ public class Definition extends JavaSymbolicObject {
 //        });
 
 
-
         definitionData = new DefinitionData(
                 new Subsorts(module),
                 getDataStructureSorts(module),
@@ -222,6 +220,7 @@ public class Definition extends JavaSymbolicObject {
     private Map<MiniKore.SortDeclaration, DataStructureSort> getDataStructureSorts(MiniKore.Module module) {
         return null;
     }
+
     private Map<org.kframework.kore.Sort, DataStructureSort> getDataStructureSorts(Module module) {
         ImmutableMap.Builder<org.kframework.kore.Sort, DataStructureSort> builder = ImmutableMap.builder();
         for (org.kframework.definition.Production prod : iterable(module.productions())) {
