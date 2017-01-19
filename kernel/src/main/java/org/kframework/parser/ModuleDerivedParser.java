@@ -3,6 +3,7 @@ package org.kframework.parser;
 import org.kframework.attributes.Source;
 import org.kframework.kore.K;
 import org.kframework.kore.Sort;
+import org.kframework.minikore.KoreToMini;
 import org.kframework.parser.concrete2kore.ParseInModule;
 import org.kframework.utils.errorsystem.ParseFailedException;
 import scala.Tuple2;
@@ -26,7 +27,7 @@ public class ModuleDerivedParser implements UserParser {
         if (res._1().isLeft()) {
             throw res._1().left().get().iterator().next();
         }
-        return new ParseResult(TreeNodesToKORE.down(res._1().right().get()), res._2());
+        return new ParseResult(KoreToMini.apply(TreeNodesToKORE.down(res._1().right().get())), res._2());
     }
 
 }
