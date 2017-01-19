@@ -61,7 +61,9 @@ public final class KRunOptions {
                 if (term()) {
                     return kastBinary + " -m " + mainModuleName;
                 } else {
-                    return kastBinary;
+                    // Using the default parser
+                    return null;
+                    //return kastBinary;
                 }
             } else {
                 return parser;

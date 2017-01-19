@@ -23,7 +23,10 @@ import org.kframework.kore.Unapply.KApply$;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.modes.ExecutionMode;
+import org.kframework.minikore.MiniKore;
+import org.kframework.minikore.MiniToKore;
 import org.kframework.parser.ProductionReference;
+import org.kframework.parser.UserParser;
 import org.kframework.parser.binary.BinaryParser;
 import org.kframework.parser.kore.KoreParser;
 import org.kframework.rewriter.Rewriter;
@@ -32,6 +35,7 @@ import org.kframework.unparser.KOREToTreeNodes;
 import org.kframework.unparser.OutputModes;
 import org.kframework.unparser.ToBinary;
 import org.kframework.unparser.ToKast;
+import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -421,9 +425,24 @@ public class KRun {
                         KOREToTreeNodes.apply(KOREToTreeNodes.up(test, input), test)));
     }
 
+
+    public K parse(String toParse, Source source, Sort startSymbol, String moduleDerivedParser, FileUtil files) {
+        String modulePath = "extras/" + moduleDerivedParser + ".bin";
+        BinaryLoader loader = new BinaryLoader(kem);
+        UserParser parser = loader.loadOrDie(UserParser.class, files.resolveKompiled(modulePath));
+        MiniKore.Pattern result = parser.parse(toParse, source, startSymbol).ast;
+        return MiniToKore.apply(result);
+    }
+
     public K parse(String parser, String value, Sort startSymbol, Source source, CompiledDefinition compiledDef, FileUtil files) {
+        /*
         if(parser.endsWith("k/bin/kast")) {
             return compiledDef.getProgramParser(kem).apply(FileUtil.read(files.readFromWorkingDirectory(value)), source);
+        }*/
+        if(parser == null) {
+            String toParse = FileUtil.read(files.readFromWorkingDirectory(value));
+            String defaultParser = compiledDef.mainSyntaxModuleName() + "_Parser";
+            return parse(toParse, source, startSymbol, defaultParser, files);
         } else {
             List<String> tokens = new ArrayList<>(Arrays.asList(parser.split(" ")));
             tokens.add(value);
