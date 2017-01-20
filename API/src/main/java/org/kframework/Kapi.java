@@ -102,7 +102,7 @@ public class Kapi {
 
         // compile (translation pipeline)
         Function<Definition, Definition> pipeline = new JavaBackend(kapiGlobal).steps();
-        CompiledDefinition compiledDef = new Kompile(kapiGlobal).run(parsedDef, pipeline);
+        CompiledDefinition compiledDef = new Kompile(kapiGlobal).compile(parsedDef, pipeline);
 
         return compiledDef;
     }
