@@ -29,8 +29,8 @@ object MiniKoreStaging {
   def consListLeft(cons: String, nil: String)(ps: Seq[Pattern]): Pattern = ps.foldLeft(Application(nil, Seq.empty))((acc, next) => Application(cons, Seq(acc, next)))
   def consListRight(cons: String, nil: String)(ps: Seq[Pattern]): Pattern = ps.foldRight(Application(nil, Seq.empty))((acc, next) => Application(cons, Seq(acc, next)))
 
-  def flattenByLabels(labels: Seq[String])(parsed: Pattern): Seq[Pattern] = parsed match {
-    case Application(label, args) if labels contains label => args flatMap flattenByLabels(labels)
+  def flattenByLabels(labels: String*)(parsed: Pattern): Seq[Pattern] = parsed match {
+    case Application(label, args) if labels contains label => args flatMap flattenByLabels(labels:_*)
     case _                                                 => Seq(parsed)
   }
 }
@@ -87,13 +87,13 @@ object MiniKoreMeta {
   }
 
   def upPatternList(concretes: Seq[Pattern]): Pattern = consListRight("KMLPatternList", ".KMLPatternList")(concretes map upPattern)
-  def downPatternList(parsed: Pattern): Seq[Pattern] = flattenByLabels(Seq("KMLPatternList", ".KMLPatternList"))(parsed) map downPattern
+  def downPatternList(parsed: Pattern): Seq[Pattern] = flattenByLabels("KMLPatternList", ".KMLPatternList")(parsed) map downPattern
 
   def upAttributes(concreteAttributes: Attributes): Pattern = concreteAttributes match {
     case Nil => Application(".KAttributes", Seq.empty)
     case _   => Application("KAttributes", Seq(upPatternList(concreteAttributes)))
   }
-  def downAttributes(parsed: Pattern): Attributes = flattenByLabels(Seq("KAttributes", ".KAttributes"))(parsed) flatMap downPatternList
+  def downAttributes(parsed: Pattern): Attributes = flattenByLabels("KAttributes", ".KAttributes")(parsed) flatMap downPatternList
 
   def upSymbolList(concrete: Seq[String]): Pattern = upPatternList(concrete map (cs => upSymbol(cs)))
   def downSymbolList(parsed: Pattern): Seq[String] = downPatternList(parsed) map downSymbol
@@ -111,13 +111,13 @@ object MiniKoreMeta {
 
   def upModule(concrete: Module): Pattern = ???
   def downModule(parsed: Pattern): Module = parsed match {
-    case Application("KModule", name :: sentences :: atts :: Nil) => Module(downSymbol(name), flattenByLabels(Seq("KSentenceList", ".KSentenceList"))(sentences) map downSentence, downAttributes(atts))
+    case Application("KModule", name :: sentences :: atts :: Nil) => Module(downSymbol(name), flattenByLabels("KSentenceList", ".KSentenceList")(sentences) map downSentence, downAttributes(atts))
   }
 
   // TODO: Make this chase the requires list
   def upDefinition(concrete: Definition): Pattern = ???
   def downDefinition(parsed: Pattern): Definition = parsed match {
-     case Application("KDefinition", atts :: modules :: Nil) => Definition(flattenByLabels(Seq("KModuleList", ".KModuleList"))(modules) map downModule, downAttributes(atts))
+     case Application("KDefinition", atts :: modules :: Nil) => Definition(flattenByLabels("KModuleList", ".KModuleList")(modules) map downModule, downAttributes(atts))
   }
  
 //  def downRules(module: Module): Module = {
@@ -164,7 +164,7 @@ object MetaPasses {
 
   def syntaxProductionToSymbolDeclaration(parsed: Pattern): Pattern = parsed match {
     case Application("KSyntaxProduction", sortName :: production :: atts :: Nil) => {
-      val productionItems = flattenByLabels(Seq("KProduction"))(production)
+      val productionItems = flattenByLabels("KProduction")(production)
       val downedAtts      = downAttributes(atts)
       val ctor            = Application(getKLabel(downedAtts).getOrElse(makeCtorString2(productionItems)), productionItems collect { case nt@Application(`iNonTerminal`, Seq(DomainValue("S", s))) => nt })
       Application("KSymbolDeclaration", Seq(sortName, ctor, upAttributes(downedAtts :+ kprod(productionItems))))
