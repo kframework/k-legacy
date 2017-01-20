@@ -56,6 +56,7 @@ public class Subsorts implements Serializable {
         }
     }
 
+    // Minikore to Subsorts Constructor
     public Subsorts(MiniKore.Module module, MiniKore.Definition definition) {
         sorts = JavaConversions.asJavaCollection(MiniKoreUtils.definedSorts(module, definition)).stream()
                         .map(s -> Sort.of(s))

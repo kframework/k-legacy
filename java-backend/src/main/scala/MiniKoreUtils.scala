@@ -4,6 +4,7 @@ import org.kframework.POSet
 import org.kframework.minikore.KoreToMini
 import org.kframework.minikore.KoreToMini.{iMainModule, iNonTerminal, iRegexTerminal, iTerminal}
 import org.kframework.minikore.MiniKore._
+import org.kframework.utils.errorsystem.KEMException
 
 import scala.collection.Seq
 
@@ -25,8 +26,9 @@ object MiniKoreUtils {
     val argss = att.collect({
       case Application(`key`, args) => args
     })
-    assert(argss.size == 1)
-    argss.head
+    if(argss.size >= 1)
+      argss.head
+    else Seq()
   }
 
 
@@ -113,6 +115,19 @@ object MiniKoreUtils {
     } filter (x => x._2.size == 1 && !x._2.head.startsWith(iTerminal)) map { x => (x._2.head, x._1) } toSet
 
     POSet[String](subsortProductions)
+  }
+
+  def freshFunctionFor(m: Module, d: Definition): Map[String, String] = {
+    val productions = allSentences(m, d) collect {
+      case SymbolDeclaration(sort, label, _, atts) if findAtt(atts, "freshGenerator").size >= 1
+        => (sort, label)
+    } groupBy(_._1) mapValues(x => x.toSet)
+
+    productions.foreach(x => {
+      if(x._2.size > 1) throw KEMException.compilerError("Found more than one fresh generator for sort " + x._1 + ". Found" + x._2.map(y => y._2))
+    })
+
+    productions.map(x => (x._1, x._2.head._2))
   }
 
   def rules(m: Module): Seq[Rule] = ???
