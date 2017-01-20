@@ -2,7 +2,7 @@ package org.kframework.backend.java
 
 import org.kframework.POSet
 import org.kframework.minikore.KoreToMini
-import org.kframework.minikore.KoreToMini.{iMainModule, iNonTerminal}
+import org.kframework.minikore.KoreToMini.{iMainModule, iNonTerminal, iRegexTerminal, iTerminal}
 import org.kframework.minikore.MiniKore._
 
 import scala.collection.Seq
@@ -96,23 +96,19 @@ object MiniKoreUtils {
     } toSet
   }
 
-  //calculate the subsort relation
   def subsorts(m: Module, d: Definition): POSet[String] = {
-
     val symbolDecs: Seq[(String, Seq[Pattern])] = allSentences(m, d) collect {
       case SymbolDeclaration(sort, _, _, atts) => (sort, atts)
     }
+    val subsortProductions: Set[(String, String)] = symbolDecs map { x =>
+      (x._1, x._2 collect {
+        case Application(`iNonTerminal`, Seq(DomainValue("S", s))) => s
+        case Application(`iTerminal`, _) => iTerminal
+        case Application(`iRegexTerminal`, _) => iTerminal
+      })
+    } filter (x => x._2.size == 1 && !x._2.head.startsWith(iTerminal)) map { x => (x._1, x._2.head) } toSet
 
-    val decsWithNonTerminals: Seq[(String, Seq[String])] = symbolDecs.map({ p =>
-      val processedAtts: Seq[String] = p._2 collect {
-        case Application(`iNonTerminal`, Seq(DomainValue("S", subsort))) => subsort
-      }
-      (p._1, processedAtts)
-    })
-
-    val subsortset: Set[(String, String)] = decsWithNonTerminals.filter(x => !x._1.startsWith("KLabel") && x._2.size == 1).map(x => (x._1, x._2(0))).toSet
-
-    POSet[String](subsortset)
+    POSet[String](subsortProductions)
   }
 
   def rules(m: Module): Seq[Rule] = ???
