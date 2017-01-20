@@ -183,7 +183,7 @@ public class Definition extends JavaSymbolicObject {
                         new SortSignature(sortsBuilder.build(), Sort.of(p._2())));
             });
         });
-        
+
 
         ImmutableMap.Builder<String, Attributes> attributesBuilder2 = ImmutableMap.builder();
         JavaConversions.mapAsJavaMap(MiniKoreUtils.attributesFor(miniKoreModule, miniKoreDefinition)).entrySet().stream().forEach(e -> {
@@ -204,7 +204,7 @@ public class Definition extends JavaSymbolicObject {
 
 
         definitionData = new DefinitionData(
-                new Subsorts(module),
+                new Subsorts(miniKoreModule, miniKoreDefinition),
                 getDataStructureSorts(module),
                 signaturesBuilder.build(),
                 attributesBuilder2.build(),

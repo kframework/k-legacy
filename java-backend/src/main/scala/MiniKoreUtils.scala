@@ -1,10 +1,11 @@
 package org.kframework.backend.java
 
+import org.kframework.POSet
 import org.kframework.minikore.KoreToMini
-import org.kframework.minikore.KoreToMini.iMainModule
+import org.kframework.minikore.KoreToMini.{iMainModule, iNonTerminal}
 import org.kframework.minikore.MiniKore._
 
-import scala.collection.{Seq, mutable}
+import scala.collection.Seq
 
 /**
   * Some utilities needed, for MiniKore to be useful in the Backend.
@@ -66,7 +67,7 @@ object MiniKoreUtils {
     } filter (p => !p._1.isEmpty)
     val flattats = atts collect { case (x: String, vals: Seq[Pattern]) =>
       val flats: Seq[(Pattern, Seq[Pattern])] = vals.map(x => flattenPatternAttributes(x))
-      (x, flats collect {case (a, b) => b :+ a} flatten)
+      (x, flats collect { case (a, b) => b :+ a } flatten)
     }
     flattats.groupBy(_._1).mapValues(x => x.flatMap(_._2))
   }
@@ -85,14 +86,34 @@ object MiniKoreUtils {
     map
   }
 
-  def definedSorts(m: Module): Set[SortDeclaration] = ???
+  /** Recursively retrieve all defined sorts from the current module, and imported modules.
+    *
+    */
+  def definedSorts(m: Module, d: Definition): Set[String] = {
+    allSentences(m, d) collect {
+      case SymbolDeclaration(sort: String, _, _, _) => sort
+      case SortDeclaration(sort: String, _) => sort
+    } toSet
+  }
 
-  //  def productions(m: Module): Set[_] = {
-  //    m.sentences match {
-  //      case SymbolDeclaration(sort, _, _, att) =>
-  //
-  //    }
-  //  }
+  //calculate the subsort relation
+  def subsorts(m: Module, d: Definition): POSet[String] = {
+
+    val symbolDecs: Seq[(String, Seq[Pattern])] = allSentences(m, d) collect {
+      case SymbolDeclaration(sort, _, _, atts) => (sort, atts)
+    }
+
+    val decsWithNonTerminals: Seq[(String, Seq[String])] = symbolDecs.map({ p =>
+      val processedAtts: Seq[String] = p._2 collect {
+        case Application(`iNonTerminal`, Seq(DomainValue("S", subsort))) => subsort
+      }
+      (p._1, processedAtts)
+    })
+
+    val subsortset: Set[(String, String)] = decsWithNonTerminals.filter(x => !x._1.startsWith("KLabel") && x._2.size == 1).map(x => (x._1, x._2(0))).toSet
+
+    POSet[String](subsortset)
+  }
 
   def rules(m: Module): Seq[Rule] = ???
 
