@@ -106,7 +106,7 @@ object MiniKoreUtils {
         case Application(`iTerminal`, _) => iTerminal
         case Application(`iRegexTerminal`, _) => iTerminal
       })
-    } filter (x => x._2.size == 1 && !x._2.head.startsWith(iTerminal)) map { x => (x._1, x._2.head) } toSet
+    } filter (x => x._2.size == 1 && !x._2.head.startsWith(iTerminal)) map { x => (x._2.head, x._1) } toSet
 
     POSet[String](subsortProductions)
   }
