@@ -96,6 +96,10 @@ object MiniKoreUtils {
     } toSet
   }
 
+  /**
+    * Given a Module m and Definition d, generates a powerset containing all subsorts
+    */
+
   def subsorts(m: Module, d: Definition): POSet[String] = {
     val symbolDecs: Seq[(String, Seq[Pattern])] = allSentences(m, d) collect {
       case SymbolDeclaration(sort, _, _, atts) => (sort, atts)
