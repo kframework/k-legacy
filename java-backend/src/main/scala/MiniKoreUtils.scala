@@ -1,5 +1,6 @@
 package org.kframework.backend.java
 
+import org.kframework.minikore.KoreToMini
 import org.kframework.minikore.KoreToMini.iMainModule
 import org.kframework.minikore.MiniKore._
 
@@ -46,15 +47,30 @@ object MiniKoreUtils {
     allSentences(m, definition) collect {
       case SymbolDeclaration(sort: String, label: String, args: Seq[String], _)
       => (label, Set((args, sort)))
-    } filter (p => !(p._1.isEmpty)) toMap
+    } filter (p => !p._1.isEmpty) toMap
+  }
+
+  def flattenPatternAttributes(p: Pattern): (Pattern, Seq[Pattern]) = {
+    p match {
+      case Application(KoreToMini.iAtt, Seq(x, y)) =>
+        flattenPatternAttributes(x) match {
+          case (p: Pattern, att: Seq[Pattern]) => (p, att :+ y)
+        }
+      case default@_ => (default, Seq())
+    }
   }
 
   def attributesFor(m: Module, definition: Definition): Map[String, Seq[Pattern]] = {
     val atts = allSentences(m, definition) collect {
       case SymbolDeclaration(_, label: String, _, att: Attributes) => (label, att)
     } filter (p => !p._1.isEmpty)
-    atts.groupBy(_._1).mapValues(x => x.flatMap(_._2))
+    val flattats = atts collect { case (x: String, vals: Seq[Pattern]) =>
+      val flats: Seq[(Pattern, Seq[Pattern])] = vals.map(x => flattenPatternAttributes(x))
+      (x, flats collect {case (a, b) => b :+ a} flatten)
+    }
+    flattats.groupBy(_._1).mapValues(x => x.flatMap(_._2))
   }
+
 
   def freshFunctionFor(m: Module): Map[String, String] = {
     val map: Map[String, String] = Map.empty

@@ -318,6 +318,10 @@ public class KOREtoKIL implements Function<Definition, org.kframework.kil.Defini
                         throw NOT_IMPLEMENTED();
                     }
                 }
+            } else if (x instanceof MiniKore.DomainValue) {
+                kilAttributes.add(Attribute.of(((MiniKore.DomainValue) x).value(), ((MiniKore.DomainValue) x).value()));
+            } else {
+                throw NOT_IMPLEMENTED();
             }
         });
         return kilAttributes;
