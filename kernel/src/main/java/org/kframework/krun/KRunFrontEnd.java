@@ -3,6 +3,7 @@ package org.kframework.krun;
 
 import com.google.common.collect.ImmutableList;
 import org.kframework.kompile.CompiledDefinition;
+import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.main.FrontEnd;
 import org.kframework.main.GlobalOptions;
@@ -26,6 +27,7 @@ public class KRunFrontEnd extends FrontEnd {
     private final KExceptionManager kem;
     private final KRunOptions krunOptions;
     private final FileUtil files;
+    private final KompileMetaInfo kompileMetaInfo;
     private final CompiledDefinition compiledDef;
     private final Function<org.kframework.definition.Module, Rewriter> initializeRewriter;
     private final ExecutionMode executionMode;
@@ -38,6 +40,7 @@ public class KRunFrontEnd extends FrontEnd {
             KExceptionManager kem,
             KRunOptions krunOptions,
             FileUtil files,
+            KompileMetaInfo kompileMetaInfo,
             CompiledDefinition compiledDef,
             Function<org.kframework.definition.Module, Rewriter> initializeRewriter,
             ExecutionMode executionMode,
@@ -48,6 +51,7 @@ public class KRunFrontEnd extends FrontEnd {
         this.kem = kem;
         this.krunOptions = krunOptions;
         this.files = files;
+        this.kompileMetaInfo = kompileMetaInfo;
         this.compiledDef = compiledDef;
         this.initializeRewriter = initializeRewriter;
         this.executionMode = executionMode;
@@ -60,12 +64,12 @@ public class KRunFrontEnd extends FrontEnd {
      */
     public int run() {
         for (int i = 0; i < krunOptions.experimental.profile - 1; i++) {
-            new KRun(kem, files, tty.stdin, isNailgun).run(compiledDef,
+            new KRun(kem, files, tty.stdin, isNailgun).run(kompileMetaInfo, compiledDef,
                     krunOptions,
                     initializeRewriter,
                     executionMode);
         }
-        return new KRun(kem, files, tty.stdin, isNailgun).run(compiledDef,
+        return new KRun(kem, files, tty.stdin, isNailgun).run(kompileMetaInfo, compiledDef,
                 krunOptions,
                 initializeRewriter,
                 executionMode);

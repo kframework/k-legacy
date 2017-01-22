@@ -1,9 +1,17 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.kompile;
 
+import org.kframework.Collections;
 import org.kframework.attributes.Att;
+import org.kframework.builtin.KLabels;
+import org.kframework.builtin.Sorts;
 import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
+import org.kframework.kore.KApply;
+import org.kframework.kore.KORE;
+import org.kframework.kore.KToken;
+import org.kframework.kore.Sort;
+import org.kframework.kore.VisitK;
 import org.kframework.parser.ModuleDerivedParser;
 import org.kframework.parser.UserParser;
 import org.kframework.parser.concrete2kore.ParseInModule;
@@ -11,14 +19,44 @@ import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import scala.Option;
 
+import java.util.HashMap;
+
 public class ParsedDefinitionWrapper {
     public final KompileOptions kompileOptions;
     public final Definition parsedDefinition;        /*The parsed but uncompiled definition*/
+    public final HashMap<String, Sort> configurationVariableDefaultSorts = new HashMap<>();
 
     public ParsedDefinitionWrapper(KompileOptions options, Definition parsedDefinition) {
         this.kompileOptions = options;
         this.parsedDefinition = parsedDefinition;
+        initializeConfigurationVariableDefaultSorts();
     }
+
+    private void initializeConfigurationVariableDefaultSorts() {
+        // searching for #SemanticCastTo<Sort>(_Map_.lookup(_, #token(<VarName>, KConfigVar)))
+        Collections.stream(parsedDefinition.mainModule().rules())
+                .forEach(r -> {
+                    new VisitK() {
+                        @Override
+                        public void apply(KApply k) {
+                            if (k.klabel().name().contains("#SemanticCastTo")
+                                    && k.items().size() == 1 && k.items().get(0) instanceof KApply) {
+                                KApply theMapLookup = (KApply) k.items().get(0);
+                                if (theMapLookup.klabel().name().equals(KLabels.MAP_LOOKUP)
+                                        && theMapLookup.size() == 2 && theMapLookup.items().get(1) instanceof KToken) {
+                                    KToken t = (KToken) theMapLookup.items().get(1);
+                                    if (t.sort().equals(Sorts.KConfigVar())) {
+                                        Sort sort = KORE.Sort(k.klabel().name().replace("#SemanticCastTo", ""));
+                                        configurationVariableDefaultSorts.put(t.s(), sort);
+                                    }
+                                }
+                            }
+                            super.apply(k);
+                        }
+                    }.apply(r.body());
+                });
+    }
+
 
     public UserParser getModuleDerviedParser(String moduleName, KExceptionManager kem) {
         Module seedModule = programParsingModuleFor(moduleName, kem).get();

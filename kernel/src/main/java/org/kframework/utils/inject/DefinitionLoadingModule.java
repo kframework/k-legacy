@@ -4,6 +4,7 @@ package org.kframework.utils.inject;
 import org.kframework.kil.Definition;
 import org.kframework.kil.loader.Context;
 import org.kframework.kompile.CompiledDefinition;
+import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.krun.KRunOptions;
 import org.kframework.main.GlobalOptions;
@@ -20,6 +21,8 @@ import org.kframework.utils.options.DefinitionLoadingOptions;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Map;
 
 public class DefinitionLoadingModule {
@@ -57,6 +60,18 @@ public class DefinitionLoadingModule {
         } catch(ParseError e) {
             throw KEMException.criticalError("Failed to parse Kore file: " +
                     koreFile.getAbsolutePath() + System.lineSeparator() + e.getMessage());
+        }
+    }
+
+    public static KompileMetaInfo kompilemetaInfo(FileUtil files){
+        File metaInfo = files.resolveKompiled(FileUtil.KOMPILE_META_INFO_TXT);
+        String metaString = "";
+        try {
+            metaString = new String(Files.readAllBytes(metaInfo.toPath()));
+            return KompileMetaInfo.deserialize(metaString);
+        } catch (IOException e) {
+            throw KEMException.criticalError("Failed to deserialize kompile meta info: " +
+                    metaInfo.getAbsolutePath() + System.lineSeparator() + e.getMessage());
         }
     }
 

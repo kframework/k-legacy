@@ -11,6 +11,7 @@ import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
 import org.kframework.kompile.CompiledDefinition;
+import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.kore.Assoc;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
@@ -81,14 +82,15 @@ public class KRun {
     }
 
 
-    public int run(CompiledDefinition compiledDef, KRunOptions options, Function<Module, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
+    public int run(KompileMetaInfo kompileMetaInfo, CompiledDefinition compiledDef, KRunOptions options,
+                   Function<Module, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
         String pgmFileName = options.configurationCreation.pgm();
         K program;
         if (options.configurationCreation.term()) {
             program = parse(options.configurationCreation.parser(compiledDef.executionModule().name()),
-                    pgmFileName, compiledDef.programStartSymbol, Source.apply("<parameters>"), compiledDef, files);
+                    pgmFileName, KORE.Sort(kompileMetaInfo.programStartSymbol), Source.apply("<parameters>"), compiledDef, files);
         } else {
-            program = parseConfigVars(options, compiledDef, kem, files, ttyStdin, isNailgun, null);
+            program = parseConfigVars(options, kompileMetaInfo, compiledDef, kem, files, ttyStdin, isNailgun, null);
         }
 
         program = new KTokenVariablesToTrueVariables()
@@ -317,14 +319,15 @@ public class KRun {
         }
     }
 
-    public Map<KToken, K> getUserConfigVarsMap(KRunOptions options, CompiledDefinition compiledDef, FileUtil files) {
+    public Map<KToken, K> getUserConfigVarsMap(KRunOptions options, KompileMetaInfo kompileMetaInfo,
+                                               CompiledDefinition compiledDef, FileUtil files) {
         Map<KToken, K> output = new HashMap<>();
         for (Map.Entry<String, Pair<String, String>> entry
                 : options.configurationCreation.configVars(compiledDef.getParsedDefinition().mainModule().name()).entrySet()) {
             String name = entry.getKey();
             String value = entry.getValue().getLeft();
             String parser = entry.getValue().getRight();
-            Sort sort = compiledDef.configurationVariableDefaultSorts.get("$" + name);
+            Sort sort = KORE.Sort(kompileMetaInfo.configVarDefaultSort.get("$" + name));
             assert sort != null : "Could not find configuration variable: $" + name;
             K configVar = parse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), compiledDef, files);
             output.put(KToken("$" + name, Sorts.KConfigVar()), configVar);
@@ -353,8 +356,9 @@ public class KRun {
         return output;
     }
 
-    public K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef, KExceptionManager kem, FileUtil files, boolean ttyStdin, boolean isNailgun, K pgm) {
-        Map<KToken, K> output = getUserConfigVarsMap(options, compiledDef, files);
+    public K parseConfigVars(KRunOptions options, KompileMetaInfo kompileMetaInfo, CompiledDefinition compiledDef,
+                             KExceptionManager kem, FileUtil files, boolean ttyStdin, boolean isNailgun, K pgm) {
+        Map<KToken, K> output = getUserConfigVarsMap(options, kompileMetaInfo, compiledDef, files);
         return getInitConfig(pgm, output, compiledDef, kem, options.io(), ttyStdin, isNailgun);
     }
 
