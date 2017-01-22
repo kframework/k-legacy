@@ -229,7 +229,7 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
             JavaConversions.setAsJavaSet(module.attributesFor().keySet()).stream()
                     .map(l -> KLabelConstant.of(l.name(), definition))
                     .forEach(definition::addKLabel);
-            definition.addKoreRules(module, global);
+            definition.addKoreRules(module, , global);
 
             cache.put(module, definition);
             return definition;
@@ -241,12 +241,13 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
 
             global.setDefinition(definition);
 
-            JavaConversions.setAsJavaSet(module.attributesFor().keySet()).stream()
-                    .map(l -> KLabelConstant.of(l.name(), definition))
+            JavaConversions.setAsJavaSet(MiniKoreUtils.attributesFor(miniKoreModule, miniKoreDefinition).keySet()).stream()
+                    .map(l -> KLabelConstant.of(l, definition))
                     .forEach(definition::addKLabel);
-            definition.addKoreRules(module, global);
-            return definition;
 
+
+            definition.addKoreRules(module, miniKoreModule, miniKoreDefinition, global);
+            return definition;
         }
 
     }

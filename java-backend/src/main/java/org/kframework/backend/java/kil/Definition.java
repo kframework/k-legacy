@@ -286,11 +286,24 @@ public class Definition extends JavaSymbolicObject {
         return builder.build();
     }
 
+    public void addMiniKoreRules(MiniKore.Module module, MiniKore.Definition definition, GlobalContext global) {
+
+    }
+
     /**
      * Converts the org.kframework.Rules to backend Rules, also plugging in the automaton rule
      */
-    public void addKoreRules(Module module, GlobalContext global) {
-        KOREtoBackendKIL transformer = new KOREtoBackendKIL(module, this, global, true);
+    public void addKoreRules(Module module, MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefintion, GlobalContext global) {
+        KOREtoBackendKIL transformer = new KOREtoBackendKIL(module, miniKoreModule, this, miniKoreDefintion, global, true);
+
+//        List<MiniKore.Rule> miniKoreRules = JavaConversions.setAsJavaSet(MiniKoreUtils.rules(miniKoreModule, miniKoreDefintion)).stream()
+//                .filter(r -> MiniKoreUtils.findAtt(r.att(), AUTOMATON).size() == 0).collect(Collectors.toList());
+
+//        miniKoreRules.forEach(r -> {
+//            if(MiniKoreUtils.findAtt(r.att(), "topRule").size()> 0))
+//            reverseRuleTable.put(r.hashCode(), reverseRuleTable.size());
+//        });
+
         List<org.kframework.definition.Rule> koreRules = JavaConversions.setAsJavaSet(module.rules()).stream()
                 .filter(r -> !r.att().contains(AUTOMATON))
                 .collect(Collectors.toList());
@@ -306,6 +319,14 @@ public class Definition extends JavaSymbolicObject {
                 ruleTable.put(reverseRuleTable.get(r.hashCode()), convertedRule);
             }
         });
+
+//        koreRules.forEach(r -> {
+//            Rule convertedRule = transformer.convert(Optional.of(module), r);
+//            addRule(convertedRule);
+//            if (r.att().contains(Att.topRule())) {
+//                ruleTable.put(reverseRuleTable.get(r.hashCode()), convertedRule);
+//            }
+//        });
 
         Optional<org.kframework.definition.Rule> koreAutomaton = JavaConversions.setAsJavaSet(module.localRules()).stream()
                 .filter(r -> r.att().contains(AUTOMATON))

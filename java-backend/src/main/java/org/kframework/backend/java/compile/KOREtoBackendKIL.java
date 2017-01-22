@@ -25,6 +25,7 @@ import org.kframework.kore.KToken;
 import org.kframework.kore.KVariable;
 import org.kframework.kore.compile.RewriteToTop;
 import org.kframework.kore.convertors.KOREtoKIL;
+import org.kframework.minikore.MiniKore;
 import org.kframework.utils.BitSet;
 
 import static org.kframework.Collections.*;
@@ -46,9 +47,11 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
 
     public static final String THE_VARIABLE = "THE_VARIABLE";
 
-    private final Module module;
-    private final Definition definition;
-    private final GlobalContext global;
+    private Module module;
+    private MiniKore.Module miniKoreModule;
+    private MiniKore.Definition miniKoreDefinition;
+    private Definition definition;
+    private GlobalContext global;
     /**
      * Flag that controls whether the translator substitutes the variables in a {@code Rule} with fresh variables
      */
@@ -59,6 +62,17 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
 
     private final HashMap<String, Variable> variableTable = new HashMap<>();
 
+    public KOREtoBackendKIL(Module module, MiniKore.Module miniKoreModule, Definition definition, MiniKore.Definition miniKoreDefinition, GlobalContext global, boolean freshRules) {
+        this.module = module;
+        this.definition = definition;
+        this.global = global;
+        this.freshRules = freshRules;
+        this.miniKoreDefinition = miniKoreDefinition;
+        this.miniKoreModule = miniKoreModule;
+
+        kSeqLabel = KLabelConstant.of(KLabels.KSEQ, global.getDefinition());
+        kDotLabel = KLabelConstant.of(KLabels.DOTK, global.getDefinition());
+    }
     public KOREtoBackendKIL(Module module, Definition definition, GlobalContext global, boolean freshRules) {
         this.module = module;
         this.definition = definition;
@@ -295,6 +309,10 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
             return KItem.of(KLabelConstant.of(KLabels.KREWRITE, definition), KList.concatenate(convert(((KRewrite) k).left()), convert(((KRewrite) k).right())), global);
         } else
             throw new AssertionError("BUM!");
+    }
+
+    public Rule convert(Optional<Module> miniKoreModule, MiniKore.Rule rule) {
+        return null;
     }
 
     public Rule convert(Optional<Module> module, org.kframework.definition.Rule rule) {

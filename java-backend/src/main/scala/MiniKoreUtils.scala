@@ -130,9 +130,12 @@ object MiniKoreUtils {
 //    }
 //  }
 
-  def rules(m: Module): Seq[Rule] = ???
+  def rules(m: Module, d: Definition): Set[Rule] = {
+    allSentences(m, d) collect {
+      case x @Rule(_, _) => x
+    } toSet
+  }
 
-  def localRules(m: Module): Seq[Rule] = ???
 
 
 }
