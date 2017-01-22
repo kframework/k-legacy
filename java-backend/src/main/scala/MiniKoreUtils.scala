@@ -75,18 +75,6 @@ object MiniKoreUtils {
   }
 
 
-  def freshFunctionFor(m: Module): Map[String, String] = {
-    val map: Map[String, String] = Map.empty
-    m.sentences.foreach(x => x match {
-      case SymbolDeclaration(sort, label, _, att) => {
-        if (findAtt(att, "freshGenerator").size == 1) {
-          map + (sort -> label)
-        }
-      }
-      case _ => None
-    })
-    map
-  }
 
   /** Recursively retrieve all defined sorts from the current module, and imported modules.
     *
@@ -129,6 +117,18 @@ object MiniKoreUtils {
 
     productions.map(x => (x._1, x._2.head._2))
   }
+
+  def getSymbolDecs(m: Module, d: Definition) : Seq[SymbolDeclaration] = {
+    allSentences(m, d) collect {
+      case s @ SymbolDeclaration(_, _, _, _) => s
+    }
+  }
+
+//  def getElementLable(attributes: Attributes) : String = {
+//    attributes collect {
+//      case Application("element", Seq(Application("AttributeValue", Seq(s)))) =>
+//    }
+//  }
 
   def rules(m: Module): Seq[Rule] = ???
 

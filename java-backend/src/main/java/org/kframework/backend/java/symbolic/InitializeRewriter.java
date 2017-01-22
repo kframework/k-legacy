@@ -25,7 +25,6 @@ import org.kframework.main.GlobalOptions;
 import org.kframework.minikore.MiniKore;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.rewriter.SearchType;
-import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.options.SMTOptions;
@@ -236,14 +235,9 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
             return definition;
         }
 
-        public Definition invoke(MiniKore.Module module, MiniKore.Definition miniKoreDefinition, KExceptionManager kem, GlobalContext globalContext) {
-            // Main MiniKore Definition To BackendKil Definition Conversion.
-            Definition definition = new Definition(module, miniKoreDefinition, kem);
-            return definition;
-        }
 
         public Definition invoke(Module module, KExceptionManager kem, GlobalContext global, MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition) {
-            Definition definition = new Definition(module, miniKoreModule, miniKoreDefinition, kem);
+            Definition definition = new Definition(miniKoreModule, miniKoreDefinition, kem);
 
             global.setDefinition(definition);
 
