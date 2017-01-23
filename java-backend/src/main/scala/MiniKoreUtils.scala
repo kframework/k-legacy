@@ -12,6 +12,8 @@ import scala.collection.Seq
   */
 object MiniKoreUtils {
 
+  var moduleSentenceMap: Map[Module, Seq[Sentence]] = Map()
+
   def getMainModule(definition: Definition): Module = {
     val mainModuleName = findAtt(definition.att, iMainModule) match {
       case Seq(DomainValue("S", name)) => name;
@@ -35,6 +37,9 @@ object MiniKoreUtils {
     * Given a module m and a definition, return all sentences from modules imported (recursively) by m.
     */
   def allSentences(m: Module, definition: Definition): Seq[Sentence] = {
+    if (moduleSentenceMap.contains(m)) {
+      return moduleSentenceMap(m)
+    }
     val mainModuleImports: Set[String] = m.sentences collect {
       case Import(name, _) => name
     } toSet
@@ -42,7 +47,10 @@ object MiniKoreUtils {
     val importedSentences: Seq[Sentence] = definition.modules.filter(p => mainModuleImports.contains(p.name))
       .flatMap(x => allSentences(x, definition))
 
-    m.sentences ++ importedSentences
+    val totalSentences: Seq[Sentence] = m.sentences ++ importedSentences
+
+    moduleSentenceMap + (m -> totalSentences)
+    totalSentences
   }
 
 
@@ -54,22 +62,21 @@ object MiniKoreUtils {
   }
 
 
-
   def attributesFor(m: Module, d: Definition): Map[String, Seq[Pattern]] = {
     val filterSet = Set(iTerminal, iNonTerminal, iRegexTerminal)
     val labelDecsMap: Map[String, Seq[Pattern]] =
       allSentences(m, d) collect {
         case SymbolDeclaration(_, label: String, _, att) => (label, att)
       } groupBy { x => x._1 } mapValues { z => z map {_._2} } mapValues {_.flatten}
-    labelDecsMap.mapValues({s =>
-      s.flatMap({p =>
+    labelDecsMap.mapValues({ s =>
+      s.flatMap({ p =>
         val decodedTup = decodePatternAttributes(p)
         decodedTup._2 :+ decodedTup._1
       })
-    }) mapValues {atts => filterAtts(filterSet, atts)}
+    }) mapValues { atts => filterAtts(filterSet, atts) }
   }
 
-  def filterAtts(filterSet: Set[String],  atts: Seq[Pattern]): Seq[Pattern] = {
+  def filterAtts(filterSet: Set[String], atts: Seq[Pattern]): Seq[Pattern] = {
     atts.filter(p => p match {
       case Application(label, _) => !filterSet.contains(label)
       case _ => true

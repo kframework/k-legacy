@@ -193,9 +193,9 @@ public class Definition extends JavaSymbolicObject {
                 getDataStructureSorts(miniKoreModule, miniKoreDefinition),
                 signaturesBuilder.build(),
                 attributesBuilder.build(),
-                JavaConverters.mapAsJavaMapConverter(module.freshFunctionFor()).asJava().entrySet().stream().collect(Collectors.toMap(
-                        e -> Sort.of(e.getKey().name()),
-                        e -> e.getValue().name())),
+                JavaConverters.mapAsJavaMapConverter(MiniKoreUtils.freshFunctionFor(miniKoreModule, miniKoreDefinition)).asJava().entrySet().stream().collect(Collectors.toMap(
+                        e -> Sort.of(e.getKey()),
+                        e -> e.getValue())),
                 Collections.emptyMap()
         );
 
