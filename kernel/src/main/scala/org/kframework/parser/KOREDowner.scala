@@ -12,39 +12,31 @@ import org.kframework.minikore.MiniKore._
 
 object MiniKoreStaging {
 
+  // Map
+  // ===
+  def onChildren(f: Pattern => Patten): Pattern => Pattern = {
+    case Application(label, args) => Application(label, args map f)
+    case And(p, q)                => And(f(p), f(q))
+    case Or(p, q)                 => Or(f(p), f(q))
+    case Not(p)                   => Not(f(p))
+    case Implies(p, q)            => Implies(f(p), f(q))
+    case Exists(v, p)             => Exists(v, f(p))
+    case ForAll(v, p)             => ForAll(v, f(p))
+    case Next(p)                  => Next(f(p))
+    case Rewrite(p, q)            => Rewrite(f(p), f(q))
+    case Equal(p, q)              => Equal(f(p), f(q))
+    case p                        => p
+  }
+
   // Traversals
   // ==========
 
   // `traverseTopDown` will first apply `f` to the root, then apply it to the sub-terms.
   // This will perform better than `traverseBottomUp` when `f: Pattern => Pattern` may eliminate sub-terms.
-  def traverseTopDown(f: Pattern => Pattern): Pattern => Pattern = pattern => f andThen {
-    case Application(label, args) => Application(label, args map traverseTopDown(f))
-    case And(p, q)                => And(traverseTopDown(f)(p), traverseTopDown(f)(q))
-    case Or(p, q)                 => Or(traverseTopDown(f)(p), traverseTopDown(f)(q))
-    case Not(p)                   => Not(traverseTopDown(f)(p))
-    case Implies(p, q)            => Implies(traverseTopDown(f)(p), traverseTopDown(f)(q))
-    case Exists(v, p)             => Exists(v, traverseTopDown(f)(p))
-    case ForAll(v, p)             => ForAll(v, traverseTopDown(f)(p))
-    case Next(p)                  => Next(traverseTopDown(f)(p))
-    case Rewrite(p, q)            => Rewrite(traverseTopDown(f)(p), traverseTopDown(f)(q))
-    case Equal(p, q)              => Equal(traverseTopDown(f)(p), traverseTopDown(f)(q))
-    case p                        => p
-  }
+  def traverseTopDown(f: Pattern => Pattern): Pattern => Pattern = f andThen onChildren(traverseTopDown(f))
 
   // `traverseBottomUp` will first apply `f` to the sub-terms, then to the root.
-  def traverseBottomUp(f: Pattern => Pattern): Pattern => Pattern = {
-    case Application(label, args) => f(Application(label, args map traverseBottomUp(f)))
-    case And(p, q)                => f(And(traverseBottomUp(f)(p), traverseBottomUp(f)(q)))
-    case Or(p, q)                 => f(Or(traverseBottomUp(f)(p), traverseBottomUp(f)(q)))
-    case Not(p)                   => f(Not(traverseBottomUp(f)(p)))
-    case Implies(p, q)            => f(Implies(traverseBottomUp(f)(p), traverseBottomUp(f)(q)))
-    case Exists(v, p)             => f(Exists(v, traverseBottomUp(f)(p)))
-    case ForAll(v, p)             => f(ForAll(v, traverseBottomUp(f)(p)))
-    case Next(p)                  => f(Next(traverseBottomUp(f)(p)))
-    case Rewrite(p, q)            => f(Rewrite(traverseBottomUp(f)(p), traverseBottomUp(f)(q)))
-    case Equal(p, q)              => f(Equal(traverseBottomUp(f)(p), traverseBottomUp(f)(q)))
-    case p                        => f(p)
-  }
+  def traverseBottomUp(f: Pattern => Pattern): Pattern => Pattern = onChildren(traverseBottomUp(f)) andThen f
 
   // Cons Lists
   // ==========
@@ -224,6 +216,5 @@ object MetaPasses {
   // `preProcess` first prunes the parse-tree using a top-down traversal of `removeParseInfo`
   // then normalizes the defintion by running a bottom-up traversal of `syntaxProductionToSymbolDeclaration . normalizeMetaDomainValues . unescapeStrings`
 
-  val preProcess: Pattern => Pattern =
-    traverseTopDown(removeParseInfo) andThen traverseBottomUp(unescapeStrings) andThen traverseBottomUp(normalizeMetaDomainValues) andThen traverseBottomUp(syntaxProductionToSymbolDeclaration)
+  val preProcess: Pattern => Pattern = traverseTopDown(removeParseInfo) andThen traverseBottomUp(unescapeStrings andThen normalizeMetaDomainValues andThen syntaxProductionToSymbolDeclaration)
 }
