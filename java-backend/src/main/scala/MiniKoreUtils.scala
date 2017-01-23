@@ -1,8 +1,7 @@
 package org.kframework.backend.java
 
 import org.kframework.POSet
-import org.kframework.minikore.KoreToMini
-import org.kframework.minikore.KoreToMini.{iMainModule, iNonTerminal, iRegexTerminal, iTerminal}
+import org.kframework.minikore.KoreToMini._
 import org.kframework.minikore.MiniKore._
 import org.kframework.utils.errorsystem.KEMException
 
@@ -55,25 +54,27 @@ object MiniKoreUtils {
   }
 
 
-  def attributesFor(m: Module, definition: Definition): Map[String, Seq[Pattern]] = {
-    val atts = allSentences(m, definition) collect {
-      case SymbolDeclaration(_, label: String, _, att: Attributes) => (label, att)
-    } filter (p => !(p._1 == null))
-    val flattats = atts collect { case (x: String, vals: Seq[Pattern]) =>
-      val flats: Seq[(Pattern, Seq[Pattern])] = vals.map(x => decodePatternAttributes(x))
-      (x, flats collect { case (a, b) => b :+ a } flatten)
-    }
-    flattats.groupBy(_._1).mapValues(x => x.flatMap(_._2))
+
+  def attributesFor(m: Module, d: Definition): Map[String, Seq[Pattern]] = {
+    val filterSet = Set(iTerminal, iNonTerminal, iRegexTerminal)
+    val labelDecsMap: Map[String, Seq[Pattern]] =
+      allSentences(m, d) collect {
+        case SymbolDeclaration(_, label: String, _, att) => (label, att)
+      } groupBy { x => x._1 } mapValues { z => z map {_._2} } mapValues {_.flatten}
+    labelDecsMap.mapValues({s =>
+      s.flatMap({p =>
+        val decodedTup = decodePatternAttributes(p)
+        decodedTup._2 :+ decodedTup._1
+      })
+    }) mapValues {atts => filterAtts(filterSet, atts)}
   }
 
-  //  def attributesFor(m: Module, d: Definition): Map[String, Seq[Pattern]] = {
-  //    val labelDecsMap: Map[String, Seq[SymbolDeclaration]] =
-  //      allSentences(m, d) collect {
-  //        case prod@SymbolDeclaration(_, label: String, _, _) => (label, prod)
-  //      } groupBy { x => x._1 } mapValues { y => y.map(z => z._2) }
-  //
-  //    labelDecsMap mapValues { dec: Seq[SymbolDeclaration] => dec.map(dec => dec.att) } mapValues { att => att.flatten }
-  //  }
+  def filterAtts(filterSet: Set[String],  atts: Seq[Pattern]): Seq[Pattern] = {
+    atts.filter(p => p match {
+      case Application(label, _) => !filterSet.contains(label)
+      case _ => true
+    })
+  }
 
 
   /** Recursively retrieve all defined sorts from the current module, and imported modules.
@@ -124,11 +125,6 @@ object MiniKoreUtils {
     }
   }
 
-  //  def getElementLable(attributes: Attributes) : String = {
-  //    attributes collect {
-  //      case Application("element", Seq(Application("AttributeValue", Seq(s)))) =>
-  //    }
-  //  }
 
   def rules(m: Module, d: Definition): Set[Rule] = {
     allSentences(m, d) collect {
@@ -138,7 +134,7 @@ object MiniKoreUtils {
 
   def decodePatternAttributes(p: Pattern): (Pattern, Seq[Pattern]) = {
     p match {
-      case Application(KoreToMini.iAtt, Seq(pat, att)) => decodePatternAttributes(pat) match {
+      case Application(`iAtt`, Seq(pat, att)) => decodePatternAttributes(pat) match {
         case (finalPat, attList) => (finalPat, attList :+ att)
       }
       case any@_ => (any, Seq())
