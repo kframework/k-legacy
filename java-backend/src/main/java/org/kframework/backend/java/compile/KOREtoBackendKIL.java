@@ -6,9 +6,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.attributes.Att;
 import org.kframework.attributes.Location;
 import org.kframework.attributes.Source;
+import org.kframework.backend.java.MiniKoreUtils;
+import org.kframework.backend.java.RewriterUtils;
 import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.kil.KItem;
 import org.kframework.backend.java.symbolic.ConjunctiveFormula;
+import org.kframework.backend.java.util.RewriteEngineUtils;
 import org.kframework.builtin.KLabels;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.Module;
@@ -311,8 +314,23 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
             throw new AssertionError("BUM!");
     }
 
-    public Rule convert(Optional<Module> miniKoreModule, MiniKore.Rule rule) {
+
+
+    public Rule convert(Optional<MiniKore.Module> miniKoreModule, MiniKore.Rule rule) {
+        MiniKore.Pattern leftHandSide = RewriterUtils.toLeft(rule.pattern());
+        org.kframework.kil.Rule oldRule = new org.kframework.kil.Rule();
+        oldRule.setAttributes(new KOREtoKIL().convertAttributes(mutable(rule.att())));
+
+        if (miniKoreModule.isPresent()) {
+            if (leftHandSide instanceof MiniKore.Application && !MiniKoreUtils.findAtt(MiniKoreUtils.attributesFor(miniKoreModule.get(), miniKoreDefinition).apply(((MiniKore.Application) leftHandSide).label()), Attribute.FUNCTION_KEY).isEmpty()) {
+                oldRule.putAttribute(Attribute.FUNCTION_KEY, "");
+
+            }
+        }
+
+//        Term convertedLHS = convert(leftHandSide);
         return null;
+
     }
 
     public Rule convert(Optional<Module> module, org.kframework.definition.Rule rule) {

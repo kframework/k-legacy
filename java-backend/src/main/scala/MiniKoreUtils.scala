@@ -26,7 +26,7 @@ object MiniKoreUtils {
     val argss = att.collect({
       case Application(`key`, args) => args
     })
-    if(argss.size >= 1)
+    if (argss.size >= 1)
       argss.head
     else Seq()
   }
@@ -46,34 +46,34 @@ object MiniKoreUtils {
     m.sentences ++ importedSentences
   }
 
+
   def signatureFor(m: Module, definition: Definition): Map[String, Set[(Seq[String], String)]] = {
     allSentences(m, definition) collect {
       case SymbolDeclaration(sort: String, label: String, args: Seq[String], _)
-      => (label, Set((args, sort)))
-    } filter (p => !p._1.isEmpty) toMap
+      => (label, (args, sort))
+    } groupBy {_._1} mapValues { x => x map {_._2} toSet }
   }
 
-  def flattenPatternAttributes(p: Pattern): (Pattern, Seq[Pattern]) = {
-    p match {
-      case Application(KoreToMini.iAtt, Seq(x, y)) =>
-        flattenPatternAttributes(x) match {
-          case (p: Pattern, att: Seq[Pattern]) => (p, att :+ y)
-        }
-      case default@_ => (default, Seq())
-    }
-  }
 
   def attributesFor(m: Module, definition: Definition): Map[String, Seq[Pattern]] = {
     val atts = allSentences(m, definition) collect {
       case SymbolDeclaration(_, label: String, _, att: Attributes) => (label, att)
-    } filter (p => !p._1.isEmpty)
+    } filter (p => !(p._1 == null))
     val flattats = atts collect { case (x: String, vals: Seq[Pattern]) =>
-      val flats: Seq[(Pattern, Seq[Pattern])] = vals.map(x => flattenPatternAttributes(x))
+      val flats: Seq[(Pattern, Seq[Pattern])] = vals.map(x => decodePatternAttributes(x))
       (x, flats collect { case (a, b) => b :+ a } flatten)
     }
     flattats.groupBy(_._1).mapValues(x => x.flatMap(_._2))
   }
 
+  //  def attributesFor(m: Module, d: Definition): Map[String, Seq[Pattern]] = {
+  //    val labelDecsMap: Map[String, Seq[SymbolDeclaration]] =
+  //      allSentences(m, d) collect {
+  //        case prod@SymbolDeclaration(_, label: String, _, _) => (label, prod)
+  //      } groupBy { x => x._1 } mapValues { y => y.map(z => z._2) }
+  //
+  //    labelDecsMap mapValues { dec: Seq[SymbolDeclaration] => dec.map(dec => dec.att) } mapValues { att => att.flatten }
+  //  }
 
 
   /** Recursively retrieve all defined sorts from the current module, and imported modules.
@@ -108,35 +108,41 @@ object MiniKoreUtils {
   def freshFunctionFor(m: Module, d: Definition): Map[String, String] = {
     val productions = allSentences(m, d) collect {
       case SymbolDeclaration(sort, label, _, atts) if findAtt(atts, "freshGenerator").size >= 1
-        => (sort, label)
-    } groupBy(_._1) mapValues(x => x.toSet)
+      => (sort, label)
+    } groupBy (_._1) mapValues (x => x.toSet)
 
     productions.foreach(x => {
-      if(x._2.size > 1) throw KEMException.compilerError("Found more than one fresh generator for sort " + x._1 + ". Found" + x._2.map(y => y._2))
+      if (x._2.size > 1) throw KEMException.compilerError("Found more than one fresh generator for sort " + x._1 + ". Found" + x._2.map(y => y._2))
     })
 
     productions.map(x => (x._1, x._2.head._2))
   }
 
-  def getSymbolDecs(m: Module, d: Definition) : Seq[SymbolDeclaration] = {
+  def getSymbolDecs(m: Module, d: Definition): Seq[SymbolDeclaration] = {
     allSentences(m, d) collect {
-      case s @ SymbolDeclaration(_, _, _, _) => s
+      case s@SymbolDeclaration(_, _, _, _) => s
     }
   }
 
-//  def getElementLable(attributes: Attributes) : String = {
-//    attributes collect {
-//      case Application("element", Seq(Application("AttributeValue", Seq(s)))) =>
-//    }
-//  }
+  //  def getElementLable(attributes: Attributes) : String = {
+  //    attributes collect {
+  //      case Application("element", Seq(Application("AttributeValue", Seq(s)))) =>
+  //    }
+  //  }
 
   def rules(m: Module, d: Definition): Set[Rule] = {
     allSentences(m, d) collect {
-      case x @Rule(_, _) => x
+      case x@Rule(_, _) => x
     } toSet
   }
 
-
-
+  def decodePatternAttributes(p: Pattern): (Pattern, Seq[Pattern]) = {
+    p match {
+      case Application(KoreToMini.iAtt, Seq(pat, att)) => decodePatternAttributes(pat) match {
+        case (finalPat, attList) => (finalPat, attList :+ att)
+      }
+      case any@_ => (any, Seq())
+    }
+  }
 }
 

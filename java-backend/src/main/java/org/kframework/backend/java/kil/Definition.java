@@ -147,11 +147,17 @@ public class Definition extends JavaSymbolicObject {
      * The Constructor to take a minikore module and construct a Backend Definition.
      */
 
-    public Definition(MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition, KExceptionManager kem) {
+    public Definition(Module module, MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition, KExceptionManager kem) {
         kLabels = new HashSet<>();
         this.kem = kem;
 
 
+
+        ImmutableMap.Builder<String, Attributes> attributesBuilder = ImmutableMap.builder();
+        JavaConversions.mapAsJavaMap(module.attributesFor()).entrySet().stream().forEach(e -> {
+            attributesBuilder.put(e.getKey().name(), new KOREtoKIL().convertAttributes(e.getValue()));
+        });
+//
         ImmutableSetMultimap.Builder<String, SortSignature> signaturesBuilder = ImmutableSetMultimap.builder();
         JavaConversions.mapAsJavaMap(MiniKoreUtils.signatureFor(miniKoreModule, miniKoreDefinition)).entrySet().stream().forEach(e -> {
             JavaConversions.setAsJavaSet(e.getValue()).stream().forEach(p -> {
@@ -162,24 +168,31 @@ public class Definition extends JavaSymbolicObject {
                         new SortSignature(sortsBuilder.build(), Sort.of(p._2())));
             });
         });
+        
 
 
-        ImmutableMap.Builder<String, Attributes> attributesBuilder2 = ImmutableMap.builder();
-        JavaConversions.mapAsJavaMap(MiniKoreUtils.attributesFor(miniKoreModule, miniKoreDefinition)).entrySet().stream().forEach(e -> {
-            attributesBuilder2.put(e.getKey(), new KOREtoKIL().convertAttributes(mutable(e.getValue())));
-        });
-
+//        definitionData = new DefinitionData(
+//                new Subsorts(miniKoreModule, miniKoreDefinition),
+//                getDataStructureSorts(miniKoreModule, miniKoreDefinition),
+//                signaturesBuilder.build(),
+//                attributesBuilder2.build(),
+//                JavaConverters.mapAsJavaMapConverter(MiniKoreUtils.freshFunctionFor(miniKoreModule, miniKoreDefinition)).asJava().entrySet().stream().collect(Collectors.toMap(
+//                        e -> Sort.of(e.getKey()),
+//                        e -> e.getValue())),
+//                Collections.emptyMap()
+//        );
 
         definitionData = new DefinitionData(
-                new Subsorts(miniKoreModule, miniKoreDefinition),
-                getDataStructureSorts(miniKoreModule, miniKoreDefinition),
+                new Subsorts(module),
+                getDataStructureSorts(module),
                 signaturesBuilder.build(),
-                attributesBuilder2.build(),
-                JavaConverters.mapAsJavaMapConverter(MiniKoreUtils.freshFunctionFor(miniKoreModule, miniKoreDefinition)).asJava().entrySet().stream().collect(Collectors.toMap(
-                        e -> Sort.of(e.getKey()),
-                        e -> e.getValue())),
+                attributesBuilder.build(),
+                JavaConverters.mapAsJavaMapConverter(module.freshFunctionFor()).asJava().entrySet().stream().collect(Collectors.toMap(
+                        e -> Sort.of(e.getKey().name()),
+                        e -> e.getValue().name())),
                 Collections.emptyMap()
         );
+
         context = null;
 
         this.ruleTable = new HashMap<>();
@@ -298,7 +311,7 @@ public class Definition extends JavaSymbolicObject {
 
 //        List<MiniKore.Rule> miniKoreRules = JavaConversions.setAsJavaSet(MiniKoreUtils.rules(miniKoreModule, miniKoreDefintion)).stream()
 //                .filter(r -> MiniKoreUtils.findAtt(r.att(), AUTOMATON).size() == 0).collect(Collectors.toList());
-
+//
 //        miniKoreRules.forEach(r -> {
 //            if(MiniKoreUtils.findAtt(r.att(), "topRule").size()> 0))
 //            reverseRuleTable.put(r.hashCode(), reverseRuleTable.size());
@@ -312,6 +325,14 @@ public class Definition extends JavaSymbolicObject {
                 reverseRuleTable.put(r.hashCode(), reverseRuleTable.size());
             }
         });
+//        koreRules.forEach(r -> {
+//            Rule convertedRule = transformer.convert(Optional.of(module), r);
+//            addRule(convertedRule);
+//            if (r.att().contains(Att.topRule())) {
+//                ruleTable.put(reverseRuleTable.get(r.hashCode()), convertedRule);
+//            }
+//        });
+
         koreRules.forEach(r -> {
             Rule convertedRule = transformer.convert(Optional.of(module), r);
             addRule(convertedRule);
@@ -320,12 +341,9 @@ public class Definition extends JavaSymbolicObject {
             }
         });
 
-//        koreRules.forEach(r -> {
+//        miniKoreRules.forEach(r -> {
 //            Rule convertedRule = transformer.convert(Optional.of(module), r);
-//            addRule(convertedRule);
-//            if (r.att().contains(Att.topRule())) {
-//                ruleTable.put(reverseRuleTable.get(r.hashCode()), convertedRule);
-//            }
+//
 //        });
 
         Optional<org.kframework.definition.Rule> koreAutomaton = JavaConversions.setAsJavaSet(module.localRules()).stream()
