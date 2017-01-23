@@ -153,10 +153,6 @@ public class Definition extends JavaSymbolicObject {
 
 
 
-        ImmutableMap.Builder<String, Attributes> attributesBuilder = ImmutableMap.builder();
-        JavaConversions.mapAsJavaMap(module.attributesFor()).entrySet().stream().forEach(e -> {
-            attributesBuilder.put(e.getKey().name(), new KOREtoKIL().convertAttributes(e.getValue()));
-        });
 //
         ImmutableSetMultimap.Builder<String, SortSignature> signaturesBuilder = ImmutableSetMultimap.builder();
         JavaConversions.mapAsJavaMap(MiniKoreUtils.signatureFor(miniKoreModule, miniKoreDefinition)).entrySet().stream().forEach(e -> {
@@ -168,14 +164,24 @@ public class Definition extends JavaSymbolicObject {
                         new SortSignature(sortsBuilder.build(), Sort.of(p._2())));
             });
         });
-        
+
+
+        ImmutableMap.Builder<String, Attributes> attributesBuilder = ImmutableMap.builder();
+        JavaConversions.mapAsJavaMap(module.attributesFor()).entrySet().stream().forEach(e -> {
+            attributesBuilder.put(e.getKey().name(), new KOREtoKIL().convertAttributes(e.getValue()));
+        });
+
+//        ImmutableMap.Builder<String, Attributes> attributesBuilder = ImmutableMap.builder();
+//        JavaConversions.mapAsJavaMap(MiniKoreUtils.attributesFor(miniKoreModule, miniKoreDefinition)).entrySet().stream().forEach(e -> {
+//            attributesBuilder.put(e.getKey(), new KOREtoKIL().convertAttributes(mutable(e.getValue())));
+//        });
 
 
 //        definitionData = new DefinitionData(
 //                new Subsorts(miniKoreModule, miniKoreDefinition),
-//                getDataStructureSorts(miniKoreModule, miniKoreDefinition),
+//                getDataStructureSorts(module),
 //                signaturesBuilder.build(),
-//                attributesBuilder2.build(),
+//                attributesBuilder.build(),
 //                JavaConverters.mapAsJavaMapConverter(MiniKoreUtils.freshFunctionFor(miniKoreModule, miniKoreDefinition)).asJava().entrySet().stream().collect(Collectors.toMap(
 //                        e -> Sort.of(e.getKey()),
 //                        e -> e.getValue())),
