@@ -17,7 +17,7 @@ object MiniKoreStaging {
 
   // `traverseTopDown` will first apply `f` to the root, then apply it to the sub-terms.
   // This will perform better than `traverseBottomUp` when `f: Pattern => Pattern` may eliminate sub-terms.
-  def traverseTopDown(f: Pattern => Pattern): Pattern => Pattern = pattern => f(pattern) match {
+  def traverseTopDown(f: Pattern => Pattern): Pattern => Pattern = pattern => f andThen {
     case Application(label, args) => Application(label, args map traverseTopDown(f))
     case And(p, q)                => And(traverseTopDown(f)(p), traverseTopDown(f)(q))
     case Or(p, q)                 => Or(traverseTopDown(f)(p), traverseTopDown(f)(q))
@@ -32,7 +32,7 @@ object MiniKoreStaging {
   }
 
   // `traverseBottomUp` will first apply `f` to the sub-terms, then to the root.
-  def traverseBottomUp(f: Pattern => Pattern): Pattern => Pattern = pattern => f(pattern) match {
+  def traverseBottomUp(f: Pattern => Pattern): Pattern => Pattern = {
     case Application(label, args) => f(Application(label, args map traverseBottomUp(f)))
     case And(p, q)                => f(And(traverseBottomUp(f)(p), traverseBottomUp(f)(q)))
     case Or(p, q)                 => f(Or(traverseBottomUp(f)(p), traverseBottomUp(f)(q)))
@@ -43,7 +43,7 @@ object MiniKoreStaging {
     case Next(p)                  => f(Next(traverseBottomUp(f)(p)))
     case Rewrite(p, q)            => f(Rewrite(traverseBottomUp(f)(p), traverseBottomUp(f)(q)))
     case Equal(p, q)              => f(Equal(traverseBottomUp(f)(p), traverseBottomUp(f)(q)))
-    case p                        => p
+    case p                        => f(p)
   }
 
   // Cons Lists
