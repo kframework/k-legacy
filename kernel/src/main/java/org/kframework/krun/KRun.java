@@ -88,7 +88,7 @@ public class KRun {
         K program;
         if (options.configurationCreation.term()) {
             program = parse(options.configurationCreation.parser(compiledDef.executionModule().name()),
-                    pgmFileName, KORE.Sort(kompileMetaInfo.programStartSymbol), Source.apply("<parameters>"), compiledDef, files);
+                    pgmFileName, KORE.Sort(kompileMetaInfo.programStartSymbol), Source.apply("<parameters>"), compiledDef.mainSyntaxModuleName(), files);
         } else {
             program = parseConfigVars(options, kompileMetaInfo, compiledDef, kem, files, ttyStdin, isNailgun, null);
         }
@@ -329,7 +329,7 @@ public class KRun {
             String parser = entry.getValue().getRight();
             Sort sort = KORE.Sort(kompileMetaInfo.configVarDefaultSort.get("$" + name));
             assert sort != null : "Could not find configuration variable: $" + name;
-            K configVar = parse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), compiledDef, files);
+            K configVar = parse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), kompileMetaInfo.mainSyntaxModuleName, files);
             output.put(KToken("$" + name, Sorts.KConfigVar()), configVar);
         }
         return output;
@@ -441,14 +441,14 @@ public class KRun {
         return MiniToKore.apply(ast);
     }
 
-    public K parse(String parser, String value, Sort startSymbol, Source source, CompiledDefinition compiledDef, FileUtil files) {
+    public K parse(String parser, String value, Sort startSymbol, Source source, String mainSyntaxModuleName, FileUtil files) {
         /*
         if(parser.endsWith("k/bin/kast")) {
             return compiledDef.getProgramParser(kem).apply(FileUtil.read(files.readFromWorkingDirectory(value)), source);
         }*/
         if(parser == null) {
             String toParse = FileUtil.read(files.readFromWorkingDirectory(value));
-            return parse(toParse, source, startSymbol, compiledDef.mainSyntaxModuleName(), files);
+            return parse(toParse, source, startSymbol, mainSyntaxModuleName, files);
         } else {
             // ToDo(Yi): Update this branch when kast interface is nailed down.
             List<String> tokens = new ArrayList<>(Arrays.asList(parser.split(" ")));
