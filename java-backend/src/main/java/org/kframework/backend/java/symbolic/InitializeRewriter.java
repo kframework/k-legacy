@@ -238,20 +238,16 @@ cache.put(module, definition);
 
 
         public Definition invoke(KExceptionManager kem, GlobalContext global, MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition) {
-            Definition definition = new Definition(miniKoreModule, miniKoreDefinition, kem);
+            MiniKoreUtils.ModuleUtils moduleUtils = new MiniKoreUtils.ModuleUtils(miniKoreModule, miniKoreDefinition);
+            Definition definition = new Definition(moduleUtils, kem);
 
             global.setDefinition(definition);
 
-            JavaConversions.setAsJavaSet(MiniKoreUtils.attributesFor(miniKoreModule, miniKoreDefinition).keySet()).stream()
+            JavaConversions.setAsJavaSet(moduleUtils.attributesFor().keySet()).stream()
                     .map(l -> KLabelConstant.of(l, definition))
                     .forEach(definition::addKLabel);
 
-
-
-//            JavaConversions.setAsJavaSet(module.attributesFor().keySet()).stream()
-//                    .map(l -> KLabelConstant.of(l.name(), definition))
-//                    .forEach(definition::addKLabel);
-
+            //Todo: Bypass Conversion to Kore
             Module koreModule = MiniToKore.apply(MiniKoreUtils.getOriginalModuleMap(miniKoreDefinition), JavaConversions.mapAsScalaMap(new HashMap<String, Module>()), miniKoreModule);
 
             //TODO: Change add KoreRules and the converter to use MiniKore

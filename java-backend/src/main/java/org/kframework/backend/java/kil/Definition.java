@@ -145,15 +145,12 @@ public class Definition extends JavaSymbolicObject {
      * The Constructor to take a minikore module and construct a Backend Definition.
      */
 
-    public Definition(MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition, KExceptionManager kem) {
+    public Definition(MiniKoreUtils.ModuleUtils moduleUtils, KExceptionManager kem) {
         kLabels = new HashSet<>();
         this.kem = kem;
 
-
-
-//
         ImmutableSetMultimap.Builder<String, SortSignature> signaturesBuilder = ImmutableSetMultimap.builder();
-        JavaConversions.mapAsJavaMap(MiniKoreUtils.signatureFor(miniKoreModule, miniKoreDefinition)).entrySet().stream().forEach(e -> {
+        JavaConversions.mapAsJavaMap(moduleUtils.signatureFor()).entrySet().stream().forEach(e -> {
             JavaConversions.setAsJavaSet(e.getValue()).stream().forEach(p -> {
                 ImmutableList.Builder<Sort> sortsBuilder = ImmutableList.builder();
                 stream(p._1()).map(s -> Sort.of(s)).forEach(sortsBuilder::add);
@@ -165,18 +162,17 @@ public class Definition extends JavaSymbolicObject {
 
 
         ImmutableMap.Builder<String, Attributes> attributesBuilder = ImmutableMap.builder();
-        JavaConversions.mapAsJavaMap(MiniKoreUtils.attributesFor(miniKoreModule, miniKoreDefinition)).entrySet().stream().forEach(e -> {
+        JavaConversions.mapAsJavaMap(moduleUtils.attributesFor()).entrySet().stream().forEach(e -> {
             attributesBuilder.put(e.getKey(), new KOREtoKIL().convertAttributes(mutable(e.getValue())));
         });
 
 
-
         definitionData = new DefinitionData(
-                new Subsorts(miniKoreModule, miniKoreDefinition),
-                getDataStructureSorts(miniKoreModule, miniKoreDefinition),
+                new Subsorts(moduleUtils),
+                getDataStructureSorts(moduleUtils),
                 signaturesBuilder.build(),
                 attributesBuilder.build(),
-                JavaConverters.mapAsJavaMapConverter(MiniKoreUtils.freshFunctionFor(miniKoreModule, miniKoreDefinition)).asJava().entrySet().stream().collect(Collectors.toMap(
+                JavaConverters.mapAsJavaMapConverter(moduleUtils.freshFunctionFor()).asJava().entrySet().stream().collect(Collectors.toMap(
                         e -> Sort.of(e.getKey()),
                         e -> e.getValue())),
                 Collections.emptyMap()
@@ -188,10 +184,10 @@ public class Definition extends JavaSymbolicObject {
 
     }
 
-    private Map<String, DataStructureSort> getDataStructureSorts(MiniKore.Module module, MiniKore.Definition definition) {
+    private Map<String, DataStructureSort> getDataStructureSorts(MiniKoreUtils.ModuleUtils moduleUtils) {
         HashSet<String> collected = new HashSet<>();
         ImmutableMap.Builder<String, DataStructureSort> builder = ImmutableMap.builder();
-        for (MiniKore.SymbolDeclaration symbolDec : iterable(MiniKoreUtils.getSymbolDecs(module, definition))) {
+        for (MiniKore.SymbolDeclaration symbolDec : iterable(moduleUtils.symbolDecs())) {
             List<MiniKore.Pattern> atts = mutable(symbolDec.att());
 
             org.kframework.kil.Sort type;
@@ -240,7 +236,7 @@ public class Definition extends JavaSymbolicObject {
                     elementLabel,
                     unitLabel,
                     new HashMap<>());
-            if(!collected.contains(symbolDec.sort())) {
+            if (!collected.contains(symbolDec.sort())) {
 
                 builder.put(symbolDec.sort(), sort);
                 collected.add(symbolDec.sort());
