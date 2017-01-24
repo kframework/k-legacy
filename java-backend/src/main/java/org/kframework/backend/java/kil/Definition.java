@@ -41,7 +41,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.kframework.kore.KORE.Sort;
 import static org.kframework.Collections.*;
 
 /**
@@ -53,7 +52,6 @@ public class Definition extends JavaSymbolicObject {
 
     public static final String AUTOMATON = "automaton";
 
-    public MiniKore.Module miniKoreModule;
 
     private static class DefinitionData implements Serializable {
         public final Subsorts subsorts;
@@ -147,7 +145,7 @@ public class Definition extends JavaSymbolicObject {
      * The Constructor to take a minikore module and construct a Backend Definition.
      */
 
-    public Definition(Module module, MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition, KExceptionManager kem) {
+    public Definition(MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition, KExceptionManager kem) {
         kLabels = new HashSet<>();
         this.kem = kem;
 
@@ -166,27 +164,12 @@ public class Definition extends JavaSymbolicObject {
         });
 
 
-//        ImmutableMap.Builder<String, Attributes> attributesBuilder = ImmutableMap.builder();
-//        JavaConversions.mapAsJavaMap(module.attributesFor()).entrySet().stream().forEach(e -> {
-//            attributesBuilder.put(e.getKey().name(), new KOREtoKIL().convertAttributes(e.getValue()));
-//        });
-
         ImmutableMap.Builder<String, Attributes> attributesBuilder = ImmutableMap.builder();
         JavaConversions.mapAsJavaMap(MiniKoreUtils.attributesFor(miniKoreModule, miniKoreDefinition)).entrySet().stream().forEach(e -> {
             attributesBuilder.put(e.getKey(), new KOREtoKIL().convertAttributes(mutable(e.getValue())));
         });
 
 
-//        definitionData = new DefinitionData(
-//                new Subsorts(miniKoreModule, miniKoreDefinition),
-//                getDataStructureSorts(module),
-//                signaturesBuilder.build(),
-//                attributesBuilder.build(),
-//                JavaConverters.mapAsJavaMapConverter(MiniKoreUtils.freshFunctionFor(miniKoreModule, miniKoreDefinition)).asJava().entrySet().stream().collect(Collectors.toMap(
-//                        e -> Sort.of(e.getKey()),
-//                        e -> e.getValue())),
-//                Collections.emptyMap()
-//        );
 
         definitionData = new DefinitionData(
                 new Subsorts(miniKoreModule, miniKoreDefinition),
@@ -205,7 +188,6 @@ public class Definition extends JavaSymbolicObject {
 
     }
 
-    //TODO: Needs implementation minikore module
     private Map<String, DataStructureSort> getDataStructureSorts(MiniKore.Module module, MiniKore.Definition definition) {
         HashSet<String> collected = new HashSet<>();
         ImmutableMap.Builder<String, DataStructureSort> builder = ImmutableMap.builder();
@@ -225,7 +207,6 @@ public class Definition extends JavaSymbolicObject {
             boolean idem = (mutable(MiniKoreUtils.findAtt(symbolDec.att(), Attribute.IDEMPOTENT_KEY)).size() >= 1);
 
             boolean hook = (mutable(MiniKoreUtils.findAtt(symbolDec.att(), Attribute.HOOK_KEY)).size() >= 1);
-            //Todo: replicate Sorts object in minikoreutils
             if (symbolDec.sort().equals(Sorts.KList().toString()) || symbolDec.sort().equals(Sorts.KBott().toString())) {
                 continue;
             }
@@ -305,23 +286,12 @@ public class Definition extends JavaSymbolicObject {
         return builder.build();
     }
 
-    public void addMiniKoreRules(MiniKore.Module module, MiniKore.Definition definition, GlobalContext global) {
-
-    }
-
     /**
      * Converts the org.kframework.Rules to backend Rules, also plugging in the automaton rule
      */
-    public void addKoreRules(Module module, MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefintion, GlobalContext global) {
-        KOREtoBackendKIL transformer = new KOREtoBackendKIL(module, miniKoreModule, this, miniKoreDefintion, global, true);
+    public void addKoreRules(Module module, GlobalContext global) {
+        KOREtoBackendKIL transformer = new KOREtoBackendKIL(module, this, global, true);
 
-//        List<MiniKore.Rule> miniKoreRules = JavaConversions.setAsJavaSet(MiniKoreUtils.rules(miniKoreModule, miniKoreDefintion)).stream()
-//                .filter(r -> MiniKoreUtils.findAtt(r.att(), AUTOMATON).size() == 0).collect(Collectors.toList());
-//
-//        miniKoreRules.forEach(r -> {
-//            if(MiniKoreUtils.findAtt(r.att(), "topRule").size()> 0))
-//            reverseRuleTable.put(r.hashCode(), reverseRuleTable.size());
-//        });
 
         List<org.kframework.definition.Rule> koreRules = JavaConversions.setAsJavaSet(module.rules()).stream()
                 .filter(r -> !r.att().contains(AUTOMATON))
@@ -331,13 +301,6 @@ public class Definition extends JavaSymbolicObject {
                 reverseRuleTable.put(r.hashCode(), reverseRuleTable.size());
             }
         });
-//        koreRules.forEach(r -> {
-//            Rule convertedRule = transformer.convert(Optional.of(module), r);
-//            addRule(convertedRule);
-//            if (r.att().contains(Att.topRule())) {
-//                ruleTable.put(reverseRuleTable.get(r.hashCode()), convertedRule);
-//            }
-//        });
 
         koreRules.forEach(r -> {
             Rule convertedRule = transformer.convert(Optional.of(module), r);
@@ -347,10 +310,6 @@ public class Definition extends JavaSymbolicObject {
             }
         });
 
-//        miniKoreRules.forEach(r -> {
-//            Rule convertedRule = transformer.convert(Optional.of(module), r);
-//
-//        });
 
         Optional<org.kframework.definition.Rule> koreAutomaton = JavaConversions.setAsJavaSet(module.localRules()).stream()
                 .filter(r -> r.att().contains(AUTOMATON))

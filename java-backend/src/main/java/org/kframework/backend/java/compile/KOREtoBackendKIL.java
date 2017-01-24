@@ -51,8 +51,6 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
     public static final String THE_VARIABLE = "THE_VARIABLE";
 
     private Module module;
-    private MiniKore.Module miniKoreModule;
-    private MiniKore.Definition miniKoreDefinition;
     private Definition definition;
     private GlobalContext global;
     /**
@@ -65,17 +63,6 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
 
     private final HashMap<String, Variable> variableTable = new HashMap<>();
 
-    public KOREtoBackendKIL(Module module, MiniKore.Module miniKoreModule, Definition definition, MiniKore.Definition miniKoreDefinition, GlobalContext global, boolean freshRules) {
-        this.module = module;
-        this.definition = definition;
-        this.global = global;
-        this.freshRules = freshRules;
-        this.miniKoreDefinition = miniKoreDefinition;
-        this.miniKoreModule = miniKoreModule;
-
-        kSeqLabel = KLabelConstant.of(KLabels.KSEQ, global.getDefinition());
-        kDotLabel = KLabelConstant.of(KLabels.DOTK, global.getDefinition());
-    }
     public KOREtoBackendKIL(Module module, Definition definition, GlobalContext global, boolean freshRules) {
         this.module = module;
         this.definition = definition;
@@ -314,24 +301,6 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
             throw new AssertionError("BUM!");
     }
 
-
-
-    public Rule convert(Optional<MiniKore.Module> miniKoreModule, MiniKore.Rule rule) {
-        MiniKore.Pattern leftHandSide = RewriterUtils.toLeft(rule.pattern());
-        org.kframework.kil.Rule oldRule = new org.kframework.kil.Rule();
-        oldRule.setAttributes(new KOREtoKIL().convertAttributes(mutable(rule.att())));
-
-        if (miniKoreModule.isPresent()) {
-            if (leftHandSide instanceof MiniKore.Application && !MiniKoreUtils.findAtt(MiniKoreUtils.attributesFor(miniKoreModule.get(), miniKoreDefinition).apply(((MiniKore.Application) leftHandSide).label()), Attribute.FUNCTION_KEY).isEmpty()) {
-                oldRule.putAttribute(Attribute.FUNCTION_KEY, "");
-
-            }
-        }
-
-//        Term convertedLHS = convert(leftHandSide);
-        return null;
-
-    }
 
     public Rule convert(Optional<Module> module, org.kframework.definition.Rule rule) {
         K leftHandSide = RewriteToTop.toLeft(rule.body());

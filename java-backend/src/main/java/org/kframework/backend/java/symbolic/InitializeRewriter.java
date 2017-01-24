@@ -23,6 +23,7 @@ import org.kframework.krun.api.KRunState;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.main.GlobalOptions;
 import org.kframework.minikore.MiniKore;
+import org.kframework.minikore.MiniToKore;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.rewriter.SearchType;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -33,6 +34,7 @@ import scala.collection.JavaConversions;
 
 import java.lang.invoke.MethodHandle;
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +96,7 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
         Definition definition;
         if (modulePair.getRight() != null) {
             mainModule = MiniKoreUtils.getMainModule(modulePair.getRight());
-            definition = initializeDefinition.invoke(modulePair.getKey(), kem, initializingContext.global(), mainModule, modulePair.getRight());
+            definition = initializeDefinition.invoke(kem, initializingContext.global(), mainModule, modulePair.getRight());
         } else {
             definition = initializeDefinition.invoke(modulePair.getKey(), kem, initializingContext.global());
         }
@@ -229,28 +231,31 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
             JavaConversions.setAsJavaSet(module.attributesFor().keySet()).stream()
                     .map(l -> KLabelConstant.of(l.name(), definition))
                     .forEach(definition::addKLabel);
-            definition.addKoreRules(module, null, null, global);
-
-            cache.put(module, definition);
+            definition.addKoreRules(module, global);
+cache.put(module, definition);
             return definition;
         }
 
 
-        public Definition invoke(Module module, KExceptionManager kem, GlobalContext global, MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition) {
-            Definition definition = new Definition(module, miniKoreModule, miniKoreDefinition, kem);
+        public Definition invoke(KExceptionManager kem, GlobalContext global, MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition) {
+            Definition definition = new Definition(miniKoreModule, miniKoreDefinition, kem);
 
-//            Definition definition = new Definition(module, kem);
             global.setDefinition(definition);
 
-//            JavaConversions.setAsJavaSet(MiniKoreUtils.attributesFor(miniKoreModule, miniKoreDefinition).keySet()).stream()
-//                    .map(l -> KLabelConstant.of(l, definition))
+            JavaConversions.setAsJavaSet(MiniKoreUtils.attributesFor(miniKoreModule, miniKoreDefinition).keySet()).stream()
+                    .map(l -> KLabelConstant.of(l, definition))
+                    .forEach(definition::addKLabel);
+
+
+
+//            JavaConversions.setAsJavaSet(module.attributesFor().keySet()).stream()
+//                    .map(l -> KLabelConstant.of(l.name(), definition))
 //                    .forEach(definition::addKLabel);
 
-            JavaConversions.setAsJavaSet(module.attributesFor().keySet()).stream()
-                    .map(l -> KLabelConstant.of(l.name(), definition))
-                    .forEach(definition::addKLabel);
-            definition.addKoreRules(module, null, null, global);
+            Module koreModule = MiniToKore.apply(MiniKoreUtils.getOriginalModuleMap(miniKoreDefinition), JavaConversions.mapAsScalaMap(new HashMap<String, Module>()), miniKoreModule);
 
+            //TODO: Change add KoreRules and the converter to use MiniKore
+            definition.addKoreRules(koreModule, global);
             return definition;
         }
 

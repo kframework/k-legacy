@@ -12,7 +12,6 @@ import scala.collection.Seq
   */
 object MiniKoreUtils {
 
-  var moduleSentenceMap: Map[Module, Seq[Sentence]] = Map()
 
   def getMainModule(definition: Definition): Module = {
     val mainModuleName = findAtt(definition.att, iMainModule) match {
@@ -37,20 +36,13 @@ object MiniKoreUtils {
     * Given a module m and a definition, return all sentences from modules imported (recursively) by m.
     */
   def allSentences(m: Module, definition: Definition): Seq[Sentence] = {
-    if (moduleSentenceMap.contains(m)) {
-      return moduleSentenceMap(m)
-    }
     val mainModuleImports: Set[String] = m.sentences collect {
       case Import(name, _) => name
     } toSet
 
     val importedSentences: Seq[Sentence] = definition.modules.filter(p => mainModuleImports.contains(p.name))
       .flatMap(x => allSentences(x, definition))
-
-    val totalSentences: Seq[Sentence] = m.sentences ++ importedSentences
-
-    moduleSentenceMap + (m -> totalSentences)
-    totalSentences
+    m.sentences ++ importedSentences
   }
 
 
@@ -147,5 +139,11 @@ object MiniKoreUtils {
       case any@_ => (any, Seq())
     }
   }
+
+  def getOriginalModuleMap(d: Definition): Map[String, Module] = {
+    d.modules.groupBy(m => m.name)
+      .mapValues({ case Seq(m) => m; case _ => ??? }) // shouldn't have duplicate module names
+  }
+
 }
 
