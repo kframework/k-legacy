@@ -234,7 +234,7 @@ public class Main {
             FileSystem fs = new PortableFileSystem(kem, files);
 
             // loading kompiled definition
-            Context context = null; // DefinitionLoadingModule.context(loader, kRunOptions.configurationCreation.definitionLoading, kRunOptigit ons.global, sw, kem, files, kRunOptions); // TODO: check if 'context.bin' exists
+            Context context = null; // DefinitionLoadingModule.context(loader, kRunOptions.configurationCreation.definitionLoading, kRunOptions.global, sw, kem, files, kRunOptions); // TODO: check if 'context.bin' exists
             KompileMetaInfo kompileMetaInfo = DefinitionLoadingModule.kompilemetaInfo(files);
             CompiledDefinition compiledDef = DefinitionLoadingModule.koreDefinition(loader, files);
             KompileOptions kompileOptions = DefinitionLoadingModule.kompileOptions(context, compiledDef, files);
