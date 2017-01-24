@@ -38,7 +38,7 @@ object KoreToMini {
       val newAtt = items.map(encode) ++ apply(att)
       prod.klabel match {
         case Some(label) => SymbolDeclaration(sort.name, label.name, args, newAtt)
-        case None => SymbolDeclaration(sort.name, "", args, newAtt) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
+        case None => SymbolDeclaration(sort.name, iNone, args, newAtt) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
       }
 
     case definition.Rule(body, requires, ensures, att) =>
@@ -150,6 +150,7 @@ object KoreToMini {
     iBubble,
     iContext,
     iConfiguration,
+    iNone,
   _) = (
     "#MainModule",
     "#EntryModules",
@@ -163,6 +164,7 @@ object KoreToMini {
     "#Bubble",
     "#Context",
     "#Configuration",
+    "#None",
   "")
   val encodingLabels = encodingLabelTuple.productIterator.toSet
 

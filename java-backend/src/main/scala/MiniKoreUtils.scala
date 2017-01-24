@@ -61,7 +61,7 @@ object MiniKoreUtils {
       val filterSet = Set(iTerminal, iNonTerminal, iRegexTerminal)
       val labelDecsMap: Map[String, Seq[Pattern]] =
         allSentences collect {
-          case SymbolDeclaration(_, label: String, _, att) => (label, att)
+          case SymbolDeclaration(_, label: String, _, att) if label != iNone => (label, att)
         } groupBy { x => x._1 } mapValues { z => z map {_._2} } mapValues {_.flatten}
       labelDecsMap.mapValues({ s =>
         s.flatMap({ p =>
