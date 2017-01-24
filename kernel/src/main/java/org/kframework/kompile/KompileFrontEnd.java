@@ -52,8 +52,10 @@ public class KompileFrontEnd extends FrontEnd {
         Kompile kompile = new Kompile(options, files, kem, sw);
         //CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps());
         Definition parsedDef = kompile.parseDefinition(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files));
-        CompiledDefinition compiledDef = kompile.compile(parsedDef, koreBackend.steps());
         ParsedDefinitionWrapper wrapper = new ParsedDefinitionWrapper(options, parsedDef);
+        CompiledDefinition compiledDef = kompile.compile(parsedDef, koreBackend.steps());
+
+        saveKompileMetaInfo(wrapper);
         saveModuleDerivedParser(wrapper, wrapper.mainSyntaxModuleName(), kem);
         save(compiledDef);
         koreBackend.accept(compiledDef);
@@ -61,6 +63,11 @@ public class KompileFrontEnd extends FrontEnd {
         sw.printIntermediate("Save to disk");
         sw.printTotal("Total");
         return 0;
+    }
+
+    public void saveKompileMetaInfo(ParsedDefinitionWrapper wrapper) {
+        KompileMetaInfo info = new KompileMetaInfo(wrapper.mainSyntaxModuleName(), wrapper.configurationVariableDefaultSorts);
+        files.saveToKompiled(FileUtil.KOMPILE_META_INFO_TXT, info.serialize());
     }
 
     public void saveModuleDerivedParser(ParsedDefinitionWrapper wrapper, String moduleName, KExceptionManager kem) {
