@@ -26,6 +26,7 @@ import org.kframework.keq.KeqOptions;
 import org.kframework.kil.loader.Context;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.KompileFrontEnd;
+import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.compile.Backend;
 import org.kframework.krun.KRunFrontEnd;
@@ -223,6 +224,7 @@ public class Main {
 
             // loading kompiled definition
             Context context = null; // DefinitionLoadingModule.context(loader, kRunOptions.configurationCreation.definitionLoading, kRunOptions.global, sw, kem, files, kRunOptions); // TODO: check if 'context.bin' exists
+            KompileMetaInfo kompileMetaInfo = DefinitionLoadingModule.kompilemetaInfo(files);
             CompiledDefinition compiledDef = DefinitionLoadingModule.koreDefinition(loader, files);
             ProcessedDefinition processedDefinition = DefinitionLoadingModule.miniKoreDefinition(loader, files);
             KompileOptions kompileOptions = DefinitionLoadingModule.kompileOptions(context, compiledDef, files);
@@ -230,15 +232,15 @@ public class Main {
             // krun
 
             Function<Module, Rewriter> initializeRewriter;
-            Function<Pair<Module, MiniKore.Definition>, Rewriter> initializeRewriter2;
+            Function<Pair<Module, MiniKore.Definition>, Rewriter> intializeMiniKoreRewriter;
             if (kompileOptions.backend.equals(Backends.JAVA)) {
                 //
                 Map<String, MethodHandle> hookProvider = HookProvider.get(kem);
                 InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
-                initializeRewriter2 = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions.transition, kRunOptions, files, initializeDefinition);
+                intializeMiniKoreRewriter = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions.transition, kRunOptions, files, initializeDefinition);
             } else if (kompileOptions.backend.equals(Backends.KALE)) {
                 initializeRewriter = KaleRewriter::apply;
-                initializeRewriter2 = null;
+                intializeMiniKoreRewriter = null;
             } else {
                 throw new AssertionError("Backend not hooked to the shell.");
             }
@@ -255,7 +257,8 @@ public class Main {
                 executionMode = new KRunExecutionMode(kRunOptions, kem, files);
             }
 
-            KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, kompiledDir, kem, kRunOptions, files, compiledDef, processedDefinition, initializeRewriter2, executionMode, ttyInfo, isNailgun);
+            KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, kompiledDir, kem, kRunOptions, files,
+                    kompileMetaInfo, compiledDef, processedDefinition, intializeMiniKoreRewriter, executionMode, ttyInfo, isNailgun);
 
             return runApplication(frontEnd, kem);
         }
