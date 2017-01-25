@@ -96,7 +96,7 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
         Definition definition;
         if (modulePair.getRight() != null) {
             mainModule = MiniKoreUtils.getMainModule(modulePair.getRight());
-            definition = initializeDefinition.invoke(modulePair.getKey(), kem, initializingContext.global(), mainModule, modulePair.getRight());
+            definition = initializeDefinition.invoke(kem, initializingContext.global(), mainModule, modulePair.getRight());
         } else {
             definition = initializeDefinition.invoke(modulePair.getKey(), kem, initializingContext.global());
         }
@@ -237,9 +237,9 @@ cache.put(module, definition);
         }
 
 
-        public Definition invoke(Module module, KExceptionManager kem, GlobalContext global, MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition) {
+        public Definition invoke(KExceptionManager kem, GlobalContext global, MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition) {
             MiniKoreUtils.ModuleUtils moduleUtils = new MiniKoreUtils.ModuleUtils(miniKoreModule, miniKoreDefinition);
-            Definition definition = new Definition(module, moduleUtils, kem);
+            Definition definition = new Definition(moduleUtils, kem);
 
             global.setDefinition(definition);
 

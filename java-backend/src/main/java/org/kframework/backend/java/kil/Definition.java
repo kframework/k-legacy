@@ -145,7 +145,7 @@ public class Definition extends JavaSymbolicObject {
      * The Constructor to take a minikore module and construct a Backend Definition.
      */
 
-    public Definition(Module module, MiniKoreUtils.ModuleUtils moduleUtils, KExceptionManager kem) {
+    public Definition(MiniKoreUtils.ModuleUtils moduleUtils, KExceptionManager kem) {
         kLabels = new HashSet<>();
         this.kem = kem;
 
