@@ -94,7 +94,7 @@ object MiniKoreUtils {
 
     lazy val subsorts: POSet[String] = {
       val symbolDecs: Seq[(String, Seq[Pattern])] = allSentences collect {
-        case SymbolDeclaration(sort, _, _, atts) => (sort, atts)
+        case SymbolDeclaration(sort, _, _, atts) if findAtt(atts, "klabel").isEmpty => (sort, atts)
       }
       val subsortProductions: Set[(String, String)] = symbolDecs map { x =>
         (x._1, x._2 collect {
@@ -114,7 +114,9 @@ object MiniKoreUtils {
       } groupBy (_._1) mapValues (x => x.toSet)
 
       productions.foreach(x => {
-        if (x._2.size > 1) throw KEMException.compilerError("Found more than one fresh generator for sort " + x._1 + ". Found" + x._2.map(y => y._2))
+        if (x._2.size > 1)
+          throw KEMException.compilerError("Found more than one fresh generator for sort "
+            + x._1 + ". Found" + x._2.map(y => y._2))
       })
 
       productions.map(x => (x._1, x._2.head._2))

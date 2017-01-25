@@ -145,7 +145,7 @@ public class Definition extends JavaSymbolicObject {
      * The Constructor to take a minikore module and construct a Backend Definition.
      */
 
-    public Definition(MiniKoreUtils.ModuleUtils moduleUtils, KExceptionManager kem) {
+    public Definition(Module module, MiniKoreUtils.ModuleUtils moduleUtils, KExceptionManager kem) {
         kLabels = new HashSet<>();
         this.kem = kem;
 
@@ -165,7 +165,6 @@ public class Definition extends JavaSymbolicObject {
         JavaConversions.mapAsJavaMap(moduleUtils.attributesFor()).entrySet().stream().forEach(e -> {
             attributesBuilder.put(e.getKey(), new KOREtoKIL().convertAttributes(mutable(e.getValue())));
         });
-
 
         definitionData = new DefinitionData(
                 new Subsorts(moduleUtils),
