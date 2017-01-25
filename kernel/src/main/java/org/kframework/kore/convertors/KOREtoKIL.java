@@ -294,7 +294,6 @@ public class KOREtoKIL implements Function<Definition, org.kframework.kil.Defini
         return org.kframework.kil.Sort.of(sort.name());
     }
 
-    //TODO: MiniKore to Kil conversion
 
     public org.kframework.kil.Attributes convertAttributes(List<MiniKore.Pattern> miniKoreAtts) {
         org.kframework.kil.Attributes kilAttributes = new org.kframework.kil.Attributes();
