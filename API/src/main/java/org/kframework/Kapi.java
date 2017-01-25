@@ -184,7 +184,7 @@ public class Kapi {
                         initializeDefinition)
                         .apply(Pair.of(compiledDef.executionModule(), null));
         //
-        RewriterResult result = ((InitializeRewriter.SymbolicRewriterGlue) rewriter).execute(program, null, Optional.ofNullable(depth));
+        RewriterResult result = ((InitializeRewriter.SymbolicRewriterGlue) rewriter).execute(program, Optional.ofNullable(depth));
         return result;
     }
 
