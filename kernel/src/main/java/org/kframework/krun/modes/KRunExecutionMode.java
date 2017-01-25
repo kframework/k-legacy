@@ -2,8 +2,6 @@
 package org.kframework.krun.modes;
 
 import org.kframework.RewriterResult;
-import org.kframework.definition.ProcessedDefinition;
-import org.kframework.minikore.MiniKore;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.attributes.Source;
 import org.kframework.builtin.BooleanUtils;
@@ -36,7 +34,7 @@ public class KRunExecutionMode implements ExecutionMode {
     }
 
     @Override
-    public Object execute(K k, MiniKore.Pattern pattern, Rewriter rewriter, CompiledDefinition compiledDefinition, ProcessedDefinition processedDefinition) {
+    public Object execute(K k, Rewriter rewriter, CompiledDefinition compiledDefinition) {
         Rule rulePattern = null;
         if (kRunOptions.pattern != null) {
             rulePattern = KRun.compilePattern(files, kem, kRunOptions.pattern, kRunOptions, compiledDefinition, Source.apply("<command line>"));
@@ -64,6 +62,6 @@ public class KRunExecutionMode implements ExecutionMode {
             Tuple2<RewriterResult, K> res = rewriter.executeAndMatch(k, Optional.ofNullable(kRunOptions.depth), rulePattern);
             return res;
         }
-        return rewriter.execute(k, pattern, Optional.ofNullable(kRunOptions.depth)).k();
+        return rewriter.execute(k, Optional.ofNullable(kRunOptions.depth)).k();
     }
 }

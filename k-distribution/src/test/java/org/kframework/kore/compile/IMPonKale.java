@@ -80,7 +80,7 @@ public class IMPonKale {
 
         KaleRewriter kaleRewriter = new KaleRewriter(compiledDef.executionModule());
 
-        K kResult = kaleRewriter.execute(input, null, Optional.<Integer>empty()).k();
+        K kResult = kaleRewriter.execute(input, Optional.<Integer>empty()).k();
 
         Module unparsingModule = compiledDef.getExtensionModule(compiledDef.languageParsingModule());
 

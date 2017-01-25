@@ -111,7 +111,7 @@ public class KoreUtils {
     }
 
     public K stepRewrite(K parsedPgm, Optional<Integer> depth) {
-        K kResult = initializeRewriter.apply(Pair.of(compiledDef.executionModule(), null)).execute(parsedPgm, null, depth).k();
+        K kResult = initializeRewriter.apply(Pair.of(compiledDef.executionModule(), null)).execute(parsedPgm, depth).k();
         return kResult;
     }
 

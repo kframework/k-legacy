@@ -103,7 +103,7 @@ public class KRun {
         //Todo: This is probably problematic. The first module in the definition is not guaranteed to be the main module.
         Rewriter rewriter = rewriterGenerator.apply(Pair.of(compiledDef.executionModule(), processedDefinition.definition));
 
-        Object result = executionMode.execute(program, miniKoreProgram, rewriter, compiledDef, processedDefinition);
+        Object result = executionMode.execute(program, rewriter, compiledDef);
 
 
         if (result instanceof K) {

@@ -136,7 +136,7 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
         }
 
         @Override
-        public RewriterResult execute(K k, MiniKore.Pattern pattern, Optional<Integer> depth) {
+        public RewriterResult execute(K k, Optional<Integer> depth) {
             TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
             Term backendKil = MacroExpander.expandAndEvaluate(termContext, kem, converter.convert(k));
@@ -163,7 +163,7 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
 
 
         public Tuple2<RewriterResult, K> executeAndMatch(K k, Optional<Integer> depth, Rule rule) {
-            RewriterResult res = execute(k, null, depth);
+            RewriterResult res = execute(k, depth);
             return Tuple2.apply(res, match(res.k(), rule));
         }
 
@@ -232,7 +232,7 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
                     .map(l -> KLabelConstant.of(l.name(), definition))
                     .forEach(definition::addKLabel);
             definition.addKoreRules(module, global);
-cache.put(module, definition);
+            cache.put(module, definition);
             return definition;
         }
 

@@ -1,8 +1,6 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.krun.modes;
 
-import org.kframework.definition.ProcessedDefinition;
-import org.kframework.minikore.MiniKore;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kore.K;
@@ -14,5 +12,5 @@ import org.kframework.kore.K;
  */
 public interface ExecutionMode<T> {
 
-    public T execute(K k, MiniKore.Pattern pattern, Rewriter rewriter, CompiledDefinition compiledDefinition, ProcessedDefinition processedDefinition);
+    public T execute(K k, Rewriter rewriter, CompiledDefinition compiledDefinition);
 }
