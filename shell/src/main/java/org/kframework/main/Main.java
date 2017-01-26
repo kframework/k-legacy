@@ -297,10 +297,10 @@ public class Main {
             File definitionDir = DefinitionLoadingModule.directory(kastOptions.definitionLoading, workingDir, kem, env);
             File kompiledDir = DefinitionLoadingModule.definition(definitionDir, kem);
             FileUtil files = new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, kastOptions.global, env);
+            KompileMetaInfo kompileMetaInfo = DefinitionLoadingModule.kompilemetaInfo(files);
 
             kastOptions.setFiles(files);
-            CompiledDefinition compiledDef = DefinitionLoadingModule.koreDefinition(loader, files);
-            KastFrontEnd frontEnd = new KastFrontEnd(kastOptions, sw, kem, env, files, kompiledDir, compiledDef);
+            KastFrontEnd frontEnd = new KastFrontEnd(kastOptions, sw, kem, env, files, kompileMetaInfo);
 
             return runApplication(frontEnd, kem);
         }
