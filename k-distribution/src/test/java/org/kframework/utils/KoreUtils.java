@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.utils;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.HookProvider;
 import org.kframework.backend.java.symbolic.JavaBackend;
 import org.kframework.backend.java.symbolic.JavaExecutionOptions;
@@ -110,12 +111,12 @@ public class KoreUtils {
     }
 
     public K stepRewrite(K parsedPgm, Optional<Integer> depth) {
-        K kResult = initializeRewriter.apply(compiledDef.executionModule()).execute(parsedPgm, depth).k();
+        K kResult = initializeRewriter.apply(Pair.of(compiledDef.executionModule(), null)).execute(parsedPgm, depth).k();
         return kResult;
     }
 
     public Rewriter getRewriter() {
-        rewriter = initializeRewriter.apply(compiledDef.executionModule());
+        rewriter = initializeRewriter.apply(Pair.of(compiledDef.executionModule(), null));
         return rewriter;
     }
 

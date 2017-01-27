@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.kore.compile;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
@@ -65,7 +66,7 @@ public class ExpandMacros {
                     transitions,
                     new KRunOptions(),
                     files,
-                    new InitializeRewriter.InitializeDefinition()).apply(macroModule.get());
+                    new InitializeRewriter.InitializeDefinition()).apply(Pair.of(macroModule.get(), null));
             noMacros = false;
         } else {
             noMacros = true;

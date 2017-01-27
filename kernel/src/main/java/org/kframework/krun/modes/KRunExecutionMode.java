@@ -35,31 +35,31 @@ public class KRunExecutionMode implements ExecutionMode {
 
     @Override
     public Object execute(K k, Rewriter rewriter, CompiledDefinition compiledDefinition) {
-        Rule pattern = null;
+        Rule rulePattern = null;
         if (kRunOptions.pattern != null) {
-            pattern = KRun.compilePattern(files, kem, kRunOptions.pattern, kRunOptions, compiledDefinition, Source.apply("<command line>"));
+            rulePattern = KRun.compilePattern(files, kem, kRunOptions.pattern, kRunOptions, compiledDefinition, Source.apply("<command line>"));
         }
         if (kRunOptions.search()) {
-            if (pattern == null) {
-                pattern = new Rule(KORE.KVariable("X"), BooleanUtils.TRUE, BooleanUtils.TRUE, KORE.Att());
-                return rewriter.search(k, Optional.ofNullable(kRunOptions.depth), Optional.ofNullable(kRunOptions.bound), pattern, kRunOptions.searchType(), false);
+            if (rulePattern == null) {
+                rulePattern = new Rule(KORE.KVariable("X"), BooleanUtils.TRUE, BooleanUtils.TRUE, KORE.Att());
+                return rewriter.search(k, Optional.ofNullable(kRunOptions.depth), Optional.ofNullable(kRunOptions.bound), rulePattern, kRunOptions.searchType(), false);
             }
             else {
-                return rewriter.search(k, Optional.ofNullable(kRunOptions.depth), Optional.ofNullable(kRunOptions.bound), pattern, kRunOptions.searchType(), true);
+                return rewriter.search(k, Optional.ofNullable(kRunOptions.depth), Optional.ofNullable(kRunOptions.bound), rulePattern, kRunOptions.searchType(), true);
             }
         }
         if (kRunOptions.exitCodePattern != null) {
             Rule exitCodePattern = KRun.compilePattern(files, kem, kRunOptions.exitCodePattern, kRunOptions, compiledDefinition, Source.apply("<command line: --exit-code>"));
             Tuple2<RewriterResult, K> res;
-            if (pattern != null) {
-                res = rewriter.executeAndMatch(k, Optional.ofNullable(kRunOptions.depth), pattern);
+            if (rulePattern != null) {
+                res = rewriter.executeAndMatch(k, Optional.ofNullable(kRunOptions.depth), rulePattern);
                 return new Tuple2<>(res._2(), KRun.getExitCode(kem, rewriter.match(res._1().k(), exitCodePattern)));
             }
             res = rewriter.executeAndMatch(k, Optional.ofNullable(kRunOptions.depth), exitCodePattern);
             return Tuple2.apply(res._1().k(), KRun.getExitCode(kem, res._2()));
         }
-        if (pattern != null) {
-            Tuple2<RewriterResult, K> res = rewriter.executeAndMatch(k, Optional.ofNullable(kRunOptions.depth), pattern);
+        if (rulePattern != null) {
+            Tuple2<RewriterResult, K> res = rewriter.executeAndMatch(k, Optional.ofNullable(kRunOptions.depth), rulePattern);
             return res;
         }
         return rewriter.execute(k, Optional.ofNullable(kRunOptions.depth)).k();
