@@ -3,8 +3,8 @@ package org.kframework.main;
 
 import com.beust.jcommander.JCommander;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.martiansoftware.nailgun.NGContext;
+import org.apache.commons.lang3.tuple.Pair;
 import org.fusesource.jansi.AnsiConsole;
 import org.kframework.HookProvider;
 import org.kframework.Kapi;
@@ -14,23 +14,21 @@ import org.kframework.backend.java.symbolic.JavaBackend;
 import org.kframework.backend.java.symbolic.JavaExecutionOptions;
 import org.kframework.backend.java.symbolic.ProofExecutionMode;
 import org.kframework.definition.Module;
+import org.kframework.definition.ProcessedDefinition;
 import org.kframework.kale.KaleBackend;
 import org.kframework.kale.KaleRewriter;
 import org.kframework.kast.KastFrontEnd;
 import org.kframework.kast.KastOptions;
 import org.kframework.kdep.KDepFrontEnd;
 import org.kframework.kdep.KDepOptions;
-import org.kframework.kdoc.KDocFrontEnd;
 import org.kframework.kdoc.KDocOptions;
 import org.kframework.keq.KeqOptions;
-import org.kframework.kil.Rewrite;
 import org.kframework.kil.loader.Context;
 import org.kframework.kompile.CompiledDefinition;
-import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileFrontEnd;
+import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.compile.Backend;
-import org.kframework.krun.KRun;
 import org.kframework.krun.KRunFrontEnd;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.io.FileSystem;
@@ -42,11 +40,10 @@ import org.kframework.kserver.KServerFrontEnd;
 import org.kframework.kserver.KServerOptions;
 import org.kframework.ktest.CmdArgs.KTestOptions;
 import org.kframework.ktest.KTestFrontEnd;
+import org.kframework.minikore.MiniKore;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
-import org.kframework.utils.errorsystem.KEMException;
-import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
@@ -55,19 +52,12 @@ import org.kframework.utils.inject.CommonModule;
 import org.kframework.utils.inject.DefinitionLoadingModule;
 import org.kframework.utils.inject.JCommanderModule;
 import org.kframework.utils.inject.OuterParsingModule;
-import org.kframework.utils.options.OuterParsingOptions;
-import org.kframework.utils.options.SMTOptions;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -234,22 +224,23 @@ public class Main {
 
             // loading kompiled definition
             Context context = null; // DefinitionLoadingModule.context(loader, kRunOptions.configurationCreation.definitionLoading, kRunOptions.global, sw, kem, files, kRunOptions); // TODO: check if 'context.bin' exists
+            KompileMetaInfo kompileMetaInfo = DefinitionLoadingModule.kompilemetaInfo(files);
             CompiledDefinition compiledDef = DefinitionLoadingModule.koreDefinition(loader, files);
+            ProcessedDefinition processedDefinition = DefinitionLoadingModule.miniKoreDefinition(loader, files);
             KompileOptions kompileOptions = DefinitionLoadingModule.kompileOptions(context, compiledDef, files);
 
             // krun
 
             Function<Module, Rewriter> initializeRewriter;
+            Function<Pair<Module, MiniKore.Definition>, Rewriter> intializeMiniKoreRewriter;
             if (kompileOptions.backend.equals(Backends.JAVA)) {
                 //
                 Map<String, MethodHandle> hookProvider = HookProvider.get(kem);
                 InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
-                //
-
-                //
-                initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions.transition, kRunOptions, files, initializeDefinition);
+                intializeMiniKoreRewriter = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions.transition, kRunOptions, files, initializeDefinition);
             } else if (kompileOptions.backend.equals(Backends.KALE)) {
                 initializeRewriter = KaleRewriter::apply;
+                intializeMiniKoreRewriter = null;
             } else {
                 throw new AssertionError("Backend not hooked to the shell.");
             }
@@ -266,7 +257,8 @@ public class Main {
                 executionMode = new KRunExecutionMode(kRunOptions, kem, files);
             }
 
-            KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, kompiledDir, kem, kRunOptions, files, compiledDef, initializeRewriter, executionMode, ttyInfo, isNailgun);
+            KRunFrontEnd frontEnd = new KRunFrontEnd(kRunOptions.global, kompiledDir, kem, kRunOptions, files,
+                    kompileMetaInfo, compiledDef, processedDefinition, intializeMiniKoreRewriter, executionMode, ttyInfo, isNailgun);
 
             return runApplication(frontEnd, kem);
         }
@@ -399,7 +391,7 @@ public class Main {
             File def2File = FileUtil.resolveWorkingDirectory(new File(keqOptions.def2), workingDir);
             //
             String prelude = FileUtil.resolveWorkingDirectory(new File(keqOptions.smt.smtPrelude), workingDir).getAbsolutePath();
-            String prove   = FileUtil.resolveWorkingDirectory(new File(keqOptions.parameters.get(0)), workingDir).getAbsolutePath();
+            String prove = FileUtil.resolveWorkingDirectory(new File(keqOptions.parameters.get(0)), workingDir).getAbsolutePath();
 
             CompiledDefinition compiledDef0 = DefinitionLoadingModule.koreDefinition(loader, new FileUtil(null, null, null, def0File, null, null));
             CompiledDefinition compiledDef1 = DefinitionLoadingModule.koreDefinition(loader, new FileUtil(null, null, null, def1File, null, null));

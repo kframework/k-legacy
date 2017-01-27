@@ -110,7 +110,7 @@ public class Kompile {
     }
 
     /**
-     * Executes the Kompile tool. This tool accesses a
+     * Executes the Kompile tool. This tool first parses the definition and then compiles it.
      *
      * @param definitionFile
      * @param mainModuleName
@@ -122,10 +122,10 @@ public class Kompile {
         Definition parsedDef = parseDefinition(definitionFile, mainModuleName, mainProgramsModuleName);
         sw.printIntermediate("Parse definition [" + definitionParsing.parsedBubbles.get() + "/" + (definitionParsing.parsedBubbles.get() + definitionParsing.cachedBubbles.get()) + " rules]");
 
-        return run(parsedDef, pipeline);
+        return compile(parsedDef, pipeline);
     }
 
-    public CompiledDefinition run(Definition parsedDef, Function<Definition, Definition> pipeline) {
+    public CompiledDefinition compile(Definition parsedDef, Function<Definition, Definition> pipeline) {
         checkDefinition(parsedDef);
 
         Definition kompiledDefinition = pipeline.apply(parsedDef);

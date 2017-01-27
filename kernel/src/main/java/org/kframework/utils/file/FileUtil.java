@@ -38,7 +38,9 @@ public class FileUtil {
     public static final String KORE_TXT = "kore.txt";
     public static final String KOMPILED_DEFINITION_BIN = "extras/kompiledDefinition.bin";
     public static final String KOMPILE_OPTIONS_BIN = "extras/kompileOptions.bin";
+    public static final String KOMPILE_META_INFO_TXT = "extras/kompileMetaInfo.txt";
     public static final String PARSED_DEFINITION_BIN = "extras/parsedDefinition.bin";
+    public static final String EXTRAS_FOLDER = "extras/";
     public static final String TOP_CELL_INITIALIZER_BIN = "extras/topCellInitializer.bin";
     public static final String CACHE_BIN = "extras/cache.bin";
     public static final String TIMESTAMP = "extras/timestamp";
@@ -73,6 +75,10 @@ public class FileUtil {
     public static FileUtil testFileUtil() {
         File workingDir = new File(".");
         return new FileUtil(workingDir, workingDir, workingDir, workingDir, new GlobalOptions(), System.getenv());
+    }
+
+    public static String moduleDerivedParserPath(String moduleName) {
+        return EXTRAS_FOLDER + moduleName + "_Parser.bin";
     }
 
     public ProcessBuilder getProcessBuilder() {

@@ -1,18 +1,19 @@
 // Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.kompile;
 
+import org.kframework.definition.Definition;
 import org.kframework.main.FrontEnd;
 import org.kframework.minikore.KoreToMini;
 import org.kframework.minikore.KoreToMiniToKore;
 import org.kframework.minikore.MiniToText;
 import org.kframework.minikore.MiniToTextToMini;
-import org.kframework.minikore.TextToMini;
+import org.kframework.parser.UserParser;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.file.JarInfo;
+import org.kframework.utils.inject.DefinitionLoadingModule;
 
 public class KompileFrontEnd extends FrontEnd {
 
@@ -49,13 +50,30 @@ public class KompileFrontEnd extends FrontEnd {
         }
 
         Kompile kompile = new Kompile(options, files, kem, sw);
-        CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps());
-        save(def);
-        koreBackend.accept(def);
+        //CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps());
+        Definition parsedDef = kompile.parseDefinition(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files));
+        ParsedDefinitionWrapper wrapper = new ParsedDefinitionWrapper(options, parsedDef);
+        CompiledDefinition compiledDef = kompile.compile(parsedDef, koreBackend.steps());
+
+        saveKompileMetaInfo(wrapper);
+        saveModuleDerivedParser(wrapper, wrapper.mainSyntaxModuleName(), kem);
+        save(compiledDef);
+        koreBackend.accept(compiledDef);
         loader.saveOrDie(files.resolveKompiled(FileUtil.TIMESTAMP), "");
         sw.printIntermediate("Save to disk");
         sw.printTotal("Total");
         return 0;
+    }
+
+    public void saveKompileMetaInfo(ParsedDefinitionWrapper wrapper) {
+        KompileMetaInfo info = new KompileMetaInfo(wrapper.mainSyntaxModuleName(), wrapper.configurationVariableDefaultSorts);
+        files.saveToKompiled(FileUtil.KOMPILE_META_INFO_TXT, info.serialize());
+    }
+
+    public void saveModuleDerivedParser(ParsedDefinitionWrapper wrapper, String moduleName, KExceptionManager kem) {
+        UserParser parser = wrapper.getModuleDerviedParser(moduleName, kem);
+        String modulePath = FileUtil.moduleDerivedParserPath(moduleName);
+        loader.saveOrDie(files.resolveKompiled(modulePath), parser);
     }
 
     // NOTE: should be matched with org.kframework.utils.inject.DefinitionLoadingModule.koreDefinition()
@@ -68,10 +86,11 @@ public class KompileFrontEnd extends FrontEnd {
         // saveTest(def);
     }
 
+    // for serialization/deserialization test
     public void saveTest(CompiledDefinition def) {
-        KoreToMiniToKore.apply(def.kompiledDefinition); // for serialization/deserialization test
-        KoreToMiniToKore.apply(def.getParsedDefinition()); // for serialization/deserialization test
-        MiniToTextToMini.assertequal(KoreToMini.apply(def.kompiledDefinition), new TextToMini().parse(files.resolveKompiled(FileUtil.KORE_TXT))); // for serialization/deserialization test
+        KoreToMiniToKore.apply(def.kompiledDefinition);
+        KoreToMiniToKore.apply(def.getParsedDefinition());
+        MiniToTextToMini.assertequal(KoreToMini.apply(def.kompiledDefinition), DefinitionLoadingModule.parseKore(files));
     }
 }
 

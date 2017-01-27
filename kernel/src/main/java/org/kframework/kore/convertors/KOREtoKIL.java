@@ -13,6 +13,7 @@ import org.kframework.kil.Term;
 import org.kframework.kore.*;
 import org.kframework.definition.*;
 import org.kframework.kore.Sort;
+import org.kframework.minikore.MiniKore;
 import org.kframework.utils.StringUtil;
 
 import java.math.BigInteger;
@@ -291,6 +292,38 @@ public class KOREtoKIL implements Function<Definition, org.kframework.kil.Defini
 
     public org.kframework.kil.Sort convertSort(Sort sort) {
         return org.kframework.kil.Sort.of(sort.name());
+    }
+
+
+    public org.kframework.kil.Attributes convertAttributes(List<MiniKore.Pattern> miniKoreAtts) {
+        org.kframework.kil.Attributes kilAttributes = new org.kframework.kil.Attributes();
+        miniKoreAtts.stream().forEach(x -> {
+            if (x instanceof MiniKore.Application) {
+                MiniKore.Application application = (MiniKore.Application) x;
+                List<MiniKore.Pattern> args = mutable(application.args());
+                String label = application.label();
+                if (label.equals("sort")) {
+                    MiniKore.DomainValue domainValue = (MiniKore.DomainValue) args.get(0);
+                    kilAttributes.add(Attribute.of("sort", domainValue.value()));
+                } else if (!label.equals("Location") && !label.equals("Source") && !label.equals("org.kframework.attributes.Location") &&
+                        !label.equals("org.kframework.attributes.Source")) {
+                    if (args.size() == 1) {
+                        if (args.get(0) instanceof MiniKore.DomainValue) {
+                            kilAttributes.add(Attribute.of(label, ((MiniKore.DomainValue) args.get(0)).value()));
+                        }
+                    } else if (args.size() == 0) {
+                        kilAttributes.add(Attribute.of(label, ""));
+                    } else {
+                        throw NOT_IMPLEMENTED();
+                    }
+                }
+            } else if (x instanceof MiniKore.DomainValue) {
+                kilAttributes.add(Attribute.of(((MiniKore.DomainValue) x).value(), ((MiniKore.DomainValue) x).value()));
+            } else {
+                throw NOT_IMPLEMENTED();
+            }
+        });
+        return kilAttributes;
     }
 
     public org.kframework.kil.Attributes convertAttributes(Att koreAtt) {

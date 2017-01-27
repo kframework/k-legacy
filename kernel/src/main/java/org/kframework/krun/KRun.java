@@ -9,8 +9,10 @@ import org.kframework.builtin.KLabels;
 import org.kframework.builtin.Sorts;
 import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
+import org.kframework.definition.ProcessedDefinition;
 import org.kframework.definition.Rule;
 import org.kframework.kompile.CompiledDefinition;
+import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.kore.Assoc;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
@@ -23,7 +25,12 @@ import org.kframework.kore.Unapply.KApply$;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.modes.ExecutionMode;
+import org.kframework.minikore.KoreToMini;
+import org.kframework.minikore.MiniKore;
+import org.kframework.minikore.MiniToKore;
+import org.kframework.parser.ParseResult;
 import org.kframework.parser.ProductionReference;
+import org.kframework.parser.UserParser;
 import org.kframework.parser.binary.BinaryParser;
 import org.kframework.parser.kore.KoreParser;
 import org.kframework.rewriter.Rewriter;
@@ -32,6 +39,7 @@ import org.kframework.unparser.KOREToTreeNodes;
 import org.kframework.unparser.OutputModes;
 import org.kframework.unparser.ToBinary;
 import org.kframework.unparser.ToKast;
+import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -76,21 +84,24 @@ public class KRun {
     }
 
 
-    public int run(CompiledDefinition compiledDef, KRunOptions options, Function<Module, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
+    public int run(KompileMetaInfo kompileMetaInfo, CompiledDefinition compiledDef, ProcessedDefinition processedDefinition, KRunOptions options, Function<Pair<Module, MiniKore.Definition>, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
         String pgmFileName = options.configurationCreation.pgm();
         K program;
+        MiniKore.Pattern miniKoreProgram;
         if (options.configurationCreation.term()) {
             program = parse(options.configurationCreation.parser(compiledDef.executionModule().name()),
-                    pgmFileName, compiledDef.programStartSymbol, Source.apply("<parameters>"), compiledDef, files);
+                    pgmFileName, KORE.Sort(kompileMetaInfo.programStartSymbol), Source.apply("<parameters>"), compiledDef.mainSyntaxModuleName(), files);
         } else {
-            program = parseConfigVars(options, compiledDef, kem, files, ttyStdin, isNailgun, null);
+            program = parseConfigVars(options, kompileMetaInfo, compiledDef, kem, files, ttyStdin, isNailgun, null);
         }
 
         program = new KTokenVariablesToTrueVariables()
                 .apply(compiledDef.kompiledDefinition.getModule(compiledDef.mainSyntaxModuleName()).get(), program);
 
+        miniKoreProgram = KoreToMini.apply(program);
 
-        Rewriter rewriter = rewriterGenerator.apply(compiledDef.executionModule());
+        //Todo: This is probably problematic. The first module in the definition is not guaranteed to be the main module.
+        Rewriter rewriter = rewriterGenerator.apply(Pair.of(compiledDef.executionModule(), processedDefinition.definition));
 
         Object result = executionMode.execute(program, rewriter, compiledDef);
 
@@ -312,16 +323,17 @@ public class KRun {
         }
     }
 
-    public Map<KToken, K> getUserConfigVarsMap(KRunOptions options, CompiledDefinition compiledDef, FileUtil files) {
+    public Map<KToken, K> getUserConfigVarsMap(KRunOptions options, KompileMetaInfo kompileMetaInfo,
+                                               CompiledDefinition compiledDef, FileUtil files) {
         Map<KToken, K> output = new HashMap<>();
         for (Map.Entry<String, Pair<String, String>> entry
                 : options.configurationCreation.configVars(compiledDef.getParsedDefinition().mainModule().name()).entrySet()) {
             String name = entry.getKey();
             String value = entry.getValue().getLeft();
             String parser = entry.getValue().getRight();
-            Sort sort = compiledDef.configurationVariableDefaultSorts.get("$" + name);
+            Sort sort = KORE.Sort(kompileMetaInfo.configVarDefaultSort.get("$" + name));
             assert sort != null : "Could not find configuration variable: $" + name;
-            K configVar = parse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), compiledDef, files);
+            K configVar = parse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), kompileMetaInfo.mainSyntaxModuleName, files);
             output.put(KToken("$" + name, Sorts.KConfigVar()), configVar);
         }
         return output;
@@ -348,8 +360,9 @@ public class KRun {
         return output;
     }
 
-    public K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef, KExceptionManager kem, FileUtil files, boolean ttyStdin, boolean isNailgun, K pgm) {
-        Map<KToken, K> output = getUserConfigVarsMap(options, compiledDef, files);
+    public K parseConfigVars(KRunOptions options, KompileMetaInfo kompileMetaInfo, CompiledDefinition compiledDef,
+                             KExceptionManager kem, FileUtil files, boolean ttyStdin, boolean isNailgun, K pgm) {
+        Map<KToken, K> output = getUserConfigVarsMap(options, kompileMetaInfo, compiledDef, files);
         return getInitConfig(pgm, output, compiledDef, kem, options.io(), ttyStdin, isNailgun);
     }
 
@@ -421,10 +434,27 @@ public class KRun {
                         KOREToTreeNodes.apply(KOREToTreeNodes.up(test, input), test)));
     }
 
-    public K parse(String parser, String value, Sort startSymbol, Source source, CompiledDefinition compiledDef, FileUtil files) {
+
+    public K parse(String toParse, Source source, Sort startSymbol, String moduleName, FileUtil files) {
+        String modulePath = files.moduleDerivedParserPath(moduleName);
+        BinaryLoader loader = new BinaryLoader(kem);
+        UserParser parser = loader.loadOrDie(UserParser.class, files.resolveKompiled(modulePath));
+        ParseResult result = parser.parse(toParse, source.source(), startSymbol.name());
+        MiniKore.Pattern ast = result.ast;
+        kem.addAllKException(result.warnings.stream().map(e->e.getKException()).collect(Collectors.toSet()));
+        return MiniToKore.apply(ast);
+    }
+
+    public K parse(String parser, String value, Sort startSymbol, Source source, String mainSyntaxModuleName, FileUtil files) {
+        /*
         if(parser.endsWith("k/bin/kast")) {
             return compiledDef.getProgramParser(kem).apply(FileUtil.read(files.readFromWorkingDirectory(value)), source);
+        }*/
+        if(parser == null) {
+            String toParse = FileUtil.read(files.readFromWorkingDirectory(value));
+            return parse(toParse, source, startSymbol, mainSyntaxModuleName, files);
         } else {
+            // ToDo(Yi): Update this branch when kast interface is nailed down.
             List<String> tokens = new ArrayList<>(Arrays.asList(parser.split(" ")));
             tokens.add(value);
             Map<String, String> environment = new HashMap<>();

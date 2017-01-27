@@ -1,6 +1,7 @@
 // Copyright (c) 2016 K Team. All Rights Reserved.
 package org.kframework;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.RewriterResult;
 import org.kframework.attributes.Att;
 import org.kframework.attributes.Source;
@@ -101,7 +102,7 @@ public class Kapi {
 
         // compile (translation pipeline)
         Function<Definition, Definition> pipeline = new JavaBackend(kapiGlobal).steps();
-        CompiledDefinition compiledDef = new Kompile(kapiGlobal).run(parsedDef, pipeline);
+        CompiledDefinition compiledDef = new Kompile(kapiGlobal).compile(parsedDef, pipeline);
 
         return compiledDef;
     }
@@ -181,7 +182,7 @@ public class Kapi {
                 new InitializeRewriter(kapiGlobal,
                         hookProvider,
                         initializeDefinition)
-                        .apply(compiledDef.executionModule());
+                        .apply(Pair.of(compiledDef.executionModule(), null));
         //
         RewriterResult result = ((InitializeRewriter.SymbolicRewriterGlue) rewriter).execute(program, Optional.ofNullable(depth));
         return result;
