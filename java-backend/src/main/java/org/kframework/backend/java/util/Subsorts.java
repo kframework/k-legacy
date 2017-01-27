@@ -6,9 +6,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import org.kframework.Collections;
+import org.kframework.backend.java.MiniKoreUtils;
 import org.kframework.backend.java.kil.Sort;
 import org.kframework.definition.Module;
 import org.kframework.kil.loader.Context;
+import org.kframework.minikore.MiniKore;
 import org.kframework.utils.errorsystem.KEMException;
 import scala.collection.JavaConversions;
 
@@ -50,6 +52,23 @@ public class Subsorts implements Serializable {
             for (Sort sort2 : sorts) {
                 subsort.put(sort1, sort2, context
                         .isSubsorted(sort1.toFrontEnd(), sort2.toFrontEnd()));
+            }
+        }
+    }
+
+    // Minikore to Subsorts Constructor
+    public Subsorts(MiniKoreUtils.ModuleUtils moduleUtils) {
+        sorts = JavaConversions.asJavaCollection(moduleUtils.definedSorts()).stream()
+                        .map(s -> Sort.of(s))
+                        .collect(Collectors.toSet());
+
+        this.subsort = ArrayTable.create(sorts, sorts);
+        for (String sort1 : Collections.iterable(moduleUtils.definedSorts())) {
+            for (String sort2 : Collections.iterable(moduleUtils.definedSorts())) {
+                subsort.put(
+                        Sort.of(sort1),
+                        Sort.of(sort2),
+                        moduleUtils.subsorts().$greater(sort1, sort2));
             }
         }
     }

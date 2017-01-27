@@ -9,6 +9,7 @@ import org.kframework.builtin.KLabels;
 import org.kframework.builtin.Sorts;
 import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
+import org.kframework.definition.ProcessedDefinition;
 import org.kframework.definition.Rule;
 import org.kframework.kast.Kast;
 import org.kframework.kompile.CompiledDefinition;
@@ -25,6 +26,7 @@ import org.kframework.kore.Unapply.KApply$;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.modes.ExecutionMode;
+import org.kframework.minikore.KoreToMini;
 import org.kframework.minikore.MiniKore;
 import org.kframework.minikore.MiniToKore;
 import org.kframework.parser.ParseResult;
@@ -83,10 +85,10 @@ public class KRun {
     }
 
 
-    public int run(KompileMetaInfo kompileMetaInfo, CompiledDefinition compiledDef, KRunOptions options,
-                   Function<Module, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
+    public int run(KompileMetaInfo kompileMetaInfo, CompiledDefinition compiledDef, ProcessedDefinition processedDefinition, KRunOptions options, Function<Pair<Module, MiniKore.Definition>, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
         String pgmFileName = options.configurationCreation.pgm();
         K program;
+        MiniKore.Pattern miniKoreProgram;
         if (options.configurationCreation.term()) {
             program = parse(options.configurationCreation.parser(compiledDef.executionModule().name()),
                     pgmFileName, KORE.Sort(kompileMetaInfo.programStartSymbol), Source.apply("<parameters>"), compiledDef.mainSyntaxModuleName(), files);
@@ -97,8 +99,10 @@ public class KRun {
         program = new KTokenVariablesToTrueVariables()
                 .apply(compiledDef.kompiledDefinition.getModule(compiledDef.mainSyntaxModuleName()).get(), program);
 
+        miniKoreProgram = KoreToMini.apply(program);
 
-        Rewriter rewriter = rewriterGenerator.apply(compiledDef.executionModule());
+        //Todo: This is probably problematic. The first module in the definition is not guaranteed to be the main module.
+        Rewriter rewriter = rewriterGenerator.apply(Pair.of(compiledDef.executionModule(), processedDefinition.definition));
 
         Object result = executionMode.execute(program, rewriter, compiledDef);
 

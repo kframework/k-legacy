@@ -5,27 +5,25 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import org.kframework.attributes.Att;
+import org.kframework.backend.java.MiniKoreUtils;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.backend.java.util.Subsorts;
 import org.kframework.builtin.Sorts;
-import org.kframework.compile.ConfigurationInfo;
-import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.Attributes;
 import org.kframework.kil.DataStructureSort;
 import org.kframework.kil.loader.Context;
-import org.kframework.kore.KORE;
 import org.kframework.kore.convertors.KOREtoKIL;
+import org.kframework.minikore.MiniKore;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import scala.collection.JavaConversions;
@@ -43,7 +41,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.kframework.kore.KORE.Sort;
 import static org.kframework.Collections.*;
 
 /**
@@ -55,11 +52,10 @@ public class Definition extends JavaSymbolicObject {
 
     public static final String AUTOMATON = "automaton";
 
-    public final Module module;
 
     private static class DefinitionData implements Serializable {
         public final Subsorts subsorts;
-        public final Map<org.kframework.kore.Sort, DataStructureSort> dataStructureSorts;
+        public Map<String, DataStructureSort> dataStructureSorts;
         public final SetMultimap<String, SortSignature> signatures;
         public final ImmutableMap<String, Attributes> kLabelAttributes;
         public final Map<Sort, String> freshFunctionNames;
@@ -67,7 +63,7 @@ public class Definition extends JavaSymbolicObject {
 
         private DefinitionData(
                 Subsorts subsorts,
-                Map<org.kframework.kore.Sort, DataStructureSort> dataStructureSorts,
+                Map<String, DataStructureSort> dataStructureSorts,
                 SetMultimap<String, SortSignature> signatures,
                 ImmutableMap<String, Attributes> kLabelAttributes,
                 Map<Sort, String> freshFunctionNames,
@@ -89,9 +85,9 @@ public class Definition extends JavaSymbolicObject {
     private final Multimap<KLabelConstant, Rule> patternRules = ArrayListMultimap.create();
     private final List<Rule> patternFoldingRules = new ArrayList<>();
 
-    private final Set<KLabelConstant> kLabels;
+    private Set<KLabelConstant> kLabels;
 
-    private final DefinitionData definitionData;
+    private DefinitionData definitionData;
     private transient Context context;
 
     private transient KExceptionManager kem;
@@ -104,14 +100,13 @@ public class Definition extends JavaSymbolicObject {
     /**
      * all the rules indexed with the ordinal used by {@link org.kframework.backend.java.symbolic.FastRuleMatcher}
      */
-    public final Map<Integer, Rule> ruleTable;
+    public Map<Integer, Rule> ruleTable;
 
     public final Map<Integer, Integer> reverseRuleTable = new HashMap<>();
 
     private final Map<KItem.CacheTableColKey, KItem.CacheTableValue> sortCacheTable = new HashMap<>();
 
     public Definition(org.kframework.definition.Module module, KExceptionManager kem) {
-        this.module = module;
         kLabels = new HashSet<>();
         this.kem = kem;
 
@@ -146,8 +141,111 @@ public class Definition extends JavaSymbolicObject {
         this.ruleTable = new HashMap<>();
     }
 
-    private Map<org.kframework.kore.Sort, DataStructureSort> getDataStructureSorts(Module module) {
-        ImmutableMap.Builder<org.kframework.kore.Sort, DataStructureSort> builder = ImmutableMap.builder();
+    /**
+     * The Constructor to take a minikore module and construct a Backend Definition.
+     */
+
+    public Definition(MiniKoreUtils.ModuleUtils moduleUtils, KExceptionManager kem) {
+        kLabels = new HashSet<>();
+        this.kem = kem;
+
+        ImmutableSetMultimap.Builder<String, SortSignature> signaturesBuilder = ImmutableSetMultimap.builder();
+        JavaConversions.mapAsJavaMap(moduleUtils.signatureFor()).entrySet().stream().forEach(e -> {
+            JavaConversions.setAsJavaSet(e.getValue()).stream().forEach(p -> {
+                ImmutableList.Builder<Sort> sortsBuilder = ImmutableList.builder();
+                stream(p._1()).map(s -> Sort.of(s)).forEach(sortsBuilder::add);
+                signaturesBuilder.put(
+                        e.getKey(),
+                        new SortSignature(sortsBuilder.build(), Sort.of(p._2())));
+            });
+        });
+
+
+        ImmutableMap.Builder<String, Attributes> attributesBuilder = ImmutableMap.builder();
+        JavaConversions.mapAsJavaMap(moduleUtils.attributesFor()).entrySet().stream().forEach(e -> {
+            attributesBuilder.put(e.getKey(), new KOREtoKIL().convertAttributes(mutable(e.getValue())));
+        });
+
+        definitionData = new DefinitionData(
+                new Subsorts(moduleUtils),
+                getDataStructureSorts(moduleUtils),
+                signaturesBuilder.build(),
+                attributesBuilder.build(),
+                JavaConverters.mapAsJavaMapConverter(moduleUtils.freshFunctionFor()).asJava().entrySet().stream().collect(Collectors.toMap(
+                        e -> Sort.of(e.getKey()),
+                        e -> e.getValue())),
+                Collections.emptyMap()
+        );
+
+        context = null;
+
+        this.ruleTable = new HashMap<>();
+
+    }
+
+    private Map<String, DataStructureSort> getDataStructureSorts(MiniKoreUtils.ModuleUtils moduleUtils) {
+        HashSet<String> collected = new HashSet<>();
+        ImmutableMap.Builder<String, DataStructureSort> builder = ImmutableMap.builder();
+        for (MiniKore.SymbolDeclaration symbolDec : iterable(moduleUtils.symbolDecs())) {
+            List<MiniKore.Pattern> atts = mutable(symbolDec.att());
+
+            org.kframework.kil.Sort type;
+
+            String elementLabel;
+            String unitLabel;
+
+
+            boolean assoc = (mutable(MiniKoreUtils.findAtt(symbolDec.att(), Attribute.ASSOCIATIVE_KEY)).size() >= 1);
+
+            boolean comm = (mutable(MiniKoreUtils.findAtt(symbolDec.att(), Attribute.COMMUTATIVE_KEY)).size() >= 1);
+
+            boolean idem = (mutable(MiniKoreUtils.findAtt(symbolDec.att(), Attribute.IDEMPOTENT_KEY)).size() >= 1);
+
+            boolean hook = (mutable(MiniKoreUtils.findAtt(symbolDec.att(), Attribute.HOOK_KEY)).size() >= 1);
+            if (symbolDec.sort().equals(Sorts.KList().toString()) || symbolDec.sort().equals(Sorts.KBott().toString())) {
+                continue;
+            }
+            if (assoc && !comm && !idem) {
+                if (!hook)
+                    continue;
+                type = org.kframework.kil.Sort.LIST;
+                elementLabel = "ListItem";
+                unitLabel = ".List";
+
+            } else if (assoc && comm && idem) {
+                type = org.kframework.kil.Sort.SET;
+                elementLabel = "SetItem";
+                unitLabel = ".Set";
+            } else if (assoc && comm && !idem) {
+                if (!hook)
+                    continue;
+                type = org.kframework.kil.Sort.MAP;
+                elementLabel = "_|->_";
+                unitLabel = ".Map";
+            } else if (!assoc && !comm && !idem)
+                continue;
+            else {
+                throw KEMException.criticalError("Unexpected combination of assoc, comm, idem attributes found. Currently "
+                        + "only sets, maps, and lists are supported: ");
+            }
+
+
+            DataStructureSort sort = new DataStructureSort(symbolDec.sort(), type,
+                    symbolDec.label(),
+                    elementLabel,
+                    unitLabel,
+                    new HashMap<>());
+            if (!collected.contains(symbolDec.sort())) {
+
+                builder.put(symbolDec.sort(), sort);
+                collected.add(symbolDec.sort());
+            }
+        }
+        return builder.build();
+    }
+
+    private Map<String, DataStructureSort> getDataStructureSorts(Module module) {
+        ImmutableMap.Builder<String, DataStructureSort> builder = ImmutableMap.builder();
         for (org.kframework.definition.Production prod : iterable(module.productions())) {
             Optional<?> assoc = prod.att().getOptional(Attribute.ASSOCIATIVE_KEY);
             Optional<?> comm = prod.att().getOptional(Attribute.COMMUTATIVE_KEY);
@@ -178,7 +276,7 @@ public class Definition extends JavaSymbolicObject {
                     prod.att().<String>get("element").get(),
                     prod.att().<String>get(Attribute.UNIT_KEY).get(),
                     new HashMap<>());
-            builder.put(prod.sort(), sort);
+            builder.put(prod.sort().name(), sort);
         }
         return builder.build();
     }
@@ -188,6 +286,8 @@ public class Definition extends JavaSymbolicObject {
      */
     public void addKoreRules(Module module, GlobalContext global) {
         KOREtoBackendKIL transformer = new KOREtoBackendKIL(module, this, global, true);
+
+
         List<org.kframework.definition.Rule> koreRules = JavaConversions.setAsJavaSet(module.rules()).stream()
                 .filter(r -> !r.att().contains(AUTOMATON))
                 .collect(Collectors.toList());
@@ -196,6 +296,7 @@ public class Definition extends JavaSymbolicObject {
                 reverseRuleTable.put(r.hashCode(), reverseRuleTable.size());
             }
         });
+
         koreRules.forEach(r -> {
             Rule convertedRule = transformer.convert(Optional.of(module), r);
             addRule(convertedRule);
@@ -203,6 +304,7 @@ public class Definition extends JavaSymbolicObject {
                 ruleTable.put(reverseRuleTable.get(r.hashCode()), convertedRule);
             }
         });
+
 
         Optional<org.kframework.definition.Rule> koreAutomaton = JavaConversions.setAsJavaSet(module.localRules()).stream()
                 .filter(r -> r.att().contains(AUTOMATON))
@@ -220,7 +322,6 @@ public class Definition extends JavaSymbolicObject {
         this.kem = kem;
         this.ruleTable = ruleTable;
         this.automaton = automaton;
-        this.module = null;
 
         this.definitionData = definitionData;
         this.context = null;
@@ -363,7 +464,7 @@ public class Definition extends JavaSymbolicObject {
     }
 
     public DataStructureSort dataStructureSortOf(Sort sort) {
-        return definitionData.dataStructureSorts.get(KORE.Sort(sort.name()));
+        return definitionData.dataStructureSorts.get(sort.name());
     }
 
     public Map<Sort, String> freshFunctionNames() {
