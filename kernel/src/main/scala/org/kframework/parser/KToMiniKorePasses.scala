@@ -105,7 +105,7 @@ object KToMiniKorePasses {
   val normalizeTokens: Pattern => Pattern = {
     case dv@DomainValue("KSymbol@KTOKENS", _)     => upDomainValue(dv)
     case DomainValue(name@"KString@KTOKENS", str) => upDomainValue(DomainValue(name, stripString(1,1)(str)))
-    case DomainValue("KMLPattern@KML", name)      => application("KMLApplication", name)
+    case DomainValue("KMLPattern@KML", name)      => Application("KMLApplication", Seq(upSymbol(name)))
     case pattern                                  => pattern
   }
 
