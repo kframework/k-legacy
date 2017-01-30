@@ -11,6 +11,7 @@ import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
 import org.kframework.definition.ProcessedDefinition;
 import org.kframework.definition.Rule;
+import org.kframework.kast.Kast;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.kore.Assoc;
@@ -434,17 +435,6 @@ public class KRun {
                         KOREToTreeNodes.apply(KOREToTreeNodes.up(test, input), test)));
     }
 
-
-    public K parse(String toParse, Source source, Sort startSymbol, String moduleName, FileUtil files) {
-        String modulePath = files.moduleDerivedParserPath(moduleName);
-        BinaryLoader loader = new BinaryLoader(kem);
-        UserParser parser = loader.loadOrDie(UserParser.class, files.resolveKompiled(modulePath));
-        ParseResult result = parser.parse(toParse, source.source(), startSymbol.name());
-        MiniKore.Pattern ast = result.ast;
-        kem.addAllKException(result.warnings.stream().map(e->e.getKException()).collect(Collectors.toSet()));
-        return MiniToKore.apply(ast);
-    }
-
     public K parse(String parser, String value, Sort startSymbol, Source source, String mainSyntaxModuleName, FileUtil files) {
         /*
         if(parser.endsWith("k/bin/kast")) {
@@ -452,7 +442,7 @@ public class KRun {
         }*/
         if(parser == null) {
             String toParse = FileUtil.read(files.readFromWorkingDirectory(value));
-            return parse(toParse, source, startSymbol, mainSyntaxModuleName, files);
+            return Kast.parse(toParse, source, startSymbol, mainSyntaxModuleName, files, this.kem);
         } else {
             // ToDo(Yi): Update this branch when kast interface is nailed down.
             List<String> tokens = new ArrayList<>(Arrays.asList(parser.split(" ")));
