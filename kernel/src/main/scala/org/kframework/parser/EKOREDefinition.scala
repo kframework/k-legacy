@@ -131,7 +131,7 @@ object EKOREDefinition {
     syntax(KMLPattern) is KBubble
   )
 
-  def mkParser(d: Definition): String => Pattern = str => {
+  def mkParser(d: Definition): String => Pattern = input => {
     import org.kframework.parser.concrete2kore.ParseInModule
     import org.kframework.attributes.Source
     import org.kframework.kore.ADT.SortLookup
@@ -139,17 +139,22 @@ object EKOREDefinition {
     import org.kframework.minikore.KoreToMini
     import org.kframework.minikore.MiniKoreOuterUtils._
 
-    val koreDef = MiniToKore(onAttributesDef(traverseTopDown(toKoreEncoding))(EKORE))
-    val mainMod = koreDef.mainModule
-    val kParser = new ParseInModule(mainMod)
-
-    def runParser(parser: ParseInModule, toParse: String): Pattern =
-      parser.parseString(toParse, SortLookup("KMLPattern"), Source(""))._1 match {
-        case Right(x) => KoreToMini(x)
-        case Left(y) => throw new Error("runParser error: " + y.toString)
+    val mainModuleName = getAttributeKey(`KoreToMini.iMainModule`, d.att) match { Seq(Seq(Application(name, Nil))) => name }
+    val allSorts = allSorts(d)
+    val newModules = d.modules collect {
+      case Module(`mainModuleName`, sentences, att) => {
+        val newSentences = allSorts(d) flatMap (sort => Seq(syntax(sort) is KMLVariable, syntax(KMLPattern) is sort))
+        Module(mainModuleName, sentences ++ newSentences, att)
       }
+      case module => module
+    }
+    val ruleParserDef = Definition(newModules, d.att)
 
-    runParser(kParser, str)
+    val parser = new ParseInModule(MiniToKore(onAttributesDef(traverseTopDown(toKoreEncoding))(ruleParserDef)))
+    parser.parseString(input, SortLookup("KMLPattern"), Source(""))._1 match {
+      case Right(x) => KoreToMini(x)
+      case Left(y) => throw new Error("runParser error: " + y.toString)
+    }
   }
 
   def resolveRuleBubbles(parser: String => Pattern): Pattern => Pattern = {
