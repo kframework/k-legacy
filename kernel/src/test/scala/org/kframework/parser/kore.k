@@ -27,29 +27,30 @@ module KML
   imports KTOKENS
 
   syntax KMLVariable ::= KSymbol ":" KSymbol [klabel(KMLVariable)]
+
   syntax KMLPattern ::= KMLVariable
-  syntax KMLPattern ::= r"[A-Za-z0-9\\.@#\\|\\-]+" [token]
+                      | r"[A-Za-z0-9\\.@#\\|\\-]+" [token]
 
-  syntax KMLPattern ::= "tt" [klabel(KMLTrue)]
-  syntax KMLPattern ::= "ff" [klabel(KMLFalse)]
+                      | "tt" [klabel(KMLTrue)]
+                      | "ff" [klabel(KMLFalse)]
 
-  syntax KMLPattern ::= KMLPattern "/\\" KMLPattern [klabel(KMLAnd)]
-  syntax KMLPattern ::= KMLPattern "\\/" KMLPattern [klabel(KMLOr)]
-  syntax KMLPattern ::= "~" KMLPattern              [klabel(KMLNot)]
+                      | KMLPattern "/\\" KMLPattern [klabel(KMLAnd)]
+                      | KMLPattern "\\/" KMLPattern [klabel(KMLOr)]
+                      | "~" KMLPattern              [klabel(KMLNot)]
 
-  syntax KMLPattern ::= KMLPattern "->"  KMLPattern    [klabel(KMLImplies)]
-  syntax KMLPattern ::= "E" KMLVariable "." KMLPattern [klabel(KMLExists)]
-  syntax KMLPattern ::= "A" KMLVariable "." KMLPattern [klabel(KMLForAll)]
+                      | KMLPattern "->"  KMLPattern    [klabel(KMLImplies)]
+                      | "E" KMLVariable "." KMLPattern [klabel(KMLExists)]
+                      | "A" KMLVariable "." KMLPattern [klabel(KMLForAll)]
 
-  syntax KMLPattern ::= "next" KMLPattern          [klabel(KMLNext)]
-  syntax KMLPattern ::= KMLPattern "=>" KMLPattern [klabel(KMLRewrite)]
-  syntax KMLPattern ::= KMLPattern "==" KMLPattern [klabel(KMLEquals)]
+                      | "next" KMLPattern          [klabel(KMLNext)]
+                      | KMLPattern "=>" KMLPattern [klabel(KMLRewrite)]
+                      | KMLPattern "==" KMLPattern [klabel(KMLEquals)]
+
+                      | KSymbol "(" KMLPatternList ")"    [klabel(KMLApplication)]
 
   syntax KMLPatternList ::= "" [klabel(.KMLPatternList)]
-  syntax KMLPatternList ::= KMLPattern
-  syntax KMLPatternList ::= KMLPattern "," KMLPatternList [klabel(KMLPatternList)]
-
-  syntax KMLPattern ::= KSymbol "(" KMLPatternList ")"    [klabel(KMLApplication)]
+                          | KMLPattern
+                          | KMLPattern "," KMLPatternList [klabel(KMLPatternList)]
 endmodule
 
 
@@ -58,15 +59,15 @@ module KSENTENCE
   imports KBUBBLE
 
   syntax KAttributes ::= ""                     [klabel(.KAttributes)]
-  syntax KAttributes ::= "[" KMLPatternList "]" [klabel(KAttributes)]
+                       | "[" KMLPatternList "]" [klabel(KAttributes)]
 
   syntax KSentence ::= "imports" KSymbol KAttributes                                 [klabel(KImport)]
-  syntax KSentence ::= "syntax" KSymbol ":=" KSymbol "(" KSymbolList ")" KAttributes [klabel(KSymbolDeclaration)]
-  syntax KSentence ::= "rule" KBubble KAttributes                                    [klabel(KRule)]
+                     | "syntax" KSymbol ":=" KSymbol "(" KSymbolList ")" KAttributes [klabel(KSymbolDeclaration)]
+                     | "rule" KBubble KAttributes                                    [klabel(KRule)]
 
   syntax KSentenceList ::= KSentence
-  syntax KSentenceList ::= "" [klabel(.KSentenceList)]
-  syntax KSentenceList ::= KSentence KSentenceList [klabel(KSentenceList)]
+                         | "" [klabel(.KSentenceList)]
+                         | KSentence KSentenceList [klabel(KSentenceList)]
 endmodule
 
 
@@ -74,8 +75,9 @@ module KDEFINITION
   imports KSENTENCE
 
   syntax KModule ::= "module" KSymbol KSentenceList "endmodule" KAttributes [klabel(KModule)]
+
   syntax KModuleList ::= ""                                                 [klabel(.KModuleList)]
-  syntax KModuleList ::= KModule KModuleList                                [klabel(KModuleList)]
+                       | KModule KModuleList                                [klabel(KModuleList)]
 
   syntax KDefinition ::= KAttributes KModuleList [klabel(KDefinition)]
 endmodule
