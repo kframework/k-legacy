@@ -130,6 +130,7 @@ object KOREDefinition {
     imports("KTOKENS"),
 
     syntax(KMLVariable) is (KSymbol, ":", KSymbol) att klabel("KMLVariable"),
+
     syntax(KMLPattern) is KMLVariable,
     syntax(KMLPattern) is Regex(KRegexSymbol) att "token",
 
@@ -148,12 +149,11 @@ object KOREDefinition {
     syntax(KMLPattern) is (KMLPattern, "=>", KMLPattern) att klabel("KMLRewrite"),
     syntax(KMLPattern) is (KMLPattern, "==", KMLPattern) att klabel("KMLEquals"),
 
+    syntax(KMLPattern) is (KSymbol, "(", KMLPatternList, ")") att klabel("KMLApplication"),
+
     syntax(KMLPatternList) is "" att klabel(".KMLPatternList"),
     syntax(KMLPatternList) is KMLPattern,
-    syntax(KMLPatternList) is (KMLPattern, ",", KMLPatternList) att klabel("KMLPatternList"),
-
-    syntax(KMLPattern) is (KSymbol, "(", KMLPatternList, ")") att klabel("KMLApplication")
-    //syntax(KMLPattern) is ("val", "(", KSymbol, ",", KString, ")") att klabel("KMLDomainValue")
+    syntax(KMLPatternList) is (KMLPattern, ",", KMLPatternList) att klabel("KMLPatternList")
   )
 
   // KSENTENCE
