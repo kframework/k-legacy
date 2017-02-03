@@ -9,6 +9,7 @@ import org.kframework.backend.java.symbolic.Equality.EqualityOperations;
 import org.kframework.backend.java.symbolic.SMTOperations;
 import org.kframework.backend.java.symbolic.Stage;
 import org.kframework.backend.java.util.Z3Wrapper;
+import org.kframework.kast.Kast;
 import org.kframework.kompile.ParserGenerator;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.io.FileSystem;
@@ -31,7 +32,7 @@ public class GlobalContext implements Serializable {
     public final transient SMTOperations constraintOps;
     public final transient KItemOperations kItemOps;
     public final transient KRunOptions krunOptions;
-    public final transient ParserGenerator parserGenerator;
+    public final transient Kast kast;
     private final transient KExceptionManager kem;
     private final transient Map<String, MethodHandle> hookProvider;
     public final transient FileUtil files;
@@ -60,7 +61,9 @@ public class GlobalContext implements Serializable {
 
         BinaryLoader loader = new BinaryLoader(kem);
         try {
-            this.parserGenerator = loader.loadOrDie(ParserGenerator.class, files.resolveKompiled(FileUtil.PARSER_GENERATOR_BIN));
+            ParserGenerator generator = loader.loadOrDie(ParserGenerator.class,
+                    files.resolveKompiled(FileUtil.PARSER_GENERATOR_BIN));
+            this.kast = new Kast(generator);
         } catch (KEMException e) {
             throw KEMException.innerParserError("Parser Generator not found.");
         }
