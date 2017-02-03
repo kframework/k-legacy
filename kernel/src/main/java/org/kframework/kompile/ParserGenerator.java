@@ -19,14 +19,16 @@ import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import scala.Option;
 
+import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map;
 
-public class ParsedDefinitionWrapper {
+public class ParserGenerator implements Serializable {
     public final KompileOptions kompileOptions;
     public final Definition parsedDefinition;        /*The parsed but uncompiled definition*/
-    public final HashMap<String, Sort> configurationVariableDefaultSorts = new HashMap<>();
+    public final Map<String, Sort> configurationVariableDefaultSorts = new HashMap<>();
 
-    public ParsedDefinitionWrapper(KompileOptions options, Definition parsedDefinition) {
+    public ParserGenerator(KompileOptions options, Definition parsedDefinition) {
         this.kompileOptions = options;
         this.parsedDefinition = parsedDefinition;
         initializeConfigurationVariableDefaultSorts();
@@ -58,7 +60,7 @@ public class ParsedDefinitionWrapper {
     }
 
 
-    public UserParser getModuleDerviedParser(String moduleName, KExceptionManager kem) {
+    public UserParser getParser(String moduleName, KExceptionManager kem) {
         Module seedModule = programParsingModuleFor(moduleName, kem).get();
         ParseInModule parseInModule = RuleGrammarGenerator.getCombinedGrammar(seedModule, kompileOptions.strict());
         return new ModuleDerivedParser(moduleName, parseInModule);
@@ -72,7 +74,7 @@ public class ParsedDefinitionWrapper {
      * {@link RuleGrammarGenerator#POSTFIX}. In latter case, it uses the user-defined module.
      */
     //ToDo(Yi): Copied from CompiledDefinition, will be removed after separation is completed.
-    public Option<Module> programParsingModuleFor(String moduleName, KExceptionManager kem) {
+    private Option<Module> programParsingModuleFor(String moduleName, KExceptionManager kem) {
         Option<Module> moduleOption;
 
         if(moduleName.endsWith(RuleGrammarGenerator.POSTFIX)) {

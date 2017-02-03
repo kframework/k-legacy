@@ -5,14 +5,11 @@ import org.kframework.attributes.Source;
 import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.kore.K;
 import org.kframework.kore.KORE;
-import org.kframework.krun.KRun;
 import org.kframework.main.FrontEnd;
 import org.kframework.unparser.ToKast;
 import org.kframework.utils.Stopwatch;
-import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import scala.Option;
 
 import java.io.Reader;
 import java.util.Map;
@@ -60,7 +57,7 @@ public class KastFrontEnd extends FrontEnd {
             }
         }
         String moduleName = options.module == null ? kompileMetaInfo.mainSyntaxModuleName : options.module;
-        K parsed = Kast.parse(FileUtil.read(stringToParse),source, sort, moduleName, files ,kem);
+        K parsed = Kast.parseWithUserParser(FileUtil.read(stringToParse),source, sort, moduleName, files ,kem);
         System.out.println(ToKast.apply(parsed));
         sw.printTotal("Total");
         return 0;
