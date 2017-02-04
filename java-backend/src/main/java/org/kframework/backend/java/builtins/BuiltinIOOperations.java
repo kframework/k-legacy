@@ -106,6 +106,10 @@ public class BuiltinIOOperations {
         }
     }
 
+    public static Term parse(StringToken term1, StringToken term2, TermContext termContext) {
+        throw new RuntimeException("Not implemented!");
+    }
+
     public static Term parseInModule(StringToken input, StringToken startSymbol, StringToken moduleName, TermContext termContext) {
         KExceptionManager kem = termContext.global().kem;
         K parseResult = termContext.global().kast.parseWithUserParserAndCache(input.stringValue(), "#parseInModule",
