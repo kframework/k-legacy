@@ -20,6 +20,7 @@ import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.options.SMTOptions;
 
+import java.io.File;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandle;
 import java.util.Map;
@@ -33,7 +34,7 @@ public class GlobalContext implements Serializable {
     public final transient KItemOperations kItemOps;
     public final transient KRunOptions krunOptions;
     public final transient Kast kast;
-    private final transient KExceptionManager kem;
+    public final transient KExceptionManager kem;
     private final transient Map<String, MethodHandle> hookProvider;
     public final transient FileUtil files;
     public final transient GlobalOptions globalOptions;
@@ -59,14 +60,20 @@ public class GlobalContext implements Serializable {
         this.kItemOps = new KItemOperations(stage, deterministicFunctions, kem, this::builtins, globalOptions);
         this.stage = stage;
 
-        BinaryLoader loader = new BinaryLoader(kem);
-        try {
-            ParserGenerator generator = loader.loadOrDie(ParserGenerator.class,
-                    files.resolveKompiled(FileUtil.PARSER_GENERATOR_BIN));
-            this.kast = new Kast(generator);
-        } catch (KEMException e) {
-            throw KEMException.innerParserError("Parser Generator not found.");
+        File parserGeneratorFile = files.resolveKompiled(FileUtil.PARSER_GENERATOR_BIN);
+        if(parserGeneratorFile.exists()) {
+            try {
+                BinaryLoader loader = new BinaryLoader(kem);
+                ParserGenerator generator = loader.loadOrDie(ParserGenerator.class,
+                        files.resolveKompiled(FileUtil.PARSER_GENERATOR_BIN));
+                this.kast = new Kast(generator);
+            } catch (KEMException e) {
+                throw KEMException.innerParserError("Parser Generator can not be deserialized.");
+            }
+        } else {
+            this.kast = null;
         }
+
     }
 
     public GlobalContext(

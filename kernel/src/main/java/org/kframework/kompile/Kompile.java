@@ -115,7 +115,7 @@ public class Kompile {
      * @param definitionFile
      * @param mainModuleName
      * @param mainProgramsModuleName
-     * @param programStartSymbol
+     * @param pipeline
      * @return
      */
     public CompiledDefinition run(File definitionFile, String mainModuleName, String mainProgramsModuleName, Function<Definition, Definition> pipeline) {
