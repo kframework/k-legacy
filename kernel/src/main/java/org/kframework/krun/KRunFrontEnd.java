@@ -20,8 +20,6 @@ import java.util.function.Function;
 
 public class KRunFrontEnd extends FrontEnd {
 
-
-    private final File kompiledDir;
     private final KExceptionManager kem;
     private final KRunOptions krunOptions;
     private final FileUtil files;
@@ -35,18 +33,17 @@ public class KRunFrontEnd extends FrontEnd {
 
     public KRunFrontEnd(
             GlobalOptions options,
-            File kompiledDir,
             KExceptionManager kem,
             KRunOptions krunOptions,
             FileUtil files,
             KompileMetaInfo kompileMetaInfo,
             CompiledDefinition compiledDef,
-            ProcessedDefinition processedDefinition, Function<Pair<Module, MiniKore.Definition>, Rewriter> initializeRewriter,
+            ProcessedDefinition processedDefinition,
+            Function<Pair<Module, MiniKore.Definition>, Rewriter> initializeRewriter,
             ExecutionMode executionMode,
             TTYInfo tty,
             boolean isNailgun) {
         super(kem, options, files);
-        this.kompiledDir = kompiledDir;
         this.kem = kem;
         this.krunOptions = krunOptions;
         this.files = files;
