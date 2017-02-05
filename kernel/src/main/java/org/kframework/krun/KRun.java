@@ -28,10 +28,7 @@ import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.minikore.KoreToMini;
 import org.kframework.minikore.MiniKore;
-import org.kframework.minikore.MiniToKore;
-import org.kframework.parser.ParseResult;
 import org.kframework.parser.ProductionReference;
-import org.kframework.parser.UserParser;
 import org.kframework.parser.binary.BinaryParser;
 import org.kframework.parser.kore.KoreParser;
 import org.kframework.rewriter.Rewriter;
@@ -40,7 +37,6 @@ import org.kframework.unparser.KOREToTreeNodes;
 import org.kframework.unparser.OutputModes;
 import org.kframework.unparser.ToBinary;
 import org.kframework.unparser.ToKast;
-import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -442,7 +438,7 @@ public class KRun {
         }*/
         if(parser == null) {
             String toParse = FileUtil.read(files.readFromWorkingDirectory(value));
-            return Kast.parse(toParse, source, startSymbol, mainSyntaxModuleName, files, this.kem);
+            return Kast.parseWithUserParser(toParse, source, startSymbol, mainSyntaxModuleName, files, this.kem);
         } else {
             // ToDo(Yi): Update this branch when kast interface is nailed down.
             List<String> tokens = new ArrayList<>(Arrays.asList(parser.split(" ")));

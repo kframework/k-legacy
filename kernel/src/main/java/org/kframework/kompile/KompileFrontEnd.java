@@ -52,11 +52,11 @@ public class KompileFrontEnd extends FrontEnd {
         Kompile kompile = new Kompile(options, files, kem, sw);
         //CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps());
         Definition parsedDef = kompile.parseDefinition(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files));
-        ParsedDefinitionWrapper wrapper = new ParsedDefinitionWrapper(options, parsedDef);
+        ParserGenerator generator = new ParserGenerator(options, parsedDef);
         CompiledDefinition compiledDef = kompile.compile(parsedDef, koreBackend.steps());
 
-        saveKompileMetaInfo(wrapper);
-        saveModuleDerivedParser(wrapper, wrapper.mainSyntaxModuleName(), kem);
+        saveKompileMetaInfo(generator);
+        saveParser(generator);
         save(compiledDef);
         koreBackend.accept(compiledDef);
         loader.saveOrDie(files.resolveKompiled(FileUtil.TIMESTAMP), "");
@@ -65,15 +65,19 @@ public class KompileFrontEnd extends FrontEnd {
         return 0;
     }
 
-    public void saveKompileMetaInfo(ParsedDefinitionWrapper wrapper) {
-        KompileMetaInfo info = new KompileMetaInfo(wrapper.mainSyntaxModuleName(), wrapper.configurationVariableDefaultSorts);
+    public void saveKompileMetaInfo(ParserGenerator generator) {
+        KompileMetaInfo info = new KompileMetaInfo(generator.mainSyntaxModuleName(), generator.configurationVariableDefaultSorts);
         files.saveToKompiled(FileUtil.KOMPILE_META_INFO_TXT, info.serialize());
     }
 
-    public void saveModuleDerivedParser(ParsedDefinitionWrapper wrapper, String moduleName, KExceptionManager kem) {
-        UserParser parser = wrapper.getModuleDerviedParser(moduleName, kem);
-        String modulePath = FileUtil.moduleDerivedParserPath(moduleName);
+    public void saveParser(ParserGenerator generator) {
+        String mainSyntaxModuleName = generator.mainSyntaxModuleName();
+        //Save default parser (main syntax module)
+        UserParser parser = generator.getParser(mainSyntaxModuleName, kem);
+        String modulePath = FileUtil.moduleDerivedParserPath(mainSyntaxModuleName);
         loader.saveOrDie(files.resolveKompiled(modulePath), parser);
+        // Save parser generator
+        loader.saveOrDie(files.resolveKompiled(FileUtil.PARSER_GENERATOR_BIN), generator);
     }
 
     // NOTE: should be matched with org.kframework.utils.inject.DefinitionLoadingModule.koreDefinition()

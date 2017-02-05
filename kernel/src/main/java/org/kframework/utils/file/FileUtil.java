@@ -39,6 +39,7 @@ public class FileUtil {
     public static final String KOMPILED_DEFINITION_BIN = "extras/kompiledDefinition.bin";
     public static final String KOMPILE_OPTIONS_BIN = "extras/kompileOptions.bin";
     public static final String KOMPILE_META_INFO_TXT = "extras/kompileMetaInfo.txt";
+    public static final String PARSER_GENERATOR_BIN = "extras/parserGenerator.bin";
     public static final String PARSED_DEFINITION_BIN = "extras/parsedDefinition.bin";
     public static final String EXTRAS_FOLDER = "extras/";
     public static final String TOP_CELL_INITIALIZER_BIN = "extras/topCellInitializer.bin";
