@@ -22,22 +22,23 @@ import java.util.stream.Collectors;
 public class Kast {
 
     private transient Map<String, UserParser> cachedParsers = new HashMap<>();
-    private ParserGenerator generator;
+    private ParserGenerator generator = null;
+    private FileUtil files;
 
-    public Kast(ParserGenerator generator){
-        this.generator = generator;
+    public Kast(FileUtil files){
+        this.files = files;
     }
 
-    public static K parseWithUserParser(String toParse, Source source, Sort startSymbol, String moduleName,
-                                        FileUtil files, KExceptionManager kem) {
-        return parseWithUserParser(toParse, source.source(), startSymbol.name(), moduleName, files, kem);
+    public static K parseWithModuleParser(String toParse, Source source, Sort startSymbol, String moduleName,
+                                          FileUtil files, KExceptionManager kem) {
+        return parseWithModuleParser(toParse, source.source(), startSymbol.name(), moduleName, files, kem);
     }
 
     // This function is used for one-time parsing. If the corresponding parser object exists in the extra directory, the
     // function deserialize the object and use it to parse the text. If the parser object does not exist, the function
     // will load the parser generator to generate one and then parse the text.
-    public static K parseWithUserParser(String toParse, String source, String startSymbol, String moduleName,
-                                        FileUtil files, KExceptionManager kem) {
+    public static K parseWithModuleParser(String toParse, String source, String startSymbol, String moduleName,
+                                          FileUtil files, KExceptionManager kem) {
         String modulePath = files.moduleDerivedParserPath(moduleName);
         BinaryLoader loader = new BinaryLoader(kem);
         UserParser parser;
@@ -71,7 +72,15 @@ public class Kast {
         UserParser parser;
         parser = cachedParsers.get(moduleName);
         if(parser == null) {
-            parser = generator.getParser(moduleName, kem);
+            if(this.generator == null) {
+                try {
+                    BinaryLoader loader = new BinaryLoader(kem);
+                    this.generator = loader.loadOrDie(ParserGenerator.class, files.resolveKompiled(FileUtil.PARSER_GENERATOR_BIN));
+                }catch (KEMException e) {
+                    throw KEMException.innerParserError("Parser Generator can not be deserialized.");
+                }
+            }
+            parser = this.generator.getParser(moduleName, kem);
             cachedParsers.put(moduleName, parser);
         }
 
