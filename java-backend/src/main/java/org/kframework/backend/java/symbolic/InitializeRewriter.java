@@ -16,6 +16,7 @@ import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.util.JavaKRunState;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
+import org.kframework.kast.Kast;
 import org.kframework.kil.Attribute;
 import org.kframework.kore.K;
 import org.kframework.krun.KRunOptions;
@@ -102,6 +103,8 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
         }
         GlobalContext rewritingContext = new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
         rewritingContext.setDefinition(definition);
+        Kast kastParser = new Kast(files);
+        rewritingContext.setKastParser(kastParser);
 
         return new SymbolicRewriterGlue(modulePair.getKey(), definition, definition, transitions, initializingContext.getCounterValue(), rewritingContext, kem);
     }
@@ -139,6 +142,7 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
         public RewriterResult execute(K k, Optional<Integer> depth) {
             TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
+            termContext.setKOREtoBackendKILConverter(converter);
             Term backendKil = MacroExpander.expandAndEvaluate(termContext, kem, converter.convert(k));
             this.rewriter = new SymbolicRewriter(rewritingContext, transitions, new KRunState.Counter(), converter);
             JavaKRunState result = (JavaKRunState) rewriter.rewrite(new ConstrainedTerm(backendKil, termContext), depth.orElse(-1));
@@ -155,6 +159,7 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
         public K search(K initialConfiguration, Optional<Integer> depth, Optional<Integer> bound, Rule pattern, SearchType searchType, boolean resultsAsSubstitution) {
             TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
+            termContext.setKOREtoBackendKILConverter(converter);
             Term javaTerm = MacroExpander.expandAndEvaluate(termContext, kem, converter.convert(initialConfiguration));
             org.kframework.backend.java.kil.Rule javaPattern = converter.convert(Optional.empty(), pattern);
             this.rewriter = new SymbolicRewriter(rewritingContext, transitions, new KRunState.Counter(), converter);
@@ -171,6 +176,7 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
         public List<K> prove(List<Rule> rules) {
             TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
+            termContext.setKOREtoBackendKILConverter(converter);
             List<org.kframework.backend.java.kil.Rule> javaRules = rules.stream()
                     .map(r -> converter.convert(Optional.<Module>empty(), r))
                     .map(r -> new org.kframework.backend.java.kil.Rule(

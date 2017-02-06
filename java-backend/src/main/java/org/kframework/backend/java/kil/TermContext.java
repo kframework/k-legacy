@@ -1,6 +1,7 @@
 // Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.kil;
 
+import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.symbolic.ConjunctiveFormula;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
@@ -40,6 +41,8 @@ public class TermContext extends JavaSymbolicObject {
     private Term topTerm;
 
     private ConjunctiveFormula topConstraint;
+
+    private KOREtoBackendKIL converter;
 
     private TermContext(GlobalContext global, FreshCounter counter) {
         this.global = global;
@@ -83,6 +86,10 @@ public class TermContext extends JavaSymbolicObject {
     public void setTopTerm(Term topTerm) {
         this.topTerm = topTerm;
     }
+
+    public KOREtoBackendKIL getKOREtoBackendKILConverter() {return this.converter;}
+
+    public void setKOREtoBackendKILConverter(KOREtoBackendKIL converter) { this.converter = converter; }
 
     public ConjunctiveFormula getTopConstraint() {
         return topConstraint;
