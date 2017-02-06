@@ -134,6 +134,9 @@ public class FourWordBitSet implements BitSet<FourWordBitSet> {
     @Override
     public int nextSetBit(int i) {
         assert i <= size();
+        if (i == size()) {
+            return -1;
+        }
 
         if (i < Long.SIZE) {
             long maskedWord = word0 & (WORD_MASK << i);

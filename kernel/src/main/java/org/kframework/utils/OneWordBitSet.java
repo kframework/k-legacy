@@ -62,6 +62,10 @@ public class OneWordBitSet implements BitSet<OneWordBitSet> {
     @Override
     public int nextSetBit(int i) {
         assert i <= size();
+        if (i == size()) {
+            return -1;
+        }
+
         long maskedWord = word & (WORD_MASK << i);
         return maskedWord == 0 ? -1 : Long.numberOfTrailingZeros(maskedWord);
     }
