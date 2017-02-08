@@ -103,10 +103,5 @@
            programs ="error-messages"
            results  ="error-messages" />
 
-  <include file="parser-hook/tests/config.xml"
-           directory="parser-hook"
-           programs="parser-hook/tests"
-           results="parser-hook/tests" />
-
 </tests>
 
