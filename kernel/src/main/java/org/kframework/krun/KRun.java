@@ -438,7 +438,7 @@ public class KRun {
         }*/
         if(parser == null) {
             String toParse = FileUtil.read(files.readFromWorkingDirectory(value));
-            return Kast.parseWithUserParser(toParse, source, startSymbol, mainSyntaxModuleName, files, this.kem);
+            return Kast.parseWithModuleParser(toParse, source, startSymbol, mainSyntaxModuleName, files, this.kem);
         } else {
             // ToDo(Yi): Update this branch when kast interface is nailed down.
             List<String> tokens = new ArrayList<>(Arrays.asList(parser.split(" ")));
