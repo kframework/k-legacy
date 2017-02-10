@@ -39,7 +39,7 @@ public class JavaBitSet implements BitSet<JavaBitSet>  {
     public boolean subset(JavaBitSet bitSet) {
         JavaBitSet temp = this.clone();
         temp.and(bitSet);
-        return this.equals(temp);
+        return this.bitset.equals(temp.bitset);
     }
 
     @Override
