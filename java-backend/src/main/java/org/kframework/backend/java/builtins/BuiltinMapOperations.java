@@ -173,6 +173,10 @@ public class BuiltinMapOperations {
         return (BuiltinSet) builder.build();
     }
 
+    public static BoolToken in_keys(Term key, BuiltinMap map, TermContext context) {
+        throw new RuntimeException("Not implemented!");
+    }
+
     public static Term values(BuiltinMap map, TermContext context) {
         if (!map.isConcreteCollection()) {
             return null;

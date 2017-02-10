@@ -8,5 +8,10 @@
            programs="parser-hook/tests"
            results="parser-hook/tests" />
 
+  <include file="issue-2273/tests/config.xml"
+           directory="issue-2273"
+           programs="issue-2273/tests"
+           results="issue-2273/tests" />
+
 </tests>
 
