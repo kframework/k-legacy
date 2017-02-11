@@ -6,8 +6,10 @@
         programs="."
         extension="a"
         results="." >
+      <!-- given by ktest
       <all-programs>
         <krun-option name="-w2e" />
       </all-programs>
+      -->
     </test>
   </tests>
