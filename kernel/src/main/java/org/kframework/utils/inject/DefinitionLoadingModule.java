@@ -9,7 +9,11 @@ import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.krun.KRunOptions;
 import org.kframework.main.GlobalOptions;
+import org.kframework.minikore.Build;
+import org.kframework.minikore.DefaultBuilders;
+import org.kframework.minikore.DefaultBuilders$;
 import org.kframework.minikore.MiniKore;
+import org.kframework.minikore.MiniKore$;
 import org.kframework.minikore.MiniToKore;
 import org.kframework.minikore.ParseError;
 import org.kframework.minikore.TextToMini;
@@ -55,9 +59,11 @@ public class DefinitionLoadingModule {
     }
 
     public static MiniKore.Definition parseKore(FileUtil files) {
+
+        Build.Builders defaultBuilder = DefaultBuilders$.MODULE$;
         File koreFile = files.resolveKompiled(FileUtil.KORE_TXT);
         try {
-            return new TextToMini().parse(koreFile);
+            return new TextToMini(defaultBuilder).parse(koreFile);
         } catch(ParseError e) {
             throw KEMException.criticalError("Failed to parse Kore file: " +
                     koreFile.getAbsolutePath() + System.lineSeparator() + e.getMessage());
@@ -87,9 +93,10 @@ public class DefinitionLoadingModule {
     }
 
     public static ProcessedDefinition miniKoreDefinition(BinaryLoader loader, FileUtil files) {
+        Build.Builders defaultBuilder = DefaultBuilders$.MODULE$;
         MiniKore.Definition definition = null;
         try {
-            definition = new TextToMini().parse(files.resolveKompiled(FileUtil.KORE_TXT));
+            definition = new TextToMini(defaultBuilder).parse(files.resolveKompiled(FileUtil.KORE_TXT));
         } catch (ParseError e) {
             System.out.println(e.getMessage());
         }

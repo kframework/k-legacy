@@ -2,7 +2,8 @@ package org.kframework.backend.java
 
 import org.kframework.POSet
 import org.kframework.minikore.KoreToMini._
-import org.kframework.minikore.MiniKore._
+import org.kframework.minikore.MiniKore.{Attributes, Definition, Import, Module, Rule, Sentence, SymbolDeclaration, SortDeclaration}
+import org.kframework.minikore.PatternInterface._
 import org.kframework.utils.errorsystem.KEMException
 
 import scala.collection.Seq
@@ -11,6 +12,7 @@ import scala.collection.Seq
   * Some utilities needed, for MiniKore to be useful in the Backend.
   */
 object MiniKoreUtils {
+
 
   def getMainModule(definition: Definition): Module = {
     val mainModuleName = findAtt(definition.att, iMainModule) match {

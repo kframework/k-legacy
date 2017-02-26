@@ -28,6 +28,7 @@ import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.minikore.KoreToMini;
 import org.kframework.minikore.MiniKore;
+import org.kframework.minikore.PatternInterface;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.binary.BinaryParser;
 import org.kframework.parser.kore.KoreParser;
@@ -84,7 +85,7 @@ public class KRun {
     public int run(KompileMetaInfo kompileMetaInfo, CompiledDefinition compiledDef, ProcessedDefinition processedDefinition, KRunOptions options, Function<Pair<Module, MiniKore.Definition>, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
         String pgmFileName = options.configurationCreation.pgm();
         K program;
-        MiniKore.Pattern miniKoreProgram;
+        PatternInterface.Pattern miniKoreProgram;
         if (options.configurationCreation.term()) {
             program = parse(options.configurationCreation.parser(compiledDef.executionModule().name()),
                     pgmFileName, KORE.Sort(kompileMetaInfo.programStartSymbol), Source.apply("<parameters>"), compiledDef.mainSyntaxModuleName(), files);

@@ -3,7 +3,8 @@ package org.kframework.minikore
 import org.kframework.kore.SortedADT.SortedKVariable
 import org.kframework.kore.KORE._
 import org.kframework.kore._
-import org.kframework.minikore.MiniKore._
+import org.kframework.minikore.MiniKore.{Definition, Module, DomainValue, Import, Rule, Axiom, SortDeclaration, SymbolDeclaration, Sentence, Attributes}
+import org.kframework.minikore.PatternInterface._
 import org.kframework.{attributes, definition}
 import org.kframework.minikore.KoreToMini._
 
