@@ -24,7 +24,7 @@ import org.kframework.kil.DataStructureSort;
 import org.kframework.kil.loader.Context;
 import org.kframework.kore.convertors.KOREtoKIL;
 import org.kframework.minikore.implementation.MiniKore;
-import org.kframework.minikore.interfaces.PatternInterface;
+import org.kframework.minikore.interfaces.pattern.Pattern;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import scala.collection.JavaConversions;
@@ -188,7 +188,7 @@ public class Definition extends JavaSymbolicObject {
         HashSet<String> collected = new HashSet<>();
         ImmutableMap.Builder<String, DataStructureSort> builder = ImmutableMap.builder();
         for (MiniKore.SymbolDeclaration symbolDec : iterable(moduleUtils.symbolDecs())) {
-            List<PatternInterface.Pattern> atts = mutable(symbolDec.att());
+            List<Pattern> atts = mutable(symbolDec.att());
 
             org.kframework.kil.Sort type;
 

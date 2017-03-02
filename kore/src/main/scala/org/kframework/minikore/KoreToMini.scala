@@ -5,8 +5,8 @@ import org.kframework.kore.Unapply._
 import org.kframework.kore._
 import org.kframework.minikore.implementation.DefaultBuilders
 import org.kframework.minikore.implementation.MiniKore.{Attributes, Axiom, Definition, Import, Module, Rule, Sentence, SortDeclaration, SymbolDeclaration}
-import org.kframework.minikore.interfaces.PatternInterface._
-import org.kframework.minikore.interfaces.BuilderInterface.Builders
+import org.kframework.minikore.interfaces.pattern._
+import org.kframework.minikore.interfaces.build.Builders
 import org.kframework.{attributes, definition}
 
 import scala.collection._

@@ -1,9 +1,9 @@
 package org.kframework.backend.java
 
-import org.kframework.minikore.interfaces.BuilderInterface.Builders
+import org.kframework.minikore.interfaces.build.Builders
 import org.kframework.minikore.KoreToMini
 import org.kframework.minikore.implementation.DefaultBuilders
-import org.kframework.minikore.interfaces.PatternInterface._
+import org.kframework.minikore.interfaces.pattern._
 
 
 object RewriterUtils {

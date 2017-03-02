@@ -3,7 +3,7 @@ package org.kframework.backend.java
 import org.kframework.POSet
 import org.kframework.minikore.KoreToMini._
 import org.kframework.minikore.implementation.MiniKore.{Attributes, Definition, Import, Module, Rule, Sentence, SymbolDeclaration, SortDeclaration}
-import org.kframework.minikore.interfaces.PatternInterface._
+import org.kframework.minikore.interfaces.pattern._
 import org.kframework.utils.errorsystem.KEMException
 
 import scala.collection.Seq

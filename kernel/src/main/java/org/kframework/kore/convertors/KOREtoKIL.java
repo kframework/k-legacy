@@ -14,7 +14,7 @@ import org.kframework.kore.*;
 import org.kframework.definition.*;
 import org.kframework.kore.Sort;
 import org.kframework.minikore.implementation.MiniKore;
-import org.kframework.minikore.interfaces.PatternInterface;
+import org.kframework.minikore.interfaces.pattern.Pattern;
 import org.kframework.utils.StringUtil;
 
 import java.math.BigInteger;
@@ -296,12 +296,12 @@ public class KOREtoKIL implements Function<Definition, org.kframework.kil.Defini
     }
 
 
-    public org.kframework.kil.Attributes convertAttributes(List<PatternInterface.Pattern> miniKoreAtts) {
+    public org.kframework.kil.Attributes convertAttributes(List<Pattern> miniKoreAtts) {
         org.kframework.kil.Attributes kilAttributes = new org.kframework.kil.Attributes();
         miniKoreAtts.stream().forEach(x -> {
             if (x instanceof MiniKore.Application) {
                 MiniKore.Application application = (MiniKore.Application) x;
-                List<PatternInterface.Pattern> args = mutable(application.args());
+                List<Pattern> args = mutable(application.args());
                 String label = application._1();
                 if (label.equals("sort")) {
                     MiniKore.DomainValue domainValue = (MiniKore.DomainValue) args.get(0);
