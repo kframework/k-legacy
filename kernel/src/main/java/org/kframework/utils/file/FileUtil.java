@@ -83,7 +83,7 @@ public class FileUtil {
     }
 
     public ProcessBuilder getProcessBuilder() {
-        ProcessBuilder pb = new ProcessBuilder().directory(workingDir);
+        ProcessBuilder pb = new ProcessBuilder().directory(workingDir.getAbsoluteFile());
         pb.environment().clear();
         pb.environment().putAll(env);
         return pb;
