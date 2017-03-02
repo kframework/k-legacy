@@ -3,8 +3,10 @@ package org.kframework.minikore
 import org.kframework.kore.SortedADT.SortedKVariable
 import org.kframework.kore.Unapply._
 import org.kframework.kore._
-import org.kframework.minikore.MiniKore.{Definition, SortDeclaration, Sentence, SymbolDeclaration, Module, Attributes, Import, Rule, Axiom}
-import org.kframework.minikore.PatternInterface._
+import org.kframework.minikore.implementation.DefaultBuilders
+import org.kframework.minikore.implementation.MiniKore.{Attributes, Axiom, Definition, Import, Module, Rule, Sentence, SortDeclaration, SymbolDeclaration}
+import org.kframework.minikore.interfaces.PatternInterface._
+import org.kframework.minikore.interfaces.BuilderInterface.Builders
 import org.kframework.{attributes, definition}
 
 import scala.collection._
@@ -12,7 +14,7 @@ import scala.collection._
 object KoreToMini {
 
   // Outer
-  val b: Build.Builders = DefaultBuilders
+  val b: Builders = DefaultBuilders
 
   def apply(d: definition.Definition): Definition = {
     val modules = d.modules.toSeq.map(apply)

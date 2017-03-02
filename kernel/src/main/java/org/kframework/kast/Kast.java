@@ -6,7 +6,7 @@ import org.kframework.kompile.ParserGenerator;
 import org.kframework.kore.K;
 import org.kframework.kore.Sort;
 import org.kframework.minikore.MiniToKore;
-import org.kframework.minikore.PatternInterface;
+import org.kframework.minikore.interfaces.PatternInterface;
 import org.kframework.parser.ParseResult;
 import org.kframework.parser.UserParser;
 import org.kframework.utils.BinaryLoader;

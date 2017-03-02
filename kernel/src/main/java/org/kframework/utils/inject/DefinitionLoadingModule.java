@@ -9,14 +9,14 @@ import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.krun.KRunOptions;
 import org.kframework.main.GlobalOptions;
-import org.kframework.minikore.Build;
-import org.kframework.minikore.DefaultBuilders;
-import org.kframework.minikore.DefaultBuilders$;
-import org.kframework.minikore.MiniKore;
-import org.kframework.minikore.MiniKore$;
+import org.kframework.minikore.interfaces.BuilderInterface;
+import org.kframework.minikore.implementation.DefaultBuilders;
+import org.kframework.minikore.implementation.DefaultBuilders$;
+import org.kframework.minikore.implementation.MiniKore;
+import org.kframework.minikore.implementation.MiniKore$;
 import org.kframework.minikore.MiniToKore;
-import org.kframework.minikore.ParseError;
-import org.kframework.minikore.TextToMini;
+import org.kframework.minikore.parser.ParseError;
+import org.kframework.minikore.parser.TextToMini;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KEMException;
@@ -60,7 +60,7 @@ public class DefinitionLoadingModule {
 
     public static MiniKore.Definition parseKore(FileUtil files) {
 
-        Build.Builders defaultBuilder = DefaultBuilders$.MODULE$;
+        BuilderInterface.Builders defaultBuilder = DefaultBuilders$.MODULE$;
         File koreFile = files.resolveKompiled(FileUtil.KORE_TXT);
         try {
             return new TextToMini(defaultBuilder).parse(koreFile);
@@ -93,7 +93,7 @@ public class DefinitionLoadingModule {
     }
 
     public static ProcessedDefinition miniKoreDefinition(BinaryLoader loader, FileUtil files) {
-        Build.Builders defaultBuilder = DefaultBuilders$.MODULE$;
+        BuilderInterface.Builders defaultBuilder = DefaultBuilders$.MODULE$;
         MiniKore.Definition definition = null;
         try {
             definition = new TextToMini(defaultBuilder).parse(files.resolveKompiled(FileUtil.KORE_TXT));

@@ -2,7 +2,7 @@
 package org.kframework.parser;
 
 
-import org.kframework.minikore.PatternInterface;
+import org.kframework.minikore.interfaces.PatternInterface;
 import org.kframework.utils.errorsystem.ParseFailedException;
 
 import java.io.Serializable;

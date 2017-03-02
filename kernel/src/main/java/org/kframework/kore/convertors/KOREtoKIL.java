@@ -13,8 +13,8 @@ import org.kframework.kil.Term;
 import org.kframework.kore.*;
 import org.kframework.definition.*;
 import org.kframework.kore.Sort;
-import org.kframework.minikore.MiniKore;
-import org.kframework.minikore.PatternInterface;
+import org.kframework.minikore.implementation.MiniKore;
+import org.kframework.minikore.interfaces.PatternInterface;
 import org.kframework.utils.StringUtil;
 
 import java.math.BigInteger;

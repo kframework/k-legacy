@@ -28,7 +28,7 @@ import org.kframework.kore.KToken;
 import org.kframework.kore.KVariable;
 import org.kframework.kore.compile.RewriteToTop;
 import org.kframework.kore.convertors.KOREtoKIL;
-import org.kframework.minikore.MiniKore;
+import org.kframework.minikore.implementation.MiniKore;
 import org.kframework.utils.BitSet;
 
 import static org.kframework.Collections.*;

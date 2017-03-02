@@ -8,7 +8,7 @@ import org.kframework.definition.{ModuleName, NonTerminal}
 import org.kframework.kore.ADT.Sort
 import org.kframework.kore.SortedADT.SortedKVariable
 import org.kframework.minikore.KoreToMini._
-import org.kframework.minikore.MiniKore._
+import org.kframework.minikore.implementation.MiniKore._
 
 /**
   * Created by daejunpark on 12/28/16.
