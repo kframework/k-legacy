@@ -3,7 +3,7 @@ package org.kframework.rewriter
 import java.util.Optional
 
 import org.kframework.definition.{Module, Rule}
-import org.kframework.minikore.PatternInterface.Pattern
+import org.kframework.minikore.interfaces.PatternInterface.Pattern
 import org.kframework.{RewriterResult, kore}
 
 trait RewriterConstructor extends (Module => Rewriter)
