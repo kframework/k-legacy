@@ -26,7 +26,7 @@ import org.kframework.kore.Unapply.KApply$;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.modes.ExecutionMode;
-import org.kframework.minikore.KoreToMini;
+import org.kframework.minikore.converters.KoreToMini;
 import org.kframework.minikore.implementation.MiniKore;
 import org.kframework.minikore.interfaces.pattern;
 import org.kframework.parser.ProductionReference;

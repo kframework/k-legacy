@@ -302,15 +302,15 @@ public class KOREtoKIL implements Function<Definition, org.kframework.kil.Defini
             if (x instanceof MiniKore.Application) {
                 MiniKore.Application application = (MiniKore.Application) x;
                 List<Pattern> args = mutable(application.args());
-                String label = application._1();
+                String label = application._1().label();
                 if (label.equals("sort")) {
                     MiniKore.DomainValue domainValue = (MiniKore.DomainValue) args.get(0);
-                    kilAttributes.add(Attribute.of("sort", domainValue._2()));
+                    kilAttributes.add(Attribute.of("sort", domainValue._2().value()));
                 } else if (!label.equals("Location") && !label.equals("Source") && !label.equals("org.kframework.attributes.Location") &&
                         !label.equals("org.kframework.attributes.Source")) {
                     if (args.size() == 1) {
                         if (args.get(0) instanceof MiniKore.DomainValue) {
-                            kilAttributes.add(Attribute.of(label, ((MiniKore.DomainValue) args.get(0))._2()));
+                            kilAttributes.add(Attribute.of(label, ((MiniKore.DomainValue) args.get(0))._2().value()));
                         }
                     } else if (args.size() == 0) {
                         kilAttributes.add(Attribute.of(label, ""));
@@ -319,7 +319,7 @@ public class KOREtoKIL implements Function<Definition, org.kframework.kil.Defini
                     }
                 }
             } else if (x instanceof MiniKore.DomainValue) {
-                kilAttributes.add(Attribute.of(((MiniKore.DomainValue) x)._2(), ((MiniKore.DomainValue) x)._2()));
+                kilAttributes.add(Attribute.of(((MiniKore.DomainValue) x)._2().value(), ((MiniKore.DomainValue) x)._2().value()));
             } else {
                 throw NOT_IMPLEMENTED();
             }

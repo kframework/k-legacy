@@ -1,9 +1,7 @@
 package org.kframework.definition;
 
 import org.kframework.kompile.KompileOptions;
-import org.kframework.minikore.KoreToMini;
 import org.kframework.minikore.implementation.MiniKore;
-import org.kframework.minikore.MiniToKore;
 
 /** Definition Contains the minikore Definition + Extras That are needed for the Backend to Function.
  * The Rewriter is a part of the backend. It needs two things to function - A Kore start term, and a Kore Definition (axioms for reachability logic/dynamic matching logic.

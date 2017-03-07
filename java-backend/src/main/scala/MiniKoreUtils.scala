@@ -1,10 +1,10 @@
 package org.kframework.backend.java
 
 import org.kframework.POSet
-import org.kframework.minikore.KoreToMini._
 import org.kframework.minikore.implementation.MiniKore.{Attributes, Definition, Import, Module, Rule, Sentence, SymbolDeclaration, SortDeclaration}
 import org.kframework.minikore.interfaces.pattern._
 import org.kframework.utils.errorsystem.KEMException
+import org.kframework.minikore.converters.KoreToMini._
 
 import scala.collection.Seq
 
@@ -15,8 +15,8 @@ object MiniKoreUtils {
 
 
   def getMainModule(definition: Definition): Module = {
-    val mainModuleName = findAtt(definition.att, iMainModule) match {
-      case Seq(DomainValue("S", name)) => name;
+    val mainModuleName = findAtt(definition.att, iMainModule.label) match {
+      case Seq(DomainValue(Label("S"), Value(name))) => name;
       case _ => ???
     }
 
@@ -25,7 +25,7 @@ object MiniKoreUtils {
 
   def findAtt(att: Attributes, key: String): Seq[Pattern] = {
     val argss = att.collect({
-      case Application(`key`, args) => args
+      case Application(Label(`key`), args) => args
     })
     if (argss.size >= 1)
       argss.head
@@ -60,7 +60,7 @@ object MiniKoreUtils {
     }
 
     lazy val attributesFor: Map[String, Seq[Pattern]] = {
-      val filterSet = Set(iTerminal, iNonTerminal, iRegexTerminal)
+      val filterSet = Set(iTerminal.label, iNonTerminal.label, iRegexTerminal.label)
       val labelDecsMap: Map[String, Seq[Pattern]] =
         allSentences collect {
           case SymbolDeclaration(_, label: String, _, att) if label != iNone => (label, att)
@@ -75,7 +75,7 @@ object MiniKoreUtils {
 
     def filterAtts(filterSet: Set[String], atts: Seq[Pattern]): Seq[Pattern] = {
       atts.filter(p => p match {
-        case Application(label, _) => !filterSet.contains(label)
+        case Application(Label(label), _) => !filterSet.contains(label)
         case _ => true
       })
     }
@@ -100,11 +100,11 @@ object MiniKoreUtils {
       }
       val subsortProductions: Set[(String, String)] = symbolDecs map { x =>
         (x._1, x._2 collect {
-          case Application(`iNonTerminal`, Seq(DomainValue("S", s))) => s
-          case Application(`iTerminal`, _) => iTerminal
-          case Application(`iRegexTerminal`, _) => iTerminal
+          case Application(`iNonTerminal`, Seq(DomainValue(Label("S"), s))) => s.value
+          case Application(`iTerminal`, _) => iTerminal.label
+          case Application(`iRegexTerminal`, _) => iTerminal.label
         })
-      } filter (x => x._2.size == 1 && !x._2.head.startsWith(iTerminal)) map { x => (x._2.head, x._1) } toSet
+      } filter (x => x._2.size == 1 && !x._2.head.startsWith(iTerminal.label)) map { x => (x._2.head, x._1) } toSet
 
       POSet[String](subsortProductions)
     }

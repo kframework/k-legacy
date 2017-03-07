@@ -9,7 +9,7 @@ import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.krun.KRunOptions;
 import org.kframework.main.GlobalOptions;
-import org.kframework.minikore.MiniToKore;
+import org.kframework.minikore.converters.MiniToKore;
 import org.kframework.minikore.implementation.DefaultBuilders$;
 import org.kframework.minikore.implementation.MiniKore;
 import org.kframework.minikore.interfaces.build.Builders;

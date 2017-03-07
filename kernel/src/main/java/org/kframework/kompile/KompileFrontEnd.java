@@ -3,8 +3,8 @@ package org.kframework.kompile;
 
 import org.kframework.definition.Definition;
 import org.kframework.main.FrontEnd;
-import org.kframework.minikore.KoreToMini;
-import org.kframework.minikore.KoreToMiniToKore;
+import org.kframework.minikore.converters.KoreToMini;
+import org.kframework.minikore.converters.KoreToMiniToKore;
 import org.kframework.minikore.parser.MiniToText;
 import org.kframework.minikore.parser.MiniToTextToMini;
 import org.kframework.parser.UserParser;

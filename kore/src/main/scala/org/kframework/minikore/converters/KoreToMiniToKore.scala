@@ -1,4 +1,4 @@
-package org.kframework.minikore
+package org.kframework.minikore.converters
 
 import org.kframework.definition
 
