@@ -174,5 +174,5 @@ object KoreToMini {
   val iKSeq = Label("#kseq")
   val iKSeqNil = Label("#kseqnil")
 
-  val iNone = ""
+  val iNone = "#None"
 }
