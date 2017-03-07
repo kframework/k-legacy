@@ -15,8 +15,8 @@ object MiniKoreUtils {
 
 
   def getMainModule(definition: Definition): Module = {
-    val mainModuleName = findAtt(definition.att, iMainModule.label) match {
-      case Seq(DomainValue(Label("S"), Value(name))) => name;
+    val mainModuleName = findAtt(definition.att, iMainModule.symbol) match {
+      case Seq(DomainValue(Symbol("S"), name)) => name;
       case _ => ???
     }
 
@@ -25,7 +25,7 @@ object MiniKoreUtils {
 
   def findAtt(att: Attributes, key: String): Seq[Pattern] = {
     val argss = att.collect({
-      case Application(Label(`key`), args) => args
+      case Application(Symbol(`key`), args) => args
     })
     if (argss.size >= 1)
       argss.head
@@ -54,16 +54,16 @@ object MiniKoreUtils {
 
     lazy val signatureFor: Map[String, Set[(Seq[String], String)]] = {
       allSentences collect {
-        case SymbolDeclaration(sort: String, label: String, args: Seq[String], _)
+        case SymbolDeclaration(Sort(sort), Symbol(label), args: Seq[String], _)
         => (label, (args, sort))
       } groupBy {_._1} mapValues { x => x map {_._2} toSet }
     }
 
     lazy val attributesFor: Map[String, Seq[Pattern]] = {
-      val filterSet = Set(iTerminal.label, iNonTerminal.label, iRegexTerminal.label)
+      val filterSet = Set(iTerminal.symbol, iNonTerminal.symbol, iRegexTerminal.symbol)
       val labelDecsMap: Map[String, Seq[Pattern]] =
         allSentences collect {
-          case SymbolDeclaration(_, label: String, _, att) if label != iNone => (label, att)
+          case SymbolDeclaration(_, Symbol(label), _, att) if label != iNone => (label, att)
         } groupBy { x => x._1 } mapValues { z => z map {_._2} } mapValues {_.flatten}
       labelDecsMap.mapValues({ s =>
         s.flatMap({ p =>
@@ -75,7 +75,7 @@ object MiniKoreUtils {
 
     def filterAtts(filterSet: Set[String], atts: Seq[Pattern]): Seq[Pattern] = {
       atts.filter(p => p match {
-        case Application(Label(label), _) => !filterSet.contains(label)
+        case Application(Symbol(label), _) => !filterSet.contains(label)
         case _ => true
       })
     }
@@ -85,8 +85,8 @@ object MiniKoreUtils {
       */
     lazy val definedSorts: Set[String] = {
       allSentences collect {
-        case SymbolDeclaration(sort: String, _, _, _) => sort
-        case SortDeclaration(sort: String, _) => sort
+        case SymbolDeclaration(Sort(sort), _, _, _) => sort
+        case SortDeclaration(Sort(sort), _) => sort
       } toSet
     }
 
@@ -96,24 +96,24 @@ object MiniKoreUtils {
 
     lazy val subsorts: POSet[String] = {
       val symbolDecs: Seq[(String, Seq[Pattern])] = allSentences collect {
-        case SymbolDeclaration(sort, _, _, atts) if findAtt(atts, "klabel").isEmpty => (sort, atts)
+        case SymbolDeclaration(Sort(sort), _, _, atts) if findAtt(atts, "klabel").isEmpty => (sort, atts)
       }
       val subsortProductions: Set[(String, String)] = symbolDecs map { x =>
         (x._1, x._2 collect {
-          case Application(`iNonTerminal`, Seq(DomainValue(Label("S"), s))) => s.value
-          case Application(`iTerminal`, _) => iTerminal.label
-          case Application(`iRegexTerminal`, _) => iTerminal.label
+          case Application(`iNonTerminal`, Seq(DomainValue(Symbol("S"), s))) => s
+          case Application(`iTerminal`, _) => iTerminal.symbol
+          case Application(`iRegexTerminal`, _) => iTerminal.symbol
         })
-      } filter (x => x._2.size == 1 && !x._2.head.startsWith(iTerminal.label)) map { x => (x._2.head, x._1) } toSet
+      } filter (x => x._2.size == 1 && !x._2.head.startsWith(iTerminal.symbol)) map { x => (x._2.head, x._1) } toSet
 
       POSet[String](subsortProductions)
     }
 
     lazy val freshFunctionFor: Map[String, String] = {
       val productions = allSentences collect {
-        case SymbolDeclaration(sort, label, _, atts) if findAtt(atts, "freshGenerator").size >= 1
+        case SymbolDeclaration(sort, Symbol(label), _, atts) if findAtt(atts, "freshGenerator").size >= 1
         => (sort, label)
-      } groupBy (_._1) mapValues (x => x.toSet)
+      } groupBy (_._1.sort) mapValues (x => x.toSet)
 
       productions.foreach(x => {
         if (x._2.size > 1)

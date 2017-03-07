@@ -231,15 +231,15 @@ public class Definition extends JavaSymbolicObject {
             }
 
 
-            DataStructureSort sort = new DataStructureSort(symbolDec.sort(), type,
-                    symbolDec.label(),
+            DataStructureSort sort = new DataStructureSort(symbolDec.sort().sort(), type,
+                    symbolDec.symbol().symbol(),
                     elementLabel,
                     unitLabel,
                     new HashMap<>());
             if (!collected.contains(symbolDec.sort())) {
 
-                builder.put(symbolDec.sort(), sort);
-                collected.add(symbolDec.sort());
+                builder.put(symbolDec.sort().sort(), sort);
+                collected.add(symbolDec.sort().sort());
             }
         }
         return builder.build();
