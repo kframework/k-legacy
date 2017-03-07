@@ -236,7 +236,7 @@ public class Definition extends JavaSymbolicObject {
                     elementLabel,
                     unitLabel,
                     new HashMap<>());
-            if (!collected.contains(symbolDec.sort())) {
+            if (!collected.contains(symbolDec.sort().sort())) {
 
                 builder.put(symbolDec.sort().sort(), sort);
                 collected.add(symbolDec.sort().sort());
