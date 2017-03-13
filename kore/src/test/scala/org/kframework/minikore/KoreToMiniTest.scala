@@ -31,7 +31,7 @@ class KoreToMiniTest {
   @Test def production2(): Unit = {
     assertEquals(
       apply(new definition.Production(Exp, Seq(NonTerminal(Int)), Att())),
-      SymbolDeclaration(Sort(Exp.name), Symbol("#None"), Seq(Int.name), Seq(Application(iNonTerminal, Seq(S(Int.name)))))
+      SymbolDeclaration(Sort(Exp.name), Symbol("#None"), Seq(Sort(Int.name)), Seq(Application(iNonTerminal, Seq(S(Int.name)))))
     )
   }
 

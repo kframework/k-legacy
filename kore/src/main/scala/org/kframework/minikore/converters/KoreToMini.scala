@@ -6,8 +6,8 @@ import org.kframework.kore._
 import org.kframework.minikore.implementation.DefaultBuilders
 import org.kframework.minikore.interfaces.build.Builders
 import org.kframework.minikore.implementation.MiniKore.{Attributes, Axiom, Definition, Import, Module, Rule, Sentence, SortDeclaration, SymbolDeclaration}
+import org.kframework.minikore.interfaces.pattern.{Sort => _, _}
 import org.kframework.minikore.interfaces.pattern
-import org.kframework.minikore.interfaces.pattern._
 import org.kframework.{attributes, definition}
 
 import scala.collection._
@@ -37,11 +37,11 @@ object KoreToMini {
 
     case prod@definition.Production(sort, items, att) =>
       val args = items.collect({
-        case definition.NonTerminal(sort) => sort.name
+        case definition.NonTerminal(sort) => pattern.Sort(sort.name)
       })
       val newAtt = items.map(encode) ++ apply(att)
       prod.klabel match {
-        case Some(label) => SymbolDeclaration(pattern.Sort(sort.name), Symbol(label.name), args, newAtt)
+        case Some(label) => SymbolDeclaration(pattern.Sort(sort.name), pattern.Symbol(label.name), args, newAtt)
         case None => SymbolDeclaration(pattern.Sort(sort.name), iNone, args, newAtt) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
       }
 

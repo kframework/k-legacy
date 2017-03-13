@@ -52,9 +52,9 @@ object MiniKoreUtils {
       }
     }
 
-    lazy val signatureFor: Map[String, Set[(Seq[String], String)]] = {
+    lazy val signatureFor: Map[String, Set[(Seq[Sort], String)]] = {
       allSentences collect {
-        case SymbolDeclaration(Sort(sort), Symbol(label), args: Seq[String], _)
+        case SymbolDeclaration(Sort(sort), Symbol(label), args: Seq[Sort], _)
         => (label, (args, sort))
       } groupBy {_._1} mapValues { x => x map {_._2} toSet }
     }
