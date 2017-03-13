@@ -154,7 +154,7 @@ public class Definition extends JavaSymbolicObject {
         JavaConversions.mapAsJavaMap(moduleUtils.signatureFor()).entrySet().stream().forEach(e -> {
             JavaConversions.setAsJavaSet(e.getValue()).stream().forEach(p -> {
                 ImmutableList.Builder<Sort> sortsBuilder = ImmutableList.builder();
-                stream(p._1()).map(s -> Sort.of(s)).forEach(sortsBuilder::add);
+                stream(p._1()).map(s -> Sort.of(s.sort())).forEach(sortsBuilder::add);
                 signaturesBuilder.put(
                         e.getKey(),
                         new SortSignature(sortsBuilder.build(), Sort.of(p._2())));
