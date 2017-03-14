@@ -80,6 +80,9 @@ public class KompileOptions implements Serializable {
 
     public boolean strict() { return !nonStrict; }
 
+    @Parameter(names="--minikore", description="MiniKore compatible compilation. Default: false")
+    public boolean minikore = false;
+
     @ParametersDelegate
     public Experimental experimental = new Experimental();
 
