@@ -23,7 +23,8 @@ import org.kframework.kil.Attributes;
 import org.kframework.kil.DataStructureSort;
 import org.kframework.kil.loader.Context;
 import org.kframework.kore.convertors.KOREtoKIL;
-import org.kframework.minikore.MiniKore;
+import org.kframework.minikore.implementation.MiniKore;
+import org.kframework.minikore.interfaces.pattern.Pattern;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import scala.collection.JavaConversions;
@@ -153,7 +154,7 @@ public class Definition extends JavaSymbolicObject {
         JavaConversions.mapAsJavaMap(moduleUtils.signatureFor()).entrySet().stream().forEach(e -> {
             JavaConversions.setAsJavaSet(e.getValue()).stream().forEach(p -> {
                 ImmutableList.Builder<Sort> sortsBuilder = ImmutableList.builder();
-                stream(p._1()).map(s -> Sort.of(s)).forEach(sortsBuilder::add);
+                stream(p._1()).map(s -> Sort.of(s.str())).forEach(sortsBuilder::add);
                 signaturesBuilder.put(
                         e.getKey(),
                         new SortSignature(sortsBuilder.build(), Sort.of(p._2())));
@@ -187,7 +188,7 @@ public class Definition extends JavaSymbolicObject {
         HashSet<String> collected = new HashSet<>();
         ImmutableMap.Builder<String, DataStructureSort> builder = ImmutableMap.builder();
         for (MiniKore.SymbolDeclaration symbolDec : iterable(moduleUtils.symbolDecs())) {
-            List<MiniKore.Pattern> atts = mutable(symbolDec.att());
+            List<Pattern> atts = mutable(symbolDec.att());
 
             org.kframework.kil.Sort type;
 
@@ -230,15 +231,15 @@ public class Definition extends JavaSymbolicObject {
             }
 
 
-            DataStructureSort sort = new DataStructureSort(symbolDec.sort(), type,
-                    symbolDec.label(),
+            DataStructureSort sort = new DataStructureSort(symbolDec.sort().str(), type,
+                    symbolDec.symbol().str(),
                     elementLabel,
                     unitLabel,
                     new HashMap<>());
-            if (!collected.contains(symbolDec.sort())) {
+            if (!collected.contains(symbolDec.sort().str())) {
 
-                builder.put(symbolDec.sort(), sort);
-                collected.add(symbolDec.sort());
+                builder.put(symbolDec.sort().str(), sort);
+                collected.add(symbolDec.sort().str());
             }
         }
         return builder.build();

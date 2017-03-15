@@ -40,7 +40,7 @@ import org.kframework.kserver.KServerFrontEnd;
 import org.kframework.kserver.KServerOptions;
 import org.kframework.ktest.CmdArgs.KTestOptions;
 import org.kframework.ktest.KTestFrontEnd;
-import org.kframework.minikore.MiniKore;
+import org.kframework.minikore.implementation.MiniKore;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;

@@ -1,9 +1,10 @@
 package org.kframework.backend.java
 
 import org.kframework.POSet
-import org.kframework.minikore.KoreToMini._
-import org.kframework.minikore.MiniKore._
+import org.kframework.minikore.implementation.MiniKore.{Attributes, Definition, Import, Module, Rule, Sentence, SymbolDeclaration, SortDeclaration}
+import org.kframework.minikore.interfaces.pattern._
 import org.kframework.utils.errorsystem.KEMException
+import org.kframework.minikore.converters.KoreToMini._
 
 import scala.collection.Seq
 
@@ -12,9 +13,10 @@ import scala.collection.Seq
   */
 object MiniKoreUtils {
 
+
   def getMainModule(definition: Definition): Module = {
-    val mainModuleName = findAtt(definition.att, iMainModule) match {
-      case Seq(DomainValue("S", name)) => name;
+    val mainModuleName = findAtt(definition.att, iMainModule.str) match {
+      case Seq(DomainValue(Symbol("S"), name)) => name;
       case _ => ???
     }
 
@@ -23,7 +25,7 @@ object MiniKoreUtils {
 
   def findAtt(att: Attributes, key: String): Seq[Pattern] = {
     val argss = att.collect({
-      case Application(`key`, args) => args
+      case Application(Symbol(`key`), args) => args
     })
     if (argss.size >= 1)
       argss.head
@@ -50,18 +52,18 @@ object MiniKoreUtils {
       }
     }
 
-    lazy val signatureFor: Map[String, Set[(Seq[String], String)]] = {
+    lazy val signatureFor: Map[String, Set[(Seq[Sort], String)]] = {
       allSentences collect {
-        case SymbolDeclaration(sort: String, label: String, args: Seq[String], _)
+        case SymbolDeclaration(Sort(sort), Symbol(label), args: Seq[Sort], _)
         => (label, (args, sort))
       } groupBy {_._1} mapValues { x => x map {_._2} toSet }
     }
 
     lazy val attributesFor: Map[String, Seq[Pattern]] = {
-      val filterSet = Set(iTerminal, iNonTerminal, iRegexTerminal)
+      val filterSet = Set(iTerminal.str, iNonTerminal.str, iRegexTerminal.str)
       val labelDecsMap: Map[String, Seq[Pattern]] =
         allSentences collect {
-          case SymbolDeclaration(_, label: String, _, att) if label != iNone => (label, att)
+          case SymbolDeclaration(_, Symbol(label), _, att) if label != iNone => (label, att)
         } groupBy { x => x._1 } mapValues { z => z map {_._2} } mapValues {_.flatten}
       labelDecsMap.mapValues({ s =>
         s.flatMap({ p =>
@@ -73,7 +75,7 @@ object MiniKoreUtils {
 
     def filterAtts(filterSet: Set[String], atts: Seq[Pattern]): Seq[Pattern] = {
       atts.filter(p => p match {
-        case Application(label, _) => !filterSet.contains(label)
+        case Application(Symbol(label), _) => !filterSet.contains(label)
         case _ => true
       })
     }
@@ -83,8 +85,8 @@ object MiniKoreUtils {
       */
     lazy val definedSorts: Set[String] = {
       allSentences collect {
-        case SymbolDeclaration(sort: String, _, _, _) => sort
-        case SortDeclaration(sort: String, _) => sort
+        case SymbolDeclaration(Sort(sort), _, _, _) => sort
+        case SortDeclaration(Sort(sort), _) => sort
       } toSet
     }
 
@@ -94,24 +96,24 @@ object MiniKoreUtils {
 
     lazy val subsorts: POSet[String] = {
       val symbolDecs: Seq[(String, Seq[Pattern])] = allSentences collect {
-        case SymbolDeclaration(sort, _, _, atts) if findAtt(atts, "klabel").isEmpty => (sort, atts)
+        case SymbolDeclaration(Sort(sort), _, _, atts) if findAtt(atts, "klabel").isEmpty => (sort, atts)
       }
       val subsortProductions: Set[(String, String)] = symbolDecs map { x =>
         (x._1, x._2 collect {
-          case Application(`iNonTerminal`, Seq(DomainValue("S", s))) => s
-          case Application(`iTerminal`, _) => iTerminal
-          case Application(`iRegexTerminal`, _) => iTerminal
+          case Application(`iNonTerminal`, Seq(DomainValue(Symbol("S"), s))) => s
+          case Application(`iTerminal`, _) => iTerminal.str
+          case Application(`iRegexTerminal`, _) => iTerminal.str
         })
-      } filter (x => x._2.size == 1 && !x._2.head.startsWith(iTerminal)) map { x => (x._2.head, x._1) } toSet
+      } filter (x => x._2.size == 1 && !x._2.head.startsWith(iTerminal.str)) map { x => (x._2.head, x._1) } toSet
 
       POSet[String](subsortProductions)
     }
 
     lazy val freshFunctionFor: Map[String, String] = {
       val productions = allSentences collect {
-        case SymbolDeclaration(sort, label, _, atts) if findAtt(atts, "freshGenerator").size >= 1
+        case SymbolDeclaration(sort, Symbol(label), _, atts) if findAtt(atts, "freshGenerator").size >= 1
         => (sort, label)
-      } groupBy (_._1) mapValues (x => x.toSet)
+      } groupBy (_._1.str) mapValues (x => x.toSet)
 
       productions.foreach(x => {
         if (x._2.size > 1)

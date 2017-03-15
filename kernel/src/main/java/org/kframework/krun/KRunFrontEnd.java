@@ -9,7 +9,7 @@ import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.main.FrontEnd;
 import org.kframework.main.GlobalOptions;
-import org.kframework.minikore.MiniKore;
+import org.kframework.minikore.implementation.MiniKore;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;

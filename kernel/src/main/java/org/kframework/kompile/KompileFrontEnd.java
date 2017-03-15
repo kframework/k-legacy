@@ -3,10 +3,10 @@ package org.kframework.kompile;
 
 import org.kframework.definition.Definition;
 import org.kframework.main.FrontEnd;
-import org.kframework.minikore.KoreToMini;
-import org.kframework.minikore.KoreToMiniToKore;
-import org.kframework.minikore.MiniToText;
-import org.kframework.minikore.MiniToTextToMini;
+import org.kframework.minikore.converters.KoreToMini;
+import org.kframework.minikore.converters.KoreToMiniToKore;
+import org.kframework.minikore.parser.MiniToText;
+import org.kframework.minikore.parser.MiniToTextToMini;
 import org.kframework.parser.UserParser;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
