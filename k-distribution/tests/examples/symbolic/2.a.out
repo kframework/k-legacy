@@ -1,6 +1,6 @@
 Solution 1
-<k> false </k>
+<T> <k> false </k> </T>
  AND V0 ==K false
 Solution 2
-<k> true </k>
+<T> <k> true </k> </T>
  AND V0 ==K true

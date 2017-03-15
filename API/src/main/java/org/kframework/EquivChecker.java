@@ -1,3 +1,5 @@
+// Copyright (c) 2016 K Team. All Rights Reserved.
+
 package org.kframework;
 
 import org.kframework.backend.java.kil.ConstrainedTerm;
@@ -17,17 +19,20 @@ public class EquivChecker {
             java.util.List<ConstrainedTerm> startSyncNodes2,
             java.util.List<ConstrainedTerm> targetSyncNodes1,
             java.util.List<ConstrainedTerm> targetSyncNodes2,
-            java.util.List<ConjunctiveFormula> ensures,
-            java.util.List<Boolean> trusted,
+            java.util.List<ConjunctiveFormula> startEnsures,
+            java.util.List<ConjunctiveFormula> targetEnsures,
+            java.util.List<Boolean> trusted1,
+            java.util.List<Boolean> trusted2,
             //
             SymbolicRewriter rewriter1,
             SymbolicRewriter rewriter2
     ) {
 
-        assert targetSyncNodes1.size() == ensures.size();
-        assert targetSyncNodes2.size() == ensures.size();
+        assert startEnsures.size() == targetEnsures.size();
+        assert targetSyncNodes1.size() == targetEnsures.size();
+        assert targetSyncNodes2.size() == targetEnsures.size();
 
-        int numSyncPoints = ensures.size();
+        int numSyncPoints = targetEnsures.size();
 
         java.util.List<Set<SyncNode>> allSyncNodes1 = newListOfSets(numSyncPoints);
         java.util.List<Set<SyncNode>> allSyncNodes2 = newListOfSets(numSyncPoints);
@@ -36,7 +41,7 @@ public class EquivChecker {
         java.util.List<SyncNode> currSyncNodes1 = new ArrayList<>();
         java.util.List<SyncNode> currSyncNodes2 = new ArrayList<>();
         for (int i = 0; i < numSyncPoints; i++) {
-            if (trusted.get(i)) continue;
+            if (trusted1.get(i)) { assert trusted2.get(i); continue; }
 
             ConstrainedTerm t1 = startSyncNodes1.get(i);
             ConstrainedTerm t2 = startSyncNodes2.get(i);
@@ -63,7 +68,7 @@ public class EquivChecker {
             allSyncNodes1 = mergeListOfSets(allSyncNodes1, nextSyncNodes1);
             allSyncNodes2 = mergeListOfSets(allSyncNodes2, nextSyncNodes2);
 
-            matchSyncNodes(allSyncNodes1, allSyncNodes2, ensures);
+            matchSyncNodes(allSyncNodes1, allSyncNodes2, startEnsures, targetEnsures);
             validateSyncNodes(allSyncNodes1);
             validateSyncNodes(allSyncNodes2);
 
@@ -159,12 +164,14 @@ public class EquivChecker {
     public static void matchSyncNodes(
             java.util.List<Set<SyncNode>> syncNodes1,
             java.util.List<Set<SyncNode>> syncNodes2,
-            java.util.List<ConjunctiveFormula> ensures) {
+            java.util.List<ConjunctiveFormula> startEnsures,
+            java.util.List<ConjunctiveFormula> targetEnsures) {
 
-        assert syncNodes1.size() == ensures.size();
-        assert syncNodes2.size() == ensures.size();
+        assert startEnsures.size() == targetEnsures.size();
+        assert syncNodes1.size() == targetEnsures.size();
+        assert syncNodes2.size() == targetEnsures.size();
 
-        int numSyncPoints = ensures.size();
+        int numSyncPoints = targetEnsures.size();
 
         for (int i = 0; i < numSyncPoints; i++) {
             for (SyncNode ct1 : syncNodes1.get(i)) {
@@ -173,8 +180,9 @@ public class EquivChecker {
                     if (ct1.mark == Mark.BLACK && ct2.mark == Mark.BLACK) continue;
                     ConjunctiveFormula c1 = ConjunctiveFormula.of(ct1.constraint);
                     ConjunctiveFormula c2 = ConjunctiveFormula.of(ct2.constraint);
-                    ConjunctiveFormula e = ConjunctiveFormula.of(ensures.get(i));
-                    ConjunctiveFormula c = c1.add(c2).simplify(); // TODO: termContext ??
+                    ConjunctiveFormula c0 = ConjunctiveFormula.of(startEnsures.get(ct1.startSyncPoint));
+                    ConjunctiveFormula e = ConjunctiveFormula.of(targetEnsures.get(i));
+                    ConjunctiveFormula c = c1.add(c2).add(c0).simplify(); // TODO: termContext ??
                     if (!c.isFalse() && !c.checkUnsat() && c.smartImplies(e) /* c.implies(e, Collections.emptySet()) */) {
                         ct1.mark = Mark.BLACK;
                         ct2.mark = Mark.BLACK;
