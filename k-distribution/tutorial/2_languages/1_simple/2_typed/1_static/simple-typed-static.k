@@ -409,7 +409,7 @@ important to ensure that we only dissolve tasks containing a
 In the end, there should be no task cell left in the configuration
 when the program correctly type checks. */
 
-  rule <task>... <k> _:BlockOrStmtType </k> <tenv> _ </tenv> ...</task> => .Bag
+  rule <task>... <k> _:BlockOrStmtType </k> <tenv> _ </tenv> ...</task> => .
 
 /*@ \subsection{Basic values}
 
