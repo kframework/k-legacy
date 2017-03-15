@@ -15,7 +15,7 @@ object MiniKoreUtils {
 
 
   def getMainModule(definition: Definition): Module = {
-    val mainModuleName = findAtt(definition.att, iMainModule.symbol) match {
+    val mainModuleName = findAtt(definition.att, iMainModule.str) match {
       case Seq(DomainValue(Symbol("S"), name)) => name;
       case _ => ???
     }
@@ -60,7 +60,7 @@ object MiniKoreUtils {
     }
 
     lazy val attributesFor: Map[String, Seq[Pattern]] = {
-      val filterSet = Set(iTerminal.symbol, iNonTerminal.symbol, iRegexTerminal.symbol)
+      val filterSet = Set(iTerminal.str, iNonTerminal.str, iRegexTerminal.str)
       val labelDecsMap: Map[String, Seq[Pattern]] =
         allSentences collect {
           case SymbolDeclaration(_, Symbol(label), _, att) if label != iNone => (label, att)
@@ -101,10 +101,10 @@ object MiniKoreUtils {
       val subsortProductions: Set[(String, String)] = symbolDecs map { x =>
         (x._1, x._2 collect {
           case Application(`iNonTerminal`, Seq(DomainValue(Symbol("S"), s))) => s
-          case Application(`iTerminal`, _) => iTerminal.symbol
-          case Application(`iRegexTerminal`, _) => iTerminal.symbol
+          case Application(`iTerminal`, _) => iTerminal.str
+          case Application(`iRegexTerminal`, _) => iTerminal.str
         })
-      } filter (x => x._2.size == 1 && !x._2.head.startsWith(iTerminal.symbol)) map { x => (x._2.head, x._1) } toSet
+      } filter (x => x._2.size == 1 && !x._2.head.startsWith(iTerminal.str)) map { x => (x._2.head, x._1) } toSet
 
       POSet[String](subsortProductions)
     }
@@ -113,7 +113,7 @@ object MiniKoreUtils {
       val productions = allSentences collect {
         case SymbolDeclaration(sort, Symbol(label), _, atts) if findAtt(atts, "freshGenerator").size >= 1
         => (sort, label)
-      } groupBy (_._1.sort) mapValues (x => x.toSet)
+      } groupBy (_._1.str) mapValues (x => x.toSet)
 
       productions.foreach(x => {
         if (x._2.size > 1)

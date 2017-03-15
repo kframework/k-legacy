@@ -302,7 +302,7 @@ public class KOREtoKIL implements Function<Definition, org.kframework.kil.Defini
             if (x instanceof MiniKore.Application) {
                 MiniKore.Application application = (MiniKore.Application) x;
                 List<Pattern> args = mutable(application.args());
-                String label = application._1().symbol();
+                String label = application._1().str();
                 if (label.equals("sort")) {
                     MiniKore.DomainValue domainValue = (MiniKore.DomainValue) args.get(0);
                     kilAttributes.add(Attribute.of("sort", domainValue._2()));

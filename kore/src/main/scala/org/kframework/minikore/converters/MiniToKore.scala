@@ -20,13 +20,13 @@ object MiniToKore {
     }
     val origModuleMap: Map[String, Module] = seq2map(d.modules)
 
-    val mainModuleName = findAtt(d.att, iMainModule.symbol) match {
+    val mainModuleName = findAtt(d.att, iMainModule.str) match {
       case Seq(DomainValue(Symbol("S"), name)) => name; case _ => ???
     }
     val (mainModules, otherModules) = d.modules.partition(m => m.name == mainModuleName)
     val mainModule = mainModules.head; assert(mainModules.size == 1)
 
-    val entryModules = findAtt(d.att, iEntryModules.symbol).map({
+    val entryModules = findAtt(d.att, iEntryModules.str).map({
       case DomainValue(Symbol("S"), name) => origModuleMap(name); case _ => ???
     })
 

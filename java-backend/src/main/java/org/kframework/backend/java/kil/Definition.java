@@ -154,7 +154,7 @@ public class Definition extends JavaSymbolicObject {
         JavaConversions.mapAsJavaMap(moduleUtils.signatureFor()).entrySet().stream().forEach(e -> {
             JavaConversions.setAsJavaSet(e.getValue()).stream().forEach(p -> {
                 ImmutableList.Builder<Sort> sortsBuilder = ImmutableList.builder();
-                stream(p._1()).map(s -> Sort.of(s.sort())).forEach(sortsBuilder::add);
+                stream(p._1()).map(s -> Sort.of(s.str())).forEach(sortsBuilder::add);
                 signaturesBuilder.put(
                         e.getKey(),
                         new SortSignature(sortsBuilder.build(), Sort.of(p._2())));
@@ -231,15 +231,15 @@ public class Definition extends JavaSymbolicObject {
             }
 
 
-            DataStructureSort sort = new DataStructureSort(symbolDec.sort().sort(), type,
-                    symbolDec.symbol().symbol(),
+            DataStructureSort sort = new DataStructureSort(symbolDec.sort().str(), type,
+                    symbolDec.symbol().str(),
                     elementLabel,
                     unitLabel,
                     new HashMap<>());
-            if (!collected.contains(symbolDec.sort().sort())) {
+            if (!collected.contains(symbolDec.sort().str())) {
 
-                builder.put(symbolDec.sort().sort(), sort);
-                collected.add(symbolDec.sort().sort());
+                builder.put(symbolDec.sort().str(), sort);
+                collected.add(symbolDec.sort().str());
             }
         }
         return builder.build();
