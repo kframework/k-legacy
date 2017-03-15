@@ -1,14 +1,18 @@
 // Copyright (c) 2016 K Team. All Rights Reserved.
 package org.kframework;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.RewriterResult;
 import org.kframework.attributes.Att;
 import org.kframework.attributes.Source;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
+import org.kframework.backend.java.kil.BuiltinList;
 import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.KItem;
+import org.kframework.backend.java.kil.KLabelConstant;
+import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.kil.Variable;
@@ -203,7 +207,95 @@ public class Kapi {
      * compiledDef1: for symbolic execution
      * compiledDef2: for symbolic execution
      */
-    public static void kequiv(CompiledDefinition compiledDef0, CompiledDefinition compiledDef1, CompiledDefinition compiledDef2, String proofFile, String prelude) {
+    public static void kequiv(CompiledDefinition compiledDef0, CompiledDefinition compiledDef1, CompiledDefinition compiledDef2, String proofFile1, String proofFile2, String prelude) {
+
+        GlobalContext global = getGlobal(compiledDef0);
+        Info info1 = getInfo(compiledDef1, proofFile1, prelude);
+        Info info2 = getInfo(compiledDef2, proofFile2, prelude);
+
+        java.util.List<ConjunctiveFormula> startEnsures = new ArrayList<>();
+        assert info1.startEnsures.size() == info2.startEnsures.size();
+        for (int i = 0; i < info1.startEnsures.size(); i++) {
+            startEnsures.add(getConjunctiveFormula(info1.startEnsures.get(i), info2.startEnsures.get(i), global));
+        }
+
+        java.util.List<ConjunctiveFormula> targetEnsures = new ArrayList<>();
+        assert info1.targetEnsures.size() == info2.targetEnsures.size();
+        for (int i = 0; i < info1.targetEnsures.size(); i++) {
+            targetEnsures.add(getConjunctiveFormula(info1.targetEnsures.get(i), info2.targetEnsures.get(i), global));
+        }
+
+        boolean result = EquivChecker.equiv(
+                info1.startSyncNodes, info2.startSyncNodes,
+                info1.targetSyncNodes, info2.targetSyncNodes,
+                startEnsures, //info1.startEnsures, info2.startEnsures,
+                targetEnsures, //info1.targetEnsures, info2.targetEnsures,
+                info1.trusted, info2.trusted,
+                info1.rewriter, info2.rewriter);
+
+        System.out.println(result);
+
+        return;
+    }
+
+    private static ConjunctiveFormula getConjunctiveFormula(ConjunctiveFormula e1, ConjunctiveFormula e2, GlobalContext global) {
+
+        ConjunctiveFormula ensure = ConjunctiveFormula.of(global);
+
+        ImmutableList<Term> l1 = getChildren(e1);
+        ImmutableList<Term> l2 = getChildren(e2);
+
+        assert l1.size() == l2.size();
+        for (int j = 0; j < l1.size(); j++) {
+            // TODO: make it better
+            ensure = ensure.add(
+                    ((KList) ((KItem) l1.get(j)).kList()).getContents().get(0),
+                    ((KList) ((KItem) l2.get(j)).kList()).getContents().get(0));
+        }
+
+        return ensure;
+    }
+
+    private static ImmutableList<Term> getChildren(ConjunctiveFormula e) {
+        // TODO: make it better
+        assert e.equalities().size() == 1;
+        assert e.equalities().get(0).leftHandSide() instanceof KItem;
+        assert ((KItem) e.equalities().get(0).leftHandSide()).kLabel() instanceof KLabelConstant;
+        assert ((KLabelConstant) ((KItem) e.equalities().get(0).leftHandSide()).kLabel()).label().equals("vars");
+        assert ((KItem) e.equalities().get(0).leftHandSide()).kList() instanceof KList;
+        assert ((KList) ((KItem) e.equalities().get(0).leftHandSide()).kList()).getContents().size() == 1;
+        assert ((KList) ((KItem) e.equalities().get(0).leftHandSide()).kList()).getContents().get(0) instanceof BuiltinList;
+
+        return ((BuiltinList) ((KList) ((KItem) e.equalities().get(0).leftHandSide()).kList()).getContents().get(0)).children;
+    }
+
+    // TODO: better name
+    public static class Info {
+        public java.util.List<ConstrainedTerm> startSyncNodes;
+        public java.util.List<ConstrainedTerm> targetSyncNodes;
+        public java.util.List<ConjunctiveFormula> startEnsures;
+        public java.util.List<ConjunctiveFormula> targetEnsures;
+        public java.util.List<Boolean> trusted;
+        public SymbolicRewriter rewriter;
+
+        public Info(
+                java.util.List<ConstrainedTerm> startSyncNodes,
+                java.util.List<ConstrainedTerm> targetSyncNodes,
+                java.util.List<ConjunctiveFormula> startEnsures,
+                java.util.List<ConjunctiveFormula> targetEnsures,
+                java.util.List<Boolean> trusted,
+                SymbolicRewriter rewriter
+        ) {
+            this.startSyncNodes = startSyncNodes;
+            this.targetSyncNodes = targetSyncNodes;
+            this.startEnsures = startEnsures;
+            this.targetEnsures = targetEnsures;
+            this.trusted = trusted;
+            this.rewriter = rewriter;
+        }
+    }
+
+    public static Info getInfo(CompiledDefinition compiledDef, String proofFile, String prelude) {
 
         GlobalOptions globalOptions = new GlobalOptions();
         KompileOptions kompileOptions = new KompileOptions();
@@ -228,10 +320,10 @@ public class Kapi {
         //// parse spec file
 
         Kompile kompile = new Kompile(kompileOptions, globalOptions, files, kem, sw, false);
-        Module specModule = kompile.parseModule(compiledDef0, files.resolveWorkingDirectory(proofFile).getAbsoluteFile());
+        Module specModule = kompile.parseModule(compiledDef, files.resolveWorkingDirectory(proofFile).getAbsoluteFile());
 
         scala.collection.Set<Module> alsoIncluded = Stream.of("K-TERM", "K-REFLECTION", RuleGrammarGenerator.ID_PROGRAM_PARSING)
-                .map(mod -> compiledDef0.getParsedDefinition().getModule(mod).get())
+                .map(mod -> compiledDef.getParsedDefinition().getModule(mod).get())
                 .collect(org.kframework.Collections.toSet());
 
         specModule = new JavaBackend(kem, files, globalOptions, kompileOptions)
@@ -239,9 +331,9 @@ public class Kapi {
                 .apply(Definition.apply(specModule, org.kframework.Collections.<Module>add(specModule, alsoIncluded), Att.apply()))
                 .getModule(specModule.name()).get();
 
-        ExpandMacros macroExpander = new ExpandMacros(compiledDef0.executionModule(), kem, files, globalOptions, kompileOptions.transition, kompileOptions.experimental.smt);
+        ExpandMacros macroExpander = new ExpandMacros(compiledDef.executionModule(), kem, files, globalOptions, kompileOptions.transition, kompileOptions.experimental.smt);
 
-        List<Rule> specRules = stream(specModule.localRules())
+        List<Rule> specRulesKORE = stream(specModule.localRules())
                 .filter(r -> r.toString().contains("spec.k"))
                 .map(r -> (Rule) macroExpander.expand(r))
                 .map(r -> ProofExecutionMode.transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
@@ -254,112 +346,111 @@ public class Kapi {
 
         GlobalContext initializingContextGlobal = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING);
         TermContext initializingContext = TermContext.builder(initializingContextGlobal).freshCounter(0).build();
-        org.kframework.backend.java.kil.Definition evaluatedDef0 = initializeDefinition.invoke(compiledDef0.executionModule(), kem, initializingContext.global());
-        org.kframework.backend.java.kil.Definition evaluatedDef1 = initializeDefinition.invoke(compiledDef1.executionModule(), kem, initializingContext.global());
-        org.kframework.backend.java.kil.Definition evaluatedDef2 = initializeDefinition.invoke(compiledDef2.executionModule(), kem, initializingContext.global());
+        org.kframework.backend.java.kil.Definition evaluatedDef = initializeDefinition.invoke(compiledDef.executionModule(), kem, initializingContext.global());
 
-        GlobalContext rewritingContextGlobal1 = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
-        GlobalContext rewritingContextGlobal2 = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
-        rewritingContextGlobal1.setDefinition(evaluatedDef1);
-        rewritingContextGlobal2.setDefinition(evaluatedDef2);
-        TermContext rewritingContext1 = TermContext.builder(rewritingContextGlobal1).freshCounter(initializingContext.getCounterValue()).build();
-        TermContext rewritingContext2 = TermContext.builder(rewritingContextGlobal2).freshCounter(initializingContext.getCounterValue()).build();
+        GlobalContext rewritingContextGlobal = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
+        rewritingContextGlobal.setDefinition(evaluatedDef);
+        TermContext rewritingContext = TermContext.builder(rewritingContextGlobal).freshCounter(initializingContext.getCounterValue()).build();
 
         //// massage spec rules
 
-        KOREtoBackendKIL converter1 = new KOREtoBackendKIL(compiledDef0.executionModule(), evaluatedDef0, rewritingContext1.global(), false);
-        KOREtoBackendKIL converter2 = new KOREtoBackendKIL(compiledDef0.executionModule(), evaluatedDef0, rewritingContext2.global(), false);
+        KOREtoBackendKIL converter = new KOREtoBackendKIL(compiledDef.executionModule(), evaluatedDef, rewritingContext.global(), false);
 
-        List<org.kframework.backend.java.kil.Rule> specRules1 = specRules.stream()
-                .map(r -> converter1.convert(Optional.<Module>empty(), r))
+        List<org.kframework.backend.java.kil.Rule> specRules = specRulesKORE.stream()
+                .map(r -> converter.convert(Optional.<Module>empty(), r))
                 .map(r -> new org.kframework.backend.java.kil.Rule(
                         r.label(),
-                        r.leftHandSide().evaluate(rewritingContext1), // TODO: drop?
-                        r.rightHandSide().evaluate(rewritingContext1), // TODO: drop?
+                        r.leftHandSide().evaluate(rewritingContext), // TODO: drop?
+                        r.rightHandSide().evaluate(rewritingContext), // TODO: drop?
                         r.requires(),
                         r.ensures(),
                         r.freshConstants(),
                         r.freshVariables(),
                         r.lookups(),
                         r,
-                        rewritingContext1.global())) // register definition to be used for execution of the current rule
+                        rewritingContext.global())) // register definition to be used for execution of the current rule
                 .collect(Collectors.toList());
 
-        List<org.kframework.backend.java.kil.Rule> specRules2 = specRules.stream()
-                .map(r -> converter2.convert(Optional.<Module>empty(), r))
-                .map(r -> new org.kframework.backend.java.kil.Rule(
-                        r.label(),
-                        r.leftHandSide().evaluate(rewritingContext2), // TODO: drop?
-                        r.rightHandSide().evaluate(rewritingContext2), // TODO: drop?
-                        r.requires(),
-                        r.ensures(),
-                        r.freshConstants(),
-                        r.freshVariables(),
-                        r.lookups(),
-                        r,
-                        rewritingContext2.global())) // register definition to be used for execution of the current rule
-                .collect(Collectors.toList());
+        java.util.Collections.sort(specRules, new Comparator<org.kframework.backend.java.kil.Rule>() {
+            @Override
+            public int compare(org.kframework.backend.java.kil.Rule rule1, org.kframework.backend.java.kil.Rule rule2) {
+                return Integer.compare(rule1.getLocation().startLine(), rule2.getLocation().startLine());
+            }
+        });
 
         // rename all variables again to avoid any potential conflicts with the rules in the semantics
-        int counter = Variable.getCounter();
-        specRules1 = specRules1.stream()
-                .map(org.kframework.backend.java.kil.Rule::renameVariables)
-                .collect(Collectors.toList());
-        Variable.setCounter(counter); // TODO: HACK:
-        specRules2 = specRules2.stream()
+        specRules = specRules.stream()
                 .map(org.kframework.backend.java.kil.Rule::renameVariables)
                 .collect(Collectors.toList());
 
         // rename all variables again to avoid any potential conflicts with the rules in the semantics
-        counter = Variable.getCounter();
-        List<org.kframework.backend.java.kil.Rule> targetSpecRules1 = specRules1.stream()
-                .map(org.kframework.backend.java.kil.Rule::renameVariables)
-                .collect(Collectors.toList());
-        Variable.setCounter(counter); // TODO: HACK:
-        List<org.kframework.backend.java.kil.Rule> targetSpecRules2 = specRules2.stream()
+        List<org.kframework.backend.java.kil.Rule> targetSpecRules = specRules.stream()
                 .map(org.kframework.backend.java.kil.Rule::renameVariables)
                 .collect(Collectors.toList());
 
         //// prove spec rules
+        SymbolicRewriter rewriter = new SymbolicRewriter(rewritingContextGlobal, kompileOptions.transition, new KRunState.Counter(), converter);
 
-        SymbolicRewriter rewriter1 = new SymbolicRewriter(rewritingContextGlobal1, kompileOptions.transition, new KRunState.Counter(), converter1);
-        SymbolicRewriter rewriter2 = new SymbolicRewriter(rewritingContextGlobal2, kompileOptions.transition, new KRunState.Counter(), converter2);
+        assert (specRules.size() == targetSpecRules.size());
 
-        assert (specRules1.size() == specRules2.size());
-        assert (specRules1.size() == targetSpecRules1.size());
-        assert (targetSpecRules1.size() == targetSpecRules2.size());
-
-        List<ConstrainedTerm> startSyncNodes1 = new ArrayList<>();
-        List<ConstrainedTerm> startSyncNodes2 = new ArrayList<>();
-        List<ConstrainedTerm> targetSyncNodes1 = new ArrayList<>();
-        List<ConstrainedTerm> targetSyncNodes2 = new ArrayList<>();
-        List<ConjunctiveFormula> ensures = new ArrayList<>();
+        List<ConstrainedTerm> startSyncNodes = new ArrayList<>();
+        List<ConstrainedTerm> targetSyncNodes = new ArrayList<>();
+        List<ConjunctiveFormula> startEnsures = new ArrayList<>();
+        List<ConjunctiveFormula> targetEnsures = new ArrayList<>();
         List<Boolean> trusted = new ArrayList<>();
 
-        for (int i = 0; i < specRules1.size(); i++) {
-            org.kframework.backend.java.kil.Rule startRule1 = specRules1.get(i);
-            org.kframework.backend.java.kil.Rule startRule2 = specRules2.get(i);
-            org.kframework.backend.java.kil.Rule targetRule1 = targetSpecRules1.get(i);
-            org.kframework.backend.java.kil.Rule targetRule2 = targetSpecRules2.get(i);
+        for (int i = 0; i < specRules.size(); i++) {
+            org.kframework.backend.java.kil.Rule startRule = specRules.get(i);
+            org.kframework.backend.java.kil.Rule targetRule = targetSpecRules.get(i);
 
             // assert rule1.getEnsures().equals(rule2.getEnsures());
 
             // TODO: split requires for each side and for both sides in createLhsPattern
-            startSyncNodes1.add(startRule1.createLhsPattern(rewritingContext1, 1));
-            startSyncNodes2.add(startRule2.createLhsPattern(rewritingContext2, 2));
-            targetSyncNodes1.add(targetRule1.createLhsPattern(rewritingContext1, 1));
-            targetSyncNodes2.add(targetRule2.createLhsPattern(rewritingContext2, 2));
-            ensures.add(targetRule1.getRequires());
+            startSyncNodes.add(startRule.createLhsPattern(rewritingContext));
+            targetSyncNodes.add(targetRule.createLhsPattern(rewritingContext));
+            startEnsures.add(startRule.getEnsures());
+            targetEnsures.add(targetRule.getEnsures());
 
             // assert rule1.containsAttribute(Attribute.TRUSTED_KEY) == rule2.containsAttribute(Attribute.TRUSTED_KEY);
-            trusted.add(startRule1.containsAttribute(Attribute.TRUSTED_KEY));
+            trusted.add(startRule.containsAttribute(Attribute.TRUSTED_KEY));
         }
 
-        boolean result = EquivChecker.equiv(startSyncNodes1, startSyncNodes2, targetSyncNodes1, targetSyncNodes2, ensures, trusted, rewriter1, rewriter2);
-        System.out.println(result);
-
-        return;
+        return new Info(startSyncNodes, targetSyncNodes, startEnsures, targetEnsures, trusted, rewriter);
     }
+
+    // TODO: better name
+    public static GlobalContext getGlobal(CompiledDefinition compiledDef) {
+
+        GlobalOptions globalOptions = new GlobalOptions();
+        KompileOptions kompileOptions = new KompileOptions();
+        KRunOptions krunOptions = new KRunOptions();
+        JavaExecutionOptions javaExecutionOptions = new JavaExecutionOptions();
+
+        KExceptionManager kem = new KExceptionManager(globalOptions);
+        Stopwatch sw = new Stopwatch(globalOptions);
+        FileUtil files = FileUtil.get(globalOptions, System.getenv());
+
+        FileSystem fs = new PortableFileSystem(kem, files);
+        Map<String, MethodHandle> hookProvider = HookProvider.get(kem); // new HashMap<>();
+        InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
+
+        //// setting options
+
+        SMTOptions smtOptions = krunOptions.experimental.smt;
+
+        //// creating rewritingContext
+
+        GlobalContext initializingContextGlobal = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING);
+        TermContext initializingContext = TermContext.builder(initializingContextGlobal).freshCounter(0).build();
+        org.kframework.backend.java.kil.Definition evaluatedDef = initializeDefinition.invoke(compiledDef.executionModule(), kem, initializingContext.global());
+
+        GlobalContext rewritingContextGlobal = new GlobalContext(fs, false, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
+        rewritingContextGlobal.setDefinition(evaluatedDef);
+        TermContext rewritingContext = TermContext.builder(rewritingContextGlobal).freshCounter(initializingContext.getCounterValue()).build();
+
+        return rewritingContextGlobal;
+    }
+
 
     /**
      * compiledDef0: for parsing spec rules

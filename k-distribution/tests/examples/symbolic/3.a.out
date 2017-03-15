@@ -1,9 +1,9 @@
 Solution 1
-<k> "default" </k>
+<T> <k> "default" </k> </T>
  AND V0 ==K ""
 Solution 2
-<k> "f" </k>
+<T> <k> "f" </k> </T>
  AND V0 ==K "f"
 Solution 3
-<k> "t" </k>
+<T> <k> "t" </k> </T>
  AND V0 ==K "t"

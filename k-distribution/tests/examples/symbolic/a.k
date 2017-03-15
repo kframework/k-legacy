@@ -1,4 +1,12 @@
+// Copyright (c) 2016 K Team. All Rights Reserved.
+
+require "domains.k"
+
 module A-SYNTAX
+
+imports INT-SYNTAX
+imports BOOL-SYNTAX
+imports STRING-SYNTAX
 
 syntax Exp ::= "symInt"
              | "symBool"
@@ -6,6 +14,8 @@ syntax Exp ::= "symInt"
              | Int
              | Bool
              | String
+             //
+             | symIExp(Int)
 
 syntax Exp ::= if(Exp) [strict]
 
@@ -13,7 +23,15 @@ endmodule
 
 module A
 
+imports INT
+imports BOOL
+imports STRING
+
 imports A-SYNTAX
+
+configuration <T>
+  <k> $PGM:Exp </k>
+</T>
 
 syntax KResult ::= Int
                  | Bool
@@ -32,5 +50,12 @@ rule if(false) => false [transition]
 rule if("t") => "t" [transition]
 rule if("f") => "f" [transition]
 rule if("") => "default" [transition]
+
+//
+
+rule symIExp(I:Int) => iexp(I)
+
+// uninterpreted function
+syntax Int ::= iexp(Int) [function]
 
 endmodule
