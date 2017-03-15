@@ -1,6 +1,2 @@
-Search results:
-
-Solution 1:
-V:K@SORT-K -->
-closure ( .Map , ( Triple ( x , ( y , ( z , .Exps ) ) ) -> y ) | .Cases )
-
+Solution 1
+V ==K closure ( .Map , ( Triple ( x , ( y , ( z , .Exps ) ) ) -> y ) | .Cases )

@@ -32,7 +32,7 @@ module MAP
 
   /*@ Construct a new Map consisting of key/value pairs of two Maps (the keys of
    the two Maps are assumed disjoint) */
-  syntax Map ::= Map Map                        [left, function, hook(MAP.concat), klabel(_Map_), assoc, comm, unit(.Map), element(_|->_)]
+  syntax Map ::= Map Map                        [left, function, hook(MAP.concat), klabel(_Map_), assoc, comm, unit(.Map), element(_|->_), index(0)]
   /*@  Construct an empty Map */
   syntax Map ::= ".Map"                         [function, hook(MAP.unit), latex(\dotCt{Map})]
                // breaks klabel uniqueness
@@ -46,7 +46,7 @@ module MAP
   syntax non-assoc _|->_
 
   /*@ Retrieve the value associated with the given key */
-  syntax K ::= Map "[" K "]"                    [function, hook(MAP.lookup), klabel(Map:lookup)]
+  syntax K ::= Map "[" K "]"                    [function, hook(MAP.lookup), klabel(Map:lookup), relativeHook(_Map_.lookup)]
 
   /*@ Update a Map in form of  of keys and values: */
   syntax Map ::= Map "[" K "<-" K "]"           [function, hook(MAP.update), prefer]
@@ -67,7 +67,7 @@ module MAP
   syntax Map ::= removeAll(Map, Set)            [function, hook(MAP.removeAll)]
 
   /*@ Get a Set consisting of all keys in the Map:*/
-  syntax Set ::= keys(Map)                      [function, hook(MAP.keys)]
+  syntax Set ::= keys(Map)                      [function, hook(MAP.keys), relativeHook(_Map_.keys)]
 
   syntax Bool ::= K "in_keys" "(" Map ")"       [function, hook(MAP.in_keys)]
 
@@ -112,7 +112,7 @@ module SET
   syntax Set ::= Set "-Set" Set           [function, hook(SET.difference), latex({#1}-_{\it Set}{#2}), klabel(Set:difference)]
 
   /*@ Check element membership in a set ($a \in A$) */
-  syntax Bool ::= K "in" Set              [function, hook(SET.in), klabel(Set:in)]
+  syntax Bool ::= K "in" Set              [function, hook(SET.in), klabel(Set:in), relativeHook(_Set_.in)]
 
   /*@ Check set inclusion ($A \subseteq B$) */
   syntax Bool ::= Set "<=Set" Set         [function, hook(SET.inclusion)]
@@ -318,8 +318,8 @@ endmodule
 
 module FLOAT-SYNTAX
   syntax Float [hook(FLOAT.Float)]
-  syntax Float ::= r"([\\+-]?[0-9]+(\\.[0-9]*)?|\\.[0-9]+)([eE][\\+-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]d+))?([fFdD]|([pP][0-9]+[xX][0-9]+))?" [token]
-  syntax Float ::= r"[\\+-]?Infinity([fFdD]|([pP][0-9]+[xX][0-9]+))?" [token]
+  syntax Float ::= r"([\\+\\-]?[0-9]+(\\.[0-9]*)?|\\.[0-9]+)([eE][\\+\\-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+))?([fFdD]|([pP][0-9]+[xX][0-9]+))?" [token]
+  syntax Float ::= r"[\\+\\-]?Infinity([fFdD]|([pP][0-9]+[xX][0-9]+))?" [token]
   syntax Float ::= r"NaN([fFdD]|([pP][0-9]+[xX][0-9]+))?" [token]
 endmodule
 

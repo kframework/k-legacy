@@ -6,9 +6,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.attributes.Att;
 import org.kframework.attributes.Location;
 import org.kframework.attributes.Source;
+import org.kframework.backend.java.MiniKoreUtils;
+import org.kframework.backend.java.RewriterUtils;
 import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.kil.KItem;
 import org.kframework.backend.java.symbolic.ConjunctiveFormula;
+import org.kframework.backend.java.util.RewriteEngineUtils;
 import org.kframework.builtin.KLabels;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.Module;
@@ -25,6 +28,7 @@ import org.kframework.kore.KToken;
 import org.kframework.kore.KVariable;
 import org.kframework.kore.compile.RewriteToTop;
 import org.kframework.kore.convertors.KOREtoKIL;
+import org.kframework.minikore.MiniKore;
 import org.kframework.utils.BitSet;
 
 import static org.kframework.Collections.*;
@@ -46,9 +50,9 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
 
     public static final String THE_VARIABLE = "THE_VARIABLE";
 
-    private final Module module;
-    private final Definition definition;
-    private final GlobalContext global;
+    private Module module;
+    private Definition definition;
+    private GlobalContext global;
     /**
      * Flag that controls whether the translator substitutes the variables in a {@code Rule} with fresh variables
      */
@@ -277,6 +281,7 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
         }
     }
 
+    //separate functions for separate Minikore classes
     public Term convert(org.kframework.kore.K k) {
         if (k instanceof Term)
             return (Term) k;
@@ -295,6 +300,7 @@ public class KOREtoBackendKIL extends org.kframework.kore.AbstractConstructors<o
         } else
             throw new AssertionError("BUM!");
     }
+
 
     public Rule convert(Optional<Module> module, org.kframework.definition.Rule rule) {
         K leftHandSide = RewriteToTop.toLeft(rule.body());

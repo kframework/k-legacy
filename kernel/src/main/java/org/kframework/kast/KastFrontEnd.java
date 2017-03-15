@@ -2,26 +2,17 @@
 package org.kframework.kast;
 
 import org.kframework.attributes.Source;
-import org.kframework.kompile.CompiledDefinition;
+import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.kore.K;
-import org.kframework.unparser.ToKast;
+import org.kframework.kore.KORE;
 import org.kframework.main.FrontEnd;
+import org.kframework.unparser.ToKast;
 import org.kframework.utils.Stopwatch;
-import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.file.JarInfo;
-import org.kframework.utils.inject.CommonModule;
-import org.kframework.utils.inject.JCommanderModule;
-import scala.Option;
 
-import java.io.File;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-
-import static org.kframework.kore.KORE.*;
 
 public class KastFrontEnd extends FrontEnd {
 
@@ -29,8 +20,8 @@ public class KastFrontEnd extends FrontEnd {
     private final Stopwatch sw;
     private final KExceptionManager kem;
     private final Map<String, String> env;
-    private final File kompiledDir;
-    private final CompiledDefinition compiledDef;
+    private final FileUtil files;
+    private final KompileMetaInfo kompileMetaInfo;
 
     public KastFrontEnd(
             KastOptions options,
@@ -38,15 +29,14 @@ public class KastFrontEnd extends FrontEnd {
             KExceptionManager kem,
             Map<String, String> env,
             FileUtil files,
-            File kompiledDir,
-            CompiledDefinition compiledDef) {
+            KompileMetaInfo metaInfo) {
         super(kem, options.global, files);
         this.options = options;
         this.sw = sw;
         this.kem = kem;
         this.env = env;
-        this.kompiledDir = kompiledDir;
-        this.compiledDef = compiledDef;
+        this.files = files;
+        this.kompileMetaInfo = metaInfo;
     }
 
     /**
@@ -58,26 +48,16 @@ public class KastFrontEnd extends FrontEnd {
         Reader stringToParse = options.stringToParse();
         Source source = options.source();
 
-        CompiledDefinition def = compiledDef;
         org.kframework.kore.Sort sort = options.sort;
         if (sort == null) {
             if (env.get("KRUN_SORT") != null) {
-                sort = Sort(env.get("KRUN_SORT"));
+                sort = KORE.Sort(env.get("KRUN_SORT"));
             } else {
-                sort = def.programStartSymbol;
+                sort = KORE.Sort(kompileMetaInfo.programStartSymbol);
             }
         }
-        org.kframework.definition.Module mod;
-        if (options.module == null) {
-            mod = def.programParsingModuleFor(def.mainSyntaxModuleName(), kem).get();
-        } else {
-            Option<org.kframework.definition.Module> mod2 = def.programParsingModuleFor(options.module, kem);
-            if (mod2.isEmpty()) {
-                throw KEMException.innerParserError("Module " + options.module + " not found. Specify a module with -m.");
-            }
-            mod = mod2.get();
-        }
-        K parsed = def.getParser(mod, sort, kem).apply(FileUtil.read(stringToParse), source);
+        String moduleName = options.module == null ? kompileMetaInfo.mainSyntaxModuleName : options.module;
+        K parsed = Kast.parseWithModuleParser(FileUtil.read(stringToParse),source, sort, moduleName, files ,kem);
         System.out.println(ToKast.apply(parsed));
         sw.printTotal("Total");
         return 0;

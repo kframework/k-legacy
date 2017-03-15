@@ -1,3 +1,5 @@
+// Copyright (c) 2016 K Team. All Rights Reserved.
+
 package org.kframework;
 
 import org.kframework.backend.java.kil.ConstrainedTerm;

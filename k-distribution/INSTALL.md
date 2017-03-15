@@ -16,7 +16,7 @@ Here are instructions for installing K from the release zip/tgz archive.
     the `kompile simple-untyped.k` command.
     To execute a program you can use `krun tests/diverse/factorial.simple`.
 
-4. (Optional) Latex:
+4. (Optional -- dissabled in current release) Latex:
   * To use the pdf backend, a relatively recent installation 
     of Latex is required.  Besides basic packages, the following (texlive)
     packages are needed: 
@@ -24,7 +24,7 @@ Here are instructions for installing K from the release zip/tgz archive.
     listings, marginnote, microtype, ms, pdfcomment, pgf (up-to-date), preview, 
     soul, stmaryrd, times, titlesec, ucs, url, xcolor, and xkeyval.
 
-5. (Optional) OCAML:
+5. (Optional -- dissabled in current release) OCAML:
   * To use the OCAML backend requires an installation of the OCAML package
     manager OPAM. Instructions on installing OPAM are available here:
     https://opam.ocaml.org/doc/Install.html

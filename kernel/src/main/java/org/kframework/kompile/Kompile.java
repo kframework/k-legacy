@@ -12,12 +12,16 @@ import org.kframework.compile.LabelInfoFromModule;
 import org.kframework.definition.Constructors;
 import org.kframework.definition.Definition;
 import org.kframework.definition.DefinitionTransformer;
-import org.kframework.definition.HybridMemoizingModuleTransformer;
 import org.kframework.definition.Module;
-import org.kframework.definition.ModuleTransformer;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
+import org.kframework.kore.ADT;
+import org.kframework.kore.K;
+import org.kframework.kore.KApply;
+import org.kframework.kore.KORE;
+import org.kframework.kore.KSequence;
 import org.kframework.kore.Sort;
+import org.kframework.kore.TransformK;
 import org.kframework.kore.compile.AddImplicitComputationCell;
 import org.kframework.kore.compile.ConcretizeCells;
 import org.kframework.kore.compile.GenerateSortPredicateSyntax;
@@ -27,7 +31,7 @@ import org.kframework.kore.compile.ResolveFreshConstants;
 import org.kframework.kore.compile.ResolveHeatCoolAttribute;
 import org.kframework.kore.compile.ResolveIOStreams;
 import org.kframework.kore.compile.ResolveSemanticCasts;
-import org.kframework.kore.compile.ResolveStrict;
+import org.kframework.kore.compile.ConvertStrictToContexts;
 import org.kframework.kore.compile.SortInfo;
 import org.kframework.kore.compile.checks.CheckConfigurationCells;
 import org.kframework.kore.compile.checks.CheckRHSVariables;
@@ -41,7 +45,7 @@ import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.file.JarInfo;
-import scala.Function1;
+import scala.Option;
 
 import java.io.File;
 import java.util.HashSet;
@@ -60,7 +64,6 @@ import static org.kframework.definition.Constructors.*;
 public class Kompile {
     public static final File BUILTIN_DIRECTORY = JarInfo.getKIncludeDir().resolve("builtin").toFile();
     public static final String REQUIRE_PRELUDE_K = "requires \"prelude.k\"\n";
-
     public final KompileOptions kompileOptions;
     private final FileUtil files;
     public final KExceptionManager kem;
@@ -94,7 +97,7 @@ public class Kompile {
         List<File> lookupDirectories = kompileOptions.outerParsing.includes.stream().map(files::resolveWorkingDirectory).collect(Collectors.toList());
         this.definitionParsing = new DefinitionParsing(
                 lookupDirectories, kompileOptions.strict(), kem,
-                parser, cacheParses, files.resolveKompiled("cache.bin"), !kompileOptions.outerParsing.noPrelude);
+                parser, cacheParses, files.resolveKompiled(FileUtil.CACHE_BIN), !kompileOptions.outerParsing.noPrelude);
         this.sw = sw;
     }
 
@@ -107,7 +110,7 @@ public class Kompile {
     }
 
     /**
-     * Executes the Kompile tool. This tool accesses a
+     * Executes the Kompile tool. This tool first parses the definition and then compiles it.
      *
      * @param definitionFile
      * @param mainModuleName
@@ -119,10 +122,10 @@ public class Kompile {
         Definition parsedDef = parseDefinition(definitionFile, mainModuleName, mainProgramsModuleName);
         sw.printIntermediate("Parse definition [" + definitionParsing.parsedBubbles.get() + "/" + (definitionParsing.parsedBubbles.get() + definitionParsing.cachedBubbles.get()) + " rules]");
 
-        return run(parsedDef, pipeline);
+        return compile(parsedDef, pipeline);
     }
 
-    public CompiledDefinition run(Definition parsedDef, Function<Definition, Definition> pipeline) {
+    public CompiledDefinition compile(Definition parsedDef, Function<Definition, Definition> pipeline) {
         checkDefinition(parsedDef);
 
         Definition kompiledDefinition = pipeline.apply(parsedDef);
@@ -137,24 +140,15 @@ public class Kompile {
         return definitionParsing.parseDefinitionAndResolveBubbles(definitionFile, mainModuleName, mainProgramsModule);
     }
 
-    public static Definition resolveIOStreams(Definition d, KExceptionManager kem) {
-        return DefinitionTransformer.fromHybrid(new ResolveIOStreams(d, kem)::resolve, "resolving io streams").apply(d);
-    }
-
     public static Function<Definition, Definition> defaultSteps(KompileOptions kompileOptions, KExceptionManager kem) {
-        DefinitionTransformer convertStrictToContexts = DefinitionTransformer.fromHybrid(new ResolveStrict(kompileOptions)::resolve, "resolving strict and seqstrict attributes");
-        DefinitionTransformer resolveHeatCoolAttribute = DefinitionTransformer.fromSentenceTransformer(new ResolveHeatCoolAttribute(new HashSet<>(kompileOptions.transition))::resolve, "resolving heat and cool attributes");
-        DefinitionTransformer convertAnonVarsToNamedVars = DefinitionTransformer.fromSentenceTransformer(new ResolveAnonVar()::resolve, "resolving \"_\" vars");
-        DefinitionTransformer resolveSemanticCasts =
-                DefinitionTransformer.fromSentenceTransformer(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve, "resolving semantic casts");
 
         return d -> {
-            d = resolveIOStreams(d, kem);
-            d = convertStrictToContexts.apply(d);
-            d = convertAnonVarsToNamedVars.apply(d);
+            d = new ResolveIOStreams(d, kem).apply(d);
+            d = new ConvertStrictToContexts(kompileOptions).apply(d);
+            d = new ResolveAnonVar().apply(d);
             d = new ConvertContextsToHeatCoolRules(kompileOptions).resolve(d);
-            d = resolveHeatCoolAttribute.apply(d);
-            d = resolveSemanticCasts.apply(d);
+            d = new ResolveHeatCoolAttribute(new HashSet<>(kompileOptions.transition)).apply(d);
+            d = new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA)).apply(d);
             d = DefinitionTransformer.fromWithInputDefinitionTransformerClass(GenerateSortPredicateSyntax.class).apply(d);
             d = resolveFreshConstants(d);
             d = AddImplicitComputationCell.transformDefinition(d);
@@ -216,8 +210,8 @@ public class Kompile {
     }
 
     public Rule compileRule(CompiledDefinition compiledDef, Rule parsedRule) {
-        return (Rule) asScalaFunc(new ResolveAnonVar()::resolve)
-                .andThen(new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA))::resolve)
+        return (Rule) asScalaFunc((Sentence s) -> new ResolveAnonVar().process(s))
+                .andThen((Sentence s) ->  new ResolveSemanticCasts(kompileOptions.backend.equals(Backends.JAVA)).process(s))
                 .andThen(s -> concretizeSentence(s, compiledDef.kompiledDefinition))
                 .apply(parsedRule);
     }
@@ -231,5 +225,35 @@ public class Kompile {
         LabelInfo labelInfo = new LabelInfoFromModule(input.mainModule());
         SortInfo sortInfo = SortInfo.fromModule(input.mainModule());
         return new ConcretizeCells(configInfo, labelInfo, sortInfo, input.mainModule()).concretize(s);
+    }
+
+    public static DefinitionTransformer moduleQualifySortPredicates = DefinitionTransformer.fromKTransformerWithModuleInfo(
+            (Module m, K k) -> new TransformK() {
+                @Override
+                public K apply(KApply kk) {
+                    KApply k = (KApply) super.apply(kk);
+                    if (!k.klabel().name().startsWith("is"))
+                        return k;
+
+                    Sort possibleSort = KORE.Sort(k.klabel().name().substring("is".length()));
+                    Option<ADT.Sort> resolvedSort = m.sortResolver().get(possibleSort);
+
+                    if (resolvedSort.isDefined()) {
+                        return KORE.KApply(KORE.KLabel("is" + resolvedSort.get().name()), k.klist());
+                    } else {
+                        return k;
+                    }
+                }
+            }.apply(k), "Module-qualify sort predicates");
+
+    /**
+     * In the Java backend, {@link KSequence}s are treated like {@link KApply}s, so tranform them.
+     */
+    public static K convertKSeqToKApply(K ruleBody) {
+        return new TransformK() {
+            public K apply(KSequence kseq) {
+                return super.apply(((ADT.KSequence) kseq).kApply());
+            }
+        }.apply(ruleBody);
     }
 }

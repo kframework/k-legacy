@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.kore.compile;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
@@ -24,9 +25,11 @@ import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
+import org.kframework.utils.options.SMTOptions;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,7 +52,7 @@ public class ExpandMacros {
     private final KExceptionManager kem;
     private final boolean noMacros;
 
-    public ExpandMacros(Module mod, KExceptionManager kem, FileUtil files, GlobalOptions globalOptions, KompileOptions kompileOptions) {
+    public ExpandMacros(Module mod, KExceptionManager kem, FileUtil files, GlobalOptions globalOptions, List<String> transitions, SMTOptions smtOptions) {
         this.kem = kem;
         Optional<Module> macroModule = getMacroModule(mod);
         if (macroModule.isPresent()) {
@@ -58,12 +61,12 @@ public class ExpandMacros {
                     false,
                     globalOptions,
                     kem,
-                    kompileOptions.experimental.smt,
+                    smtOptions,
                     new HashMap<>(),
-                    kompileOptions,
+                    transitions,
                     new KRunOptions(),
                     files,
-                    new InitializeRewriter.InitializeDefinition()).apply(macroModule.get());
+                    new InitializeRewriter.InitializeDefinition()).apply(Pair.of(macroModule.get(), null));
             noMacros = false;
         } else {
             noMacros = true;

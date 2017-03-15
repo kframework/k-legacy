@@ -19,7 +19,8 @@ public interface BitSet<T extends BitSet<?>> extends Cloneable {
         } else if (length <= 4 * Long.SIZE) {
             return new FourWordBitSet();
         } else {
-            return new OneIntegerGenericBitSet();
+            //return new OneIntegerGenericBitSet();
+            return new JavaBitSet();
         }
     }
 

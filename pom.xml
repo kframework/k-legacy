@@ -18,6 +18,7 @@
     <module>API</module>
     <module>kdoc</module>
     <module>shell</module>
+    <module>kale-backend</module>
   </modules>
 
   <scm>
@@ -39,6 +40,16 @@
       <url>http://office.runtimeverification.com:8888/repository/snapshots</url>
       <snapshots><enabled>true</enabled></snapshots>
       <releases><enabled>false</enabled></releases>
+    </repository>
+    <repository>
+      <id>snapshots-repo</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
     </repository>
   </repositories>
 
@@ -71,6 +82,12 @@
       <artifactId>mockito-all</artifactId>
       <version>1.9.5</version>
       <scope>test</scope>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.8.0</version>
     </dependency>
   </dependencies>
 

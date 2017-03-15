@@ -1,3 +1,5 @@
+// Copyright (c) 2016 K Team. All Rights Reserved.
+
 module SPEC
 
 imports A

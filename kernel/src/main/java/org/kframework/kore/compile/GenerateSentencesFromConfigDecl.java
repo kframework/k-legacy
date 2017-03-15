@@ -211,7 +211,7 @@ public class GenerateSentencesFromConfigDecl {
             @Override
             public K apply(KToken k) {
                 if (k.sort().equals(Sorts.KConfigVar())) {
-                    return KApply(KLabel("Map:lookup"), KVariable("Init"), k);
+                    return KApply(KLabel(KLabels.MAP_LOOKUP), KVariable("Init"), k);
                 }
                 return k;
             }

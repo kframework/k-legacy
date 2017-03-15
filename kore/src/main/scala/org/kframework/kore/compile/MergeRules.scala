@@ -2,7 +2,7 @@ package org.kframework.kore.compile
 
 import org.kframework.attributes.Att
 import org.kframework.builtin.{KLabels, Sorts}
-import org.kframework.definition.{Module, Rule}
+import org.kframework.definition.{BasicModuleTransformer, Module, ModuleTransformer, Rule}
 import org.kframework.kore._
 
 import scala.collection.JavaConverters._
@@ -12,7 +12,7 @@ import collection._
 /**
   * Compiler pass for merging the rules as expected by FastRuleMatcher
   */
-class MergeRules(c: Constructors[K]) extends (Module => Module) {
+class MergeRules(c: Constructors[K]) extends BasicModuleTransformer {
 
   import c._
 
@@ -32,28 +32,27 @@ class MergeRules(c: Constructors[K]) extends (Module => Module) {
 
   val isRulePredicate = KLabel("isRule")
 
-  def apply(m: Module): Module = {
+  def process(m: Module, alreadyProcessedImports: Set[Module]): Module = {
     val topRules = m.rules filter {_.att.contains(Att.topRule)}
 
     if (topRules.nonEmpty) {
-
       val newBody = pushDisjunction(topRules map { r => (convertKRewriteToKApply(r.body), isRulePredicate(KToken(r.hashCode.toString, Sorts.K, Att()))) })(m)
       //      val newRequires = makeOr((topRules map whatever(_.requires) map { case (a, b) => and(a, b) }).toSeq: _*)
       //val automatonRule = Rule(newBody, newRequires, TrueToken, Att().add("automaton"))
       val automatonRule = Rule(newBody, TrueToken, TrueToken, Att().add("automaton"))
-      Module(m.name, m.imports, m.localSentences + automatonRule, m.att)
+      Module(m.name, alreadyProcessedImports, m.localSentences + automatonRule, m.att)
     } else {
       m
     }
   }
 
-  def convertKRewriteToKApply(k: K): K = k match {
+  private def convertKRewriteToKApply(k: K): K = k match {
     case Unapply.KApply(label, children) => label(children map convertKRewriteToKApply: _*)
     case Unapply.KRewrite(l, r) => KLabel(KLabels.KREWRITE)(l, r)
     case other => other
   }
 
-  def makeOr(ks: K*): K = {
+  private def makeOr(ks: K*): K = {
     if (ks.size == 1) {
       ks.head
     } else {
@@ -61,7 +60,7 @@ class MergeRules(c: Constructors[K]) extends (Module => Module) {
     }
   }
 
-  def pushDisjunction(terms: Set[(K, K)])(implicit m: Module): K = {
+  private def pushDisjunction(terms: Set[(K, K)])(implicit m: Module): K = {
     val rwLabel = KLabel(KLabels.KREWRITE)
 
     val termsWithoutRewrites: Set[(K, K)] = terms.map({
@@ -118,7 +117,7 @@ class MergeRules(c: Constructors[K]) extends (Module => Module) {
     }
   }
 
-  def isEffectiveAssoc(kLabel: KLabel, module: Module) : Boolean = {
+  private def isEffectiveAssoc(kLabel: KLabel, module: Module) : Boolean = {
     module.attributesFor.getOrElse(kLabel, Att()).contains(Att.assoc) && (!module.attributesFor.getOrElse(kLabel, Att()).contains(Att.comm) || module.attributesFor.getOrElse(kLabel, Att()).contains(Att.bag))
   }
 

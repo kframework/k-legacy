@@ -10,6 +10,7 @@ import org.kframework.backend.java.symbolic.JavaExecutionOptions;
 import org.kframework.backend.java.symbolic.SMTOperations;
 import org.kframework.backend.java.symbolic.Stage;
 import org.kframework.backend.java.util.Z3Wrapper;
+import org.kframework.kast.Kast;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.main.GlobalOptions;
@@ -23,13 +24,14 @@ import java.util.Map;
 
 public class GlobalContext implements Serializable {
     private Definition def;
+    private transient Kast kastParser = null;
     public final transient FileSystem fs;
     public final Stage stage;
     public final transient EqualityOperations equalityOps;
     public final transient SMTOperations constraintOps;
     public final transient KItemOperations kItemOps;
     public final transient KRunOptions krunOptions;
-    private final transient KExceptionManager kem;
+    public final transient KExceptionManager kem;
     private final transient Map<String, MethodHandle> hookProvider;
     public final transient FileUtil files;
     public final transient GlobalOptions globalOptions;
@@ -80,4 +82,11 @@ public class GlobalContext implements Serializable {
     public Definition getDefinition() {
         return def;
     }
+
+    public void setKastParser(Kast kastParser) {
+        this.kastParser = kastParser;
+    }
+
+    public Kast getKastParser() { return this.kastParser; }
+
 }

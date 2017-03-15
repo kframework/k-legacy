@@ -2,58 +2,38 @@
 
 package org.kframework.definition
 
-import java.util.function.BiFunction
-
 import org.kframework.attributes.{Location, Source}
 import org.kframework.definition
 import org.kframework.kore.K
 import org.kframework.utils.errorsystem.KEMException
+
 import collection.JavaConverters._
 import collection._
+import scala.collection.immutable.Stack
 
 object ModuleTransformer {
-  def fromSentenceTransformer(f: java.util.function.UnaryOperator[Sentence], name: String): MemoizingModuleTransformer =
-    new BasicModuleTransformer {
-      override protected def process(inputModule: Module, alreadyProcessedImports: Set[Module]): Module = {
-        Module(inputModule.name, alreadyProcessedImports, inputModule.localSentences.map(s => try {
-          f(s)
-        } catch {
-          case e: KEMException =>
-            if (e.exception.getLocation == null)
-              throw new KEMException(e.exception.copy(s.att.get(classOf[Location]).orNull))
-            else
-              throw e
-        }
-        ))
-      }
+  def fromSentenceTransformer(sentenceTransformer: Sentence => Sentence, passName: String): MemoizingModuleTransformer =
+    new SentenceBasedModuleTransformer {
+      override val name = passName
+      override def process(s: Sentence) = sentenceTransformer(s)
     }
 
-  def fromSentenceTransformer(f: (Module, Sentence) => Sentence, passName: String): HybridMemoizingModuleTransformer =
-    new HybridMemoizingModuleTransformer {
-      override def processHybridModule(m: Module): Module = {
-        val newSentences = m.localSentences map { s =>
-          try {
-            f(m, s)
-          } catch {
-            case e: KEMException =>
-              e.exception.addTraceFrame("while executing phase \"" + name + "\" on sentence at"
-                + "\n\t" + s.att.get(classOf[Source]).map(_.toString).getOrElse("<none>")
-                + "\n\t" + s.att.get(classOf[Location]).map(_.toString).getOrElse("<none>"))
-              throw e
-          }
-        }
-        if (newSentences != m.localSentences)
-          Module(m.name, m.imports, newSentences, m.att)
-        else
-          m
-      }
-      override val name: String = passName
+  def fromSentenceTransformer(sentenceTransformer: (Module, Sentence) => Sentence, passName: String): BasicModuleTransformer =
+    new SentenceBasedModuleTransformer {
+      override val name = passName
+      override def process(s: Sentence, inputModule: Module) = sentenceTransformer(inputModule, s)
     }
 
   def fromRuleBodyTranformer(f: K => K, name: String): MemoizingModuleTransformer =
-    fromSentenceTransformer(_ match { case r: Rule => r.copy(body = f(r.body)); case s => s }, name)
+    fromSentenceTransformer(_ match {
+      case r: Rule => r.copy(body = f(r.body));
+      case s => s
+    }, name)
 
-  def fromKTransformerWithModuleInfo(ff: Module => K => K, name: String): HybridMemoizingModuleTransformer =
+  def fromKTransformer(f: K => K, name: String): MemoizingModuleTransformer =
+    fromKTransformerWithModuleInfo((m: Module) => f, name)
+
+  def fromKTransformerWithModuleInfo(ff: Module => K => K, name: String): BasicModuleTransformer =
     fromSentenceTransformer((module, sentence) => {
       val f: K => K = ff(module)
       sentence match {
@@ -62,9 +42,6 @@ object ModuleTransformer {
         case o => o
       }
     }, name)
-
-  def fromKTransformer(f: K => K, name: String): HybridMemoizingModuleTransformer =
-    fromKTransformerWithModuleInfo((m: Module) => f, name)
 
   def fromHybrid(f: Module => Module, name: String): HybridMemoizingModuleTransformer = {
     val lName = name
@@ -97,22 +74,24 @@ abstract class ModuleTransformer extends (Module => Module) {
   * A module transformer with memoization
   */
 abstract class MemoizingModuleTransformer extends ModuleTransformer {
-  val memoization = collection.concurrent.TrieMap[Module, Module]()
-  val currentProcessedModules = new java.util.concurrent.LinkedBlockingDeque[Module]()
+  val memoization = mutable.Map[Module, Module]()
+  var currentProcessedModules = Stack[Module]()
 
-  override def apply(input: Module): Module = {
+  override def apply(input: Module): Module = this.synchronized {
     if (currentProcessedModules.contains(input))
-      throw new AssertionError("Found a cycle on: " + input.name + " with chain: " + currentProcessedModules.asScala.map(_.name).toList.reverse.mkString(" -> "))
-    currentProcessedModules.push(input)
+      throw new AssertionError("Found a cycle on: " + input.name + " with chain: " + currentProcessedModules.map(_.name).toList.reverse.mkString(" -> "))
+    currentProcessedModules = currentProcessedModules.push(input)
     val res = wrapExceptions(memoization.getOrElseUpdate(input, {processModule(input)}))
-    currentProcessedModules.pop()
+    currentProcessedModules = currentProcessedModules.pop
     res
   }
 
   protected def processModule(inputModule: Module): Module
-}
 
-abstract class AbstractMemoizingModuleTransformer extends MemoizingModuleTransformer
+  def lift = DefinitionTransformer(this)
+
+  def apply(d: Definition): Definition = lift(d)
+}
 
 /**
   * Marker trait for a ModuleTransformer having access to the entire original definition
@@ -125,7 +104,8 @@ trait WithInputDefinition {
   * The processHybridModule function take a module with all the imported modules already transformed,
   * and uses it to create the updated module.
   *
-  * Natural to use but a bit risky as the "hybrid" module may not be consistent.
+  * Natural to use but risky as the "hybrid" module may not be consistent. It is better not to use it as we might
+  * deprecate it in the future.
   */
 trait HybridModuleTransformer extends ModuleTransformer {
   def apply(input: Module): Module = wrapExceptions({
@@ -140,14 +120,42 @@ trait HybridModuleTransformer extends ModuleTransformer {
 }
 
 abstract class BasicModuleTransformer extends MemoizingModuleTransformer {
-  def processModule(input: Module): Module = wrapExceptions({
+  final def processModule(input: Module): Module = wrapExceptions({
     process(input, input.imports map this)
   })
 
   protected def process(inputModule: Module, alreadyProcessedImports: Set[Module]): Module
 }
 
-abstract class WithInputDefinitionModuleTransformer(inputDefinition: Definition) extends BasicModuleTransformer {
+/**
+  * Define a [[Module]] transformer by overriding any of the [[process]] methods.
+  * All other wiring (e.g., recursion over [[Module]]s is already handled by the class.
+  */
+abstract class SentenceBasedModuleTransformer extends BasicModuleTransformer {
+  def process(s: Sentence, inputModule: Module, alreadyProcessedModules: Set[Module]): Sentence = process(s, inputModule)
+
+  def process(s: Sentence, inputModule: Module): Sentence = process(s)
+
+  def process(s: Sentence): Sentence = s
+
+  override def process(inputModule: Module, alreadyProcessedImports: Set[Module]): Module = {
+    val newSentences = inputModule.localSentences map {
+      s =>
+        try {
+          process(s, inputModule, alreadyProcessedImports)
+        } catch {
+          case e: KEMException =>
+            e.exception.addTraceFrame("while executing phase \"" + name + "\" on sentence at"
+              + "\n\t" + s.att.get(classOf[Source]).map(_.toString).getOrElse("<none>")
+              + "\n\t" + s.att.get(classOf[Location]).map(_.toString).getOrElse("<none>"))
+            throw e
+        }
+    }
+    Module(inputModule.name, alreadyProcessedImports, newSentences, inputModule.att)
+  }
+}
+
+abstract class WithInputDefinitionModuleTransformer(val inputDefinition: Definition) extends BasicModuleTransformer {
   def apply(moduleName: String): Module = this (inputDefinition.getModule(moduleName).get)
   def outputDefinition = new DefinitionTransformer(this).apply(inputDefinition)
 }
@@ -177,7 +185,7 @@ object DefinitionTransformer {
 
   def fromHybrid(f: Module => Module, name: String): DefinitionTransformer = DefinitionTransformer(ModuleTransformer.fromHybrid(f, name))
 
-  def apply(f: HybridMemoizingModuleTransformer): DefinitionTransformer = new DefinitionTransformer(f)
+  def apply(f: MemoizingModuleTransformer): DefinitionTransformer = new DefinitionTransformer(f)
 
   def fromWithInputDefinitionTransformerClass(c: Class[_]): (Definition => Definition) = (d: Definition) => c.getConstructor(classOf[Definition]).newInstance(d).asInstanceOf[WithInputDefinitionModuleTransformer].outputDefinition
 

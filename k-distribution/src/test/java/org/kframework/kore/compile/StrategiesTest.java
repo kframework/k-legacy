@@ -6,11 +6,15 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 import org.kframework.attributes.Source;
 import org.kframework.builtin.BooleanUtils;
+import org.kframework.builtin.KLabels;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
+import org.kframework.kore.Assoc;
 import org.kframework.kore.K;
+import org.kframework.kore.KApply;
+import org.kframework.kore.KLabel;
 import org.kframework.kore.KORE;
-import org.kframework.kore.KVariable;
+import org.kframework.kore.Unapply;
 import org.kframework.main.GlobalOptions;
 import org.kframework.parser.ProductionReference;
 import org.kframework.rewriter.Rewriter;
@@ -19,15 +23,15 @@ import org.kframework.unparser.AddBrackets;
 import org.kframework.unparser.KOREToTreeNodes;
 import org.kframework.utils.KoreUtils;
 import org.kframework.utils.errorsystem.KExceptionManager;
+import scala.Some;
+import scala.Tuple2;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 
@@ -70,15 +74,22 @@ public class StrategiesTest {
 
         Rewriter rewriter = utils.getRewriter();
 
-        List<? extends Map<? extends KVariable, ? extends K>> searchResults = rewriter.search(kPgm, Optional.empty(), Optional.empty(),
+        K res = rewriter.search(kPgm, Optional.empty(), Optional.empty(),
                 new Rule(KORE.KVariable("X"), BooleanUtils.TRUE, BooleanUtils.TRUE, KORE.Att()),
-                SearchType.FINAL);
-
-        List<K> res = searchResults.stream().flatMap(m -> m.values().stream()).collect(Collectors.toList());
+                SearchType.FINAL, false);
+        Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = Unapply.KApply$.MODULE$.unapply((KApply) res);
         Module unparsingModule = utils.getUnparsingModule();
+        List<String> results = new ArrayList<>();
+        if (searchResults.get() != null && searchResults.get()._1().equals(KORE.KLabel(KLabels.ML_OR))) {
+            scala.collection.Seq<K> resultList = Assoc.flatten(KORE.KLabel(KLabels.ML_OR), searchResults.get()._2(), KORE.KLabel(KLabels.ML_FALSE));
+            resultList.foreach(x -> {
+                results.add(KOREToTreeNodes.toString(new AddBrackets(unparsingModule).addBrackets((ProductionReference) KOREToTreeNodes.apply(KOREToTreeNodes.up(unparsingModule, x), unparsingModule))));
+                return null;
+            });
+        }
 
-        Stream<String> sRes = res.stream().map(k -> KOREToTreeNodes.toString(new AddBrackets(unparsingModule).addBrackets((ProductionReference) KOREToTreeNodes.apply(KOREToTreeNodes.up(unparsingModule, k), unparsingModule))));
-        String actual = sRes.reduce("", (a, b) -> a + "\n" + b).trim();
+
+        String actual = results.stream().reduce("", (x, y) -> x.trim() + y);
 
         assertEquals("Execution failed", expected, actual);
     }

@@ -3,16 +3,12 @@
 package org.kframework
 
 import java.util
-
-import collection.JavaConverters._
+import java.util.function.{BiConsumer, BinaryOperator, Supplier}
 import java.util.stream.StreamSupport
-import scala.collection.mutable.Builder
-import scala.collection.mutable.ListBuffer
-import java.util.function.BiConsumer
-import java.util.function.BinaryOperator
-import java.util.function.Supplier
-import scala.collection.mutable.SetBuilder
-import collection._
+
+import scala.collection.JavaConverters._
+import scala.collection._
+import scala.collection.mutable.{Builder, ListBuffer, SetBuilder}
 
 object Collections {
   def asScalaFunc[U, V](f: Function[U, V]): (U => V) = f

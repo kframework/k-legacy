@@ -60,10 +60,12 @@ public class CompiledDefinition implements Serializable {
         this.programStartSymbol = configurationVariableDefaultSorts.getOrDefault("$PGM", Sorts.K());
         this.topCellInitializer = topCellInitializer;
         this.languageParsingModule = kompiledDefinition.getModule("LANGUAGE-PARSING").get();
+        this.cachedcompiledPatterns = new ConcurrentHashMap<>();
+        this.cachedParsedPatterns = new ConcurrentHashMap<>();
     }
 
     private void initializeConfigurationVariableDefaultSorts() {
-        // searching for #SemanticCastTo<Sort>(Map:lookup(_, #token(<VarName>, KConfigVar)))
+        // searching for #SemanticCastTo<Sort>(_Map_.lookup(_, #token(<VarName>, KConfigVar)))
         Collections.stream(parsedDefinition.mainModule().rules())
                 .forEach(r -> {
                     new VisitK() {
@@ -150,7 +152,7 @@ public class CompiledDefinition implements Serializable {
         ParseInModule parseInModule = RuleGrammarGenerator.getCombinedGrammar(module, kompileOptions.strict());
 
         return (BiFunction<String, Source, K> & Serializable) (s, source) -> {
-            Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>> res = parseInModule.parseString(s, programStartSymbol, source);
+            Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>> res = parseInModule.parseStringWithoutTypecheck(s, programStartSymbol, source);
             kem.addAllKException(res._2().stream().map(e -> e.getKException()).collect(Collectors.toSet()));
             if (res._1().isLeft()) {
                 throw res._1().left().get().iterator().next();

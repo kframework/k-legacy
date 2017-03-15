@@ -1,22 +1,10 @@
-Search results:
-
-Solution 1:
-Solution:Map@MAP -->
-L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) )
-
-Solution 2:
-Solution:Map@MAP -->
-L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( V1 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) , .Terms ) ) )
-
-Solution 3:
-Solution:Map@MAP -->
-L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( V1 , ( cons ( V1 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) , .Terms ) ) , .Terms ) ) )
-
-Solution 4:
-Solution:Map@MAP -->
-L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( nil , .Terms ) ) )
-
-Solution 5:
-Solution:Map@MAP -->
-L:Term@LOGIK-COMMON |-> nil
-
+Solution 1
+Solution ==K ( L:Term@LOGIK-COMMON |-> nil )
+Solution 2
+Solution ==K ( L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( nil , .Terms ) ) ) )
+Solution 3
+Solution ==K ( L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) ) )
+Solution 4
+Solution ==K ( L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( V1 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) , .Terms ) ) ) )
+Solution 5
+Solution ==K ( L:Term@LOGIK-COMMON |-> ( cons ( V0 , ( cons ( V1 , ( cons ( V1 , ( cons ( V0 , ( nil , .Terms ) ) , .Terms ) ) , .Terms ) ) , .Terms ) ) ) )

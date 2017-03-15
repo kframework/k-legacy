@@ -1,15 +1,20 @@
 // Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.builtins;
 
+import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.kil.BuiltinList;
 import org.kframework.backend.java.kil.KItem;
 import org.kframework.backend.java.kil.KLabelConstant;
 import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
+import org.kframework.kast.Kast;
+import org.kframework.kore.K;
 import org.kframework.krun.RunProcess;
 import org.kframework.krun.RunProcess.ProcessOutput;
 import org.kframework.krun.api.io.FileSystem;
+import org.kframework.utils.errorsystem.KEMException;
+import org.kframework.utils.errorsystem.KExceptionManager;
 
 import java.io.IOException;
 import java.nio.charset.CharacterCodingException;
@@ -108,7 +113,19 @@ public class BuiltinIOOperations {
     }
 
     public static Term parseInModule(StringToken input, StringToken startSymbol, StringToken moduleName, TermContext termContext) {
-        throw new RuntimeException("Not implemented!");
+        KExceptionManager kem = termContext.global().kem;
+        Kast kastParser = termContext.global().getKastParser();
+        if (kastParser == null) {
+            throw KEMException.criticalError("Kast parser is not provided in the term context");
+        }
+        K parseResult = kastParser.parseWithUserParserAndCache(input.stringValue(), "#parseInModule",
+                startSymbol.stringValue(), moduleName.stringValue(), kem);
+        KOREtoBackendKIL converter = termContext.getKOREtoBackendKILConverter();
+        if (converter == null) {
+            throw KEMException.criticalError("KOREtoBackendKIL converter is not provided in the term context");
+        }
+        Term result = converter.convert(parseResult);
+        return result;
     }
 
     public static Term system(StringToken term, TermContext termContext) {

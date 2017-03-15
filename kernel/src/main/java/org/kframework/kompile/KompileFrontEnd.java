@@ -1,13 +1,19 @@
 // Copyright (c) 2013-2016 K Team. All Rights Reserved.
 package org.kframework.kompile;
 
+import org.kframework.definition.Definition;
 import org.kframework.main.FrontEnd;
+import org.kframework.minikore.KoreToMini;
+import org.kframework.minikore.KoreToMiniToKore;
+import org.kframework.minikore.MiniToText;
+import org.kframework.minikore.MiniToTextToMini;
+import org.kframework.parser.UserParser;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.file.JarInfo;
+import org.kframework.utils.inject.DefinitionLoadingModule;
 
 public class KompileFrontEnd extends FrontEnd {
 
@@ -44,13 +50,51 @@ public class KompileFrontEnd extends FrontEnd {
         }
 
         Kompile kompile = new Kompile(options, files, kem, sw);
-        CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps());
-        loader.saveOrDie(files.resolveKompiled("compiled.bin"), def);
-        koreBackend.accept(def);
-        loader.saveOrDie(files.resolveKompiled("timestamp"), "");
+        //CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps());
+        Definition parsedDef = kompile.parseDefinition(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files));
+        ParserGenerator generator = new ParserGenerator(options, parsedDef);
+        CompiledDefinition compiledDef = kompile.compile(parsedDef, koreBackend.steps());
+
+        saveKompileMetaInfo(generator);
+        saveParser(generator);
+        save(compiledDef);
+        koreBackend.accept(compiledDef);
+        loader.saveOrDie(files.resolveKompiled(FileUtil.TIMESTAMP), "");
         sw.printIntermediate("Save to disk");
         sw.printTotal("Total");
         return 0;
+    }
+
+    public void saveKompileMetaInfo(ParserGenerator generator) {
+        KompileMetaInfo info = new KompileMetaInfo(generator.mainSyntaxModuleName(), generator.configurationVariableDefaultSorts);
+        files.saveToKompiled(FileUtil.KOMPILE_META_INFO_TXT, info.serialize());
+    }
+
+    public void saveParser(ParserGenerator generator) {
+        String mainSyntaxModuleName = generator.mainSyntaxModuleName();
+        //Save default parser (main syntax module)
+        UserParser parser = generator.getParser(mainSyntaxModuleName, kem);
+        String modulePath = FileUtil.moduleDerivedParserPath(mainSyntaxModuleName);
+        loader.saveOrDie(files.resolveKompiled(modulePath), parser);
+        // Save parser generator
+        loader.saveOrDie(files.resolveKompiled(FileUtil.PARSER_GENERATOR_BIN), generator);
+    }
+
+    // NOTE: should be matched with org.kframework.utils.inject.DefinitionLoadingModule.koreDefinition()
+    public void save(CompiledDefinition def) {
+        files.saveToKompiled(FileUtil.KORE_TXT, MiniToText.apply(KoreToMini.apply(def.kompiledDefinition)));
+        // loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN), def.kompiledDefinition); // deprecated
+        loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN), def.kompileOptions);
+        loader.saveOrDie(files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN), def.getParsedDefinition());
+        loader.saveOrDie(files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN), def.topCellInitializer);
+        // saveTest(def);
+    }
+
+    // for serialization/deserialization test
+    public void saveTest(CompiledDefinition def) {
+        KoreToMiniToKore.apply(def.kompiledDefinition);
+        KoreToMiniToKore.apply(def.getParsedDefinition());
+        MiniToTextToMini.assertequal(KoreToMini.apply(def.kompiledDefinition), DefinitionLoadingModule.parseKore(files));
     }
 }
 

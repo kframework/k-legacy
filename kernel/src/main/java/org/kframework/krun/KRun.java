@@ -1,28 +1,33 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.krun;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
-//import org.kframework.backend.java.symbolic.InitializeRewriter;
-//import org.kframework.backend.java.symbolic.JavaExecutionOptions;
+import org.kframework.builtin.KLabels;
 import org.kframework.builtin.Sorts;
 import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
+import org.kframework.definition.ProcessedDefinition;
 import org.kframework.definition.Rule;
+import org.kframework.kast.Kast;
 import org.kframework.kompile.CompiledDefinition;
-import org.kframework.kompile.KompileOptions;
+import org.kframework.kompile.KompileMetaInfo;
+import org.kframework.kore.Assoc;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
+import org.kframework.kore.KLabel;
+import org.kframework.kore.KORE;
 import org.kframework.kore.KToken;
 import org.kframework.kore.KVariable;
 import org.kframework.kore.Sort;
+import org.kframework.kore.Unapply.KApply$;
 import org.kframework.kore.VisitK;
 import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
-import org.kframework.krun.api.io.FileSystem;
-import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import org.kframework.krun.modes.ExecutionMode;
-import org.kframework.main.GlobalOptions;
+import org.kframework.minikore.KoreToMini;
+import org.kframework.minikore.MiniKore;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.binary.BinaryParser;
 import org.kframework.parser.kore.KoreParser;
@@ -37,16 +42,15 @@ import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.file.FileUtil;
+import scala.Some;
 import scala.Tuple2;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.invoke.MethodHandle;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -76,44 +80,47 @@ public class KRun {
         this.isNailgun = isNailgun;
     }
 
-    public int run(CompiledDefinition compiledDef, KRunOptions options, Function<Module, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
+
+    public int run(KompileMetaInfo kompileMetaInfo, CompiledDefinition compiledDef, ProcessedDefinition processedDefinition, KRunOptions options, Function<Pair<Module, MiniKore.Definition>, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
         String pgmFileName = options.configurationCreation.pgm();
         K program;
+        MiniKore.Pattern miniKoreProgram;
         if (options.configurationCreation.term()) {
-            program = externalParse(options.configurationCreation.parser(compiledDef.executionModule().name()),
-                    pgmFileName, compiledDef.programStartSymbol, Source.apply("<parameters>"), compiledDef, files);
+            program = parse(options.configurationCreation.parser(compiledDef.executionModule().name()),
+                    pgmFileName, KORE.Sort(kompileMetaInfo.programStartSymbol), Source.apply("<parameters>"), compiledDef.mainSyntaxModuleName(), files);
         } else {
-            program = parseConfigVars(options, compiledDef, kem, files, ttyStdin, isNailgun, null);
+            program = parseConfigVars(options, kompileMetaInfo, compiledDef, kem, files, ttyStdin, isNailgun, null);
         }
 
         program = new KTokenVariablesToTrueVariables()
                 .apply(compiledDef.kompiledDefinition.getModule(compiledDef.mainSyntaxModuleName()).get(), program);
 
+        miniKoreProgram = KoreToMini.apply(program);
 
-        Rewriter rewriter = rewriterGenerator.apply(compiledDef.executionModule());
+        //Todo: This is probably problematic. The first module in the definition is not guaranteed to be the main module.
+        Rewriter rewriter = rewriterGenerator.apply(Pair.of(compiledDef.executionModule(), processedDefinition.definition));
 
         Object result = executionMode.execute(program, rewriter, compiledDef);
 
+
         if (result instanceof K) {
-            prettyPrint(compiledDef, options.output, s -> outputFile(s, options), (K) result);
+            printK((K) result, options, compiledDef);
             if (options.exitCodePattern != null) {
                 Rule exitCodePattern = compilePattern(files, kem, options.exitCodePattern, options, compiledDef, Source.apply("<command line: --exit-code>"));
-                List<? extends Map<? extends KVariable, ? extends K>> res = rewriter.match((K) result, exitCodePattern);
+                K res = rewriter.match((K) result, exitCodePattern);
                 return getExitCode(kem, res);
             }
         } else if (result instanceof Tuple2) {
             Tuple2<?, ?> tuple = (Tuple2<?, ?>) result;
+
+            if (tuple._1() instanceof RewriterResult && tuple._2() instanceof K) {
+                printK((K) tuple._2(), options, compiledDef);
+            }
+
             if (tuple._1() instanceof K && tuple._2() instanceof Integer) {
-                prettyPrint(compiledDef, options.output, s -> outputFile(s, options), (K) tuple._1());
+                printK((K) tuple._1(), options, compiledDef);
                 return (Integer) tuple._2();
             }
-            if (tuple._1() instanceof SearchResult && tuple._2() instanceof Integer) {
-                printSearchResult((SearchResult) tuple._1(), options, compiledDef);
-                return (Integer) tuple._2();
-            }
-        } else if (result instanceof SearchResult) {
-            printSearchResult((SearchResult) result, options, compiledDef);
-            return 0;
         } else if (options.experimental.prove != null) {
             if (((List) result).isEmpty()) {
                 System.out.println("true");
@@ -124,30 +131,87 @@ public class KRun {
         return 0;
     }
 
-    private void printSearchResult(SearchResult result, KRunOptions options, CompiledDefinition compiledDef) {
-        Set<Map<? extends KVariable, ? extends K>> searchResult = ((SearchResult) result).getSearchList().stream()
-                .map(subst -> filterAnonymousVariables(subst, result.getParsedRule()))
-                .collect(Collectors.toSet());
-        outputFile("Search results:\n\n", options);
-        if (searchResult.isEmpty()) {
-            outputFile("No search results \n", options);
-        }
-        int i = 1;
-        List<String> results = new ArrayList<>();
-        for (Map<? extends KVariable, ? extends K> substitution : searchResult) {
-            ByteArrayOutputStream sb = new ByteArrayOutputStream();
-            prettyPrintSubstitution(substitution, result.getParsedRule(), compiledDef, options.output, v -> sb.write(v, 0, v.length));
-            //Note that this is actually unsafe, but we are here assuming that --search is not used with --output binary
-            results.add(new String(sb.toByteArray()));
-        }
-        Collections.sort(results);
+    private StringBuilder filterAnonVarsAndPrint(K result, Set<String> filterSet, CompiledDefinition compiledDef, KRunOptions options) {
         StringBuilder sb = new StringBuilder();
-        for (String solution : results) {
-            sb.append("Solution ").append(i++).append(":\n");
-            sb.append(solution);
-            sb.append("\n");
+        ByteArrayOutputStream bs = new ByteArrayOutputStream();
+        if (result instanceof KApply && ((KApply) result).klabel().toString().equals(KLabels.ML_AND)) {
+            List<K> conjunctions = mutable(Assoc.flatten(KLabel(KLabels.ML_AND), immutable(((KApply) result).items()), KLabel(KLabels.ML_TRUE)));
+            conjunctions = conjunctions.stream().filter(x -> {
+                if ((options.pattern != null) && x instanceof KApply && ((KApply) x).klabel().name().equals(KLabels.EQUALS)) {
+                    K var = ((KApply) x).klist().items().get(0);
+                    if (var instanceof KVariable) {
+                        return filterSet.contains(((KVariable) var).name());
+                    }
+                }
+                return true;
+            }).collect(Collectors.toList());
+            conjunctions.sort(Comparator.comparing(K::toString));
+            if (conjunctions.size() > 1) {
+                conjunctions.subList(0, conjunctions.size() - 1).forEach(x -> {
+                    prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), x);
+                    sb.append(new String(bs.toByteArray()));
+                    sb.append(" " + KLabels.ML_AND + " ");
+                });
+            }
+            if (!conjunctions.isEmpty()) {
+                bs.reset();
+                prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), conjunctions.get(conjunctions.size() - 1));
+                sb.append(new String(bs.toByteArray()));
+            }
+            return sb;
+        } else {
+            prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), result);
+            sb.append(new String(bs.toByteArray()));
+            return sb;
         }
-        outputFile(sb.toString(), options);
+    }
+
+    private Set<String> getPatternVariableNames(KRunOptions options, CompiledDefinition compiledDef) {
+        Set<String> patternVariablesNames = new HashSet<>();
+        if (options.pattern != null) {
+            new VisitK() {
+                @Override
+                public void apply(KVariable k) {
+                    patternVariablesNames.add(k.name());
+                    super.apply(k);
+                }
+            }.apply(parsePattern(files, kem, options.pattern, compiledDef, Source.apply("<command line: --pattern>")).body());
+        }
+        return patternVariablesNames;
+    }
+
+
+    public void printK(K result, KRunOptions options, CompiledDefinition compiledDef) {
+        Set<String> patternVariables = getPatternVariableNames(options, compiledDef);
+        StringBuilder sb = new StringBuilder();
+        if (result instanceof KApply && ((KApply) result).klabel().equals(KLabel(KLabels.ML_OR))) {
+            List<K> resultList = Assoc.flatten(KLabel(KLabels.ML_OR), ((KApply) result).items(), KLabel(KLabels.ML_FALSE))
+                    .stream().sorted(Comparator.comparing(K::toString)).collect(Collectors.toList());
+            Set<String> observedResults = new HashSet<>();
+            if (resultList.size() == 0) {
+                sb.append("No Search Results\n");
+            } else {
+                int index = 1;
+                for (int i = 0; i < resultList.size(); ++i) {
+                    String conjunctString = filterAnonVarsAndPrint(resultList.get(i), patternVariables, compiledDef, options).toString();
+                    if (!(conjunctString.trim().isEmpty()) && !observedResults.contains(conjunctString)) {
+                        sb.append("Solution " + index++ + "\n");
+                        sb.append(conjunctString);
+                        observedResults.add(conjunctString);
+                    }
+                }
+                if (index == 1) {
+                    sb.append("No Search Results\n");
+                }
+            }
+            outputFile(sb.toString(), options);
+            return;
+        }
+        if (result instanceof KApply && ((KApply) result).klabel().name().equals(KLabels.ML_FALSE)) {
+            outputFile("No Search Results\n", options);
+            return;
+        }
+        outputFile(filterAnonVarsAndPrint(result, patternVariables, compiledDef, options).toString(), options);
     }
 
     /**
@@ -157,23 +221,29 @@ public class KRun {
      * @param res The substitution from the match of the user specified pattern on the Final Configuration.
      * @return An int representing the error code.
      */
-    public static int getExitCode(KExceptionManager kem, List<? extends Map<? extends KVariable, ? extends K>> res) {
-        if (res.size() != 1) {
-            kem.registerCriticalWarning("Found " + res.size() + " solutions to exit code pattern. Returning 112.");
+    public static int getExitCode(KExceptionManager kem, K res) {
+        Some<Tuple2<KLabel, scala.collection.immutable.List<K>>> searchResults = KApply$.MODULE$.unapply((KApply) res);
+        scala.collection.Seq<K> flatList = Assoc.flatten(KORE.KLabel(KLabels.OR), searchResults.get()._2(), KLabel(KLabels.ML_FALSE));
+        if (flatList.size() != 2) {
+            kem.registerCriticalWarning("Found " + flatList.size() + " solutions to exit code pattern. Returning 112.");
             return 112;
         }
-        Map<? extends KVariable, ? extends K> solution = res.get(0);
+        K solution = flatList.apply(1);
         Set<Integer> vars = new HashSet<>();
-        for (K t : solution.values()) {
-            // TODO(andreistefanescu): fix Token.sort() to return a kore.Sort that obeys kore.Sort's equality contract.
-            if (t instanceof KToken && Sorts.Int().equals(((KToken) t).sort())) {
-                try {
-                    vars.add(Integer.valueOf(((KToken) t).s()));
-                } catch (NumberFormatException e) {
-                    throw KEMException.criticalError("Exit code found was not in the range of an integer. Found: " + ((KToken) t).s(), e);
+        new VisitK() {
+            @Override
+            public void apply(KToken t) {
+                if (Sorts.Int().equals(t.sort())) {
+                    try {
+                        vars.add(Integer.valueOf(t.s()));
+                    } catch (NumberFormatException e) {
+                        throw KEMException.criticalError("Exit code found was not in the range of an integer. Found: " + t.s(), e);
+                    }
                 }
+
             }
-        }
+        }.apply(solution);
+
         if (vars.size() != 1) {
             kem.registerCriticalWarning("Found " + vars.size() + " integer variables in exit code pattern. Returning 111.");
             return 111;
@@ -250,73 +320,24 @@ public class KRun {
         }
     }
 
-    /**
-     * Given a substitution, represented by a map of KVariables to K, print the substitution. The printing follows the following format:
-     * If Pattern is represented by a single variable, then entire substitution is printed without the pattern, else
-     * variable is printed, followed by -->, and then the substitution corresponding K.
-     *
-     * @param subst         A Map from KVariables to K representing the result of a match of a pattern on a configuration.
-     * @param parsedPattern The parsed (not compiled) pattern object. The parsed pattern is used to
-     *                      weed out variables not defined in the original string pattern by the user.
-     * @param outputModes   The output mode represented by the user.
-     * @param print         A consumer function that is called with the result of the unparsing process. The consumer must accept a String.
-     */
-    public static void prettyPrintSubstitution(Map<? extends KVariable, ? extends K> subst,
-                                               Rule parsedPattern, CompiledDefinition compiledDefinition,
-                                               OutputModes outputModes,
-                                               Consumer<byte[]> print) {
-        if(subst.isEmpty()) {
-            print.accept("Empty substitution\n".getBytes());
-        } else {
-            subst.entrySet().forEach(e -> {
-                if (parsedPattern.body() instanceof KVariable) {
-                    assert e.getKey().name().equals(parsedPattern.body().toString());
-                    prettyPrint(compiledDefinition, outputModes, print, e.getValue());
-                    return;
-                }
-                print.accept(e.getKey().toString().getBytes());
-                print.accept(" -->\n".getBytes());
-                prettyPrint(compiledDefinition, outputModes, print, e.getValue());
-            });
-        }
-    }
-
-    /**
-     * Returns a new substitution containing only the keys occurring in the pattern.
-     */
-    public static Map<KVariable, K> filterAnonymousVariables(Map<? extends KVariable, ? extends K> substitution, Rule parsedPattern) {
-        List<String> varList = new ArrayList<>();
-        new VisitK() {
-            @Override
-            public void apply(KVariable k) {
-                /* Not Observing reflexivity Rule requires comparison by name */
-                varList.add(k.name());
-                super.apply(k);
-            }
-        }.apply(parsedPattern.body());
-
-        return substitution.entrySet().stream()
-                .filter(e -> varList.contains(e.getKey().name()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
-    public static Map<KToken,K> getUserConfigVarsMap(KRunOptions options, CompiledDefinition compiledDef, FileUtil files) {
-        Map<KToken,K> output = new HashMap<>();
+    public Map<KToken, K> getUserConfigVarsMap(KRunOptions options, KompileMetaInfo kompileMetaInfo,
+                                               CompiledDefinition compiledDef, FileUtil files) {
+        Map<KToken, K> output = new HashMap<>();
         for (Map.Entry<String, Pair<String, String>> entry
                 : options.configurationCreation.configVars(compiledDef.getParsedDefinition().mainModule().name()).entrySet()) {
             String name = entry.getKey();
             String value = entry.getValue().getLeft();
             String parser = entry.getValue().getRight();
-            Sort sort = compiledDef.configurationVariableDefaultSorts.get("$" + name);
-            assert sort != null: "Could not find configuration variable: $" + name;
-            K configVar = externalParse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), compiledDef, files);
+            Sort sort = KORE.Sort(kompileMetaInfo.configVarDefaultSort.get("$" + name));
+            assert sort != null : "Could not find configuration variable: $" + name;
+            K configVar = parse(parser, value, sort, Source.apply("<command line: -c" + name + ">"), kompileMetaInfo.mainSyntaxModuleName, files);
             output.put(KToken("$" + name, Sorts.KConfigVar()), configVar);
         }
         return output;
     }
 
-    public static Map<KToken,K> getIOConfigVarsMap(boolean realIO, boolean ttyStdin, boolean isNailgun) {
-        Map<KToken,K> output = new HashMap<>();
+    public static Map<KToken, K> getIOConfigVarsMap(boolean realIO, boolean ttyStdin, boolean isNailgun) {
+        Map<KToken, K> output = new HashMap<>();
         if (realIO) {
             output.put(KToken("$STDIN", Sorts.KConfigVar()), KToken("\"\"", Sorts.String()));
             output.put(KToken("$IO", Sorts.KConfigVar()), KToken("\"on\"", Sorts.String()));
@@ -328,16 +349,17 @@ public class KRun {
         return output;
     }
 
-    public static Map<KToken,K> getPGMConfigVarsMap(K pgm) {
-        Map<KToken,K> output = new HashMap<>();
+    public static Map<KToken, K> getPGMConfigVarsMap(K pgm) {
+        Map<KToken, K> output = new HashMap<>();
         if (pgm != null) {
             output.put(KToken("$PGM", Sorts.KConfigVar()), pgm);
         }
         return output;
     }
 
-    public static K parseConfigVars(KRunOptions options, CompiledDefinition compiledDef, KExceptionManager kem, FileUtil files, boolean ttyStdin, boolean isNailgun, K pgm) {
-        Map<KToken,K> output = getUserConfigVarsMap(options, compiledDef, files);
+    public K parseConfigVars(KRunOptions options, KompileMetaInfo kompileMetaInfo, CompiledDefinition compiledDef,
+                             KExceptionManager kem, FileUtil files, boolean ttyStdin, boolean isNailgun, K pgm) {
+        Map<KToken, K> output = getUserConfigVarsMap(options, kompileMetaInfo, compiledDef, files);
         return getInitConfig(pgm, output, compiledDef, kem, options.io(), ttyStdin, isNailgun);
     }
 
@@ -345,12 +367,12 @@ public class KRun {
         return getInitConfig(pgm, new HashMap<>(), compiledDef, kem, true, true, false);
     }
 
-    public static K getInitConfig(K pgm, Map<KToken,K> outputUser, CompiledDefinition compiledDef, KExceptionManager kem,
+    public static K getInitConfig(K pgm, Map<KToken, K> outputUser, CompiledDefinition compiledDef, KExceptionManager kem,
                                   boolean realIO, boolean ttyStdin, boolean isNailgun) {
-        Map<KToken,K> outputIO = getIOConfigVarsMap(realIO, ttyStdin, isNailgun);
-        Map<KToken,K> outputPGM = getPGMConfigVarsMap(pgm);
+        Map<KToken, K> outputIO = getIOConfigVarsMap(realIO, ttyStdin, isNailgun);
+        Map<KToken, K> outputPGM = getPGMConfigVarsMap(pgm);
 
-        Map<KToken,K> output = new HashMap<>();
+        Map<KToken, K> output = new HashMap<>();
         output.putAll(outputUser);
         output.putAll(outputIO);
         output.putAll(outputPGM);
@@ -409,24 +431,34 @@ public class KRun {
                         KOREToTreeNodes.apply(KOREToTreeNodes.up(test, input), test)));
     }
 
-    public static K externalParse(String parser, String value, Sort startSymbol, Source source, CompiledDefinition compiledDef, FileUtil files) {
-        List<String> tokens = new ArrayList<>(Arrays.asList(parser.split(" ")));
-        tokens.add(value);
-        Map<String, String> environment = new HashMap<>();
-        environment.put("KRUN_SORT", startSymbol.name());
-        environment.put("KRUN_COMPILED_DEF", files.resolveDefinitionDirectory(".").getAbsolutePath());
-        RunProcess.ProcessOutput output = RunProcess.execute(environment, files.getProcessBuilder(), tokens.toArray(new String[tokens.size()]));
-
-        if (output.exitCode != 0) {
-            throw new ParseFailedException(new KException(KException.ExceptionType.ERROR, KException.KExceptionGroup.CRITICAL, "Parser returned a non-zero exit code: "
-                    + output.exitCode + "\nStdout:\n" + new String(output.stdout) + "\nStderr:\n" + new String(output.stderr)));
-        }
-
-        byte[] kast = output.stdout != null ? output.stdout : new byte[0];
-        if (BinaryParser.isBinaryKast(kast)) {
-            return BinaryParser.parse(kast);
+    public K parse(String parser, String value, Sort startSymbol, Source source, String mainSyntaxModuleName, FileUtil files) {
+        /*
+        if(parser.endsWith("k/bin/kast")) {
+            return compiledDef.getProgramParser(kem).apply(FileUtil.read(files.readFromWorkingDirectory(value)), source);
+        }*/
+        if(parser == null) {
+            String toParse = FileUtil.read(files.readFromWorkingDirectory(value));
+            return Kast.parseWithModuleParser(toParse, source, startSymbol, mainSyntaxModuleName, files, this.kem);
         } else {
-            return KoreParser.parse(new String(kast), source);
+            // ToDo(Yi): Update this branch when kast interface is nailed down.
+            List<String> tokens = new ArrayList<>(Arrays.asList(parser.split(" ")));
+            tokens.add(value);
+            Map<String, String> environment = new HashMap<>();
+            environment.put("KRUN_SORT", startSymbol.name());
+            environment.put("KRUN_COMPILED_DEF", files.resolveDefinitionDirectory(".").getAbsolutePath());
+            RunProcess.ProcessOutput output = RunProcess.execute(environment, files.getProcessBuilder(), tokens.toArray(new String[tokens.size()]));
+
+            if (output.exitCode != 0) {
+                throw new ParseFailedException(new KException(KException.ExceptionType.ERROR, KException.KExceptionGroup.CRITICAL, "Parser returned a non-zero exit code: "
+                        + output.exitCode + "\nStdout:\n" + new String(output.stdout) + "\nStderr:\n" + new String(output.stderr)));
+            }
+
+            byte[] kast = output.stdout != null ? output.stdout : new byte[0];
+            if (BinaryParser.isBinaryKast(kast)) {
+                return BinaryParser.parse(kast);
+            } else {
+                return KoreParser.parse(new String(kast), source);
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.krun.modes.DebugMode;
 
+import org.kframework.krun.KRunOptions;
 import org.kframework.unparser.OutputModes;
 import org.kframework.debugger.DebuggerMatchResult;
 import org.kframework.debugger.DebuggerState;
@@ -302,18 +303,7 @@ public class Commands {
             if (disableOutput) {
                 return;
             }
-            if (result.getSubstitutions().isEmpty()) {
-                System.out.println("No Substitutions");
-                return;
-            }
-            result.getSubstitutions().forEach(subst -> {
-                KRun.prettyPrintSubstitution(
-                        KRun.filterAnonymousVariables(subst, result.getParsedRule()),
-                        result.getParsedRule(),
-                        compiledDefinition,
-                        OutputModes.PRETTY,
-                        new CommandUtils(false)::print);
-            });
+            KRun.prettyPrint(compiledDefinition, OutputModes.PRETTY, s -> System.out.println(s), result.getSubstitutions());
         }
 
         private void print(byte[] bytes){
