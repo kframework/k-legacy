@@ -634,7 +634,10 @@ public class FastRuleMatcher {
         Map<Term, Term> remainingEntries = new HashMap<>();
         Map<Term, Term> otherRemainingEntries = new HashMap<>();
         for (Term key : commonKeys) {
-            match(entries.get(key), otherEntries.get(key), ruleMask, path);
+            ruleMask = match(entries.get(key), otherEntries.get(key), ruleMask, path);
+            if (ruleMask.isEmpty()) {
+                return ruleMask;
+            }
         }
         for (Term key : entries.keySet()) {
             if (!commonKeys.contains(key)) {
