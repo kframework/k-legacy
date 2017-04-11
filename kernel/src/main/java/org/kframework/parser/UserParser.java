@@ -13,5 +13,5 @@ public interface UserParser extends Serializable {
      * @param startSymbol the program start symbol (non-terminal)
      * @return an object of ParseResult which includes the K ast and the warnings during the parsing.
      */
-    public ParseResult parse(String toParse, String fromSource, String startSymbol);
+    public ParseResult parse(String toParse, String fromSource, String startSymbol, boolean keepAmb);
 }

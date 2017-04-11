@@ -78,26 +78,26 @@ public class ParseInModule implements Serializable {
 
     /**
      * Parse as input the given string and start symbol using the module stored in the object.
-     * All type checks for terms and variables are validated.
+     * All type checks for terms and variables are validated. Discard extra ambiguities by choosing the first.
      * @param input          the string to parse.
      * @param startSymbol    the start symbol from which to parse.
      * @return the Term representation of the parsed input.
      */
     public Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>>
             parseString(String input, Sort startSymbol, Source source) {
-        return parseString(input, startSymbol, source, 1, 1, true);
+        return parseString(input, startSymbol, source, 1, 1, true, false);
     }
 
     /**
      * Parse as input the given string and start symbol using the module stored in the object.
-     * All the type checks are omitted when parsing programs.
+     * All the type checks are omitted when parsing programs. Discard extra ambiguities by choosing the first.
      * @param input          the string to parse.
      * @param startSymbol    the start symbol from which to parse.
      * @return the Term representation of the parsed input.
      */
     public Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>>
-            parseStringWithoutTypecheck(String input, Sort startSymbol, Source source) {
-        return parseString(input, startSymbol, source, 1, 1, false);
+            parseStringWithoutTypecheck(String input, Sort startSymbol, Source source, boolean keepAmb) {
+        return parseString(input, startSymbol, source, 1, 1, false, keepAmb);
     }
 
     private void getGrammar() {
@@ -110,13 +110,13 @@ public class ParseInModule implements Serializable {
 
     public Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>>
             parseString(String input, Sort startSymbol, Source source, int startLine, int startColumn) {
-        return parseString(input, startSymbol, source, startLine, startColumn, true);
+        return parseString(input, startSymbol, source, startLine, startColumn, true, false);
     }
 
     private Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>>
-            parseString(String input, Sort startSymbol, Source source, int startLine, int startColumn, boolean typeCheck) {
+            parseString(String input, Sort startSymbol, Source source, int startLine, int startColumn, boolean typeCheck, boolean keepAmb) {
         final Tuple2<Either<Set<ParseFailedException>, Term>, Set<ParseFailedException>> result
-                = parseStringTerm(input, startSymbol, source, startLine, startColumn, typeCheck);
+                = parseStringTerm(input, startSymbol, source, startLine, startColumn, typeCheck, keepAmb);
         Either<Set<ParseFailedException>, K> parseInfo;
         if (result._1().isLeft()) {
             parseInfo = Left.apply(result._1().left().get());
@@ -141,7 +141,7 @@ public class ParseInModule implements Serializable {
      * @return
      */
     private Tuple2<Either<Set<ParseFailedException>, Term>, Set<ParseFailedException>>
-            parseStringTerm(String input, Sort startSymbol, Source source, int startLine, int startColumn, boolean typeCheck) {
+            parseStringTerm(String input, Sort startSymbol, Source source, int startLine, int startColumn, boolean typeCheck, boolean keepAmb) {
         getGrammar();
 
         Grammar.NonTerminal startSymbolNT = grammar.get(parsingModule.resolve(startSymbol).name());
@@ -190,11 +190,14 @@ public class ParseInModule implements Serializable {
         }
 
         Term rez3 = new PreferAvoidVisitor().apply(rez.right().get());
-        rez2 = new AmbFilter().apply(rez3);
-        warn = Sets.union(rez2._2(), warn);
-        rez2 = new AddEmptyLists(disambModule).apply(rez2._1().right().get());
-        warn = Sets.union(rez2._2(), warn);
-        rez3 = new RemoveBracketVisitor().apply(rez2._1().right().get());
+        if (!keepAmb) {
+            rez2 = new AmbFilter().apply(rez3);
+            warn = Sets.union(rez2._2(), warn);
+            rez2 = new AddEmptyLists(disambModule).apply(rez2._1().right().get());
+            warn = Sets.union(rez2._2(), warn);
+            rez3 = rez2._1().right().get();
+        }
+        rez3 = new RemoveBracketVisitor().apply(rez3);
 
         return new Tuple2<>(Right.apply(rez3), warn);
     }

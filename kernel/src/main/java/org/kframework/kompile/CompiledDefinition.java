@@ -152,7 +152,7 @@ public class CompiledDefinition implements Serializable {
         ParseInModule parseInModule = RuleGrammarGenerator.getCombinedGrammar(module, kompileOptions.strict());
 
         return (BiFunction<String, Source, K> & Serializable) (s, source) -> {
-            Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>> res = parseInModule.parseStringWithoutTypecheck(s, programStartSymbol, source);
+            Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>> res = parseInModule.parseStringWithoutTypecheck(s, programStartSymbol, source, false);
             kem.addAllKException(res._2().stream().map(e -> e.getKException()).collect(Collectors.toSet()));
             if (res._1().isLeft()) {
                 throw res._1().left().get().iterator().next();
