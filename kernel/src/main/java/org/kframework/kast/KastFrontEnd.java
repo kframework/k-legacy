@@ -57,7 +57,7 @@ public class KastFrontEnd extends FrontEnd {
             }
         }
         String moduleName = options.module == null ? kompileMetaInfo.mainSyntaxModuleName : options.module;
-        K parsed = Kast.parseWithModuleParser(FileUtil.read(stringToParse),source, sort, moduleName, files ,kem);
+        K parsed = Kast.parseWithModuleParser(FileUtil.read(stringToParse),source, sort, moduleName, files ,kem, options.keepAmb);
         System.out.println(ToKast.apply(parsed));
         sw.printTotal("Total");
         return 0;

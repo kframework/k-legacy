@@ -29,15 +29,15 @@ public class Kast {
     }
 
     public static K parseWithModuleParser(String toParse, Source source, Sort startSymbol, String moduleName,
-                                          FileUtil files, KExceptionManager kem) {
-        return parseWithModuleParser(toParse, source.source(), startSymbol.name(), moduleName, files, kem);
+                                          FileUtil files, KExceptionManager kem, boolean keepAmb) {
+        return parseWithModuleParser(toParse, source.source(), startSymbol.name(), moduleName, files, kem, keepAmb);
     }
 
     // This function is used for one-time parsing. If the corresponding parser object exists in the extra directory, the
     // function deserialize the object and use it to parse the text. If the parser object does not exist, the function
     // will load the parser generator to generate one and then parse the text.
     public static K parseWithModuleParser(String toParse, String source, String startSymbol, String moduleName,
-                                          FileUtil files, KExceptionManager kem) {
+                                          FileUtil files, KExceptionManager kem, boolean keepAmb) {
         String modulePath = files.moduleDerivedParserPath(moduleName);
         BinaryLoader loader = new BinaryLoader(kem);
         UserParser parser;
@@ -55,7 +55,7 @@ public class Kast {
             loader.saveOrDie(moduleFile, parser);
         }
 
-        ParseResult result = parser.parse(toParse, source, startSymbol);
+        ParseResult result = parser.parse(toParse, source, startSymbol, keepAmb);
         org.kframework.kore.Pattern ast = result.ast;
         kem.addAllKException(result.warnings.stream().map(e->e.getKException()).collect(Collectors.toSet()));
         return MiniToKore.apply(ast);
@@ -83,7 +83,7 @@ public class Kast {
             cachedParsers.put(moduleName, parser);
         }
 
-        ParseResult result = parser.parse(toParse, source, startSymbol);
+        ParseResult result = parser.parse(toParse, source, startSymbol, false);
         org.kframework.kore.Pattern ast = result.ast;
         kem.addAllKException(result.warnings.stream().map(e->e.getKException()).collect(Collectors.toSet()));
         return MiniToKore.apply(ast);
