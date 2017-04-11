@@ -21,11 +21,11 @@ public class ModuleDerivedParser implements UserParser {
         this.parseInModule = parseInModule;
     }
 
-    public ParseResult parse(String toParse, String fromSource, String startSymbol) {
+    public ParseResult parse(String toParse, String fromSource, String startSymbol, boolean keepAmb) {
         Sort startSymbolSort = KORE.Sort(startSymbol);
         Source source = Source.apply(fromSource);
         Tuple2<Either<Set<ParseFailedException>, K>, Set<ParseFailedException>> res =
-                parseInModule.parseStringWithoutTypecheck(toParse, startSymbolSort, source);
+                parseInModule.parseStringWithoutTypecheck(toParse, startSymbolSort, source, keepAmb);
         if (res._1().isLeft()) {
             throw res._1().left().get().iterator().next();
         }
