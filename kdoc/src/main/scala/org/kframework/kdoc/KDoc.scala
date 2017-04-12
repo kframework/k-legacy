@@ -13,6 +13,7 @@ import org.kframework.kore.Unapply.Sort
 import org.kframework.definition._
 import org.kframework.kore._
 import org.kframework.kore.Unapply._
+import org.kframework.legacykore.TransformK
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator
 
 class KDoc(docStyle: String, separator: String = " ") {

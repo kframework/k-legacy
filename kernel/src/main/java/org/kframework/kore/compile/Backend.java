@@ -3,7 +3,6 @@ package org.kframework.kore.compile;
 
 import org.kframework.definition.Definition;
 import org.kframework.kompile.CompiledDefinition;
-import org.kframework.kompile.Kompile;
 
 import java.util.function.Function;
 

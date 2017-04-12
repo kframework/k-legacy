@@ -3,7 +3,7 @@ package org.kframework.kore.compile;
 
 import org.kframework.builtin.KLabels;
 import org.kframework.kore.*;
-import org.kframework.kore.TransformK;
+import org.kframework.legacykore.TransformK;
 
 import static org.kframework.kore.KORE.*;
 

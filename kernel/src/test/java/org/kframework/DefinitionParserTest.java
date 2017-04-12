@@ -5,9 +5,7 @@ import org.junit.Test;
 import org.kframework.attributes.Att;
 import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
-import org.kframework.definition.Production;
 
-import static org.junit.Assert.*;
 import static org.kframework.Collections.*;
 import static org.kframework.kore.KORE.*;
 import static org.kframework.definition.Constructors.*;

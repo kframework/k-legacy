@@ -5,15 +5,9 @@ package org.kframework.kore.compile;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.kframework.attributes.Source;
-import org.kframework.builtin.BooleanUtils;
 import org.kframework.definition.Module;
-import org.kframework.definition.Rule;
 import org.kframework.kore.K;
-import org.kframework.kore.KORE;
-import org.kframework.kore.KVariable;
 import org.kframework.parser.ProductionReference;
-import org.kframework.rewriter.Rewriter;
-import org.kframework.rewriter.SearchType;
 import org.kframework.unparser.AddBrackets;
 import org.kframework.unparser.KOREToTreeNodes;
 import org.kframework.utils.KoreUtils;
@@ -21,11 +15,7 @@ import org.kframework.utils.KoreUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 

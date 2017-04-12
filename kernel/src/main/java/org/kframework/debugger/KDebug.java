@@ -4,11 +4,8 @@ package org.kframework.debugger;
 
 import org.kframework.definition.Rule;
 import org.kframework.kore.K;
-import org.kframework.kore.KVariable;
-import scala.Tuple2;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**

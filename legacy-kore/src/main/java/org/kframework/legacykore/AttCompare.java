@@ -1,7 +1,14 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
-package org.kframework.kore;
+package org.kframework.legacykore;
 
 import org.kframework.attributes.Att;
+import org.kframework.kore.InjectedKLabel;
+import org.kframework.kore.K;
+import org.kframework.kore.KApply;
+import org.kframework.kore.KRewrite;
+import org.kframework.kore.KSequence;
+import org.kframework.kore.KToken;
+import org.kframework.kore.KVariable;
 import scala.collection.Map;
 
 import java.util.Arrays;

@@ -16,6 +16,8 @@ import org.kframework.definition.Sentence;
 import org.kframework.definition.SyntaxSort;
 import org.kframework.kil.Attribute;
 import org.kframework.kore.*;
+import org.kframework.legacykore.TransformK;
+import org.kframework.legacykore.VisitK;
 import org.kframework.utils.StringUtil;
 import org.kframework.utils.errorsystem.KEMException;
 import scala.Option;

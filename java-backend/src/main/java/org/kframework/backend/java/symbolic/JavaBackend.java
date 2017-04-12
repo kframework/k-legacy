@@ -2,7 +2,6 @@
 package org.kframework.backend.java.symbolic;
 
 import org.kframework.AddConfigurationRecoveryFlags;
-import org.kframework.Collections;
 import org.kframework.KapiGlobal;
 import org.kframework.attributes.Att;
 import org.kframework.backend.Backends;
@@ -22,7 +21,7 @@ import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.ADT;
 import org.kframework.kore.Sort;
-import org.kframework.kore.VisitK;
+import org.kframework.legacykore.VisitK;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KORE;
@@ -38,7 +37,7 @@ import org.kframework.kore.compile.NormalizeAssoc;
 import org.kframework.kore.compile.ResolveAnonVar;
 import org.kframework.kore.compile.ResolveSemanticCasts;
 import org.kframework.kore.compile.RewriteToTop;
-import org.kframework.kore.TransformK;
+import org.kframework.legacykore.TransformK;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;

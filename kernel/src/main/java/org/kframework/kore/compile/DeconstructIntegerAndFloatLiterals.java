@@ -9,6 +9,8 @@ import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
 import org.kframework.kil.Attribute;
 import org.kframework.kore.*;
+import org.kframework.legacykore.TransformK;
+import org.kframework.legacykore.VisitK;
 
 import java.util.HashSet;
 import java.util.Optional;

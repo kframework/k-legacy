@@ -22,9 +22,7 @@ import org.kframework.definition.UserList;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.loader.Constants;
 import org.kframework.kore.Sort;
-import org.kframework.kore.convertors.KOREtoKIL;
 import org.kframework.parser.concrete2kore.ParseInModule;
-import scala.Option;
 import scala.collection.Seq;
 
 import java.util.HashSet;

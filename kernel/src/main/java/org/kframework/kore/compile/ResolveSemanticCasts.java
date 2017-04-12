@@ -8,6 +8,8 @@ import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
 import org.kframework.definition.SentenceBasedModuleTransformer;
 import org.kframework.kore.*;
+import org.kframework.legacykore.TransformK;
+import org.kframework.legacykore.VisitK;
 
 import java.util.HashMap;
 import java.util.HashSet;

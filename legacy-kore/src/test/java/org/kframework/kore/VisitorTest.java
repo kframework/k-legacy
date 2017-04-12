@@ -6,6 +6,7 @@ import static org.junit.Assert.*;
 import static org.kframework.kore.KORE.*;
 
 import org.junit.Test;
+import org.kframework.legacykore.TransformK;
 
 import java.util.List;
 import java.util.stream.Collectors;

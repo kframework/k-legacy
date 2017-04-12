@@ -10,7 +10,6 @@ import org.junit.rules.TestName;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
-import org.kframework.kompile.Kompile;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KLabel;
@@ -18,11 +17,9 @@ import org.kframework.parser.TreeNodesToKORE;
 import org.kframework.parser.concrete2kore.ParseInModule;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.utils.errorsystem.ParseFailedException;
-import org.kframework.utils.file.FileUtil;
 import scala.Tuple2;
 import scala.util.Either;
 
-import java.io.File;
 import java.util.Set;
 
 import static org.kframework.kore.KORE.*;

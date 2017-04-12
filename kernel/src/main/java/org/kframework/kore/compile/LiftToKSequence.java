@@ -5,6 +5,7 @@ import org.kframework.definition.Context;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
 import org.kframework.kore.*;
+import org.kframework.legacykore.TransformK;
 
 import java.util.ArrayList;
 import java.util.List;

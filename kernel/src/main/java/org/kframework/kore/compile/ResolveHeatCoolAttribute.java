@@ -7,9 +7,7 @@ import org.kframework.definition.Context;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
 import org.kframework.definition.SentenceBasedModuleTransformer;
-import org.kframework.kil.Attribute;
 import org.kframework.kil.Sort;
-import org.kframework.kompile.KompileOptions;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 

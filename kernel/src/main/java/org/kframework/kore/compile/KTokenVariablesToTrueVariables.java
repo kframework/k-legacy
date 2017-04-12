@@ -7,7 +7,7 @@ import org.kframework.definition.Module;
 import org.kframework.kore.K;
 import org.kframework.kore.KToken;
 import org.kframework.kore.SortedADT;
-import org.kframework.kore.TransformK;
+import org.kframework.legacykore.TransformK;
 import scala.Option;
 
 import java.util.function.BiFunction;

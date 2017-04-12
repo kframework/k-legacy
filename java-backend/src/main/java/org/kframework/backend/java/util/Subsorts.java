@@ -10,7 +10,6 @@ import org.kframework.backend.java.MiniKoreUtils;
 import org.kframework.backend.java.kil.Sort;
 import org.kframework.definition.Module;
 import org.kframework.kil.loader.Context;
-import org.kframework.minikore.implementation.MiniKore;
 import org.kframework.utils.errorsystem.KEMException;
 import scala.collection.JavaConversions;
 

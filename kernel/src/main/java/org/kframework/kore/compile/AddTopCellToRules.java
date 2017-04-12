@@ -10,13 +10,8 @@ import org.kframework.kil.Attribute;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KLabel;
-import org.kframework.kore.KList;
 import org.kframework.kore.KRewrite;
-import org.kframework.kore.Unapply;
 
-import java.util.List;
-import java.util.stream.Stream;
-import static org.kframework.definition.Constructors.*;
 import static org.kframework.kore.KORE.*;
 
 /**

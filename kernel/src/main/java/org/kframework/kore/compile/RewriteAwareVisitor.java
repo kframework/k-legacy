@@ -2,7 +2,7 @@
 package org.kframework.kore.compile;
 
 import org.kframework.kore.KRewrite;
-import org.kframework.kore.VisitK;
+import org.kframework.legacykore.VisitK;
 
 /**
  * A visitor designed to track whether we are currently in the left hand side or right hand side of a term.

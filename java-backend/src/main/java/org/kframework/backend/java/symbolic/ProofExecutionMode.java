@@ -24,7 +24,7 @@ import org.kframework.kore.KRewrite;
 import org.kframework.kore.KSequence;
 import org.kframework.kore.KToken;
 import org.kframework.kore.KVariable;
-import org.kframework.kore.TransformK;
+import org.kframework.legacykore.TransformK;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.main.GlobalOptions;

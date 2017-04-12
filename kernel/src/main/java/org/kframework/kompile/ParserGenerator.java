@@ -11,7 +11,7 @@ import org.kframework.kore.KApply;
 import org.kframework.kore.KORE;
 import org.kframework.kore.KToken;
 import org.kframework.kore.Sort;
-import org.kframework.kore.VisitK;
+import org.kframework.legacykore.VisitK;
 import org.kframework.parser.ModuleDerivedParser;
 import org.kframework.parser.UserParser;
 import org.kframework.parser.concrete2kore.ParseInModule;

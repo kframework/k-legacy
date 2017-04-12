@@ -15,8 +15,6 @@ import org.kframework.parser.TermCons;
 import org.kframework.utils.errorsystem.KEMException;
 import org.pcollections.ConsPStack;
 import scala.Tuple2;
-import scala.collection.Seq;
-import scala.collection.Set;
 
 import java.util.ArrayList;
 import java.util.EnumSet;

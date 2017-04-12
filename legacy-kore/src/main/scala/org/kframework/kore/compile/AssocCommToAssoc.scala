@@ -5,6 +5,7 @@ import org.kframework.attributes.Att
 import org.kframework.definition.{BasicModuleTransformer, Module, Rule, Sentence}
 import org.kframework.kore.SortedADT.SortedKVariable
 import org.kframework.kore._
+import org.kframework.legacykore.TransformK
 
 import collection.JavaConverters._
 import scala.collection.Set

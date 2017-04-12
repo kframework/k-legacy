@@ -8,15 +8,15 @@ import dk.brics.automaton.{BasicAutomata, RegExp, RunAutomaton, SpecialOperation
 import org.kframework.POSet
 import org.kframework.attributes.Att
 import org.kframework.definition.Constructors._
-import org.kframework.attributes.{Source, Location, Att}
+import org.kframework.attributes.{Att, Location, Source}
 import org.kframework.kore.SortedADT.SortedKVariable
 import org.kframework.kore.Unapply.{KApply, KLabel}
 import org.kframework.kore._
+import org.kframework.legacykore.TransformK
 import org.kframework.utils.errorsystem.KEMException
 
 import scala.annotation.meta.param
 import scala.collection.JavaConverters._
-
 import collection._
 import scala.collection.Set
 

@@ -4,7 +4,6 @@ package org.kframework.kore.compile;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.kframework.builtin.KLabels;
-import org.kframework.builtin.Labels;
 import org.kframework.builtin.Sorts;
 import org.kframework.compile.LabelInfo;
 import org.kframework.kore.*;
