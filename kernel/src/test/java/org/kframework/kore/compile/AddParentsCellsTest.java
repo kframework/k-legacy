@@ -12,6 +12,7 @@ import org.kframework.attributes.Att;
 import org.kframework.builtin.KLabels;
 import org.kframework.compile.ConfigurationInfo;
 import org.kframework.compile.LabelInfo;
+import org.kframework.kil.Attribute;
 import org.kframework.kore.*;
 import org.kframework.utils.errorsystem.KEMException;
 

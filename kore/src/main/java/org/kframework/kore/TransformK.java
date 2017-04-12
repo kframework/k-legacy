@@ -1,16 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
-package org.kframework.legacykore;
+package org.kframework.kore;
 
-import org.kframework.kore.AbstractKTransformer;
-import org.kframework.kore.InjectedKLabel;
-import org.kframework.kore.K;
-import org.kframework.kore.KApply;
-import org.kframework.kore.KLabel;
-import org.kframework.kore.KORE;
-import org.kframework.kore.KRewrite;
-import org.kframework.kore.KSequence;
-import org.kframework.kore.KToken;
-import org.kframework.kore.KVariable;
+import org.kframework.kore.*;
 
 import java.util.ArrayList;
 
@@ -32,7 +23,7 @@ public class TransformK extends AbstractKTransformer<K> {
             change = change || (in != out);
         }
         if (change) {
-            return KORE.KApply(apply(k.klabel()), KList(newItems), k.att());
+            return KApply(apply(k.klabel()), KList(newItems), k.att());
         } else {
             return k;
         }

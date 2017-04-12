@@ -4,7 +4,9 @@ package org.kframework.kore.compile;
 
 import org.junit.Test;
 import org.kframework.AbstractTest;
+import org.kframework.main.GlobalOptions;
 import org.kframework.utils.KoreUtils;
+import org.kframework.utils.errorsystem.KExceptionManager;
 
 import java.net.URISyntaxException;
 

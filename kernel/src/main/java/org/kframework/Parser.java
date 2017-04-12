@@ -11,7 +11,9 @@ import org.kframework.utils.errorsystem.ParseFailedException;
 import scala.Option;
 import scala.Tuple2;
 import scala.util.Either;
+import scala.util.control.Exception;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 

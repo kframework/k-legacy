@@ -1,7 +1,5 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
-package org.kframework.legacykore;
-
-import org.kframework.kore.AbstractFoldK;
+package org.kframework.kore;
 
 /**
  * Checks whether particular K pattern given as a visitor exists.

@@ -2,6 +2,7 @@
 package org.kframework.kore.compile;
 
 import org.kframework.builtin.KLabels;
+import org.kframework.builtin.Labels;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KLabel;

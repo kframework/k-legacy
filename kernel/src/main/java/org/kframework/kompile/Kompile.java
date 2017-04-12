@@ -21,7 +21,7 @@ import org.kframework.kore.KApply;
 import org.kframework.kore.KORE;
 import org.kframework.kore.KSequence;
 import org.kframework.kore.Sort;
-import org.kframework.legacykore.TransformK;
+import org.kframework.kore.TransformK;
 import org.kframework.kore.compile.AddImplicitComputationCell;
 import org.kframework.kore.compile.ConcretizeCells;
 import org.kframework.kore.compile.GenerateSortPredicateSyntax;

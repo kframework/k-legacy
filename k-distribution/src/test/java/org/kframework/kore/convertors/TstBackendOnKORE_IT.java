@@ -8,12 +8,15 @@ import org.kframework.AbstractTest;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Module;
 import org.kframework.kore.K;
+import org.kframework.main.GlobalOptions;
 import org.kframework.parser.ProductionReference;
 import org.kframework.unparser.AddBrackets;
 import org.kframework.unparser.KOREToTreeNodes;
 import org.kframework.utils.KoreUtils;
+import org.kframework.utils.errorsystem.KExceptionManager;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Optional;
 

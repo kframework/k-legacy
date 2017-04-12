@@ -23,7 +23,7 @@ import org.kframework.kore.KToken;
 import org.kframework.kore.KVariable;
 import org.kframework.kore.Sort;
 import org.kframework.kore.Unapply.KApply$;
-import org.kframework.legacykore.VisitK;
+import org.kframework.kore.VisitK;
 import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.minikore.converters.KoreToMini;

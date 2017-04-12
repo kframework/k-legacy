@@ -1,9 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 
-package org.kframework.legacykore;
+package org.kframework.kore;
 
-import org.kframework.kore.AbstractFoldK;
-import org.kframework.kore.K;
 import scala.collection.Set;
 import org.kframework.Collections;
 

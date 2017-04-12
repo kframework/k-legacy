@@ -4,6 +4,7 @@ package org.kframework.kore.compile;
 import org.kframework.attributes.Att;
 import org.kframework.compile.ConfigurationInfo;
 import org.kframework.compile.LabelInfo;
+import org.kframework.kil.Attribute;
 import org.kframework.kore.K;
 import org.kframework.kore.KApply;
 import org.kframework.kore.KLabel;

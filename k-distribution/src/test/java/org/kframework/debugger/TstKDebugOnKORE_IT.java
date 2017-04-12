@@ -9,6 +9,7 @@ import org.kframework.attributes.Source;
 import org.kframework.kore.K;
 import org.kframework.kore.compile.KtoKORE;
 import org.kframework.krun.KRunOptions;
+import org.kframework.main.GlobalOptions;
 import org.kframework.utils.KoreUtils;
 
 import java.io.IOException;

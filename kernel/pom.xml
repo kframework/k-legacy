@@ -16,7 +16,7 @@
   <dependencies>
     <dependency>
       <groupId>org.kframework.k</groupId>
-      <artifactId>legacy-kore</artifactId>
+      <artifactId>kore</artifactId>
       <version>${project.version}</version>
     </dependency>
 
