@@ -4,7 +4,7 @@ package org.kframework.utils.errorsystem;
 import org.kframework.attributes.Location;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Sentence;
-import org.kframework.kore.K;
+import org.kframework.legacykore.K;
 import org.kframework.parser.ProductionReference;
 import org.kframework.utils.errorsystem.KException.ExceptionType;
 import org.kframework.utils.errorsystem.KException.KExceptionGroup;

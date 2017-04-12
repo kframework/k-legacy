@@ -7,14 +7,12 @@ import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Rule;
 import org.kframework.kompile.CompiledDefinition;
-import org.kframework.kore.K;
-import org.kframework.kore.KVariable;
+import org.kframework.legacykore.K;
 import org.kframework.krun.KRun;
 import org.kframework.krun.KRunOptions;
 import org.kframework.rewriter.SearchType;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import scala.Tuple2;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -4,7 +4,7 @@ package org.kframework.definition
 
 import org.kframework.attributes.{Location, Source}
 import org.kframework.definition
-import org.kframework.kore.K
+import org.kframework.legacykore.K
 import org.kframework.utils.errorsystem.KEMException
 
 import collection.JavaConverters._

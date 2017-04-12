@@ -14,24 +14,24 @@ import org.kframework.definition.Rule;
 import org.kframework.kast.Kast;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.KompileMetaInfo;
-import org.kframework.kore.Assoc;
-import org.kframework.kore.K;
-import org.kframework.kore.KApply;
-import org.kframework.kore.KLabel;
-import org.kframework.kore.KORE;
-import org.kframework.kore.KToken;
-import org.kframework.kore.KVariable;
-import org.kframework.kore.Sort;
-import org.kframework.kore.Unapply.KApply$;
-import org.kframework.kore.VisitK;
-import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
+import org.kframework.legacykore.Assoc;
+import org.kframework.legacykore.K;
+import org.kframework.legacykore.KApply;
+import org.kframework.legacykore.KLabel;
+import org.kframework.legacykore.KORE;
+import org.kframework.legacykore.KToken;
+import org.kframework.legacykore.KVariable;
+import org.kframework.legacykore.Sort;
+import org.kframework.legacykore.Unapply.KApply$;
+import org.kframework.legacykore.VisitK;
+import org.kframework.legacykore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.minikore.converters.KoreToMini;
 import org.kframework.minikore.implementation.MiniKore;
 import org.kframework.minikore.interfaces.pattern;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.binary.BinaryParser;
-import org.kframework.parser.kore.KoreParser;
+import org.kframework.parser.legacykore.KoreParser;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.unparser.AddBrackets;
 import org.kframework.unparser.KOREToTreeNodes;
@@ -62,7 +62,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.kframework.Collections.*;
-import static org.kframework.kore.KORE.*;
+import static org.kframework.legacykore.KORE.*;
 
 /**
  * The KORE-based KRun

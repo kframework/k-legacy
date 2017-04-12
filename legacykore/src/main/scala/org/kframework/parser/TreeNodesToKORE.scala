@@ -4,16 +4,16 @@ import java.util
 
 import org.kframework.attributes._
 import org.kframework.builtin.Sorts
-import org.kframework.kore
-import org.kframework.kore.Unapply._
-import org.kframework.kore.{Constructors => con, _}
+import org.kframework.legacykore
+import org.kframework.legacykore.Unapply._
+import org.kframework.legacykore.{Constructors => con, _}
 import org.kframework.meta.Up
 
 import scala.collection.JavaConverters._
 
 object TreeNodesToKORE {
 
-  import org.kframework.kore.KORE._
+  import org.kframework.legacykore.KORE._
 
   def apply(t: Term): K = t match {
     case c@Constant(s, p) => KToken(s, p.sort, locationToAtt(c.location.get(), c.source.get()))
@@ -25,7 +25,7 @@ object TreeNodesToKORE {
     case t@KToken(s, sort) if sort == Sorts.KVariable =>
       KVariable(s.trim, t.att)
 
-    case t: kore.KToken => t
+    case t: legacykore.KToken => t
 
     case t@KApply(KLabel("#KSequence"), items) =>
       KSequence(downList(items).asJava, t.att)

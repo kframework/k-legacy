@@ -1,7 +1,7 @@
 // Copyright (c) 2015 K Team. All Rights Reserved.
 package org.kframework.builtin
 
-import org.kframework.kore.{Constructors, K}
+import org.kframework.legacykore.{Constructors, K}
 
 class Labels[KK <: K](cons: Constructors[KK]) {
   import cons._

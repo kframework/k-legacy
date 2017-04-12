@@ -1,7 +1,7 @@
 package org.kframework.tinyimplementation
 
 import org.kframework.definition._
-import org.kframework.kore._
+import org.kframework.legacykore._
 import org.kframework.meta.{Down, Up}
 
 class TestMeta {
@@ -17,7 +17,7 @@ class TestMeta {
     "org.kframework.kore.ADT$",
     "org.kframework.attributes")))
 
-  import org.kframework.kore.KORE._
+  import org.kframework.legacykore.KORE._
 
   @Test def simple() {
     //    assertEquals(1: K, up(1))

@@ -22,7 +22,7 @@ import org.kframework.kil.Attribute;
 import org.kframework.kil.Attributes;
 import org.kframework.kil.DataStructureSort;
 import org.kframework.kil.loader.Context;
-import org.kframework.kore.convertors.KOREtoKIL;
+import org.kframework.legacykore.convertors.KOREtoKIL;
 import org.kframework.minikore.implementation.MiniKore;
 import org.kframework.minikore.interfaces.pattern.Pattern;
 import org.kframework.utils.errorsystem.KEMException;

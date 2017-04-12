@@ -1,14 +1,14 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.builtin;
 
-import org.kframework.kore.K;
-import org.kframework.kore.KApply;
-import org.kframework.kore.KToken;
+import org.kframework.legacykore.K;
+import org.kframework.legacykore.KApply;
+import org.kframework.legacykore.KToken;
 
-import static org.kframework.kore.KORE.KApply;
-import static org.kframework.kore.KORE.KLabel;
-import static org.kframework.kore.KORE.KToken;
-import static org.kframework.kore.KORE.Sort;
+import static org.kframework.legacykore.KORE.KApply;
+import static org.kframework.legacykore.KORE.KLabel;
+import static org.kframework.legacykore.KORE.KToken;
+import static org.kframework.legacykore.KORE.Sort;
 
 /**
  * Created by dwightguth on 4/17/15.

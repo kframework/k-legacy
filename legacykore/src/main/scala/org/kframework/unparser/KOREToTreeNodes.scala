@@ -3,7 +3,7 @@ package org.kframework.unparser
 import org.kframework.attributes.{Location, Source}
 import org.kframework.builtin.Sorts
 import org.kframework.definition._
-import org.kframework.kore.{KApply, KToken, KVariable, _}
+import org.kframework.legacykore.{KApply, KToken, KVariable, _}
 import org.kframework.parser.{Constant, Term, TermCons}
 import org.pcollections.ConsPStack
 
@@ -12,7 +12,7 @@ import JavaConverters._
 
 object KOREToTreeNodes {
 
-  import org.kframework.kore.KORE._
+  import org.kframework.legacykore.KORE._
 
   def apply(t: K, mod: Module): Term = t match {
     case t: KToken => Constant(t.s, mod.tokenProductionsFor(Sort(t.sort.name)).head, t.att.getOptional[Location]("Location"), t.att.getOptional[Source]("Source"))
@@ -55,10 +55,10 @@ object KOREToTreeNodes {
         }
         case RegexTerminal(_, _, _) => throw new AssertionError("Unimplemented yet")
       }
-        
+
       unparsedItems.mkString(" ")
 
-      //TODO: Recover this code to enable format attribute (in PRETTY output mode).      
+      //TODO: Recover this code to enable format attribute (in PRETTY output mode).
       /*if (p.att.contains("format")) {
         p.att.get[String]("format").get.format(unparsedItems: _*)
       } else {

@@ -18,7 +18,7 @@ import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
 import org.kframework.kast.Kast;
 import org.kframework.kil.Attribute;
-import org.kframework.kore.K;
+import org.kframework.legacykore.K;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.KRunState;
 import org.kframework.krun.api.io.FileSystem;

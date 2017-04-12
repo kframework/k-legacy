@@ -2,9 +2,9 @@ package org.kframework.meta
 
 import org.kframework.attributes._
 import org.kframework.builtin.Sorts
-import org.kframework.kore.{K, KLabel, Unapply}
-import org.kframework.kore.Unapply._
-import org.kframework.kore.KORE.Sort
+import org.kframework.legacykore.{K, KLabel, Unapply}
+import org.kframework.legacykore.Unapply._
+import org.kframework.legacykore.KORE.Sort
 
 import scala.util.Try
 import collection._

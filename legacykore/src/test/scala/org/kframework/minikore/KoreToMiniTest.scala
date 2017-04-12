@@ -5,8 +5,8 @@ import org.junit.Test
 import org.kframework.attributes.Att
 import org.kframework.definition
 import org.kframework.definition.{ModuleName, NonTerminal}
-import org.kframework.kore.ADT
-import org.kframework.kore.SortedADT.SortedKVariable
+import org.kframework.legacykore.ADT
+import org.kframework.legacykore.SortedADT.SortedKVariable
 import org.kframework.minikore.converters.KoreToMini._
 import org.kframework.minikore.implementation.MiniKore._
 import org.kframework.minikore.interfaces.pattern.{Symbol, Sort}

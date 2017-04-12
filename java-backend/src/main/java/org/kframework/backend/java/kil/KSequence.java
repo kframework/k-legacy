@@ -7,7 +7,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.kil.ASTNode;
-import org.kframework.kore.K;
+import org.kframework.legacykore.K;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +29,7 @@ import java.util.List;
  * @author AndreiS
  */
 @SuppressWarnings("serial")
-public class KSequence extends KCollection implements org.kframework.kore.KSequence {
+public class KSequence extends KCollection implements org.kframework.legacykore.KSequence {
 
     private static final String SEPARATOR_NAME = " ~> ";
     private static final String IDENTITY_NAME = "." + Kind.K;

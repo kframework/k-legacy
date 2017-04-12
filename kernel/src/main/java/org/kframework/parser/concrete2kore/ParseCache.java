@@ -2,7 +2,7 @@
 package org.kframework.parser.concrete2kore;
 
 import org.kframework.definition.Module;
-import org.kframework.kore.K;
+import org.kframework.legacykore.K;
 import org.kframework.utils.errorsystem.ParseFailedException;
 
 import java.io.Serializable;

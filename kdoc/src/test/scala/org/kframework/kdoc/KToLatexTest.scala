@@ -5,8 +5,8 @@ import org.junit.Assert._
 import org.kframework.Collections._
 import org.kframework.Parser
 import org.kframework.definition.{NonTerminal, Production, Terminal, Module}
-import org.kframework.kore.KORE.Sort
-import org.kframework.kore.Sort
+import org.kframework.legacykore.KORE.Sort
+import org.kframework.legacykore.Sort
 import org.kframework.attributes.Att
 
 

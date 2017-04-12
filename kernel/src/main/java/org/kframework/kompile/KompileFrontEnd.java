@@ -20,7 +20,7 @@ public class KompileFrontEnd extends FrontEnd {
 
 
     private final KompileOptions options;
-    private final org.kframework.kore.compile.Backend koreBackend;
+    private final org.kframework.legacykore.compile.Backend koreBackend;
     private final Stopwatch sw;
     private final KExceptionManager kem;
     private final BinaryLoader loader;
@@ -28,7 +28,7 @@ public class KompileFrontEnd extends FrontEnd {
 
     public KompileFrontEnd(
             KompileOptions options,
-            org.kframework.kore.compile.Backend koreBackend,
+            org.kframework.legacykore.compile.Backend koreBackend,
             Stopwatch sw,
             KExceptionManager kem,
             BinaryLoader loader,

@@ -1,18 +1,18 @@
 package org.kframework.kdoc
 
 import org.kframework.{DefinitionParser, Kompiler, Parser}
-import org.kframework.kore.KApply
-import org.kframework.kore.KLabel
-import org.kframework.kore.KORE._
-import org.kframework.kore.KToken
-import org.kframework.kore.Sort
-import org.kframework.kore.Unapply.KApply
-import org.kframework.kore.Unapply.KLabel
-import org.kframework.kore.Unapply.KToken
-import org.kframework.kore.Unapply.Sort
+import org.kframework.legacykore.KApply
+import org.kframework.legacykore.KLabel
+import org.kframework.legacykore.KORE._
+import org.kframework.legacykore.KToken
+import org.kframework.legacykore.Sort
+import org.kframework.legacykore.Unapply.KApply
+import org.kframework.legacykore.Unapply.KLabel
+import org.kframework.legacykore.Unapply.KToken
+import org.kframework.legacykore.Unapply.Sort
 import org.kframework.definition._
-import org.kframework.kore._
-import org.kframework.kore.Unapply._
+import org.kframework.legacykore._
+import org.kframework.legacykore.Unapply._
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator
 
 class KDoc(docStyle: String, separator: String = " ") {

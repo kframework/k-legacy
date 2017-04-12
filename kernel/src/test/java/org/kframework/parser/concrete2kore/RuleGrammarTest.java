@@ -13,9 +13,9 @@ import org.kframework.definition.Module;
 import org.kframework.definition.ModuleName;
 import org.kframework.definition.RegexTerminal;
 import org.kframework.kompile.DefinitionParsing;
-import org.kframework.kore.K;
-import org.kframework.kore.Sort;
-import org.kframework.kore.convertors.KILtoKORE;
+import org.kframework.legacykore.K;
+import org.kframework.legacykore.Sort;
+import org.kframework.legacykore.convertors.KILtoKORE;
 import org.kframework.main.GlobalOptions;
 import org.kframework.main.GlobalOptions.Warnings;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
@@ -26,7 +26,7 @@ import scala.util.Either;
 
 import java.util.Set;
 
-import static org.kframework.kore.KORE.*;
+import static org.kframework.legacykore.KORE.*;
 
 public class RuleGrammarTest {
     private final static Sort startSymbol = DefinitionParsing.START_SYMBOL;

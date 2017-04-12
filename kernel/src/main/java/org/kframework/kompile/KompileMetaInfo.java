@@ -3,7 +3,7 @@ package org.kframework.kompile;
 
 import com.google.gson.Gson;
 import org.kframework.builtin.Sorts;
-import org.kframework.kore.Sort;
+import org.kframework.legacykore.Sort;
 
 import java.util.HashMap;
 import java.util.Map;

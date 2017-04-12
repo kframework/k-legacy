@@ -21,7 +21,7 @@ import org.kframework.backend.java.kil.TermContext;
 import org.kframework.backend.java.kil.Token;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.builtin.KLabels;
-import org.kframework.kore.KApply;
+import org.kframework.legacykore.KApply;
 import org.kframework.utils.BitSet;
 
 import static org.kframework.Collections.*;

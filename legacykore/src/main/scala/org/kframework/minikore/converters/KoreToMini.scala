@@ -1,8 +1,8 @@
 package org.kframework.minikore.converters
 
-import org.kframework.kore.SortedADT.SortedKVariable
-import org.kframework.kore.Unapply._
-import org.kframework.kore._
+import org.kframework.legacykore.SortedADT.SortedKVariable
+import org.kframework.legacykore.Unapply._
+import org.kframework.legacykore._
 import org.kframework.minikore.implementation.DefaultBuilders
 import org.kframework.minikore.interfaces.build.Builders
 import org.kframework.minikore.implementation.MiniKore.{Attributes, Axiom, Definition, Import, Module, Rule, Sentence, SortDeclaration, SymbolDeclaration}

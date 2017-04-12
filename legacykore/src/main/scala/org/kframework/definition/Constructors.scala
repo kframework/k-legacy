@@ -4,7 +4,7 @@ package org.kframework.definition
 
 import org.kframework.attributes.Att
 import org.kframework.{attributes, definition}
-import org.kframework.kore._
+import org.kframework.legacykore._
 import collection._
 
 /**

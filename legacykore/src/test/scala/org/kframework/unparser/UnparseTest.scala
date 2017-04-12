@@ -2,8 +2,8 @@ package org.kframework.unparser
 
 import org.junit.{Assert, Test}
 import org.kframework.attributes.Att
-import org.kframework.kore.ADT
-import org.kframework.kore.KORE._
+import org.kframework.legacykore.ADT
+import org.kframework.legacykore.KORE._
 
 class UnparseTest {
   @Test def Token() {

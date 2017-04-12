@@ -5,11 +5,9 @@ import org.kframework.attributes.Att;
 import org.kframework.builtin.KLabels;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
-import org.kframework.kore.ExistsK;
-import org.kframework.kore.KApply;
-import org.kframework.kore.KORE;
-import org.kframework.kore.KVariable;
-import scala.Function1;
+import org.kframework.legacykore.ExistsK;
+import org.kframework.legacykore.KApply;
+import org.kframework.legacykore.KVariable;
 
 import java.util.function.UnaryOperator;
 

@@ -3,7 +3,7 @@ package org.kframework.definition;
 
 import org.kframework.Collections;
 import org.kframework.attributes.Att;
-import org.kframework.kore.Sort;
+import org.kframework.legacykore.Sort;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

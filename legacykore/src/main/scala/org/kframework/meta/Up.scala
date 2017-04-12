@@ -3,12 +3,12 @@ package org.kframework.meta
 import org.kframework.attributes._
 import org.kframework.builtin.Sorts
 import org.kframework.definition.Associativity
-import org.kframework.kore._
+import org.kframework.legacykore._
 import collection.JavaConverters._
-import org.kframework.kore
+import org.kframework.legacykore
 import collection._
 
-class Up[K <: kore.K](cons: Constructors[K] with ScalaSugared[K], imports: Set[String]) extends (Any => K) {
+class Up[K <: legacykore.K](cons: Constructors[K] with ScalaSugared[K], imports: Set[String]) extends (Any => K) {
 
   import cons._
 

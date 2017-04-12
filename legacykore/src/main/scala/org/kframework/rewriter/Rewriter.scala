@@ -3,7 +3,7 @@ package org.kframework.rewriter
 import java.util.Optional
 
 import org.kframework.definition.{Module, Rule}
-import org.kframework.{RewriterResult, kore}
+import org.kframework.{RewriterResult, legacykore}
 
 trait RewriterConstructor extends (Module => Rewriter)
 
@@ -20,10 +20,10 @@ trait Rewriter {
    * - for symbolic execution, it can return any formula with symbolic constraints
    * - for search, it returns an Or with multiple ground terms as children
    */
-  def execute(k: kore.K, depth: Optional[Integer]): RewriterResult
+  def execute(k: legacykore.K, depth: Optional[Integer]): RewriterResult
 
 
-  def `match`(k: kore.K, rule: Rule): kore.K
+  def `match`(k: legacykore.K, rule: Rule): legacykore.K
 
 
   /**
@@ -34,9 +34,9 @@ trait Rewriter {
    * @param pattern The rule (pattern + side condition) that we're trying to find a substitution for.
    * @return A list of substitutions, denoting all the configurations matching the given rule.
    */
-  def search(initialConfiguration: kore.K, depth: Optional[Integer], bound: Optional[Integer], pattern: Rule, searchType: SearchType, resultsAsSubstitution:Boolean): kore.K
+  def search(initialConfiguration: legacykore.K, depth: Optional[Integer], bound: Optional[Integer], pattern: Rule, searchType: SearchType, resultsAsSubstitution:Boolean): legacykore.K
 
-  def executeAndMatch(k: kore.K, depth: Optional[Integer], rule: Rule): Tuple2[RewriterResult, kore.K]
+  def executeAndMatch(k: legacykore.K, depth: Optional[Integer], rule: Rule): Tuple2[RewriterResult, legacykore.K]
 
-  def prove(rules: java.util.List[Rule]): java.util.List[kore.K]
+  def prove(rules: java.util.List[Rule]): java.util.List[legacykore.K]
 }

@@ -1,10 +1,10 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.compile;
 
-import org.kframework.kore.K;
-import org.kframework.kore.KApply;
-import org.kframework.kore.KLabel;
-import org.kframework.kore.Sort;
+import org.kframework.legacykore.K;
+import org.kframework.legacykore.KApply;
+import org.kframework.legacykore.KLabel;
+import org.kframework.legacykore.Sort;
 import scala.Option;
 
 import java.util.List;

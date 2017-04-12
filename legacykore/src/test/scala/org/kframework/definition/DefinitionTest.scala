@@ -3,7 +3,7 @@ package org.kframework.definition
 import org.junit.Test
 import org.junit.Assert._
 import org.kframework.attributes.Att
-import org.kframework.kore.ADT._
+import org.kframework.legacykore.ADT._
 import org.kframework.utils.errorsystem.KEMException
 import collection._
 

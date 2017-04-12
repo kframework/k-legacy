@@ -4,13 +4,13 @@ import java.util
 
 import org.kframework.POSet
 import org.kframework.builtin.Sorts
-import org.kframework.kore.KORE.{KLabel, KApply}
+import org.kframework.legacykore.KORE.{KLabel, KApply}
 
 import scala.collection.JavaConverters._
 
 import org.kframework.compile.ConfigurationInfo.Multiplicity
 import org.kframework.definition.{Rule, Module, NonTerminal, Production}
-import org.kframework.kore._
+import org.kframework.legacykore._
 import org.kframework.TopologicalSort._
 import collection._
 

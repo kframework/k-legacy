@@ -2,9 +2,9 @@
 
 package org.kframework.definition
 
-import org.kframework.kore._
+import org.kframework.legacykore._
 import org.kframework.attributes._
-import org.kframework.kore.{KORE => con}
+import org.kframework.legacykore.{KORE => con}
 
 case class Configuration(body: K, ensures: K, att: Att = Att()) extends SemanticSentence with OuterKORE {
 

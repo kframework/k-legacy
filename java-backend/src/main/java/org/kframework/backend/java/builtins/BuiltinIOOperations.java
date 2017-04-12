@@ -9,7 +9,7 @@ import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
 import org.kframework.kast.Kast;
-import org.kframework.kore.K;
+import org.kframework.legacykore.K;
 import org.kframework.krun.RunProcess;
 import org.kframework.krun.RunProcess.ProcessOutput;
 import org.kframework.krun.api.io.FileSystem;

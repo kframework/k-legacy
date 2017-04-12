@@ -86,7 +86,7 @@ public class DefinitionLoadingModule {
         org.kframework.definition.Definition kompiledDefinition = MiniToKore.apply(parseKore(files));
         KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN));
         org.kframework.definition.Definition parsedDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN));
-        org.kframework.kore.KLabel topCellInitializer = loader.loadOrDie(org.kframework.kore.KLabel.class, files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN));
+        org.kframework.legacykore.KLabel topCellInitializer = loader.loadOrDie(org.kframework.legacykore.KLabel.class, files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN));
         return new CompiledDefinition(kompileOptions, parsedDefinition, kompiledDefinition, topCellInitializer);
     }
 

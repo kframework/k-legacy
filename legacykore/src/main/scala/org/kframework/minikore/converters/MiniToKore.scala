@@ -1,7 +1,7 @@
 package org.kframework.minikore.converters
 
-import org.kframework.kore.SortedADT.SortedKVariable
-import org.kframework.kore.{KORE, _}
+import org.kframework.legacykore.SortedADT.SortedKVariable
+import org.kframework.legacykore.{KORE, _}
 import org.kframework.minikore.implementation.MiniKore.{Definition, Module, SymbolDeclaration, SortDeclaration, Import, Rule, Axiom, Sentence, Attributes}
 import org.kframework.minikore.interfaces.pattern._
 import org.kframework.{attributes, definition}
