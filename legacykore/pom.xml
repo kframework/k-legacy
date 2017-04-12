@@ -9,10 +9,10 @@
     <version>4.0.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <artifactId>kore</artifactId>
+  <artifactId>legacykore</artifactId>
   <packaging>jar</packaging>
 
-  <name>K Framework KORE</name>
+  <name>K Framework Legacy KORE</name>
 
   <dependencies>
     <dependency>
