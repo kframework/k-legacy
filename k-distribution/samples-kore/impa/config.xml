@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2016 K Team. All Rights Reserved. -->
+<tests>
+    <test definition="imp.k"
+          extension="imp"
+          programs="."
+          results="."
+          skip="pdf" >
+      <program name="1.imp">
+        <krun-option name="--prove" value="1_spec.k" />
+        <krun-option name="--smt_prelude" value="../../include/z3/basic.smt2" />
+        <krun-option name="--z3-executable" />
+      </program>
+      <program name="2.imp">
+        <krun-option name="--prove" value="2_spec.k" />
+        <krun-option name="--smt_prelude" value="../../include/z3/basic.smt2" />
+        <krun-option name="--z3-executable" />
+      </program>
+    </test>
+</tests>
