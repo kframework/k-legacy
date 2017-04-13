@@ -42,6 +42,7 @@ import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import org.kframework.main.GlobalOptions;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.rewriter.Rewriter;
+import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
@@ -206,11 +207,11 @@ public class Kapi {
      * compiledDef1: for symbolic execution
      * compiledDef2: for symbolic execution
      */
-    public static void kequiv(CompiledDefinition compiledDef0, CompiledDefinition compiledDef1, CompiledDefinition compiledDef2, String proofFile1, String proofFile2, String prelude) {
+    public static void kequiv(CompiledDefinition compiledDef0, CompiledDefinition compiledDef1, CompiledDefinition compiledDef2, BinaryLoader loader, File def1File, File def2File, String proofFile1, String proofFile2, String prelude) {
 
         GlobalContext global = getGlobal(compiledDef0);
-        Info info1 = getInfo(compiledDef1, proofFile1, prelude);
-        Info info2 = getInfo(compiledDef2, proofFile2, prelude);
+        Info info1 = getInfo(compiledDef1, loader, def1File, proofFile1, prelude);
+        Info info2 = getInfo(compiledDef2, loader, def2File, proofFile2, prelude);
 
         java.util.List<ConjunctiveFormula> startEnsures = new ArrayList<>();
         assert info1.startEnsures.size() == info2.startEnsures.size();
@@ -294,7 +295,7 @@ public class Kapi {
         }
     }
 
-    public static Info getInfo(CompiledDefinition compiledDef, String proofFile, String prelude) {
+    public static Info getInfo(CompiledDefinition compiledDef, BinaryLoader loader, File defFile, String proofFile, String prelude) {
 
         GlobalOptions globalOptions = new GlobalOptions();
         KompileOptions kompileOptions = new KompileOptions();
@@ -320,8 +321,14 @@ public class Kapi {
 
         //// parse spec file
 
-        Kompile kompile = new Kompile(kompileOptions, globalOptions, files, kem, sw, false);
-        Module specModule = kompile.parseModule(compiledDef, files.resolveWorkingDirectory(proofFile).getAbsoluteFile());
+        Module specModule;
+        try {
+            specModule = loader.loadOrDie(Module.class, new File(defFile, "parser.bin"));
+        } catch (Exception e) {
+            Kompile kompile = new Kompile(kompileOptions, globalOptions, files, kem, sw, true);
+            specModule = kompile.parseModule(compiledDef, files.resolveWorkingDirectory(proofFile).getAbsoluteFile());
+            loader.saveOrDie(new File(defFile, "parser.bin"), specModule);
+        }
 
         scala.collection.Set<Module> alsoIncluded = Stream.of("K-TERM", "K-REFLECTION", RuleGrammarGenerator.ID_PROGRAM_PARSING)
                 .map(mod -> compiledDef.getParsedDefinition().getModule(mod).get())

@@ -401,7 +401,7 @@ public class Main {
             CompiledDefinition compiledDef2 = DefinitionLoadingModule.koreDefinition(loader, new FileUtil(null, null, null, def2File, null, null));
 
             // kequiv
-            Kapi.kequiv(compiledDef0, compiledDef1, compiledDef2, prove1, prove2, prelude);
+            Kapi.kequiv(compiledDef0, compiledDef1, compiledDef2, loader, def1File, def2File, prove1, prove2, prelude);
 
             return 0;
         }
