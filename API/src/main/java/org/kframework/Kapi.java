@@ -44,6 +44,7 @@ import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
+import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.options.SMTOptions;
@@ -324,7 +325,7 @@ public class Kapi {
         Module specModule;
         try {
             specModule = loader.loadOrDie(Module.class, new File(defFile, "parser.bin"));
-        } catch (Exception e) {
+        } catch (KEMException e) {
             Kompile kompile = new Kompile(kompileOptions, globalOptions, files, kem, sw, true);
             specModule = kompile.parseModule(compiledDef, files.resolveWorkingDirectory(proofFile).getAbsoluteFile());
             loader.saveOrDie(new File(defFile, "parser.bin"), specModule);
