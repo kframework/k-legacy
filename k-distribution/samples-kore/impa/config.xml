@@ -6,6 +6,7 @@
           programs="."
           results="."
           skip="pdf" >
+      <kompile-option name="--syntax-module" value="IMP" />
       <program name="1.imp">
         <krun-option name="--prove" value="1_spec.k" />
         <krun-option name="--smt_prelude" value="../../include/z3/basic.smt2" />
