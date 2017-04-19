@@ -1,7 +1,7 @@
 package org.kframework.minikore.converters
 
 import org.kframework.kore._
-import org.kframework.kore.default.DefaultBuilders
+import org.kframework.kore.implementation.DefaultBuilders
 import org.kframework.legacykore.SortedADT.SortedKVariable
 import org.kframework.legacykore.Unapply._
 import org.kframework.legacykore._

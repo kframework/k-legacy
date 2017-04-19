@@ -10,17 +10,13 @@ import org.kframework.kompile.KompileOptions;
 import org.kframework.krun.KRunOptions;
 import org.kframework.main.GlobalOptions;
 import org.kframework.minikore.converters.MiniToKore;
-import org.kframework.minikore.implementation.DefaultBuilders$;
-import org.kframework.minikore.implementation.MiniKore;
-import org.kframework.minikore.interfaces.build.Builders;
-import org.kframework.minikore.parser.ParseError;
-import org.kframework.minikore.parser.TextToMini;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import org.kframework.utils.options.DefinitionLoadingOptions;
+import org.kframework.kore.implementation.*;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -56,13 +52,13 @@ public class DefinitionLoadingModule {
         return loader.loadOrDie(Definition.class, files.resolveKompiled("definition.bin"));
     }
 
-    public static MiniKore.Definition parseKore(FileUtil files) {
+    public static org.kframework.kore.Definition parseKore(FileUtil files) {
 
-        Builders defaultBuilder = DefaultBuilders$.MODULE$;
+        org.kframework.kore.Builders defaultBuilder = DefaultBuilders$.MODULE$;
         File koreFile = files.resolveKompiled(FileUtil.KORE_TXT);
         try {
-            return new TextToMini(defaultBuilder).parse(koreFile);
-        } catch(ParseError e) {
+            return new org.kframework.kore.parser.TextToKore(defaultBuilder).parse(koreFile);
+        } catch(org.kframework.kore.parser.ParseError e) {
             throw KEMException.criticalError("Failed to parse Kore file: " +
                     koreFile.getAbsolutePath() + System.lineSeparator() + e.getMessage());
         }
@@ -91,11 +87,11 @@ public class DefinitionLoadingModule {
     }
 
     public static ProcessedDefinition miniKoreDefinition(BinaryLoader loader, FileUtil files) {
-        Builders defaultBuilder = DefaultBuilders$.MODULE$;
-        MiniKore.Definition definition = null;
+        org.kframework.kore.Builders defaultBuilder = org.kframework.kore.implementation.DefaultBuilders$.MODULE$;
+        org.kframework.kore.Definition definition = null;
         try {
-            definition = new TextToMini(defaultBuilder).parse(files.resolveKompiled(FileUtil.KORE_TXT));
-        } catch (ParseError e) {
+            definition = new org.kframework.kore.parser.TextToKore(defaultBuilder).parse(files.resolveKompiled(FileUtil.KORE_TXT));
+        } catch (org.kframework.kore.parser.ParseError e) {
             System.out.println(e.getMessage());
         }
 

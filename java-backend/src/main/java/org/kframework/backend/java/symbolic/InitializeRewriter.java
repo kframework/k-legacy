@@ -24,7 +24,6 @@ import org.kframework.krun.api.KRunState;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.main.GlobalOptions;
 import org.kframework.minikore.converters.MiniToKore;
-import org.kframework.minikore.implementation.MiniKore;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.rewriter.SearchType;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -46,7 +45,7 @@ import java.util.stream.Collectors;
 /**
  * Created by dwightguth on 5/6/15.
  */
-public class InitializeRewriter implements Function<Pair<Module, MiniKore.Definition>, Rewriter> {
+public class InitializeRewriter implements Function<Pair<Module, org.kframework.kore.Definition>, Rewriter> {
 
     private final FileSystem fs;
     private final boolean deterministicFunctions;
@@ -90,10 +89,10 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
     }
 
     @Override
-    public synchronized Rewriter apply(Pair<Module, MiniKore.Definition> modulePair) {
+    public synchronized Rewriter apply(Pair<Module, org.kframework.kore.Definition> modulePair) {
         TermContext initializingContext = TermContext.builder(new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING))
                 .freshCounter(0).build();
-        MiniKore.Module mainModule = null;
+        org.kframework.kore.Module mainModule = null;
         Definition definition;
         if (modulePair.getRight() != null) {
             mainModule = MiniKoreUtils.getMainModule(modulePair.getRight());
@@ -243,7 +242,7 @@ public class InitializeRewriter implements Function<Pair<Module, MiniKore.Defini
         }
 
 
-        public Definition invoke(KExceptionManager kem, GlobalContext global, MiniKore.Module miniKoreModule, MiniKore.Definition miniKoreDefinition) {
+        public Definition invoke(KExceptionManager kem, GlobalContext global, org.kframework.kore.Module miniKoreModule, org.kframework.kore.Definition miniKoreDefinition) {
             MiniKoreUtils.ModuleUtils moduleUtils = new MiniKoreUtils.ModuleUtils(miniKoreModule, miniKoreDefinition);
             Definition definition = new Definition(moduleUtils, kem);
 

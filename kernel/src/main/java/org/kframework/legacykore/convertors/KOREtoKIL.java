@@ -13,8 +13,6 @@ import org.kframework.kil.Term;
 import org.kframework.legacykore.*;
 import org.kframework.definition.*;
 import org.kframework.legacykore.Sort;
-import org.kframework.minikore.implementation.MiniKore;
-import org.kframework.minikore.interfaces.pattern.Pattern;
 import org.kframework.utils.StringUtil;
 
 import java.math.BigInteger;
@@ -296,21 +294,21 @@ public class KOREtoKIL implements Function<Definition, org.kframework.kil.Defini
     }
 
 
-    public org.kframework.kil.Attributes convertAttributes(List<Pattern> miniKoreAtts) {
+    public org.kframework.kil.Attributes convertAttributes(List<org.kframework.kore.Pattern> miniKoreAtts) {
         org.kframework.kil.Attributes kilAttributes = new org.kframework.kil.Attributes();
         miniKoreAtts.stream().forEach(x -> {
-            if (x instanceof MiniKore.Application) {
-                MiniKore.Application application = (MiniKore.Application) x;
-                List<Pattern> args = mutable(application.args());
-                String label = application._1().str();
+            if (x instanceof org.kframework.kore.Application) {
+                org.kframework.kore.Application application = (org.kframework.kore.Application) x;
+                List<org.kframework.kore.Pattern> args = mutable(application.args());
+                String label = application.symbol().str();
                 if (label.equals("sort")) {
-                    MiniKore.DomainValue domainValue = (MiniKore.DomainValue) args.get(0);
-                    kilAttributes.add(Attribute.of("sort", domainValue._2()));
+                    org.kframework.kore.DomainValue domainValue = (org.kframework.kore.DomainValue) args.get(0);
+                    kilAttributes.add(Attribute.of("sort", domainValue.value().str()));
                 } else if (!label.equals("Location") && !label.equals("Source") && !label.equals("org.kframework.attributes.Location") &&
                         !label.equals("org.kframework.attributes.Source")) {
                     if (args.size() == 1) {
-                        if (args.get(0) instanceof MiniKore.DomainValue) {
-                            kilAttributes.add(Attribute.of(label, ((MiniKore.DomainValue) args.get(0))._2()));
+                        if (args.get(0) instanceof org.kframework.kore.DomainValue) {
+                            kilAttributes.add(Attribute.of(label, ((org.kframework.kore.DomainValue) args.get(0)).value().str()));
                         }
                     } else if (args.size() == 0) {
                         kilAttributes.add(Attribute.of(label, ""));
@@ -318,8 +316,8 @@ public class KOREtoKIL implements Function<Definition, org.kframework.kil.Defini
                         throw NOT_IMPLEMENTED();
                     }
                 }
-            } else if (x instanceof MiniKore.DomainValue) {
-                kilAttributes.add(Attribute.of(((MiniKore.DomainValue) x)._2(), ((MiniKore.DomainValue) x)._2()));
+            } else if (x instanceof org.kframework.kore.DomainValue) {
+                kilAttributes.add(Attribute.of(((org.kframework.kore.DomainValue) x).value().str(), ((org.kframework.kore.DomainValue) x).value().str()));
             } else {
                 throw NOT_IMPLEMENTED();
             }

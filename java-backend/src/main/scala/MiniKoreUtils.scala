@@ -1,8 +1,7 @@
 package org.kframework.backend.java
 
 import org.kframework.POSet
-import org.kframework.minikore.implementation.MiniKore.{Attributes, Definition, Import, Module, Rule, Sentence, SymbolDeclaration, SortDeclaration}
-import org.kframework.minikore.interfaces.pattern._
+import org.kframework.kore._
 import org.kframework.utils.errorsystem.KEMException
 import org.kframework.minikore.converters.KoreToMini._
 
@@ -15,7 +14,7 @@ object MiniKoreUtils {
 
 
   def getMainModule(definition: Definition): Module = {
-    val mainModuleName = findAtt(definition.att, iMainModule.str) match {
+    val mainModuleName = findAtt(definition.att.att, iMainModule.str) match {
       case Seq(DomainValue(Symbol("S"), name)) => name;
       case _ => ???
     }
@@ -23,7 +22,7 @@ object MiniKoreUtils {
     definition.modules.find(p => p.name == mainModuleName).get
   }
 
-  def findAtt(att: Attributes, key: String): Seq[Pattern] = {
+  def findAtt(att: Seq[Pattern], key: String): Seq[Pattern] = {
     val argss = att.collect({
       case Application(Symbol(`key`), args) => args
     })
@@ -44,10 +43,10 @@ object MiniKoreUtils {
 
     def getSentencesFromImports(): Seq[Sentence] = {
       val mainModuleImports: Set[String] = localSentences collect {
-        case Import(name, _) => name
+        case Import(ModuleName(name), _) => name
       } toSet
 
-      definition.modules.filter { m: Module => mainModuleImports.contains(m.name) } flatMap {
+      definition.modules.filter { m: Module => mainModuleImports.contains(m.name.str) } flatMap {
         mod: Module => ModuleUtils(mod, definition).allSentences
       }
     }
@@ -63,7 +62,7 @@ object MiniKoreUtils {
       val filterSet = Set(iTerminal.str, iNonTerminal.str, iRegexTerminal.str)
       val labelDecsMap: Map[String, Seq[Pattern]] =
         allSentences collect {
-          case SymbolDeclaration(_, Symbol(label), _, att) if label != iNone => (label, att)
+          case SymbolDeclaration(_, Symbol(label), _, Attributes(att)) if label != iNone => (label, att)
         } groupBy { x => x._1 } mapValues { z => z map {_._2} } mapValues {_.flatten}
       labelDecsMap.mapValues({ s =>
         s.flatMap({ p =>
@@ -96,11 +95,11 @@ object MiniKoreUtils {
 
     lazy val subsorts: POSet[String] = {
       val symbolDecs: Seq[(String, Seq[Pattern])] = allSentences collect {
-        case SymbolDeclaration(Sort(sort), _, _, atts) if findAtt(atts, "klabel").isEmpty => (sort, atts)
+        case SymbolDeclaration(Sort(sort), _, _, Attributes(atts)) if findAtt(atts, "klabel").isEmpty => (sort, atts)
       }
       val subsortProductions: Set[(String, String)] = symbolDecs map { x =>
         (x._1, x._2 collect {
-          case Application(`iNonTerminal`, Seq(DomainValue(Symbol("S"), s))) => s
+          case Application(`iNonTerminal`, Seq(DomainValue(Symbol("S"), Value(s)))) => s
           case Application(`iTerminal`, _) => iTerminal.str
           case Application(`iRegexTerminal`, _) => iTerminal.str
         })
@@ -111,7 +110,7 @@ object MiniKoreUtils {
 
     lazy val freshFunctionFor: Map[String, String] = {
       val productions = allSentences collect {
-        case SymbolDeclaration(sort, Symbol(label), _, atts) if findAtt(atts, "freshGenerator").size >= 1
+        case SymbolDeclaration(sort, Symbol(label), _, Attributes(atts)) if findAtt(atts, "freshGenerator").size >= 1
         => (sort, label)
       } groupBy (_._1.str) mapValues (x => x.toSet)
 
@@ -148,7 +147,7 @@ object MiniKoreUtils {
   }
 
   def getOriginalModuleMap(d: Definition): Map[String, Module] = {
-    d.modules.groupBy(m => m.name)
+    d.modules.groupBy(m => m.name.str)
       .mapValues({ case Seq(m) => m; case _ => ??? }) // shouldn't have duplicate module names
   }
 

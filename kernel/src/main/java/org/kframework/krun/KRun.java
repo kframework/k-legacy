@@ -14,6 +14,8 @@ import org.kframework.definition.Rule;
 import org.kframework.kast.Kast;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.KompileMetaInfo;
+import org.kframework.kore.Definition;
+import org.kframework.kore.Pattern;
 import org.kframework.legacykore.Assoc;
 import org.kframework.legacykore.K;
 import org.kframework.legacykore.KApply;
@@ -27,8 +29,6 @@ import org.kframework.legacykore.VisitK;
 import org.kframework.legacykore.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.minikore.converters.KoreToMini;
-import org.kframework.minikore.implementation.MiniKore;
-import org.kframework.minikore.interfaces.pattern;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.binary.BinaryParser;
 import org.kframework.parser.legacykore.KoreParser;
@@ -82,10 +82,10 @@ public class KRun {
     }
 
 
-    public int run(KompileMetaInfo kompileMetaInfo, CompiledDefinition compiledDef, ProcessedDefinition processedDefinition, KRunOptions options, Function<Pair<Module, MiniKore.Definition>, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
+    public int run(KompileMetaInfo kompileMetaInfo, CompiledDefinition compiledDef, ProcessedDefinition processedDefinition, KRunOptions options, Function<Pair<Module, Definition>, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
         String pgmFileName = options.configurationCreation.pgm();
         K program;
-        pattern.Pattern miniKoreProgram;
+        Pattern miniKoreProgram;
         if (options.configurationCreation.term()) {
             program = parse(options.configurationCreation.parser(compiledDef.executionModule().name()),
                     pgmFileName, KORE.Sort(kompileMetaInfo.programStartSymbol), Source.apply("<parameters>"), compiledDef.mainSyntaxModuleName(), files);

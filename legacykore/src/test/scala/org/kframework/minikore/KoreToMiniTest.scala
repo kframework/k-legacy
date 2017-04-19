@@ -5,7 +5,7 @@ import org.junit.Test
 import org.kframework.attributes.Att
 import org.kframework.definition
 import org.kframework.definition.{ModuleName, NonTerminal}
-import org.kframework.kore.default.DefaultBuilders._
+import org.kframework.kore.implementation.DefaultBuilders._
 import org.kframework.legacykore.ADT
 import org.kframework.legacykore.SortedADT.SortedKVariable
 import org.kframework.minikore.converters.KoreToMini._
