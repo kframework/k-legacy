@@ -5,11 +5,10 @@ import org.junit.Test
 import org.kframework.attributes.Att
 import org.kframework.definition
 import org.kframework.definition.{ModuleName, NonTerminal}
+import org.kframework.kore.default.DefaultBuilders._
 import org.kframework.legacykore.ADT
 import org.kframework.legacykore.SortedADT.SortedKVariable
 import org.kframework.minikore.converters.KoreToMini._
-import org.kframework.minikore.implementation.MiniKore._
-import org.kframework.minikore.interfaces.pattern.{Symbol, Sort}
 
 /**
   * Created by daejunpark on 12/28/16.
@@ -21,24 +20,24 @@ class KoreToMiniTest {
 
 
   @Test def production1(): Unit = {
-    val klabelatt = Application(Symbol("klabel"), Seq(DomainValue(Symbol("KString@KSTRING"), "_+_")))
+    val klabelatt = Application(Symbol("klabel"), Seq(DomainValue(Symbol("KString@KSTRING"), Value("_+_"))))
     assertEquals(
       apply(definition.Production.apply("_+_", Exp, Seq(), Att())),
-      SymbolDeclaration(Sort(Exp.name), Symbol("_+_"), Seq(), Seq(klabelatt))
+      SymbolDeclaration(Sort(Exp.name), Symbol("_+_"), Seq(), Attributes(Seq(klabelatt)))
     )
   }
 
   @Test def production2(): Unit = {
     assertEquals(
       apply(new definition.Production(Exp, Seq(NonTerminal(Int)), Att())),
-      SymbolDeclaration(Sort(Exp.name), Symbol("#None"), Seq(Sort(Int.name)), Seq(Application(iNonTerminal, Seq(S(Int.name)))))
+      SymbolDeclaration(Sort(Exp.name), Symbol("#None"), Seq(Sort(Int.name)), Attributes(Seq(Application(iNonTerminal, Seq(S(Int.name))))))
     )
   }
 
   @Test def k1(): Unit = {
     assertEquals(
       apply(SortedKVariable("x", Att())),
-      Variable("x", Sort("K@SORT-K"))
+      Variable(Name("x"), Sort("K@SORT-K"))
     )
   }
 }

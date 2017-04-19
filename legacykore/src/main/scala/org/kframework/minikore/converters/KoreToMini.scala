@@ -1,13 +1,10 @@
 package org.kframework.minikore.converters
 
+import org.kframework.kore._
+import org.kframework.kore.default.DefaultBuilders
 import org.kframework.legacykore.SortedADT.SortedKVariable
 import org.kframework.legacykore.Unapply._
 import org.kframework.legacykore._
-import org.kframework.minikore.implementation.DefaultBuilders
-import org.kframework.minikore.interfaces.build.Builders
-import org.kframework.minikore.implementation.MiniKore.{Attributes, Axiom, Definition, Import, Module, Rule, Sentence, SortDeclaration, SymbolDeclaration}
-import org.kframework.minikore.interfaces.pattern.{Sort => _, _}
-import org.kframework.minikore.interfaces.pattern
 import org.kframework.{attributes, definition}
 
 import scala.collection._
@@ -17,32 +14,34 @@ object KoreToMini {
   // Outer
   val b: Builders = DefaultBuilders
 
+  import b._
+
   def apply(d: definition.Definition): Definition = {
-    val modules = d.modules.toSeq.map(apply)
+    val modules: Seq[Module] = d.modules.toSeq.map(apply)
     val att =
-      b.Application(iMainModule, Seq(S(d.mainModule.name))) +:
-        b.Application(iEntryModules, d.entryModules.toSeq.map(m => S(m.name))) +:
-        apply(d.att)
+      Attributes(Application(iMainModule, Seq(S(d.mainModule.name))) +:
+        Application(iEntryModules, d.entryModules.toSeq.map(m => S(m.name))) +:
+        apply(d.att))
     Definition(modules, att)
   }
 
   def apply(m: definition.Module): Module = {
     val localSentences: Seq[Sentence] = m.localSentences.toSeq.map(apply)
-    val importSentences: Seq[Sentence] = m.imports.toSeq.map(m => Import(m.name, Seq()))
-    Module(m.name, importSentences ++ localSentences, apply(m.att))
+    val importSentences: Seq[Sentence] = m.imports.toSeq.map(m => Import(ModuleName(m.name), Attributes(Seq())))
+    Module(ModuleName(m.name), importSentences ++ localSentences, Attributes(apply(m.att)))
   }
 
   def apply(s: definition.Sentence): Sentence = s match {
-    case definition.SyntaxSort(sort, att) => SortDeclaration(pattern.Sort(sort.name), apply(att))
+    case definition.SyntaxSort(sort, att) => SortDeclaration(b.Sort(sort.name), Attributes(apply(att)))
 
     case prod@definition.Production(sort, items, att) =>
       val args = items.collect({
-        case definition.NonTerminal(sort) => pattern.Sort(sort.name)
+        case definition.NonTerminal(sort) => b.Sort(sort.name)
       })
       val newAtt = items.map(encode) ++ apply(att)
       prod.klabel match {
-        case Some(label) => SymbolDeclaration(pattern.Sort(sort.name), pattern.Symbol(label.name), args, newAtt)
-        case None => SymbolDeclaration(pattern.Sort(sort.name), iNone, args, newAtt) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
+        case Some(label) => SymbolDeclaration(b.Sort(sort.name), b.Symbol(label.name), args, Attributes(newAtt))
+        case None => SymbolDeclaration(b.Sort(sort.name), iNone, args, Attributes(newAtt)) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
       }
 
     case definition.Rule(body, requires, ensures, att) =>
@@ -50,12 +49,12 @@ object KoreToMini {
       val ab = apply(body)
       val e = apply(ensures)
       val p = b.Implies(r, b.And(ab, b.Next(e))) // requires  ->  body  /\  \next ensures
-      Rule(p, apply(att))
+      Rule(p, Attributes(apply(att)))
 
     case _ => encode(s)
   }
 
-  def apply(att: attributes.Att): Attributes = {
+  def apply(att: attributes.Att): Seq[Pattern] = {
     att.att.toSeq.map(apply)
   }
 
@@ -91,14 +90,14 @@ object KoreToMini {
         b.Application(iConfiguration, Seq(apply(body), apply(ensures)))
       case _ => ??? // assert false
     }
-    dummySentence(p +: apply(s.att))
+    dummySentence(Attributes(p +: apply(s.att)))
   }
 
   def dummySentence(att: Attributes): Sentence = Axiom(B(true), att)
 
-  def S(s: String): DomainValue = b.DomainValue(Symbol("S"), s)
-  def I(i: Int): DomainValue = b.DomainValue(Symbol("I"), i.toString)
-  def B(bool: Boolean): DomainValue = b.DomainValue(Symbol("B"), bool.toString)
+  def S(s: String): DomainValue = b.DomainValue(Symbol("S"), Value(s))
+  def I(i: Int): DomainValue = b.DomainValue(Symbol("I"), Value(i.toString))
+  def B(bool: Boolean): DomainValue = b.DomainValue(Symbol("B"), Value(bool.toString))
 
   // Inner
 
@@ -113,20 +112,20 @@ object KoreToMini {
   def apply(k: K): Pattern = {
     val p = k match {
       case KApply(klabel, klist) => b.Application(Symbol(klabel.name), klist.map(apply))
-      case kvar@SortedKVariable(name, _) => b.Variable(name, pattern.Sort(kvar.sort.name)) // assert(att == k.att)
-      case KVariable(name) => b.Variable(name, pattern.Sort("_")) // TODO(Daejun): apply(SortedKVariable(name, k.att)) // from SortedADT in ADT.scala
-      case KToken(s, sort) => b.DomainValue(Symbol(sort.name), s)
+      case kvar@SortedKVariable(name, _) => b.Variable(Name(name), b.Sort(kvar.sort.name)) // assert(att == k.att)
+      case KVariable(name) => b.Variable(b.Name(name), b.Sort("_")) // TODO(Daejun): apply(SortedKVariable(name, k.att)) // from SortedADT in ADT.scala
+      case KToken(s, sort) => b.DomainValue(Symbol(sort.name), Value(s))
       case KSequence(ks) => encodeKSeq(ks.map(apply))
       case KRewrite(left, right) => b.Rewrite(apply(left), apply(right))
       case InjectedKLabel(klabel) => ???
       case _ => ??? // Sort, KLabel, KList // assert false
     }
-    encodePatternAtt(p, apply(k.att))
+    encodePatternAtt(p, Attributes(apply(k.att)))
   }
 
   // encodePatternAtt(p, Seq(a1,a2,a3)) = #(#(#(p,a1),a2),a3) // TODO(Daejun): add test
   def encodePatternAtt(p: Pattern, att: Attributes): Pattern = {
-    att.foldLeft(p)((z, a) => {
+    att.att.foldLeft(p)((z, a) => {
       b.Application(iAtt, Seq(z, a))
     })
   }
