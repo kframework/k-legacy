@@ -21,7 +21,7 @@ object MiniToKore {
     val mainModuleName = findAtt(d.att, iMainModule.str) match {
       case Seq(DomainValue(Symbol("S"), Value(name))) => name; case _ => ???
     }
-    val (mainModules, otherModules) = d.modules.partition(m => m.name.str == mainModuleName.str)
+    val (mainModules, otherModules) = d.modules.partition(m => m.name.str == mainModuleName)
     val mainModule = mainModules.head; assert(mainModules.size == 1)
 
     val entryModules = findAtt(d.att, iEntryModules.str).map({
