@@ -95,9 +95,9 @@ object KoreToMini {
 
   def dummySentence(att: Attributes): Sentence = Axiom(B(true), att)
 
-  def S(s: String): DomainValue = b.DomainValue(Symbol("S"), Value(s))
-  def I(i: Int): DomainValue = b.DomainValue(Symbol("I"), Value(i.toString))
-  def B(bool: Boolean): DomainValue = b.DomainValue(Symbol("B"), Value(bool.toString))
+  def S(s: String): Pattern = b.DomainValue(Symbol("S"), Value(s))
+  def I(i: Int): Pattern = b.DomainValue(Symbol("I"), Value(i.toString))
+  def B(bool: Boolean): Pattern = b.DomainValue(Symbol("B"), Value(bool.toString))
 
   // Inner
 
@@ -112,8 +112,8 @@ object KoreToMini {
   def apply(k: K): Pattern = {
     val p = k match {
       case KApply(klabel, klist) => b.Application(Symbol(klabel.name), klist.map(apply))
-      case kvar@SortedKVariable(name, _) => b.Variable(Name(name), b.Sort(kvar.sort.name)) // assert(att == k.att)
-      case KVariable(name) => b.Variable(b.Name(name), b.Sort("_")) // TODO(Daejun): apply(SortedKVariable(name, k.att)) // from SortedADT in ADT.scala
+      case kvar@SortedKVariable(name, _) => b.SortedVariable(Name(name), b.Sort(kvar.sort.name)) // assert(att == k.att)
+      case KVariable(name) => b.SortedVariable(b.Name(name), b.Sort("_")) // TODO(Daejun): apply(SortedKVariable(name, k.att)) // from SortedADT in ADT.scala
       case KToken(s, sort) => b.DomainValue(Symbol(sort.name), Value(s))
       case KSequence(ks) => encodeKSeq(ks.map(apply))
       case KRewrite(left, right) => b.Rewrite(apply(left), apply(right))

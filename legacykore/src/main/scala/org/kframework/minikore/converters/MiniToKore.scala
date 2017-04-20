@@ -135,8 +135,8 @@ object MiniToKore {
 
     case Application(Symbol(label), args) => KORE.KApply(KORE.KLabel(label), args.map(apply), att)
     case DomainValue(Symbol(label), Value(value)) => KORE.KToken(value, KORE.Sort(label), att)
-    case Variable(Name(name), Sort("_")) => KORE.KVariable(name, att)
-    case Variable(Name(name), _) => SortedKVariable(name, att)
+    case SortedVariable(Name(name), Sort("_")) => KORE.KVariable(name, att)
+    case SortedVariable(Name(name), _) => SortedKVariable(name, att)
     case Rewrite(left, right) => KORE.KRewrite(apply(left), apply(right), att)
     case _ => ???
   }

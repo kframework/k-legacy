@@ -37,7 +37,7 @@ class KoreToMiniTest {
   @Test def k1(): Unit = {
     assertEquals(
       apply(SortedKVariable("x", Att())),
-      Variable(Name("x"), Sort("K@SORT-K"))
+      SortedVariable(Name("x"), Sort("K@SORT-K"))
     )
   }
 }
