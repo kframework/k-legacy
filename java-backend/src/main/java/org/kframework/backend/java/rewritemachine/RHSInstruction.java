@@ -30,7 +30,7 @@ public final class RHSInstruction implements Serializable {
         private final int size2;
         private final int size3;
         private final Kind kind;
-        private final org.kframework.kore.Sort cellCollectionSort;
+        private final org.kframework.legacykore.Sort cellCollectionSort;
         public final Sort assocListSort;
         public final KLabelConstant assocListOperator;
         public final KLabelConstant assocListUnit;
@@ -89,7 +89,7 @@ public final class RHSInstruction implements Serializable {
 
         public Constructor(ConstructorType type, int size1,
                            int size2, int size3, Kind kind,
-                           org.kframework.kore.Sort cellCollectionSort) {
+                           org.kframework.legacykore.Sort cellCollectionSort) {
             this(type, size1, size2, size3, kind, cellCollectionSort, null, null, null, null, null);
         }
 
@@ -98,7 +98,7 @@ public final class RHSInstruction implements Serializable {
         }
 
         public Constructor(ConstructorType type, int size1,
-                           int size2, int size3, Kind kind, org.kframework.kore.Sort cellCollectionSort,
+                           int size2, int size3, Kind kind, org.kframework.legacykore.Sort cellCollectionSort,
                            Sort assocListSort, KLabelConstant assocListOperator, KLabelConstant assocListUnit,
                            Source source, Location location) {
             this.type = type;
@@ -119,7 +119,7 @@ public final class RHSInstruction implements Serializable {
         }
 
         public Constructor(ConstructorType type, int size1,
-                           org.kframework.kore.Sort cellCollectionSort) {
+                           org.kframework.legacykore.Sort cellCollectionSort) {
             this(type, size1, 0, 0, null, cellCollectionSort);
         }
 
@@ -143,7 +143,7 @@ public final class RHSInstruction implements Serializable {
             return type;
         }
 
-        public org.kframework.kore.Sort cellCollectionSort() {
+        public org.kframework.legacykore.Sort cellCollectionSort() {
             return cellCollectionSort;
         }
 

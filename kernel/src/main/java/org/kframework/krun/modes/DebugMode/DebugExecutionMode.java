@@ -13,7 +13,7 @@ import org.kframework.rewriter.Rewriter;
 import org.kframework.debugger.KDebug;
 import org.kframework.debugger.KoreKDebug;
 import org.kframework.kompile.CompiledDefinition;
-import org.kframework.kore.K;
+import org.kframework.legacykore.K;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.modes.ExecutionMode;

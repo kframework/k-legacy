@@ -10,7 +10,6 @@ import org.kframework.backend.java.MiniKoreUtils;
 import org.kframework.backend.java.kil.Sort;
 import org.kframework.definition.Module;
 import org.kframework.kil.loader.Context;
-import org.kframework.minikore.implementation.MiniKore;
 import org.kframework.utils.errorsystem.KEMException;
 import scala.collection.JavaConversions;
 
@@ -79,8 +78,8 @@ public class Subsorts implements Serializable {
                 .collect(Collectors.toSet());
 
         this.subsort = ArrayTable.create(sorts, sorts);
-        for (org.kframework.kore.Sort sort1 : Collections.iterable(module.definedSorts())) {
-            for (org.kframework.kore.Sort sort2 : Collections.iterable(module.definedSorts())) {
+        for (org.kframework.legacykore.Sort sort1 : Collections.iterable(module.definedSorts())) {
+            for (org.kframework.legacykore.Sort sort2 : Collections.iterable(module.definedSorts())) {
                 subsort.put(
                         Sort.of(sort1.name()),
                         Sort.of(sort2.name()),

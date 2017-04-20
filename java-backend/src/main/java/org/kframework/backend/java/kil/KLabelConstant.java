@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author AndreiS
  */
-public class KLabelConstant extends KLabel implements org.kframework.kore.KLabel {
+public class KLabelConstant extends KLabel implements org.kframework.legacykore.KLabel {
 
     private static final ConcurrentMap<Pair<Set<SortSignature>, Attributes>,
             ConcurrentMap<String, KLabelConstant>> cache = new ConcurrentHashMap<>();

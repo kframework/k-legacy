@@ -4,7 +4,7 @@ package org.kframework.compile.checks;
 import org.kframework.kil.*;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.BasicVisitor;
-import org.kframework.kore.compile.ResolveAnonVar;
+import org.kframework.legacykore.compile.ResolveAnonVar;
 import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import java.util.HashMap;

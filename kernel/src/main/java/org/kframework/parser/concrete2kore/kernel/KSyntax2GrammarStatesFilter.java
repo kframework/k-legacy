@@ -10,7 +10,7 @@ import org.kframework.definition.ProductionItem;
 import org.kframework.definition.Terminal;
 import org.kframework.definition.TerminalLike;
 import org.kframework.kil.loader.Constants;
-import org.kframework.kore.Sort;
+import org.kframework.legacykore.Sort;
 import org.kframework.parser.concrete2kore.kernel.Grammar.NextableState;
 import org.kframework.parser.concrete2kore.kernel.Grammar.NonTerminal;
 import org.kframework.parser.concrete2kore.kernel.Grammar.RuleState;

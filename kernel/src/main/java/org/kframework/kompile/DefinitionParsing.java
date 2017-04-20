@@ -16,9 +16,9 @@ import org.kframework.definition.Module;
 import org.kframework.definition.ModuleName;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
-import org.kframework.kore.K;
-import org.kframework.kore.KApply;
-import org.kframework.kore.Sort;
+import org.kframework.legacykore.K;
+import org.kframework.legacykore.KApply;
+import org.kframework.legacykore.Sort;
 import org.kframework.parser.TreeNodesToKORE;
 import org.kframework.parser.concrete2kore.ParseCache;
 import org.kframework.parser.concrete2kore.ParseCache.ParsedSentence;
@@ -52,7 +52,7 @@ import java.util.stream.Stream;
 import static org.kframework.Collections.*;
 import static org.kframework.definition.Constructors.Att;
 import static org.kframework.definition.Constructors.*;
-import static org.kframework.kore.KORE.*;
+import static org.kframework.legacykore.KORE.*;
 
 /**
  * A bundle of code doing various aspects of definition parsing.
@@ -290,7 +290,7 @@ public class DefinitionParsing {
 
     private Rule upRule(K contents) {
         KApply ruleContents = (KApply) contents;
-        List<org.kframework.kore.K> items = ruleContents.klist().items();
+        List<org.kframework.legacykore.K> items = ruleContents.klist().items();
         switch (ruleContents.klabel().name()) {
         case "#ruleNoConditions":
             return Rule(items.get(0), BooleanUtils.TRUE, BooleanUtils.TRUE, ruleContents.att());

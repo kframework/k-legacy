@@ -5,7 +5,7 @@ import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParametersDelegate;
 import org.kframework.attributes.Source;
-import org.kframework.kore.Sort;
+import org.kframework.legacykore.Sort;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.file.FileUtil;
@@ -15,7 +15,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.List;
 
-import static org.kframework.kore.KORE.*;
+import static org.kframework.legacykore.KORE.*;
 
 public final class KastOptions {
 

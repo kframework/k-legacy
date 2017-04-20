@@ -1,9 +1,9 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.parser.binary;
 
-import org.kframework.kore.ADT;
-import org.kframework.kore.K;
-import org.kframework.kore.KLabel;
+import org.kframework.legacykore.ADT;
+import org.kframework.legacykore.K;
+import org.kframework.legacykore.KLabel;
 import org.kframework.utils.errorsystem.KEMException;
 import scala.collection.immutable.List$;
 
@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
-import static org.kframework.kore.KORE.*;
+import static org.kframework.legacykore.KORE.*;
 
 /**
  * Parses a KAST binary term into the KORE data structures.

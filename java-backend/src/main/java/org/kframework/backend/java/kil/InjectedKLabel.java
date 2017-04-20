@@ -4,12 +4,12 @@ package org.kframework.backend.java.kil;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.kil.ASTNode;
-import org.kframework.kore.KLabel;
+import org.kframework.legacykore.KLabel;
 
 /**
  * Created by dwightguth on 5/4/15.
  */
-public class InjectedKLabel extends Term implements org.kframework.kore.InjectedKLabel {
+public class InjectedKLabel extends Term implements org.kframework.legacykore.InjectedKLabel {
 
     final Term injectedKLabel;
 

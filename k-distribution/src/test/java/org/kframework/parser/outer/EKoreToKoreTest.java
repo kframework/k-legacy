@@ -5,9 +5,9 @@ package org.kframework.parser.outer;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.kframework.kore.K;
-import org.kframework.kore.KORE;
-import org.kframework.kore.Sort;
+import org.kframework.legacykore.K;
+import org.kframework.legacykore.KORE;
+import org.kframework.legacykore.Sort;
 import org.kframework.parser.concrete2kore.ParserUtils;
 
 import java.io.File;

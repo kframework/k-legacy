@@ -10,7 +10,7 @@ import org.kframework.attributes.Att;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.Production;
 import org.kframework.definition.ProductionItem;
-import org.kframework.kore.Sort;
+import org.kframework.legacykore.Sort;
 import org.kframework.parser.Ambiguity;
 import org.kframework.parser.Constant;
 import org.kframework.parser.KList;
@@ -33,7 +33,7 @@ import java.util.List;
 
 import static org.kframework.Collections.*;
 import static org.kframework.definition.Constructors.*;
-import static org.kframework.kore.KORE.*;
+import static org.kframework.legacykore.KORE.*;
 
 public class ParserTest {
     /* public static void main(String[] args) {
