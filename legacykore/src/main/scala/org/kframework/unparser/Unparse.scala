@@ -1,8 +1,8 @@
 package org.kframework.unparser
 
 import org.apache.commons.lang3.StringEscapeUtils
-import org.kframework.legacykore.Unapply._
-import org.kframework.legacykore.{InjectedKLabel, K, KApply, KLabel}
+import org.kframework.frontend.Unapply._
+import org.kframework.frontend.{InjectedKLabel, K, KApply, KLabel}
 import org.kframework.utils.Strings
 
 import scala.collection.JavaConverters._

@@ -7,7 +7,7 @@ import org.kframework.definition.Production;
 import org.kframework.definition.Tag;
 import org.kframework.definition.TerminalLike;
 import org.kframework.kil.Attribute;
-import org.kframework.legacykore.Sort;
+import org.kframework.frontend.Sort;
 import org.kframework.parser.Constant;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.Term;

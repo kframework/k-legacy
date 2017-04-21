@@ -33,7 +33,7 @@ import org.kframework.kil.Attribute;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
-import org.kframework.legacykore.K;
+import org.kframework.frontend.K;
 import org.kframework.krun.KRun;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.KRunState;

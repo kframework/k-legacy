@@ -3,8 +3,8 @@ package org.kframework.kast;
 
 import org.kframework.attributes.Source;
 import org.kframework.kompile.KompileMetaInfo;
-import org.kframework.legacykore.K;
-import org.kframework.legacykore.KORE;
+import org.kframework.frontend.K;
+import org.kframework.frontend.KORE;
 import org.kframework.main.FrontEnd;
 import org.kframework.unparser.ToKast;
 import org.kframework.utils.Stopwatch;
@@ -48,7 +48,7 @@ public class KastFrontEnd extends FrontEnd {
         Reader stringToParse = options.stringToParse();
         Source source = options.source();
 
-        org.kframework.legacykore.Sort sort = options.sort;
+        org.kframework.frontend.Sort sort = options.sort;
         if (sort == null) {
             if (env.get("KRUN_SORT") != null) {
                 sort = KORE.Sort(env.get("KRUN_SORT"));

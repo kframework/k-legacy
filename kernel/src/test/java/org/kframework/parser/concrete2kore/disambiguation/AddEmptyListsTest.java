@@ -10,9 +10,9 @@ import org.junit.rules.TestName;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
-import org.kframework.legacykore.K;
-import org.kframework.legacykore.KApply;
-import org.kframework.legacykore.KLabel;
+import org.kframework.frontend.K;
+import org.kframework.frontend.KApply;
+import org.kframework.frontend.KLabel;
 import org.kframework.parser.TreeNodesToKORE;
 import org.kframework.parser.concrete2kore.ParseInModule;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
@@ -22,7 +22,7 @@ import scala.util.Either;
 
 import java.util.Set;
 
-import static org.kframework.legacykore.KORE.*;
+import static org.kframework.frontend.KORE.*;
 
 public class AddEmptyListsTest {
     private ParseInModule parser;

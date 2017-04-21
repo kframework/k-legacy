@@ -2,8 +2,8 @@ package org.kframework.compile
 
 import org.kframework.Collections._
 import org.kframework.builtin.KLabels
-import org.kframework.legacykore.KORE._
-import org.kframework.legacykore._
+import org.kframework.frontend.KORE._
+import org.kframework.frontend._
 
 /**
   * Assumes KSequences are KApplys and puts them in right-assoc normal form

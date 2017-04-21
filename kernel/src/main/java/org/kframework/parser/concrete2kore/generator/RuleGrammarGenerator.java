@@ -21,7 +21,7 @@ import org.kframework.definition.Terminal;
 import org.kframework.definition.UserList;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.loader.Constants;
-import org.kframework.legacykore.Sort;
+import org.kframework.frontend.Sort;
 import org.kframework.parser.concrete2kore.ParseInModule;
 import scala.collection.Seq;
 
@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 import static org.kframework.Collections.*;
 import static org.kframework.definition.Constructors.Att;
 import static org.kframework.definition.Constructors.*;
-import static org.kframework.legacykore.KORE.*;
+import static org.kframework.frontend.KORE.*;
 
 /**
  * Generator for rule and ground parsers.

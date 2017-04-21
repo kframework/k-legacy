@@ -1,7 +1,7 @@
 package org.kframework.minikore.converters
 
-import org.kframework.legacykore.SortedADT.SortedKVariable
-import org.kframework.legacykore.{KORE, _}
+import org.kframework.frontend.SortedADT.SortedKVariable
+import org.kframework.frontend.{KORE, _}
 import org.kframework.{attributes, definition}
 import org.kframework.kore._
 import scala.collection.JavaConverters._

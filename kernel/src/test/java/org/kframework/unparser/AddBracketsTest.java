@@ -7,7 +7,7 @@ import org.kframework.attributes.Source;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
-import org.kframework.legacykore.K;
+import org.kframework.frontend.K;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.TreeNodesToKORE;
 import org.kframework.parser.concrete2kore.ParseInModule;

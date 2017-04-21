@@ -1,8 +1,8 @@
 package org.kframework.attributes
 
 import org.kframework.builtin.Sorts
-import org.kframework.legacykore.Unapply._
-import org.kframework.legacykore.{KApply, Sort, _}
+import org.kframework.frontend.Unapply._
+import org.kframework.frontend.{KApply, Sort, _}
 import org.kframework.meta.{Down, Up}
 
 import scala.collection.JavaConverters._

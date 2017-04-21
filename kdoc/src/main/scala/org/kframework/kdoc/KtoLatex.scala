@@ -2,8 +2,8 @@ package org.kframework.kdoc
 
 import org.kframework.attributes.Att
 import org.kframework.definition.{Module, NonTerminal, RegexTerminal, Terminal}
-import org.kframework.legacykore.K
-import org.kframework.legacykore.Unapply._
+import org.kframework.frontend.K
+import org.kframework.frontend.Unapply._
 
 /**
   * Takes a K term with the grammar described by Module module, and unparses it to its latex representation.

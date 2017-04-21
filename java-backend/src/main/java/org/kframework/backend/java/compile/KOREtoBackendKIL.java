@@ -16,15 +16,15 @@ import org.kframework.compile.ConfigurationInfo;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.Attributes;
 import org.kframework.kil.Cell;
-import org.kframework.legacykore.Assoc;
-import org.kframework.legacykore.K;
-import org.kframework.legacykore.KApply;
-import org.kframework.legacykore.KLabel;
-import org.kframework.legacykore.KRewrite;
-import org.kframework.legacykore.KToken;
-import org.kframework.legacykore.KVariable;
-import org.kframework.legacykore.compile.RewriteToTop;
-import org.kframework.legacykore.convertors.KOREtoKIL;
+import org.kframework.frontend.Assoc;
+import org.kframework.frontend.K;
+import org.kframework.frontend.KApply;
+import org.kframework.frontend.KLabel;
+import org.kframework.frontend.KRewrite;
+import org.kframework.frontend.KToken;
+import org.kframework.frontend.KVariable;
+import org.kframework.frontend.compile.RewriteToTop;
+import org.kframework.frontend.convertors.KOREtoKIL;
 import org.kframework.utils.BitSet;
 
 import static org.kframework.Collections.*;
@@ -42,7 +42,7 @@ import com.google.common.collect.Lists;
 /**
  * KORE to backend KIL
  */
-public class KOREtoBackendKIL extends org.kframework.legacykore.AbstractConstructors<org.kframework.legacykore.K> {
+public class KOREtoBackendKIL extends org.kframework.frontend.AbstractConstructors<org.kframework.frontend.K> {
 
     public static final String THE_VARIABLE = "THE_VARIABLE";
 
@@ -79,26 +79,26 @@ public class KOREtoBackendKIL extends org.kframework.legacykore.AbstractConstruc
         return Sort.of(name);
     }
 
-    public <KK extends org.kframework.legacykore.K> KList KList(List<KK> items) {
+    public <KK extends org.kframework.frontend.K> KList KList(List<KK> items) {
         return (KList) KCollection.upKind(
                 KList.concatenate(items.stream().map(this::convert).collect(Collectors.toList())),
                 Kind.KLIST);
     }
 
     @Override
-    public Token KToken(String s, org.kframework.legacykore.Sort sort, Att att) {
+    public Token KToken(String s, org.kframework.frontend.Sort sort, Att att) {
         return !sort.name().equals("KBoolean") ? Token.of(Sort(sort.name()), s) : Token.of(Sort("Bool"), s);
     }
 
     @Override
-    public KApply KApply(KLabel klabel, org.kframework.legacykore.KList klist, Att att) {
+    public KApply KApply(KLabel klabel, org.kframework.frontend.KList klist, Att att) {
         throw new AssertionError("Unsupported for now because KVariable is not a KLabel. See KApply1()");
     }
 
     /**
      * TODO: rename the method to KApply when the backend fully implements KORE
      */
-    public Term KApply1(org.kframework.legacykore.KLabel klabel, org.kframework.legacykore.KList klist, Att att) {
+    public Term KApply1(org.kframework.frontend.KLabel klabel, org.kframework.frontend.KList klist, Att att) {
         if (klabel.name().equals(KLabels.KREWRITE)) {
             return convertKRewrite(klabel, klist);
         }
@@ -196,7 +196,7 @@ public class KOREtoBackendKIL extends org.kframework.legacykore.AbstractConstruc
      * @param klist  contains the LHS and RHS
      * @return
      */
-    private Term convertKRewrite(KLabel klabel, org.kframework.legacykore.KList klist) {
+    private Term convertKRewrite(KLabel klabel, org.kframework.frontend.KList klist) {
         K kk = klist.items().get(1);
 
         if (!(kk instanceof KApply))
@@ -235,7 +235,7 @@ public class KOREtoBackendKIL extends org.kframework.legacykore.AbstractConstruc
     }
 
     @Override
-    public <KK extends org.kframework.legacykore.K> Term KSequence(List<KK> items, Att att) {
+    public <KK extends org.kframework.frontend.K> Term KSequence(List<KK> items, Att att) {
         KSequence.Builder builder = KSequence.builder();
         items.stream().map(this::convert).forEach(builder::concatenate);
         return builder.build();
@@ -260,12 +260,12 @@ public class KOREtoBackendKIL extends org.kframework.legacykore.AbstractConstruc
     }
 
     @Override
-    public org.kframework.legacykore.KRewrite KRewrite(org.kframework.legacykore.K left, org.kframework.legacykore.K right, Att att) {
+    public org.kframework.frontend.KRewrite KRewrite(org.kframework.frontend.K left, org.kframework.frontend.K right, Att att) {
         throw new AssertionError("Should not encounter a KRewrite");
     }
 
     @Override
-    public InjectedKLabel InjectedKLabel(org.kframework.legacykore.KLabel klabel, Att att) {
+    public InjectedKLabel InjectedKLabel(org.kframework.frontend.KLabel klabel, Att att) {
         return new InjectedKLabel(convert1(klabel));
     }
 
@@ -278,20 +278,20 @@ public class KOREtoBackendKIL extends org.kframework.legacykore.AbstractConstruc
     }
 
     //separate functions for separate Minikore classes
-    public Term convert(org.kframework.legacykore.K k) {
+    public Term convert(org.kframework.frontend.K k) {
         if (k instanceof Term)
             return (Term) k;
-        else if (k instanceof org.kframework.legacykore.KToken)
-            return KToken(((org.kframework.legacykore.KToken) k).s(), ((org.kframework.legacykore.KToken) k).sort(), k.att());
-        else if (k instanceof org.kframework.legacykore.KApply) {
+        else if (k instanceof org.kframework.frontend.KToken)
+            return KToken(((org.kframework.frontend.KToken) k).s(), ((org.kframework.frontend.KToken) k).sort(), k.att());
+        else if (k instanceof org.kframework.frontend.KApply) {
             return KApply1(((KApply) k).klabel(), ((KApply) k).klist(), k.att());
-        } else if (k instanceof org.kframework.legacykore.KSequence)
-            return KSequence(((org.kframework.legacykore.KSequence) k).items(), k.att());
-        else if (k instanceof org.kframework.legacykore.KVariable)
-            return KVariable(((org.kframework.legacykore.KVariable) k).name(), k.att());
-        else if (k instanceof org.kframework.legacykore.InjectedKLabel)
-            return InjectedKLabel(((org.kframework.legacykore.InjectedKLabel) k).klabel(), k.att());
-        else if (k instanceof org.kframework.legacykore.KRewrite) {
+        } else if (k instanceof org.kframework.frontend.KSequence)
+            return KSequence(((org.kframework.frontend.KSequence) k).items(), k.att());
+        else if (k instanceof org.kframework.frontend.KVariable)
+            return KVariable(((org.kframework.frontend.KVariable) k).name(), k.att());
+        else if (k instanceof org.kframework.frontend.InjectedKLabel)
+            return InjectedKLabel(((org.kframework.frontend.InjectedKLabel) k).klabel(), k.att());
+        else if (k instanceof org.kframework.frontend.KRewrite) {
             return KItem.of(KLabelConstant.of(KLabels.KREWRITE, definition), KList.concatenate(convert(((KRewrite) k).left()), convert(((KRewrite) k).right())), global);
         } else
             throw new AssertionError("BUM!");

@@ -1,18 +1,18 @@
 package org.kframework.definition
 
-import org.kframework.legacykore
-import org.kframework.legacykore.ADT
+import org.kframework.frontend
+import org.kframework.frontend.ADT
 import collection._
 
 trait KLabelMappings {
   self: Module =>
 
-  lazy val labelsToProductions: Map[legacykore.KLabel, Set[Production]] =
+  lazy val labelsToProductions: Map[frontend.KLabel, Set[Production]] =
     sentences collect {
       case prod: Production => (makeKLabel(prod.items), prod)
     } groupBy (_._1) mapValues (_ map { _._2 })
 
-  def makeKLabel(items: Seq[ProductionItem]): legacykore.KLabel = ADT.KLabelLookup(
+  def makeKLabel(items: Seq[ProductionItem]): frontend.KLabel = ADT.KLabelLookup(
     items map {
       case NonTerminal(sort) => "_"
       case Terminal(string, _) => string

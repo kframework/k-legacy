@@ -4,7 +4,7 @@ package org.kframework.unparser;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.kframework.attributes.Source;
-import org.kframework.legacykore.K;
+import org.kframework.frontend.K;
 import org.kframework.main.GlobalOptions;
 import org.kframework.parser.binary.BinaryParser;
 import org.kframework.parser.legacykore.KoreParser;
@@ -15,7 +15,7 @@ import org.kframework.utils.file.FileUtil;
 import java.io.File;
 
 import static org.junit.Assert.*;
-import static org.kframework.legacykore.KORE.*;
+import static org.kframework.frontend.KORE.*;
 
 public class BinaryKASTTest {
 

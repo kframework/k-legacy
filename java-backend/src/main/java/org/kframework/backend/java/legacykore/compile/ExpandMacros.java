@@ -13,10 +13,10 @@ import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
 import org.kframework.kil.Attribute;
-import org.kframework.legacykore.K;
-import org.kframework.legacykore.KApply;
-import org.kframework.legacykore.KLabel;
-import org.kframework.legacykore.compile.KtoKORE;
+import org.kframework.frontend.K;
+import org.kframework.frontend.KApply;
+import org.kframework.frontend.KLabel;
+import org.kframework.frontend.compile.KtoKORE;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import org.kframework.main.GlobalOptions;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 
 import static org.kframework.Collections.*;
 import static org.kframework.definition.Constructors.*;
-import static org.kframework.legacykore.KORE.*;
+import static org.kframework.frontend.KORE.*;
 
 /**
  * Uses the Java backend to expand all the macros in a particular module. A macro is a rule (without a side condition)

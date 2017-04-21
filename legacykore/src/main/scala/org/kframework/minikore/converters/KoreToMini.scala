@@ -2,9 +2,9 @@ package org.kframework.minikore.converters
 
 import org.kframework.kore._
 import org.kframework.kore.implementation.DefaultBuilders
-import org.kframework.legacykore.SortedADT.SortedKVariable
-import org.kframework.legacykore.Unapply._
-import org.kframework.legacykore._
+import org.kframework.frontend.SortedADT.SortedKVariable
+import org.kframework.frontend.Unapply._
+import org.kframework.frontend._
 import org.kframework.{attributes, definition}
 
 import scala.collection._

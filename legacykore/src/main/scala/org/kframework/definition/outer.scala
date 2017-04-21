@@ -9,9 +9,9 @@ import org.kframework.POSet
 import org.kframework.attributes.Att
 import org.kframework.definition.Constructors._
 import org.kframework.attributes.{Source, Location, Att}
-import org.kframework.legacykore.SortedADT.SortedKVariable
-import org.kframework.legacykore.Unapply.{KApply, KLabel}
-import org.kframework.legacykore._
+import org.kframework.frontend.SortedADT.SortedKVariable
+import org.kframework.frontend.Unapply.{KApply, KLabel}
+import org.kframework.frontend._
 import org.kframework.utils.errorsystem.KEMException
 
 import scala.annotation.meta.param
@@ -411,7 +411,7 @@ case class SyntaxSort(sort: Sort, att: Att = Att()) extends SyntaxSentence
 
 case class Production(sort: Sort, items: Seq[ProductionItem], att: Att)
   extends SyntaxSentence with ProductionToString {
-  lazy val klabel: Option[KLabel] = att.get[String]("klabel") map org.kframework.legacykore.KORE.KLabel
+  lazy val klabel: Option[KLabel] = att.get[String]("klabel") map org.kframework.frontend.KORE.KLabel
 
   override def equals(that: Any) = that match {
     case p@Production(`sort`, `items`, _) => this.klabel == p.klabel

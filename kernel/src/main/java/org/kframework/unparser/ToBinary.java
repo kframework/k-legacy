@@ -1,13 +1,13 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.unparser;
 
-import org.kframework.legacykore.InjectedKLabel;
-import org.kframework.legacykore.K;
-import org.kframework.legacykore.KApply;
-import org.kframework.legacykore.KRewrite;
-import org.kframework.legacykore.KSequence;
-import org.kframework.legacykore.KToken;
-import org.kframework.legacykore.KVariable;
+import org.kframework.frontend.InjectedKLabel;
+import org.kframework.frontend.K;
+import org.kframework.frontend.KApply;
+import org.kframework.frontend.KRewrite;
+import org.kframework.frontend.KSequence;
+import org.kframework.frontend.KToken;
+import org.kframework.frontend.KVariable;
 import org.kframework.parser.binary.BinaryParser;
 import org.kframework.utils.errorsystem.KEMException;
 

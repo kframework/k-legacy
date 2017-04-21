@@ -3,8 +3,8 @@ package org.kframework.kast;
 
 import org.kframework.attributes.Source;
 import org.kframework.kompile.ParserGenerator;
-import org.kframework.legacykore.K;
-import org.kframework.legacykore.Sort;
+import org.kframework.frontend.K;
+import org.kframework.frontend.Sort;
 import org.kframework.minikore.converters.MiniToKore;
 import org.kframework.parser.ParseResult;
 import org.kframework.parser.UserParser;

@@ -10,7 +10,7 @@ import org.kframework.backend.java.builtins.UninterpretedToken;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.kil.ASTNode;
-import org.kframework.legacykore.KToken;
+import org.kframework.frontend.KToken;
 import org.kframework.utils.StringUtil;
 
 

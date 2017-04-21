@@ -3,8 +3,8 @@ package org.kframework;
 
 import org.kframework.attributes.Source;
 import org.kframework.definition.*;
-import org.kframework.legacykore.K;
-import org.kframework.legacykore.Sort;
+import org.kframework.frontend.K;
+import org.kframework.frontend.Sort;
 import org.kframework.parser.concrete2kore.ParseInModule;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.utils.errorsystem.ParseFailedException;

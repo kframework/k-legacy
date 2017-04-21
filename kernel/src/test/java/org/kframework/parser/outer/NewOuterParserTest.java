@@ -8,8 +8,8 @@ import org.junit.Test;
 import org.kframework.attributes.Att;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Definition;
-import org.kframework.legacykore.K;
-import org.kframework.legacykore.Sort;
+import org.kframework.frontend.K;
+import org.kframework.frontend.Sort;
 import org.kframework.main.GlobalOptions;
 import org.kframework.parser.concrete2kore.ParserUtils;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -19,7 +19,7 @@ import org.kframework.utils.file.JarInfo;
 import java.io.File;
 import java.io.IOException;
 
-import static org.kframework.legacykore.KORE.*;
+import static org.kframework.frontend.KORE.*;
 
 /**
  * Tests the K definition of the outer K syntax.

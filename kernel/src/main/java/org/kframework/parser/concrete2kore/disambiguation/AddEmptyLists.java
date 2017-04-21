@@ -9,8 +9,8 @@ import org.kframework.definition.Module;
 import org.kframework.definition.NonTerminal;
 import org.kframework.definition.Production;
 import org.kframework.definition.ProductionItem;
-import org.kframework.legacykore.KLabel;
-import org.kframework.legacykore.Sort;
+import org.kframework.frontend.KLabel;
+import org.kframework.frontend.Sort;
 import org.kframework.parser.Constant;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.SetsGeneralTransformer;
@@ -37,7 +37,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.kframework.legacykore.KORE.*;
+import static org.kframework.frontend.KORE.*;
 import static org.kframework.Collections.*;
 
 /**

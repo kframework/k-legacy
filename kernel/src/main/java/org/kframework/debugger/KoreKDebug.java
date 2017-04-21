@@ -7,7 +7,7 @@ import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
 import org.kframework.definition.Rule;
 import org.kframework.kompile.CompiledDefinition;
-import org.kframework.legacykore.K;
+import org.kframework.frontend.K;
 import org.kframework.krun.KRun;
 import org.kframework.krun.KRunOptions;
 import org.kframework.rewriter.SearchType;

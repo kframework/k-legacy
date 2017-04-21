@@ -2,7 +2,7 @@
 package org.kframework.debugger;
 
 import org.kframework.definition.Rule;
-import org.kframework.legacykore.K;
+import org.kframework.frontend.K;
 
 /**
  * Created by Manasvi on 8/19/15.

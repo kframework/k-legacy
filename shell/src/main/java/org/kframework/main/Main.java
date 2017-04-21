@@ -28,7 +28,7 @@ import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.KompileFrontEnd;
 import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.kompile.KompileOptions;
-import org.kframework.legacykore.compile.Backend;
+import org.kframework.frontend.compile.Backend;
 import org.kframework.krun.KRunFrontEnd;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.io.FileSystem;

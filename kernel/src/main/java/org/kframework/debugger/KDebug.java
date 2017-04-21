@@ -3,7 +3,7 @@ package org.kframework.debugger;
 
 
 import org.kframework.definition.Rule;
-import org.kframework.legacykore.K;
+import org.kframework.frontend.K;
 
 import java.util.List;
 import java.util.Optional;

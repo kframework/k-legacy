@@ -2,7 +2,7 @@ package org.kframework.compile
 
 import org.kframework.attributes.Att
 import org.kframework.definition._
-import org.kframework.legacykore.ADT.Sort
+import org.kframework.frontend.ADT.Sort
 
 import collection._
 

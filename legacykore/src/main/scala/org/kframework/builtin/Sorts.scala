@@ -3,8 +3,8 @@
 package org.kframework.builtin
 
 import org.kframework.definition.ModuleName
-import org.kframework.legacykore.ADT
-import org.kframework.legacykore.KORE.Sort
+import org.kframework.frontend.ADT
+import org.kframework.frontend.KORE.Sort
 
 object Sorts {
   val KString    = Sort("KString", ModuleName("KSTRING"))

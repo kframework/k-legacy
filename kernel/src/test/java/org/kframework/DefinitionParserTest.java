@@ -7,7 +7,7 @@ import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
 
 import static org.kframework.Collections.*;
-import static org.kframework.legacykore.KORE.*;
+import static org.kframework.frontend.KORE.*;
 import static org.kframework.definition.Constructors.*;
 
 public class DefinitionParserTest {

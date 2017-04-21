@@ -5,19 +5,19 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import org.kframework.legacykore.K;
-import org.kframework.legacykore.KApply;
-import org.kframework.legacykore.KLabel;
-import org.kframework.legacykore.KRewrite;
-import org.kframework.legacykore.Sort;
+import org.kframework.frontend.K;
+import org.kframework.frontend.KApply;
+import org.kframework.frontend.KLabel;
+import org.kframework.frontend.KRewrite;
+import org.kframework.frontend.Sort;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.kframework.legacykore.KORE.KLabel;
-import static org.kframework.legacykore.KORE.Sort;
+import static org.kframework.frontend.KORE.KLabel;
+import static org.kframework.frontend.KORE.Sort;
 
 /**
  * Basic label information for cell completion

@@ -1,7 +1,7 @@
 package org.kframework.attributes
 
-import org.kframework.legacykore
+import org.kframework.frontend
 
 object ObjectToKORE {
-  def apply(o: Any): legacykore.K = ???
+  def apply(o: Any): frontend.K = ???
 }

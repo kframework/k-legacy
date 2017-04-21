@@ -2,9 +2,9 @@
 package org.kframework.backend.java.kil;
 
 
-import org.kframework.legacykore.*;
-import org.kframework.legacykore.KLabel;
-import org.kframework.legacykore.KList;
+import org.kframework.frontend.*;
+import org.kframework.frontend.KLabel;
+import org.kframework.frontend.KList;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -35,7 +35,7 @@ public interface KItemRepresentation extends KoreRepresentation, KApply {
     }
 
     @Override
-    default org.kframework.legacykore.KLabel klabel() {
+    default org.kframework.frontend.KLabel klabel() {
         if (kLabel() instanceof KLabelInjection) {
             return ((KApply) ((KLabelInjection) kLabel()).term()).klabel();
         } else {
@@ -44,7 +44,7 @@ public interface KItemRepresentation extends KoreRepresentation, KApply {
     }
 
     @Override
-    default org.kframework.legacykore.KList klist() {
+    default org.kframework.frontend.KList klist() {
         if (kLabel() instanceof KLabelInjection) {
             return ((KApply) ((KLabelInjection) kLabel()).term()).klist();
         } else {

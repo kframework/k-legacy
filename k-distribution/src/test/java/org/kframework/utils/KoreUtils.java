@@ -5,9 +5,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.HookProvider;
 import org.kframework.backend.java.symbolic.JavaBackend;
 import org.kframework.backend.java.symbolic.JavaExecutionOptions;
-import org.kframework.legacykore.KORE;
-import org.kframework.legacykore.KToken;
-import org.kframework.legacykore.Sort;
+import org.kframework.frontend.KORE;
+import org.kframework.frontend.KToken;
+import org.kframework.frontend.Sort;
 import org.kframework.krun.KRunOptions;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.attributes.Source;
@@ -17,7 +17,7 @@ import org.kframework.definition.Module;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
-import org.kframework.legacykore.K;
+import org.kframework.frontend.K;
 import org.kframework.krun.KRun;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-import static org.kframework.legacykore.KORE.KToken;
+import static org.kframework.frontend.KORE.KToken;
 
 /**
  * Created by Manasvi on 6/19/15.

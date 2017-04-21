@@ -5,7 +5,7 @@ import org.kframework.attributes.Location;
 import org.kframework.attributes.Source;
 import org.kframework.kil.ASTNode;
 import org.kframework.kil.AbstractVisitor;
-import org.kframework.legacykore.K;
+import org.kframework.frontend.K;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.StringUtil;
 import org.kframework.utils.errorsystem.KException.ExceptionType;

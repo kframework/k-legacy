@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author AndreiS
  */
-public class Variable extends Term implements org.kframework.legacykore.KVariable {
+public class Variable extends Term implements org.kframework.frontend.KVariable {
 
     protected static final String VARIABLE_PREFIX = "_";
     protected static final AtomicInteger counter = new AtomicInteger(0);

@@ -16,17 +16,17 @@ import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.kore.Definition;
 import org.kframework.kore.Pattern;
-import org.kframework.legacykore.Assoc;
-import org.kframework.legacykore.K;
-import org.kframework.legacykore.KApply;
-import org.kframework.legacykore.KLabel;
-import org.kframework.legacykore.KORE;
-import org.kframework.legacykore.KToken;
-import org.kframework.legacykore.KVariable;
-import org.kframework.legacykore.Sort;
-import org.kframework.legacykore.Unapply.KApply$;
-import org.kframework.legacykore.VisitK;
-import org.kframework.legacykore.compile.KTokenVariablesToTrueVariables;
+import org.kframework.frontend.Assoc;
+import org.kframework.frontend.K;
+import org.kframework.frontend.KApply;
+import org.kframework.frontend.KLabel;
+import org.kframework.frontend.KORE;
+import org.kframework.frontend.KToken;
+import org.kframework.frontend.KVariable;
+import org.kframework.frontend.Sort;
+import org.kframework.frontend.Unapply.KApply$;
+import org.kframework.frontend.VisitK;
+import org.kframework.frontend.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.minikore.converters.KoreToMini;
 import org.kframework.parser.ProductionReference;
@@ -62,7 +62,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.kframework.Collections.*;
-import static org.kframework.legacykore.KORE.*;
+import static org.kframework.frontend.KORE.*;
 
 /**
  * The KORE-based KRun

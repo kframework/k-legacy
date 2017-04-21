@@ -5,8 +5,8 @@ import java.util.function.Function
 import org.kframework.compile.{AddBottomSortForListsWithIdenticalLabels, NormalizeKSeq}
 import org.kframework.definition.{Definition, DefinitionTransformer}
 import org.kframework.kompile.{CompiledDefinition, Kompile, KompileOptions}
-import org.kframework.legacykore.KORE
-import org.kframework.legacykore.compile._
+import org.kframework.frontend.KORE
+import org.kframework.frontend.compile._
 import org.kframework.utils.errorsystem.KExceptionManager
 
 class KaleBackend(kompileOptions: KompileOptions, kem: KExceptionManager) extends Backend {

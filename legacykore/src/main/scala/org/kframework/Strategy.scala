@@ -3,8 +3,8 @@ package org.kframework
 import org.kframework.attributes.Att
 import org.kframework.builtin.KLabels
 import org.kframework.definition.{DefinitionTransformer, ModuleTransformer, Rule}
-import org.kframework.legacykore.KORE
-import org.kframework.legacykore.Unapply.{KApply, KLabel}
+import org.kframework.frontend.KORE
+import org.kframework.frontend.Unapply.{KApply, KLabel}
 
 object Strategy {
   val strategyCellName = "<s>"
@@ -18,7 +18,7 @@ class Strategy(heatCool: Boolean) {
     DefinitionTransformer(
       ModuleTransformer.fromSentenceTransformer({
         (module, r) =>
-          val rich = legacykore.Rich(module)
+          val rich = frontend.Rich(module)
 
           import rich._
 
@@ -26,7 +26,7 @@ class Strategy(heatCool: Boolean) {
             r
           } else
             r match {
-              case r: Rule if !r.body.contains({ case k: legacykore.KApply => k.klabel.name.contains("<s>") }) =>
+              case r: Rule if !r.body.contains({ case k: frontend.KApply => k.klabel.name.contains("<s>") }) =>
                 val newBody = r.body match {
                   case KApply(klabel, _) if !module.attributesFor.contains(klabel) || !klabel.att.contains(Att.Function) =>
                     // todo: "!module.attributesFor.contains(klabel) ||" when #1723 is fixed

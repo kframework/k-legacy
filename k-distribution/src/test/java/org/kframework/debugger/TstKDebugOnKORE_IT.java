@@ -6,8 +6,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.kframework.AbstractTest;
 import org.kframework.attributes.Source;
-import org.kframework.legacykore.K;
-import org.kframework.legacykore.compile.KtoKORE;
+import org.kframework.frontend.K;
+import org.kframework.frontend.compile.KtoKORE;
 import org.kframework.krun.KRunOptions;
 import org.kframework.utils.KoreUtils;
 

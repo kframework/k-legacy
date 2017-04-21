@@ -22,7 +22,7 @@ import org.kframework.kil.Attribute;
 import org.kframework.kil.Attributes;
 import org.kframework.kil.DataStructureSort;
 import org.kframework.kil.loader.Context;
-import org.kframework.legacykore.convertors.KOREtoKIL;
+import org.kframework.frontend.convertors.KOREtoKIL;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import scala.collection.JavaConversions;

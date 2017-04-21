@@ -5,9 +5,9 @@ import org.kframework.attributes.Att;
 import org.kframework.builtin.KLabels;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
-import org.kframework.legacykore.ExistsK;
-import org.kframework.legacykore.KApply;
-import org.kframework.legacykore.KVariable;
+import org.kframework.frontend.ExistsK;
+import org.kframework.frontend.KApply;
+import org.kframework.frontend.KVariable;
 
 import java.util.function.UnaryOperator;
 

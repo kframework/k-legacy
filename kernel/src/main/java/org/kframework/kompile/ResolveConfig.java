@@ -9,9 +9,9 @@ import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
 import org.kframework.definition.ModuleName;
 import org.kframework.definition.Sentence;
-import org.kframework.legacykore.K;
-import org.kframework.legacykore.KApply;
-import org.kframework.legacykore.compile.GenerateSentencesFromConfigDecl;
+import org.kframework.frontend.K;
+import org.kframework.frontend.KApply;
+import org.kframework.frontend.compile.GenerateSentencesFromConfigDecl;
 import org.kframework.parser.concrete2kore.ParseInModule;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.utils.errorsystem.KEMException;
@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 
 import static org.kframework.Collections.*;
 import static org.kframework.definition.Constructors.*;
-import static org.kframework.legacykore.KORE.Sort;
+import static org.kframework.frontend.KORE.Sort;
 
 /**
  * Expands configuration declaration to KORE productions and rules.
