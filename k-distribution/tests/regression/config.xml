@@ -16,8 +16,8 @@
       extension="issue"
       >
     <all-programs>
-      <krun-option name="-output" value="sound" />
-	    <krun-option name="-parser" value="kast -parser ground" />
+      <krun-option name="-outpjavaBackendValuealue="sound" />
+	    <krun-option name="-parsjavaBackendValuealue="kast -parser ground" />
     </all-programs>
   </test>
 
@@ -28,10 +28,10 @@
       extension="test"
       skip="pdf"
       >
-    <kompile-option name="-w" value="all" />
+    <kompile-option name="javaBackendValuealue="all" />
       <all-programs>
-        <krun-option name="-output" value="none" />
-        <krun-option name="-color" value="off" />
+        <krun-option name="-outpjavaBackendValuealue="none" />
+        <krun-option name="-coljavaBackendValuealue="off" />
       </all-programs>
   </test>
 

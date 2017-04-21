@@ -116,8 +116,6 @@ public class BinaryParser {
 
     private KLabel readKLabel() throws IOException {
         String lbl = readString();
-        if (data.get() != 0)
-            return KVariable(lbl);
         return KLabel(lbl);
     }
 

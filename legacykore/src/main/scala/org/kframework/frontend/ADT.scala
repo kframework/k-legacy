@@ -1,12 +1,13 @@
 package org.kframework.frontend
 
 import org.kframework.builtin.{KLabels, Sorts}
-import org.kframework.frontend
+import org.kframework.{frontend, kore}
 import org.kframework.attributes._
 import org.kframework.utils.errorsystem.KEMException
 
 import collection.JavaConverters._
 import org.kframework.definition._
+import org.kframework.kore.Pattern
 
 /**
   * Abstract Data Types: basic implementations for the inner KORE interfaces.
@@ -54,6 +55,9 @@ object ADT {
       case s: KSequence => s.elements == elements
       case _ => false
     }
+
+    // for KORE
+    override def symbol: kore.Symbol = ADT.KLabelLookup(KLabels.KSEQ)
   }
 
   object KSequence {
@@ -70,7 +74,7 @@ object ADT {
   }
 
   case class KVariable(name: String, att: Att = Att()) extends frontend.KVariable {
-    def apply(ks: K*) = KApply(this, KList(ks.toList))
+//    def apply(ks: K*) = KApply(this, KList(ks.toList))
   }
 
   object SortLookup {
@@ -131,7 +135,7 @@ object ADT {
 object SortedADT {
 
   case class SortedKVariable(name: String, att: Att = Att()) extends frontend.KVariable {
-    def apply(ks: K*) = ADT.KApply(this, ADT.KList(ks.toList))
+//    def apply(ks: K*) = ADT.KApply(this, ADT.KList(ks.toList))
 
     val sort: Sort = att.getOptional[Sort](Att.sort).orElse(Sorts.K)
 

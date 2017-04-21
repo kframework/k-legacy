@@ -52,13 +52,13 @@ public abstract class Token extends Term implements KoreRepresentation, KToken {
 
     @Override
     public String s() {
-        return value();
+        return javaBackendValue();
     }
 
     /**
-     * Returns a {@code String} representation of the (uninterpreted) value of this token.
+     * Returns a {@code String} representation of the (uninterpreted) javaBackendValue of this token.
      */
-    public abstract String value();
+    public abstract String javaBackendValue();
 
     @Override
     public final boolean isGround() {
@@ -87,7 +87,7 @@ public abstract class Token extends Term implements KoreRepresentation, KToken {
 
     @Override
     public String toString() {
-        return sort() + "(#\"" + value() + "\")";
+        return sort() + "(#\"" + javaBackendValue() + "\")";
     }
 
 }

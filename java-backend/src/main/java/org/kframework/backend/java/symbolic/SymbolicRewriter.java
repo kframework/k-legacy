@@ -449,8 +449,8 @@ public class SymbolicRewriter {
     /**
      * @param initialTerm
      * @param pattern     the pattern we are searching for
-     * @param bound       a negative value specifies no bound
-     * @param depth       a negative value specifies no bound
+     * @param bound       a negative javaBackendValue specifies no bound
+     * @param depth       a negative javaBackendValue specifies no bound
      * @param searchType  defines when we will attempt to match the pattern
      * @return a list of substitution mappings for results that matched the pattern
      */

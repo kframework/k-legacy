@@ -10,9 +10,9 @@ object AddBottomSortForListsWithIdenticalLabels extends BasicModuleTransformer {
   val singleton = this
 
   override def process(m: Module, alreadyProcessedImports: Set[Module]) = {
-    val theAdditionalSubsortingProductions = UserList.apply(m.sentences)
+    val theAdditionalSubsortingProductionsSets: Iterable[Set[_ <: Sentence]] = UserList.apply(m.sentences)
       .groupBy(l => l.klabel)
-      .flatMap {
+      .map {
         case (klabel, userListInfo) =>
           val minimalSorts = m.subsorts.minimal(userListInfo map { li => li.sort })
           if (minimalSorts.size > 1) {
@@ -28,6 +28,8 @@ object AddBottomSortForListsWithIdenticalLabels extends BasicModuleTransformer {
             Set()
           }
       }
+
+    val theAdditionalSubsortingProductions = theAdditionalSubsortingProductionsSets.flatten
 
     if (theAdditionalSubsortingProductions.nonEmpty)
       m.copy(unresolvedLocalSentences = m.localSentences ++ theAdditionalSubsortingProductions, imports = alreadyProcessedImports)

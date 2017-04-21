@@ -191,7 +191,7 @@ public class BackendJavaKILtoKILTransformer implements Transformer {
     @Override
     public ASTNode transform(Token token) {
         if (cache.containsKey(token)) return cache.get(token);
-        ASTNode kil = org.kframework.kil.Token.kAppOf(token.sort().toFrontEnd(), token.value());
+        ASTNode kil = org.kframework.kil.Token.kAppOf(token.sort().toFrontEnd(), token.javaBackendValue());
         kil.copyAttributesFrom(token);
         cache.put(token, kil);
         return kil;

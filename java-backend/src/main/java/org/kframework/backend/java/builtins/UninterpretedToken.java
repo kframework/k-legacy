@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Represents an uninterpreted token which consists of the {@code String}
- * representation of a sort and a value.
+ * representation of a sort and a javaBackendValue.
  *
  * @author AndreiS
  */
@@ -32,9 +32,9 @@ public final class UninterpretedToken extends Token {
     }
 
     /**
-     * Returns a {@code UninterpretedToken} representation of a token of given sort and value. The
+     * Returns a {@code UninterpretedToken} representation of a token of given sort and javaBackendValue. The
      * UninterpretedToken instances are cached to ensure uniqueness (subsequent invocations of
-     * this method with the same sort and value return the same {@code UninterpretedToken} object).
+     * this method with the same sort and javaBackendValue return the same {@code UninterpretedToken} object).
      */
     public static UninterpretedToken of(Sort sort, String value) {
         Map<String, UninterpretedToken> sortCache = cache.computeIfAbsent(sort, p -> new ConcurrentHashMap<>());
@@ -47,10 +47,10 @@ public final class UninterpretedToken extends Token {
     }
 
     /**
-     * Returns a {@code String} representation of the value of this UninterpretedToken.
+     * Returns a {@code String} representation of the javaBackendValue of this UninterpretedToken.
      */
     @Override
-    public String value() {
+    public String javaBackendValue() {
         return value;
     }
 

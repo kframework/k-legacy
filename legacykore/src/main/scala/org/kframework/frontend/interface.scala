@@ -1,8 +1,14 @@
 package org.kframework.frontend
 
 import org.kframework.attributes._
+import org.kframework.builtin.KLabels
 import org.kframework.definition.ModuleQualified
 import org.kframework.unparser.Unparse
+import org.kframework.kore
+import org.kframework.kore.Pattern
+import org.kframework.kore.implementation.DefaultBuilders
+
+import collection.JavaConverters._
 
 /**
  * This file contains all inner KORE interfaces.
@@ -18,23 +24,30 @@ trait HashCodeCaching {
   def computeHashCode: Int
 }
 
-trait K extends Serializable with HashCodeCaching {
+trait K extends Serializable with HashCodeCaching with kore.Pattern {
   def att: Att
   override def toString = Unparse.apply(this)
 }
 
 trait KItem extends K
 
-trait KLabel {
+trait KLabel extends kore.Symbol {
   def name: String
   override def equals(other: Any) = other match {
     case l: KLabel => name == l.name
     case _ => false
   }
   override def hashCode = name.hashCode
+
+  // for KORE
+  def str = name
 }
 
-trait KToken extends KItem {
+case class SortBasedDomainValue(sort: Sort) extends kore.Symbol {
+  override def str: String = sort.name
+}
+
+trait KToken extends KItem with kore.DomainValue {
   def sort: Sort
   def s: String
   override def equals(other: Any) = other match {
@@ -42,15 +55,22 @@ trait KToken extends KItem {
     case _ => false
   }
   def computeHashCode = sort.hashCode() * 13 + s.hashCode
+
+  // for KORE
+  override def symbol: kore.Symbol = SortBasedDomainValue(sort)
+  override def value = DefaultBuilders.Value(s)
 }
 
-trait Sort extends ModuleQualified with HashCodeCaching {
+trait Sort extends ModuleQualified with HashCodeCaching with kore.Sort {
   def name: String
   override def equals(other: Any) = other match {
     case other: Sort => name == other.name
     case _ => false
   }
   override def computeHashCode: Int = localName.hashCode
+
+  // for KORE
+  override val str = name
 }
 abstract class AbstractSort extends Sort
 
@@ -73,7 +93,7 @@ trait KCollection {
 trait KList extends KCollection {
 }
 
-trait KApply extends KItem with KCollection {
+trait KApply extends KItem with KCollection with kore.Application {
   def klabel: KLabel
   def klist: KList
 
@@ -86,11 +106,19 @@ trait KApply extends KItem with KCollection {
     })
 
   override def computeHashCode = klabel.hashCode * 17 + klist.hashCode
+
+  // for KORE
+  override def symbol: kore.Symbol = klabel
+
+  override def args: Seq[Pattern] = klist.items.asScala
 }
 
-trait KSequence extends KCollection with K
+trait KSequence extends KCollection with K with kore.Application {
+  // for KORE
+  override def args: Seq[Pattern] = items.asScala
+}
 
-trait KVariable extends KItem with KLabel {
+trait KVariable extends KItem with kore.Variable {
   def name: String
 
   def computeHashCode = name.hashCode

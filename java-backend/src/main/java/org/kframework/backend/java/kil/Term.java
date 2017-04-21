@@ -123,7 +123,7 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
 
     /**
      * Computes and caches the hashCode if it has not been computed yet.
-     * Otherwise, simply returns the cached value.
+     * Otherwise, simply returns the cached javaBackendValue.
      */
     @Override
     public final int hashCode() {

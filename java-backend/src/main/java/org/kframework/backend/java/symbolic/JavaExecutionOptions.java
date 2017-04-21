@@ -24,7 +24,7 @@ public final class JavaExecutionOptions {
     public Integer auditingLine;
 
     @Parameter(names="--audit-step", description="Enforce that the rule applied at the specified step is a rule "
-            + "tagged with the value of --apply-tag, or fail with an error explaining why the rule did not apply.")
+            + "tagged with the javaBackendValue of --apply-tag, or fail with an error explaining why the rule did not apply.")
     public Integer auditingStep;
 
 }

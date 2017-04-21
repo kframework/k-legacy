@@ -24,8 +24,6 @@ public class KtoKORE extends TransformK {
     }
 
     private KLabel apply(KLabel klabel) {
-        if (klabel instanceof KVariable)
-            return apply((KVariable) klabel);
         return KLabel(klabel.name());
     }
 
