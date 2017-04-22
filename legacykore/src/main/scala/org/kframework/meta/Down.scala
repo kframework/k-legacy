@@ -15,13 +15,14 @@ object Down {
       (className: String) =>
         def theClass(className: String): Option[Class[_]] = {
           val allQualifiedClassNames: Set[String] = (imports map (_ + "." + className)) + className
-          val posibilities = allQualifiedClassNames flatMap { qualifiedClassName: String =>
+          val posibilitiesMap: Set[Option[Class[_]]] = allQualifiedClassNames map { qualifiedClassName: String =>
             try {
               Some(Class.forName(qualifiedClassName))
             } catch {
               case _: ClassNotFoundException => None
             }
           }
+          val posibilities: Set[Class[_]] = posibilitiesMap.flatten
           if (posibilities.size == 1) {
             posibilities.headOption
           } else {

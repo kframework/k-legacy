@@ -5,12 +5,13 @@ import org.kframework.definition._
 import org.kframework.frontend.ADT.Sort
 
 import collection._
+import scala.collection.immutable.Iterable
 
 object AddBottomSortForListsWithIdenticalLabels extends BasicModuleTransformer {
   val singleton = this
 
   override def process(m: Module, alreadyProcessedImports: Set[Module]) = {
-    val theAdditionalSubsortingProductionsSets: Iterable[Set[_ <: Sentence]] = UserList.apply(m.sentences)
+    val theAdditionalSubsortingProductionsSets: Iterable[Set[Sentence]] = UserList.apply(m.sentences)
       .groupBy(l => l.klabel)
       .map {
         case (klabel, userListInfo) =>
@@ -25,7 +26,7 @@ object AddBottomSortForListsWithIdenticalLabels extends BasicModuleTransformer {
                 Seq(Terminal(".GeneratedListBottom")),
                 Att.generatedByAtt(this.getClass) + (Production.kLabelAttribute -> userListInfo.head.pTerminator.klabel.get.name)))
           } else {
-            Set()
+            Set[Sentence]()
           }
       }
 
