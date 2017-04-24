@@ -2,7 +2,7 @@
 package org.kframework.backend.java.symbolic;
 
 import org.kframework.attributes.Att;
-import org.kframework.backend.java.legacykore.compile.ExpandMacros;
+import org.kframework.backend.java.frontend.compile.ExpandMacros;
 import org.kframework.compile.NormalizeKSeq;
 import org.kframework.definition.Definition;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;

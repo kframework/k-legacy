@@ -10,7 +10,7 @@
   <name>K Framework Tool Parent</name>
 
   <modules>
-    <module>legacykore</module>
+    <module>frontend</module>
     <module>kernel</module>
     <module>k-distribution</module>
     <module>java-backend</module>

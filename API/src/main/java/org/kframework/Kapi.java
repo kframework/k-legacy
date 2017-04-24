@@ -15,7 +15,7 @@ import org.kframework.backend.java.kil.KLabelConstant;
 import org.kframework.backend.java.kil.KList;
 import org.kframework.backend.java.kil.Term;
 import org.kframework.backend.java.kil.TermContext;
-import org.kframework.backend.java.legacykore.compile.ExpandMacros;
+import org.kframework.backend.java.frontend.compile.ExpandMacros;
 import org.kframework.backend.java.symbolic.ConjunctiveFormula;
 import org.kframework.backend.java.symbolic.InitializeRewriter;
 import org.kframework.backend.java.symbolic.JavaBackend;

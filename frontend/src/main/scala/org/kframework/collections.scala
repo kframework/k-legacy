@@ -3,7 +3,7 @@
 package org.kframework
 
 import java.util
-import java.util.function.{BiConsumer, BinaryOperator, Supplier}
+import java.util.function.{BiConsumer, BinaryOperator, Function, Supplier}
 import java.util.stream.StreamSupport
 
 import scala.collection.JavaConverters._
@@ -11,7 +11,7 @@ import scala.collection._
 import scala.collection.mutable.{Builder, ListBuffer, SetBuilder}
 
 object Collections {
-  def asScalaFunc[U, V](f: Function[U, V]): (U => V) = f
+  def asScalaFunc[U, V](f: java.util.function.Function[U, V]): (U => V) = (x => f(x))
 
   def immutable[T](s: java.lang.Iterable[T]): Iterable[T] = s.asScala
   def immutable[T](s: java.util.Set[T]): Set[T] = s.asScala.toSet
@@ -60,6 +60,10 @@ object Collections {
   def toAssociativeSet[T]: Collector[T, Set[T]] =
     Collector(() => new CombinerFromBuilder(
       new AssocBuilder[T, Set[T], Set[T]](new SetBuilder(Set()))))
+
+  def asJavaFunction[A, B](f:A => B): java.util.function.Function[A, B] = new Function[A, B] {
+    override def apply(t: A): B = f(t)
+  }
 }
 
 class CombinerFromBuilder[T, R <: {def iterator : Iterator[T]}](protected[this] val b: Builder[T, R]) extends

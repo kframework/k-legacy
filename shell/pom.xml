@@ -16,7 +16,7 @@
     <dependencies>
         <dependency>
             <groupId>org.kframework.k</groupId>
-            <artifactId>legacykore</artifactId>
+            <artifactId>frontend</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

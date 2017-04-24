@@ -9,13 +9,13 @@ options {
 }
 
 PARSER_BEGIN(KoreParser)
-package org.kframework.parser.legacykore;
+package org.kframework.parser.frontend;
 
 import org.kframework.attributes.Location;
 import org.kframework.attributes.Source;
-import org.kframework.legacykore.K;
-import org.kframework.legacykore.KLabel;
-import org.kframework.legacykore.KList;
+import org.kframework.frontend.K;
+import org.kframework.frontend.KLabel;
+import org.kframework.frontend.KList;
 import org.kframework.utils.Strings;
 import org.kframework.utils.StringUtil;
 import org.kframework.utils.errorsystem.KEMException;
@@ -28,7 +28,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.kframework.legacykore.KORE.*;
+import static org.kframework.frontend.KORE.*;
 
 public class KoreParser {
 	public static K parse(String kast, Source source) {

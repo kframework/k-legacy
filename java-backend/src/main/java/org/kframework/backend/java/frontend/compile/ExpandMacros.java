@@ -1,5 +1,5 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
-package org.kframework.backend.java.legacykore.compile;
+package org.kframework.backend.java.frontend.compile;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
