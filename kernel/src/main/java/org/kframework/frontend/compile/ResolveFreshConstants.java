@@ -9,6 +9,7 @@ import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
+import org.kframework.frontend.KORE;
 import org.kframework.frontend.Sort;
 import org.kframework.frontend.VisitK;
 import org.kframework.frontend.K;
@@ -64,7 +65,7 @@ public class ResolveFreshConstants {
             if (!s.isPresent()) {
                 throw KEMException.compilerError("Fresh constant used without a declared sort.", k);
             }
-            return KApply(KLabel("#match"), k, KApply(KLabel("#fresh"), KToken(StringUtil.enquoteKString(s.get().toString()), Sorts.String())));
+            return KORE.KApply(KLabel("#match"), k, KORE.KApply(KLabel("#fresh"), KToken(StringUtil.enquoteKString(s.get().toString()), Sorts.String())));
         }).reduce(BooleanUtils::and);
         if (!sideCondition.isPresent()) {
             return requires;

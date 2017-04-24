@@ -121,10 +121,10 @@ public class GenerateSentencesFromConfigDecl {
                                 if (initializerProduction.get().size() == 1) { // should be only a single initializer
                                     if (initializerProduction.get().head().items().size() == 1) {
                                         // XCell ::= "initXCell"
-                                        return Tuple3.apply(Set(), Lists.newArrayList(sort), KApply(KLabel(getInitLabel(sort))));
+                                        return Tuple3.apply(Set(), Lists.newArrayList(sort), KORE.KApply(KLabel(getInitLabel(sort))));
                                     } else if (initializerProduction.get().head().items().size() == 4) {
                                         // XCell ::= "initXCell" "(" Map ")"
-                                        return Tuple3.apply(Set(), Lists.newArrayList(sort), KApply(KLabel(getInitLabel(sort)), KVariable("Init")));
+                                        return Tuple3.apply(Set(), Lists.newArrayList(sort), KORE.KApply(KLabel(getInitLabel(sort)), KVariable("Init")));
                                     }
                                 }
                             }
@@ -137,7 +137,7 @@ public class GenerateSentencesFromConfigDecl {
                 if (ensures != null) {
                     //top level cell, therefore, should be the children of the generatedTop cell
                     KToken cellLabel = KToken(KLabels.GENERATED_TOP_CELL, Sort("#CellName"));
-                    K generatedTop = KApply(KLabel("#configCell"), cellLabel, KApply(KLabel("#cellPropertyListTerminator")), term, cellLabel);
+                    K generatedTop = KORE.KApply(KLabel("#configCell"), cellLabel, KORE.KApply(KLabel("#cellPropertyListTerminator")), term, cellLabel);
                     return genInternal(generatedTop, ensures, cfgAtt, m);
                 }
                 List<K> cells = Assoc.flatten(kapp.klabel(), kapp.klist().items(), m);
@@ -151,7 +151,7 @@ public class GenerateSentencesFromConfigDecl {
                     sorts.addAll(childResult._2());
                     initializers.add(childResult._3());
                 }
-                return Tuple3.apply(accumSentences, sorts, KApply(KLabel(KLabels.CELLS), immutable(initializers)));
+                return Tuple3.apply(accumSentences, sorts, KORE.KApply(KLabel(KLabels.CELLS), immutable(initializers)));
             }
             //TODO: call generic getSort method of some kind
             // child of a leaf cell. Generate no productions, but inform parent that it has a child of a particular sort.
@@ -211,7 +211,7 @@ public class GenerateSentencesFromConfigDecl {
             @Override
             public K apply(KToken k) {
                 if (k.sort().equals(Sorts.KConfigVar())) {
-                    return KApply(KLabel(KLabels.MAP_LOOKUP), KVariable("Init"), k);
+                    return KORE.KApply(KLabel(KLabels.MAP_LOOKUP), KVariable("Init"), k);
                 }
                 return k;
             }
@@ -282,10 +282,10 @@ public class GenerateSentencesFromConfigDecl {
         Rule initializerRule;
         if (hasConfigurationOrRegularVariable || isStream) {
             initializer = Production(initLabel, sort, Seq(Terminal(initLabel), Terminal("("), NonTerminal(Sort("Map")), Terminal(")")), Att().add("initializer").add("function"));
-            initializerRule = Rule(KRewrite(KApply(KLabel(initLabel), KVariable("Init")), IncompleteCellUtils.make(KLabel("<" + cellName + ">"), false, childInitializer, false)), BooleanUtils.TRUE, ensures == null ? BooleanUtils.TRUE : ensures, Att().add("initializer"));
+            initializerRule = Rule(KRewrite(KORE.KApply(KLabel(initLabel), KVariable("Init")), IncompleteCellUtils.make(KLabel("<" + cellName + ">"), false, childInitializer, false)), BooleanUtils.TRUE, ensures == null ? BooleanUtils.TRUE : ensures, Att().add("initializer"));
         } else {
             initializer = Production(initLabel, sort, Seq(Terminal(initLabel)), Att().add("initializer").add("function"));
-            initializerRule = Rule(KRewrite(KApply(KLabel(initLabel)), IncompleteCellUtils.make(KLabel("<" + cellName + ">"), false, childInitializer, false)), BooleanUtils.TRUE, ensures == null ? BooleanUtils.TRUE : ensures, Att().add("initializer"));
+            initializerRule = Rule(KRewrite(KORE.KApply(KLabel(initLabel)), IncompleteCellUtils.make(KLabel("<" + cellName + ">"), false, childInitializer, false)), BooleanUtils.TRUE, ensures == null ? BooleanUtils.TRUE : ensures, Att().add("initializer"));
         }
         sentences.add(initializer);
         sentences.add(initializerRule);
@@ -398,9 +398,9 @@ public class GenerateSentencesFromConfigDecl {
             // rule initCell(Init) => <cell> initChildren(Init)... </cell>
             cellsSort = sort;
             if (hasConfigurationOrRegularVariable || isStream) {
-                rhs = KApply(KLabel(initLabel), KVariable("Init"));
+                rhs = KORE.KApply(KLabel(initLabel), KVariable("Init"));
             } else {
-                rhs = KApply(KLabel(initLabel));
+                rhs = KORE.KApply(KLabel(initLabel));
             }
         }
         return Tuple3.apply(immutable(sentences),cellsSort,rhs);
@@ -412,11 +412,11 @@ public class GenerateSentencesFromConfigDecl {
      */
     private static KApply optionalCellInitializer(boolean initializeOptionalCell, Att cellProperties, String initLabel) {
         if (initializeOptionalCell) {
-            return KApply(KLabel(initLabel), KVariable("Init"));
+            return KORE.KApply(KLabel(initLabel), KVariable("Init"));
         } else if (cellProperties.contains("initial")) {
-            return KApply(KLabel(initLabel));
+            return KORE.KApply(KLabel(initLabel));
         } else {
-            return KApply(KLabel(KLabels.CELLS));
+            return KORE.KApply(KLabel(KLabels.CELLS));
         }
     }
 

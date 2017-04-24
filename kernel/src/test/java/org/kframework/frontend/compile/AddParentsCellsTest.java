@@ -200,24 +200,24 @@ public class AddParentsCellsTest {
     @Test
     public void testLeafContent() {
         K term = cell("<T>", cell("<k>",
-                KSequence(KApply(KLabel("_+_"), KVariable("I"), KVariable("J")),
+                KSequence(KORE.KApply(KLabel("_+_"), KVariable("I"), KVariable("J")),
                         KVariable("Rest"))));
         K expected = cell("<T>", cell("<ts>", cell("<t>", cell("<k>",
-                KSequence(KApply(KLabel("_+_"), KVariable("I"), KVariable("J")),
+                KSequence(KORE.KApply(KLabel("_+_"), KVariable("I"), KVariable("J")),
                         KVariable("Rest"))))));
         Assert.assertEquals(expected, pass.concretize(term));
     }
 
     @Test
     public void testNonCellItem() {
-        K term = cell("<T>", KApply(KLabel(".K")), cell("<k>",KVariable("X")));
-        K expected = cell("<T>",cells(KApply(KLabel(".K")), cell("<ts>", cell("<t>", cell("<k>", KVariable("X"))))));
+        K term = cell("<T>", KORE.KApply(KLabel(".K")), cell("<k>",KVariable("X")));
+        K expected = cell("<T>",cells(KORE.KApply(KLabel(".K")), cell("<ts>", cell("<t>", cell("<k>", KVariable("X"))))));
         Assert.assertEquals(expected, pass.concretize(term));
     }
 
     @Test
     public void testNonCellItemRewrite() {
-        K term = cell("<T>", KRewrite(KApply(KLabel("label")),cells(KApply(KLabel(".K")), cell("<k>",KVariable("X")))));
+        K term = cell("<T>", KRewrite(KORE.KApply(KLabel("label")),cells(KORE.KApply(KLabel(".K")), cell("<k>",KVariable("X")))));
         exception.expect(KEMException.class);
         exception.expectMessage("Can't mix items with different parent cells under a rewrite");
         pass.concretize(term);
@@ -231,6 +231,6 @@ public class AddParentsCellsTest {
     }
 
     KApply cells(K... ks) {
-        return KApply(KLabel(KLabels.CELLS), ks);
+        return KORE.KApply(KLabel(KLabels.CELLS), ks);
     }
 }

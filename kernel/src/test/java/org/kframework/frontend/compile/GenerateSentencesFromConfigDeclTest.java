@@ -11,6 +11,7 @@ import org.kframework.builtin.Sorts;
 import org.kframework.definition.Definition;
 import org.kframework.definition.Module;
 import org.kframework.definition.Sentence;
+import org.kframework.frontend.KORE;
 import org.kframework.kil.Attribute;
 import org.kframework.kompile.Kompile;
 import org.kframework.frontend.K;
@@ -58,9 +59,9 @@ public class GenerateSentencesFromConfigDeclTest {
     public void testSingleTop() {
         K configuration = cell("threads", Collections.emptyMap(),
                 cell("thread", Collections.singletonMap("multiplicity", "*"),
-                        cells(cell("k", Collections.emptyMap(), KApply(KLabel("#SemanticCastToKItem@BASIC-K"), KToken("$PGM", Sorts.KConfigVar()))),
+                        cells(cell("k", Collections.emptyMap(), KORE.KApply(KLabel("#SemanticCastToKItem@BASIC-K"), KToken("$PGM", Sorts.KConfigVar()))),
                                 cell("opt", Collections.singletonMap("multiplicity", "?"),
-                                        KApply(KLabel(".Opt"))))));
+                                        KORE.KApply(KLabel(".Opt"))))));
         Module m1 = Module("CONFIG", Set(def.getModule("KSEQ").get()), Set(Production(".Opt", Sort("OptCellContent"), Seq(Terminal("")))), Att());
         Definition d = Definition(m1, add(m1, def.modules()), Att());
         Module m = RuleGrammarGenerator.getCombinedGrammar(RuleGrammarGenerator.getConfigGrammar(m1, s -> d.getModule(s).get()), true).getExtensionModule();
@@ -107,22 +108,22 @@ public class GenerateSentencesFromConfigDeclTest {
                 Production("initOptCell", Sort("OptCell"),
                         Seq(Terminal("initOptCell")),
                         productionAtts),
-                Rule(KRewrite(KApply(KLabel("initThreadsCell"), KVariable("Init")),
+                Rule(KRewrite(KORE.KApply(KLabel("initThreadsCell"), KVariable("Init")),
                                 IncompleteCellUtils.make(KLabel("<threads>"), false,
-                                        KApply(KLabel("initThreadCell"), KVariable("Init")), false)),
+                                        KORE.KApply(KLabel("initThreadCell"), KVariable("Init")), false)),
                         BooleanUtils.TRUE, BooleanUtils.FALSE, initializerAtts),
-                Rule(KRewrite(KApply(KLabel("initThreadCell"), KVariable("Init")),
+                Rule(KRewrite(KORE.KApply(KLabel("initThreadCell"), KVariable("Init")),
                                 IncompleteCellUtils.make(KLabel("<thread>"), false,
-                                        Arrays.asList(KApply(KLabel("initKCell"), KVariable("Init")),
-                                                KApply(KLabel(KLabels.CELLS))), false)),
+                                        Arrays.asList(KORE.KApply(KLabel("initKCell"), KVariable("Init")),
+                                                KORE.KApply(KLabel(KLabels.CELLS))), false)),
                         BooleanUtils.TRUE, BooleanUtils.TRUE, initializerAtts),
-                Rule(KRewrite(KApply(KLabel("initKCell"), KVariable("Init")),
-                                IncompleteCellUtils.make(KLabel("<k>"), false, KApply(KLabel("#SemanticCastToKItem@BASIC-K"), KApply(KLabel(KLabels.MAP_LOOKUP),
+                Rule(KRewrite(KORE.KApply(KLabel("initKCell"), KVariable("Init")),
+                                IncompleteCellUtils.make(KLabel("<k>"), false, KORE.KApply(KLabel("#SemanticCastToKItem@BASIC-K"), KORE.KApply(KLabel(KLabels.MAP_LOOKUP),
                                         KVariable("Init"),
                                         KToken("$PGM", Sorts.KConfigVar()))), false)),
                         BooleanUtils.TRUE, BooleanUtils.TRUE, initializerAtts),
-                Rule(KRewrite(KApply(KLabel("initOptCell")),
-                                IncompleteCellUtils.make(KLabel("<opt>"), false, KApply(KLabel(".Opt")), false)),
+                Rule(KRewrite(KORE.KApply(KLabel("initOptCell")),
+                                IncompleteCellUtils.make(KLabel("<opt>"), false, KORE.KApply(KLabel(".Opt")), false)),
                         BooleanUtils.TRUE, BooleanUtils.TRUE, initializerAtts),
                 Production("<threads>-fragment", Sort("ThreadsCellFragment"),
                         Seq(Terminal("<threads>-fragment"),NonTerminal(Sort("ThreadCellBag")),Terminal("</threads>-fragment")),
@@ -152,15 +153,15 @@ public class GenerateSentencesFromConfigDeclTest {
     }
 
     private KApply cells(K cell1, K cell2) {
-        return KApply(KLabel(KLabels.CELLS), cell1, cell2);
+        return KORE.KApply(KLabel(KLabels.CELLS), cell1, cell2);
     }
 
     private KApply cell(String s, Map<String, String> att, K body) {
         K cellAtt = att.entrySet().stream()
-                .map(e -> KApply(KLabel("#cellProperty"),
+                .map(e -> KORE.KApply(KLabel("#cellProperty"),
                         KToken(e.getKey(), Sort("#CellName")),
                         KToken(StringUtil.enquoteKString(e.getValue()), Sort("KString"))))
-                .reduce(KApply(KLabel("#cellPropertyListTerminator")), (k1, k2) -> KApply(KLabel("#cellPropertyList"), k2, k1));
-        return KApply(KLabel("#configCell"), KToken(s, Sort("#CellName")), cellAtt, body, KToken(s, Sort("#CellName")));
+                .reduce(KORE.KApply(KLabel("#cellPropertyListTerminator")), (k1, k2) -> KORE.KApply(KLabel("#cellPropertyList"), k2, k1));
+        return KORE.KApply(KLabel("#configCell"), KToken(s, Sort("#CellName")), cellAtt, body, KToken(s, Sort("#CellName")));
     }
 }

@@ -9,6 +9,7 @@ import org.kframework.definition.Module;
 import org.kframework.definition.NonTerminal;
 import org.kframework.definition.Production;
 import org.kframework.definition.Sentence;
+import org.kframework.frontend.KORE;
 import org.kframework.kil.Attribute;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.frontend.K;
@@ -53,7 +54,7 @@ public class ConvertStrictToContexts extends BasicModuleTransformer {
     }
 
     private static KApply cast(Sort sort, K k) {
-        return KApply(KLabel("#SemanticCastTo" + sort.name()), k);
+        return KORE.KApply(KLabel("#SemanticCastTo" + sort.name()), k);
     }
 
     public Set<Sentence> resolve(Production production, boolean sequential) {
@@ -106,14 +107,14 @@ public class ConvertStrictToContexts extends BasicModuleTransformer {
             }
 
             // is seqstrict the elements before the argument should be KResult
-            Optional<KApply> sideCondition = strictnessPositions.subList(0, i).stream().map(j -> KApply(KLabel("isKResult@BASIC-K"), KVariable("K" + (j - 1)))).reduce(BooleanUtils::and);
+            Optional<KApply> sideCondition = strictnessPositions.subList(0, i).stream().map(j -> KORE.KApply(KLabel("isKResult@BASIC-K"), KVariable("K" + (j - 1)))).reduce(BooleanUtils::and);
             K requires;
             if (!sideCondition.isPresent() || !sequential) {
                 requires = BooleanUtils.TRUE;
             } else {
                 requires = sideCondition.get();
             }
-            Context ctx = Context(KApply(production.klabel().get(), KList(items)), requires, production.att());
+            Context ctx = Context(KORE.KApply(production.klabel().get(), KList(items)), requires, production.att());
             contexts.add(ctx);
         }
         return contexts;

@@ -3,6 +3,7 @@ package org.kframework.builtin;
 
 import org.kframework.frontend.K;
 import org.kframework.frontend.KApply;
+import org.kframework.frontend.KORE;
 import org.kframework.frontend.KToken;
 
 import static org.kframework.frontend.KORE.KApply;
@@ -16,9 +17,9 @@ import static org.kframework.frontend.KORE.Sort;
 public class BooleanUtils {
 
     public static KApply and(K k1, K k2) {
-        return KApply(KLabel("_andBool_"), k1, k2);
+        return KORE.KApply(KLabel("_andBool_"), k1, k2);
     }
-    public static KApply not(K k) { return KApply(KLabel("notBool_"), k); }
+    public static KApply not(K k) { return KORE.KApply(KLabel("notBool_"), k); }
 
     public static final KToken TRUE = KToken("true", Sorts.Bool());
     public static final KToken FALSE = KToken("false", Sorts.Bool());

@@ -205,7 +205,7 @@ public class ConvertDataStructureToLookup {
                 public K apply(KApply k) {
                     if (k.klabel().equals(wrappedLabel)) {
                         KLabel elementLabel = KLabel(m.attributesFor().apply(collectionLabel).<String>get("element").get());
-                        return KApply(elementLabel, super.apply(k));
+                        return KORE.KApply(elementLabel, super.apply(k));
                     }
                     return super.apply(k);
                 }
@@ -302,11 +302,11 @@ public class ConvertDataStructureToLookup {
                     if (elementsRight.size() == 0 && matchOnConsList) {
                         K tail;
                         if (frame == null) {
-                            tail = KApply(KLabel(m.attributesFor().apply(collectionLabel).<String>get(Attribute.UNIT_KEY).get()));
+                            tail = KORE.KApply(KLabel(m.attributesFor().apply(collectionLabel).<String>get(Attribute.UNIT_KEY).get()));
                         } else {
                             tail = frame;
                         }
-                        list = Lists.reverse(elementsLeft).stream().map(e -> (K) KApply(elementLabel, e)).reduce(tail, (res, el) -> KApply(collectionLabel, el, res));
+                        list = Lists.reverse(elementsLeft).stream().map(e -> (K) KORE.KApply(elementLabel, e)).reduce(tail, (res, el) -> KORE.KApply(collectionLabel, el, res));
                     } else {
                         list = newDotVariable(m.productionsFor().get(collectionLabel).get().head().sort());
                         // Ctx[ListItem(5) Frame ListItem(X) ListItem(foo(Y))] => Ctx [L]
@@ -318,29 +318,29 @@ public class ConvertDataStructureToLookup {
                             list = k;
                         } else {
                             if (frame != null) {
-                                state.add(KApply(KLabel("#match"), frame, KApply(KLabel("List:range"), list,
+                                state.add(KORE.KApply(KLabel("#match"), frame, KORE.KApply(KLabel("List:range"), list,
                                         KToken(Integer.toString(elementsLeft.size()), Sorts.Int()),
                                         KToken(Integer.toString(elementsRight.size()), Sorts.Int()))));
                             } else {
                                 KLabel unit = KLabel(m.attributesFor().apply(collectionLabel).<String>get("unit").get());
                                 // Ctx[.List] => Ctx[L] requires L ==K range(L, 0, 0)
-                                state.add(KApply(KLabel("_==K_"), KApply(unit), KApply(KLabel("List:range"), list,
+                                state.add(KORE.KApply(KLabel("_==K_"), KORE.KApply(unit), KORE.KApply(KLabel("List:range"), list,
                                         KToken(Integer.toString(elementsLeft.size()), Sorts.Int()),
                                         KToken(Integer.toString(elementsRight.size()), Sorts.Int()))));
                             }
                         }
                         KLabel elementWrapper = KLabel(m.attributesFor().apply(collectionLabel).<String>get("element").get());
                         for (int i = 0; i < elementsLeft.size(); i++) {
-                            state.add(KApply(
+                            state.add(KORE.KApply(
                                     KLabel("#match"),
-                                    KApply(elementWrapper, elementsLeft.get(i)),
-                                    KApply(KLabel("List:get"), list, KToken(Integer.toString(i), Sorts.Int()))));
+                                    KORE.KApply(elementWrapper, elementsLeft.get(i)),
+                                    KORE.KApply(KLabel("List:get"), list, KToken(Integer.toString(i), Sorts.Int()))));
                         }
                         for (int i = 0; i < elementsRight.size(); i++) {
-                            state.add(KApply(
+                            state.add(KORE.KApply(
                                     KLabel("#match"),
-                                    KApply(elementWrapper, elementsRight.get(i)),
-                                    KApply(KLabel("List:get"), list, KToken(Integer.toString(i - elementsRight.size()), Sorts.Int()))));
+                                    KORE.KApply(elementWrapper, elementsRight.get(i)),
+                                    KORE.KApply(KLabel("List:get"), list, KToken(Integer.toString(i - elementsRight.size()), Sorts.Int()))));
                         }
                     }
                     if (lhsOf == null && RewriteToTop.hasRewrite(k)) {
@@ -394,17 +394,17 @@ public class ConvertDataStructureToLookup {
                     KVariable map = newDotVariable(m.productionsFor().get(collectionLabel).get().head().sort());
                     // K1,Ctx[K1 |-> K2 K3] => K1,Ctx[M] requires K3 := M[K1<-undef] andBool K1 := choice(M) andBool K2 := M[K1]
                     if (frame != null) {
-                        state.add(KApply(KLabel("#match"), frame, elements.keySet().stream().reduce(map, (a1, a2) -> KApply(KLabel("_[_<-undef]"), a1, a2))));
+                        state.add(KORE.KApply(KLabel("#match"), frame, elements.keySet().stream().reduce(map, (a1, a2) -> KORE.KApply(KLabel("_[_<-undef]"), a1, a2))));
                     } else {
                         KLabel unit = KLabel(m.attributesFor().apply(collectionLabel).<String>get("unit").get());
-                        state.add(KApply(KLabel("_==K_"), KApply(unit), elements.keySet().stream().reduce(map, (a1, a2) -> KApply(KLabel("_[_<-undef]"), a1, a2))));
+                        state.add(KORE.KApply(KLabel("_==K_"), KORE.KApply(unit), elements.keySet().stream().reduce(map, (a1, a2) -> KORE.KApply(KLabel("_[_<-undef]"), a1, a2))));
                     }
                     for (Map.Entry<K, K> element : elements.entrySet()) {
                         // TODO(dwightguth): choose better between lookup and choice.
                         if (element.getKey() instanceof KVariable && varConstraints.count(element.getKey()) == 1) {
-                            state.add(KApply(KLabel("#mapChoice"), element.getKey(), map));
+                            state.add(KORE.KApply(KLabel("#mapChoice"), element.getKey(), map));
                         }
-                        state.add(KApply(KLabel("#match"), element.getValue(), KApply(KLabel(KLabels.MAP_LOOKUP), map, element.getKey())));
+                        state.add(KORE.KApply(KLabel("#match"), element.getValue(), KORE.KApply(KLabel(KLabels.MAP_LOOKUP), map, element.getKey())));
                     }
                     if (lhsOf == null && RewriteToTop.hasRewrite(k)) {
                         // An outermost map may contain nested rewrites, so the term
@@ -468,18 +468,18 @@ public class ConvertDataStructureToLookup {
                         Multiset<KVariable> vars = HashMultiset.create();
                         gatherVars(element, vars);
                         if (vars.isEmpty() || (element instanceof KVariable && varConstraints.count(element) != 1)) {
-                            state.add(KApply(KLabel("Set:in"), element, accum));
+                            state.add(KORE.KApply(KLabel("Set:in"), element, accum));
                         } else {
                             //set choice
-                            state.add(KApply(KLabel("#setChoice"), element, accum));
+                            state.add(KORE.KApply(KLabel("#setChoice"), element, accum));
                         }
-                        accum = KApply(KLabel("Set:difference"), accum, KApply(elementLabel, element));
+                        accum = KORE.KApply(KLabel("Set:difference"), accum, KORE.KApply(elementLabel, element));
                     }
                     KLabel unit = KLabel(m.attributesFor().apply(collectionLabel).<String>get("unit").get());
                     if (frame != null) {
-                        state.add(KApply(KLabel("#match"), frame, accum));
+                        state.add(KORE.KApply(KLabel("#match"), frame, accum));
                     } else {
-                        state.add(KApply(KLabel("_==K_"), KApply(unit), accum));
+                        state.add(KORE.KApply(KLabel("_==K_"), KORE.KApply(unit), accum));
                     }
                     if (lhsOf == null && RewriteToTop.hasRewrite(k)) {
                         // An outermost set may contain nested rewrites, so the term

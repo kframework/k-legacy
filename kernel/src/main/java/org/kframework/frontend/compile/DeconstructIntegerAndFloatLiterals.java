@@ -123,7 +123,7 @@ public class DeconstructIntegerAndFloatLiterals {
             if (lhs) {
                 if (k.sort().equals(Sorts.Int()) || k.sort().equals(Sorts.Float())) {
                     KVariable var = newDotVariable(k.sort());
-                    state.add(KApply(KLabel("_==" + k.sort().name() + "_"), var, k));
+                    state.add(KORE.KApply(KLabel("_==" + k.sort().name() + "_"), var, k));
                     return var;
                 }
             }
@@ -145,7 +145,7 @@ public class DeconstructIntegerAndFloatLiterals {
                 K l = apply(k.klist().items().get(0));
                 lhs = false;
                 if (l != k.klist().items().get(0) || r != k.klist().items().get(1)) {
-                    return KApply(k.klabel(), l, r);
+                    return KORE.KApply(k.klabel(), l, r);
                 } else {
                     return k;
                 }

@@ -27,7 +27,7 @@ public class CloseCellsTest {
         addCell("ThreadCell", "KCell", "<k>", Sorts.K());
         addCell("ThreadCell", "EnvCell", "<env>", Sort("Map"));
         addCell(null, "ListCell", "<list>", Multiplicity.STAR, Sort("List"));
-        addDefault("EnvCell", cell("<env>", KApply(KLabel(".Map"))));
+        addDefault("EnvCell", cell("<env>", KORE.KApply(KLabel(".Map"))));
         addDefault("KCell", cell("<k>", stringToToken("defaultK")));
     }};
     final LabelInfo labelInfo = new LabelInfo() {{
@@ -41,39 +41,39 @@ public class CloseCellsTest {
 
     @Test
     public void testSimpleClosure() {
-        K term = cell("<k>", false, true, KApply(KLabel("_+_"), KVariable("I"), KVariable("J")));
-        K expected = ccell("<k>", KSequence(KApply(KLabel("_+_"), KVariable("I"), KVariable("J")),
+        K term = cell("<k>", false, true, KORE.KApply(KLabel("_+_"), KVariable("I"), KVariable("J")));
+        K expected = ccell("<k>", KSequence(KORE.KApply(KLabel("_+_"), KVariable("I"), KVariable("J")),
                 KVariable("DotVar0")));
         Assert.assertEquals(expected, new CloseCells(cfgInfo, sortInfo, labelInfo).close(term));
     }
 
     @Test
     public void testCloseMap() {
-        K term = cell("<env>", true, false, KApply(KLabel("'_|=>_"), intToToken(1), intToToken(2)));
-        K expected = ccell("<env>", KApply(KLabel("_Map_"), KApply(KLabel("'_|=>_"), intToToken(1), intToToken(2)), KVariable("DotVar0")));
+        K term = cell("<env>", true, false, KORE.KApply(KLabel("'_|=>_"), intToToken(1), intToToken(2)));
+        K expected = ccell("<env>", KORE.KApply(KLabel("_Map_"), KORE.KApply(KLabel("'_|=>_"), intToToken(1), intToToken(2)), KVariable("DotVar0")));
         Assert.assertEquals(expected, new CloseCells(cfgInfo, sortInfo, labelInfo).close(term));
     }
 
     @Test
     public void testCloseList() {
-        K term = KApply(KLabel(KLabels.CELLS),
+        K term = KORE.KApply(KLabel(KLabels.CELLS),
                 cell("<list>", true, false, intToToken(1)),
                 cell("<list>", false, true, intToToken(2)),
                 cell("<list>", true, true, intToToken(3)));
-        K expected = KApply(KLabel(KLabels.CELLS),
-                ccell("<list>", KApply(KLabel("_List_"), KVariable("DotVar0"), intToToken(1))),
-                ccell("<list>", KApply(KLabel("_List_"), intToToken(2), KVariable("DotVar1"))),
-                ccell("<list>", KApply(KLabel("_List_"), KVariable("DotVar2"), KApply(KLabel("_List_"), intToToken(3), KVariable("DotVar3")))));
+        K expected = KORE.KApply(KLabel(KLabels.CELLS),
+                ccell("<list>", KORE.KApply(KLabel("_List_"), KVariable("DotVar0"), intToToken(1))),
+                ccell("<list>", KORE.KApply(KLabel("_List_"), intToToken(2), KVariable("DotVar1"))),
+                ccell("<list>", KORE.KApply(KLabel("_List_"), KVariable("DotVar2"), KORE.KApply(KLabel("_List_"), intToToken(3), KVariable("DotVar3")))));
         Assert.assertEquals(expected, new CloseCells(cfgInfo, sortInfo, labelInfo).close(term));
     }
 
     @Test
     public void testCloseCellVar() {
-        K term = KApply(KLabel(KLabels.CELLS),
+        K term = KORE.KApply(KLabel(KLabels.CELLS),
                 cell("<thread>", true, false, cell("<k>", intToToken(1))),
                 cell("<thread>", false, true, cell("<k>", intToToken(2))),
                 cell("<thread>", true, true, cell("<k>", intToToken(2))));
-        K expected = KApply(KLabel(KLabels.CELLS),
+        K expected = KORE.KApply(KLabel(KLabels.CELLS),
                 ccell("<thread>", ccell("<k>", intToToken(1)), KVariable("DotVar0")),
                 ccell("<thread>", ccell("<k>", intToToken(2)), KVariable("DotVar1")),
                 ccell("<thread>", ccell("<k>", intToToken(2)), KVariable("DotVar2")));
@@ -98,8 +98,8 @@ public class CloseCellsTest {
                         cell("<thread>", false, true, cell("<k>", intToToken(2))),
                         cell("<thread>", true, true, cell("<env>", intToToken(2)))));
         K expected = KRewrite(cells(),
-                  cells(ccell("<thread>", ccell("<k>", intToToken(1)), ccell("<env>", KApply(KLabel(".Map")))),
-                        ccell("<thread>", ccell("<k>", intToToken(2)), ccell("<env>", KApply(KLabel(".Map")))),
+                  cells(ccell("<thread>", ccell("<k>", intToToken(1)), ccell("<env>", KORE.KApply(KLabel(".Map")))),
+                        ccell("<thread>", ccell("<k>", intToToken(2)), ccell("<env>", KORE.KApply(KLabel(".Map")))),
                         ccell("<thread>", ccell("<env>", intToToken(2)), ccell("<k>", stringToToken("defaultK")))));
         Assert.assertEquals(expected, new CloseCells(cfgInfo, sortInfo, labelInfo).close(term));
     }
@@ -112,11 +112,11 @@ public class CloseCellsTest {
     }
 
     KApply ccell(String name, K... ks) {
-        return KApply(KLabel(name), ks);
+        return KORE.KApply(KLabel(name), ks);
     }
 
 
     KApply cells(K... ks) {
-        return KApply(KLabel(KLabels.CELLS), ks);
+        return KORE.KApply(KLabel(KLabels.CELLS), ks);
     }
 }

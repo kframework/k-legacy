@@ -7,6 +7,7 @@ import org.kframework.definition.Context;
 import org.kframework.definition.Rule;
 import org.kframework.definition.Sentence;
 import org.kframework.definition.SentenceBasedModuleTransformer;
+import org.kframework.frontend.KORE;
 import org.kframework.kil.Sort;
 import org.kframework.frontend.K;
 import org.kframework.frontend.KApply;
@@ -41,13 +42,13 @@ public class ResolveHeatCoolAttribute extends SentenceBasedModuleTransformer {
 
     private K transform(K requires, Att att) {
         String sort = att.<String>getOptional("result").orElse(Sort.KRESULT.getName());
-        KApply predicate = KApply(KLabel("is" + sort), KVariable("HOLE"));
+        KApply predicate = KORE.KApply(KLabel("is" + sort), KVariable("HOLE"));
         if (att.contains("heat")) {
             return BooleanUtils.and(requires, BooleanUtils.not(predicate));
         } else if (att.contains("cool")) {
             if (transitions.stream().anyMatch(att::contains)) {
                 // if the cooling rule is a super strict, then tag the isKResult predicate and drop it during search
-                predicate = KApply(predicate.klabel(), predicate.klist(), predicate.att().add(Att.transition()));
+                predicate = KORE.KApply(predicate.klabel(), predicate.klist(), predicate.att().add(Att.transition()));
             }
             return BooleanUtils.and(requires, predicate);
         }

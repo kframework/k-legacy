@@ -10,6 +10,7 @@ import org.kframework.compile.ConfigurationInfo;
 import org.kframework.frontend.K;
 import org.kframework.frontend.KApply;
 import org.kframework.frontend.KLabel;
+import org.kframework.frontend.KORE;
 import org.kframework.frontend.Sort;
 import scala.Option;
 
@@ -182,7 +183,7 @@ class TestConfiguration implements ConfigurationInfo {
     }
 
     @Override
-    public KApply getUnit(Sort k) { return KApply(units.get(k)); }
+    public KApply getUnit(Sort k) { return KORE.KApply(units.get(k)); }
 
     @Override
     public KLabel getConcat(Sort k) { return concats.get(k); }

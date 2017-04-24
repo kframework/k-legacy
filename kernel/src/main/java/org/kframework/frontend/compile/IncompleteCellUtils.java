@@ -5,6 +5,7 @@ import org.kframework.builtin.KLabels;
 import org.kframework.frontend.K;
 import org.kframework.frontend.KApply;
 import org.kframework.frontend.KLabel;
+import org.kframework.frontend.KORE;
 import org.kframework.utils.errorsystem.KEMException;
 
 import java.util.ArrayList;
@@ -23,8 +24,8 @@ import static org.kframework.frontend.KORE.*;
  * (which this class will allow with arbitrary arity).
  */
 public class IncompleteCellUtils {
-    private final static KApply dots = KApply(KLabel(KLabels.DOTS));
-    private final static KApply noDots = KApply(KLabel(KLabels.NO_DOTS));
+    private final static KApply dots = KORE.KApply(KLabel(KLabels.DOTS));
+    private final static KApply noDots = KORE.KApply(KLabel(KLabels.NO_DOTS));
 
     private static boolean isOpen(K flag) {
         if (dots.equals(flag)) {
@@ -69,14 +70,14 @@ public class IncompleteCellUtils {
         if (children.size() == 1) {
             return children.get(0);
         } else {
-            return KApply(KLabel(KLabels.CELLS), KList(children));
+            return KORE.KApply(KLabel(KLabels.CELLS), KList(children));
         }
     }
 
     public static KApply make(KLabel label, boolean openLeft, K child, boolean openRight) {
-        return KApply(label, KList(makeDots(openLeft), child, makeDots(openRight)));
+        return KORE.KApply(label, KList(makeDots(openLeft), child, makeDots(openRight)));
     }
     public static KApply make(KLabel label, boolean openLeft, List<? extends K> children, boolean openRight) {
-        return KApply(label, KList(makeDots(openLeft), makeBody(children), makeDots(openRight)));
+        return KORE.KApply(label, KList(makeDots(openLeft), makeBody(children), makeDots(openRight)));
     }
 }

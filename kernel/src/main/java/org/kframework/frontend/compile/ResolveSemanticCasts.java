@@ -72,7 +72,7 @@ public class ResolveSemanticCasts extends SentenceBasedModuleTransformer {
                         return k;
                     }
                 }.apply(k);
-            }).map(k -> KApply(KLabel("is" + getSortOfCast((KApply) k)), transform(k))).reduce(BooleanUtils::and);
+            }).map(k -> KORE.KApply(KLabel("is" + getSortOfCast((KApply) k)), transform(k))).reduce(BooleanUtils::and);
             if (!sideCondition.isPresent()) {
                 return requires;
             } else if (requires.equals(BooleanUtils.TRUE) && sideCondition.isPresent()) {
