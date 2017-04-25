@@ -12,9 +12,13 @@ import KoreToMini._
 object MiniToKore {
 
   def apply(d: Definition): definition.Definition = {
-    def seq2map(ms: Seq[Module]): Map[String, Module] = {
-      ms.groupBy(m => m.name.str)
-        .mapValues({ case Seq(m) => m; case _ => ??? }) // shouldn't have duplicate module names
+    def seq2map(ms: Set[Module]): Map[String, Module] = {
+      ms.groupBy(m => m.name.str).map(x => {
+        if(x._2.size == 1)
+          (x._1, x._2.head)
+        else
+          throw new AssertionError("Duplicate Modules with the same name" + x._1)
+      })
     }
     val origModuleMap: Map[String, Module] = seq2map(d.modules)
 
@@ -60,7 +64,9 @@ object MiniToKore {
   def apply(s: Sentence): definition.Sentence = s match {
     case SortDeclaration(Sort(sort), att) => definition.SyntaxSort(KORE.Sort(sort), apply(att))
     case SymbolDeclaration(Sort(sort), _, _, Attributes(att)) =>
-      val items = att.collect({
+      val encodedProdItem: Pattern = att collect {case a@Application(KoreToMini.iZipper, _) => a} head
+      val orderedAtt: Seq[Pattern] = unzip(encodedProdItem)
+      val items = orderedAtt.collect({
         case Application(`iNonTerminal`, Seq(DomainValue(Symbol("S"), Value(s: String)))) =>
           definition.NonTerminal(KORE.Sort(s))
         case Application(`iTerminal`, DomainValue(Symbol("S"), Value(value)) +: followRegex) =>
@@ -75,9 +81,16 @@ object MiniToKore {
     case _ => ??? // assert false
   }
 
+  def unzip(p: Pattern): Seq[Pattern] = {p match
+  {
+    case Application(KoreToMini.iZipper, Seq(a, b)) => a +: unzip(b)
+    case Application(KoreToMini.iNone, _) => Seq()
+  }}
+
+
   def decode(att: Attributes): definition.Sentence = decode(att.att)
 
-  def decode(att: Seq[Pattern]): definition.Sentence = att match {
+  def decode(att: Set[Pattern]): definition.Sentence = att match {
     case Application(`iModuleComment`, Seq(DomainValue(Symbol("S"), Value(comment)))) +: att =>
       definition.ModuleComment(comment, apply(att))
     case Application(`iSyntaxPriority`, prios) +: att =>
@@ -109,7 +122,7 @@ object MiniToKore {
 
   def apply(att: Attributes): attributes.Att = apply(att.att)
 
-  def apply(att: Seq[Pattern]): attributes.Att = {
+  def apply(att: Set[Pattern]): attributes.Att = {
     def isDummy(p: Pattern): Boolean = p match {
       case Application(l, _) => encodingLabels.contains(l); case _ => false
     }
@@ -130,7 +143,7 @@ object MiniToKore {
       ADT.KSequence(List(), att)
 
     case Application(`iAtt`, Seq(p1,p2)) =>
-      val a2 = apply(Seq(p2))
+      val a2 = apply(Set(p2))
       apply(att ++ a2)(p1)
 
     case Application(Symbol(label), args) => KORE.KApply(KORE.KLabel(label), args.map(apply), att)

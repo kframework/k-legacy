@@ -1,5 +1,6 @@
 package org.kframework.minikore.converters
 
+import org.kframework.definition.ProductionItem
 import org.kframework.kore._
 import org.kframework.kore.implementation.DefaultBuilders
 import org.kframework.frontend.SortedADT.SortedKVariable
@@ -38,7 +39,7 @@ object KoreToMini {
       val args = items.collect({
         case definition.NonTerminal(sort) => b.Sort(sort.name)
       })
-      val newAtt = items.map(encode).toSet ++ apply(att)
+      val newAtt =  apply(att) + encodeProductionAtts(items)
       prod.klabel match {
         case Some(label) => SymbolDeclaration(b.Sort(sort.name), b.Symbol(label.name), args, Attributes(newAtt))
         case None => SymbolDeclaration(b.Sort(sort.name), iNone, args, Attributes(newAtt)) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
@@ -52,6 +53,11 @@ object KoreToMini {
       Rule(p, Attributes(apply(att)))
 
     case _ => encode(s)
+  }
+
+  def encodeProductionAtts(prods: Seq[ProductionItem]): Pattern = {
+    val emptyPattern:Pattern = Application(iNone, Seq())
+    prods.map(encode).foldRight(emptyPattern)((x, y) => Application(iZipper, Seq(x, y)))
   }
 
   def apply(att: attributes.Att): Set[Pattern] = {
@@ -153,6 +159,7 @@ object KoreToMini {
     iBubble,
     iContext,
     iConfiguration,
+    iZipper,
     _) = (
     Symbol("#MainModule"),
     Symbol("#EntryModules"),
@@ -166,6 +173,7 @@ object KoreToMini {
     Symbol("#Bubble"),
     Symbol("#Context"),
     Symbol("#Configuration"),
+    Symbol("#Zipper"),
     Symbol("#None"))
   val encodingLabels = encodingLabelTuple.productIterator.toSet
 
