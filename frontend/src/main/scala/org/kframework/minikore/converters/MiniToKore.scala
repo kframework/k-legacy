@@ -64,7 +64,7 @@ object MiniToKore {
   def apply(s: Sentence): definition.Sentence = s match {
     case SortDeclaration(Sort(sort), att) => definition.SyntaxSort(KORE.Sort(sort), apply(att))
     case SymbolDeclaration(Sort(sort), _, _, Attributes(att)) =>
-      val encodedProdItem: Pattern = att collect {case a@Application(KoreToMini.iZipper, _) => a} head
+      val encodedProdItem: Pattern = att collect {case a@Application(KoreToMini.`iZip`, _) => a} head
       val orderedAtt: Seq[Pattern] = unzip(encodedProdItem)
       val items = orderedAtt.collect({
         case Application(`iNonTerminal`, Seq(DomainValue(Symbol("S"), Value(s: String)))) =>
@@ -83,7 +83,7 @@ object MiniToKore {
 
   def unzip(p: Pattern): Seq[Pattern] = {p match
   {
-    case Application(KoreToMini.iZipper, Seq(a, b)) => a +: unzip(b)
+    case Application(KoreToMini.`iZip`, Seq(a, b)) => a +: unzip(b)
     case Application(KoreToMini.iNone, _) => Seq()
   }}
 

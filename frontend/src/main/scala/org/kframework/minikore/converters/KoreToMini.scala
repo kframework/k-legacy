@@ -1,11 +1,11 @@
 package org.kframework.minikore.converters
 
 import org.kframework.definition.ProductionItem
-import org.kframework.kore._
-import org.kframework.kore.implementation.DefaultBuilders
 import org.kframework.frontend.SortedADT.SortedKVariable
 import org.kframework.frontend.Unapply._
 import org.kframework.frontend._
+import org.kframework.kore._
+import org.kframework.kore.implementation.DefaultBuilders
 import org.kframework.{attributes, definition}
 
 import scala.collection._
@@ -39,7 +39,10 @@ object KoreToMini {
       val args = items.collect({
         case definition.NonTerminal(sort) => b.Sort(sort.name)
       })
-      val newAtt =  apply(att) + encodeProductionAtts(items)
+      val newAtt = encodeProductionAtts(items) match {
+        case Some(p) => apply(att) + p
+        case None => apply(att)
+      }
       prod.klabel match {
         case Some(label) => SymbolDeclaration(b.Sort(sort.name), b.Symbol(label.name), args, Attributes(newAtt))
         case None => SymbolDeclaration(b.Sort(sort.name), iNone, args, Attributes(newAtt)) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
@@ -55,9 +58,13 @@ object KoreToMini {
     case _ => encode(s)
   }
 
-  def encodeProductionAtts(prods: Seq[ProductionItem]): Pattern = {
-    val emptyPattern:Pattern = Application(iNone, Seq())
-    prods.map(encode).foldRight(emptyPattern)((x, y) => Application(iZipper, Seq(x, y)))
+  def encodeProductionAtts(prods: Seq[ProductionItem]): Option[Pattern]= {
+    val emptyPattern: Pattern = Application(iNone, Seq())
+    prods.size match {
+      case 0 => None
+      case _ => Some(prods.map(encode).foldRight(emptyPattern)((x, y) => Application(iZip, Seq(x, y))))
+    }
+
   }
 
   def apply(att: attributes.Att): Set[Pattern] = {
@@ -159,7 +166,7 @@ object KoreToMini {
     iBubble,
     iContext,
     iConfiguration,
-    iZipper,
+    iZip,
     _) = (
     Symbol("#MainModule"),
     Symbol("#EntryModules"),
@@ -173,7 +180,7 @@ object KoreToMini {
     Symbol("#Bubble"),
     Symbol("#Context"),
     Symbol("#Configuration"),
-    Symbol("#Zipper"),
+    Symbol("#Zip"),
     Symbol("#None"))
   val encodingLabels = encodingLabelTuple.productIterator.toSet
 

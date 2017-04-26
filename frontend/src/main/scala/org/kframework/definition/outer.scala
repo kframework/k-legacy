@@ -96,7 +96,7 @@ object Module {
 }
 
 case class Module(val name: String, val imports: Set[Module], unresolvedLocalSentences: Set[Sentence], @(Nonnull@param) val att: Att = Att())
-  extends ModuleToString with KLabelMappings with OuterKORE with Sorting with GeneratingListSubsortProductions with Serializable {
+  extends ModuleToString with KLabelMappings with OuterKORE with Sorting with GeneratingListSubsortProductions with Serializable {//with org.kframework.kore.Module {
   assert(att != null)
 
   val unresolvedLocalSyntaxSentences: Set[SyntaxSentence] = unresolvedLocalSentences.collect({ case s: SyntaxSentence => s })

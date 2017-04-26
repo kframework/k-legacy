@@ -22,15 +22,16 @@ class KoreToMiniTest {
   @Test def production1(): Unit = {
     val klabelatt = Application(Symbol("klabel"), Seq(DomainValue(Symbol("KString@KSTRING"), Value("_+_"))))
     assertEquals(
-      apply(definition.Production.apply("_+_", Exp, Seq(), Att())),
-      SymbolDeclaration(Sort(Exp.name), Symbol("_+_"), Seq(), Attributes(Seq(klabelatt)))
+      SymbolDeclaration(Sort(Exp.name), Symbol("_+_"), Seq(), Attributes(Set(klabelatt))),
+      apply(definition.Production.apply("_+_", Exp, Seq(), Att()))
     )
   }
 
   @Test def production2(): Unit = {
     assertEquals(
-      apply(new definition.Production(Exp, Seq(NonTerminal(Int)), Att())),
-      SymbolDeclaration(Sort(Exp.name), Symbol("#None"), Seq(Sort(Int.name)), Attributes(Seq(Application(iNonTerminal, Seq(S(Int.name))))))
+      SymbolDeclaration(Sort(Exp.name), Symbol("#None"), Seq(Sort(Int.name)), Attributes(Set(
+        Application(iZip, Seq(Application(iNonTerminal, Seq(S(Int.name))), Application(iNone, Seq())))))),
+        apply(new definition.Production(Exp, Seq(NonTerminal(Int)), Att()))
     )
   }
 
