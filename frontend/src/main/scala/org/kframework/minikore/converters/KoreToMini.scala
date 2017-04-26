@@ -1,11 +1,10 @@
 package org.kframework.minikore.converters
 
-import org.kframework.definition.ProductionItem
+import org.kframework.kore._
+import org.kframework.kore.implementation.DefaultBuilders
 import org.kframework.frontend.SortedADT.SortedKVariable
 import org.kframework.frontend.Unapply._
 import org.kframework.frontend._
-import org.kframework.kore._
-import org.kframework.kore.implementation.DefaultBuilders
 import org.kframework.{attributes, definition}
 
 import scala.collection._
@@ -18,17 +17,17 @@ object KoreToMini {
   import b._
 
   def apply(d: definition.Definition): Definition = {
-    val modules: Set[Module] = d.modules.map(apply)
-    val att: Attributes =
-      Attributes(Set(Application(iMainModule, Seq(S(d.mainModule.name))),
-        Application(iEntryModules, d.entryModules.toSeq.map(m => S(m.name)))) ++
+    val modules: Seq[Module] = d.modules.toSeq.map(apply)
+    val att =
+      Attributes(Application(iMainModule, Seq(S(d.mainModule.name))) +:
+        Application(iEntryModules, d.entryModules.toSeq.map(m => S(m.name))) +:
         apply(d.att))
     Definition(att, modules)
   }
 
   def apply(m: definition.Module): Module = {
-    val localSentences: Set[Sentence] = m.localSentences.map(apply)
-    val importSentences: Set[Sentence] = m.imports.map(m => Import(ModuleName(m.name), Attributes(Set())))
+    val localSentences: Seq[Sentence] = m.localSentences.toSeq.map(apply)
+    val importSentences: Seq[Sentence] = m.imports.toSeq.map(m => Import(ModuleName(m.name), Attributes(Seq())))
     Module(ModuleName(m.name), importSentences ++ localSentences, Attributes(apply(m.att)))
   }
 
@@ -39,10 +38,7 @@ object KoreToMini {
       val args = items.collect({
         case definition.NonTerminal(sort) => b.Sort(sort.name)
       })
-      val newAtt = encodeProductionAtts(items) match {
-        case Some(p) => apply(att) + p
-        case None => apply(att)
-      }
+      val newAtt = items.map(encode) ++ apply(att)
       prod.klabel match {
         case Some(label) => SymbolDeclaration(b.Sort(sort.name), b.Symbol(label.name), args, Attributes(newAtt))
         case None => SymbolDeclaration(b.Sort(sort.name), iNone, args, Attributes(newAtt)) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
@@ -58,17 +54,8 @@ object KoreToMini {
     case _ => encode(s)
   }
 
-  def encodeProductionAtts(prods: Seq[ProductionItem]): Option[Pattern]= {
-    val emptyPattern: Pattern = Application(iNone, Seq())
-    prods.size match {
-      case 0 => None
-      case _ => Some(prods.map(encode).foldRight(emptyPattern)((x, y) => Application(iZip, Seq(x, y))))
-    }
-
-  }
-
-  def apply(att: attributes.Att): Set[Pattern] = {
-    att.att.map(apply)
+  def apply(att: attributes.Att): Seq[Pattern] = {
+    att.att.toSeq.map(apply)
   }
 
   def encode(i: definition.ProductionItem): Pattern = i match {
@@ -103,7 +90,7 @@ object KoreToMini {
         b.Application(iConfiguration, Seq(apply(body), apply(ensures)))
       case _ => ??? // assert false
     }
-    dummySentence(Attributes(apply(s.att) + p))
+    dummySentence(Attributes(p +: apply(s.att)))
   }
 
   def dummySentence(att: Attributes): Sentence = Axiom(B(true), att)
@@ -138,7 +125,7 @@ object KoreToMini {
 
   // encodePatternAtt(p, Seq(a1,a2,a3)) = #(#(#(p,a1),a2),a3) // TODO(Daejun): add test
   def encodePatternAtt(p: Pattern, att: Attributes): Pattern = {
-    att.att.foldLeft(p)((z, a) => {
+    att.patterns.foldLeft(p)((z, a) => {
       b.Application(iAtt, Seq(z, a))
     })
   }
@@ -166,7 +153,6 @@ object KoreToMini {
     iBubble,
     iContext,
     iConfiguration,
-    iZip,
     _) = (
     Symbol("#MainModule"),
     Symbol("#EntryModules"),
@@ -180,7 +166,6 @@ object KoreToMini {
     Symbol("#Bubble"),
     Symbol("#Context"),
     Symbol("#Configuration"),
-    Symbol("#Zip"),
     Symbol("#None"))
   val encodingLabels = encodingLabelTuple.productIterator.toSet
 

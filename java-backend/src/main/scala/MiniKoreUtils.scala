@@ -14,7 +14,7 @@ object MiniKoreUtils {
 
 
   def getMainModule(definition: Definition): Module = {
-    val mainModuleName = findAtt(definition.att.att, iMainModule.str) match {
+    val mainModuleName = findAtt(definition.att.patterns, iMainModule.str) match {
       case Seq(DomainValue(Symbol("S"), Value(name))) => name;
       case _ => ???
     }
@@ -22,18 +22,14 @@ object MiniKoreUtils {
     definition.modules.find(p => p.name.str == mainModuleName).get
   }
 
-  def findAtt(att: Set[Pattern], key: String): Set[Pattern] = {
-
+  def findAtt(att: Seq[Pattern], key: String): Seq[Pattern] = {
+    val argss = att.collect({
+      case Application(Symbol(`key`), args) => args
+    })
+    if (argss.size >= 1)
+      argss.head
+    else Seq()
   }
-
-//  def findAtt(att: Set[Pattern], key: String): Set[Pattern] = {
-//    val argss: Set[Seq[Pattern]] = att.collect({
-//      case Application(Symbol(`key`), args) => args
-//    })
-//    if (argss.size >= 1)
-//      argss.head
-//    else Set()
-//  }
 
 
   case class ModuleUtils(m: Module, definition: Definition) {
