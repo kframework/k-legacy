@@ -22,7 +22,7 @@ object KoreToMini {
       Attributes(Application(iMainModule, Seq(S(d.mainModule.name))) +:
         Application(iEntryModules, d.entryModules.toSeq.map(m => S(m.name))) +:
         apply(d.att))
-    Definition(modules, att)
+    Definition(att, modules)
   }
 
   def apply(m: definition.Module): Module = {
@@ -125,7 +125,7 @@ object KoreToMini {
 
   // encodePatternAtt(p, Seq(a1,a2,a3)) = #(#(#(p,a1),a2),a3) // TODO(Daejun): add test
   def encodePatternAtt(p: Pattern, att: Attributes): Pattern = {
-    att.att.foldLeft(p)((z, a) => {
+    att.patterns.foldLeft(p)((z, a) => {
       b.Application(iAtt, Seq(z, a))
     })
   }
