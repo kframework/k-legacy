@@ -75,7 +75,7 @@ object MiniToKore {
     case _ => ??? // assert false
   }
 
-  def decode(att: Attributes): definition.Sentence = decode(att.att)
+  def decode(att: Attributes): definition.Sentence = decode(att.patterns)
 
   def decode(att: Seq[Pattern]): definition.Sentence = att match {
     case Application(`iModuleComment`, Seq(DomainValue(Symbol("S"), Value(comment)))) +: att =>
@@ -107,7 +107,7 @@ object MiniToKore {
     case _ => ???
   }
 
-  def apply(att: Attributes): attributes.Att = apply(att.att)
+  def apply(att: Attributes): attributes.Att = apply(att.patterns)
 
   def apply(att: Seq[Pattern]): attributes.Att = {
     def isDummy(p: Pattern): Boolean = p match {
@@ -142,7 +142,7 @@ object MiniToKore {
   }
 
   def findAtt(att: Attributes, key: String): Seq[Pattern] = {
-    val argss = att.att.collect({
+    val argss = att.patterns.collect({
       case Application(Symbol(`key`), args) => args
     })
     assert(argss.size == 1)

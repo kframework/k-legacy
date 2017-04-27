@@ -14,7 +14,7 @@ object MiniKoreUtils {
 
 
   def getMainModule(definition: Definition): Module = {
-    val mainModuleName = findAtt(definition.att.att, iMainModule.str) match {
+    val mainModuleName = findAtt(definition.att.patterns, iMainModule.str) match {
       case Seq(DomainValue(Symbol("S"), Value(name))) => name;
       case _ => ???
     }

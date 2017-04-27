@@ -186,7 +186,7 @@ public class Definition extends JavaSymbolicObject {
         HashSet<String> collected = new HashSet<>();
         ImmutableMap.Builder<String, DataStructureSort> builder = ImmutableMap.builder();
         for (org.kframework.kore.SymbolDeclaration symbolDec : iterable(moduleUtils.symbolDecs())) {
-            List<org.kframework.kore.Pattern> atts = mutable(symbolDec.att().att());
+            List<org.kframework.kore.Pattern> atts = mutable(symbolDec.att().patterns());
 
             org.kframework.kil.Sort type;
 
@@ -194,13 +194,13 @@ public class Definition extends JavaSymbolicObject {
             String unitLabel;
 
 
-            boolean assoc = (mutable(MiniKoreUtils.findAtt(symbolDec.att().att(), Attribute.ASSOCIATIVE_KEY)).size() >= 1);
+            boolean assoc = (mutable(MiniKoreUtils.findAtt(symbolDec.att().patterns(), Attribute.ASSOCIATIVE_KEY)).size() >= 1);
 
-            boolean comm = (mutable(MiniKoreUtils.findAtt(symbolDec.att().att(), Attribute.COMMUTATIVE_KEY)).size() >= 1);
+            boolean comm = (mutable(MiniKoreUtils.findAtt(symbolDec.att().patterns(), Attribute.COMMUTATIVE_KEY)).size() >= 1);
 
-            boolean idem = (mutable(MiniKoreUtils.findAtt(symbolDec.att().att(), Attribute.IDEMPOTENT_KEY)).size() >= 1);
+            boolean idem = (mutable(MiniKoreUtils.findAtt(symbolDec.att().patterns(), Attribute.IDEMPOTENT_KEY)).size() >= 1);
 
-            boolean hook = (mutable(MiniKoreUtils.findAtt(symbolDec.att().att(), Attribute.HOOK_KEY)).size() >= 1);
+            boolean hook = (mutable(MiniKoreUtils.findAtt(symbolDec.att().patterns(), Attribute.HOOK_KEY)).size() >= 1);
             if (symbolDec.sort().equals(Sorts.KList().toString()) || symbolDec.sort().equals(Sorts.KBott().toString())) {
                 continue;
             }
