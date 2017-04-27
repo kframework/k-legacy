@@ -27,8 +27,8 @@ public abstract class BitVector<T extends Number> extends Token {
     public static final Sort SORT = Sort.BIT_VECTOR;
 
     /**
-     * Integer value wrapped by this BitVector. The signed value and the unsigned value of this
-     * BitVector are guaranteed to be equal with {@code value} only on the last {@code bitwidth}
+     * Integer javaBackendValue wrapped by this BitVector. The signed javaBackendValue and the unsigned javaBackendValue of this
+     * BitVector are guaranteed to be equal with {@code javaBackendValue} only on the last {@code bitwidth}
      * bits.
      *
      * @see #signedValue()
@@ -46,7 +46,7 @@ public abstract class BitVector<T extends Number> extends Token {
     }
 
     /**
-     * Returns a {@code BitVector} representation of the given big integer value on the given
+     * Returns a {@code BitVector} representation of the given big integer javaBackendValue on the given
      * bit width.
      */
     public static BitVector of(BigInteger value, int bitwidth) {
@@ -61,7 +61,7 @@ public abstract class BitVector<T extends Number> extends Token {
     }
 
     /**
-     * Returns a {@code BitVector} representation of the given long value on the given bit width.
+     * Returns a {@code BitVector} representation of the given long javaBackendValue on the given bit width.
      */
     public static BitVector of(long value, int bitwidth) {
         assert bitwidth > 0;
@@ -87,12 +87,12 @@ public abstract class BitVector<T extends Number> extends Token {
     public abstract boolean isZero();
 
     /**
-     * Returns an {@code BigInteger} representation of the signed value of this BitVector.
+     * Returns an {@code BigInteger} representation of the signed javaBackendValue of this BitVector.
      */
     public abstract BigInteger signedValue();
 
     /**
-     * Returns an {@code BigInteger} representation of the unsigned value of this BitVector.
+     * Returns an {@code BigInteger} representation of the unsigned javaBackendValue of this BitVector.
      */
     public abstract BigInteger unsignedValue();
 
@@ -102,10 +102,10 @@ public abstract class BitVector<T extends Number> extends Token {
     }
 
     /**
-     * Returns a {@code String} representation of the (uninterpreted) value of this BitVector.
+     * Returns a {@code String} representation of the (uninterpreted) javaBackendValue of this BitVector.
      */
     @Override
-    public String value() {
+    public String javaBackendValue() {
         return bitwidth + "'" + value.toString();
     }
 
@@ -192,7 +192,7 @@ public abstract class BitVector<T extends Number> extends Token {
         BigInteger value = BigInteger.ZERO;
         int bitwidth = 0;
         for (BitVector digit : digits) {
-            /* value = value * 2^digit_bitwidth + digit */
+            /* javaBackendValue = javaBackendValue * 2^digit_bitwidth + digit */
             value = value.shiftLeft(digit.bitwidth).add(digit.unsignedValue());
             bitwidth += digit.bitwidth;
         }

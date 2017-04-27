@@ -7,7 +7,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.backend.java.symbolic.Transformer;
 import org.kframework.backend.java.symbolic.Visitor;
 import org.kframework.kil.ASTNode;
-import org.kframework.kore.K;
+import org.kframework.frontend.K;
+import org.kframework.kore.Pattern;
+import org.kframework.kore.Symbol;
+import scala.collection.Seq;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +32,7 @@ import java.util.List;
  * @author AndreiS
  */
 @SuppressWarnings("serial")
-public class KSequence extends KCollection implements org.kframework.kore.KSequence {
+public class KSequence extends KCollection implements org.kframework.frontend.KSequence {
 
     private static final String SEPARATOR_NAME = " ~> ";
     private static final String IDENTITY_NAME = "." + Kind.K;
@@ -179,6 +182,16 @@ public class KSequence extends KCollection implements org.kframework.kore.KSeque
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public Symbol symbol() {
+        throw new AssertionError("Unimplemented");
+    }
+
+    @Override
+    public Seq<Pattern> args() {
+        throw new AssertionError("Unimplemented");
     }
 
     public static class Builder {

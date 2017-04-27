@@ -5,14 +5,14 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.kframework.definition.*;
-import org.kframework.kore.K;
-import org.kframework.kore.Sort;
+import org.kframework.frontend.K;
+import org.kframework.frontend.Sort;
 import scala.Option;
 import scala.Tuple2;
 
 import java.util.Set;
 
-import static org.kframework.kore.KORE.*;
+import static org.kframework.frontend.KORE.*;
 import static org.kframework.Collections.*;
 
 public class ParserTest {

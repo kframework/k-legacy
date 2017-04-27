@@ -25,7 +25,7 @@ import com.google.common.collect.ImmutableList;
  *
  * @author AndreiS
  */
-public class KList extends KCollection implements org.kframework.kore.KList {
+public class KList extends KCollection implements org.kframework.frontend.KList {
 
     private static final String SEPARATOR_NAME = ",, ";
     private static final String IDENTITY_NAME = "." + Kind.KLIST;

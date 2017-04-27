@@ -6,7 +6,7 @@ import org.kframework.Collections;
 import org.kframework.KapiGlobal;
 import org.kframework.attributes.Att;
 import org.kframework.backend.Backends;
-import org.kframework.backend.java.kore.compile.ExpandMacrosDefinitionTransformer;
+import org.kframework.backend.java.frontend.compile.ExpandMacrosDefinitionTransformer;
 import org.kframework.builtin.KLabels;
 import org.kframework.compile.AddBottomSortForListsWithIdenticalLabels;
 import org.kframework.compile.NormalizeKSeq;
@@ -20,25 +20,25 @@ import org.kframework.definition.Sentence;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
-import org.kframework.kore.ADT;
-import org.kframework.kore.Sort;
-import org.kframework.kore.VisitK;
-import org.kframework.kore.K;
-import org.kframework.kore.KApply;
-import org.kframework.kore.KORE;
-import org.kframework.kore.KVariable;
-import org.kframework.kore.SortedADT;
-import org.kframework.kore.compile.AddImplicitComputationCell;
-import org.kframework.kore.compile.AssocCommToAssoc;
-import org.kframework.kore.compile.Backend;
-import org.kframework.kore.compile.ConcretizeCells;
-import org.kframework.kore.compile.ConvertDataStructureToLookup;
-import org.kframework.kore.compile.MergeRules;
-import org.kframework.kore.compile.NormalizeAssoc;
-import org.kframework.kore.compile.ResolveAnonVar;
-import org.kframework.kore.compile.ResolveSemanticCasts;
-import org.kframework.kore.compile.RewriteToTop;
-import org.kframework.kore.TransformK;
+import org.kframework.frontend.ADT;
+import org.kframework.frontend.Sort;
+import org.kframework.frontend.VisitK;
+import org.kframework.frontend.K;
+import org.kframework.frontend.KApply;
+import org.kframework.frontend.KORE;
+import org.kframework.frontend.KVariable;
+import org.kframework.frontend.SortedADT;
+import org.kframework.frontend.compile.AddImplicitComputationCell;
+import org.kframework.frontend.compile.AssocCommToAssoc;
+import org.kframework.frontend.compile.Backend;
+import org.kframework.frontend.compile.ConcretizeCells;
+import org.kframework.frontend.compile.ConvertDataStructureToLookup;
+import org.kframework.frontend.compile.MergeRules;
+import org.kframework.frontend.compile.NormalizeAssoc;
+import org.kframework.frontend.compile.ResolveAnonVar;
+import org.kframework.frontend.compile.ResolveSemanticCasts;
+import org.kframework.frontend.compile.RewriteToTop;
+import org.kframework.frontend.TransformK;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
@@ -49,7 +49,6 @@ import java.util.Map;
 import java.util.function.Function;
 
 import static org.kframework.definition.Constructors.Att;
-import static scala.runtime.java8.JFunction.func;
 
 public class JavaBackend implements Backend {
 
@@ -99,10 +98,10 @@ public class JavaBackend implements Backend {
      */
     @Override
     public Function<Definition, Definition> steps() {
-        DefinitionTransformer convertDataStructureToLookup = DefinitionTransformer.fromSentenceTransformer(func((m, s) -> new ConvertDataStructureToLookup(m, false).convert(s)), "convert data structures to lookups");
+        DefinitionTransformer convertDataStructureToLookup = DefinitionTransformer.fromSentenceTransformer(((m, s) -> new ConvertDataStructureToLookup(m, false).convert(s)), "convert data structures to lookups");
         ExpandMacrosDefinitionTransformer expandMacrosDefinitionTransformer = new ExpandMacrosDefinitionTransformer(kem, files, globalOptions, kompileOptions);
 
-        return d -> (func((Definition dd) -> Kompile.defaultSteps(kompileOptions, kem).apply(dd)))
+        return Collections.asJavaFunction(Collections.asScalaFunc(Kompile.defaultSteps(kompileOptions, kem))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop::bubbleRewriteToTopInsideCells, "bubble out rewrites below cells"))
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(AddBottomSortForListsWithIdenticalLabels.singleton().lift())
@@ -118,9 +117,8 @@ public class JavaBackend implements Backend {
                 .andThen(DefinitionTransformer.fromSentenceTransformer(JavaBackend::markSingleVariables, "mark single variables"))
                 .andThen(new AssocCommToAssoc(KORE.c()).lift())
                 .andThen(new MergeRules(KORE.c()).lift())
-                .andThen(DefinitionTransformer.fromKTransformerWithModuleInfo(JavaBackend::moduleQualifySortPredicates, "Module-qualify sort predicates"))
+                .andThen(DefinitionTransformer.fromKTransformerWithModuleInfo(JavaBackend::moduleQualifySortPredicates, "Module-qualify sort predicates")));
              // .andThen(KoreToMiniToKore::apply) // for serialization/deserialization test
-                .apply(d);
     }
 
     public Function<Definition, Definition> stepsForProverRules() {

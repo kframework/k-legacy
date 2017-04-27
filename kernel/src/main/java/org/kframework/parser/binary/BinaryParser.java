@@ -1,9 +1,9 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.parser.binary;
 
-import org.kframework.kore.ADT;
-import org.kframework.kore.K;
-import org.kframework.kore.KLabel;
+import org.kframework.frontend.ADT;
+import org.kframework.frontend.K;
+import org.kframework.frontend.KLabel;
 import org.kframework.utils.errorsystem.KEMException;
 import scala.collection.immutable.List$;
 
@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
-import static org.kframework.kore.KORE.*;
+import static org.kframework.frontend.KORE.*;
 
 /**
  * Parses a KAST binary term into the KORE data structures.
@@ -116,8 +116,6 @@ public class BinaryParser {
 
     private KLabel readKLabel() throws IOException {
         String lbl = readString();
-        if (data.get() != 0)
-            return KVariable(lbl);
         return KLabel(lbl);
     }
 

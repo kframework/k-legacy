@@ -27,7 +27,7 @@ public final class BoolToken extends Token {
      */
     public static final BoolToken FALSE = new BoolToken(false);
 
-    /* boolean value wrapped by this BoolToken */
+    /* boolean javaBackendValue wrapped by this BoolToken */
     private final boolean value;
 
     private BoolToken(boolean value) {
@@ -35,14 +35,14 @@ public final class BoolToken extends Token {
     }
 
     /**
-     * Returns a {@code BoolToken} representation of the given {@code boolean} value.
+     * Returns a {@code BoolToken} representation of the given {@code boolean} javaBackendValue.
      */
     public static BoolToken of(boolean value) {
         return value ? BoolToken.TRUE : BoolToken.FALSE;
     }
 
     /**
-     * Returns a {@code boolean} representation of the (interpreted) value of this BoolToken.
+     * Returns a {@code boolean} representation of the (interpreted) javaBackendValue of this BoolToken.
      */
     public boolean booleanValue() {
         return value;
@@ -54,10 +54,10 @@ public final class BoolToken extends Token {
     }
 
     /**
-     * Returns a {@code String} representation of the (uninterpreted) value of this BoolToken.
+     * Returns a {@code String} representation of the (uninterpreted) javaBackendValue of this BoolToken.
      */
     @Override
-    public String value() {
+    public String javaBackendValue() {
         return Boolean.toString(value);
     }
 

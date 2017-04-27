@@ -9,9 +9,9 @@ import org.kframework.attributes.Location;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.NonTerminal;
 import org.kframework.definition.Production;
-import org.kframework.kore.KLabel;
-import org.kframework.kore.Sort;
-import org.kframework.kore.compile.ResolveAnonVar;
+import org.kframework.frontend.KLabel;
+import org.kframework.frontend.Sort;
+import org.kframework.frontend.compile.ResolveAnonVar;
 import org.kframework.parser.Ambiguity;
 import org.kframework.parser.Constant;
 import org.kframework.parser.SafeTransformer;
@@ -41,7 +41,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.kframework.Collections.*;
-import static org.kframework.kore.KORE.*;
+import static org.kframework.frontend.KORE.*;
 
 /**
  * Apply the priority and associativity filters.

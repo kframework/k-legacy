@@ -11,7 +11,7 @@ import org.kframework.backend.java.util.Constants;
 import org.kframework.kil.ASTNode;
 
 import com.google.common.base.Joiner;
-import org.kframework.kore.K;
+import org.kframework.frontend.K;
 
 
 /**
@@ -20,7 +20,7 @@ import org.kframework.kore.K;
  * @author AndreiS
  */
 @SuppressWarnings("serial")
-public abstract class KCollection extends Collection implements Iterable<Term>, org.kframework.kore.KCollection {
+public abstract class KCollection extends Collection implements Iterable<Term>, org.kframework.frontend.KCollection {
 
     protected KCollection(Variable frame, Kind kind) {
         super(frame, kind);

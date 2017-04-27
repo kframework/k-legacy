@@ -2,7 +2,7 @@
 package org.kframework.parser.concrete2kore.disambiguation;
 
 import com.google.common.collect.Sets;
-import org.kframework.kore.K;
+import org.kframework.frontend.K;
 import org.kframework.parser.Ambiguity;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.SetsGeneralTransformer;

@@ -8,7 +8,7 @@ import org.kframework.backend.java.symbolic.BottomUpVisitor;
 import org.kframework.backend.java.symbolic.Evaluator;
 import org.kframework.backend.java.symbolic.SubstituteAndEvaluateTransformer;
 import org.kframework.backend.java.util.Constants;
-import org.kframework.kore.convertors.KILtoInnerKORE;
+import org.kframework.frontend.convertors.KILtoInnerKORE;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ import java.util.Map;
  * @author AndreiS
  */
 public abstract class Term extends JavaSymbolicObject<Term> implements Comparable<Term>,
-        org.kframework.kore.K {
+        org.kframework.frontend.K {
 
     protected final Kind kind;
     // protected final boolean normalized;
@@ -123,7 +123,7 @@ public abstract class Term extends JavaSymbolicObject<Term> implements Comparabl
 
     /**
      * Computes and caches the hashCode if it has not been computed yet.
-     * Otherwise, simply returns the cached value.
+     * Otherwise, simply returns the cached javaBackendValue.
      */
     @Override
     public final int hashCode() {

@@ -45,7 +45,7 @@ public class TermEquality {
     }
 
     /**
-     * Establishes the truth value of an equality between the two given terms by creating a
+     * Establishes the truth javaBackendValue of an equality between the two given terms by creating a
      * {@link org.kframework.backend.java.symbolic.ConjunctiveFormula} with one equality and
      * simplifying it.
      */
@@ -63,7 +63,7 @@ public class TermEquality {
     }
 
     /**
-     * Returns the first or the second {@link Term} according to the value of
+     * Returns the first or the second {@link Term} according to the javaBackendValue of
      * the {@link BoolToken}.
      *
      * @param boolToken

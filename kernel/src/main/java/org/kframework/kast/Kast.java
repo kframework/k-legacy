@@ -3,10 +3,9 @@ package org.kframework.kast;
 
 import org.kframework.attributes.Source;
 import org.kframework.kompile.ParserGenerator;
-import org.kframework.kore.K;
-import org.kframework.kore.Sort;
+import org.kframework.frontend.K;
+import org.kframework.frontend.Sort;
 import org.kframework.minikore.converters.MiniToKore;
-import org.kframework.minikore.interfaces.pattern;
 import org.kframework.parser.ParseResult;
 import org.kframework.parser.UserParser;
 import org.kframework.utils.BinaryLoader;
@@ -57,7 +56,7 @@ public class Kast {
         }
 
         ParseResult result = parser.parse(toParse, source, startSymbol);
-        pattern.Pattern ast = result.ast;
+        org.kframework.kore.Pattern ast = result.ast;
         kem.addAllKException(result.warnings.stream().map(e->e.getKException()).collect(Collectors.toSet()));
         return MiniToKore.apply(ast);
     }
@@ -85,7 +84,7 @@ public class Kast {
         }
 
         ParseResult result = parser.parse(toParse, source, startSymbol);
-        pattern.Pattern ast = result.ast;
+        org.kframework.kore.Pattern ast = result.ast;
         kem.addAllKException(result.warnings.stream().map(e->e.getKException()).collect(Collectors.toSet()));
         return MiniToKore.apply(ast);
     }

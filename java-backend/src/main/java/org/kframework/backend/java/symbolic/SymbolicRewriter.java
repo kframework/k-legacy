@@ -26,11 +26,10 @@ import org.kframework.backend.java.strategies.TransitionCompositeStrategy;
 import org.kframework.backend.java.util.JavaKRunState;
 import org.kframework.builtin.KLabels;
 import org.kframework.kil.ASTNode;
-import org.kframework.kompile.KompileOptions;
-import org.kframework.kore.FindK;
-import org.kframework.kore.K;
-import org.kframework.kore.KApply;
-import org.kframework.kore.KORE;
+import org.kframework.frontend.FindK;
+import org.kframework.frontend.K;
+import org.kframework.frontend.KApply;
+import org.kframework.frontend.KORE;
 import org.kframework.krun.api.KRunState;
 import org.kframework.rewriter.SearchType;
 import org.kframework.utils.BitSet;
@@ -450,8 +449,8 @@ public class SymbolicRewriter {
     /**
      * @param initialTerm
      * @param pattern     the pattern we are searching for
-     * @param bound       a negative value specifies no bound
-     * @param depth       a negative value specifies no bound
+     * @param bound       a negative javaBackendValue specifies no bound
+     * @param depth       a negative javaBackendValue specifies no bound
      * @param searchType  defines when we will attempt to match the pattern
      * @return a list of substitution mappings for results that matched the pattern
      */

@@ -2,7 +2,7 @@
 package org.kframework.debugger;
 
 import com.google.common.collect.Maps;
-import org.kframework.kore.K;
+import org.kframework.frontend.K;
 
 import java.util.ArrayList;
 import java.util.Collections;

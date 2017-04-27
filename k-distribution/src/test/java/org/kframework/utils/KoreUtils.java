@@ -5,30 +5,27 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.HookProvider;
 import org.kframework.backend.java.symbolic.JavaBackend;
 import org.kframework.backend.java.symbolic.JavaExecutionOptions;
-import org.kframework.kore.KORE;
-import org.kframework.kore.KToken;
-import org.kframework.kore.Sort;
+import org.kframework.frontend.KORE;
+import org.kframework.frontend.KToken;
+import org.kframework.frontend.Sort;
 import org.kframework.krun.KRunOptions;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.attributes.Source;
 import org.kframework.backend.java.symbolic.InitializeRewriter;
-import org.kframework.backend.java.symbolic.Stage;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.Module;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.Kompile;
 import org.kframework.kompile.KompileOptions;
-import org.kframework.kore.K;
+import org.kframework.frontend.K;
 import org.kframework.krun.KRun;
 import org.kframework.krun.api.io.FileSystem;
 import org.kframework.krun.ioserver.filesystem.portable.PortableFileSystem;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
-import org.kframework.utils.options.SMTOptions;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -36,7 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-import static org.kframework.kore.KORE.KToken;
+import static org.kframework.frontend.KORE.KToken;
 
 /**
  * Created by Manasvi on 6/19/15.

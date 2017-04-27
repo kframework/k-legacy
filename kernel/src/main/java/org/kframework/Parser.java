@@ -3,17 +3,15 @@ package org.kframework;
 
 import org.kframework.attributes.Source;
 import org.kframework.definition.*;
-import org.kframework.kore.K;
-import org.kframework.kore.Sort;
+import org.kframework.frontend.K;
+import org.kframework.frontend.Sort;
 import org.kframework.parser.concrete2kore.ParseInModule;
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator;
 import org.kframework.utils.errorsystem.ParseFailedException;
 import scala.Option;
 import scala.Tuple2;
 import scala.util.Either;
-import scala.util.control.Exception;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 

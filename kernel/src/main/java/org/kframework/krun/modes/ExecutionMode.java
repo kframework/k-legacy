@@ -3,7 +3,7 @@ package org.kframework.krun.modes;
 
 import org.kframework.rewriter.Rewriter;
 import org.kframework.kompile.CompiledDefinition;
-import org.kframework.kore.K;
+import org.kframework.frontend.K;
 
 /**
  * Created by Manasvi on 6/16/15.

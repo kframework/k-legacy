@@ -31,7 +31,7 @@ public final class StringToken extends Token {
     /* StringToken cache */
     private static final Map<String, StringToken> cache = new ConcurrentHashMap<>();
 
-    /* String value wrapped by this StringToken */
+    /* String javaBackendValue wrapped by this StringToken */
     private final String value;
 
     private StringToken(String value) {
@@ -40,9 +40,9 @@ public final class StringToken extends Token {
 
     /**
      * Returns a {@code StringToken} representation of a given {@link String}
-     * value. The {@code StringToken} instances are cached to ensure uniqueness
+     * javaBackendValue. The {@code StringToken} instances are cached to ensure uniqueness
      * (subsequent invocations of this method with the same {@code String}
-     * value return the same {@code StringToken} object).
+     * javaBackendValue return the same {@code StringToken} object).
      * @param value A UTF-16 representation of this sequence of code points.
      */
     public static StringToken of(String value) {
@@ -50,7 +50,7 @@ public final class StringToken extends Token {
     }
 
     /**
-     * Returns a {@code StringToklen} representation of a given {@code byte[]} value. This value is
+     * Returns a {@code StringToklen} representation of a given {@code byte[]} javaBackendValue. This javaBackendValue is
      * interpreted as a sequence of code points in the Latin-1 Unicode block according to the
      * ISO-8859-1 encoding.
      * @param value A Latin-1 representation of the sequence of code points.
@@ -65,7 +65,7 @@ public final class StringToken extends Token {
     }
 
     /**
-     * Returns a {@link String} representation of the interpreted value of
+     * Returns a {@link String} representation of the interpreted javaBackendValue of
      * this StringToken.
      */
     public String stringValue() {
@@ -73,7 +73,7 @@ public final class StringToken extends Token {
     }
 
     /**
-     * Returns a {@code byte[]} representation of the interpreted value of this StringToken.
+     * Returns a {@code byte[]} representation of the interpreted javaBackendValue of this StringToken.
      * @throws CharacterCodingException Thrown if the String is not a valid sequence of code points
      * in the 0-255 range.
      */
@@ -93,10 +93,10 @@ public final class StringToken extends Token {
 
     /**
      * Returns a {@code String} representation of the uninterpreted textual
-     * value of this StringToken.
+     * javaBackendValue of this StringToken.
      */
     @Override
-    public String value() {
+    public String javaBackendValue() {
         return StringUtil.enquoteKString(value);
     }
 

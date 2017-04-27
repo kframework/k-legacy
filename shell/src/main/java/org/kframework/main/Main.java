@@ -28,7 +28,7 @@ import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.KompileFrontEnd;
 import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.kompile.KompileOptions;
-import org.kframework.kore.compile.Backend;
+import org.kframework.frontend.compile.Backend;
 import org.kframework.krun.KRunFrontEnd;
 import org.kframework.krun.KRunOptions;
 import org.kframework.krun.api.io.FileSystem;
@@ -40,7 +40,6 @@ import org.kframework.kserver.KServerFrontEnd;
 import org.kframework.kserver.KServerOptions;
 import org.kframework.ktest.CmdArgs.KTestOptions;
 import org.kframework.ktest.KTestFrontEnd;
-import org.kframework.minikore.implementation.MiniKore;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
@@ -232,7 +231,7 @@ public class Main {
             // krun
 
             Function<Module, Rewriter> initializeRewriter;
-            Function<Pair<Module, MiniKore.Definition>, Rewriter> intializeMiniKoreRewriter;
+            Function<Pair<Module, org.kframework.kore.Definition>, Rewriter> intializeMiniKoreRewriter;
             if (kompileOptions.backend.equals(Backends.JAVA)) {
                 //
                 Map<String, MethodHandle> hookProvider = HookProvider.get(kem);

@@ -186,7 +186,7 @@ public class BuiltinMap extends AssociativeCommutativeCollection {
         }
 
         /**
-         * Copies all key-value pairs of the given map into the BuiltinMap being
+         * Copies all key-javaBackendValue pairs of the given map into the BuiltinMap being
          * built.
          */
         public void putAll(Map<? extends Term, ? extends Term> map) {

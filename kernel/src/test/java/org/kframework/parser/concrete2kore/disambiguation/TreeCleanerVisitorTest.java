@@ -23,7 +23,7 @@ import static org.kframework.Collections.Seq;
 import static org.kframework.definition.Constructors.NonTerminal;
 import static org.kframework.definition.Constructors.Production;
 import static org.kframework.definition.Constructors.RegexTerminal;
-import static org.kframework.kore.KORE.Sort;
+import static org.kframework.frontend.KORE.Sort;
 
 public class TreeCleanerVisitorTest {
 

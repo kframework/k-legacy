@@ -5,10 +5,10 @@ import java.util.Optional
 
 import org.kframework.attributes.Att
 import org.kframework.definition._
-import org.kframework.kore.Unapply.KRewrite
-import org.kframework.kore._
+import org.kframework.frontend.Unapply.KRewrite
+import org.kframework.frontend._
 import org.kframework.rewriter.SearchType
-import org.kframework.{RewriterResult, kore}
+import org.kframework.{RewriterResult, frontend}
 
 import scala.collection._
 
@@ -46,7 +46,7 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
 
   case class IsSort(s: Sort)(implicit val env: Environment) extends Named("is" + s.name) with PurelyFunctionalLabel1 with FormulaLabel {
     def f(_1: Term): Option[Term] =
-      kSortOf(_1).map(ss => BOOLEAN(m.subsorts.<=(ss, m.resolve(kore.KORE.Sort(s.name)))))
+      kSortOf(_1).map(ss => BOOLEAN(m.subsorts.<=(ss, m.resolve(frontend.KORE.Sort(s.name)))))
   }
 
   private val nonAssocLabels: Set[Label] = nonAssocProductions flatMap {
