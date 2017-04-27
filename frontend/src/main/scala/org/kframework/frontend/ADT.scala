@@ -74,7 +74,11 @@ object ADT {
   }
 
   case class KVariable(name: String, att: Att = Att()) extends frontend.KVariable {
-//    def apply(ks: K*) = KApply(this, KList(ks.toList))
+    //    def apply(ks: K*) = KApply(this, KList(ks.toList))
+    override def equals(obj: scala.Any): Boolean = obj match {
+      case KVariable(`name`, _) => true
+      case _ => false
+    }
   }
 
   object SortLookup {
