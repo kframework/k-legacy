@@ -74,7 +74,7 @@ object ADT {
   }
 
   case class KVariable(name: String, att: Att = Att()) extends frontend.KVariable {
-    //    def apply(ks: K*) = KApply(this, KList(ks.toList))
+        def apply(ks: K*) = KApply(this, KList(ks.toList))
     override def equals(obj: scala.Any): Boolean = obj match {
       case KVariable(`name`, _) => true
       case _ => false
@@ -139,7 +139,7 @@ object ADT {
 object SortedADT {
 
   case class SortedKVariable(name: String, att: Att = Att()) extends frontend.KVariable {
-//    def apply(ks: K*) = ADT.KApply(this, ADT.KList(ks.toList))
+    def apply(ks: K*) = ADT.KApply(this, ADT.KList(ks.toList))
 
     val sort: Sort = att.getOptional[Sort](Att.sort).orElse(Sorts.K)
 

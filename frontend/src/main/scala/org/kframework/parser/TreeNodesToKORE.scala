@@ -64,8 +64,8 @@ object TreeNodesToKORE {
   }
 
   def downKLabel(t: K): KLabel = t match {
-//    case t@KToken(s, sort) if sort == Sorts.KVariable =>
-//      KVariable(s.trim, t.att)
+    case t@KToken(s, sort) if sort == Sorts.KVariable =>
+      KVariable(s.trim, t.att)
 
     case t@KToken(s, sort) if sort == Sorts.KLabel =>
       KLabel(unquote(t))
