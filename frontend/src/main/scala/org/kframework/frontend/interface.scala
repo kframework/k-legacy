@@ -118,7 +118,7 @@ trait KSequence extends KCollection with K with kore.Application {
   override def args: Seq[Pattern] = items.asScala
 }
 
-trait KVariable extends KItem with kore.Variable {
+trait KVariable extends KItem with KLabel {//with kore.Variable {
   def name: String
 
   def computeHashCode = name.hashCode

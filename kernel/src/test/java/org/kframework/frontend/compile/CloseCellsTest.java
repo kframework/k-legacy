@@ -51,7 +51,8 @@ public class CloseCellsTest {
     public void testCloseMap() {
         K term = cell("<env>", true, false, KORE.KApply(KLabel("'_|=>_"), intToToken(1), intToToken(2)));
         K expected = ccell("<env>", KORE.KApply(KLabel("_Map_"), KORE.KApply(KLabel("'_|=>_"), intToToken(1), intToToken(2)), KVariable("DotVar0")));
-        Assert.assertEquals(expected, new CloseCells(cfgInfo, sortInfo, labelInfo).close(term));
+        K actual = new CloseCells(cfgInfo, sortInfo, labelInfo).close(term);
+        Assert.assertEquals(expected, actual);
     }
 
     @Test

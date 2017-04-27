@@ -74,7 +74,7 @@ object ADT {
   }
 
   case class KVariable(name: String, att: Att = Att()) extends frontend.KVariable {
-//    def apply(ks: K*) = KApply(this, KList(ks.toList))
+    def apply(ks: K*) = KApply(this, KList(ks.toList))
   }
 
   object SortLookup {
