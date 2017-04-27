@@ -7,36 +7,22 @@ import org.kframework.attributes.Att;
 import org.kframework.builtin.Sorts;
 import org.kframework.compile.ConfigurationInfo;
 import org.kframework.compile.ConfigurationInfoFromModule;
-import org.kframework.definition.Definition;
-import org.kframework.definition.DefinitionTransformer;
-import org.kframework.definition.HybridMemoizingModuleTransformer;
-import org.kframework.definition.Module;
-import org.kframework.definition.ModuleName;
-import org.kframework.definition.ModuleTransformer;
-import org.kframework.definition.Production;
-import org.kframework.definition.ProductionItem;
-import org.kframework.definition.RegexTerminal;
-import org.kframework.definition.Sentence;
-import org.kframework.definition.Terminal;
-import org.kframework.definition.UserList;
+import org.kframework.definition.*;
 import org.kframework.kil.Attribute;
 import org.kframework.kil.loader.Constants;
 import org.kframework.kore.Sort;
-import org.kframework.kore.convertors.KOREtoKIL;
 import org.kframework.parser.concrete2kore.ParseInModule;
-import scala.Option;
 import scala.collection.Seq;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.kframework.Collections.*;
-import static org.kframework.definition.Constructors.Att;
 import static org.kframework.definition.Constructors.*;
-import static org.kframework.kore.KORE.*;
+import static org.kframework.kore.KORE.Sort;
 
 /**
  * Generator for rule and ground parsers.
@@ -310,7 +296,7 @@ public class RuleGrammarGenerator {
                                 if (cfgInfo.isLeafCell(p.sort())) {
                                     body = p.items().tail().head();
                                 } else {
-                                    body = NonTerminal(Sort("Bag"));
+                                    body = NonTerminal(Sort("CellBag"));
                                 }
                                 final ProductionItem optDots = NonTerminal(Sort("#OptionalDots"));
                                 Seq<ProductionItem> pi = Seq(p.items().head(), optDots, body, optDots, p.items().last());

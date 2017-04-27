@@ -76,15 +76,15 @@ endmodule
 
 module KCELLS
   imports KAST
-
+  // To distinguish data structure Bag and syntax Bag, we rename the syntax Bag to CellBag
   syntax Cell
-  syntax Bag ::= Bag Bag  [left, assoc, klabel(#cells), unit(#cells)]
-               | ".Bag"   [klabel(#cells)]
-               | ".::Bag" [klabel(#cells)]
+  syntax CellBag ::= CellBag CellBag  [left, assoc, klabel(#cells), unit(#cells)]
+               | ".CellBag"   [klabel(#cells)]
+               | ".::CellBag" [klabel(#cells)]
                | Cell     [allowChainSubsort]
-  syntax Bag ::= "(" Bag ")" [bracket]
-  syntax K ::= Bag
-  syntax Bag ::= KBott
+  syntax CellBag ::= "(" CellBag ")" [bracket]
+  syntax K ::= CellBag
+  syntax CellBag ::= KBott
 endmodule
 
 module RULE-CELLS
