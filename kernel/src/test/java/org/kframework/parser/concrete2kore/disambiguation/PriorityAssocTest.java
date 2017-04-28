@@ -4,10 +4,10 @@ package org.kframework.parser.concrete2kore.disambiguation;
 
 import org.junit.Test;
 import org.kframework.attributes.Source;
-import org.kframework.kore.K;
+import org.kframework.frontend.K;
 import org.kframework.parser.concrete2kore.ParserUtils;
 
-import static org.kframework.kore.KORE.*;
+import static org.kframework.frontend.KORE.*;
 
 public class PriorityAssocTest {
 

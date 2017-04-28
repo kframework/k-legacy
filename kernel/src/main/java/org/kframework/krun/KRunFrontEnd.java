@@ -9,7 +9,6 @@ import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.main.FrontEnd;
 import org.kframework.main.GlobalOptions;
-import org.kframework.minikore.implementation.MiniKore;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
@@ -25,7 +24,7 @@ public class KRunFrontEnd extends FrontEnd {
     private final FileUtil files;
     private final KompileMetaInfo kompileMetaInfo;
     private final CompiledDefinition compiledDef;
-    private final Function<Pair<Module, MiniKore.Definition>, Rewriter> initializeRewriter;
+    private final Function<Pair<Module, org.kframework.kore.Definition>, Rewriter> initializeRewriter;
     private final ExecutionMode executionMode;
     private final TTYInfo tty;
     private final boolean isNailgun;
@@ -39,7 +38,7 @@ public class KRunFrontEnd extends FrontEnd {
             KompileMetaInfo kompileMetaInfo,
             CompiledDefinition compiledDef,
             ProcessedDefinition processedDefinition,
-            Function<Pair<Module, MiniKore.Definition>, Rewriter> initializeRewriter,
+            Function<Pair<Module, org.kframework.kore.Definition>, Rewriter> initializeRewriter,
             ExecutionMode executionMode,
             TTYInfo tty,
             boolean isNailgun) {

@@ -31,9 +31,9 @@ public class FloatToken extends Token {
     }
 
     /**
-     * Returns a {@code FloatToken} representation of the given {@link BigFloat} value in the
+     * Returns a {@code FloatToken} representation of the given {@link BigFloat} javaBackendValue in the
      * specified exponent range. The {@code FloatToken} instances are cached to ensure
-     * uniqueness (subsequent invocations of this method with the same {@code FloatToken} value
+     * uniqueness (subsequent invocations of this method with the same {@code FloatToken} javaBackendValue
      * and {@code int} exponent return the same {@code FloatToken} object).
      */
     public static FloatToken of(BigFloat value, int exponent) {
@@ -47,7 +47,7 @@ public class FloatToken extends Token {
     }
 
     /**
-     * Returns a {@link BigFloat} representation of the (interpreted) value of this FloatToken.
+     * Returns a {@link BigFloat} representation of the (interpreted) javaBackendValue of this FloatToken.
      */
     public BigFloat bigFloatValue() {
         return value;
@@ -70,10 +70,10 @@ public class FloatToken extends Token {
     }
 
     /**
-     * Returns a {@code String} representation of the (uninterpreted) value of this FloatToken.
+     * Returns a {@code String} representation of the (uninterpreted) javaBackendValue of this FloatToken.
      */
     @Override
-    public String value() {
+    public String javaBackendValue() {
         return FloatBuiltin.printKFloat(value) + FloatBuiltin.printKFloatSuffix(value, exponent);
     }
 

@@ -1,18 +1,18 @@
 package org.kframework.kdoc
 
 import org.kframework.{DefinitionParser, Kompiler, Parser}
-import org.kframework.kore.KApply
-import org.kframework.kore.KLabel
-import org.kframework.kore.KORE._
-import org.kframework.kore.KToken
-import org.kframework.kore.Sort
-import org.kframework.kore.Unapply.KApply
-import org.kframework.kore.Unapply.KLabel
-import org.kframework.kore.Unapply.KToken
-import org.kframework.kore.Unapply.Sort
+import org.kframework.frontend.KApply
+import org.kframework.frontend.KLabel
+import org.kframework.frontend.KORE._
+import org.kframework.frontend.KToken
+import org.kframework.frontend.Sort
+import org.kframework.frontend.Unapply.KApply
+import org.kframework.frontend.Unapply.KLabel
+import org.kframework.frontend.Unapply.KToken
+import org.kframework.frontend.Unapply.Sort
 import org.kframework.definition._
-import org.kframework.kore._
-import org.kframework.kore.Unapply._
+import org.kframework.frontend._
+import org.kframework.frontend.Unapply._
 import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator
 
 class KDoc(docStyle: String, separator: String = " ") {
@@ -46,7 +46,7 @@ class KDoc(docStyle: String, separator: String = " ") {
       case o => super.apply(o)
     }
 
-    override def apply(k: KToken) = k match {
+    override def apply(k: KToken): K = k match {
       case c@KToken(contents, Sort("Bubble")) =>
         currentParser(ADT.Sort("RuleContent", ModuleName("REQUIRES-ENSURES")), contents) match {
           case (Some(parsedBubble), _) => currentKToLatex(parsedBubble)

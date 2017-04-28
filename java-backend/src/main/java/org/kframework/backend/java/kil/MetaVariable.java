@@ -36,10 +36,10 @@ public class MetaVariable extends Token {
     }
 
     /**
-     * Returns a {@code String} representation of the (uninterpreted) value of this meta variable.
+     * Returns a {@code String} representation of the (uninterpreted) javaBackendValue of this meta variable.
      */
     @Override
-    public String value() {
+    public String javaBackendValue() {
         return name + ":" + sort;
     }
 

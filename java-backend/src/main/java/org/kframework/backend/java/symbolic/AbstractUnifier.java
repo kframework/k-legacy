@@ -6,7 +6,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.util.DoubleLinkedList;
 import org.kframework.builtin.KLabels;
-import org.kframework.kore.Assoc;
+import org.kframework.frontend.Assoc;
 import static org.kframework.Collections.*;
 
 import java.util.ArrayList;

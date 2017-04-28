@@ -169,7 +169,7 @@ public class BuiltinStringOperations {
     }
 
     public static StringToken token2string(UninterpretedToken token, TermContext context) {
-        return StringToken.of(token.value());
+        return StringToken.of(token.javaBackendValue());
     }
 
     public static Token string2token(StringToken sort, StringToken value, TermContext context) {

@@ -2,8 +2,8 @@ package org.kframework.kale
 
 import org.kframework.builtin.Sorts
 import org.kframework.definition.Module
-import org.kframework.kore
-import org.kframework.kore._
+import org.kframework.frontend
+import org.kframework.frontend._
 
 import scala.collection.Map
 
@@ -26,7 +26,7 @@ class KaleConverters(m: Module)(implicit val env: Environment) {
 
   def renames(labelName: String) = klabelToLabelRename.getOrElse(labelName, labelName)
 
-  def kSortOf(t: Term): Option[kore.Sort] =
+  def kSortOf(t: Term): Option[frontend.Sort] =
     if (!t.isGround)
       None
     else
@@ -34,7 +34,7 @@ class KaleConverters(m: Module)(implicit val env: Environment) {
         .get(KORE.KLabel(t.label.name))
         .orElse(
           t.label match {
-            case tokenLabel: GENERIC_TOKEN => Some(m.resolve(kore.KORE.Sort(tokenLabel.sort.name)))
+            case tokenLabel: GENERIC_TOKEN => Some(m.resolve(frontend.KORE.Sort(tokenLabel.sort.name)))
             case BOOLEAN => Some(m.resolve(Sorts.Bool))
             case INT =>
               Some(m.resolve(Sorts.Int))

@@ -5,7 +5,7 @@ import com.google.common.collect.Sets;
 import org.kframework.POSet;
 import org.kframework.builtin.Sorts;
 import org.kframework.definition.NonTerminal;
-import org.kframework.kore.Sort;
+import org.kframework.frontend.Sort;
 import org.kframework.parser.Constant;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.SetsTransformerWithErrors;
@@ -20,7 +20,7 @@ import scala.util.Right;
 
 import java.util.Set;
 
-import static org.kframework.kore.KORE.*;
+import static org.kframework.frontend.KORE.*;
 
 
 public class ApplyTypeCheckVisitor extends SetsTransformerWithErrors<ParseFailedException> {

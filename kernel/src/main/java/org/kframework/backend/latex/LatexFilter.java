@@ -5,7 +5,7 @@ import org.kframework.backend.BackendFilter;
 import org.kframework.kil.*;
 import org.kframework.kil.Cell.Ellipses;
 import org.kframework.kil.LiterateComment.LiterateCommentType;
-import org.kframework.kore.compile.ResolveAnonVar;
+import org.kframework.frontend.compile.ResolveAnonVar;
 import org.kframework.utils.StringUtil;
 
 import java.util.HashMap;

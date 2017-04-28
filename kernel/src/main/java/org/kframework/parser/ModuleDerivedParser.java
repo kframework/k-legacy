@@ -2,9 +2,9 @@
 package org.kframework.parser;
 
 import org.kframework.attributes.Source;
-import org.kframework.kore.K;
-import org.kframework.kore.KORE;
-import org.kframework.kore.Sort;
+import org.kframework.frontend.K;
+import org.kframework.frontend.KORE;
+import org.kframework.frontend.Sort;
 import org.kframework.minikore.converters.KoreToMini;
 import org.kframework.parser.concrete2kore.ParseInModule;
 import org.kframework.utils.errorsystem.ParseFailedException;

@@ -1,9 +1,8 @@
 package org.kframework.backend.java
 
+import org.kframework.kore._
+import org.kframework.kore.implementation.DefaultBuilders
 import org.kframework.minikore.converters.KoreToMini
-import org.kframework.minikore.interfaces.build.Builders
-import org.kframework.minikore.implementation.DefaultBuilders
-import org.kframework.minikore.interfaces.pattern._
 
 
 object RewriterUtils {
@@ -17,7 +16,7 @@ object RewriterUtils {
       case Application(symbol, items: Seq[Pattern]) => b.Application(symbol, items map toLeft)
       case other => other
     }
-    KoreToMini.encodePatternAtt(lhs, decodedTuple._2)
+    KoreToMini.encodePatternAtt(lhs, b.Attributes(decodedTuple._2))
   }
 
   def toRight(p: Pattern): Pattern = {
@@ -27,7 +26,7 @@ object RewriterUtils {
       case Application(symbol, items: Seq[Pattern]) => b.Application(symbol, items map toRight)
       case other => other
     }
-    KoreToMini.encodePatternAtt(rhs, decodedTuple._2)
+    KoreToMini.encodePatternAtt(rhs, b.Attributes(decodedTuple._2))
   }
 
 }

@@ -5,8 +5,8 @@ import org.kframework.definition.Definition;
 import org.kframework.main.FrontEnd;
 import org.kframework.minikore.converters.KoreToMini;
 import org.kframework.minikore.converters.KoreToMiniToKore;
-import org.kframework.minikore.parser.MiniToText;
-import org.kframework.minikore.parser.MiniToTextToMini;
+import org.kframework.kore.parser.KoreToText;
+import org.kframework.kore.parser.MiniToTextToMini;
 import org.kframework.parser.UserParser;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
@@ -20,7 +20,7 @@ public class KompileFrontEnd extends FrontEnd {
 
 
     private final KompileOptions options;
-    private final org.kframework.kore.compile.Backend koreBackend;
+    private final org.kframework.frontend.compile.Backend koreBackend;
     private final Stopwatch sw;
     private final KExceptionManager kem;
     private final BinaryLoader loader;
@@ -28,7 +28,7 @@ public class KompileFrontEnd extends FrontEnd {
 
     public KompileFrontEnd(
             KompileOptions options,
-            org.kframework.kore.compile.Backend koreBackend,
+            org.kframework.frontend.compile.Backend koreBackend,
             Stopwatch sw,
             KExceptionManager kem,
             BinaryLoader loader,
@@ -82,7 +82,7 @@ public class KompileFrontEnd extends FrontEnd {
 
     // NOTE: should be matched with org.kframework.utils.inject.DefinitionLoadingModule.koreDefinition()
     public void save(CompiledDefinition def) {
-        files.saveToKompiled(FileUtil.KORE_TXT, MiniToText.apply(KoreToMini.apply(def.kompiledDefinition)));
+        files.saveToKompiled(FileUtil.KORE_TXT, KoreToText.apply(KoreToMini.apply(def.kompiledDefinition)));
         // loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN), def.kompiledDefinition); // deprecated
         loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN), def.kompileOptions);
         loader.saveOrDie(files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN), def.getParsedDefinition());

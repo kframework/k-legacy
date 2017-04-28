@@ -14,24 +14,24 @@ import org.kframework.definition.Rule;
 import org.kframework.kast.Kast;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.KompileMetaInfo;
-import org.kframework.kore.Assoc;
-import org.kframework.kore.K;
-import org.kframework.kore.KApply;
-import org.kframework.kore.KLabel;
-import org.kframework.kore.KORE;
-import org.kframework.kore.KToken;
-import org.kframework.kore.KVariable;
-import org.kframework.kore.Sort;
-import org.kframework.kore.Unapply.KApply$;
-import org.kframework.kore.VisitK;
-import org.kframework.kore.compile.KTokenVariablesToTrueVariables;
+import org.kframework.kore.Definition;
+import org.kframework.kore.Pattern;
+import org.kframework.frontend.Assoc;
+import org.kframework.frontend.K;
+import org.kframework.frontend.KApply;
+import org.kframework.frontend.KLabel;
+import org.kframework.frontend.KORE;
+import org.kframework.frontend.KToken;
+import org.kframework.frontend.KVariable;
+import org.kframework.frontend.Sort;
+import org.kframework.frontend.Unapply.KApply$;
+import org.kframework.frontend.VisitK;
+import org.kframework.frontend.compile.KTokenVariablesToTrueVariables;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.minikore.converters.KoreToMini;
-import org.kframework.minikore.implementation.MiniKore;
-import org.kframework.minikore.interfaces.pattern;
 import org.kframework.parser.ProductionReference;
 import org.kframework.parser.binary.BinaryParser;
-import org.kframework.parser.kore.KoreParser;
+import org.kframework.parser.frontend.KoreParser;
 import org.kframework.rewriter.Rewriter;
 import org.kframework.unparser.AddBrackets;
 import org.kframework.unparser.KOREToTreeNodes;
@@ -62,7 +62,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.kframework.Collections.*;
-import static org.kframework.kore.KORE.*;
+import static org.kframework.frontend.KORE.*;
 
 /**
  * The KORE-based KRun
@@ -82,10 +82,10 @@ public class KRun {
     }
 
 
-    public int run(KompileMetaInfo kompileMetaInfo, CompiledDefinition compiledDef, ProcessedDefinition processedDefinition, KRunOptions options, Function<Pair<Module, MiniKore.Definition>, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
+    public int run(KompileMetaInfo kompileMetaInfo, CompiledDefinition compiledDef, ProcessedDefinition processedDefinition, KRunOptions options, Function<Pair<Module, Definition>, Rewriter> rewriterGenerator, ExecutionMode executionMode) {
         String pgmFileName = options.configurationCreation.pgm();
         K program;
-        pattern.Pattern miniKoreProgram;
+        Pattern miniKoreProgram;
         if (options.configurationCreation.term()) {
             program = parse(options.configurationCreation.parser(compiledDef.executionModule().name()),
                     pgmFileName, KORE.Sort(kompileMetaInfo.programStartSymbol), Source.apply("<parameters>"), compiledDef.mainSyntaxModuleName(), files);
@@ -423,7 +423,7 @@ public class KRun {
     }
 
     public static KApply plugConfigVars(CompiledDefinition compiledDef, Map<KToken, K> output) {
-        return KApply(compiledDef.topCellInitializer, output.entrySet().stream().map(e -> KApply(KLabel("_|->_"), e.getKey(), e.getValue())).reduce(KApply(KLabel(".Map")), (a, b) -> KApply(KLabel("_Map_"), a, b)));
+        return KORE.KApply(compiledDef.topCellInitializer, output.entrySet().stream().map(e -> KORE.KApply(KLabel("_|->_"), e.getKey(), e.getValue())).reduce(KORE.KApply(KLabel(".Map")), (a, b) -> KORE.KApply(KLabel("_Map_"), a, b)));
     }
 
     private static String unparseTerm(K input, Module test) {

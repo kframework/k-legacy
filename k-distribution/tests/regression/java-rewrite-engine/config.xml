@@ -231,9 +231,9 @@
       results="data_structure_iteration/test1"
       extension="test"
       >
-    <kompile-option name="-backend" value="java" />
+    <kompile-option name="-backejavaBackendValuealue="java" />
     <all-programs>
-      <krun-option name="-smt" value="none" />
+      <krun-option name="-sjavaBackendValuealue="none" />
     </all-programs>
   </test>
 -->
