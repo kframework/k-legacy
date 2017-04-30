@@ -119,7 +119,6 @@ public class CompiledDefinition implements Serializable {
      */
     public Option<Module> programParsingModuleFor(String moduleName, KExceptionManager kem) {
         Option<Module> moduleOption;
-
         if(moduleName.endsWith(RuleGrammarGenerator.POSTFIX)) {
             moduleOption = parsedDefinition.getModule(moduleName);
         } else {

@@ -151,7 +151,6 @@ public class ParseInModule implements Serializable {
             KException kex = new KException(KException.ExceptionType.ERROR, KException.KExceptionGroup.CRITICAL, msg);
             return new Tuple2<>(Left.apply(Sets.newHashSet(new ParseFailedException(kex))), warn);
         }
-
         Parser parser = new Parser(input, source, startLine, startColumn);
         Term parsed;
         try {
