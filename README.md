@@ -144,6 +144,11 @@ Common error messages:
    (default-compile) on project k-core: Fatal error compiling: invalid target release: 1.8 -> [Help 1]`
    + You either do not have Java 8 installed, or `$JAVA_HOME` does not point to a Java 8 JDK.
 
+- `java.io.IOException: Cannot run program "kast" (in directory ...)`
+   + `ktest` requires that you have K in the build PATH. Most tests are tailored to run
+     on UNIX, so if you get this error on windows, you need to also edit the testing
+     configuration files to call `kast.bat` instead of `kast`.
+
 If something unexpected happens and the project fails to build, try `mvn clean` and
 rebuild the entire project. Generally speaking, however, the project should build incrementally
 without needing to be cleaned first.
