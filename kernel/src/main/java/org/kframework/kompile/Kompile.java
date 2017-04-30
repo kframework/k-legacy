@@ -128,12 +128,17 @@ public class Kompile {
     public CompiledDefinition compile(Definition parsedDef, Function<Definition, Definition> pipeline) {
         checkDefinition(parsedDef);
 
-        Definition kompiledDefinition = pipeline.apply(parsedDef);
-        sw.printIntermediate("Apply compile pipeline");
+        try {
+            Definition kompiledDefinition = pipeline.apply(parsedDef);
+            sw.printIntermediate("Apply compile pipeline");
 
-        ConfigurationInfoFromModule configInfo = new ConfigurationInfoFromModule(kompiledDefinition.mainModule());
+            ConfigurationInfoFromModule configInfo = new ConfigurationInfoFromModule(kompiledDefinition.mainModule());
 
-        return new CompiledDefinition(kompileOptions, parsedDef, kompiledDefinition, configInfo.getDefaultCell(configInfo.topCell()).klabel());
+            return new CompiledDefinition(kompileOptions, parsedDef, kompiledDefinition, configInfo.getDefaultCell(configInfo.topCell()).klabel());
+        }
+        catch(Exception e){
+            throw KEMException.internalError(e.getMessage(),e);
+        }
     }
 
     public Definition parseDefinition(File definitionFile, String mainModuleName, String mainProgramsModule) {
