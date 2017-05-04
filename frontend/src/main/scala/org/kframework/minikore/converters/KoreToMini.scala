@@ -40,7 +40,20 @@ object KoreToMini {
       })
       val newAtt = items.map(encode) ++ apply(att)
       prod.klabel match {
-        case Some(label) => SymbolDeclaration(b.Sort(sort.name), b.Symbol(label.name), args, Attributes(newAtt))
+        case Some(label) => {
+          if (label.name != "") SymbolDeclaration(b.Sort(sort.name), b.Symbol(label.name), args, Attributes(newAtt))
+          else {
+            val isRegex = items.collect({
+              case r@definition.RegexTerminal(_, _, _) => r
+            }).nonEmpty
+            if(isRegex) {
+              SymbolDeclaration(b.Sort(sort.name), b.Symbol(sort.name), args, Attributes(newAtt))
+            }
+            else {
+              SymbolDeclaration(b.Sort(sort.name), iNone, args, Attributes(newAtt))
+            }
+          }
+        }
         case None => SymbolDeclaration(b.Sort(sort.name), iNone, args, Attributes(newAtt)) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
       }
 
