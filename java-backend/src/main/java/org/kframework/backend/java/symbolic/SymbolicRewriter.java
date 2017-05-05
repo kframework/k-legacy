@@ -224,7 +224,7 @@ public class SymbolicRewriter {
             } else if (rule.containsAttribute(Att.cool()) && transitions.stream().anyMatch(rule::containsAttribute) && superheated.contains(subject)) {
                 continue;
             }
-
+            System.err.println(matchResult.ruleIndex + ": " + rule.getSource() + " " + rule.getLocation());
             results.add(result);
         }
 
