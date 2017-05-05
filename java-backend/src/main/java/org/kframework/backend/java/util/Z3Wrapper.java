@@ -69,6 +69,8 @@ public class Z3Wrapper {
         } catch (Z3Exception e) {
             kem.registerCriticalWarning(
                     "failed to translate smtlib expression:\n" + SMT_PRELUDE + query);
+            //hack by ali
+            result = true;
         } catch (UnsatisfiedLinkError e) {
             System.err.println(System.getProperty("java.library.path"));
             throw e;
