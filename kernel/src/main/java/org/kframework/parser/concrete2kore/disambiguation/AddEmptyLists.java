@@ -90,7 +90,7 @@ public class AddEmptyLists extends SetsGeneralTransformer<ParseFailedException, 
                         || (child.production().klabel().isDefined()
                         && child.production().klabel().get().name().equals("#KRewrite"))) {
                     newItems.add(child);
-                } else if (childSort.equals(Sorts.K()) || !subsorts.lessThan(childSort, expectedSort)) {
+                } else if (childSort.equals(Sorts.K()) || subsorts.lessThanEq(childSort, expectedSort)) {
                     String msg = "Found sort '" + childSort + "' where list sort '" + expectedSort + "' was expected. Moving on.";
                     warnings.add(new ParseFailedException(
                             new KException(KException.ExceptionType.HIDDENWARNING, KException.KExceptionGroup.LISTS, msg, child.source().get(), child.location().get())));
