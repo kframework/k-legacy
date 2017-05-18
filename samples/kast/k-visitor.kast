@@ -1,0 +1,63 @@
+// Copyright (c) 2012-2014 K Team. All Rights Reserved.
+
+require "builtins/k-equal.k"
+
+module K-VISITOR
+  imports K-EQUAL-HOOKS
+  imports BUILTIN-HOOKS
+
+// Cosmin: we #klabel in KAST 
+//  syntax KItem  ::= #klabel(KLabel)       // Should be eventually builtin
+
+// Cosmin: but we don't have #klist in KORE yet
+// I think this would be solved by allowing 
+// _,_(a, b, c) to be equivalent to _,_(a, _,_(b))
+// This could also provide a very nice abstraction for assoc and comm
+// In any case, let's have another KLabel for now
+  syntax KLabel ::= "#klist"    [#KAttributes(.::KList)]
+
+  syntax KLabel ::= "#visit"    [#KAttributes(.::KList)]
+  syntax KLabel ::= "#visitor"  [#KAttributes(.::KList)]
+  syntax KLabel ::= "#visited"  [#KAttributes(.::KList)]
+
+  rule #visit(L(Kl),
+              #visitor(#klabel(A),#klist(Kla), 
+                       #klabel(P),#klist(Klp)) 
+    => #if P(Klp,L(Kl)) ==K true 
+       #then A(Kla,L(Kl))
+       #else #visiting.kapp(#klabel(L),#visit(#klist(Kl),
+                            #visitor(#klabel(A),#klist(Kla),#klabel(P),#klist(Klp))))
+       #fi
+    requires `_=/=K_`(#klabel(L),#klabel(#klist)) ensures true [#KAttributes(structural(.::KList))]
+    
+  rule #visit(K ~> Kr,Vz) => #visiting.kseq(#visit(K,Vz),#visit(Kr,Vz))
+    requires  `_=/=K_`(Kr,.::K) ensures #token("true", "Bool") [#KAttributes(structural(.::KList))]
+    
+  rule #visit(#klist(.::KList),Vz) => #visited(.::KList) 
+    requires #token("true", "Bool") ensures #token("true", "Bool")  [#KAttributes(structural(.::KList))]
+    
+  rule #visit(#klist(K,Kl),Vz:KItem)
+    => #visiting.klist(#visit(K,Vz),#visit(#klist(Kl),Vz)) 
+    requires isK(K) ensures #token("true", "Bool")   [#KAttributes(structural(.::KList))]
+
+  rule isKResult(#visited(UNDERSCORE)) => #token("true", "Bool")
+    requires #token("true", "Bool") ensures #token("true", "Bool") [#KAttributes(.::KList)]
+
+  syntax KLabel ::= "#visiting.kapp"   [#KAttributes(.::KList)]    // [strict(2)]
+  syntax KLabel ::= "#visiting.kseq"   [#KAttributes(.::KList)]    // [strict]
+  syntax KLabel ::= "#visiting.klist"  [#KAttributes(.::KList)]    // [strict]
+
+// Due to bugs, the strictness attributes above don't work, so we need the following
+  context #visiting.kapp(UNDERSCORE,HOLE(.::KList)) requires #token("true", "Bool") [#KAttributes(.::KList)] // the first argument should be a KToken
+  context #visiting.klist(UNDERSCORE,HOLE(.::KList)) requires #token("true", "Bool") [#KAttributes(.::KList)]
+  context #visiting.klist(HOLE(.::KList),UNDERSCORE) requires #token("true", "Bool") [#KAttributes(.::KList)]
+  context #visiting.kseq(UNDERSCORE,HOLE(.::KList)) requires #token("true", "Bool") [#KAttributes(.::KList)]
+  context #visiting.kseq(HOLE(.::KList),UNDERSCORE) requires #token("true", "Bool") [#KAttributes(.::KList)]
+
+  rule #visiting.kapp(#klabel(L),#visited(Kl)) => #visited(L(Kl))
+    requires #token("true", "Bool") ensures #token("true", "Bool") [#KAttributes(structural(.::KList))]
+  rule #visiting.klist(#visited(Kl),#visited(Kl')) => #visited(Kl,Kl')
+    requires #token("true", "Bool") ensures #token("true", "Bool") [#KAttributes(structural(.::KList))]
+  rule #visiting.kseq(#visited(K1),#visited(K2)) => #visited(K1 ~> K2)
+    requires #token("true", "Bool") ensures #token("true", "Bool") [#KAttributes(structural(.::KList))]
+endmodule

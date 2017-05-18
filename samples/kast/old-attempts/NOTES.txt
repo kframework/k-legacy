@@ -1,0 +1,24 @@
+* See and incorporate comments from
+  https://github.com/kframework/k/issues/817
+
+* Additional checks the KAST parser should do
+** Each proper (i.e., non-subsort) production should have precisely one klabel attribute
+** Only klabels defined as above or defined independently can be used in rules
+** All occurrencies of all variables are sorted
+** All "requires" commands and all "imports" statements are explicitly listed.
+   Exception makes the syntax of K/KAST itself, which we will assume is included
+   automatically.  The reason we do that is because we do not want it to interfere
+   with the syntax that the program parser will use to parse programs.
+** One has to handle oneself constant productions that one wants to link to tokens ... ???
+
+** Additional checks may be needed for such declarations, but the main point
+** is that, from a syntactic point of view, lists (sets, maps, etc.) are no different
+  syntax KRequireList  ::= "" [onlyLabel, unit]
+  syntax KRequireList  ::= KRequireList KRequireList [list]
+
+*   syntax MetaKItem ::= MetaKItem ":" KSort  // KItem must obey its sort at runtime
+                                     // sorting arbitrary KItems; Sort can also be
+                                     // K, KItem, KToken, but not KList
+
+* It is not entirely clear whether we want requires and ensures to be constructors
+  for rules, contexts, etc., or for KItems
