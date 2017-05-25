@@ -21,9 +21,9 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.kframework.kale</groupId>
+      <groupId>org.kframework</groupId>
       <artifactId>kale_2.12</artifactId>
-      <version>0.4-SNAPSHOT</version>
+      <version>0.6-SNAPSHOT</version>
     </dependency>
   </dependencies>
 

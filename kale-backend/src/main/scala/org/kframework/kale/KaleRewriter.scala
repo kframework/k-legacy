@@ -40,7 +40,7 @@ class SkalaRewriter(d: kore.Definition, m: kore.Module) extends org.kframework.r
 
   override def executeAndMatch(k: K, depth: Optional[Integer], rule: Rule): (RewriterResult, K) = ???
 
-  override def prove(rules: util.List[Rule]): util.List[K] = ???
+  override def prove(rules: java.util.List[Rule]): java.util.List[K] = ???
 }
 
 //object KaleRewriter {

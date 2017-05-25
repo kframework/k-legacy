@@ -16,7 +16,7 @@ import org.kframework.backend.java.symbolic.ProofExecutionMode;
 import org.kframework.definition.Module;
 import org.kframework.definition.ProcessedDefinition;
 import org.kframework.kale.KaleBackend;
-import org.kframework.kale.KaleRewriter;
+//import org.kframework.kale.KaleRewriter;
 import org.kframework.kale.SkalaRewriter;
 import org.kframework.kast.KastFrontEnd;
 import org.kframework.kast.KastOptions;
