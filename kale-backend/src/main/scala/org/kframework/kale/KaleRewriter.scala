@@ -16,6 +16,8 @@ import org.kframework.minikore.converters.{KoreToMini, MiniToKore}
 
 import scala.collection._
 
+
+
 class SkalaRewriter(d: kore.Definition, m: kore.Module) extends org.kframework.rewriter.Rewriter {
 
   val skalaBackend = SkalaBackend(d, m)
