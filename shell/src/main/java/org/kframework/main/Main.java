@@ -17,7 +17,7 @@ import org.kframework.definition.Module;
 import org.kframework.definition.ProcessedDefinition;
 import org.kframework.kale.KaleBackend;
 //import org.kframework.kale.KaleRewriter;
-import org.kframework.kale.SkalaRewriter;
+import org.kframework.kale.KaleRewriter;
 import org.kframework.kast.KastFrontEnd;
 import org.kframework.kast.KastOptions;
 import org.kframework.kdep.KDepFrontEnd;
@@ -242,7 +242,7 @@ public class Main {
                         kRunOptions, files, initializeDefinition);
             } else if (kompileOptions.backend.equals(Backends.KALE)) {
                 initializeRewriter = null;
-                intializeMiniKoreRewriter = (x -> new SkalaRewriter(x.getRight(), null));
+                intializeMiniKoreRewriter = (x -> new KaleRewriter(x.getKey(), x.getRight()));
             } else {
                 throw new AssertionError("Backend not hooked to the shell.");
             }

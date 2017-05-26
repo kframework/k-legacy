@@ -13,14 +13,18 @@ import org.kframework.{RewriterResult, frontend}
 import org.kframework.kore
 import org.kframework.kore.Pattern
 import org.kframework.minikore.converters.{KoreToMini, MiniToKore}
+import org.kframework.kore.extended.implicits._
+import org.kframework.kore.implementation.{DefaultBuilders => db}
 
 import scala.collection._
 
 
 
-class SkalaRewriter(d: kore.Definition, m: kore.Module) extends org.kframework.rewriter.Rewriter {
+class KaleRewriter(mainModule: Module, koreDefinition: kore.Definition) extends org.kframework.rewriter.Rewriter {
 
-  val skalaBackend = SkalaBackend(d, m)
+  val mainKoreModule = koreDefinition.modulesMap(db.ModuleName(mainModule.name))
+
+  val skalaBackend = SkalaBackend(koreDefinition, mainKoreModule)
 
   val frontendToKore = KoreToMini
 
