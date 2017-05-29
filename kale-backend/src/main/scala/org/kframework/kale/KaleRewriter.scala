@@ -35,7 +35,7 @@ class KaleRewriter(mainModule: Module, koreDefinition: kore.Definition) extends 
 
     val result: Pattern = skalaBackend.step(koreK)
 
-    new RewriterResult(depth, koreToFrontend(k))
+    new RewriterResult(depth, koreToFrontend(result))
   }
 
   override def `match`(k: K, rule: Rule): K = ???
