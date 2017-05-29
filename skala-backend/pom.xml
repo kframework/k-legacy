@@ -9,10 +9,10 @@
     <version>4.0.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <artifactId>kale-backend</artifactId>
+  <artifactId>skala-backend</artifactId>
   <packaging>jar</packaging>
 
-  <name>K Framework Kale Backend</name>
+  <name>K Framework Skala Backend</name>
 
   <dependencies>
     <dependency>

@@ -1,4 +1,4 @@
-package org.kframework.kale
+package org.kframework.backend.skala
 
 import java.util.function.Function
 
@@ -9,7 +9,7 @@ import org.kframework.frontend.KORE
 import org.kframework.frontend.compile._
 import org.kframework.utils.errorsystem.KExceptionManager
 
-class KaleBackend(kompileOptions: KompileOptions, kem: KExceptionManager) extends Backend {
+class SkalaKompile(kompileOptions: KompileOptions, kem: KExceptionManager) extends Backend {
   override def accept(d: CompiledDefinition): Unit = {
     // probably a redundant function
   }

@@ -15,9 +15,9 @@ import org.kframework.backend.java.symbolic.JavaExecutionOptions;
 import org.kframework.backend.java.symbolic.ProofExecutionMode;
 import org.kframework.definition.Module;
 import org.kframework.definition.ProcessedDefinition;
-import org.kframework.kale.KaleBackend;
-//import org.kframework.kale.KaleRewriter;
-import org.kframework.kale.KaleRewriter;
+import org.kframework.backend.skala.SkalaKompile;
+//import KaleRewriter;
+import org.kframework.backend.skala.SkalaRewriter;
 import org.kframework.kast.KastFrontEnd;
 import org.kframework.kast.KastOptions;
 import org.kframework.kdep.KDepFrontEnd;
@@ -124,7 +124,7 @@ public class Main {
             if (kompileOptions.backend.equals(Backends.JAVA)) {
                 koreBackend = new JavaBackend(kem, files, kompileOptions.global, kompileOptions);
             } else if (kompileOptions.backend.equals(Backends.KALE)) {
-                koreBackend = new KaleBackend(kompileOptions, kem);
+                koreBackend = new SkalaKompile(kompileOptions, kem);
             } else
                 throw new AssertionError("Backend not hooked to the shell.");
             KompileFrontEnd frontEnd = new KompileFrontEnd(kompileOptions, koreBackend, sw, kem, loader, files);
@@ -242,7 +242,7 @@ public class Main {
                         kRunOptions, files, initializeDefinition);
             } else if (kompileOptions.backend.equals(Backends.KALE)) {
                 initializeRewriter = null;
-                intializeMiniKoreRewriter = (x -> new KaleRewriter(x.getKey(), x.getRight()));
+                intializeMiniKoreRewriter = (x -> new SkalaRewriter(x.getKey(), x.getRight()));
             } else {
                 throw new AssertionError("Backend not hooked to the shell.");
             }

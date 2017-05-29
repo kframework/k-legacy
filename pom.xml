@@ -18,7 +18,7 @@
     <module>API</module>
     <module>kdoc</module>
     <module>shell</module>
-    <module>kale-backend</module>
+    <module>skala-backend</module>
   </modules>
 
   <scm>

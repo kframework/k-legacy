@@ -31,7 +31,7 @@
         </dependency>
         <dependency>
             <groupId>org.kframework.k</groupId>
-            <artifactId>kale-backend</artifactId>
+            <artifactId>skala-backend</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
