@@ -123,7 +123,7 @@ public class Main {
             Backend koreBackend;
             if (kompileOptions.backend.equals(Backends.JAVA)) {
                 koreBackend = new JavaBackend(kem, files, kompileOptions.global, kompileOptions);
-            } else if (kompileOptions.backend.equals(Backends.KALE)) {
+            } else if (kompileOptions.backend.equals(Backends.SKALA)) {
                 koreBackend = new SkalaKompile(kompileOptions, kem);
             } else
                 throw new AssertionError("Backend not hooked to the shell.");
@@ -240,7 +240,7 @@ public class Main {
                 intializeMiniKoreRewriter = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions,
                         kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions.transition,
                         kRunOptions, files, initializeDefinition);
-            } else if (kompileOptions.backend.equals(Backends.KALE)) {
+            } else if (kompileOptions.backend.equals(Backends.SKALA)) {
                 initializeRewriter = null;
                 intializeMiniKoreRewriter = (x -> new SkalaRewriter(x.getKey(), x.getRight()));
             } else {
