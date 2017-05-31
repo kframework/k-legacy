@@ -1,5 +1,6 @@
 package org.kframework.backend.skala;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.kframework.attributes.Source;
 import org.kframework.backend.Backends;
@@ -30,6 +31,7 @@ import static org.junit.Assert.assertEquals;
 
 
 public class BasicOnSkalaTest {
+    @Ignore
     @Test
     public void basicOnSkalaTest1() {
         String fileName = "src/test/resources/basic/basic.k";
