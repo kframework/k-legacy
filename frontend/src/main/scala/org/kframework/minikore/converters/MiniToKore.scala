@@ -133,6 +133,7 @@ object MiniToKore {
       val a2 = apply(Seq(p2))
       apply(att ++ a2)(p1)
 
+
     case Application(Symbol(label), args) => KORE.KApply(KORE.KLabel(label), args.map(apply), att)
     case DomainValue(Symbol(label), Value(value)) => KORE.KToken(value, KORE.Sort(label), att)
     case SortedVariable(Name(name), Sort("_")) => KORE.KVariable(name, att)

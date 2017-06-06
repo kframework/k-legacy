@@ -1,6 +1,5 @@
 package org.kframework.backend.skala;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.kframework.attributes.Source;
 import org.kframework.backend.Backends;
@@ -21,17 +20,17 @@ import org.kframework.unparser.KOREToTreeNodes;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 
+import javax.swing.text.html.Option;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 
 public class BasicOnSkalaTest {
-    @Ignore
     @Test
     public void basicOnSkalaTest1() {
         String fileName = "src/test/resources/basic/basic.k";
@@ -65,7 +64,7 @@ public class BasicOnSkalaTest {
 
         SkalaRewriter skalaBackendRewriter = new SkalaRewriter(compiledDef.executionModule(), definition);
 
-        K kResult = skalaBackendRewriter.execute(input, Optional.<Integer>empty()).k();
+        K kResult = skalaBackendRewriter.execute(input, Optional.empty()).k();
 
         Module unparsingModule = compiledDef.getExtensionModule(compiledDef.languageParsingModule());
 

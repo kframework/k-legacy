@@ -22,6 +22,7 @@ import org.kframework.unparser.KOREToTreeNodes;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 
+import javax.swing.text.html.Option;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,13 +33,12 @@ import static org.junit.Assert.assertEquals;
 
 public class ImpOnSkalaTest {
 
-    @Ignore
     @Test
     public void impOnSkalaTest1() {
         String fileName = "src/test/resources/imp/imp.k";
         //Todo: Change to include program from resources folder
-        String program = "int n;" +
-                "n = 1;";
+        String programFileName = "src/test/resources/imp/sum.imp";
+        String program = FileUtil.load(new File(programFileName));
         Source source = Source.apply("from test");
         String mainModuleName = "IMP";
 
@@ -68,12 +68,12 @@ public class ImpOnSkalaTest {
 
         SkalaRewriter skalaBackendRewriter = new SkalaRewriter(compiledDef.executionModule(), definition);
 
-        K kResult = skalaBackendRewriter.execute(input, Optional.<Integer>empty()).k();
+        K kResult = skalaBackendRewriter.execute(input, Optional.empty()).k();
 
         Module unparsingModule = compiledDef.getExtensionModule(compiledDef.languageParsingModule());
 
         String actual = KOREToTreeNodes.toString(new AddBrackets(unparsingModule).addBrackets((org.kframework.parser.ProductionReference) KOREToTreeNodes.apply(KOREToTreeNodes.up(unparsingModule, kResult), unparsingModule)));
 
-//        assertEquals("Execution failed", "<T> <k> 3 </k> </T>", actual);
+        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 'sum |-> 55 'n |-> 0 </state> </T>", actual);
     }
 }
