@@ -2,7 +2,7 @@
 // the sum of numbers from 1 to n.
 
 int n, sum;
-n = 10;
+n = 50;
 sum = 0;
 while (!(n <= 0)) {
   sum = sum + n;
