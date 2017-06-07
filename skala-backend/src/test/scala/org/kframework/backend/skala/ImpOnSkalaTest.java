@@ -50,7 +50,6 @@ public class ImpOnSkalaTest {
         resources = "src/test/resources/imp/";
         File definitionFile = new File(resources + "imp.k");
         String mainModuleName = "IMP";
-        KExceptionManager kem = new KExceptionManager(new GlobalOptions());
         KompileOptions kompileOptions = new KompileOptions();
         kompileOptions.backend = Backends.SKALA;
         GlobalOptions globalOptions = new GlobalOptions();
