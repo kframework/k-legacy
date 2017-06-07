@@ -102,4 +102,12 @@ public class ImpOnSkalaTest {
         String actual = unparseResult(kResult);
         assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 's |-> 66 'r |-> 3 'q |-> 1 'n |-> 1 'm |-> 2 </state> </T>", actual);
     }
+
+    @Test
+    public void primesTest() {
+        K input = getParsedProgram("primes.imp");
+        K kResult = skalaBackendRewriter.execute(input, Optional.empty()).k();
+        String actual = unparseResult(kResult);
+        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 's |-> 4 'r |-> 1 'y |-> 20 'x |-> 0 'z |-> 10 'i |-> 2 'q |-> 0 't |-> 0 'n |-> 11 'm |-> 10 </state> </T>", actual);
+    }
 }
