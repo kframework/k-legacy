@@ -6,12 +6,19 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.kframework.kompile.SerializableKoreDefinition;
+import org.kframework.kore.Definition;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
+import org.nustaq.serialization.FSTConfiguration;
+import org.nustaq.serialization.FSTObjectInput;
+import org.nustaq.serialization.FSTObjectOutput;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,6 +43,7 @@ public class FileUtil {
     private final Map<String, String> env;
 
     public static final String KORE_TXT = "kore.txt";
+    public static final String KORE_BIN = "kore.bin";
     public static final String KOMPILED_DEFINITION_BIN = "extras/kompiledDefinition.bin";
     public static final String KOMPILE_OPTIONS_BIN = "extras/kompileOptions.bin";
     public static final String KOMPILE_META_INFO_TXT = "extras/kompileMetaInfo.txt";
@@ -45,6 +53,8 @@ public class FileUtil {
     public static final String TOP_CELL_INITIALIZER_BIN = "extras/topCellInitializer.bin";
     public static final String CACHE_BIN = "extras/cache.bin";
     public static final String TIMESTAMP = "extras/timestamp";
+
+    final FSTConfiguration fstConfiguration;
 
     public FileUtil(
             File tempDir,
@@ -59,6 +69,7 @@ public class FileUtil {
         this.kompiledDir = kompiledDir;
         this.options = options;
         this.env = env;
+        fstConfiguration = FSTConfiguration.createDefaultConfiguration();
     }
 
     public static FileUtil get(GlobalOptions globalOptions, Map<String, String> env) {
@@ -67,7 +78,7 @@ public class FileUtil {
         File definitionDir = new File(tmp.getAbsolutePath() + File.pathSeparator + "definitionDir");
         File workingDir = new File("."); // new File(tmp.getAbsolutePath() + File.pathSeparator + "workingDir");
         File kompiledDir = new File(tmp.getAbsolutePath() + File.pathSeparator + "kompiledDir");
-        if(!tempDir.mkdir() || !definitionDir.mkdir() /* || !workingDir.mkdir() */ || !kompiledDir.mkdir()) {
+        if (!tempDir.mkdir() || !definitionDir.mkdir() /* || !workingDir.mkdir() */ || !kompiledDir.mkdir()) {
             throw new AssertionError("Could not create one of the temporary directories");
         }
         return new FileUtil(tempDir, definitionDir, workingDir, kompiledDir, globalOptions, env);
@@ -308,6 +319,32 @@ public class FileUtil {
         try {
             return new FileReader(f);
         } catch (FileNotFoundException e) {
+            throw KEMException.criticalError("Could not read from file " + f.getAbsolutePath(), e);
+        }
+    }
+
+    public <T> void saveToKompiledFST(String path, Class<T> cls, Object content) {
+        File f= resolveKompiled(path);
+        try{
+            FileOutputStream outputStream = new FileOutputStream(f);
+            FSTObjectOutput fstObjectOutput = fstConfiguration.getObjectOutput(outputStream);
+            fstObjectOutput.writeObject(cls.cast(content), cls);
+            fstObjectOutput.flush();
+            outputStream.close();
+        } catch (Exception e) {
+            throw KEMException.criticalError("Could not save to file " + f.getAbsolutePath(), e);
+        }
+    }
+
+    public <T> T readFromKompiledFST(String path, Class<T> cls) {
+        File f = resolveKompiled(path);
+        try{
+            FileInputStream fio = new FileInputStream(f);
+            FSTObjectInput fstObjectInput= fstConfiguration.getObjectInput(fio);
+            Object readObject = fstObjectInput.readObject(cls);
+            fio.close();
+            return cls.cast(readObject);
+        } catch (Exception e) {
             throw KEMException.criticalError("Could not read from file " + f.getAbsolutePath(), e);
         }
     }

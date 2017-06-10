@@ -7,6 +7,7 @@ import org.kframework.kil.loader.Context;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.kompile.KompileMetaInfo;
 import org.kframework.kompile.KompileOptions;
+import org.kframework.kompile.SerializableKoreDefinition;
 import org.kframework.krun.KRunOptions;
 import org.kframework.main.GlobalOptions;
 import org.kframework.minikore.converters.MiniToKore;
@@ -58,13 +59,13 @@ public class DefinitionLoadingModule {
         File koreFile = files.resolveKompiled(FileUtil.KORE_TXT);
         try {
             return new org.kframework.kore.parser.TextToKore(defaultBuilder).parse(koreFile);
-        } catch(org.kframework.kore.parser.ParseError e) {
+        } catch (org.kframework.kore.parser.ParseError e) {
             throw KEMException.criticalError("Failed to parse Kore file: " +
                     koreFile.getAbsolutePath() + System.lineSeparator() + e.getMessage());
         }
     }
 
-    public static KompileMetaInfo kompilemetaInfo(FileUtil files){
+    public static KompileMetaInfo kompilemetaInfo(FileUtil files) {
         File metaInfo = files.resolveKompiled(FileUtil.KOMPILE_META_INFO_TXT);
         String metaString = "";
         try {
@@ -78,8 +79,7 @@ public class DefinitionLoadingModule {
 
     // NOTE: should be matched with org.kframework.kompile.KompileFrontEnd.save()
     public static CompiledDefinition koreDefinition(BinaryLoader loader, FileUtil files) {
-        // org.kframework.definition.Definition kompiledDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN)); // deprecated
-        org.kframework.definition.Definition kompiledDefinition = MiniToKore.apply(parseKore(files));
+        org.kframework.definition.Definition kompiledDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN)); // deprecated
         KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN));
         org.kframework.definition.Definition parsedDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN));
         org.kframework.frontend.KLabel topCellInitializer = loader.loadOrDie(org.kframework.frontend.KLabel.class, files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN));
@@ -87,15 +87,18 @@ public class DefinitionLoadingModule {
     }
 
     public static ProcessedDefinition miniKoreDefinition(BinaryLoader loader, FileUtil files) {
-        org.kframework.kore.Builders defaultBuilder = org.kframework.kore.implementation.DefaultBuilders$.MODULE$;
+//        org.kframework.kore.Builders defaultBuilder = org.kframework.kore.implementation.DefaultBuilders$.MODULE$;
         org.kframework.kore.Definition definition = null;
-        try {
-            definition = new org.kframework.kore.parser.TextToKore(defaultBuilder).parse(files.resolveKompiled(FileUtil.KORE_TXT));
-        } catch (org.kframework.kore.parser.ParseError e) {
-            System.out.println(e.getMessage());
-        }
-
+//        try {
+//            definition = new org.kframework.kore.parser.TextToKore(defaultBuilder).parse(files.resolveKompiled(FileUtil.KORE_TXT));
+//        } catch (org.kframework.kore.parser.ParseError e) {
+//            System.out.println(e.getMessage());
+//        }
+//
         KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN));
+
+        definition = files.readFromKompiledFST(files.KORE_BIN, SerializableKoreDefinition.class).getDefinition();
+
         return new ProcessedDefinition(kompileOptions, definition);
     }
 
