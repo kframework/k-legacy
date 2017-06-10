@@ -332,7 +332,7 @@ public class FileUtil {
             fstObjectOutput.writeObject(cls.cast(content), cls);
             fstObjectOutput.flush();
             outputStream.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw KEMException.criticalError("Could not save to file " + f.getAbsolutePath(), e);
         }
     }
