@@ -323,6 +323,7 @@ public class FileUtil {
         }
     }
 
+
     public <T> void saveToKompiledFST(String path, Class<T> cls, Object content) {
         File f= resolveKompiled(path);
         try{
@@ -336,6 +337,7 @@ public class FileUtil {
         }
     }
 
+    // DISABLE EXCEPTION CHECKSTYLE
     public <T> T readFromKompiledFST(String path, Class<T> cls) {
         File f = resolveKompiled(path);
         try{
@@ -348,4 +350,5 @@ public class FileUtil {
             throw KEMException.criticalError("Could not read from file " + f.getAbsolutePath(), e);
         }
     }
+    // ENABLE EXCEPTION CHECKSTYLE
 }
