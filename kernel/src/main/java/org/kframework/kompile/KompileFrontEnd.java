@@ -50,7 +50,7 @@ public class KompileFrontEnd extends FrontEnd {
         }
 
         Kompile kompile = new Kompile(options, files, kem, sw);
-        //CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps());
+        //CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps()); //deprecated
         Definition parsedDef = kompile.parseDefinition(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files));
         ParserGenerator generator = new ParserGenerator(options, parsedDef);
         CompiledDefinition compiledDef = kompile.compile(parsedDef, koreBackend.steps());
