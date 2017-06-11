@@ -69,7 +69,7 @@ public class FileUtil {
         this.kompiledDir = kompiledDir;
         this.options = options;
         this.env = env;
-        fstConfiguration = FSTConfiguration.createDefaultConfiguration();
+        fstConfiguration = FSTConfiguration.createUnsafeBinaryConfiguration();
     }
 
     public static FileUtil get(GlobalOptions globalOptions, Map<String, String> env) {
