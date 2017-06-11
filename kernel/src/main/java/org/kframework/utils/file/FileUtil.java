@@ -54,7 +54,7 @@ public class FileUtil {
     public static final String CACHE_BIN = "extras/cache.bin";
     public static final String TIMESTAMP = "extras/timestamp";
 
-    final FSTConfiguration fstConfiguration;
+    private static FSTConfiguration fstConfiguration;
 
     public FileUtil(
             File tempDir,
