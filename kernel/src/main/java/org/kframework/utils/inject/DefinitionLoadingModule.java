@@ -89,7 +89,7 @@ public class DefinitionLoadingModule {
 
     public static ProcessedDefinition miniKoreDefinition(BinaryLoader loader, FileUtil files) {
         KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN));
-        org.kframework.kore.Definition definition = files.readFromKompiledFST(files.KORE_BIN, SerializableKoreDefinition.class).getDefinition();
+        org.kframework.kore.Definition definition = loader.loadOrDie(SerializableKoreDefinition.class, files.resolveKompiled(FileUtil.KORE_BIN)).getDefinition();
         return new ProcessedDefinition(kompileOptions, definition);
     }
 
