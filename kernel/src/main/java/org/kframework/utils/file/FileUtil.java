@@ -54,7 +54,7 @@ public class FileUtil {
     public static final String CACHE_BIN = "extras/cache.bin";
     public static final String TIMESTAMP = "extras/timestamp";
 
-//    final FSTConfiguration fstConfiguration;
+    final FSTConfiguration fstConfiguration;
 
     public FileUtil(
             File tempDir,
@@ -69,7 +69,7 @@ public class FileUtil {
         this.kompiledDir = kompiledDir;
         this.options = options;
         this.env = env;
-//        fstConfiguration = FSTConfiguration.createDefaultConfiguration();
+        fstConfiguration = FSTConfiguration.createDefaultConfiguration();
     }
 
     public static FileUtil get(GlobalOptions globalOptions, Map<String, String> env) {
@@ -324,31 +324,31 @@ public class FileUtil {
     }
 
 
-//    public <T> void saveToKompiledFST(String path, Class<T> cls, Object content) {
-//        File f= resolveKompiled(path);
-//        try{
-//            FileOutputStream outputStream = new FileOutputStream(f);
-//            FSTObjectOutput fstObjectOutput = fstConfiguration.getObjectOutput(outputStream);
-//            fstObjectOutput.writeObject(cls.cast(content), cls);
-//            fstObjectOutput.flush();
-//            outputStream.close();
-//        } catch (IOException e) {
-//            throw KEMException.criticalError("Could not save to file " + f.getAbsolutePath(), e);
-//        }
-//    }
-//
-//    // DISABLE EXCEPTION CHECKSTYLE
-//    public <T> T readFromKompiledFST(String path, Class<T> cls) {
-//        File f = resolveKompiled(path);
-//        try{
-//            FileInputStream fio = new FileInputStream(f);
-//            FSTObjectInput fstObjectInput= fstConfiguration.getObjectInput(fio);
-//            Object readObject = fstObjectInput.readObject(cls);
-//            fio.close();
-//            return cls.cast(readObject);
-//        } catch (Exception e) {
-//            throw KEMException.criticalError("Could not read from file " + f.getAbsolutePath(), e);
-//        }
-//    }
+    public <T> void saveToKompiledFST(String path, Class<T> cls, Object content) {
+        File f= resolveKompiled(path);
+        try{
+            FileOutputStream outputStream = new FileOutputStream(f);
+            FSTObjectOutput fstObjectOutput = fstConfiguration.getObjectOutput(outputStream);
+            fstObjectOutput.writeObject(cls.cast(content), cls);
+            fstObjectOutput.flush();
+            outputStream.close();
+        } catch (IOException e) {
+            throw KEMException.criticalError("Could not save to file " + f.getAbsolutePath(), e);
+        }
+    }
+
+    // DISABLE EXCEPTION CHECKSTYLE
+    public <T> T readFromKompiledFST(String path, Class<T> cls) {
+        File f = resolveKompiled(path);
+        try{
+            FileInputStream fio = new FileInputStream(f);
+            FSTObjectInput fstObjectInput= fstConfiguration.getObjectInput(fio);
+            Object readObject = fstObjectInput.readObject(cls);
+            fio.close();
+            return cls.cast(readObject);
+        } catch (Exception e) {
+            throw KEMException.criticalError("Could not read from file " + f.getAbsolutePath(), e);
+        }
+    }
     // ENABLE EXCEPTION CHECKSTYLE
 }
