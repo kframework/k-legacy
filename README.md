@@ -159,8 +159,8 @@ If tests fail but you want to run the build anyway to see what happens, you can 
 If you still cannot build, please contact a K developer.
 
 # Acknowledgements
-- [![Alt text](http://www.yourkit.com/images/yklogo.png, yourkit logo)]
-    - The K Framwork team appreciates the support of [YourKit GmbH](http://www.yourkit.com) for providing their [Java Profiler](https://www.yourkit.com/java/profiler).
 
+- The K Framwork team appreciates the support of [YourKit GmbH](http://www.yourkit.com) for providing their [Java Profiler](https://www.yourkit.com/java/profiler).
+[![Alt text](http://www.yourkit.com/images/yklogo.png, yourkit logo)]
  
 
