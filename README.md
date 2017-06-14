@@ -161,6 +161,8 @@ If you still cannot build, please contact a K developer.
 # Acknowledgements
 
 - The K Framwork team appreciates the support of [YourKit GmbH](http://www.yourkit.com) for providing their [Java Profiler](https://www.yourkit.com/java/profiler).
-[![Alt text](http://www.yourkit.com/images/yklogo.png, yourkit logo)]
+
+[![Yourkit](http://www.yourkit.com/images/yklogo.png, http://www.yourkit.com)]
+
  
 
