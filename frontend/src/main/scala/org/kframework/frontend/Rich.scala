@@ -11,16 +11,21 @@ case class Rich(theModule: Module) {
   implicit class RichK(k: K) {
     def contains(f: PartialFunction[K, Boolean]) = find(f) != None
 
-    def find(f: PartialFunction[K, Boolean]): Option[K] = {
-      val ff = f.orElse[K, Boolean]({ case k => false })
-      if (ff(k))
+    def find(f : K => Boolean): Option[K] = {
+      if (f(k))
         Some(k)
       else
         (k match {
-          case k: KCollection => k.items.asScala.find(ff)
+          case k: KCollection => k.items.asScala.toStream flatMap (_.find(f)) headOption
           case _ => None
         })
     }
+
+    def find(f: PartialFunction[K, Boolean]): Option[K] = {
+      val ff: (K) => Boolean = f.applyOrElse[K, Boolean](_, { k:K => false })
+      find(ff)
+    }
+
   }
 
   implicit class RichKApply(k: KApply) {
