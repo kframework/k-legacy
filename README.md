@@ -157,3 +157,12 @@ of artifacts, you can run `mvn dependency:purge-local-repository`.
 If tests fail but you want to run the build anyway to see what happens, you can use `mvn package -DskipTests`.
 
 If you still cannot build, please contact a K developer.
+
+# Acknowledgements
+
+- The K Framwork team appreciates the support of [YourKit GmbH](http://www.yourkit.com) for providing their [Java Profiler](https://www.yourkit.com/java/profiler).
+
+![Logo](http://www.yourkit.com/images/yklogo.png)
+
+ 
+
