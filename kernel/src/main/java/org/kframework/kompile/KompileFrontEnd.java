@@ -50,7 +50,7 @@ public class KompileFrontEnd extends FrontEnd {
         }
 
         Kompile kompile = new Kompile(options, files, kem, sw);
-        //CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps());
+        //CompiledDefinition def = kompile.run(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files), koreBackend.steps()); //deprecated
         Definition parsedDef = kompile.parseDefinition(options.outerParsing.mainDefinitionFile(files), options.mainModule(files), options.syntaxModule(files));
         ParserGenerator generator = new ParserGenerator(options, parsedDef);
         CompiledDefinition compiledDef = kompile.compile(parsedDef, koreBackend.steps());
@@ -82,8 +82,11 @@ public class KompileFrontEnd extends FrontEnd {
 
     // NOTE: should be matched with org.kframework.utils.inject.DefinitionLoadingModule.koreDefinition()
     public void save(CompiledDefinition def) {
-        files.saveToKompiled(FileUtil.KORE_TXT, KoreToText.apply(KoreToMini.apply(def.kompiledDefinition)));
-        // loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN), def.kompiledDefinition); // deprecated
+        org.kframework.kore.Definition koreDefinition = KoreToMini.apply(def.kompiledDefinition);
+        files.saveToKompiled(FileUtil.KORE_TXT, KoreToText.apply(koreDefinition));
+        SerializableKoreDefinition wrappedDefinition = new SerializableKoreDefinition(koreDefinition);
+        files.saveToKompiledFST(FileUtil.KORE_BIN, wrappedDefinition.getClass(), wrappedDefinition);
+//        loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN), def.kompiledDefinition); //Deprecated
         loader.saveOrDie(files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN), def.kompileOptions);
         loader.saveOrDie(files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN), def.getParsedDefinition());
         loader.saveOrDie(files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN), def.topCellInitializer);
