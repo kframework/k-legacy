@@ -1020,12 +1020,9 @@ module BASIC-STRATEGY
 endmodule
 
 // Basic crytography functionality. 
-module CRYPTO
+module KRYPTO
     imports STRING
     // The Input String must be encoded such that each character in the string 
     // represents a Hex Value. 
-    syntax String ::= "keccak256" "(" String ")"     [hook(CRYPTO.keccak256), function]
+    syntax String ::= "Keccak256" "(" String ")"     [hook(KRYPTO.keccak256), function]
 endmodule
-
-
-
