@@ -1024,7 +1024,7 @@ module CRYPTO
     imports STRING
     // The Input String must be encoded such that each character in the string 
     // represents a Hex Value. 
-    syntax String ::= "Sha3_256" "(" String ")"     [hook(CRYPTO.sha3_256), function]
+    syntax String ::= "keccak256" "(" String ")"     [hook(CRYPTO.keccak256), function]
 endmodule
 
 
