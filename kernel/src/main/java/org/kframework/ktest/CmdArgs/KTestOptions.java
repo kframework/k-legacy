@@ -145,7 +145,7 @@ public class KTestOptions {
      * Timeout for processes spawned by ktest. (in seconds)
      */
     @Parameter(names="--timeout", description="Time limit for each process (milliseconds).")
-    private int timeout = 300000;
+    private int timeout = 900000;
 
     /**
      * Update existing .out files.
