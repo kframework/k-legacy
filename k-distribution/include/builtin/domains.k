@@ -1018,3 +1018,11 @@ module BASIC-STRATEGY
     rule <s> #STUCK ~> A:StrategyApply => false ...</s>
     rule <s> #STUCK ~> false => false ...</s>
 endmodule
+
+// Basic crytography functionality.
+module KRYPTO
+    imports STRING
+    // The Input String must be encoded such that each character in the string
+    // represents a Hex Value.
+    syntax String ::= "Keccak256" "(" String ")"     [hook(KRYPTO.keccak256), function]
+endmodule
