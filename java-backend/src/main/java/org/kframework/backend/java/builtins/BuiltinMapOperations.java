@@ -174,7 +174,7 @@ public class BuiltinMapOperations {
     }
 
     public static BoolToken in_keys(Term key, BuiltinMap map, TermContext context) {
-        throw new RuntimeException("Not implemented!");
+        return BoolToken.of(map.getEntries().containsKey(key));
     }
 
     public static Term values(BuiltinMap map, TermContext context) {
