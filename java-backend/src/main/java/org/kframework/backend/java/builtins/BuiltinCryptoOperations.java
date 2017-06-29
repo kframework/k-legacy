@@ -42,7 +42,7 @@ public final class BuiltinCryptoOperations {
     public static StringToken sha3256(StringToken inputHexString, TermContext context) {
         try {
             byte[] bytes = org.apache.commons.codec.binary.Hex.decodeHex(inputHexString.stringValue().toCharArray());
-            SHA3.DigestSHA3 sha3engine = new SHA3.Digest256();
+            SHA3.Digest256 sha3engine = new SHA3.Digest256();
             byte[] digest = sha3engine.digest(bytes);
             String digestString = Hex.toHexString(digest);
             return StringToken.of(digestString);
