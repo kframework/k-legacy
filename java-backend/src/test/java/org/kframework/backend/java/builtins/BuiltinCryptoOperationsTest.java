@@ -17,7 +17,8 @@ public class BuiltinCryptoOperationsTest {
      * Keccak Hash of the Word "testing"
      */
     private static final String testingKeccakHash = "5f16f4c7f149ac4f9510d9cf8cf384038ad348b3bcdc01915f95de12df9d1b02";
-    private static final String emptySha3Digest = "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a";
+    private static final String testingSha256Hash =  "cf80cd8aed482d5d1527d7dc72fceff84e6326592848447d2dc0b0e87dfc9a90";
+    private static final String emptySha3Hash     = "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a";
     @Mock
     TermContext context;
 
@@ -34,6 +35,14 @@ public class BuiltinCryptoOperationsTest {
         String hexString = Hex.encodeHexString(("").getBytes());
         StringToken in = StringToken.of(hexString);
         StringToken digest = BuiltinCryptoOperations.sha3256(in, context);
-        assertEquals("Sha3 Digests Don't match", emptySha3Digest, digest.stringValue());
+        assertEquals("SHA3 Digests Don't match", emptySha3Hash, digest.stringValue());
+    }
+
+    @Test
+    public void sha256DigestTest() {
+        String hexString = Hex.encodeHexString(("testing").getBytes());
+        StringToken in = StringToken.of(hexString);
+        StringToken digest = BuiltinCryptoOperations.sha256(in, context);
+        assertEquals("SHA256 Digests Don't match", testingSha256Hash, digest.stringValue());
     }
 }
