@@ -1025,4 +1025,6 @@ module KRYPTO
     // The Input String must be encoded such that each character in the string
     // represents a Hex Value.
     syntax String ::= "Keccak256" "(" String ")"     [hook(KRYPTO.keccak256), function]
+    syntax String ::= "Sha3256" "(" String ")"       [hook(KRYPTO.sha3256),   function]
+    syntax String ::= "Sha256" "(" String ")"        [hook(KRYPTO.sha256),    function]
 endmodule
