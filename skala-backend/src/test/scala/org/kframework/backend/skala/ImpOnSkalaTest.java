@@ -45,8 +45,16 @@ public class ImpOnSkalaTest {
     private static Module unparsingModule;
     private static BiFunction<String, Source, K> programParser;
 
+    static long timeBefore = System.nanoTime();
+
+    public static void logTime(String what) {
+        System.out.println(what + ": " + ((System.nanoTime() - timeBefore) / 1000000) + "ms");
+        timeBefore = System.nanoTime();
+    }
+
     @BeforeClass
     public static void kompileSetup() {
+        logTime("start");
         resources = "src/test/resources/imp/";
         File definitionFile = new File(resources + "imp.k");
         String mainModuleName = "IMP";
@@ -58,13 +66,22 @@ public class ImpOnSkalaTest {
         kem = new KExceptionManager(globalOptions);
         Kompile kompile = new Kompile(kompileOptions, FileUtil.testFileUtil(), kem, false);
         compiledDef = kompile.run(definitionFile, mainModuleName, mainModuleName, new SkalaKompile(kompileOptions, kem).steps());
+        logTime("kompile");
         Definition definition = KoreToMini.apply(compiledDef.kompiledDefinition);
+        logTime("frontend kore to kore");
         skalaBackendRewriter = new SkalaRewriter(compiledDef.executionModule(), definition);
+        logTime("make Scala Rewriter");
         unparsingModule = compiledDef.getExtensionModule(compiledDef.languageParsingModule());
         programParser = compiledDef.getProgramParser(kem);
+        logTime("parse-unparse stuff");
+
+        // warmup
+        K input = getParsedProgram("initialization.imp");
+        K kResult = skalaBackendRewriter.execute(input, Optional.empty()).k();
+        String actual = unparseResult(kResult);
     }
 
-    private K getParsedProgram(String pgmName) {
+    private static K getParsedProgram(String pgmName) {
         String program = FileUtil.load(new File(resources + pgmName));
         Source source = Source.apply("from test");
         K parsed = programParser.apply(program, source);
@@ -74,17 +91,10 @@ public class ImpOnSkalaTest {
         return input;
     }
 
-    private String unparseResult(K result) {
+    private static String unparseResult(K result) {
         return KOREToTreeNodes.toString(new AddBrackets(unparsingModule).addBrackets((org.kframework.parser.ProductionReference) KOREToTreeNodes.apply(KOREToTreeNodes.up(unparsingModule, result), unparsingModule)));
     }
 
-    @Test
-    public void basicInitializationTest() {
-        K input = getParsedProgram("initialization.imp");
-        K kResult = skalaBackendRewriter.execute(input, Optional.empty()).k();
-        String actual = unparseResult(kResult);
-        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 'a |-> 1 'b |-> 2 </state> </T>", actual);
-    }
 
     @Test
     public void sumTest() {
@@ -92,6 +102,22 @@ public class ImpOnSkalaTest {
         K kResult = skalaBackendRewriter.execute(input, Optional.empty()).k();
         String actual = unparseResult(kResult);
         assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 'sum |-> 55 'n |-> 0 </state> </T>", actual);
+    }
+
+    @Test
+    public void sum100Test() {
+        K input = getParsedProgram("sum100.imp");
+        K kResult = skalaBackendRewriter.execute(input, Optional.empty()).k();
+        String actual = unparseResult(kResult);
+        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 'sum |-> 5050 'n |-> 0 </state> </T>", actual);
+    }
+
+    @Test
+    public void sum1000Test() {
+        K input = getParsedProgram("sum1000.imp");
+        K kResult = skalaBackendRewriter.execute(input, Optional.empty()).k();
+        String actual = unparseResult(kResult);
+        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 'sum |-> 500500 'n |-> 0 </state> </T>", actual);
     }
 
     @Test
