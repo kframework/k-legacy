@@ -40,7 +40,7 @@ module MAP
   syntax Map ::= "(" Map ")" [bracket]
   /*@ Construct a singleton Map (a Map with only one key/value pair). The key
    is on the left and the value is on the right */
-  syntax Map ::= K "|->" K                      [function, hook(MAP.element), latex({#1}\mapsto{#2})]
+  syntax Map ::= K "|->" K                      [hook(MAP.element), latex({#1}\mapsto{#2})]
 
   syntax priorities _|->_ > _Map_ .Map
   syntax non-assoc _|->_

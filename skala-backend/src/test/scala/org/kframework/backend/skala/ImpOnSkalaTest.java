@@ -101,7 +101,7 @@ public class ImpOnSkalaTest {
         K input = getParsedProgram("sum.imp");
         K kResult = skalaBackendRewriter.execute(input, Optional.empty()).k();
         String actual = unparseResult(kResult);
-        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 'sum |-> 55 'n |-> 0 </state> </T>", actual);
+        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 'n |-> 0 'sum |-> 55 </state> </T>", actual);
     }
 
     @Test
@@ -109,7 +109,7 @@ public class ImpOnSkalaTest {
         K input = getParsedProgram("sum100.imp");
         K kResult = skalaBackendRewriter.execute(input, Optional.empty()).k();
         String actual = unparseResult(kResult);
-        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 'sum |-> 5050 'n |-> 0 </state> </T>", actual);
+        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 'n |-> 0 'sum |-> 5050 </state> </T>", actual);
     }
 
     @Test
@@ -117,7 +117,7 @@ public class ImpOnSkalaTest {
         K input = getParsedProgram("sum1000.imp");
         K kResult = skalaBackendRewriter.execute(input, Optional.empty()).k();
         String actual = unparseResult(kResult);
-        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 'sum |-> 500500 'n |-> 0 </state> </T>", actual);
+        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 'n |-> 0 'sum |-> 500500 </state> </T>", actual);
     }
 
     @Test
@@ -125,7 +125,7 @@ public class ImpOnSkalaTest {
         K input = getParsedProgram("collatz.imp");
         K kResult = skalaBackendRewriter.execute(input, Optional.empty()).k();
         String actual = unparseResult(kResult);
-        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 's |-> 66 'r |-> 3 'q |-> 1 'n |-> 1 'm |-> 2 </state> </T>", actual);
+        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 'n |-> 1 'r |-> 3 'q |-> 1 's |-> 66 'm |-> 2 </state> </T>", actual);
     }
 
     @Test
@@ -133,6 +133,6 @@ public class ImpOnSkalaTest {
         K input = getParsedProgram("primes.imp");
         K kResult = skalaBackendRewriter.execute(input, Optional.empty()).k();
         String actual = unparseResult(kResult);
-        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 's |-> 4 'r |-> 1 'y |-> 20 'x |-> 0 'z |-> 10 'i |-> 2 'q |-> 0 't |-> 0 'n |-> 11 'm |-> 10 </state> </T>", actual);
+        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 'n |-> 11 't |-> 0 'y |-> 20 'x |-> 0 'z |-> 10 'r |-> 1 'q |-> 0 'i |-> 2 's |-> 4 'm |-> 10 </state> </T>", actual);
     }
 }
