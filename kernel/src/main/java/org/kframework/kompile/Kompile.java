@@ -20,7 +20,9 @@ import org.kframework.frontend.K;
 import org.kframework.frontend.KApply;
 import org.kframework.frontend.KORE;
 import org.kframework.frontend.KSequence;
+import org.kframework.frontend.KVariable;
 import org.kframework.frontend.Sort;
+import org.kframework.frontend.SortedADT;
 import org.kframework.frontend.TransformK;
 import org.kframework.frontend.compile.AddImplicitComputationCell;
 import org.kframework.frontend.compile.ConcretizeCells;
@@ -247,12 +249,23 @@ public class Kompile {
             }.apply(k), "Module-qualify sort predicates");
 
     /**
-     * In the Java backend, {@link KSequence}s are treated like {@link KApply}s, so tranform them.
+     * In all our current backends, {@link KSequence}s are treated like {@link KApply}s, so tranform them.
      */
     public static K convertKSeqToKApply(K ruleBody) {
         return new TransformK() {
             public K apply(KSequence kseq) {
                 return super.apply(((ADT.KSequence) kseq).kApply());
+            }
+        }.apply(ruleBody);
+    }
+
+    /**
+     * The Java backend expects sorted variables, so transform them to the sorted flavor.
+     */
+    public static K ADTKVariableToSortedVariable(K ruleBody) {
+        return new TransformK() {
+            public K apply(KVariable kvar) {
+                return new SortedADT.SortedKVariable(kvar.name(), kvar.att());
             }
         }.apply(ruleBody);
     }

@@ -19,18 +19,21 @@ object MiniToKore {
     val origModuleMap: Map[String, Module] = seq2map(d.modules)
 
     val mainModuleName = findAtt(d.att, iMainModule.str) match {
-      case Seq(DomainValue(Symbol("S"), Value(name))) => name; case _ => ???
+      case Seq(DomainValue(Symbol("S"), Value(name))) => name;
+      case _ => ???
     }
     val (mainModules, otherModules) = d.modules.partition(m => m.name.str == mainModuleName)
-    val mainModule = mainModules.head; assert(mainModules.size == 1)
+    val mainModule = mainModules.head;
+    assert(mainModules.size == 1)
 
     val entryModules = findAtt(d.att, iEntryModules.str).map({
-      case DomainValue(Symbol("S"), Value(name)) => origModuleMap(name); case _ => ???
+      case DomainValue(Symbol("S"), Value(name)) => origModuleMap(name);
+      case _ => ???
     })
 
     val newModuleMapRef: mutable.Map[String, definition.Module] = mutable.Map.empty // will dynamically grow during translating modules
-    val newMainModule = apply(origModuleMap,newModuleMapRef)(mainModule)
-    val newEntryModules = entryModules.map(apply(origModuleMap,newModuleMapRef))
+    val newMainModule = apply(origModuleMap, newModuleMapRef)(mainModule)
+    val newEntryModules = entryModules.map(apply(origModuleMap, newModuleMapRef))
     definition.Definition(
       newMainModule,
       newEntryModules.toSet,
@@ -41,7 +44,7 @@ object MiniToKore {
   def apply(origModuleMap: Map[String, Module], newModuleMapRef: mutable.Map[String, definition.Module])
            (m: Module): definition.Module = {
     val imports = m.sentences.collect({
-      case Import(name, _) => findOrGenModule(origModuleMap,newModuleMapRef)(name.str)
+      case Import(name, _) => findOrGenModule(origModuleMap, newModuleMapRef)(name.str)
     })
     val sentences = m.sentences.filter({ case Import(_, _) => false; case _ => true })
     definition.Module(m.name.str, imports.toSet, sentences.map(apply).toSet, apply(m.att))
@@ -51,7 +54,7 @@ object MiniToKore {
                      (name: String): definition.Module = {
     if (newModuleMapRef.contains(name)) newModuleMapRef(name)
     else {
-      val m = apply(origModuleMap,newModuleMapRef)(origModuleMap(name))
+      val m = apply(origModuleMap, newModuleMapRef)(origModuleMap(name))
       newModuleMapRef += (name -> m)
       m
     }
@@ -84,7 +87,8 @@ object MiniToKore {
       val priorities = prios.map({
         case Application(`iSyntaxPriorityGroup`, group) =>
           group.map({
-            case DomainValue(Symbol("S"), Value(tag)) => definition.Tag(tag); case _ => ???
+            case DomainValue(Symbol("S"), Value(tag)) => definition.Tag(tag);
+            case _ => ???
           }).toSet
         case _ => ???
       })
@@ -97,7 +101,8 @@ object MiniToKore {
         case _ => ???
       }
       val ts = tags.map({
-        case DomainValue(Symbol("S"), tag) => definition.Tag(tag.str); case _ => ???
+        case DomainValue(Symbol("S"), tag) => definition.Tag(tag.str);
+        case _ => ???
       }).toSet
       definition.SyntaxAssociativity(assoc, ts, apply(att))
     case Application(`iBubble`, Seq(DomainValue(Symbol("S"), Value(sentence)), DomainValue(Symbol("S"), Value(contents)))) +: att =>
@@ -111,7 +116,8 @@ object MiniToKore {
 
   def apply(att: Seq[Pattern]): attributes.Att = {
     def isDummy(p: Pattern): Boolean = p match {
-      case Application(l, _) => encodingLabels.contains(l); case _ => false
+      case Application(l, _) => encodingLabels.contains(l);
+      case _ => false
     }
     attributes.Att(att.filterNot(isDummy).map(apply).toSet)
   }
@@ -119,7 +125,7 @@ object MiniToKore {
   def apply(p: Pattern): K = apply(attributes.Att())(p)
 
   def apply(att: attributes.Att)(p: Pattern): K = p match {
-    case Application(`iKSeq`, Seq(p1,p2)) =>
+    case Application(`iKSeq`, Seq(p1, p2)) =>
       apply(p2) match {
         case k2: KSequence =>
           val items = apply(p1) +: k2.items.asScala.toList // from KSequence in Unapply.scala
@@ -129,17 +135,19 @@ object MiniToKore {
     case Application(`iKSeqNil`, Seq()) =>
       ADT.KSequence(List(), att)
 
-    case Application(`iAtt`, Seq(p1,p2)) =>
+    case Application(`iAtt`, Seq(p1, p2)) =>
       val a2 = apply(Seq(p2))
       apply(att ++ a2)(p1)
 
+    case Application(Symbol("_Map_.lookup"), args) => KORE.KApply(KORE.KLabel("Map:lookup"), args.map(apply), att)
 
     case Application(Symbol(label), args) => KORE.KApply(KORE.KLabel(label), args.map(apply), att)
+
     case DomainValue(Symbol(label), Value(value)) => KORE.KToken(value, KORE.Sort(label), att)
     case SortedVariable(Name(name), Sort("_")) => KORE.KVariable(name, att)
     case SortedVariable(Name(name), _) => SortedKVariable(name, att)
     case Rewrite(left, right) => KORE.KRewrite(apply(left), apply(right), att)
-    case _ => ???
+    case _ => throw new AssertionError("Implementation missing. Couldn't match: " + p + " of class " + p.getClass)
   }
 
   def findAtt(att: Attributes, key: String): Seq[Pattern] = {
