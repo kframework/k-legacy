@@ -24,8 +24,7 @@ public class BuiltinCryptoOperationsTest {
 
     @Test
     public void keccakDigestTest() {
-        String hexString = Hex.encodeHexString(("testing").getBytes());
-        StringToken in = StringToken.of(hexString);
+        StringToken in = StringToken.of("testing");
         StringToken digest = BuiltinCryptoOperations.keccak256(in, context);
         assertEquals("Keccak Digests Don't match", testingKeccakHash, digest.stringValue());
     }
@@ -40,8 +39,7 @@ public class BuiltinCryptoOperationsTest {
 
     @Test
     public void sha256DigestTest() {
-        String hexString = Hex.encodeHexString(("testing").getBytes());
-        StringToken in = StringToken.of(hexString);
+        StringToken in = StringToken.of("testing");
         StringToken digest = BuiltinCryptoOperations.sha256(in, context);
         assertEquals("SHA256 Digests Don't match", testingSha256Hash, digest.stringValue());
     }
