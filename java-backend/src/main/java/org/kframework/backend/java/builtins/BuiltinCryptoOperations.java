@@ -23,15 +23,11 @@ public final class BuiltinCryptoOperations {
      * @return Output String (256 characters) such that each character represents an encoded Hex Value.
      */
     public static StringToken keccak256(StringToken inputHexString, TermContext context) {
-        try {
-            byte[] bytes = org.apache.commons.codec.binary.Hex.decodeHex(inputHexString.stringValue().toCharArray());
-            Keccak.Digest256 keccakEngine = new Keccak.Digest256();
-            byte[] digest = keccakEngine.digest(bytes);
-            String digestString = Hex.toHexString(digest);
-            return StringToken.of(digestString);
-        } catch (DecoderException d) {
-            throw KEMException.criticalError(d.getMessage());
-        }
+        byte[] bytes = org.apache.commons.codec.binary.StringUtils.getBytesIso8859_1(inputHexString.stringValue());
+        Keccak.Digest256 keccakEngine = new Keccak.Digest256();
+        byte[] digest = keccakEngine.digest(bytes);
+        String digestString = Hex.toHexString(digest);
+        return StringToken.of(digestString);
     }
 
     /**
@@ -42,15 +38,11 @@ public final class BuiltinCryptoOperations {
      * @return Output String (256 characters) such that each character represents an encoded Hex Value.
      */
     public static StringToken sha3256(StringToken inputHexString, TermContext context) {
-        try {
-            byte[] bytes = org.apache.commons.codec.binary.Hex.decodeHex(inputHexString.stringValue().toCharArray());
-            SHA3.Digest256 sha3engine = new SHA3.Digest256();
-            byte[] digest = sha3engine.digest(bytes);
-            String digestString = Hex.toHexString(digest);
-            return StringToken.of(digestString);
-        } catch (DecoderException d) {
-            throw KEMException.criticalError(d.getMessage());
-        }
+        byte[] bytes = org.apache.commons.codec.binary.StringUtils.getBytesIso8859_1(inputHexString.stringValue());
+        SHA3.Digest256 sha3engine = new SHA3.Digest256();
+        byte[] digest = sha3engine.digest(bytes);
+        String digestString = Hex.toHexString(digest);
+        return StringToken.of(digestString);
     }
 
     /**
@@ -61,15 +53,11 @@ public final class BuiltinCryptoOperations {
      * @return Output String (256 characters) such that each character represents an encoded Hex Value.
      */
     public static StringToken sha256(StringToken inputHexString, TermContext context) {
-        try {
-            byte[] bytes = org.apache.commons.codec.binary.Hex.decodeHex(inputHexString.stringValue().toCharArray());
-            SHA256.Digest sha2engine = new SHA256.Digest();
-            byte[] digest = sha2engine.digest(bytes);
-            String digestString = Hex.toHexString(digest);
-            return StringToken.of(digestString);
-        } catch (DecoderException d) {
-            throw KEMException.criticalError(d.getMessage());
-        }
+        byte[] bytes = org.apache.commons.codec.binary.StringUtils.getBytesIso8859_1(inputHexString.stringValue());
+        SHA256.Digest sha2engine = new SHA256.Digest();
+        byte[] digest = sha2engine.digest(bytes);
+        String digestString = Hex.toHexString(digest);
+        return StringToken.of(digestString);
     }
 
 }
