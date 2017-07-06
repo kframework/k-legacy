@@ -68,10 +68,10 @@ public final class IntToken extends Token {
      */
     public int intValue() {
         if (value.compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) > 0) {
-            throw new ArithmeticException();
+            throw new ArithmeticException("IntToken too large for Int");
         }
         if (value.compareTo(BigInteger.valueOf(Integer.MIN_VALUE)) < 0) {
-            throw new ArithmeticException();
+            throw new ArithmeticException("IntToken too low for Int");
         }
         return (int)value.longValue();
     }
@@ -83,10 +83,10 @@ public final class IntToken extends Token {
      */
     public long longValue() {
         if (value.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) > 0) {
-            throw new ArithmeticException();
+            throw new ArithmeticException("IntToken too large for Long");
         }
         if (value.compareTo(BigInteger.valueOf(Long.MIN_VALUE)) < 0) {
-            throw new ArithmeticException();
+            throw new ArithmeticException("IntToken too low for Long");
         }
         return value.longValue();
     }
@@ -98,10 +98,10 @@ public final class IntToken extends Token {
      */
     public byte unsignedByteValue() {
         if (value.compareTo(BigInteger.valueOf(255)) > 0) {
-            throw new ArithmeticException();
+            throw new ArithmeticException("IntToken too large for byte");
         }
         if (value.compareTo(BigInteger.valueOf(0)) < 0) {
-            throw new ArithmeticException();
+            throw new ArithmeticException("IntToken too low for byte");
         }
         return (byte)value.longValue();
     }
