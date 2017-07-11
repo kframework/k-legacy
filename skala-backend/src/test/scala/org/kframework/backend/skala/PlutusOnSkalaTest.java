@@ -1,7 +1,9 @@
 package org.kframework.backend.skala;
 
 
+import com.sun.tools.javac.util.List;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.kframework.attributes.Source;
 import org.kframework.backend.Backends;
@@ -81,11 +83,20 @@ public class PlutusOnSkalaTest {
         K parsed = programParser.apply(program, source);
         Map<KToken, K> map = new HashMap<>();
         map.put(KORE.KToken("$PGM", Sorts.KConfigVar()), parsed);
-        KApply input = KORE.KApply(compiledDef.topCellInitializer, map.entrySet().stream().map(e -> KORE.KApply(KORE.KLabel("_|->_"), KORE.KList(e.getKey(), e.getValue()))).reduce(KORE.KApply(KORE.KLabel(".Map")), (a, b) -> KORE.KApply(KORE.KLabel("_Map_"), a, b)));
+        KApply input = KORE.KApply(compiledDef.topCellInitializer, map.entrySet().stream().map(e -> KORE.KApply(KORE.KLabel("_|->_"), KORE.KList(List.of(e.getKey(), e.getValue())))).reduce(KORE.KApply(KORE.KLabel(".Map")), (a, b) -> KORE.KApply(KORE.KLabel("_Map_"), a, b)));
         return input;
     }
 
     private static String unparseResult(K result) {
         return KOREToTreeNodes.toString(new AddBrackets(unparsingModule).addBrackets((org.kframework.parser.ProductionReference) KOREToTreeNodes.apply(KOREToTreeNodes.up(unparsingModule, result), unparsingModule)));
+    }
+
+    @Ignore
+    @Test
+    public void sumTest() {
+        K input = getParsedProgram("empty.plcore");
+        K kResult = skalaBackendRewriter.execute(input, Optional.empty()).k();
+        String actual = unparseResult(kResult);
+        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 'n |-> 0 'sum |-> 55 </state> </T>", actual);
     }
 }
