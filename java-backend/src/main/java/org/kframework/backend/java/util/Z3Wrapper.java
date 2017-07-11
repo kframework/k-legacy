@@ -96,7 +96,6 @@ public class Z3Wrapper {
                 input.flush();
                 result = output.readLine();
                 z3Process.destroy();
-
                 if (result != null) {
                     break;
                 }
@@ -110,7 +109,11 @@ public class Z3Wrapper {
                 System.err.println("Z3 crashed on query:\n" + SMT_PRELUDE + query + "(check-sat)\n");
             }
         } else if (globalOptions.debug && !Z3_QUERY_RESULTS.contains(result)) {
-            System.err.println("Unexpected Z3 query result:\n" + result);
+            System.err.println("==== Z3: Unexpected query result ===========");
+            System.err.println("== Query:");
+            System.err.println(query + "(check-sat)\n");
+            System.err.println("== Result:");
+            System.err.println(result + "\n");
         }
         return result.equals("unsat");
     }
