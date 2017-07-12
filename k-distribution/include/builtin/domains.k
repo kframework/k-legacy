@@ -24,7 +24,7 @@ module MAP
   imports LIST
   imports SET
 
-  syntax Map [hook(MAP.Map)]
+  syntax Map
 
   /*@\section{Description} The Map represents a generalized associative array.
    Each key can be paired with an arbitrary value, and can be used to reference
@@ -46,7 +46,7 @@ module MAP
   syntax non-assoc _|->_
 
   /*@ Retrieve the value associated with the given key */
-  syntax K ::= Map "[" K "]"                    [function, hook(MAP.lookup), klabel(Map:lookup), relativeHook(_Map_.lookup)]
+  syntax K ::= Map "[" K "]"                    [function, hook(MAP.lookup), klabel(Map:lookup)]
 
   /*@ Update a Map in form of  of keys and values: */
   syntax Map ::= Map "[" K "<-" K "]"           [function, hook(MAP.update), prefer]
@@ -67,7 +67,7 @@ module MAP
   syntax Map ::= removeAll(Map, Set)            [function, hook(MAP.removeAll)]
 
   /*@ Get a Set consisting of all keys in the Map:*/
-  syntax Set ::= keys(Map)                      [function, hook(MAP.keys), relativeHook(_Map_.keys)]
+  syntax Set ::= keys(Map)                      [function, hook(MAP.keys)]
 
   syntax Bool ::= K "in_keys" "(" Map ")"       [function, hook(MAP.in_keys)]
 
@@ -89,13 +89,14 @@ module SET
   imports BASIC-K
   imports BOOL-SYNTAX
 
-  syntax Set [hook(SET.Set)]
+  syntax Set
 
   /*@ \section{Description} The Set represents a mathematical set (a collection
    of unique items). */
 
   /*@ Construct a new Set as the union of two different sets ($A \cup B$) */
-  syntax Set ::= Set Set                  [left, function, hook(SET.concat), klabel(_Set_), assoc, comm, unit(.Set), idem, element(SetItem)]
+  // TODO: .Set here needs to be the element of an empty set
+  syntax Set ::= Set Set                  [left, function, hook(SET.concat,.Set()), klabel(Set), assoc, comm, unit(.Set), idem, element(SetItem)]
   /*@ Construct an empty Set */
   syntax Set ::= ".Set"                   [function, hook(SET.unit), latex(\dotCt{Set})]
                //| "."
@@ -112,7 +113,7 @@ module SET
   syntax Set ::= Set "-Set" Set           [function, hook(SET.difference), latex({#1}-_{\it Set}{#2}), klabel(Set:difference)]
 
   /*@ Check element membership in a set ($a \in A$) */
-  syntax Bool ::= K "in" Set              [function, hook(SET.in), klabel(Set:in), relativeHook(_Set_.in)]
+  syntax Bool ::= K "in" Set              [function, hook(SET.in), klabel(Set:in)]
 
   /*@ Check set inclusion ($A \subseteq B$) */
   syntax Bool ::= Set "<=Set" Set         [function, hook(SET.inclusion)]
@@ -135,7 +136,7 @@ module LIST
   imports BASIC-K
   imports BOOL-SYNTAX
 
-  syntax List [hook(LIST.List)]
+  syntax List
 
   /*@ \section{Description} \K lists are ordered collections that may contain
    duplicate elements. These behave more like lists in functional programming
@@ -168,9 +169,10 @@ module LIST
 
   /*@ Construct a new List as the concatenation of two Lists. This is similar to
    the append "@" operation in many functional programming languages. */
-  syntax List ::= List List               [left, function, hook(LIST.concat), klabel(_List_), smtlib(smt_seq_concat), assoc, unit(.List), element(ListItem)]
+   // TODO: .Set here needs to be the element of an empty list
+  syntax List ::= List List               [left, function, hook(LIST.concat,.List()), klabel(List), smtlib(smt_seq_concat), assoc, unit(.List), element(ListItem)]
   /*@ Construct an empty List: */
-  syntax List ::= ".List"                 [function, hook(LIST.unit), smtlib(smt_seq_nil), latex(\dotCt{List})]
+  syntax List ::= ".List"                 [function, smtlib(smt_seq_nil), latex(\dotCt{List})]
                 //| "."
   /*@ Construct a singleton List (a list with only  one element) */
   syntax List ::= ListItem(K)             [smtlib(smt_seq_elem)]
@@ -193,9 +195,9 @@ endmodule
 module BOOL-SYNTAX
   imports SORT-K
 
-  syntax Bool [hook(BOOL.Bool)]
-  syntax Bool ::= "true"  [token]
-  syntax Bool ::= "false" [token]
+  syntax Bool
+  syntax Bool ::= "true"  [hook(BOOL.Bool), token]
+  syntax Bool ::= "false" [hook(BOOL.Bool), token]
 endmodule
 
 module BOOL
@@ -251,8 +253,8 @@ module BOOL
 endmodule
 
 module INT-SYNTAX
-  syntax Int [hook(INT.Int)]
-  syntax Int ::= r"[\\+-]?[0-9]+" [prefer, token]
+  syntax Int
+  syntax Int ::= r"[\\+-]?[0-9]+" [prefer, token, hook(INT)]
 endmodule
 
 module INT
@@ -317,10 +319,10 @@ module INT
 endmodule
 
 module FLOAT-SYNTAX
-  syntax Float [hook(FLOAT.Float)]
-  syntax Float ::= r"([\\+\\-]?[0-9]+(\\.[0-9]*)?|\\.[0-9]+)([eE][\\+\\-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+))?([fFdD]|([pP][0-9]+[xX][0-9]+))?" [token]
-  syntax Float ::= r"[\\+\\-]?Infinity([fFdD]|([pP][0-9]+[xX][0-9]+))?" [token]
-  syntax Float ::= r"NaN([fFdD]|([pP][0-9]+[xX][0-9]+))?" [token]
+  syntax Float
+  syntax Float ::= r"([\\+\\-]?[0-9]+(\\.[0-9]*)?|\\.[0-9]+)([eE][\\+\\-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+))?([fFdD]|([pP][0-9]+[xX][0-9]+))?" [hook(FLOAT.Float), token]
+  syntax Float ::= r"[\\+\\-]?Infinity([fFdD]|([pP][0-9]+[xX][0-9]+))?" [hook(FLOAT.Float), token]
+  syntax Float ::= r"NaN([fFdD]|([pP][0-9]+[xX][0-9]+))?" [hook(FLOAT.Float), token]
 endmodule
 
 module FLOAT
@@ -401,8 +403,8 @@ module STRING-SYNTAX
   //              | [\\][u] 4*Hex // "\uFFFF"     Backslash 'u' followed by four  hexadecimal characters
   //              | [\\][U] 8*Hex // "\UFFffFFff" Backslash 'U' followed by eight hexadecimal characters
   //                              // the code must not be in the range [0xdfff, 0xd800] or exceed 0x10ffff
-  syntax String [hook(STRING.String)]
-  syntax String ::= r"[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"      [token]
+  syntax String
+  syntax String ::= r"[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"      [token, hook(STRING.String)]
 endmodule
 
 module STRING
@@ -431,8 +433,8 @@ module STRING
   syntax Int    ::= String2Int   ( String )             [function, hook(STRING.string2int)]
   syntax String ::= Int2String   ( Int )                [function, hook(STRING.int2string)]
   syntax String ::= Base2String  ( Int , Int )          [function, hook(STRING.base2string)]
-  syntax Int    ::= String2Base  ( String , Int )       [function, hook(STRING.string2base)]
-  syntax KItem  ::= "#parseToken"  "(" String "," String ")"  [function, hook(STRING.string2token)]
+  syntax Int    ::= String2Base  ( String , Int )       [function, hook(String.string2base,Int)]
+  syntax KItem  ::= "#parseToken"  "(" String "," String ")"  [function, hook(String.string2token)]
 
 
   syntax String ::= "replaceAll" "(" String "," String "," String ")"      [function, hook(STRING.replaceAll)]
@@ -759,13 +761,13 @@ module MINT
   imports K-EQUAL
   imports LIST
 
-  syntax MInt [hook(MINT.MInt)]
+  syntax MInt
 
   /*@\section{Description} The MInt implements machine integers of arbitrary
    * bit width represented in 2's complement. */
 
   /*@ Machine integer of bit width and value. */
-  syntax MInt ::= mi(Int, Int)    [function, hook(MINT.constructor)]
+  syntax MInt ::= mi(Int, Int)    [function, hook(MINT.constructor), klabel(MInt)]
 
   /*@ Function returning the bit width of this machine integer. */
   syntax Int ::= bitwidthMInt(MInt)   [function, hook(MINT.bitwidth)]
