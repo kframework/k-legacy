@@ -30,7 +30,7 @@ class KoreToMiniTest {
   @Test def production2(): Unit = {
     assertEquals(
       apply(new definition.Production(Exp, Seq(NonTerminal(Int)), Att())),
-      SymbolDeclaration(Sort(Exp.name), Symbol("#None"), Seq(Sort(Int.name)), Attributes(Seq(Application(iNonTerminal, Seq(S(Int.name))))))
+      SymbolDeclaration(Sort(Exp.name), Symbol("#inject_Int@INT-SYNTAX_into_Exp@A-SYNTAX"), Seq(Sort(Int.name)), Attributes(Seq(Application(iNonTerminal, Seq(S(Int.name))))))
     )
   }
 
