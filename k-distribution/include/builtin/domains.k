@@ -433,7 +433,7 @@ module STRING
   syntax Int    ::= String2Int   ( String )             [function, hook(STRING.string2int)]
   syntax String ::= Int2String   ( Int )                [function, hook(STRING.int2string)]
   syntax String ::= Base2String  ( Int , Int )          [function, hook(STRING.base2string)]
-  syntax Int    ::= String2Base  ( String , Int )       [function, hook(String.string2base,Int)]
+  syntax Int    ::= String2Base  ( String , Int )       [function, hook(String.string2base)]
   syntax KItem  ::= "#parseToken"  "(" String "," String ")"  [function, hook(String.string2token)]
 
 
