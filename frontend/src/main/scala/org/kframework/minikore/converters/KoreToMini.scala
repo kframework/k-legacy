@@ -1,6 +1,7 @@
 package org.kframework.minikore.converters
 
-import org.kframework.kore._
+import org.kframework.attributes.Att
+import org.kframework.kore.{Sort, _}
 import org.kframework.kore.implementation.DefaultBuilders
 import org.kframework.frontend.SortedADT.SortedKVariable
 import org.kframework.frontend.Unapply._
@@ -31,6 +32,8 @@ object KoreToMini {
     Module(ModuleName(m.name), importSentences ++ localSentences, Attributes(apply(m.att)))
   }
 
+  private val tokenPrefix = "TOKEN_"
+
   def apply(s: definition.Sentence): Sentence = s match {
     case definition.SyntaxSort(sort, att) => SortDeclaration(b.Sort(sort.name), Attributes(apply(att)))
 
@@ -40,8 +43,17 @@ object KoreToMini {
       })
       val newAtt = items.map(encode) ++ apply(att)
       prod.klabel match {
-        case Some(label) => SymbolDeclaration(b.Sort(sort.name), b.Symbol(label.name), args, Attributes(newAtt))
-        case None => SymbolDeclaration(b.Sort(sort.name), iNone, args, Attributes(newAtt)) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
+        case Some(label) if label.name != "" =>
+          SymbolDeclaration(b.Sort(sort.name), b.Symbol(label.name), args, Attributes(newAtt))
+        case _ =>
+          if (att.contains(Att.token)) {
+            SymbolDeclaration(b.Sort(sort.name), b.Symbol(tokenPrefix + sort.name), args, Attributes(newAtt))
+          } else {
+            assert(args.size == 1)
+            val subsort: Sort = args.head
+            SymbolDeclaration(b.Sort(sort.name), b.Symbol("#inject_" + subsort.str + "_into_" + sort.name), args, Attributes(newAtt)) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
+          }
+
       }
 
     case definition.Rule(body, requires, ensures, att) =>
@@ -114,7 +126,7 @@ object KoreToMini {
       case KApply(klabel, klist) => b.Application(Symbol(klabel.name), klist.map(apply))
       case kvar@SortedKVariable(name, _) => b.SortedVariable(Name(name), b.Sort(kvar.sort.name)) // assert(att == k.att)
       case KVariable(name) => b.SortedVariable(b.Name(name), b.Sort("_")) // TODO(Daejun): apply(SortedKVariable(name, k.att)) // from SortedADT in ADT.scala
-      case KToken(s, sort) => b.DomainValue(Symbol(sort.name), Value(s))
+      case KToken(s, sort) => b.DomainValue(Symbol(tokenPrefix + sort.name), Value(s))
       case KSequence(ks) => encodeKSeq(ks.map(apply))
       case KRewrite(left, right) => b.Rewrite(apply(left), apply(right))
       case InjectedKLabel(klabel) => ???
@@ -172,6 +184,4 @@ object KoreToMini {
   val iAtt = Symbol("#")
   val iKSeq = Symbol("#kseq")
   val iKSeqNil = Symbol("#kseqnil")
-
-  val iNone = Symbol("#None")
 }
