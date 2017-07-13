@@ -88,7 +88,7 @@ public class ImpOnSkalaTest {
         K parsed = programParser.apply(program, source);
         Map<KToken, K> map = new HashMap<>();
         map.put(KORE.KToken("$PGM", Sorts.KConfigVar()), parsed);
-        KApply input = KORE.KApply(compiledDef.topCellInitializer, map.entrySet().stream().map(e -> KORE.KApply(KORE.KLabel("_|->_"), KORE.KList(List.of(e.getKey(), e.getValue())))).reduce(KORE.KApply(KORE.KLabel(".Map")), (a, b) -> KORE.KApply(KORE.KLabel("_Map_"), a, b)));
+        KApply input = KORE.KApply(compiledDef.topCellInitializer, map.entrySet().stream().map(e -> KORE.KApply(KORE.KLabel("_|->_"), KORE.KList(List.of(e.getKey(), e.getValue())))).reduce(KORE.KApply(KORE.KLabel(".Map")), (a, b) -> KORE.KApply(KORE.KLabel("Map@MAP"), a, b)));
         return input;
     }
 

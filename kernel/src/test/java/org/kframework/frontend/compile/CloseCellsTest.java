@@ -10,6 +10,7 @@ import org.kframework.frontend.*;
 
 import org.junit.Test;
 import org.junit.Assert;
+import org.kframework.kore.implementation;
 import org.kframework.utils.errorsystem.KEMException;
 
 import java.util.Arrays;
@@ -19,8 +20,8 @@ import static org.kframework.frontend.KORE.*;
 public class CloseCellsTest {
 
     final SortInfo sortInfo = new SortInfo() {{
-        addOp("Map", "_Map_");
-        addOp("List", "_List_");
+        addOp("Map", "Map@MAP");
+        addOp("List", "List@LIST");
     }};
     final TestConfiguration cfgInfo = new TestConfiguration() {{
         addCell(null, "ThreadCell", "<thread>", Multiplicity.STAR);
@@ -35,8 +36,8 @@ public class CloseCellsTest {
         addLabel("EnvCell", "<env>");
         addLabel("ThreadCell", "<thread>");
         addLabel("ListCell", "<list>");
-        addLabel("Map", "_Map_", true, true, true);
-        addLabel("List", "_List_", true, false, true);
+        addLabel("Map", "Map@MAP", true, true, true);
+        addLabel("List", "List@LIST", true, false, true);
     }};
 
     @Test
@@ -50,7 +51,7 @@ public class CloseCellsTest {
     @Test
     public void testCloseMap() {
         K term = cell("<env>", true, false, KORE.KApply(KLabel("'_|=>_"), intToToken(1), intToToken(2)));
-        K expected = ccell("<env>", KORE.KApply(KLabel("_Map_"), KORE.KApply(KLabel("'_|=>_"), intToToken(1), intToToken(2)), KVariable("DotVar0")));
+        K expected = ccell("<env>", KORE.KApply(KLabel("Map@MAP"), KORE.KApply(KLabel("'_|=>_"), intToToken(1), intToToken(2)), KVariable("DotVar0")));
         Assert.assertEquals(expected, new CloseCells(cfgInfo, sortInfo, labelInfo).close(term));
     }
 

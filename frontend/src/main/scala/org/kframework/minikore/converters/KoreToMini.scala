@@ -32,8 +32,6 @@ object KoreToMini {
     Module(ModuleName(m.name), importSentences ++ localSentences, Attributes(apply(m.att)))
   }
 
-  private val tokenPrefix = "TOKEN_"
-
   def apply(s: definition.Sentence): Sentence = s match {
     case definition.SyntaxSort(sort, att) => SortDeclaration(b.Sort(sort.name), Attributes(apply(att)))
 
@@ -47,7 +45,7 @@ object KoreToMini {
           SymbolDeclaration(b.Sort(sort.name), b.Symbol(label.name), args, Attributes(newAtt))
         case _ =>
           if (att.contains(Att.token)) {
-            SymbolDeclaration(b.Sort(sort.name), b.Symbol(tokenPrefix + sort.name), args, Attributes(newAtt))
+            SymbolDeclaration(b.Sort(sort.name), b.Symbol(sort.name), args, Attributes(newAtt))
           } else {
             assert(args.size == 1)
             val subsort: Sort = args.head
@@ -126,7 +124,7 @@ object KoreToMini {
       case KApply(klabel, klist) => b.Application(Symbol(klabel.name), klist.map(apply))
       case kvar@SortedKVariable(name, _) => b.SortedVariable(Name(name), b.Sort(kvar.sort.name)) // assert(att == k.att)
       case KVariable(name) => b.SortedVariable(b.Name(name), b.Sort("_")) // TODO(Daejun): apply(SortedKVariable(name, k.att)) // from SortedADT in ADT.scala
-      case KToken(s, sort) => b.DomainValue(Symbol(tokenPrefix + sort.name), Value(s))
+      case KToken(s, sort) => b.DomainValue(Symbol(sort.name), Value(s))
       case KSequence(ks) => encodeKSeq(ks.map(apply))
       case KRewrite(left, right) => b.Rewrite(apply(left), apply(right))
       case InjectedKLabel(klabel) => ???
@@ -138,7 +136,7 @@ object KoreToMini {
   // encodePatternAtt(p, Seq(a1,a2,a3)) = #(#(#(p,a1),a2),a3) // TODO(Daejun): add test
   def encodePatternAtt(p: Pattern, att: Attributes): Pattern = {
     att.patterns.foldLeft(p)((z, a) => {
-      b.Application(iAtt, Seq(z, a))
+      b.Application(DefaultBuilders.knownSymbols.PatternWithAttributes, Seq(z, a))
     })
   }
 
@@ -181,7 +179,6 @@ object KoreToMini {
     Symbol("#None"))
   val encodingLabels = encodingLabelTuple.productIterator.toSet
 
-  val iAtt = Symbol("#")
   val iKSeq = Symbol("#kseq")
   val iKSeqNil = Symbol("#kseqnil")
 }
