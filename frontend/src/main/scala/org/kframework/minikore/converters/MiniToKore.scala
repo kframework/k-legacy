@@ -4,10 +4,11 @@ import org.kframework.frontend.SortedADT.SortedKVariable
 import org.kframework.frontend.{KORE, _}
 import org.kframework.{attributes, definition}
 import org.kframework.kore._
+
 import scala.collection.JavaConverters._
 import scala.collection._
-
 import KoreToMini._
+import org.kframework.kore.implementation.DefaultBuilders
 
 object MiniToKore {
 
@@ -135,11 +136,9 @@ object MiniToKore {
     case Application(`iKSeqNil`, Seq()) =>
       ADT.KSequence(List(), att)
 
-    case Application(`iAtt`, Seq(p1, p2)) =>
+    case Application(DefaultBuilders.knownSymbols.PatternWithAttributes, Seq(p1, p2)) =>
       val a2 = apply(Seq(p2))
       apply(att ++ a2)(p1)
-
-    case Application(Symbol("_Map_.lookup"), args) => KORE.KApply(KORE.KLabel("Map:lookup"), args.map(apply), att)
 
     case Application(Symbol(label), args) => KORE.KApply(KORE.KLabel(label), args.map(apply), att)
 

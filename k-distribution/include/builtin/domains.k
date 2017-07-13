@@ -32,9 +32,9 @@ module MAP
 
   /*@ Construct a new Map consisting of key/value pairs of two Maps (the keys of
    the two Maps are assumed disjoint) */
-  syntax Map ::= Map Map                        [left, function, hook(MAP.concat), klabel(_Map_), assoc, comm, unit(.Map), element(_|->_), index(0)]
+  syntax Map ::= Map Map                        [left, function, hook(MAP.concat,.Map(),1), klabel(Map@MAP), assoc, comm, unit(.Map), element(_|->_), index(0)]
   /*@  Construct an empty Map */
-  syntax Map ::= ".Map"                         [function, hook(MAP.unit), latex(\dotCt{Map})]
+  syntax Map ::= ".Map"                         [function, latex(\dotCt{Map}), klabel(.Map)]
                // breaks klabel uniqueness
                //| "."                            [function, hook(MAP.unit)]
   syntax Map ::= "(" Map ")" [bracket]
@@ -42,7 +42,7 @@ module MAP
    is on the left and the value is on the right */
   syntax Map ::= K "|->" K                      [hook(MAP.element), latex({#1}\mapsto{#2})]
 
-  syntax priorities _|->_ > _Map_ .Map
+  syntax priorities _|->_ > Map@MAP .Map
   syntax non-assoc _|->_
 
   /*@ Retrieve the value associated with the given key */
@@ -96,9 +96,9 @@ module SET
 
   /*@ Construct a new Set as the union of two different sets ($A \cup B$) */
   // TODO: .Set here needs to be the element of an empty set
-  syntax Set ::= Set Set                  [left, function, hook(SET.concat,.Set()), klabel(Set), assoc, comm, unit(.Set), idem, element(SetItem)]
+  syntax Set ::= Set Set                  [left, function, hook(SET.concat,.Set()), klabel(Set@SET), assoc, comm, unit(.Set), idem, element(SetItem)]
   /*@ Construct an empty Set */
-  syntax Set ::= ".Set"                   [function, hook(SET.unit), latex(\dotCt{Set})]
+  syntax Set ::= ".Set"                   [function, latex(\dotCt{Set})]
                //| "."
   syntax Set ::= "(" Set ")" [bracket]
   /*@ Construct a singleton Set (a Set with only one element $\{ a \}$). To add
@@ -170,7 +170,7 @@ module LIST
   /*@ Construct a new List as the concatenation of two Lists. This is similar to
    the append "@" operation in many functional programming languages. */
    // TODO: .Set here needs to be the element of an empty list
-  syntax List ::= List List               [left, function, hook(LIST.concat,.List()), klabel(List), smtlib(smt_seq_concat), assoc, unit(.List), element(ListItem)]
+  syntax List ::= List List               [left, function, hook(LIST.concat,.List()), klabel(List@LIST), smtlib(smt_seq_concat), assoc, unit(.List), element(ListItem)]
   /*@ Construct an empty List: */
   syntax List ::= ".List"                 [function, smtlib(smt_seq_nil), latex(\dotCt{List})]
                 //| "."
