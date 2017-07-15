@@ -104,6 +104,8 @@ public final class KRunOptions {
         @Parameter(names="--term", description="Input argument will be parsed with the specified parser and used as the sole input to krun.")
         private boolean term = false;
 
+
+
         public boolean term() {
             if (term && configVars.size() > 0) {
                 throw KEMException.criticalError("You cannot specify both the term and the configuration variables.");
@@ -250,6 +252,10 @@ public final class KRunOptions {
             }
             return debugger;
         }
+
+        @Parameter(names="--indent-result", description="Indents the output pattern before printing.")
+        public boolean indentResult = false;
+
 
         @Parameter(names="--ltlmc", description="Specify the formula for model checking at the commandline.")
         public String ltlmc;

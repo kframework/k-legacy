@@ -11,11 +11,6 @@ import org.kframework.compile.ConfigurationInfoFromModule;
 import org.kframework.definition.Module;
 import org.kframework.definition.ProcessedDefinition;
 import org.kframework.definition.Rule;
-import org.kframework.kast.Kast;
-import org.kframework.kompile.CompiledDefinition;
-import org.kframework.kompile.KompileMetaInfo;
-import org.kframework.kore.Definition;
-import org.kframework.kore.Pattern;
 import org.kframework.frontend.Assoc;
 import org.kframework.frontend.K;
 import org.kframework.frontend.KApply;
@@ -27,6 +22,11 @@ import org.kframework.frontend.Sort;
 import org.kframework.frontend.Unapply.KApply$;
 import org.kframework.frontend.VisitK;
 import org.kframework.frontend.compile.KTokenVariablesToTrueVariables;
+import org.kframework.kast.Kast;
+import org.kframework.kompile.CompiledDefinition;
+import org.kframework.kompile.KompileMetaInfo;
+import org.kframework.kore.Definition;
+import org.kframework.kore.Pattern;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.minikore.converters.KoreToMini;
 import org.kframework.parser.ProductionReference;
@@ -46,9 +46,17 @@ import org.kframework.utils.file.FileUtil;
 import scala.Some;
 import scala.Tuple2;
 
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -79,6 +87,31 @@ public class KRun {
         this.files = files;
         this.ttyStdin = ttyStdin;
         this.isNailgun = isNailgun;
+    }
+
+    // Experimental Code to Formal XML Pattern before Printing
+    // Taken from https://stackoverflow.com/a/1264912
+    public static String formatXML(String input, KExceptionManager kem) {
+        String output = null;
+        try {
+            StreamSource xmlInput = new StreamSource(new StringReader(input));
+            StringWriter stringWriter = new StringWriter();
+            StreamResult xmlOutput = new StreamResult(stringWriter);
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            transformerFactory.setAttribute("indent-number", 2);
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            transformer.transform(xmlInput, xmlOutput);
+            output = xmlOutput.getWriter().toString();
+        } catch (TransformerException e) {
+            kem.registerThrown(KEMException.criticalError(e.getMessageAndLocation()));
+        }
+        if (output == null) {
+           kem.registerCriticalWarning("Pretty Print to XML - Failed, Reverting to unindented XML");
+           return input;
+        }
+        return output;
     }
 
 
@@ -150,7 +183,11 @@ public class KRun {
             if (conjunctions.size() > 1) {
                 conjunctions.subList(0, conjunctions.size() - 1).forEach(x -> {
                     prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), x);
-                    sb.append(new String(bs.toByteArray()));
+                    String pattern = new String(bs.toByteArray());
+                    if(options.experimental.indentResult) {
+                        pattern = formatXML(pattern, kem);
+                    }
+                    sb.append(pattern);
                     sb.append(" " + KLabels.ML_AND + " ");
                 });
             }
@@ -162,7 +199,11 @@ public class KRun {
             return sb;
         } else {
             prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), result);
-            sb.append(new String(bs.toByteArray()));
+            String pattern = new String(bs.toByteArray());
+            if(options.experimental.indentResult) {
+                pattern = formatXML(pattern, kem);
+            }
+            sb.append(pattern);
             return sb;
         }
     }

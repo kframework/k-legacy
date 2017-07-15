@@ -2,6 +2,7 @@
 package org.kframework.krun.modes.DebugMode;
 
 import org.kframework.krun.KRunOptions;
+import org.kframework.main.GlobalOptions;
 import org.kframework.unparser.OutputModes;
 import org.kframework.debugger.DebuggerMatchResult;
 import org.kframework.debugger.DebuggerState;
@@ -9,6 +10,7 @@ import org.kframework.debugger.KDebug;
 import org.kframework.kompile.CompiledDefinition;
 import org.kframework.krun.KRun;
 import org.kframework.utils.errorsystem.KEMException;
+import org.kframework.utils.errorsystem.KExceptionManager;
 
 import java.io.IOException;
 import java.util.List;
@@ -80,7 +82,7 @@ public class Commands {
             CommandUtils utils = new CommandUtils(isSource);
             DebuggerState requestedState = session.getActiveState();
             if (requestedState != null) {
-                prettyPrint(compiledDefinition, OutputModes.PRETTY, s -> utils.print(s), requestedState.getCurrentK());
+                prettyPrint(compiledDefinition, OutputModes.PRETTY, s -> utils.indentXMLandPrint(s), requestedState.getCurrentK());
             } else {
                 throw KEMException.debuggerError("\"Requested State/Configuration Unreachable\",");
             }
@@ -306,13 +308,20 @@ public class Commands {
             KRun.prettyPrint(compiledDefinition, OutputModes.PRETTY, s -> System.out.println(s), result.getSubstitutions());
         }
 
-        private void print(byte[] bytes){
+        private void print(byte[] bytes) {
             if (!disableOutput) {
                 try {
                     System.out.write(bytes);
                 } catch (IOException e) {
                     KEMException.debuggerError("IOError :" + e.getMessage());
                 }
+            }
+        }
+
+        private void indentXMLandPrint(byte[] bytes) {
+            if (!disableOutput) {
+                String formattedString = formatXML(bytes.toString(), new KExceptionManager(new GlobalOptions()));
+                System.out.println(formattedString);
             }
         }
 
