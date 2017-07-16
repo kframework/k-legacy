@@ -320,7 +320,7 @@ public class Commands {
 
         private void indentXMLandPrint(byte[] bytes) {
             if (!disableOutput) {
-                String formattedString = formatXML(bytes.toString(), new KExceptionManager(new GlobalOptions()));
+                String formattedString = formatXML(new String(bytes), new KExceptionManager(new GlobalOptions()));
                 System.out.println(formattedString);
             }
         }
