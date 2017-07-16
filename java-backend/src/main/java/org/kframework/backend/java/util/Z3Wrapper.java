@@ -48,11 +48,6 @@ public class Z3Wrapper {
     }
 
     public synchronized boolean isUnsat(String query, int timeout) {
-        if (globalOptions.debug) {
-            System.out.println("======== Z3 Query ==========");
-            System.out.println(query);
-            System.out.println("========= End Query =========");
-        }
         if (options.z3Executable) {
             return checkQueryWithExternalProcess(query, timeout);
         } else {
