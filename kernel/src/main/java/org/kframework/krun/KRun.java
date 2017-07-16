@@ -2,6 +2,7 @@
 package org.kframework.krun;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
@@ -43,19 +44,30 @@ import org.kframework.utils.errorsystem.KException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.errorsystem.ParseFailedException;
 import org.kframework.utils.file.FileUtil;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import scala.Some;
 import scala.Tuple2;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -89,27 +101,46 @@ public class KRun {
         this.isNailgun = isNailgun;
     }
 
-    // Experimental Code to Formal XML Pattern before Printing
-    // Taken from https://stackoverflow.com/a/1264912
+    // TODO: An inelegant way to have Patterns Pretty Printed with Formatting. Fix via proper pretty printing over Kore.
+    // Treat and parse input String as XML, and print as XML.
+    // Snippets taken from https://stackoverflow.com/a/33541820
     public static String formatXML(String input, KExceptionManager kem) {
         String output = null;
+        // Turn xml string into a document
         try {
-            StreamSource xmlInput = new StreamSource(new StringReader(input));
-            StringWriter stringWriter = new StringWriter();
-            StreamResult xmlOutput = new StreamResult(stringWriter);
+            Document document = DocumentBuilderFactory.newInstance()
+                    .newDocumentBuilder()
+                    .parse(new InputSource(new ByteArrayInputStream(input.getBytes())));
+
+            // Remove whitespaces outside tags
+            document.normalize();
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            NodeList nodeList = (NodeList) xPath.evaluate("//text()[normalize-space()='']",
+                    document,
+                    XPathConstants.NODESET);
+
+            for (int i = 0; i < nodeList.getLength(); ++i) {
+                Node node = nodeList.item(i);
+                node.getParentNode().removeChild(node);
+            }
+
+            // Setup pretty print options
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             transformerFactory.setAttribute("indent-number", 2);
             Transformer transformer = transformerFactory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            transformer.transform(xmlInput, xmlOutput);
-            output = xmlOutput.getWriter().toString();
-        } catch (TransformerException e) {
-            kem.registerThrown(KEMException.criticalError(e.getMessageAndLocation()));
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+            // Return pretty print xml string
+            StringWriter stringWriter = new StringWriter();
+            transformer.transform(new DOMSource(document), new StreamResult(stringWriter));
+            output = StringEscapeUtils.unescapeXml(stringWriter.toString());
+            return output;
+        } catch (ParserConfigurationException | IOException | TransformerException | SAXException | XPathExpressionException p) {
+            kem.registerThrown(KEMException.criticalError(p.getMessage()));
         }
         if (output == null) {
-           kem.registerCriticalWarning("Pretty Print to XML - Failed, Reverting to unindented XML");
-           return input;
+            return input;
         }
         return output;
     }
@@ -184,7 +215,7 @@ public class KRun {
                 conjunctions.subList(0, conjunctions.size() - 1).forEach(x -> {
                     prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), x);
                     String pattern = new String(bs.toByteArray());
-                    if(options.experimental.indentResult) {
+                    if (options.experimental.indentResult) {
                         pattern = formatXML(pattern, kem);
                     }
                     sb.append(pattern);
@@ -200,7 +231,7 @@ public class KRun {
         } else {
             prettyPrint(compiledDef, options.output, s -> bs.write(s, 0, s.length), result);
             String pattern = new String(bs.toByteArray());
-            if(options.experimental.indentResult) {
+            if (options.experimental.indentResult) {
                 pattern = formatXML(pattern, kem);
             }
             sb.append(pattern);
@@ -478,7 +509,7 @@ public class KRun {
         if(parser.endsWith("k/bin/kast")) {
             return compiledDef.getProgramParser(kem).apply(FileUtil.read(files.readFromWorkingDirectory(value)), source);
         }*/
-        if(parser == null) {
+        if (parser == null) {
             String toParse = FileUtil.read(files.readFromWorkingDirectory(value));
             return Kast.parseWithModuleParser(toParse, source, startSymbol, mainSyntaxModuleName, files, this.kem);
         } else {
