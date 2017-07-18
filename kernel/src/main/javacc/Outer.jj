@@ -769,9 +769,9 @@ void Tag(ASTNode node) :
 void TagContent(StringBuilder sb) : {}
 {
 ( <TAG_CONTENT> { sb.append(specialAndImage()); }
+| <STRING> { sb.append(specialAndImage()); }
 | "(" { sb.append(specialAndImage()); }
-   ( String()
-   | TagContent(sb) )
+   TagContent(sb)
   ")" { sb.append(specialAndImage()); }
 )*
 }
