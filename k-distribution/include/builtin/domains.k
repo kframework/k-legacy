@@ -32,7 +32,7 @@ module MAP
 
   /*@ Construct a new Map consisting of key/value pairs of two Maps (the keys of
    the two Maps are assumed disjoint) */
-  syntax Map ::= Map Map                        [left, function, hook(MAP.concat,.Map(),1), klabel(Map@MAP), assoc, comm, unit(.Map), element(_|->_), index(0)]
+  syntax Map ::= Map Map                        [left, function, hook(MAP.concat,.Map(),Int@INT-SYNTAX("0")), klabel(Map@MAP), assoc, comm, unit(.Map), element(_|->_), index(0)]
   /*@  Construct an empty Map */
   syntax Map ::= ".Map"                         [function, latex(\dotCt{Map}), klabel(.Map)]
                // breaks klabel uniqueness
