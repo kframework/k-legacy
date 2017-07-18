@@ -1,3 +1,5 @@
+require "substitution.k"
+
 module PLUTUS-CORE-SYNTAX
   imports INT
   imports FLOAT
@@ -208,7 +210,7 @@ module PLUTUS-CORE-EXECUTION
   rule #toFloat(F:PlFloat)
     => #parseToken("Float@FLOAT-SYNTAX", #toStringFloat(F))
 
-  syntax ByStr ::= toByStrVerbatim ( String )                        [function]
+  syntax ByStr ::= toByStr ( String )                        [function]
   rule toByStr(S:String)
     => #parseToken("ByStr@PLUTUS-CORE-SYNTAX", ("#" +String S))
 
