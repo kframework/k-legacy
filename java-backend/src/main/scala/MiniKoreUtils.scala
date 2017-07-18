@@ -140,7 +140,7 @@ object MiniKoreUtils {
 
   def decodePatternAttributes(p: Pattern): (Pattern, Seq[Pattern]) = {
     p match {
-      case Application(`iAtt`, Seq(pat, att)) => decodePatternAttributes(pat) match {
+      case Application(Symbol("#"), Seq(pat, att)) => decodePatternAttributes(pat) match {
         case (finalPat, attList) => (finalPat, attList :+ att)
       }
       case any@_ => (any, Seq())
