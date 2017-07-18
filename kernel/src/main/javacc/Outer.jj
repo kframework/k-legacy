@@ -724,7 +724,7 @@ void Group(StringBuilder sb, int state) : {}
 | "]" { matchedToken.kind = RSQUARE; }
 | "(" { matchedToken.kind = LPAREN; }
 | ")" { matchedToken.kind = RPAREN; }
-| <KEY: ["a"-"z","1"-"9"](["A"-"Z", "a"-"z", "-", "0"-"9"])*("<" (["A"-"Z", "a"-"z", "-", "0"-"9"])+ ">")?>
+| <KEY: ["a"-"z","1"-"9"](["A"-"Z", "a"-"z", "-", "0"-"9", "@"])*("<" (["A"-"Z", "a"-"z", "-", "0"-"9"])+ ">")?>
 }
 
 /** The same as 'Attributes()', but requires that the entire input be
@@ -770,7 +770,8 @@ void TagContent(StringBuilder sb) : {}
 {
 ( <TAG_CONTENT> { sb.append(specialAndImage()); }
 | "(" { sb.append(specialAndImage()); }
-  TagContent(sb)
+   ( String()
+   | TagContent(sb) )
   ")" { sb.append(specialAndImage()); }
 )*
 }
