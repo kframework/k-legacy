@@ -46,7 +46,7 @@ module MAP
   syntax non-assoc _|->_
 
   /*@ Retrieve the value associated with the given key */
-  syntax K ::= Map "[" K "]"                    [function, hook(MAP.lookup), klabel(Map:lookup)]
+  syntax K ::= Map "[" K "]"                    [function, hook(MAP.lookup), klabel(Map@MAP.lookup)]
 
   /*@ Update a Map in form of  of keys and values: */
   syntax Map ::= Map "[" K "<-" K "]"           [function, hook(MAP.update), prefer]
