@@ -83,7 +83,7 @@ public class PlutusOnSkalaTest {
         K parsed = programParser.apply(program, source);
         Map<KToken, K> map = new HashMap<>();
         map.put(KORE.KToken("$PGM", Sorts.KConfigVar()), parsed);
-        KApply input = KORE.KApply(compiledDef.topCellInitializer, map.entrySet().stream().map(e -> KORE.KApply(KORE.KLabel("_|->_"), KORE.KList(List.of(e.getKey(), e.getValue())))).reduce(KORE.KApply(KORE.KLabel(".Map")), (a, b) -> KORE.KApply(KORE.KLabel("_Map_"), a, b)));
+        KApply input = KORE.KApply(compiledDef.topCellInitializer, map.entrySet().stream().map(e -> KORE.KApply(KORE.KLabel("_|->_"), KORE.KList(List.of(e.getKey(), e.getValue())))).reduce(KORE.KApply(KORE.KLabel(".Map")), (a, b) -> KORE.KApply(KORE.KLabel("Map@MAP"), a, b)));
         return input;
     }
 
@@ -91,7 +91,6 @@ public class PlutusOnSkalaTest {
         return KOREToTreeNodes.toString(new AddBrackets(unparsingModule).addBrackets((org.kframework.parser.ProductionReference) KOREToTreeNodes.apply(KOREToTreeNodes.up(unparsingModule, result), unparsingModule)));
     }
 
-    @Ignore
     @Test
     public void sumTest() {
         K input = getParsedProgram("empty.plcore");
