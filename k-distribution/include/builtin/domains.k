@@ -67,7 +67,7 @@ module MAP
   syntax Map ::= removeAll(Map, Set)            [function, hook(MAP.removeAll)]
 
   /*@ Get a Set consisting of all keys in the Map:*/
-  syntax Set ::= keys(Map)                      [function, hook(MAP.keys)]
+  syntax Set ::= keys(Map)                      [function, hook(MAP.keys), klabel(Map@MAP.keys)]
 
   syntax Bool ::= K "in_keys" "(" Map ")"       [function, hook(MAP.in_keys)]
 
@@ -113,7 +113,7 @@ module SET
   syntax Set ::= Set "-Set" Set           [function, hook(SET.difference), latex({#1}-_{\it Set}{#2}), klabel(Set:difference)]
 
   /*@ Check element membership in a set ($a \in A$) */
-  syntax Bool ::= K "in" Set              [function, hook(SET.in), klabel(Set:in)]
+  syntax Bool ::= K "in" Set              [function, hook(SET.in), klabel(Set@SET.in)]
 
   /*@ Check set inclusion ($A \subseteq B$) */
   syntax Bool ::= Set "<=Set" Set         [function, hook(SET.inclusion)]
