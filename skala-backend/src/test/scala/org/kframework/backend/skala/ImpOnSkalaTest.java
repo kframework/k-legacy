@@ -1,7 +1,5 @@
 package org.kframework.backend.skala;
 
-
-import com.sun.tools.javac.util.List;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -30,6 +28,7 @@ import org.kframework.utils.file.FileUtil;
 import javax.swing.text.html.Option;
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -88,7 +87,7 @@ public class ImpOnSkalaTest {
         K parsed = programParser.apply(program, source);
         Map<KToken, K> map = new HashMap<>();
         map.put(KORE.KToken("$PGM", Sorts.KConfigVar()), parsed);
-        KApply input = KORE.KApply(compiledDef.topCellInitializer, map.entrySet().stream().map(e -> KORE.KApply(KORE.KLabel("_|->_"), KORE.KList(List.of(e.getKey(), e.getValue())))).reduce(KORE.KApply(KORE.KLabel(".Map")), (a, b) -> KORE.KApply(KORE.KLabel("Map@MAP"), a, b)));
+        KApply input = KORE.KApply(compiledDef.topCellInitializer, map.entrySet().stream().map(e -> KORE.KApply(KORE.KLabel("_|->_"), KORE.KList(Arrays.asList(e.getKey(), e.getValue())))).reduce(KORE.KApply(KORE.KLabel(".Map")), (a, b) -> KORE.KApply(KORE.KLabel("Map@MAP"), a, b)));
         return input;
     }
 
