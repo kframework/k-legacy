@@ -1,6 +1,2 @@
 (module Foo (imported) (exported () ()) (local () ())
-  (define r1
-    (let (lam x (builtin addInt x 5)) addFive [addFive 10]))
-  (define r2
-    [(lam x (lam y (lam z (builtin addInt x (builtin multiplyInt y z))))) 2 3 5])
-)
+  (define result 2))
