@@ -95,6 +95,6 @@ public class PlutusOnSkalaTest {
         K input = getParsedProgram("empty.plcore");
         K kResult = skalaBackendRewriter.execute(input, Optional.empty()).k();
         String actual = unparseResult(kResult);
-        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <state> 'n |-> 0 'sum |-> 55 </state> </T>", actual);
+        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <env> ( Foo . result ) |-> 2 </env> <mod> Foo </mod> </T>", actual);
     }
 }
