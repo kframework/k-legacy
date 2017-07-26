@@ -329,6 +329,8 @@ public class FastRuleMatcher {
             return subject.equals(pattern) ? ruleMask : empty;
         } else if (subject instanceof BuiltinSet && pattern instanceof BuiltinSet) {
             return subject.equals(pattern) ? ruleMask : empty;
+        } else if (subject instanceof KList && pattern instanceof KList) {
+            return subject.equals(pattern) ? ruleMask : empty;
         } else {
             assert subject instanceof KItem || subject instanceof BuiltinList || subject instanceof Token || subject instanceof BuiltinMap : "unexpected class at matching: " + subject.getClass();
             assert pattern instanceof KItem || pattern instanceof BuiltinList || pattern instanceof Token : "unexpected class at matching: " + pattern.getClass();
