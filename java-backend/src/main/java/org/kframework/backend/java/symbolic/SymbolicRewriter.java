@@ -665,13 +665,19 @@ public class SymbolicRewriter {
                 }
 
                 for (ConstrainedTerm cterm : results) {
+                    TermContext context;
+                    if(results.size() > 1) {
+                        context = cterm.termContext().fork();
+                    } else {
+                        context = cterm.termContext();
+                    }
                     ConstrainedTerm result = new ConstrainedTerm(
                             cterm.term(),
                             cterm.constraint().removeBindings(
                                     Sets.difference(
                                             cterm.constraint().substitution().keySet(),
                                             initialTerm.variableSet())),
-                            cterm.termContext());
+                            context);
                     if (visited.add(result)) {
                         nextQueue.add(result);
                     }
