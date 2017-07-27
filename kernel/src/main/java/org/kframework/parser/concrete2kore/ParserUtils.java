@@ -149,9 +149,9 @@ public class ParserUtils {
                         .filter(file -> file.exists()).findFirst();
 
                 ArrayList<File> allLookupDirectories = new ArrayList<>(lookupDirectories);
-                allLookupDirectories.add(0, definitionFile.get().getParentFile());
-
                 if (definitionFile.isPresent()) {
+                    allLookupDirectories.add(0, definitionFile.get().getParentFile());
+
                     // Look for dependency cycle
                     if (parents.stream().
                             anyMatch(parent -> {
