@@ -105,4 +105,14 @@ public class PlutusOnSkalaTest {
         String actual = unparseResult(kResult);
         assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <env> ( Foo . r1 ) |-> 15 ( Foo . r2 ) |-> 17 </env> <mod> Foo </mod> </T>", actual);
     }
+
+    @Test
+    public void app2Test() {
+        K input = getParsedProgram("app-2.plcore");
+        K kResult = skalaBackendRewriter.execute(input, Optional.empty()).k();
+        String actual = unparseResult(kResult);
+        assertEquals("Execution with Skala Backend Failed", "<T> <k> . </k> <env> ( Foo . result ) |-> 20 </env> <mod> Foo </mod> </T>", actual);
+    }
+
+
 }
