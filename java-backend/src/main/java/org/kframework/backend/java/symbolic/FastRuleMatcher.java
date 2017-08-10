@@ -7,6 +7,7 @@ import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
 import org.kframework.backend.java.kil.BuiltinList;
 import org.kframework.backend.java.kil.BuiltinMap;
+import org.kframework.backend.java.kil.BuiltinSet;
 import org.kframework.backend.java.kil.ConstrainedTerm;
 import org.kframework.backend.java.kil.GlobalContext;
 import org.kframework.backend.java.kil.InnerRHSRewrite;
@@ -325,6 +326,8 @@ public class FastRuleMatcher {
             return unifyMapModuloPatternFolding((BuiltinMap) subject, (BuiltinMap) pattern, ruleMask, path);
         } else if (subject instanceof Token && pattern instanceof Token) {
             // TODO: make tokens unique?
+            return subject.equals(pattern) ? ruleMask : empty;
+        } else if (subject instanceof BuiltinSet && pattern instanceof BuiltinSet) {
             return subject.equals(pattern) ? ruleMask : empty;
         } else {
             assert subject instanceof KItem || subject instanceof BuiltinList || subject instanceof Token || subject instanceof BuiltinMap : "unexpected class at matching: " + subject.getClass();

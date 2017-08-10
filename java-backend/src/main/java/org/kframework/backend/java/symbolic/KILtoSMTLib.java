@@ -563,7 +563,7 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
 
     @Override
     public ASTNode transform(IntToken intToken) {
-        return new SMTLibTerm(Long.toString(intToken.longValue()));
+        return new SMTLibTerm(intToken.javaBackendValue());
     }
 
     @Override

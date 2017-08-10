@@ -201,6 +201,7 @@ public class ConstrainedTerm extends JavaSymbolicObject {
             ConjunctiveFormula patternConstraint,
             Set<Variable> variables,
             TermContext context) {
+        context.setTopConstraint(subjectConstraint);
         List<ConjunctiveFormula> candidates = constraint.getDisjunctiveNormalForm().conjunctions().stream()
                 .map(c -> c.addAndSimplify(patternConstraint, context))
                 .filter(c -> !c.isFalse())
