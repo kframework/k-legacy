@@ -11,6 +11,8 @@ import org.kframework.utils.errorsystem.KEMException;
 
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.util.Set;
+import com.google.common.collect.Sets;
 
 /**
  * An object containing context specific to a particular configuration.
@@ -20,6 +22,8 @@ public class TermContext extends JavaSymbolicObject {
     private final FreshCounter counter;
 
     private final GlobalContext global;
+
+    private Set<Variable> initialVariables;
 
     /**
      * This class shall not be accessed by more than one thread,
@@ -47,7 +51,21 @@ public class TermContext extends JavaSymbolicObject {
     private TermContext(GlobalContext global, FreshCounter counter) {
         this.global = global;
         this.counter = counter;
+        this.initialVariables = Sets.newHashSet();
     }
+
+    public Set<Variable> getInitialVariables() {
+        return initialVariables;
+    }
+
+    public void setInitialVariables(Set<Variable> initialVariables) {
+        if (initialVariables == null) {
+            Sets.newHashSet();
+        } else {
+            this.initialVariables = initialVariables;
+        }
+    }
+
 
     /**
      * Forks an identical {@link TermContext}.

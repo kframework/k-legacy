@@ -30,5 +30,7 @@
            directory="tests/examples/symbolic" />
 
   <include file="builtins/config.xml" directory="tests/builtins" skip="pdf" />
+
+  <include file="issues/config.xml" directory="tests/issues" skip="pdf" />
 </tests>
 
