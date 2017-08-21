@@ -203,7 +203,12 @@ public class InitializeRewriter implements Function<Pair<Module, org.kframework.
 
             List<ConstrainedTerm> proofResults = javaRules.stream()
                     .filter(r -> !r.containsAttribute(Attribute.TRUSTED_KEY))
-                    .map(r -> rewriter.proveRule(r.createLhsPattern(termContext), r.createRhsPattern(), allRules))
+                    .map(r -> {
+                        ConstrainedTerm lhs = r.createLhsPattern(termContext);
+                        ConstrainedTerm rhs = r.createRhsPattern();
+                        termContext.setInitialVariables(lhs.variableSet());
+                        return rewriter.proveRule(lhs, rhs, allRules);
+                    })
                     .flatMap(List::stream)
                     .collect(Collectors.toList());
 

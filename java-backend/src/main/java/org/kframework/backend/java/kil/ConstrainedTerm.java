@@ -152,7 +152,7 @@ public class ConstrainedTerm extends JavaSymbolicObject {
         context.setTopConstraint(data.constraint);
         constraint = (ConjunctiveFormula) constraint.evaluate(context);
 
-        Set<Variable> rightOnlyVariables = Sets.difference(constraint.variableSet(), variableSet());
+        Set<Variable> rightOnlyVariables = Sets.difference(constraint.variableSet(), Sets.union(variableSet(), termContext().getInitialVariables()));
         constraint = constraint.orientSubstitution(rightOnlyVariables);
 
         ConjunctiveFormula leftHandSide = data.constraint;
