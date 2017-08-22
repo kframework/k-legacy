@@ -25,9 +25,9 @@ public class DefinitionParserTest {
     public void testOnlySyntax() throws Exception {
         org.kframework.definition.Definition actual = DefinitionParser.from(
                 "require \"domains.k\"" + "\n" +
-                "module X" + "\n" +
-                "syntax Foo ::= \"bar\"" + "\n" +
-                "endmodule");
+                        "module X" + "\n" +
+                        "syntax Foo ::= \"bar\"" + "\n" +
+                        "endmodule");
         Module expected = Module("X", Set(
                 Production(Sort("Foo"), Seq(Terminal("bar")), Att().add(Att.klabel(), "bar"))
         ));
@@ -38,10 +38,10 @@ public class DefinitionParserTest {
     public void testWithRuleBody() throws Exception {
         org.kframework.definition.Definition actual = DefinitionParser.from(
                 "require \"domains.k\"" + "\n" +
-                "module X" + "\n" +
-                "syntax Foo ::= \"bar\"" + "\n" +
-                "rule bar => bar" + "\n" +
-                "endmodule");
+                        "module X" + "\n" +
+                        "syntax Foo ::= \"bar\"" + "\n" +
+                        "rule bar => bar" + "\n" +
+                        "endmodule");
         Module expected = Module("X", Set(
                 Production(Sort("Foo"), Seq(Terminal("bar")), Att().add(Att.klabel(), "bar"))
         ));
