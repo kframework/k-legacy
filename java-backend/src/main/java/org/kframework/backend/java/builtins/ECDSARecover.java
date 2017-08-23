@@ -40,7 +40,7 @@ import java.security.SignatureException;
  * Creating a new ECKey with the empty constructor will generate a new random keypair. Other static methods can be used
  * when you already have the public or private parts. If you create a key with only the public part, you can check
  * signatures but not create them.</p>
- * 
+ *
  * <p>The ECDSA algorithm supports <i>key recovery</i> in which a signature plus a couple of discriminator bits can
  * be reversed to find the public key used to calculate it. This can be convenient when you have a message and a
  * signature and want to find out who signed it, rather than requiring the user to provide the expected identity.</p>
@@ -79,7 +79,7 @@ public class ECDSARecover implements Serializable {
         HALF_CURVE_ORDER = params.getN().shiftRight(1);
         secureRandom = new SecureRandom();
     }
-    
+
     // The two parts of the key. If "priv" is set, "pub" can always be calculated. If "pub" is set but not "priv", we
     // can only verify signatures not make them.
     // TODO: Redesign this class to use consistent internals and more efficient serialization.
@@ -115,7 +115,7 @@ public class ECDSARecover implements Serializable {
     protected ECDSARecover(@Nullable BigInteger priv, ECPoint pub) {
         this.priv = priv;
         if(pub == null)
-        	throw new IllegalArgumentException("Public key may not be null");
+            throw new IllegalArgumentException("Public key may not be null");
         this.pub = pub;
     }
 
@@ -184,7 +184,7 @@ public class ECDSARecover implements Serializable {
      * Given a piece of text and a message signature encoded in base64, returns an ECKey
      * containing the public key that was used to sign it. This can then be compared to the expected public key to
      * determine if the signature was correct.
-     * 
+     *
      * @param messageHash a piece of human readable text that was signed
      * @param r the 32-byte r for the signature
      * @param s the 32-byte s for the signature
