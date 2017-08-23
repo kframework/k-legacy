@@ -9,6 +9,7 @@ import org.bouncycastle.jcajce.provider.digest.SHA3;
 import org.bouncycastle.util.encoders.Hex;
 import org.kframework.backend.java.kil.TermContext;
 
+import java.util.Arrays;
 import java.security.SignatureException;
 
 /**
@@ -76,7 +77,7 @@ public final class BuiltinCryptoOperations {
         byte[] sBytes = StringUtils.getBytesIso8859_1(s.stringValue());
         try {
             ECDSARecover key = ECDSARecover.signatureToKey(hashBytes, rBytes, sBytes, vByte);
-            return StringToken.of(key.getPubKey());
+            return StringToken.of(Arrays.copyOfRange(key.getPubKey(), 1, 65));
         } catch (SignatureException e) {
             return StringToken.of("");
         }
