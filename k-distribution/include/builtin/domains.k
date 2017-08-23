@@ -1027,4 +1027,5 @@ module KRYPTO
     syntax String ::= "Keccak256" "(" String ")"     [hook(KRYPTO.keccak256), function]
     syntax String ::= "Sha3256" "(" String ")"       [hook(KRYPTO.sha3256),   function]
     syntax String ::= "Sha256" "(" String ")"        [hook(KRYPTO.sha256),    function]
+    syntax String ::= "ECDSARecover" "(" String "," Int "," String "," String ")" [hook(KRYPTO.ecdsaRecover), function]
 endmodule
