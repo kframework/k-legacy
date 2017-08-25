@@ -1022,9 +1022,12 @@ endmodule
 // Basic crytography functionality.
 module KRYPTO
     imports STRING
-    // The Input String must be encoded such that each character in the string
-    // represents a Hex Value.
+    // Takes a Latin-1 encoded string and returns the hexadecimal representation
+    // of the hash.
     syntax String ::= "Keccak256" "(" String ")"     [hook(KRYPTO.keccak256), function]
     syntax String ::= "Sha3256" "(" String ")"       [hook(KRYPTO.sha3256),   function]
     syntax String ::= "Sha256" "(" String ")"        [hook(KRYPTO.sha256),    function]
+
+    // ECDSARecover(messageHash, recovery-id, R-component, S-component)
+    syntax String ::= "ECDSARecover" "(" String "," Int "," String "," String ")" [hook(KRYPTO.ecdsaRecover), function]
 endmodule
