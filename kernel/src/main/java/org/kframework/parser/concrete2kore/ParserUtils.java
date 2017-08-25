@@ -135,9 +135,7 @@ public class ParserUtils {
                 results.add((org.kframework.kil.Module) di);
             } else if (di instanceof Require) {
                 // resolve location of the new file
-
                 String definitionFileName = ((Require) di).getValue();
-
                 Optional<File> definitionFile = lookupDirectories.stream()
                         .map(lookupDirectory -> {
                             if (new File(definitionFileName).isAbsolute()) {
@@ -147,37 +145,35 @@ public class ParserUtils {
                             }
                         })
                         .filter(file -> file.exists()).findFirst();
-
                 ArrayList<File> allLookupDirectories = new ArrayList<>(lookupDirectories);
-                if (definitionFile.isPresent()) {
-                    allLookupDirectories.add(0, definitionFile.get().getParentFile());
-
-                    // Look for dependency cycle
-                    if (parents.stream().
-                            anyMatch(parent -> {
-                                try {
-                                    File sourceFile = new File(source.source());
-                                    return parent.getCanonicalFile().equals(sourceFile.getCanonicalFile());
-                                } catch (IOException e) {
-                                    // Catch exceptions from getCanonicalFile
-                                    return false;
-                                }
-                            })) {
-                        String dependencyChain = (new File(source.source())).getName() + " -> "
-                                + parents.stream().map(File::getName).collect(Collectors.joining(" -> "));
-                        throw KExceptionManager.criticalError("Dependency cycle detected: " + dependencyChain, di);
-                    } else {
-                        parents.push(new File(source.source()));
-                    }
-
-                    results.addAll(slurp(loadDefinitionText(definitionFile.get()),
-                            Source.apply(definitionFile.get().getAbsolutePath()),
-                            allLookupDirectories,
-                            parents));
-                }
-                else
+                if (!definitionFile.isPresent())
                     throw KExceptionManager.criticalError("Could not find file: " +
                             definitionFileName + "\nLookup directories:" + allLookupDirectories, di);
+
+                allLookupDirectories.add(0, definitionFile.get().getParentFile());
+
+                // Look for dependency cycle
+                if (parents.stream().
+                        anyMatch(parent -> {
+                            try {
+                                File sourceFile = new File(source.source());
+                                return parent.getCanonicalFile().equals(sourceFile.getCanonicalFile());
+                            } catch (IOException e) {
+                                // Catch exceptions from getCanonicalFile
+                                return false;
+                            }
+                        })) {
+                    String dependencyChain = (new File(source.source())).getName() + " -> "
+                            + parents.stream().map(File::getName).collect(Collectors.joining(" -> "));
+                    throw KExceptionManager.criticalError("Dependency cycle detected: " + dependencyChain, di);
+                } else {
+                    parents.push(new File(source.source()));
+                }
+
+                results.addAll(slurp(loadDefinitionText(definitionFile.get()),
+                        Source.apply(definitionFile.get().getAbsolutePath()),
+                        allLookupDirectories,
+                        parents));
             }
         }
 
