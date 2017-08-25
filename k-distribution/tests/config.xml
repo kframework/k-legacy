@@ -29,5 +29,6 @@
   <include file     =      "examples/symbolic/config.xml"
            directory="tests/examples/symbolic" />
 
+  <include file="builtins/config.xml" directory="tests/builtins" skip="pdf" />
 </tests>
 
