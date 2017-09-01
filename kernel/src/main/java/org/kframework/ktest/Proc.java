@@ -203,6 +203,7 @@ public class Proc<T> implements Runnable {
     private ProcOutput runProc(String[] args) {
         if (options.dry) {
             StringBuilder dryStr = new StringBuilder();
+            dryStr.append("cd '" + workingDir + "'; ");
             dryStr.append(toLogString(args));
             if (options.getUpdateOut() && outputFile != null)
                 dryStr.append(" >").append(outputFile);
