@@ -15,8 +15,9 @@ import org.kframework.backend.java.symbolic.JavaExecutionOptions;
 import org.kframework.backend.java.symbolic.ProofExecutionMode;
 import org.kframework.definition.Module;
 import org.kframework.definition.ProcessedDefinition;
-import org.kframework.kale.KaleBackend;
-import org.kframework.kale.KaleRewriter;
+import org.kframework.backend.skala.SkalaKompile;
+//import KaleRewriter;
+import org.kframework.backend.skala.SkalaRewriter;
 import org.kframework.kast.KastFrontEnd;
 import org.kframework.kast.KastOptions;
 import org.kframework.kdep.KDepFrontEnd;
@@ -122,8 +123,8 @@ public class Main {
             Backend koreBackend;
             if (kompileOptions.backend.equals(Backends.JAVA)) {
                 koreBackend = new JavaBackend(kem, files, kompileOptions.global, kompileOptions);
-            } else if (kompileOptions.backend.equals(Backends.KALE)) {
-                koreBackend = new KaleBackend(kompileOptions, kem);
+            } else if (kompileOptions.backend.equals(Backends.SKALA)) {
+                koreBackend = new SkalaKompile(kompileOptions, kem);
             } else
                 throw new AssertionError("Backend not hooked to the shell.");
             KompileFrontEnd frontEnd = new KompileFrontEnd(kompileOptions, koreBackend, sw, kem, loader, files);
@@ -239,9 +240,9 @@ public class Main {
                 intializeMiniKoreRewriter = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions,
                         kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions.transition,
                         kRunOptions, files, initializeDefinition);
-            } else if (kompileOptions.backend.equals(Backends.KALE)) {
-                initializeRewriter = KaleRewriter::apply;
-                intializeMiniKoreRewriter = null;
+            } else if (kompileOptions.backend.equals(Backends.SKALA)) {
+                initializeRewriter = null;
+                intializeMiniKoreRewriter = (x -> new SkalaRewriter(x.getKey(), x.getRight()));
             } else {
                 throw new AssertionError("Backend not hooked to the shell.");
             }

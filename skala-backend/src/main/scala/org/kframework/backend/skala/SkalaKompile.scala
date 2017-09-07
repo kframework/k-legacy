@@ -1,15 +1,17 @@
-package org.kframework.kale
+package org.kframework.backend.skala
 
 import java.util.function.Function
 
+import org.kframework.attributes.Att
 import org.kframework.compile.{AddBottomSortForListsWithIdenticalLabels, NormalizeKSeq}
-import org.kframework.definition.{Definition, DefinitionTransformer}
+import org.kframework.definition.{Definition, DefinitionTransformer, Rule, Sentence}
 import org.kframework.kompile.{CompiledDefinition, Kompile, KompileOptions}
 import org.kframework.frontend.KORE
 import org.kframework.frontend.compile._
+import org.kframework.kore.Rewrite
 import org.kframework.utils.errorsystem.KExceptionManager
 
-class KaleBackend(kompileOptions: KompileOptions, kem: KExceptionManager) extends Backend {
+class SkalaKompile(kompileOptions: KompileOptions, kem: KExceptionManager) extends Backend {
   override def accept(d: CompiledDefinition): Unit = {
     // probably a redundant function
   }
@@ -19,14 +21,12 @@ class KaleBackend(kompileOptions: KompileOptions, kem: KExceptionManager) extend
   def defaultSteps(): Definition => Definition = {
 
     (d => Kompile.defaultSteps(kompileOptions, kem)(d))
-      .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop.rewriteToTop, "rewrite to top"))
-      .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE), "normalize assoc"))
+//      .andThen(DefinitionTransformer.fromRuleBodyTranformer(RewriteToTop.rewriteToTop, "rewrite to top"))
       .andThen(DefinitionTransformer.fromHybrid(AddBottomSortForListsWithIdenticalLabels, "AddBottomSortForListsWithIdenticalLabels"))
       .andThen(Kompile.moduleQualifySortPredicates)
+      .andThen(DefinitionTransformer.fromRuleBodyTranformer(Kompile.ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
       //      .andThen(new ExpandMacrosDefinitionTransformer(kem, files, globalOptions, kompileOptions))
-      .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE), "normalize assoc"))
-      //      .andThen(DefinitionTransformer.fromRuleBodyTranformer(ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
       .andThen(DefinitionTransformer.fromRuleBodyTranformer(Kompile.convertKSeqToKApply, "kseq to kapply"))
-      .andThen(DefinitionTransformer.fromRuleBodyTranformer(NormalizeKSeq, "normalize kseq"))
+    //      .andThen(DefinitionTransformer.fromRuleBodyTranformer(NormalizeKSeq, "normalize kseq"))
   }
 }

@@ -1,6 +1,7 @@
 package org.kframework.minikore.converters
 
-import org.kframework.kore._
+import org.kframework.attributes.Att
+import org.kframework.kore.{Sort, _}
 import org.kframework.kore.implementation.DefaultBuilders
 import org.kframework.frontend.SortedADT.SortedKVariable
 import org.kframework.frontend.Unapply._
@@ -40,8 +41,17 @@ object KoreToMini {
       })
       val newAtt = items.map(encode) ++ apply(att)
       prod.klabel match {
-        case Some(label) => SymbolDeclaration(b.Sort(sort.name), b.Symbol(label.name), args, Attributes(newAtt))
-        case None => SymbolDeclaration(b.Sort(sort.name), iNone, args, Attributes(newAtt)) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
+        case Some(label) if label.name != "" =>
+          SymbolDeclaration(b.Sort(sort.name), b.Symbol(label.name), args, Attributes(newAtt))
+        case _ =>
+          if (att.contains(Att.token)) {
+            SymbolDeclaration(b.Sort(sort.name), b.Symbol(sort.name), args, Attributes(newAtt))
+          } else {
+            assert(args.size == 1)
+            val subsort: Sort = args.head
+            SymbolDeclaration(b.Sort(sort.name), b.Symbol("#inject_" + subsort.str + "_into_" + sort.name), args, Attributes(newAtt)) // TODO(Daejun): either subsort or regex; generate injection label for subsort; dummy sentence for regex
+          }
+
       }
 
     case definition.Rule(body, requires, ensures, att) =>
@@ -126,7 +136,7 @@ object KoreToMini {
   // encodePatternAtt(p, Seq(a1,a2,a3)) = #(#(#(p,a1),a2),a3) // TODO(Daejun): add test
   def encodePatternAtt(p: Pattern, att: Attributes): Pattern = {
     att.patterns.foldLeft(p)((z, a) => {
-      b.Application(iAtt, Seq(z, a))
+      b.Application(DefaultBuilders.knownSymbols.PatternWithAttributes, Seq(z, a))
     })
   }
 
@@ -169,9 +179,6 @@ object KoreToMini {
     Symbol("#None"))
   val encodingLabels = encodingLabelTuple.productIterator.toSet
 
-  val iAtt = Symbol("#")
   val iKSeq = Symbol("#kseq")
   val iKSeqNil = Symbol("#kseqnil")
-
-  val iNone = Symbol("#None")
 }

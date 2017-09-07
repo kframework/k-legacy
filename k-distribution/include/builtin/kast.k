@@ -13,7 +13,7 @@ module BASIC-K
   syntax KLabel
   syntax KItem            [hook(K.KItem)]
   syntax K     ::= KItem  [allowChainSubsort]
-  syntax KConfigVar
+  syntax KConfigVar ::= r"(?<![A-Za-z0-9_\\$!\\?])(\\$)([A-Z][A-Za-z0-9'_]*)"          [token, autoReject]
   syntax KBott
   syntax KList
   syntax KResult
@@ -68,7 +68,7 @@ endmodule
 module KSEQ-SYMBOLIC
   imports KSEQ
   syntax #KVariable ::= r"(?<![A-Za-z0-9_\\$!\\?])(\\!|\\?)?([A-Z][A-Za-z0-9'_]*|_)"   [token, autoReject, hook(org.kframework.kore.KVariable)]
-  syntax KConfigVar ::= r"(?<![A-Za-z0-9_\\$!\\?])(\\$)([A-Z][A-Za-z0-9'_]*)"          [token, autoReject]
+
   syntax KBott      ::= #KVariable [allowChainSubsort]
   syntax KBott      ::= KConfigVar [allowChainSubsort]
   syntax KLabel     ::= #KVariable [allowChainSubsort]
