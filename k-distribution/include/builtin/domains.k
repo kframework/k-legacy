@@ -69,7 +69,7 @@ module MAP
   /*@ Get a Set consisting of all keys in the Map:*/
   syntax Set ::= keys(Map)                      [function, hook(MAP.keys), relativeHook(_Map_.keys)]
 
-  syntax Bool ::= K "in_keys" "(" Map ")"       [function, hook(MAP.in_keys)]
+  syntax Bool ::= K "in_keys" "(" Map ")"       [function, hook(MAP.in_keys), smtlib(inkeys)]
 
   /*@ Get a List consisting of all values in the Map: */
   syntax List ::= values(Map)                   [function, hook(MAP.values)]
