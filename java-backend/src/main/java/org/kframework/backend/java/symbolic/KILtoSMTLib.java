@@ -85,6 +85,7 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
             "int_max",
             "int_min",
             "int_abs",
+            "int_and",
             /* extra float theory */
             "remainder",
             "min",
