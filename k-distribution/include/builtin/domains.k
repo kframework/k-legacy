@@ -533,7 +533,7 @@ module K-EQUAL
 
   rule K1:Bool ==Bool K2:Bool => K1 ==K K2
 
-  syntax K ::= "#if" Bool "#then" K "#else" K "#fi"   [function, hook(KEQUAL.ite)]
+  syntax K ::= "#if" Bool "#then" K "#else" K "#fi"   [function, hook(KEQUAL.ite), smtlib(ite)]
   rule #if true #then K:K #else _:K #fi => K
   rule #if false #then _:K #else K:K #fi => K
 
