@@ -84,7 +84,8 @@ public final class BuiltinCryptoOperations {
      * @param v The recovery id, in the range 27-34, to use to recover the correct public key
      * @param r The r component of the message signature, as a 32-character Latin-1 string
      * @param s The s component of the message signature, as a 32-character Latin-1 string
-     * @return Output String (64 characters) in Latin-1 encoding representing the public key recovered
+     * @return Output String (64 characters) in Latin-1 encoding representing the public key recovered upon success. Returns
+     *         the empty string if key recovery fails due to invalid input.
      * */
     public static StringToken ecdsaRecover(StringToken messageHash, IntToken v, StringToken r, StringToken s, TermContext context) {
         byte[] hashBytes = StringUtils.getBytesIso8859_1(messageHash.stringValue());
@@ -94,7 +95,7 @@ public final class BuiltinCryptoOperations {
         try {
             ECDSARecover key = ECDSARecover.signatureToKey(hashBytes, rBytes, sBytes, vByte);
             return StringToken.of(Arrays.copyOfRange(key.getPubKey(), 1, 65));
-        } catch (SignatureException e) {
+        } catch (SignatureException | IllegalArgumentException e) {
             return StringToken.of("");
         }
     }
