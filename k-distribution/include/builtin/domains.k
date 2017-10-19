@@ -20,6 +20,38 @@ module DOMAINS
   imports SET
 endmodule
 
+module ARRAY
+  imports MAP
+  imports INT
+
+  syntax Array ::= array(Map, Int, K)
+
+  syntax Array ::= makeArray(Int, K) [function]
+
+  syntax K ::= Array "[" Int "]" [function]
+  syntax Array ::= Array "[" Int "<-" K "]" [function]
+  syntax Array ::= Array "[" Int "<-" "undef" "]" [function]
+  syntax Array ::= updateArray(Array, Int, List) [function]
+
+  syntax Bool ::= Int "in_keys" "(" Array ")" [function]
+
+  rule makeArray(Len:Int, K:K) => array(.Map, Len, K)
+
+  rule array(_ I |-> K:K, _, _) [ I:Int ] => K
+  rule array(M:Map, _, K:K) [ I:Int ] => K requires notBool I in_keys(M)
+
+  rule array(M:Map, Len:Int, K:K) [ I:Int <- K2:K ] => array(M [ I <- K2 ], Len, K)
+       requires I >=Int 0 andBool I <Int Len
+  rule array(M:Map, Len:Int, K:K) [ I:Int <- _ ] => array(M, Len, K)
+       requires I<Int 0 orBool I >=Int Len
+  rule array(M:Map, Len:Int, K:K) [ I:Int <- undef ] => array(M [ I <- undef ], Len, K)
+
+  rule updateArray(array(M:Map, Len:Int, K:K), _, .List) => array(M, Len, K)
+  rule updateArray(array(M:Map, Len:Int, K:K), I:Int, ListItem(K2:K) L:List) => updateArray(array(M, Len, K) [ I <- K2 ], I +Int 1, L)
+
+  rule I in_keys(array(M:Map, _, _)) => I in_keys(M)
+endmodule
+
 module MAP
   imports LIST
   imports SET
