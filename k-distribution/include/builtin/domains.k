@@ -1074,6 +1074,7 @@ endmodule
 // Basic crytography functionality.
 module KRYPTO
     imports STRING
+    imports LIST
     // Takes a Latin-1 encoded string and returns the hexadecimal representation
     // of the hash.
     syntax String ::= "Keccak256" "(" String ")"     [hook(KRYPTO.keccak256), function]
@@ -1083,4 +1084,15 @@ module KRYPTO
 
     // ECDSARecover(messageHash, recovery-id, R-component, S-component)
     syntax String ::= "ECDSARecover" "(" String "," Int "," String "," String ")" [hook(KRYPTO.ecdsaRecover), function]
+
+    syntax G1Point ::= "(" Int "," Int ")"
+    syntax G2Point ::= "(" Int "x" Int "," Int "x" Int ")"
+
+    syntax G1Point ::= BN128Add(G1Point, G1Point) [function, hook(KRYPTO.bn128add)]
+                     | BN128Mul(G1Point, Int) [function, hook(KRYPTO.bn128mul)]
+
+    syntax Bool ::= BN128AtePairing(List, List) [function, hook(KRYPTO.bn128ate)]
+
+    syntax Bool ::= isValidPoint(G1Point) [function, hook(KRYPTO.bn128valid)]
+                  | isValidPoint(G2Point) [function, klabel(isValidG2Point), hook(KRYPTO.bn128g2valid)]
 endmodule
