@@ -1,5 +1,6 @@
 /*
  * Copyright (c) [2016] [ <ether.camp> ]
+ * Modifications Copyright (c) 2017 K Team.
  * This file is part of the ethereumJ library.
  *
  * The ethereumJ library is free software: you can redistribute it and/or modify
@@ -18,6 +19,8 @@
 package org.kframework.backend.java.builtins.crypto;
 
 import static org.kframework.backend.java.builtins.crypto.Params.B_Fp;
+
+import java.math.BigInteger;
 
 /**
  * Definition of {@link BN128} over F_p, where "p" equals {@link Params#P} <br/>
@@ -64,7 +67,7 @@ public class BN128Fp extends BN128<Fp> {
      * Returns new point if all checks have been passed,
      * otherwise returns null
      */
-    public static BN128<Fp> create(byte[] xx, byte[] yy) {
+    public static BN128<Fp> create(BigInteger xx, BigInteger yy) {
 
         Fp x = Fp.create(xx);
         Fp y = Fp.create(yy);

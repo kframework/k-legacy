@@ -70,6 +70,10 @@ public class Fp implements Field<Fp> {
         return v.toByteArray();
     }
 
+    public BigInteger v() {
+        return v;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

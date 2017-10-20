@@ -68,7 +68,7 @@ public class BN128Fp2 extends BN128<Fp2> {
      * then checks if this point is a member of subgroup of order "r"
      * and if checks have been passed it returns a point, otherwise returns null
      */
-    public static BN128<Fp2> create(byte[] aa, byte[] bb, byte[] cc, byte[] dd) {
+    public static BN128<Fp2> create(BigInteger aa, BigInteger bb, BigInteger cc, BigInteger dd) {
 
         Fp2 x = Fp2.create(aa, bb);
         Fp2 y = Fp2.create(cc, dd);

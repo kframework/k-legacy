@@ -17,6 +17,8 @@
  */
 package org.kframework.backend.java.builtins.crypto;
 
+import java.math.BigInteger;
+
 /**
  * Implementation of specific cyclic subgroup of points belonging to {@link BN128Fp} <br/>
  * Members of this subgroup are passed as a first param to pairing input {@link PairingCheck#addPair(BN128G1, BN128G2)} <br/>
@@ -41,7 +43,7 @@ public class BN128G1 extends BN128Fp {
      * Checks whether point is a member of subgroup,
      * returns a point if check has been passed and null otherwise
      */
-    public static BN128G1 create(byte[] x, byte[] y) {
+    public static BN128G1 create(BigInteger x, BigInteger y) {
 
         BN128<Fp> p = BN128Fp.create(x, y);
 

@@ -58,7 +58,7 @@ public class BN128G2 extends BN128Fp2 {
      * Checks whether provided data are coordinates of a point belonging to subgroup,
      * if check has been passed it returns a point, otherwise returns null
      */
-    public static BN128G2 create(byte[] a, byte[] b, byte[] c, byte[] d) {
+    public static BN128G2 create(BigInteger a, BigInteger b, BigInteger c, BigInteger d) {
 
         BN128<Fp2> p = BN128Fp2.create(a, b, c, d);
 

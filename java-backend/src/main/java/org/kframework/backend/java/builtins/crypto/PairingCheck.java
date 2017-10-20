@@ -157,7 +157,7 @@ public class PairingCheck {
     }
 
     private static Precomputed flippedMillerLoopMixedAddition(BN128G2 base, BN128G2 addend) {
-        
+
         Fp2 x1 = addend.x, y1 = addend.y, z1 = addend.z;
         Fp2 x2 = base.x, y2 = base.y;
 
