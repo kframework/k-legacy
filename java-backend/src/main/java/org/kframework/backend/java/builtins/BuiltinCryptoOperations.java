@@ -9,6 +9,8 @@ import org.bouncycastle.jcajce.provider.digest.SHA3;
 import org.bouncycastle.jcajce.provider.digest.RIPEMD160;
 import org.bouncycastle.util.encoders.Hex;
 import org.kframework.backend.java.kil.TermContext;
+import org.kframework.backend.java.builtins.crypto.ECDSARecover;
+import org.kframework.backend.java.builtins.crypto.PairingCheck;
 
 import java.util.Arrays;
 import java.security.SignatureException;

@@ -196,7 +196,7 @@
               <configLocation>src/main/config/checkstyle-copyright.xml</configLocation>
               <failsOnError>true</failsOnError>
               <consoleOutput>true</consoleOutput>
-              <excludes>.idea/**,**/com/davekoelle/**,**/src/main/sdf/syntax/Integration.sdf,java-backend/src/main/java/org/kframework/backend/java/builtins/ECDSARecover.java</excludes>
+              <excludes>.idea/**,**/com/davekoelle/**,**/src/main/sdf/syntax/Integration.sdf,java-backend/src/main/java/org/kframework/backend/java/builtins/crypto/*.java</excludes>
             </configuration>
           </execution>
           <execution>
