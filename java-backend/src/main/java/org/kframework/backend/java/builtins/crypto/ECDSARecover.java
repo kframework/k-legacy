@@ -1,4 +1,4 @@
-package org.kframework.backend.java.builtins;
+package org.kframework.backend.java.builtins.crypto;
 /**
  * Copyright 2011 Google Inc.
  * Modifications copyright 2017 K Team.
