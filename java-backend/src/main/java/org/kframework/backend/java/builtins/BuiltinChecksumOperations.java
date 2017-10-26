@@ -36,7 +36,7 @@ public class BuiltinChecksumOperations {
             sum = (sum & 0xFFFF) + (sum >> 16);
 
         sum = ~sum;
-
+	sum = sum & 0xFFFF;	
         return IntToken.of(BigInteger.valueOf(sum));
 
     }
