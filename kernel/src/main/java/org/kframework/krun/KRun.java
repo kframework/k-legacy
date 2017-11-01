@@ -309,17 +309,14 @@ public class KRun {
         case NONE:
             print.accept("".getBytes());
             break;
-        case PRETTY:{
+        case PRETTY:
+        case NOWRAP:
             Module unparsingModule = compiledDef.getExtensionModule(compiledDef.languageParsingModule());
-            print.accept((unparseTerm(result, unparsingModule, false) + "\n").getBytes());
-            break;}
+            print.accept((unparseTerm(result, unparsingModule, output == OutputModes.NOWRAP) + "\n").getBytes());
+            break;
         case BINARY:
             print.accept(ToBinary.apply(result));
             break;
-        case NOWRAP:{
-            Module unparsingModule = compiledDef.getExtensionModule(compiledDef.languageParsingModule());
-            print.accept((unparseTerm(result, unparsingModule, true) + "\n").getBytes());
-            break;}
         default:
             throw KEMException.criticalError("Unsupported output mode: " + output);
         }
