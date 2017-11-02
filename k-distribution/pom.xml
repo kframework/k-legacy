@@ -117,9 +117,6 @@
             <configuration>
               <target>
                 <move file="${ktestDir}/junit-reports" tofile="target/ktest-reports" failonerror="false" />
-                <exec executable="${project.build.directory}/release/k/lib/native/${native.os.classifier}/ng${native.exe.extension}">
-                  <arg value="ng-stop" />
-                </exec>
               </target>
             </configuration>
             <goals>
