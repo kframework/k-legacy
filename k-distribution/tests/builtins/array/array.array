@@ -1,0 +1,7 @@
+assert makeArray(5, 0)[0] ==K 0
+assert makeArray(5, 0)[0 <- 5][0] ==K 5
+assert makeArray(5, 0)[0 <- 5][0 <- undef][0] ==K 0
+assert updateArray(makeArray(5, 0), 0, ListItem(1) ListItem(2) ListItem(3)) ==K array(0 |-> 1 1 |-> 2 2 |-> 3  , 5, 0)
+assert notBool 0 in_keys(makeArray(5, 0))
+assert 0 in_keys (makeArray(5, 0)[0 <- 5])
+assert notBool -1 in_keys(makeArray(5, 0)[-1 <- 5])
