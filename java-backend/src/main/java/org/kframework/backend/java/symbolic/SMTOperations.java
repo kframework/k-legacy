@@ -4,6 +4,7 @@ package org.kframework.backend.java.symbolic;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.util.Z3Wrapper;
+import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.options.SMTOptions;
 import org.kframework.utils.options.SMTSolver;
 
@@ -16,12 +17,15 @@ public class SMTOperations {
     private final SMTOptions smtOptions;
     private final Z3Wrapper z3;
 
+    private final KExceptionManager kem;
+
     public SMTOperations(
             Provider<Definition> definitionProvider,
             SMTOptions smtOptions,
-            Z3Wrapper z3) {
+            Z3Wrapper z3, KExceptionManager kem) {
         this.smtOptions = smtOptions;
         this.z3 = z3;
+        this.kem = kem;
     }
 
     public boolean checkUnsat(ConjunctiveFormula constraint) {
@@ -58,10 +62,10 @@ public class SMTOperations {
                 return z3.isUnsat(
                         KILtoSMTLib.translateImplication(left, right, rightOnlyVariables),
                         smtOptions.z3ImplTimeout);
-            } catch (UnsupportedOperationException e) {
-                e.printStackTrace();
-            } catch (SMTTranslationFailure e) {
-                e.printStackTrace();
+            } catch (UnsupportedOperationException | SMTTranslationFailure e) {
+                kem.registerCriticalWarning(e.getMessage(), e);
+                System.err.println(e.getMessage() + "\n");
+                // TODO: no longer printing stack trace. Perhaps in the future can extract useful information from stack trace to print
             }
         }
         return false;

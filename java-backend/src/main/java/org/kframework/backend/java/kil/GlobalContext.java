@@ -6,7 +6,6 @@ import org.kframework.KapiGlobal;
 import org.kframework.backend.java.kil.KItem.KItemOperations;
 import org.kframework.backend.java.symbolic.BuiltinFunction;
 import org.kframework.backend.java.symbolic.Equality.EqualityOperations;
-import org.kframework.backend.java.symbolic.JavaExecutionOptions;
 import org.kframework.backend.java.symbolic.SMTOperations;
 import org.kframework.backend.java.symbolic.Stage;
 import org.kframework.backend.java.util.Z3Wrapper;
@@ -53,7 +52,7 @@ public class GlobalContext implements Serializable {
         this.hookProvider = hookProvider;
         this.files = files;
         this.equalityOps = new EqualityOperations(() -> def);
-        this.constraintOps = new SMTOperations(() -> def, smtOptions, new Z3Wrapper(smtOptions, kem, globalOptions, files));
+        this.constraintOps = new SMTOperations(() -> def, smtOptions, new Z3Wrapper(smtOptions, kem, globalOptions, files), kem);
         this.kItemOps = new KItemOperations(stage, deterministicFunctions, kem, this::builtins, globalOptions);
         this.stage = stage;
     }
