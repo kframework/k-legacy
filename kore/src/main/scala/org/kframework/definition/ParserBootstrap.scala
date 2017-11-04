@@ -195,10 +195,7 @@ object KoreDefintion {
 
     syntax(KAttributes) is KAttribute,
     syntax(KAttributes) is "" att klabel(".KAttributes"),
-    syntax(KAttributes) is (KAttribute, ",", KAttributes) att(klabel("KAttributes")),
-
-    syntax(KBott) is KAttributes,
-    syntax(KItem) is KBott att "allowChainSubsort"
+    syntax(KAttributes) is (KAttribute, ",", KAttributes) att(klabel("KAttributes"))
   ))
 
 
@@ -237,14 +234,15 @@ object KoreDefintion {
   // ### KSENTENCES
   val KRegexSort = "[A-Z][A-Za-z0-9]*"
 
-  val KTerminal = Sort("KTerminal")
   val KSort = Sort("KSort")
+
+  val KTerminal = Sort("KTerminal")
   val KNonTerminal = Sort("KNonTerminal")
 
-  val KProductionItem = Sort("KProductionItem")
+  val KProductionItems = Sort("KProductionItems")
   val KProduction = Sort("KProduction")
+  val KProductions = Sort("KProductions")
 
-  val KPreSentence = Sort("KPreSentence")
   val KSentence = Sort("KSentence")
   val KSentenceList = Sort("KSentenceList")
 
@@ -255,17 +253,22 @@ object KoreDefintion {
     syntax(KTerminal) is ("r", KString) att klabel("KRegex"),
     syntax(KNonTerminal) is KSort,
 
-    syntax(KProductionItem) is KTerminal,
-    syntax(KProductionItem) is KNonTerminal,
-    syntax(KProduction) is KProductionItem,
-    syntax(KProduction) is (KProductionItem, KProduction) att(klabel("KProduction"), "assoc"),
+    syntax(KProductionItems) is KTerminal,
+    syntax(KProductionItems) is KNonTerminal,
+    syntax(KProductionItems) is (KProductionItems, KProductionItems) att(klabel("KProduction"), "assoc"),
 
-    syntax(KPreSentence) is ("syntax", KSort) att klabel("KSortDecl"),
-    syntax(KPreSentence) is ("syntax", KSort, "::=", KProduction) att klabel("KSyntax"),
+    syntax(KProduction) is KProductionItems,
+    syntax(KProduction) is (KProductionItems, "[", KAttributes, "]") att(klabel("KProductionWithAttributes")),
 
-    syntax(KSentence) is KPreSentence,
-    syntax(KSentence) is (KPreSentence, "[", KAttributes, "]") att klabel("KSentence"),
+    syntax(KProductions) is KProduction,
+    syntax(KProductions) is (KProductions, "|", KProductions) att(klabel("KProductionBlock"), "assoc", "comm"),
+    syntax(KProductions) is (KProductions, ">", KProductions) att(klabel("KProductionBlocks"), "assoc"),
 
+    syntax(KSentence) is ("syntax", KSort) att klabel("KSortDecl"),
+    syntax(KSentence) is ("syntax", KSort, "[", KAttributes, "]") att klabel("KSortDeclWithAttributes"),
+    syntax(KSentence) is ("syntax", KSort, "::=", KProductions) att(klabel("KSyntax")),
+
+    syntax(KSentenceList) is KSentence,
     syntax(KSentenceList) is "" att klabel(".KSentenceList"),
     syntax(KSentenceList) is (KSentence, KSentenceList) att klabel("KSentenceList")
 
@@ -341,19 +344,29 @@ object KoreDefinitionDown {
     case _ => Att()
   }
 
-  def downProduction(parsedProduction: K): Seq[ProductionItem] = parsedProduction match {
-    case KApply(KLabelLookup("KProduction"), KList(prodItem :: rest :: _), _) => downProduction(prodItem) ++ downProduction(rest)
+  def downProductionItems(parsedProduction: K): Seq[ProductionItem] = parsedProduction match {
+    case KApply(KLabelLookup("KProduction"), KList(productionItems), _) => productionItems flatMap downProductionItems
     case KApply(KLabelLookup("KRegex"), KList(KToken(str, KString, _) :: _), _) => Seq(RegexTerminal("#", str, "#"))
-    case KToken(str, KString, _) => Seq(Terminal(str))
     case KToken(sortName, KSort, _) => Seq(NonTerminal(Sort(sortName)))
+    case KToken(str, KString, _) => Seq(Terminal(str))
     case _ => Seq.empty
   }
 
-  def downSentences(parsedSentence: K, atts: Att = Att()): Set[Sentence] = parsedSentence match {
-    case KApply(KLabelLookup("KSentenceList"), KList(sentence :: rest :: _), _) => downSentences(sentence, atts) ++ downSentences(rest, atts)
-    case KApply(KLabelLookup("KSentence"), KList(preSentence :: newAtts :: _), _) => downSentences(preSentence, downAttributes(newAtts))
-    case KApply(KLabelLookup("KSortDecl"), KList(KToken(sortName, KSort, _) :: _), _) => Set(SyntaxSort(Sort(sortName), atts))
-    case KApply(KLabelLookup("KSyntax"), KList(KToken(sortName, KSort, _) :: prod :: _), _) => Set(Production(Sort(sortName), downProduction(prod), atts))
+  // TODO: Implement this
+  def downPriorities(pBlocks: List[K]): Set[Sentence] = Set.empty
+
+  def downProductions(sort: ADT.SortLookup, parsedProductions: K): Set[Sentence] = parsedProductions match {
+    case KApply(KLabelLookup("KProductionBlocks"), KList(productionBlocks), _) => (productionBlocks.toSet flatMap ((pb:K) => downProductions(sort, pb))) ++ downPriorities(productionBlocks)
+    case KApply(KLabelLookup("KProductionBlock"), KList(productions), _) => productions.toSet flatMap ((p:K) => downProductions(sort, p))
+    case KApply(KLabelLookup("KProductionWithAttributes"), KList(productionItems :: atts :: _), _) => Set(Production(sort, downProductionItems(productionItems), downAttributes(atts)))
+    case _ => Set(Production(sort, downProductionItems(parsedProductions), Att()))
+  }
+
+  def downSentences(parsedSentence: K): Set[Sentence] = parsedSentence match {
+    case KApply(KLabelLookup("KSentenceList"), KList(sentence :: rest :: _), _) => downSentences(sentence) ++ downSentences(rest)
+    case KApply(KLabelLookup("KSortDecl"), KList(KToken(sortName, KSort, _) :: _), _) => Set(SyntaxSort(Sort(sortName), Att()))
+    case KApply(KLabelLookup("KSortDeclWithAttributes"), KList(KToken(sortName, KSort, _) :: atts :: _), _) => Set(SyntaxSort(Sort(sortName), downAttributes(atts)))
+    case KApply(KLabelLookup("KSyntax"), KList(KToken(sortName, KSort, _) :: prods :: _), _) => downProductions(Sort(sortName), prods)
     case _ => Set.empty
   }
 
