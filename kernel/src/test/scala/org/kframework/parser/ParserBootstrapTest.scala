@@ -4,18 +4,16 @@ import org.kframework.attributes.{Source, Att}
 import org.kframework.parser.concrete2kore.ParseInModule
 import org.junit.Test
 import org.junit.Assert._
-import org.kframework.minikore.{KoreToMini, MiniToKore}
 import org.kframework.kore.ADT.SortLookup
-//import org.kframework.kore._
-//import org.kframework.definition.Module
 
 import org.kframework.kore.KORE
 import org.kframework.minikore.MiniKore._
+import org.kframework.minikore.KoreToMini
+import org.kframework.minikore.MiniToKore
 import org.kframework.minikore.KDefinitionDSL._
 import org.kframework.minikore.KOREDefinition._
-import org.kframework.parser.MiniKoreMeta._
-import org.kframework.parser.MetaPasses._
-
+import org.kframework.minikore.MiniKoreMeta._
+import org.kframework.minikore.KToMiniKorePasses._
 
 object ExpDefinition {
 
@@ -77,8 +75,8 @@ object ExpDefinition {
 }
 
 class ParserBootstrapTest {
-  import MiniKoreStaging._
-  val miniDef = MiniToKore(onAttributesDef(traverseTopDown(toMiniKoreEncoding))(KOREDef))
+
+  val miniDef = MiniToKore(onAttributesDef(traverseTopDown(toKoreEncoding))(KOREDef))
   val mainMod = miniDef.mainModule
   val kParser = new ParseInModule(mainMod)
 
@@ -152,14 +150,18 @@ class ParserBootstrapTest {
 
   @Test def sentenceTest(): Unit = {
     import ExpDefinition._
-    val sentenceString = """syntax Exp := mystmt(Stmt) [klabel(mystmt), production(#NonTerminal(Stmt))]"""
-    val sentenceConcrete: SymbolDeclaration = syntax(Exp) is Stmt att klabel("mystmt")
-    println(sentenceConcrete)
-    val parsed = preProcess(parseK(sentenceString, "KSentence"))
-    println(parsed)
-    val downed = downSentence(parsed)
-    assertEquals(sentenceConcrete, downed)
 
+    val sentenceTests: Seq[(String, Sentence)]
+        = Seq( (symbol(Exp, "mystmt", Stmt)              , """syntax Exp := mystmt(Stmt)"""                                                 )
+             , (syntax(Exp) is Stmt att klabel("mystmt") , """syntax Exp := mystmt(Stmt) [klabel(mystmt), production(#NonTerminal(Stmt))]""")
+             , (syntax(Exp) is Stmt att klabel("mystmt") , """syntax Exp := Stmt [klabel(mystmt)]"""                                        )
+             , (symbol(Exp, "_", Stmt)                   , """syntax Exp := Stmt"""                                                         )
+             , (syntax(Exp) is Stmt att klabel("_")      , """syntax Exp := Stmt"""                                                         )
+             )
+
+    sentenceTests forEach { (sent: Sentence, str: String) =>
+      assertEquals(sent, preProcess(parseK(str, "KSentence")))
+    }
   }
 
 }
