@@ -4,6 +4,7 @@ import org.kframework.attributes.Att
 import org.kframework.builtin.Sorts
 import org.kframework.kore.ADT._
 import org.kframework.kore._
+import org.kframework.meta.Down
 
 import collection.JavaConverters._
 //import collection.immutable.Set._
@@ -12,28 +13,15 @@ import collection.JavaConverters._
   * Created by lpena on 10/11/16.
   */
 
-object KParserBootstrap {
+object KParserBootstrapDSL {
 
   implicit def BecomingNonTerminal(s: ADT.SortLookup): NonTerminal = NonTerminal(s)
   implicit def BecomingTerminal(s: String): Terminal = Terminal(s)
   implicit def BecomingSequence(ps: ProductionItem*): Seq[ProductionItem] = ps
 
-  //implicit def BecomingAtt(s: String): K =
-
   def Sort(s: String): ADT.SortLookup = ADT.SortLookup(s)
 
   def regex(s: String): ProductionItem = RegexTerminal("#", s, "#")
-
-  case class token(s: ADT.SortLookup) {
-    def is(pis: ProductionItem): BecomingToken = BecomingToken(s, List(pis))
-  }
-
-  case class BecomingToken(sort: ADT.SortLookup, pis: Seq[ProductionItem]) {
-    def att(atts: K*): Production = Production(sort, pis, atts.foldLeft(Att() + "token")(_+_))
-  }
-
-  implicit def tokenWithoutAttributes(bp: BecomingToken) : Production =
-    Production(bp.sort, bp.pis, Att() + "token")
 
   case class syntax(s: ADT.SortLookup) {
     def is(pis: ProductionItem*): BecomingSyntax = BecomingSyntax(s, pis)
@@ -46,91 +34,27 @@ object KParserBootstrap {
   implicit def syntaxWithoutAttributes(bp: BecomingSyntax) : Production =
     Production(bp.sort, bp.pis, Att())
 
-  case class Axiom(ax: String, attr: Att) extends Sentence {
-    val att = attr
-  }
-
-  def axiom(ax: String): BecomingAxiom = BecomingAxiom(ax)
-
-  case class BecomingAxiom(ax: String) {
-    def att(atts: K*): Axiom = Axiom(ax, atts.foldLeft(Att())(_+_))
-  }
-
-  implicit def axiomWithoutAttributes(bax: BecomingAxiom) : Axiom =
-    Axiom(bax.ax, Att())
-
-  def asKList(label: String, values: List[String]): K =
+  def asKApply(label: String, values: List[String]): K =
     KORE.KApply(KORE.KLabel(label), KORE.KList(values map { value => KORE.KToken(value, Sorts.KString, Att()) }), Att())
 
   def imports(s: Module*): Set[Module] = s.toSet
   def sentences(s: Sentence*): Set[Sentence] = s.toSet
-  def klabel(label: String): K = asKList("klabel", List(label))
-  def ktoken(label: String): K = Att.asK("ktoken", label)
+  def klabel(label: String): K = asKApply("klabel", List(label))
+  def ktoken(label: String): K = asKApply("ktoken", List(label))
+  implicit def constAtt(str : String): K = asKApply(str, List.empty)
 
-  // TODO: Suggestion: Change `getASTNodes` to `byLabel`
-  def getASTNodes(parsed: K, nodeLabel: String): List[K] = parsed match {
-    case node@KApply(nl, klist, _) => klist.items.asScala.flatMap(x => getASTNodes(x, nodeLabel)).toList ++ (if (nl == KLabelLookup(nodeLabel)) List(node) else List.empty)
-    case _ => List.empty
-  }
-  def getASTNodes(parsed: K, nodeLabels: String*): List[K] = nodeLabels.foldLeft(List.empty: List[K]) ((acc, nL) => acc ++ getASTNodes(parsed, nL))
 
-  def getASTTokens(parsed: K, tokenName: ADT.SortLookup): List[K] = parsed match {
-    case KApply(_, KList(rest), _) => rest flatMap (x => getASTTokens(x, tokenName))
-    case token@KToken(_, tn, _) if tokenName == tn => List(token)
-    case _ => List.empty
-  }
-
-  def getASTModules(parsed: K): Set[K] = getASTNodes(parsed, "KModule") toSet
-
-  def decomposeModule(parsedModule: K): (String, Set[String], Set[K]) = parsedModule match {
-    case module@KApply(KLabelLookup("KModule"), KList(KToken(name, _, _) :: importList :: _), _) =>
-      (name, getASTNodes(importList, "KImport") map { case KApply(_, KList(KToken(mn, _, _) :: _), _) => mn } toSet, getASTNodes(parsedModule, "KSentenceSyntax") toSet)
-  }
-
-  def downAttribute(attr: K): K = attr match {
-    case KApply(KLabelLookup("KAttributeApply"), KList(KToken(fnc, KAttributeKey, _) :: keyList :: _), _)
-    => asKList(fnc, getASTTokens(keyList, KAttributeKey) map { case KToken(arg, KAttributeKey, _) => arg })
-    case _ => attr
-  }
-
-  def downAttributes(parsedAttributes: K): Att =
-    getASTNodes(parsedAttributes, "KAttribute", "KAttributeApply").foldLeft(Att()) ((acc, curr) => acc.add(downAttribute(curr)))
-
-  def productionSeq(prod: K): Seq[ProductionItem] = prod match {
-    case KApply(KLabelLookup("KProduction"), KList(KToken(str, KString, _) :: rest :: _), _) => Terminal(str.drop(1).dropRight(1)) +: productionSeq(rest)
-    case KToken(str, KString, _) => Seq(Terminal(str.drop(1).dropRight(1)))
-    case KApply(KLabelLookup("KProduction"), KList(KToken(sortName, KSort, _) :: rest :: _), _) => NonTerminal(Sort(sortName)) +: productionSeq(rest)
-    case KToken(sortName, KSort, _) => Seq(NonTerminal(Sort(sortName)))
-    case KApply(KLabelLookup("KProduction"), KList(KApply(KLabelLookup("KRegex"), KList(KToken(str, KString, _) :: _), _) :: rest :: _), _) => Terminal(str.drop(1).dropRight(1)) +: productionSeq(rest)
-  }
-
-  def downSentence(parsedSentence: K): Production = parsedSentence match {
-    case KApply(KLabelLookup("KSentenceSyntax"), KList(KToken(sortName, _, _) :: production :: atts :: _), _) =>
-      Production(Sort(sortName), productionSeq(production), downAttributes(atts))
-  }
-
-  def getAllDownModules(parsed: K, builtins: Map[String, Module]): Map[String, Module] = {
-    var decomposedModules = getASTNodes(parsed, "KModule") map decomposeModule
-    var downedModules = builtins
-
-    while (decomposedModules.nonEmpty) {
-      val (moduleName, importSet, sentences) = decomposedModules.find { case (_, importSet, _) => importSet subsetOf downedModules.keySet }.get
-      decomposedModules = decomposedModules.filterNot { case (mn, _, _) => mn == moduleName }
-      downedModules += moduleName -> Module(moduleName, importSet map downedModules, sentences map downSentence)
-    }
-    downedModules
-  }
-
-  def getAllDownModules(parsed: K): Map[String, Module] = getAllDownModules(parsed, Map.empty: Map[String, Module])
-
-  val KRegexString = "[\\\"][\\.A-Za-z\\-0-9]*[\\\"]"
-//  val KRegexString = "[\\\"]( ([^\\\"\n\r\\\\])" +
-//    "                       | ([\\\\][nrtf\\\"\\\\])" +
-//    "                       | ([\\\\][x][0-9a-fA-F]{2})" +
-//    "                       | ([\\\\][u][0-9a-fA-F]{4})" +
-//    "                       | ([\\\\][U][0-9a-fA-F]{8})" +
-//    "                       )*" +
-//    "                 [\\\"]"
+  //val KRegexString = "[\\\"].*[\\\"]"
+  val KRegexString =  "[\\\"]([^\\\"\n\r\\\\]|[\\\\][nrtf\\\"\\\\])*[\\\"]"
+  val KRegexString2 = "[\\\"]([^\\\"\\n\\r\\\\]|[\\\\][nrtf\\\"\\\\])*[\\\"]"
+  //val KRegexString = "[\\\"]([^\\\"]|[\\\"])*[\\\"]"
+//  val KRegexString = "[\\\"](([^\\\"\n\r\\\\])" +
+//                           "|([\\\\][nrtf\\\"\\\\])" +
+//                           "|([\\\\][x][0-9a-fA-F]{2})" +
+//                           "|([\\\\][u][0-9a-fA-F]{4})" +
+//                           "|([\\\\][U][0-9a-fA-F]{8})" +
+//                           ")*" +
+//                     "[\\\"]"
   val KRegexSort = "[A-Z][A-Za-z0-9]*"
   val KRegexAttributeKey = "[\\.A-Za-z\\-0-9]*"
   val KRegexModuleName = "[A-Z][A-Z\\-]*"
@@ -141,10 +65,10 @@ object KParserBootstrap {
     module KTOKENS
       .KImportList
 
-      token KString ::= """ + rString(KRegexString) + """ [klabel(KString, .KKeyList), .KAttributes]
-      token KSort ::= """ + rString(KRegexSort) + """ [klabel(KSort, .KKeyList), .KAttributes]
-      token KAttributeKey ::= """ + rString(KRegexAttributeKey) + """ [klabel(KAttributeKey, .KKeyList), .KAttributes]
-      token KModuleName ::= """ + rString(KRegexModuleName) + """ [klabel(KModuleName, .KKeyList), .KAttributes]
+      syntax KString ::= """ + rString(KRegexString2) + """ [token, klabel(KString, .KKeyList), .KAttributes]
+      syntax KSort ::= """ + rString(KRegexSort) + """ [token, klabel(KSort, .KKeyList), .KAttributes]
+      syntax KAttributeKey ::= """ + rString(KRegexAttributeKey) + """ [token, klabel(KAttributeKey, .KKeyList), .KAttributes]
+      syntax KModuleName ::= """ + rString(KRegexModuleName) + """ [token, klabel(KModuleName, .KKeyList), .KAttributes]
       .KSentenceList
     endmodule
     """
@@ -156,10 +80,10 @@ object KParserBootstrap {
 
   val KTOKENS = Module("KTOKENS", imports(), sentences(
 
-    token(KString) is regex(KRegexString) att klabel("KString"),
-    token(KSort) is regex(KRegexSort) att klabel("KSort"),
-    token(KAttributeKey) is regex(KRegexAttributeKey) att klabel("KAttributeKey"),
-    token(KModuleName) is regex(KRegexModuleName) att klabel("KModuleName")
+    syntax(KString) is regex(KRegexString) att ("token", klabel("KString")),
+    syntax(KSort) is regex(KRegexSort) att ("token", klabel("KSort")),
+    syntax(KAttributeKey) is regex(KRegexAttributeKey) att ("token", klabel("KAttributeKey")),
+    syntax(KModuleName) is regex(KRegexModuleName) att ("token", klabel("KModuleName"))
 
   ))
 
@@ -346,5 +270,110 @@ object KParserBootstrap {
     syntax(Exp) is (Exp, "*", Exp) att klabel("_*_")
 
   ))
+
+}
+
+object KParserBootstrapDown {
+
+  import KParserBootstrapDSL._
+
+  def getASTNodes(parsed: K, nodeLabel: String): List[K] = parsed match {
+    case node@KApply(nl, klist, _) => klist.items.asScala.flatMap(x => getASTNodes(x, nodeLabel)).toList ++ (if (nl == KLabelLookup(nodeLabel)) List(node) else List.empty)
+    case _ => List.empty
+  }
+  def getASTNodes(parsed: K, nodeLabels: String*): List[K] = nodeLabels.foldLeft(List.empty: List[K]) ((acc, nL) => acc ++ getASTNodes(parsed, nL))
+
+  def getASTTokens(parsed: K, tokenName: ADT.SortLookup): List[K] = parsed match {
+    case KApply(_, KList(rest), _) => rest flatMap (x => getASTTokens(x, tokenName))
+    case token@KToken(_, tn, _) if tokenName == tn => List(token)
+    case _ => List.empty
+  }
+
+  def getASTModules(parsed: K): Set[K] = getASTNodes(parsed, "KModule") toSet
+
+  def decomposeModule(parsedModule: K): (String, Set[String], Set[K]) = parsedModule match {
+    case module@KApply(KLabelLookup("KModule"), KList(KToken(name, _, _) :: importList :: _), _) =>
+      (name, getASTNodes(importList, "KImport") map { case KApply(_, KList(KToken(mn, _, _) :: _), _) => mn } toSet, getASTNodes(parsedModule, "KSentenceSyntax") toSet)
+  }
+
+  def downAttribute(attr: K): K = attr match {
+    case KApply(KLabelLookup("KAttributeApply"), KList(KToken(fnc, KAttributeKey, _) :: keyList :: _), _)
+    => asKApply(fnc, getASTTokens(keyList, KAttributeKey) map { case KToken(arg, KAttributeKey, _) => arg })
+    case _ => attr
+  }
+
+  def downAttributes(parsedAttributes: K): Att =
+    getASTNodes(parsedAttributes, "KAttribute", "KAttributeApply").foldLeft(Att()) ((acc, curr) => acc.add(downAttribute(curr)))
+
+  def productionSeq(prod: K): Seq[ProductionItem] = prod match {
+    case KApply(KLabelLookup("KProduction"), KList(KToken(str, KString, _) :: rest :: _), _) => Terminal(str.drop(1).dropRight(1)) +: productionSeq(rest)
+    case KToken(str, KString, _) => Seq(Terminal(str.drop(1).dropRight(1)))
+    case KApply(KLabelLookup("KProduction"), KList(KToken(sortName, KSort, _) :: rest :: _), _) => NonTerminal(Sort(sortName)) +: productionSeq(rest)
+    case KToken(sortName, KSort, _) => Seq(NonTerminal(Sort(sortName)))
+    case KApply(KLabelLookup("KProduction"), KList(KApply(KLabelLookup("KRegex"), KList(KToken(str, KString, _) :: _), _) :: rest :: _), _) => Terminal(str.drop(1).dropRight(1)) +: productionSeq(rest)
+  }
+
+  def downSentence(parsedSentence: K): Production = parsedSentence match {
+    case KApply(KLabelLookup("KSentenceSyntax"), KList(KToken(sortName, _, _) :: production :: atts :: _), _) =>
+      Production(Sort(sortName), productionSeq(production), downAttributes(atts))
+  }
+
+  def getAllDownModules(parsed: K, builtins: Map[String, Module]): Map[String, Module] = {
+    var decomposedModules = getASTNodes(parsed, "KModule") map decomposeModule
+    var downedModules = builtins
+
+    while (decomposedModules.nonEmpty) {
+      val (moduleName, importSet, sentences) = decomposedModules.find { case (_, importSet, _) => importSet subsetOf downedModules.keySet }.get
+      decomposedModules = decomposedModules.filterNot { case (mn, _, _) => mn == moduleName }
+      downedModules += moduleName -> Module(moduleName, importSet map downedModules, sentences map downSentence)
+    }
+    downedModules
+  }
+
+  def getAllDownModules(parsed: K): Map[String, Module] = getAllDownModules(parsed, Map.empty: Map[String, Module])
+
+  def testDown(parsed: K): Any = {
+    val downer = Down(Set("scala.collection.immutable", "org.kframework.attributes"))
+    downer(parsed)
+  }
+
+//  def getHookName(node: K): String = node match {
+//    case KApply(KLabelLookup("hook"), KList(KToken(hookName, KAttributeKey, _) :: _), _) => hookName
+//  }
+//
+//
+////  def down[A](node: K): A = node match {
+////    case KApply(_, KList(subNodes), atts) if atts contains "hook" => hook(getHookName(atts.getK("hook").get), subNodes)
+////    case KApply(KLabelLookup(hookName), KList(subNodes), _) => hook(hookName, subNodes)
+////  }
+//
+//  def downModule(subNodes: List[K]): Module = ???
+//
+//  def downSentence (subNodes: List[K]): Production = subNodes match {
+//    case KApply(KLabelLookup(sortName), _, _) :: prod :: attributes :: nil =>
+//      Production("KSentence", Sort(sortName), productionSeq(prod), downAttributes(attributes))
+//  }
+//
+//
+//  def down(parsed: K): Any = parsed match {
+//    case KApply(KLabelLookup("KSentenceSyntax"), KList(KToken(sortName, _, _) :: production :: atts :: _), _)
+//      => Production(Sort(sortName), productionSeq(production), down(atts))
+//    case parsedAttributes@KApply(KLabelLookup("KAttributes"), _, _)
+//      => getASTNodes(parsedAttributes, "KAttribute", "KAttributeApply").foldLeft(Att()) ((acc, curr) => acc.add(down(curr)))
+//    case KApply(KLabelLookup("KAttributeApply"), KList(KToken(fnc, KAttributeKey, _) :: keyList :: _), _)
+//      => asKApply(fnc, getASTTokens(keyList, KAttributeKey) map { case KToken(arg, KAttributeKey, _) => arg })
+//  }
+//
+//  def hook(hookName: String): (List[K] => Any) = hookName match {
+//    //case ("KModule", moduleName :: importList :: sentenceList :: nil) => ???
+//    case "KModule" => downModule
+//    case "KSentence" => downSentence
+//    //case ("KSentence", sort :: prod :: attributes :: nil) =>
+//      ///Production("KSentence", down[ADT.Sort](sort), down[Seq[ProductionItem]](prod), down[Att](attributes))
+//      //syntax(down[ADT.SortLookup](sort)) is down[ProductionItem](prod) down[Att](attributes)
+
+//  }
+
+
 
 }
