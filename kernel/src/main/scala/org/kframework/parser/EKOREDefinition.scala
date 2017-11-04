@@ -39,8 +39,6 @@ object ParserNormalization {
   // Disagreements on encoding
   // =========================
 
-  // TODO: fix toKoreEncoding
-
   val toKoreEncodingProdItems: Pattern => Pattern = {
     case Application("KTerminal@K-PRETTY-PRODUCTION", Application(str, Nil) :: followRegex) => Application(iTerminal, S(str) :: followRegex)
     case Application("KRegexTerminal@K-PRETTY-PRODUCTION", Seq(Application(precede, Nil), Application(regex, Nil), Application(follow, Nil)))
@@ -56,11 +54,19 @@ object ParserNormalization {
     case pattern                                                      => pattern
   }
 
+  val toKoreEncodingSentences: Sentence => Sentence = {
+    case Import(name, atts)                         => Import(name, atts map toKoreEncodingAttributes)
+    case SortDeclaration(sort, atts)                => SortDeclaration(sort, atts map toKoreEncodingAttributes)
+    case SymbolDeclaration(sort, label, args, atts) => SymbolDeclaration(sort, label, args, atts map toKoreEncodingAttributes)
+    case Rule(pattern, atts)                        => Rule(pattern, atts map toKoreEncodingAttributes)
+    case Axiom(pattern, atts)                       => Axiom(pattern, atts map toKoreEncodingAttributes)
+  }
+
   val toKoreEncodingMod: Module => Module = {
     case Module(name, sentences, atts) =>
       val koreEncodingAttributes = atts map toKoreEncodingAttributes
       val priorityDummyAxioms = getAttributeKey(iSyntaxPriority, koreEncodingAttributes) map (kp => dummySentence(Seq(Application(iSyntaxPriority, kp map (kpg => Application(iSyntaxPriorityGroup, flattenByLabels("KSymbolList", ".KSymbolList")(kpg)))))))
-      Module(name, sentences ++ priorityDummyAxioms, koreEncodingAttributes)
+      Module(name, (sentences ++ priorityDummyAxioms) map toKoreEncodingSentences, koreEncodingAttributes)
   }
 
   val toKoreEncodingDef: Definition => Definition = {
