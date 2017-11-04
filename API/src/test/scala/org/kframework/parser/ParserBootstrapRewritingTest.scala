@@ -7,17 +7,18 @@ import org.junit.Assert._
 import org.kframework.kore.ADT.SortLookup
 import org.kframework.kore._
 import org.kframework.definition.Module
-
 import org.kframework.definition.KDefinitionDSL._
 import org.kframework.definition.KOREDefinition._
 import org.kframework.definition.Definition
 import org.kframework.parser.KOREDowner._
 import org.kframework.backend.java.symbolic._
-import org.kframework.KapiGlobal
+import org.kframework.{HookProvider, KapiGlobal}
 import org.kframework.rewriter._
 
-import collection.JavaConverters.mapAsJavaMap
 import java.util.Optional
+
+import org.kframework.main.GlobalOptions
+import org.kframework.utils.errorsystem.KExceptionManager
 
 object ExpDefinition {
   import org.kframework.kore.ADT._
@@ -130,8 +131,8 @@ class ParserBootstrapRewritingTest {
     val parser: ParseInModule = new ParseInModule(topModule)
     val parsedTerm: K         = runParser(parser, term, ADT.SortLookup(termSort))
 
-    val definition: Definition           = Definition(topModule, Set(topModule))
-    val initRewriter: InitializeRewriter = new InitializeRewriter(new KapiGlobal, mapAsJavaMap(Map.empty).asInstanceOf[java.util.Map[String,java.lang.invoke.MethodHandle]], new InitializeRewriter.InitializeDefinition)
+    // val definition: Definition           = Definition(topModule, Set(topModule))
+    val initRewriter: InitializeRewriter = new InitializeRewriter(new KapiGlobal, HookProvider.get(new KExceptionManager(new GlobalOptions)), new InitializeRewriter.InitializeDefinition)
     val symbRewriter: Rewriter           = initRewriter(topModule)
 
     symbRewriter.execute(parsedTerm, Optional.ofNullable(maxSteps.orNull)).k
