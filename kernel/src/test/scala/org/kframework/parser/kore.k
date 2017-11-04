@@ -59,7 +59,7 @@ module KSENTENCE
   imports KML
   imports KBUBBLE
 
-  syntax KTerminal ::= KString,
+  syntax KTerminal ::= KString
   syntax KTerminal ::= "r" KString [klabel(KRegex)]
   syntax KNonTerminal ::= KSymbol
 
@@ -73,19 +73,19 @@ module KSENTENCE
   syntax KAttributes ::= "" [klabel(.KAttributes)]
   syntax KAttributes ::= "[" KMLPatternList "]" [klabel(KAttributes)]
 
-  syntax KSentence ::= "imports" KSymbol KAttributes                  [klabel("KImport")]
-  syntax KSentence ::= "syntax" KSymbol KAttributes                   [klabel("KSortDeclaration")]
-  syntax KSentence ::= "syntax" KSymbol "::=" KProduction KAttributes [klabel("KSyntaxProduction")]
-  syntax KSentence ::= "syntax" KSymbol "::=" KMLPattern KAttributes  [klabel("KSymbolDeclaration")]
-  syntax KSentence ::= "syntax" "priority" KPriority KAttributes      [klabel("KSyntaxPriority")]
-  syntax KSentence ::= "rule" KBubble KAttributes                     [klabel("KRule")]
+  syntax KSentence ::= "imports" KSymbol KAttributes                  [klabel(KImport)]
+  syntax KSentence ::= "syntax" KSymbol KAttributes                   [klabel(KSortDeclaration)]
+  syntax KSentence ::= "syntax" KSymbol "::=" KProduction KAttributes [klabel(KSyntaxProduction)]
+  syntax KSentence ::= "syntax" KSymbol "::=" KMLPattern KAttributes  [klabel(KSymbolDeclaration)]
+  syntax KSentence ::= "syntax" "priority" KPriority KAttributes      [klabel(KSyntaxPriority)]
+  syntax KSentence ::= "rule" KBubble KAttributes                     [klabel(KRule)]
 
   syntax KSentenceList ::= KSentence
-  syntax KSentenceList ::= "" att klabel(".KSentenceList"),
-  syntax KSentenceList ::= (KSentence, KSentenceList) att klabel("KSentenceList")
+  syntax KSentenceList ::= "" [klabel(.KSentenceList)]
+  syntax KSentenceList ::= KSentence KSentenceList [klabel(KSentenceList)]
 
-  // TODO: Why doesn't this work?
-  //syntax KSentenceList ::= (KSentenceList, KSentenceList) [klabel("KSentenceList"), "assoc", "comm"] kunit(".KSentenceList"))
+  // TODO: Why doesn't this work? Answer: KSentenceList can be empty syntax, parsing ambiguities
+  //syntax KSentenceList ::= KSentenceList KSentenceList [klabel(KSentenceList), assoc, comm, unit(.KSentenceList)]
 endmodule
 
 
