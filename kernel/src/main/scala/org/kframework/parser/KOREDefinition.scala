@@ -1,11 +1,8 @@
-package org.kframework.minikore
+package org.kframework.parser
 
 import org.kframework.minikore.MiniKore._
 import org.kframework.minikore.MiniKoreOuterUtils._
 
-/**
-  * Created by lpena on 10/11/16.
-  */
 
 object KDefinitionDSL {
 
