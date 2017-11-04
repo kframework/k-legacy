@@ -3,6 +3,7 @@ package org.kframework.parser
 import org.apache.commons.lang3.StringEscapeUtils
 import org.kframework.minikore.MiniKore._
 import org.kframework.minikore.KoreToMini._
+import org.kframework.minikore.MiniKoreOuterUtils._
 import org.kframework.minikore.MiniKorePatternUtils._
 import org.kframework.minikore.MiniKoreMeta._
 import org.kframework.parser.KDefinitionDSL._
@@ -15,32 +16,37 @@ object ParserNormalization {
 
   def stripString(front: Int, back: Int): String => String = (str: String) => StringEscapeUtils.unescapeJava(str drop front dropRight back)
 
+  def removeSubNodes(label: String): Pattern => Pattern = {
+    case Application(name, args) => Application(name, args filterNot { case Application(`label`, _) => true case _ => false })
+    case pattern                 => pattern
+  }
+
   // Normalization passes
   // ====================
 
   val removeParseInfo: Pattern => Pattern = {
     case Application("#", Application("#", actual :: _) :: _) => actual
-    case pattern => pattern
+    case pattern                                              => pattern
   }
 
   val normalizeTokens: Pattern => Pattern = {
-    case dv@DomainValue("KSymbol@KTOKENS", _) => upDomainValue(dv)
+    case dv@DomainValue("KSymbol@KTOKENS", _)     => upDomainValue(dv)
     case DomainValue(name@"KString@KTOKENS", str) => upDomainValue(DomainValue(name, stripString(1, 1)(str)))
-    case DomainValue("KMLPattern@KML", name) => Application("KMLApplication", Seq(upSymbol(name)))
-    case pattern => pattern
+    case DomainValue("KMLPattern@KML", name)      => Application("KMLApplication", Seq(upSymbol(name)))
+    case pattern                                  => pattern
   }
 
   // Disagreements on encoding
   // =========================
 
   def toKoreEncoding: Pattern => Pattern = {
-    case Application("KTerminal@K-PRETTY-PRODUCTION", Application(str, Nil) :: followRegex) => Application(iTerminal, S(str) :: followRegex)
+    case Application("KTerminal@K-PRETTY-PRODUCTION", Application(str, Seq.empty) :: followRegex) => Application(iTerminal, S(str) :: followRegex)
     case Application("KRegexTerminal@K-PRETTY-PRODUCTION", Application(precede, Nil) :: Application(regex, Nil) :: Application(follow, Nil) :: Nil)
-                                                                                            => Application(iRegexTerminal, Seq(S(precede), S(regex), S(follow)))
-    case Application("KNonTerminal@K-PRETTY-PRODUCTION", Application(str, Nil) :: Nil)      => Application(iNonTerminal, Seq(S(str)))
-    case Application(`iMainModule`, Application(modName, Nil) :: Nil)                       => Application(iMainModule, Seq(S(modName)))
-    case Application(`iEntryModules`, Application(modName, Nil) :: Nil)                     => Application(iEntryModules, Seq(S(modName)))
-    case pattern                                                                            => pattern
+                                                                                                  => Application(iRegexTerminal, Seq(S(precede), S(regex), S(follow)))
+    case Application("KNonTerminal@K-PRETTY-PRODUCTION", Application(str, Nil) :: Nil)            => Application(iNonTerminal, Seq(S(str)))
+    case Application(`iMainModule`, Seq(Application(modName, Nil)))                               => Application(iMainModule, Seq(S(modName)))
+      case Application(`iEntryModules`, Seq(Application(modName, Nil)))                           => Application(iEntryModules, Seq(S(modName)))
+      case pattern                                                                                => pattern
   }
 
   // Preprocessing
@@ -123,13 +129,24 @@ object EKOREDefinition {
   val K_CONCRETE_RULES: Module = module("K-CONCRETE-RULES",
     imports("KML"),
 
-    syntax(KBubbleItem) is Regex(KBubbleRegex) att("token", application("reject2", "rule|syntax|endmodule|configuration|context")),
+    syntax(KBubbleItem) is Regex(KBubbleRegex) att("avoid", "token", application("reject2", "rule|syntax|endmodule|configuration|context")),
 
-    syntax(KBubble) is (KBubble, KBubbleItem) att(klabel("KBubble"), "avoid", "token"),
-    syntax(KBubble) is KBubbleItem att("avoid", "token"),
+    syntax(KBubble) is (KBubble, KBubbleItem) att(klabel("KBubble"), "avoid"),
+    syntax(KBubble) is KBubbleItem att "avoid",
 
     syntax(KMLPattern) is KBubble
   )
+
+  def mkRuleParserDefinition(astDef: Pattern): Definition = {
+    val defn = downDefinition(traverseTopDown(removeSubNodes("KRule"))(astDef))
+    val mainModuleName = getAttributeKey(iMainModule, defn.att) match { case Seq(Seq(Application(name, Nil))) => name }
+    val sorts = allSorts(defn) toSeq
+    val newSentences = sorts flatMap (sort => Seq(syntax(Sort(sort)) is KMLVariable, syntax(KMLPattern) is Sort(sort))) map (_.att())
+    val ruleParserModuleName = mainModuleName + "-RULE-PARSER"
+    val ruleParserModule = Module(ruleParserModuleName, imports(mainModuleName) +: imports("KML") +: newSentences, Seq.empty)
+    val ruleParserAtts = updateAttribute(iMainModule, Application(ruleParserModuleName, Nil)) andThen updateAttribute(iEntryModules, Application(ruleParserModuleName, Nil))
+    Definition(defn.modules :+ ruleParserModule :+ KML :+ KTOKENS, ruleParserAtts(defn.att))
+  }
 
   def mkParser(d: Definition): String => Pattern = input => {
     import org.kframework.parser.concrete2kore.ParseInModule
@@ -137,29 +154,27 @@ object EKOREDefinition {
     import org.kframework.kore.ADT.SortLookup
     import org.kframework.minikore.MiniToKore
     import org.kframework.minikore.KoreToMini
-    import org.kframework.minikore.MiniKoreOuterUtils._
 
-    val mainModuleName = getAttributeKey(`KoreToMini.iMainModule`, d.att) match { Seq(Seq(Application(name, Nil))) => name }
-    val allSorts = allSorts(d)
-    val newModules = d.modules collect {
-      case Module(`mainModuleName`, sentences, att) => {
-        val newSentences = allSorts(d) flatMap (sort => Seq(syntax(sort) is KMLVariable, syntax(KMLPattern) is sort))
-        Module(mainModuleName, sentences ++ newSentences, att)
-      }
-      case module => module
-    }
-    val ruleParserDef = Definition(newModules, d.att)
-
-    val parser = new ParseInModule(MiniToKore(onAttributesDef(traverseTopDown(toKoreEncoding))(ruleParserDef)))
+    val parser = new ParseInModule(MiniToKore(onAttributesDef(traverseTopDown(toKoreEncoding))(d)).mainModule)
     parser.parseString(input, SortLookup("KMLPattern"), Source(""))._1 match {
       case Right(x) => KoreToMini(x)
       case Left(y) => throw new Error("runParser error: " + y.toString)
     }
   }
 
-  def resolveRuleBubbles(parser: String => Pattern): Pattern => Pattern = {
-    case b@Application("KBubble", _) => parser(flattenByLabels("KBubble")(b) map { case DomainValue("KBubbleItem@K-CONCRETE-RULES", str) => str } mkString)
+  def resolveBubbles(parser: String => Pattern): Pattern => Pattern = {
+    case b@Application("KBubble", _) => parser(flattenByLabels("KBubble")(b) map { case DomainValue("KBubbleItem@K-CONCRETE-RULES", str) => str } mkString " ")
     case pattern                     => pattern
+  }
+
+  def resolveRules(parser: String => Pattern): Pattern => Pattern = {
+    case Application("KRule", rule :: atts :: Nil) => Application("KRule", Seq(preProcess(traverseTopDown(resolveBubbles(parser))(rule)), atts))
+    case pattern                                   => pattern
+  }
+
+  def resolveDefinitionRules(parsed: Pattern): Pattern = {
+    val ruleParser = mkParser(mkRuleParserDefinition(parsed))
+    traverseTopDown(resolveRules(ruleParser))(parsed)
   }
 
   // EKORE
