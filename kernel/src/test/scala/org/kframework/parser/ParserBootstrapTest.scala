@@ -9,11 +9,11 @@ import org.kframework.kore.ADT.SortLookup
 import org.kframework.minikore.MiniKore._
 import org.kframework.minikore.KoreToMini
 import org.kframework.minikore.MiniToKore
-import org.kframework.minikore.KDefinitionDSL._
 import org.kframework.minikore.MiniKoreMeta._
 import org.kframework.minikore.MiniKoreOuterUtils._
 import org.kframework.minikore.MiniKorePatternUtils._
 
+import org.kframework.parser.KDefinitionDSL._
 import org.kframework.parser.KOREDefinition._
 import org.kframework.parser.EKOREDefinition._
 import org.kframework.parser.KToMiniKorePasses._
@@ -91,37 +91,6 @@ class ParserBootstrapTest {
     }
   def parseK(toParse: String, parseAs: String): Pattern = runParser(kParser, toParse, parseAs)
 
-  def printInfo(parsedPattern: Pattern, origModule: Module, downedModule: Module): Unit = {
-    println("PARSED AS:")
-    println("===================")
-    println(parsedPattern)
-    println("===================")
-    println("ORIG MODULE:")
-    println("=====================")
-    println(origModule)
-    println("=====================")
-    println("DOWNED MODULE:")
-    println("=======================")
-    println(downedModule)
-    println("=======================")
-    println("\n\n")
-  }
-
-  def expressionTest(): Unit = {
-    import ExpDefinition._
-//    println("==================")
-//    println(KOREDef)
-//    println("==================")
-//    println(MiniToKore(KOREDef))
-//    println("==================")
-    val parsed = parseK(expSentence, "KSentence")
-    println(preProcess(parsed))
-    //val parsed2 = preProcess(parseK(zeroProduction, "KProduction"))
-    //val downed = downModules(parsed)
-    //printInfo("EXP", parsed, EXP, downed)
-    //assertEquals(Seq(EXP), downed)
-  }
-
   def profiling(): Unit = {
     val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
     val KORE40_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore40.k").mkString
@@ -132,39 +101,31 @@ class ParserBootstrapTest {
     val end = System.currentTimeMillis()
     println("Parsing once: " + (start40 - start))
     println("Parsing 40 times: " + (end - start40))
-
   }
 
-  def kdefFixpoint(): Unit = {
+  @Test def kdefFixpoint(): Unit = {
     val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
     val parsed = preProcess(parseK(KORE_STRING, "KDefinition"))
-    println(parsed)
     val downed = downDefinition(parsed)
-    println()
-    println("----- DOWNED -----")
-    println(downed)
-    assertEquals(KORE.modules map { case Module(name, _, _) => name }, downed.modules map { case Module(name, _, _) => name })
-    KORE.modules foreach { case Module(name, sentences, atts) =>
-      val (dSents, dAtts) = downed.modules collect { case Module(`name`, downedSentences, downedAtts) => (downedSentences, downedAtts) } head;
-      println("MODULE: " + name)
-      assertEquals(sentences, dSents)
-      assertEquals(atts, dAtts)
-    }
+    assertEquals(KORE, downed)
   }
 
   @Test def sentenceTest(): Unit = {
     import ExpDefinition._
 
     val sentenceTests: Seq[(Sentence, String)]
-        = Seq( (symbol(Exp, "mystmt", Stmt)              , """syntax Exp := mystmt(Stmt)"""                                                                     )
-             , (symbol(Exp, "_", Stmt) att kprod(Stmt)   , """syntax Exp ::= Stmt"""                                                                            )
-             , (syntax(Exp) is Stmt att klabel("mystmt") , """syntax Exp := mystmt(Stmt) [klabel(mystmt), production(KNonTerminal@K-PRETTY-PRODUCTION(Stmt))]""")
-             , (syntax(Exp) is Stmt                      , """syntax Exp ::= Stmt"""                                                                            )
-             , (syntax(Exp) is Stmt att klabel("mystmt") , """syntax Exp ::= Stmt [klabel(mystmt)]"""                                                           )
-             , (syntax(Exp) is ("true", Stmt)            , """syntax Exp ::= "true" Stmt"""                                                                     )
+        = Seq( (symbol(Exp, "mystmt", Stmt)               , """syntax Exp := mystmt(Stmt)"""                                                                     )
+             , (symbol(Exp, "_", Stmt) att kprod(Stmt)    , """syntax Exp ::= Stmt"""                                                                            )
+             , (syntax(Exp) is Stmt att klabel("mystmt")  , """syntax Exp := mystmt(Stmt) [klabel(mystmt), production(KNonTerminal@K-PRETTY-PRODUCTION(Stmt))]""")
+             , (syntax(Exp) is Stmt                       , """syntax Exp ::= Stmt"""                                                                            )
+             , (syntax(Exp) is Stmt att klabel("mystmt")  , """syntax Exp ::= Stmt [klabel(mystmt)]"""                                                           )
+             , (syntax(Exp) is ("true", Stmt)             , """syntax Exp ::= "true" Stmt"""                                                                     )
+             , (syntax(Exp) is Regex("[^ \n\r\t]+")       , """syntax Exp ::= r"[^ \n\r\t]+""""                                                                  )
+             , (syntax(Exp) is Regex(" a\n\r\tb")         , """syntax Exp ::= r" a\n\r\tb""""                                                                    )
+             , (syntax(Exp) is Regex("`[^ a\n\r\tb]+`")   , """syntax Exp ::= r"`[^ a\n\r\tb]+`""""                                                              )
              )
 
-    sentenceTests.foreach { sentStr =>
+    sentenceTests foreach { sentStr =>
       val parsed = preProcess(parseK(sentStr._2, "KSentence"))
       assertEquals(sentStr._1, downSentence(parsed))
     }
