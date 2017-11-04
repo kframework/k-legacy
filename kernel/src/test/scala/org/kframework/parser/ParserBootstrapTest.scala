@@ -47,6 +47,7 @@ object ExpDefinition {
     """
 
   val Exp = Sort("Exp")
+  val Stmt = Sort("Stmt")
   val SubExp1 = Sort("SubExp1")
   val SubExp2 = Sort("SubExp2")
   val EXP: Module = module("EXP",
@@ -76,7 +77,8 @@ object ExpDefinition {
 }
 
 class ParserBootstrapTest {
-  val miniDef = MiniToKore(KOREDef)
+  import MiniKoreStaging._
+  val miniDef = MiniToKore(onAttributesDef(traverseTopDown(toMiniKoreEncoding))(KOREDef))
   val mainMod = miniDef.mainModule
   val kParser = new ParseInModule(mainMod)
 
@@ -118,7 +120,7 @@ class ParserBootstrapTest {
     //assertEquals(Seq(EXP), downed)
   }
 
-  @Test def profiling(): Unit = {
+  def profiling(): Unit = {
     val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
     val KORE40_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore40.k").mkString
     val start = System.currentTimeMillis()
@@ -147,4 +149,17 @@ class ParserBootstrapTest {
       assertEquals(atts, dAtts)
     }
   }
+
+  @Test def sentenceTest(): Unit = {
+    import ExpDefinition._
+    val sentenceString = """syntax Exp := mystmt(Stmt) [klabel(mystmt), production(#NonTerminal(Stmt))]"""
+    val sentenceConcrete: SymbolDeclaration = syntax(Exp) is Stmt att klabel("mystmt")
+    println(sentenceConcrete)
+    val parsed = preProcess(parseK(sentenceString, "KSentence"))
+    println(parsed)
+    val downed = downSentence(parsed)
+    assertEquals(sentenceConcrete, downed)
+
+  }
+
 }
