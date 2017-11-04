@@ -101,7 +101,7 @@ class ParserBootstrapTest {
     assertEquals(downRules(EXP), downed)
   }
 
-  def kdefFixpoint(): Unit = {
+  @Test def kdefFixpoint(): Unit = {
 
     //val KORE_STRING = io.Source.fromFile("/Users/lpena/kframework/k/kernel/src/test/scala/org/kframework/parser/kore.k").mkString
     val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
