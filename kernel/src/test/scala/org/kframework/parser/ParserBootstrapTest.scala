@@ -1,4 +1,4 @@
-package org.kframework.definition
+package org.kframework.parser
 
 import org.kframework.attributes.Source
 import org.kframework.parser.concrete2kore.ParseInModule
@@ -6,14 +6,15 @@ import org.junit.Test
 import org.junit.Assert._
 import org.kframework.kore.ADT.SortLookup
 import org.kframework.kore._
-import org.kframework.kore.KORE._
-import org.kframework.builtin.KLabels.ML_FALSE
+import org.kframework.definition.Module
 
-class KParserBootstrapTest {
-  import KDefinitionDSL._
-  import KoreDefintion._
-  import KoreSyntaxDown._
-  import ExpDefinition._
+import org.kframework.definition.KDefinitionDSL._
+import org.kframework.definition.KOREDefinition._
+import org.kframework.definition.ExpDefinition._
+import org.kframework.parser.KOREDowner._
+
+class ParserBootstrapTest {
+
 
   val kParser = new ParseInModule(KDEFINITION)
   def runParser(parser: ParseInModule, toParse: String, parseAs: SortLookup): K =
@@ -45,12 +46,12 @@ class KParserBootstrapTest {
 
   def kdefFixpoint(): Unit = {
 
-    val KORE_STRING = io.Source.fromFile("src/test/scala/kore.k").mkString
+    val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
     val parsed = preProcess(parseK(KORE_STRING, KDefinition))
     val builtins: Map[String, Module] = Map.empty
     val downed = downModules(parsed, builtins)
 
-    KORE.foreach { case (name, module) => 
+    KOREDef.foreach { case (name, module) =>
 //      println(name ++ " ORIG:")
 //      println("==============")
 //       println(module)
