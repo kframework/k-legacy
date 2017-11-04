@@ -83,13 +83,14 @@ object EKOREDefinition {
 
     syntax(KProductions) is (KProduction, KAttributes) att klabel("KProductionWithAttributes"),
     syntax(KProductions) is (KProduction, KAttributes, "|", KProductions) att klabel("KProductions"),
+    syntax(KProductions) is (KProductions, ">", KProductions) att(klabel("KProductionsPriority"), "assoc"),
 
-    syntax(KPriority) is KMLPatternList,
+    syntax(KPriority) is KSymbolList,
     syntax(KPriority) is (KPriority, ">", KPriority) att(klabel("KPriorityItems"), "assoc"),
 
     syntax(KSentence) is ("syntax", KSymbol, KAttributes) att klabel("KSortDeclaration"),
     syntax(KSentence) is ("syntax", KSymbol, "::=", KProductions) att klabel("KSyntaxProduction"),
-    syntax(KSentence) is ("syntax", "priority", KPriority, KAttributes) att klabel("KSyntaxPriority")
+    syntax(KSentence) is ("syntax", "priority", KPriority) att klabel("KSyntaxPriority")
   )
 
   // TODO: correctly process precede/follow regex clauses
@@ -100,19 +101,36 @@ object EKOREDefinition {
     case pattern                                                       => pattern
   }
 
-  val desugarSyntaxProduction: Pattern => Pattern = {
-    case Application("KSyntaxProduction", sort :: Application("KProductionWithAttributes", production :: atts :: Nil) :: Nil) => {
+  val desugarPrettySentence: Pattern => Seq[Pattern] = {
+    case Application("KSyntaxProduction", sort :: Application("KProductionWithAttributes", production :: atts :: Nil) :: Nil) =>
       val downedAtts = downAttributes(atts)
       val prodItems  = flattenByLabels("KProduction")(traverseBottomUp(normalizeProductionItems)(production))
       val newKLabel  = upSymbol(getKLabel(downedAtts).getOrElse(prodItems map makeCtorString mkString))
       val args       = prodItems collect { case Application("KNonTerminal@K-PRETTY-PRODUCTION", Application(nt, Nil) :: Nil) => upSymbol(nt) }
-      Application("KSymbolDeclaration", Seq(sort, newKLabel, consListLeft("KSymbolList", ".KSymbolList")(args), upAttributes(downedAtts :+ prod(prodItems))))
-    }
-    case Application("KSyntaxProduction", sort :: Application("KProductions", production :: atts :: productions :: Nil) :: Nil) => {
+      Seq(Application("KSymbolDeclaration", Seq(sort, newKLabel, consListLeft("KSymbolList", ".KSymbolList")(args), upAttributes(downedAtts :+ prod(prodItems)))))
+    case Application("KSyntaxProduction", sort :: Application("KProductions", production :: atts :: productions :: Nil) :: Nil) =>
       val firstSent = Application("KSyntaxProduction", Seq(sort, Application("KProductionWithAttributes", Seq(production, atts))))
       val restSent  = Application("KSyntaxProduction", Seq(sort, productions))
-      Application("KSentenceList", Seq(firstSent, restSent))
-    }
+      desugarPrettySentence(firstSent) ++ desugarPrettySentence(restSent)
+    case Application("KSyntaxProduction", sort :: Application("KProductionsPriority", args) :: Nil) =>
+      val (newProductions, groupedKLabels) = args map { arg =>
+        val prodGroup = flattenByLabels("KProductionsPriority")(arg)
+        val newProdGroup = prodGroup flatMap (prod => desugarPrettySentence(Application("KSyntaxProduction", Seq(sort, prod))))
+        val groupKLabels = newProdGroup collect { case Application("KSymbolDeclaration", _ :: klabel :: _ :: _ :: Nil) => klabel }
+        (newProdGroup, consListLeft("KSymbolList", ".KSymbolList")(groupKLabels))
+      } unzip
+      val prioritySentence: Application = Application("KSyntaxPriority", Seq(Application("KPriorityItems", groupedKLabels)))
+      prioritySentence +: (newProductions flatten)
+    case pattern => Seq(pattern)
+  }
+
+  val desugarPrettyModule: Pattern => Pattern = {
+    case Application("KModule", name :: sentences :: atts :: Nil) =>
+      val downedAtts = downAttributes(atts)
+      val newSentences = flattenByLabels("KSentenceList", ".KSentenceList")(sentences) flatMap desugarPrettySentence
+      val (prioritySentences, restSentences) = newSentences partition { case Application("KSyntaxPriority", _) => true case _ => false }
+      val priorities = prioritySentences map { case Application("KSyntaxPriority", priority :: Nil) => priority }
+      Application("KModule", Seq(name, consListLeft("KSentenceList", ".KSentenceList")(restSentences), upAttributes(downedAtts :+ priority(priorities))))
     case pattern => pattern
   }
 
@@ -166,13 +184,14 @@ object EKOREDefinition {
   }
 
   val upUserPattern: Pattern => Pattern = {
-    case Application(label, args) if (KTOKENS_LABELS ++ KML_LABELS) contains label => Application(label, args)
-    case Application(label, args)                                                  => Application("KMLApplication", Seq(upSymbol(label), consListLeft("KMLPatternList", ".KMLPatternList")(args)))
-    case pattern                                                                   => pattern
+    case Application("KMLApplication", (sym@Application("KMLDomainValue", Application("KSymbol@KTOKENS", Nil) :: Application(_, Nil) :: Nil)) :: children)
+                                                                                   => Application("KMLApplication", sym +: (children map upUserPattern))
+    case Application(label, args) if (KTOKENS_LABELS ++ KML_LABELS) contains label => Application(label, args map upUserPattern)
+    case Application(label, args)                                                  => Application("KMLApplication", Seq(upSymbol(label), consListLeft("KMLPatternList", ".KMLPatternList")(args map upUserPattern)))
   }
 
   def resolveRule(parser: String => Pattern): Pattern => Pattern = {
-    case Application("KRule", rule :: atts :: Nil) => Application("KRule", Seq(traverseBottomUp(upUserPattern)(traverseTopDown(resolveBubbles(parser))(rule)), atts))
+    case Application("KRule", rule :: atts :: Nil) => Application("KRule", Seq(upUserPattern(traverseTopDown(resolveBubbles(parser))(rule)), atts))
     case pattern                                   => pattern
   }
 
@@ -188,5 +207,5 @@ object EKOREDefinition {
 
   val EKORE = definition((KORE.modules :+ K_PRETTY_PRODUCTION :+ K_CONCRETE_RULES :+ EKORE_MODULE):_*) att(application(iMainModule, "EKORE"), application(iEntryModules, "EKORE"))
 
-  val ekoreToKore: Pattern => Pattern = traverseTopDown(desugarSyntaxProduction)
+  val ekoreToKore: Pattern => Pattern = traverseTopDown(desugarPrettyModule)
 }
