@@ -80,13 +80,13 @@ object KOREDowner {
 
   def downRules(module: Module): Module = {
     if (module.name == "KML") return module
-    val newImports = (module.imports map downRules) + KML + KBOOL
+    val newImports = (module.imports map downRules) + KML
     val diamondKMLSubsorts = module.localSorts flatMap (sort => Set(Production(sort, Seq(NonTerminal(KMLVar)), Att()), Production(KMLTerm, Seq(NonTerminal(sort)), Att())))
     val parser = new ParseInModule(Module(module.name, newImports, module.localSentences ++ diamondKMLSubsorts))
     val resolvedRules: Set[Rule] = module.localSentences
         .collect { case Bubble("rule", rule, atts) =>
           parser.parseString(rule, KMLRewrite, Source(""))._1 match {
-            case Right(KApply(KLabelLookup("KMLRewrite"), Args(lhs :: rhs :: _), _)) => Rule(KRewrite(lhs, rhs, atts), KORE.KToken("true", ADT.SortLookup("KBool")), KORE.KToken("true", ADT.SortLookup("KBool")))
+            case Right(KApply(KLabelLookup("KMLRewrite"), Args(lhs :: rhs :: _), _)) => Rule(KRewrite(lhs, rhs, atts), KORE.KToken("tt", ADT.SortLookup("KMLFormula")), KORE.KToken("tt", ADT.SortLookup("KMLFormula")))
             case Right(_) => throw new Error("Error: Non-rewrite bubble in rule: " ++ rule)
             case Left(y) => throw new Error("Error parsing rule: " ++ rule ++ "\n" ++ y.toString)
           }
