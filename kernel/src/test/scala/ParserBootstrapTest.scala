@@ -31,18 +31,15 @@ class KParserBootstrapTest {
   def getDownedModule(toParse: String, name: String, builtins: Map[String, Module]): Module =
     getAllDownModules(parseK(".KRequireList" + "\n" + toParse + "\n" + ".KModuleList", KDefinition), builtins)(name)
 
-  @Test def simpExp(): Unit = {
-    assertEquals(parseTest(expParser, "0 + 0", Exp), l("_+_")(k("0"), k("0")))
-  }
-
   @Test def ktokens(): Unit = {
+    println(parseK("r\"sdlakfj\" \"adslkfj\"", KProduction))
     assertEquals(parseK("\"aName0239ntehu\"", KString), t("\"aName0239ntehu\"", KString))
     assertEquals(parseK("SortName", KSort), t("SortName", KSort))
     assertEquals(parseK("klabel", KAttributeKey), t("klabel", KAttributeKey))
     assertEquals(parseK("MYMODULE", KModuleName), t("MYMODULE", KModuleName))
   }
 
-  @Test def kml(): Unit = {
+  def kml(): Unit = {
     val testVar = l("kmlvar")(t("\"testVar\"", KString))
     val kmlTrue = k("KMLtrue")
     val kmlFalse = k("KMLfalse")
@@ -57,13 +54,18 @@ class KParserBootstrapTest {
     assertEquals(parseK("kmlvar(\"testVar\") KML=> KMLtrue", KMLFormula), l("KMLnext")(testVar, kmlTrue))
   }
 
-  @Test def allDefsTest(): Unit = {
+  def allDefsTest(): Unit = {
     val parseResult = parseK(ALL_DEFS_STRING, KDefinition)
     //println(parseResult)
     //println(getSortMap(parseResult))
     //println(getASTModules(parseResult))
     assertEquals(getASTModules(parseResult).size, 4)
     assertEquals(getASTModules(parseResult), Set(KML_STRING, KATTRIBUTES_STRING, KSENTENCES_STRING, KDEFINITION_STRING).map(x => parseK(x, KModule)))
+  }
+
+  def ktokensFixpoint(): Unit = {
+    println(parseK(KTOKENS_STRING, KModule))
+    assertEquals(getDownedModule(KTOKENS_STRING, "KTOKENS", Map()), KTOKENS)
   }
 
   def kattributesFixpoint(): Unit = {
@@ -82,19 +84,19 @@ class KParserBootstrapTest {
     assertEquals(getDownedModule(KDEFINITION_STRING, "KDEFINITION", Map("KTOKENS" -> KTOKENS, "KATTRIBUTES" -> KATTRIBUTES, "KML" -> KML, "KSENTENCES" -> KSENTENCES)), KDEFINITION)
   }
 
-  @Test def entireDefinitionFixpoint(): Unit = {
+  def entireDefinitionFixpoint(): Unit = {
     assertEquals(getAllDownModules(parseK(ALL_DEFS_STRING, KDefinition), Map("KTOKENS" -> KTOKENS)),
       Map("KTOKENS" -> KTOKENS, "KATTRIBUTES" -> KATTRIBUTES, "KML" -> KML, "KSENTENCES" -> KSENTENCES, "KDEFINITION" -> KDEFINITION))
   }
 
-  @Test def actualFixpoint(): Unit = {
+  def actualFixpoint(): Unit = {
     val KDEF_PARSED_DOWN = getAllDownModules(parseK(ALL_DEFS_STRING, KDefinition), Map("KTOKENS" -> KTOKENS))("KDEFINITION")
     val newKParser = new ParseInModule(KDEF_PARSED_DOWN)
     assertEquals(getAllDownModules(parseTest(newKParser, ALL_DEFS_STRING, KDefinition), Map("KTOKENS" -> KTOKENS)),
       Map("KTOKENS" -> KTOKENS, "KATTRIBUTES" -> KATTRIBUTES, "KML" -> KML, "KSENTENCES" -> KSENTENCES, "KDEFINITION" -> KDEFINITION))
   }
 
-  @Test def simpleExpModule(): Unit = {
+  def simpleExpModule(): Unit = {
     val MYEXP_STRING =
       """
       module MYEXP
