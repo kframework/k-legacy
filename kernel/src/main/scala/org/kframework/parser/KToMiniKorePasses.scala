@@ -1,14 +1,17 @@
 package org.kframework.parser
 
-import org.kframework.minikore.MiniKore._
-import org.kframework.minikore.KoreToMini._
-import org.kframework.minikore.KDefinitionDSL._
-import org.kframework.minikore.MiniKorePatternUtils._
-import org.kframework.minikore.MiniKoreMeta._
 import org.apache.commons.lang3.StringEscapeUtils
 
+import org.kframework.minikore.MiniKore._
+import org.kframework.minikore.KoreToMini._
+import org.kframework.minikore.MiniKorePatternUtils._
+import org.kframework.minikore.MiniKoreMeta._
+
+import org.kframework.parser.KDefinitionDSL._
+
+
 object EKOREDefinition {
-  import org.kframework.minikore.KOREDefinition._
+  import org.kframework.parser.KOREDefinition._
 
   def stripString(front: Int, back: Int): String => String = (str: String) => StringEscapeUtils.unescapeJava(str drop front dropRight back)
 
