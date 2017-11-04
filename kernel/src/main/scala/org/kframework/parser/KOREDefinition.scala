@@ -111,6 +111,8 @@ object KOREDefinition {
     syntax(KString) is Regex(KRegexString) att "token"
   )
 
+  val KTOKENS_LABELS = Seq(".KSymbolList", "KSymbolList", "KSymbol@KTOKENS")
+
   // KML
   // ===
 
@@ -149,7 +151,9 @@ object KOREDefinition {
   )
 
   // TODO: Define this programatically (so that if the module changes so does it)
-  def KML_LABELS = Seq("KMLVariable", "KMLTrue", "KMLFalse", "KMLAnd", "KMLOr", "KMLNot", "KMLImplies", "KMLExists", "KMLForAll", "KMLNext", "KMLRewrite", "KMLEqual", "KMLApplication", "KMLPatternList", ".KMLPatternList")
+  def KML_LABELS = Seq( "KMLVariable", "KMLDomainValue", "KMLTrue", "KMLFalse", "KMLAnd", "KMLOr", "KMLNot", "KMLImplies"
+                      , "KMLExists", "KMLForAll", "KMLNext", "KMLRewrite", "KMLEquals", "KMLApplication", "KMLPatternList", ".KMLPatternList"
+                      )
 
   // KSENTENCE
   // =========
