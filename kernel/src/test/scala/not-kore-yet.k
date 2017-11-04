@@ -1,7 +1,3 @@
-module KSTRING
-  syntax KString ::= r"[\"](([^\"\n\r\\\\])|([\\\\][nrtf\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\"]" [token, khook(org.kframework.kore.KString)]
-endmodule
-
 // To be used when parsing/pretty-printing ground configurations
 module KSEQ
   imports KAST
