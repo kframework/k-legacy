@@ -10,10 +10,11 @@ import org.kframework.minikore.MiniKore._
 import org.kframework.minikore.KoreToMini
 import org.kframework.minikore.MiniToKore
 import org.kframework.minikore.KDefinitionDSL._
-import org.kframework.minikore.KOREDefinition._
 import org.kframework.minikore.MiniKoreMeta._
 import org.kframework.minikore.MiniKoreOuterUtils._
 import org.kframework.minikore.MiniKorePatternUtils._
+
+import org.kframework.parser.KOREDefinition._
 import org.kframework.parser.EKOREDefinition._
 import org.kframework.parser.KToMiniKorePasses._
 
