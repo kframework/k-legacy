@@ -56,27 +56,38 @@ class ParseTest {
   }
 
   @Test def simpleExpModule(): Unit = {
-    val EXPMODULE =
-      "module EXP-SYNTAX" +
-        "imports BASIC-EXP-SYNTAX" +
-        ".KImportList" +
-        "syntax Exp ::= Exp \"*\" Exp   [mul, left, strict, .KAttributes]" +
-        "syntax Exp ::= Exp \"/\" Exp   [div, left, strict, .KAttributes]" +
-        "syntax Exp ::= Exp \"+\" Exp   [plus, left, strict, .KAttributes]" +
-        ".KSentenceList" +
-      "endmodule"
+    val MYEXP_STRING =
+      """
+      module MYEXP
+        imports BASIC-EXP-SYNTAX
+        .KImportList
+        syntax MyExp ::= MyExp "*" MyExp   [mul, left, strict, .KAttributes]
+        syntax MyExp ::= MyExp "/" MyExp   [div, left, strict, .KAttributes]
+        syntax MyExp ::= MyExp "+" MyExp   [plus, left, strict, .KAttributes]
+        .KSentenceList
+      endmodule
+      """
 
-    val res = l("module___endmodule")(t("EXP-SYNTAX",KModuleName)
+    val res = l("module___endmodule")(t("MYEXP",KModuleName)
       , l("__")(l("imports_")(t("BASIC-EXP-SYNTAX", KModuleName)), k(".KImportList"))
-      , l("__")(l("_[_]")(l("syntax_::=_")(t("Exp", KSort), l("__")(t("Exp",KSort),l("__")(t("\"*\"",KString), t("Exp",KSort)))),
+      , l("__")(l("_[_]")(l("syntax_::=_")(t("MyExp", KSort), l("__")(t("MyExp",KSort),l("__")(t("\"*\"",KString), t("MyExp",KSort)))),
           l("_,_")(t("mul",KAttributeKey),l("_,_")(t("left",KAttributeKey),l("_,_")(t("strict",KAttributeKey),k(".KAttributes"))))),
-        l("__")(l("_[_]")(l("syntax_::=_")(t("Exp", KSort), l("__")(t("Exp",KSort),l("__")(t("\"/\"",KString), t("Exp",KSort)))),
+        l("__")(l("_[_]")(l("syntax_::=_")(t("MyExp", KSort), l("__")(t("MyExp",KSort),l("__")(t("\"/\"",KString), t("MyExp",KSort)))),
           l("_,_")(t("div",KAttributeKey),l("_,_")(t("left",KAttributeKey),l("_,_")(t("strict",KAttributeKey),k(".KAttributes"))))),
-        l("__")(l("_[_]")(l("syntax_::=_")(t("Exp", KSort), l("__")(t("Exp",KSort),l("__")(t("\"+\"",KString), t("Exp",KSort)))),
+        l("__")(l("_[_]")(l("syntax_::=_")(t("MyExp", KSort), l("__")(t("MyExp",KSort),l("__")(t("\"+\"",KString), t("MyExp",KSort)))),
           l("_,_")(t("plus",KAttributeKey),l("_,_")(t("left",KAttributeKey),l("_,_")(t("strict",KAttributeKey),k(".KAttributes"))))), k(".KSentenceList")))))
 
-    assertEquals(parseK(EXPMODULE, KModule), res)
-  }
+    val MyExp = Sort("MyExp")
+    val BASICEXPSYNTAX = Module("BASIC-EXP-SYNTAX", imports(), sentences())
 
+//    val MYEXP = Module("MYEXP", imports(BASICEXPSYNTAX), sentences(
+//      syntax(MyExp) is (MyExp, "*", MyExp) att("mul", "left", "strict"),
+//      syntax(MyExp) is (MyExp, "/", MyExp) att("div", "left", "strict"),
+//      syntax(MyExp) is (MyExp, "*", MyExp) att("plus", "left", "strict")
+//    ))
+
+    assertEquals(parseK(MYEXP_STRING, KModule), res)
+
+  }
 
 }
