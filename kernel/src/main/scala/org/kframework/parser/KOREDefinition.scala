@@ -1,6 +1,7 @@
 package org.kframework.parser
 
 import org.kframework.minikore.MiniKore._
+import org.kframework.minikore.KoreToMini._
 import org.kframework.minikore.MiniKoreOuterUtils._
 
 
@@ -80,7 +81,7 @@ object KOREDefinition {
   // KBUBBLE
   // =======
 
-  val KBubbleRegex = "[^ \t\n\r]+"
+  val KBubbleRegex = "[^ \n\r\t]+"
 
   val KBubbleItem = Sort("KBubbleItem")
   val KBubble = Sort("KBubble")
@@ -158,10 +159,7 @@ object KOREDefinition {
   // KSENTENCE
   // =========
 
-  val KPriority = Sort("KPriority")
-
-  val KAttributes = Sort("KAttributes")
-
+  val KAttributes   = Sort("KAttributes")
   val KSentence     = Sort("KSentence")
   val KSentenceList = Sort("KSentenceList")
 
@@ -169,15 +167,11 @@ object KOREDefinition {
     imports("KML"),
     imports("KBUBBLE"),
 
-    syntax(KPriority) is KMLPatternList,
-    syntax(KPriority) is (KPriority, ">", KPriority) att(klabel("KPriorityItems"), "assoc"),
-
     syntax(KAttributes) is "" att klabel(".KAttributes"),
     syntax(KAttributes) is ("[", KMLPatternList, "]") att klabel("KAttributes"),
 
     syntax(KSentence) is ("imports", KSymbol, KAttributes) att klabel("KImport"),
     syntax(KSentence) is ("syntax", KSymbol, ":=", KSymbol, "(", KSymbolList, ")", KAttributes) att klabel("KSymbolDeclaration"),
-    syntax(KSentence) is ("syntax", "priority", KPriority, KAttributes) att klabel("KSyntaxPriority"),
     syntax(KSentence) is ("rule", KBubble, KAttributes) att klabel("KRule"),
 
     syntax(KSentenceList) is KSentence,
@@ -209,5 +203,5 @@ object KOREDefinition {
   // KORE
   // ====
 
-  val KORE = definition(KTOKENS, KBUBBLE, KML, KSENTENCE, KDEFINITION) att (application(KoreToMini.iMainModule, "KDEFINITION"), application(KoreToMini.iEntryModules, "KDEFINITION"))
+  val KORE = definition(KBUBBLE, KTOKENS, KML, KSENTENCE, KDEFINITION) att (application(iMainModule, "KDEFINITION"), application(iEntryModules, "KDEFINITION"))
 }
