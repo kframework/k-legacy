@@ -171,7 +171,7 @@ object KoreDefintion {
   // ### KATTRIBUTES
   // TODO: Figure out these regexs.
   val KRegexAttributeKey1 = "[\\.A-Za-z\\-0-9]*"
-  val KRegexAttributeKey2 = "`(\\\\`|\\\\\\\\|[^`\\\\\n\r\t\f])+`"
+  val KRegexAttributeKey2 = "`(\\\\`|\\\\|[^`\\\\\n\r\t\f])+`"
   val KRegexAttributeKey3 = "(?![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"
   // val KRegexAttributeKey3 = """(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"""
   // the (?<! is a signal to the parser that it should be used as a "precedes" clause, do we need it?
@@ -204,7 +204,7 @@ object KoreDefintion {
 
   // ### KSTRING
   // TODO: Fix this regex
-  val KRegexString = "[\\\"](([^\\\n\\\r\\\t\\\f\\\"\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"
+  val KRegexString = "[\"](([^\n\r\t\f\"\\\\])|([\\\\][nrtf\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\"]"
 
   val KString = Sort("KString")
 
