@@ -149,9 +149,11 @@ object MiniKoreMeta {
 
  def upDefinition(concreteDefinition: Definition): Pattern = ???
 
- // TODO: Make this chase the requires list
+  def downAddedAtts(addedAtts: Seq[Pattern]): Attributes = ???
+
+  // TODO: Make this chase the requires list
   def downDefinition(parsedDefinition: Pattern): Definition = parsedDefinition match {
-     case Application("KDefinition", atts :: modules :: Nil) => Definition(downModules(modules), downAttributes(atts))
+     case Application("KDefinition", Application(atts, addedAtts) :: modules :: extraInfo) => Definition(downModules(modules), downAttributes(atts) ++ downAddedAtts(addedAtts))
   }
  
 //  def downRules(module: Module): Module = {
@@ -179,7 +181,7 @@ object MetaPasses {
 
   def flattenHashes(parsed: Pattern): Pattern = parsed match {
     case Application("#", Application(label, args) :: rest) => Application(label, args ++ rest)
-    case Application("#", (dv@DomainValue(_, _)) :: Nil)    => dv
+    case Application("#", (dv@DomainValue(_, _)) :: Nil)    => upDomainValue(dv)
     case _                                                  => parsed
   }
 
@@ -199,11 +201,18 @@ object MetaPasses {
     case _ => parsed
   }
 
-  def removeParseInfo(parsed: Pattern): Pattern = removeNodesByLabel("org.kframework.attributes.Source")(removeNodesByLabel("org.kframework.attributes.Location")(flattenHashes(parsed)))
+//  def normalizeHashes(parsed: Pattern): Pattern = parsed match {
+//    case Application("#", Application("#", args) :: rest) => Application("#", args ++ rest)
+//    case _ => parsed
+//  }
+
+  def removeParseInfoOld(parsed: Pattern): Pattern = flattenHashes(removeNodesByLabel("org.kframework.attributes.Source")(removeNodesByLabel("org.kframework.attributes.Location")(parsed)))
+
+  def removeParseInfo(parsed: Pattern): Pattern = flattenHashes(parsed)
 
   def desugarEKOREToKORE(parsed: Pattern): Pattern = syntaxProductionToSymbolDeclaration(parsed)
 
-  def allPasses(parsed: Pattern): Pattern = desugarEKOREToKORE(unescapeStrings(removeParseInfo(parsed)))
+  def allPasses(parsed: Pattern): Pattern = desugarEKOREToKORE(removeParseInfo(unescapeStrings(parsed)))
 
   def preProcess(parsed: Pattern): Pattern = traverse(allPasses)(parsed)
 }
