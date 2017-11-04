@@ -9,7 +9,7 @@ import org.kframework.kore._
   * Created by lpena on 10/11/16.
   */
 
-class test {
+object test {
 
   implicit def BecomingNonTerminal(s: ADT.SortLookup): NonTerminal = NonTerminal(s)
   implicit def BecomingTerminal(s: String): Terminal = Terminal(s)
@@ -242,6 +242,27 @@ class test {
     syntax(KRequireList) is (KRequire, KRequireList),
 
     syntax(KDefinition) is (KRequireList, KModuleList)
+
+  ))
+
+  // module EXP
+  //   .KImportList
+  //
+  //   syntax Exp ::= "0"
+  //   syntax Exp ::= "1"
+  //   syntax Exp ::= Exp "+" Exp
+  //   syntax Exp ::= Exp "*" Exp
+  //
+  // endmodule
+
+  val Exp = Sort("Exp")
+
+  val EXP = Module("EXP", imports(), sentences(
+
+    syntax(Exp) is "0",
+    syntax(Exp) is "1",
+    syntax(Exp) is (Exp, "+", Exp),
+    syntax(Exp) is (Exp, "*", Exp)
 
   ))
 
