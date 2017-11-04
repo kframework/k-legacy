@@ -66,9 +66,9 @@ module KSENTENCES
   syntax KPriority ::= KKeySet
   syntax KPriority ::= KPriority ">" KPriority [klabel(KPriorityItems), assoc]
 
-  syntax KSentence ::= "syntax" KSort [klabel(KSortDecl)]
-  syntax KSentence ::= "syntax" KSort "::=" KProduction [klabel(KProduction)]
-  syntax KSentence ::= "syntax" "priority" KPriority [klabel(KPriority)]
+  syntax KSentence ::= "syntax" KSort [klabel(KSyntaxSort)]
+  syntax KSentence ::= "syntax" KSort "::=" KProduction [klabel(KSyntaxProduction)]
+  syntax KSentence ::= "syntax" "priority" KPriority [klabel(KSyntaxPriority)]
   syntax KSentence ::= KSentence "[" KAttributes "]" [klabel(KSentenceWithAttributes)]
 
   syntax KSentenceList ::= KSentence
