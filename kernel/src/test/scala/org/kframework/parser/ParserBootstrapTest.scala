@@ -97,7 +97,7 @@ class ParserBootstrapTest {
     import ExpDefinition._
     val parsed = preProcess(parseK(expString, KDefinition))
     val downed = downRules(downModules(parsed, Map.empty)("EXP"))
-    printInfo("EXP", parsed, EXP, downed)
+    //printInfo("EXP", parsed, EXP, downed)
     assertEquals(downRules(EXP), downed)
   }
 
