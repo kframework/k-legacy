@@ -8,43 +8,58 @@ import org.kframework.minikore.MiniKore._
 
 object KDefinitionDSL {
 
-  def module(name: String, sentences: Sentence*): Module = Module(name, sentences, Seq.empty)
+  case class module(name: String, sentences: Sentence*) {
+    def att(atts: Pattern*): Module = Module(name, sentences, atts)
+  }
+  implicit def asModule(m: module): Module = m.att()
+
   def imports(name: String) = Import(name, Seq.empty)
 
   trait ProductionItem
   case class Sort(name: String) extends ProductionItem
   case class Regex(regex: String) extends ProductionItem
-  implicit case class Terminal(name: String) extends ProductionItem
+  case class Terminal(name: String) extends ProductionItem
 
-  // TODO: move to minikore
-  def getAttributeKey(key: String, atts: Attributes): Seq[Pattern] = atts.collect {
-    case dv@DomainValue(str, _) if key == str => dv
-    case ap@Application(str, _) if key == str => ap
+  implicit def asTerminal(name: String): Terminal = Terminal(name)
+
+  // TODO: move to minikore, findAtt should use it
+  def getAttributeKey(key: String, atts: Attributes): Seq[Seq[Pattern]] = atts.collect {
+    //case dv@DomainValue(str, _) if key == str => dv
+    case Application(str, args) if key == str => args
   }
 
-  def getKLabel(atts: Attributes): String = getAttributeKey("klabel", atts) match {
-    case DomainValue("klabel", value) => value
+  def getKLabel(atts: Attributes): Option[String] = getAttributeKey("klabel", atts) match {
+    case (DomainValue("KSymbol", value) :: _) :: _ => Some(value)
+    case _                                         => None
   }
 
-  def makeProductionAttribute(pis: Seq[ProductionItem]): Pattern = {
-    val prodStr = pis flatMap {
-      case Sort(name) => "_"
-      case Terminal(str) => str
+  implicit def productionItemToPatterns(pis: Seq[ProductionItem]): Seq[Pattern] = pis map {
+    case Sort(name)     => DomainValue("KSymbol", name)
+    case Terminal(name) => DomainValue("KString", name)
+    case Regex(str)     => Application("KRegex", Seq(DomainValue("KString", str)))
+  }
+
+  def productionInfo(pis: Seq[Pattern]): (String, Seq[String]) = {
+    val prodInfo = pis map {
+      case DomainValue("KString", str)                             => (str, Seq.empty)
+      case DomainValue("KSymbol", sortName)                        => ("_", Seq(sortName))
+      case Application("KRegex", DomainValue("KString", str) :: _) => ("r\"" + str + "\"", Seq.empty)
+      case _ => throw new Exception
     }
-    DomainValue("production", prodStr.mkString)
+    (prodInfo flatMap (x => x._1) mkString, prodInfo flatMap (x => x._2))
   }
 
-  case class syntax(s: Sort) {
-    def is(pis: ProductionItem*): BecomingSyntax = BecomingSyntax(s, pis)
+  case class syntax(sort: Sort, pis: Seq[ProductionItem] = Seq.empty) {
+    def is(pis: ProductionItem*): syntax = syntax(sort, pis)
+    def att(atts: Pattern*): SymbolDeclaration = SymbolDeclaration(sort.name, getKLabel(atts).getOrElse(""), pis.collect { case Sort(name) => name }, atts :+ kprod(productionInfo(pis)._1))
   }
-  case class BecomingSyntax(sort: Sort, pis: Seq[ProductionItem]) {
-    def att(atts: Pattern*): SymbolDeclaration = SymbolDeclaration(sort.name, getKLabel(atts), pis.collect { case Sort(name) => name }, atts :+ makeProductionAttribute(pis))
-  }
-  implicit def asSentence(bs: BecomingSyntax): SymbolDeclaration = bs.att()
+
+  implicit def asSentence(bs: syntax): SymbolDeclaration = bs.att()
 
   implicit def asDomainValue(name: String): DomainValue = DomainValue(name, "")
 
   def klabel(value: String): DomainValue = DomainValue("klabel", value)
+  def kprod(production: String): DomainValue = DomainValue("production", production)
   //def khook(value: String): DomainValue = DomainValue("khook", value)
   //def kunit(value: String): DomainValue = DomainValue("unit", value)
 
@@ -100,6 +115,7 @@ object KOREDefinition {
 
     syntax(KMLVariable) is (KSymbol, ":", KSymbol) att klabel("KMLVariable"),
     syntax(KMLPattern) is KMLVariable,
+    syntax(KMLPattern) is KSymbol,
     // every <SORT> should have a production like this for variables
     // syntax <SORT> ::= KID ":" "<SORT>"
 
@@ -153,9 +169,10 @@ object KOREDefinition {
     syntax(KPriority) is KMLPatternList,
     syntax(KPriority) is (KPriority, ">", KPriority) att(klabel("KPriorityItems"), "assoc"),
 
+    syntax(KAttributes) is "" att klabel(".KAttributes"),
     syntax(KAttributes) is ("[", KMLPatternList, "]") att klabel("KAttributes"),
 
-    syntax(KSentence) is ("imports", KSymbol) att klabel("KImport"),
+    syntax(KSentence) is ("imports", KSymbol, KAttributes) att klabel("KImport"),
     syntax(KSentence) is ("syntax", KSymbol, KAttributes) att klabel("KSortDeclaration"),
     syntax(KSentence) is ("syntax", KSymbol, "::=", KProduction, KAttributes) att klabel("KSyntaxProduction"),
     syntax(KSentence) is ("syntax", KSymbol, "::=", KMLPattern, KAttributes) att klabel("KSymbolDeclaration"),
@@ -187,19 +204,14 @@ object KOREDefinition {
     syntax(KRequireList) is "" att klabel(".KRequireList"),
     syntax(KRequireList) is (KRequire, KRequireList) att klabel("KRequireList"),
 
-    syntax(KModule) is ("module", KSymbol, KSentenceList, "endmodule") att klabel("KModule"),
+    syntax(KModule) is ("module", KSymbol, KSentenceList, "endmodule", KAttributes) att klabel("KModule"),
     syntax(KModuleList) is "" att klabel(".KModuleList"),
     syntax(KModuleList) is (KModule, KModuleList) att klabel("KModuleList"),
 
     syntax(KDefinition) is (KRequireList, KModuleList) att klabel("KDefinition")
-  )
+  ) att KoreToMini.iMainModule
 
 
   // ### KORE
-  val KOREDef = Map( "KTOKENS" -> KTOKENS
-                   , "KBUBBLE" -> KBUBBLE
-                   , "KML" -> KML
-                   , "KSENTENCE" -> KSENTENCE
-                   , "KDEFINITION" -> KDEFINITION
-                   )
+  val KOREDef = Definition(Seq(KTOKENS, KBUBBLE, KML, KSENTENCE, KDEFINITION), Seq.empty)
 }
