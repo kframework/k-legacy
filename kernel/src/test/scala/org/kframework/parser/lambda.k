@@ -22,8 +22,8 @@ module LAMBDA
   syntax Id ::= "a" | "b" | "c"
   syntax Val ::= Id
                | "lambda" Id "." Exp  [binder]
-  syntax Exp ::= //Val
-               Exp Exp              [strict, left]
+  syntax Exp ::= Val
+               | Exp Exp              [strict, left]
                | "(" Exp ")"          [bracket]
   syntax KVariable ::= Id
   syntax KResult ::= Val
