@@ -1,54 +1,53 @@
-package org.kframework.definition
+package org.kframework.minikore
 
-import org.kframework.attributes.Att
-import org.kframework.kore.ADT._
-import org.kframework.kore._
+import org.kframework.minikore.MiniKore._
 
 /**
   * Created by lpena on 10/11/16.
   */
 
 object KDefinitionDSL {
-  def asKApply(label: String, values: List[String]): K =
-    KORE.KApply(KORE.KLabel(label), KORE.KList(values map { value => KORE.KToken(value, ADT.SortLookup("AttributeValue"), Att()) }), Att())
-  def asKApply(label: String, values: String*): K = asKApply(label, values toList)
 
-  implicit def asAttribute(str: String): K = asKApply(str, List.empty)
-  implicit def asNonTerminal(s: ADT.SortLookup): NonTerminal = NonTerminal(s)
-  implicit def asTerminal(s: String): Terminal = Terminal(s)
-  implicit def asProduction(ps: ProductionItem*): Seq[ProductionItem] = ps
-  implicit def asSentence(bp: BecomingSyntax): Sentence = Production(bp.sort, bp.pis, Att())
-  implicit def asSentence(bp: BecomingSyntaxSort): Sentence = SyntaxSort(bp.sort, Att())
+  def module(name: String, sentences: Sentence*): Module = Module(name, sentences, Seq.empty)
+  def imports(name: String) = Import(name, Seq.empty)
 
-  def Sort(s: String): ADT.SortLookup = ADT.SortLookup(s)
+  trait ProductionItem
+  case class Sort(name: String) extends ProductionItem
+  case class Regex(regex: String) extends ProductionItem
+  implicit case class Terminal(name: String) extends ProductionItem
 
-  def regex(s: String): ProductionItem = RegexTerminal("#", s, "#")
+  // TODO: move to minikore
+  def getAttributeKey(key: String, atts: Attributes): Seq[Pattern] = atts.collect {
+    case dv@DomainValue(str, _) if key == str => dv
+    case ap@Application(str, _) if key == str => ap
+  }
 
-  case class syntax(s: ADT.SortLookup) {
+  def getKLabel(atts: Attributes): String = getAttributeKey("klabel", atts) match {
+    case DomainValue("klabel", value) => value
+  }
+
+  def makeProductionAttribute(pis: Seq[ProductionItem]): Pattern = {
+    val prodStr = pis flatMap {
+      case Sort(name) => "_"
+      case Terminal(str) => str
+    }
+    DomainValue("production", prodStr.mkString)
+  }
+
+  case class syntax(s: Sort) {
     def is(pis: ProductionItem*): BecomingSyntax = BecomingSyntax(s, pis)
   }
-  case class BecomingSyntax(sort: ADT.SortLookup, pis: Seq[ProductionItem]) {
-    def att(atts: K*): Production = Production(sort, pis, atts.foldLeft(Att())(_+_))
+  case class BecomingSyntax(sort: Sort, pis: Seq[ProductionItem]) {
+    def att(atts: Pattern*): SymbolDeclaration = SymbolDeclaration(sort.name, getKLabel(atts), pis.collect { case Sort(name) => name }, atts :+ makeProductionAttribute(pis))
   }
+  implicit def asSentence(bs: BecomingSyntax): SymbolDeclaration = bs.att()
 
-  def sort(sort: ADT.SortLookup): BecomingSyntaxSort = BecomingSyntaxSort(sort)
-  case class BecomingSyntaxSort(sort: ADT.SortLookup) {
-    def att(atts: K*): SyntaxSort = SyntaxSort(sort, atts.foldLeft(Att())(_+_))
-  }
+  implicit def asDomainValue(name: String): DomainValue = DomainValue(name, "")
 
-  def term(label: String, args: K*): K = KApply(KLabelLookup(label), KList(args.toList), Att())
-  def rule(lhs: K, rhs: K): Rule = Rule(ADT.KRewrite(lhs, rhs), KORE.KToken("tt", ADT.SortLookup("KMLFormula")), KORE.KToken("tt", ADT.SortLookup("KMLFormula")))
+  def klabel(value: String): DomainValue = DomainValue("klabel", value)
+  //def khook(value: String): DomainValue = DomainValue("khook", value)
+  //def kunit(value: String): DomainValue = DomainValue("unit", value)
 
-  def >(labels: String*): Set[Tag] = labels map Tag toSet
-  def priority(labels: Set[Tag]*): SyntaxPriority = SyntaxPriority(labels)
-
-  def imports(s: Module*): Set[Module] = s toSet
-  def sentences(s: Sentence*): Set[Sentence] = s toSet
-
-  def khook(label: String): K = asKApply("khook", List(label))
-  def klabel(label: String): K = asKApply("klabel", List(label))
-  def ktoken(label: String): K = asKApply("ktoken", List(label))
-  def kunit(label: String): K = asKApply("unit", label)
 }
 
 
@@ -62,12 +61,12 @@ object KOREDefinition {
   val KBubbleItem = Sort("KBubbleItem")
   val KBubble = Sort("KBubble")
 
-  val KBUBBLE = Module("KBUBBLE", imports(), sentences(
+  val KBUBBLE: Module = module("KBUBBLE",
     // TODO: Must make the parser actually accept reject2 in this format (as opposed to vertical bars)
-    syntax(KBubbleItem) is regex(KBubbleRegex) att("token", asKApply("reject2", "rule|syntax|endmodule|configuration|context")),
+    syntax(KBubbleItem) is Regex(KBubbleRegex) att("token", DomainValue("reject2", "rule|syntax|endmodule|configuration|context")),
     syntax(KBubble) is (KBubble, KBubbleItem) att "token",
     syntax(KBubble) is KBubbleItem att "token"
-  ))
+  )
 
 
   // ### KTOKENS
@@ -81,16 +80,14 @@ object KOREDefinition {
   val KRegexString = "[\"](([^\n\r\t\f\"\\\\])|([\\\\][nrtf\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\"]"
 
   val KSymbol = Sort("KSymbol")
-  //val KSort = Sort("KSort")
   val KString = Sort("KString")
 
-  val KTOKENS = Module("KTOKENS", imports(), sentences(
-    syntax(KSymbol) is regex(KRegexSymbol1) att "token",
-    syntax(KSymbol) is regex(KRegexSymbol2) att "token",
-    syntax(KSymbol) is regex(KRegexSymbol3) att("token", "autoReject"),
-    //syntax(KSort) is regex(KRegexSort) att("token", klabel("KSort")),
-    syntax(KString) is regex(KRegexString) att "token"
-  ))
+  val KTOKENS: Module = module("KTOKENS",
+    syntax(KSymbol) is Regex(KRegexSymbol1) att "token",
+    syntax(KSymbol) is Regex(KRegexSymbol2) att "token",
+    syntax(KSymbol) is Regex(KRegexSymbol3) att("token", "autoReject"),
+    syntax(KString) is Regex(KRegexString) att "token"
+  )
 
   
   // ### KML
@@ -98,7 +95,8 @@ object KOREDefinition {
   val KMLPattern = Sort("KMLPattern")
   val KMLPatternList = Sort("KMLPatternList")
 
-  val KML = Module("KML", imports(KTOKENS), sentences(
+  val KML: Module = module("KML",
+    imports("KTOKENS"),
 
     syntax(KMLVariable) is (KSymbol, ":", KSymbol) att klabel("KMLVariable"),
     syntax(KMLPattern) is KMLVariable,
@@ -126,37 +124,7 @@ object KOREDefinition {
 
     syntax(KMLPattern) is (KSymbol, "(", KMLPatternList, ")") att klabel("KMLApplication"),
     syntax(KMLPattern) is ("val", "(", KSymbol, ",", KString, ")") att klabel("KMLDomainValue")
-  ))
-
-
-//  // ### KATTRIBUTES
-//
-//
-//  val KAttributeKey = Sort("KAttributeKey")
-//  val KKeyList = Sort("KKeyList")
-//  val KKeySet = Sort("KKeySet")
-//  val KAttribute= Sort("KAttribute")
-//  val KAttributes= Sort("KAttributes")
-//
-//  val KATTRIBUTES = Module("KATTRIBUTES", imports(KML), sentences(
-//
-//    syntax
-//    syntax(KKeyList) is KAttributeKey,
-//    syntax(KKeyList) is "" att klabel(".KKeyList"),
-//    syntax(KKeyList) is (KKeyList, ",", KKeyList) att(klabel("KKeyList"), "assoc", kunit(".KKeyList")),
-//
-//    syntax(KKeySet) is KAttributeKey,
-//    syntax(KKeySet) is "" att klabel(".KKeySet"),
-//    syntax(KKeySet) is (KKeySet, KKeySet) att(klabel("KKeySet"), "assoc", "comm", kunit(".KKeyList")),
-//
-//    syntax(KAttribute) is KAttributeKey,
-//    syntax(KAttribute) is (KAttributeKey, "(", KKeyList, ")") att klabel("KAttributeApply"),
-//
-//    syntax(KAttributes) is KAttribute,
-//    syntax(KAttributes) is "" att klabel(".KAttributes"),
-//    syntax(KAttributes) is (KAttributes, ",", KAttributes) att(klabel("KAttributes"), "assoc", "comm", kunit(".KAttributes"))
-//  ))
-//
+  )
 
 
   // ### KSENTENCES
@@ -171,7 +139,9 @@ object KOREDefinition {
   val KSentence = Sort("KSentence")
   val KSentenceList = Sort("KSentenceList")
 
-  val KSENTENCE = Module("KSENTENCE", imports(KML, KBUBBLE), sentences(
+  val KSENTENCE: Module = module("KSENTENCE",
+    imports("KML"),
+    imports("KBUBBLE"),
 
     syntax(KTerminal) is KString,
     syntax(KTerminal) is ("r", KString) att klabel("KRegex"),
@@ -197,12 +167,11 @@ object KOREDefinition {
     syntax(KSentenceList) is (KSentence, KSentenceList) att klabel("KSentenceList")
     // TODO: Why doesn't this work?
     //syntax(KSentenceList) is (KSentenceList, KSentenceList) att(klabel("KSentenceList"), "assoc", "comm", kunit(".KSentenceList"))
-  ))
+  )
 
 
   // ### KDEFINITION
   // val KRegexModuleName = "[A-Z][A-Z\\-]*"
-
   val KRequire = Sort("KRequire")
   val KRequireList = Sort("KRequireList")
 
@@ -211,7 +180,9 @@ object KOREDefinition {
 
   val KDefinition = Sort("KDefinition")
 
-  val KDEFINITION = Module("KDEFINITION", imports(KSENTENCE), sentences(
+  val KDEFINITION: Module = module("KDEFINITION",
+    imports("KSENTENCE"),
+
     syntax(KRequire) is ("require", KString) att klabel("KRequire"),
     syntax(KRequireList) is "" att klabel(".KRequireList"),
     syntax(KRequireList) is (KRequire, KRequireList) att klabel("KRequireList"),
@@ -221,7 +192,7 @@ object KOREDefinition {
     syntax(KModuleList) is (KModule, KModuleList) att klabel("KModuleList"),
 
     syntax(KDefinition) is (KRequireList, KModuleList) att klabel("KDefinition")
-  ))
+  )
 
 
   // ### KORE
