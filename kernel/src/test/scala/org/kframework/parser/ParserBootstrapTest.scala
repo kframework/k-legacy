@@ -18,11 +18,11 @@ import org.kframework.parser.KOREDowner._
 
 object ExpDefinition {
 
-  val expSentence = "syntax Exp ::= BExp Stmt Stmt"
+  val expSentence = """syntax Exp ::= Exp "true" Stmt"""
 
   val expString =
     """
-      module
+      module EXP
         syntax Exp ::= "0" [klabel(0)]
         syntax Exp ::= "1" [klabel(1)]
         syntax Exp ::= "2" [klabel(2)]
@@ -46,6 +46,8 @@ object ExpDefinition {
     """
 
   val Exp = Sort("Exp")
+  val SubExp1 = Sort("SubExp1")
+  val SubExp2 = Sort("SubExp2")
   val EXP: Module = module("EXP",
     syntax(Exp) is "0" att klabel("0"),
     syntax(Exp) is "1" att klabel("1"),
@@ -68,6 +70,8 @@ object ExpDefinition {
     // rule(term("m", term("9"), term("4")), term("5")),
     // rule(term("t", term("7"), term("0")), term("0"))
   )
+
+  val EXP_DEF = Definition(Seq(EXP), Seq(attribute(KoreToMini.iMainModule, "EXP"), attribute(KoreToMini.iEntryModules, "EXP")))
 }
 
 
@@ -75,6 +79,7 @@ class ParserBootstrapTest {
   val miniDef = MiniToKore(KOREDef)
   val mainMod = miniDef.mainModule
   val kParser = new ParseInModule(mainMod)
+
   def runParser(parser: ParseInModule, toParse: String, parseAs: String): Pattern =
     parser.parseString(toParse, SortLookup(parseAs), Source(""))._1 match {
       case Right(x) => KoreToMini(x)
@@ -105,17 +110,17 @@ class ParserBootstrapTest {
     println("==================")
     println(MiniToKore(KOREDef))
     println("==================")
-    val parsed = parseK(expSentence, "KSentence")
+    val parsed = parseK(expString, "KModule")
     println(parsed)
-    //val parsed = preProcess(parseK(zeroProduction, "KProduction"))
+    //val parsed2 = preProcess(parseK(zeroProduction, "KProduction"))
     //val downed = downModules(parsed)
     //printInfo("EXP", parsed, EXP, downed)
     //assertEquals(Seq(EXP), downed)
   }
 
   def kdefFixpoint(): Unit = {
-    //val KORE_STRING = io.Source.fromFile("/Users/lpena/kframework/k/kernel/src/test/scala/org/kframework/parser/kore.k").mkString
-    val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
+    val KORE_STRING = io.Source.fromFile("/Users/lpena/kframework/k/kernel/src/test/scala/org/kframework/parser/kore.k").mkString
+    //val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
     val parsed = preProcess(parseK(KORE_STRING, "KDefinition"))
     val downed = downDefinition(parsed)
     assertEquals(KOREDef, downed)
