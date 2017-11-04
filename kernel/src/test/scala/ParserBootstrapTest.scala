@@ -10,6 +10,7 @@ import org.kframework.kore.KORE._
 import org.kframework.builtin.KLabels.ML_FALSE
 
 class KParserBootstrapTest {
+  import KDefinitionDSL._
   import KoreDefintion._
   import KoreDefinitionDown._
   import ExpDefinition._
@@ -27,6 +28,13 @@ class KParserBootstrapTest {
     println(runParser(expParser, "a + b * c", Exp))
   }
 
+  def regexStringTest(): Unit = {
+    println("KRegexString: " + KRegexString)
+    println("KRegex: " + regex(KRegexString).toString)
+    println(parseK(""""oenth"""", KString))
+    println(parseK(""""renuth"""", KString))
+  }
+
   @Test def kdefFixpoint(): Unit = {
 
     val KORE_STRING = io.Source.fromFile("src/test/scala/kore.k").mkString
@@ -36,17 +44,22 @@ class KParserBootstrapTest {
     val parsed = parseK(KORE_STRING, KDefinition)
     val downed = downModules(parsed, builtins)
 
-    println("DOWNED:")
+    println("PARSED:")
     println("=======")
-    println(downed)
+    println(parsed)
     println("=======")
 
-    assertEquals(KSORT, downed("KSORT"))
-    assertEquals(KBASIC, downed("KBASIC"))
-    assertEquals(KATTRIBUTES, downed("KATTRIBUTES"))
-    assertEquals(KSTRING, downed("KSTRING"))
-    //assertEquals(KML, downed("KML"))
-    assertEquals(KSENTENCES, downed("KSENTENCES"))
-    //assertEquals(KDEFINITION, downed("KDEFINITION"))
+    List(("KSORT", KSORT), ("KBASIC", KBASIC), ("KSTRING", KSTRING), ("KATTRIBUTES", KATTRIBUTES), ("KML", KML), ("KSENTENCES", KSENTENCES), ("KDEFINITION", KDEFINITION)).foreach { case (name, module) => 
+      println(name ++ " ORIG:")
+      println("==============")
+      println(module)
+      println("==============")
+      println(name ++ " DOWNED:")
+      println("================")
+      println(downed(name))
+      println("================")
+      println("\n\n")
+      assertEquals(module, downed(name))
+    }
   }
 }
