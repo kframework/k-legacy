@@ -39,7 +39,7 @@ object KDefinitionDSL {
   }
 
   def term(label: String, args: K*): K = KApply(KLabelLookup(label), KList(args.toList), Att())
-  def rule(lhs: K, rhs: K): Rule = Rule(ADT.KRewrite(lhs, rhs), KORE.KToken("true", ADT.SortLookup("KBool")), KORE.KToken("true", ADT.SortLookup("KBool")))
+  def rule(lhs: K, rhs: K): Rule = Rule(ADT.KRewrite(lhs, rhs), KORE.KToken("tt", ADT.SortLookup("KMLFormula")), KORE.KToken("tt", ADT.SortLookup("KMLFormula")))
 
   def >(labels: String*): Set[Tag] = labels map Tag toSet
   def priority(labels: Set[Tag]*): SyntaxPriority = SyntaxPriority(labels)
@@ -56,16 +56,6 @@ object KDefinitionDSL {
 
 object KOREDefinition {
   import KDefinitionDSL._
-
-
-  // TODO: This is a temporary workaround to get rules to work
-  // ### KBOOL
-  val KBool = SortLookup("KBool")
-  val KBOOL = Module("KBOOL", imports(), sentences(
-    sort(KBool),
-    syntax(KBool) is "true" att klabel("true"),
-    syntax(KBool) is "false" att klabel("false")
-  ))
 
 
   // ### KTOKENS
