@@ -16,6 +16,7 @@ object KDefinitionDSL {
   def asKApply(label: String, values: List[String]): K =
     KORE.KApply(KORE.KLabel(label), KORE.KList(values map { value => KORE.KToken(value, Sorts.KString, Att()) }), Att())
   def asKApply(label: String, values: String*): K = asKApply(label, values toList)
+  def apply(label: String, values: K*): K = KORE.KApply(KORE.KLabel(label), KORE.KList(values toList), Att())
 
   implicit def asAttribute(str: String): K = asKApply(str, List.empty)
   implicit def asNonTerminal(s: ADT.SortLookup): NonTerminal = NonTerminal(s)
@@ -40,6 +41,9 @@ object KDefinitionDSL {
     def att(atts: K*): SyntaxSort = SyntaxSort(sort, atts.foldLeft(Att())(_+_))
   }
 
+  def rule(body: K): Rule = Rule(body, KORE.KApply(KORE.KLabel("KTrue"), KList(List.empty), Att()), KORE.KApply(KORE.KLabel("KFalse"), KList(List.empty), Att()), Att())
+  // case class Rule(body: K, requires: K, ensures: K, att: Att = Att()) extends SemanticSentence with RuleToString with OuterKORE
+
   def >(labels: String*): Set[Tag] = labels map Tag toSet
   def priority(labels: Set[Tag]*): SyntaxPriority = SyntaxPriority(labels)
 
@@ -61,7 +65,8 @@ object ExpDefinition {
     syntax(Exp) is (Exp, "-", Exp) att("minus", klabel("m")),
     syntax(Exp) is (Exp, "*", Exp) att(klabel("t"), "times"),
     syntax(Exp) is (Exp, "/", Exp) att(klabel("d"), "div"),
-    priority( >("p", "t") , >("m", "d") )
+    priority( >("p", "t") , >("m", "d") ),
+    rule(apply("=>", asKApply("p", "3", "3"), asKApply("6")))
   ))
 }
 
@@ -79,12 +84,26 @@ object KoreDefintion {
   ))
 
 
+  // ### KBUBBLE
+  val KBubbleRegex = "[^ \t\n\r]+"
+
+  val KBubbleItem = Sort("KBubbleItem")
+  val KBubble = Sort("KBubble")
+
+  val KBUBBLE = Module("KBUBBLE", imports(), sentences(
+    // TODO: Must make the parser actually accept reject2 in this format (as opposed to vertical bars)
+    syntax(KBubbleItem) is regex(KBubbleRegex) att("token", asKApply("reject2", "rule", "syntax", "endmodule", "configuration", "context")),
+    syntax(KBubble) is (KBubble, KBubbleItem) att("token"),
+    syntax(KBubble) is KBubbleItem att("token")
+  ))
+
+
   // ### KATTRIBUTES
   val KRegexAttributeKey1 = "[\\.A-Za-z\\-0-9]*"
   val KRegexAttributeKey2 = "`(\\\\`|\\\\\\\\|[^`\\\\\n\r\t\f])+`"
   val KRegexAttributeKey3 = "(?![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"
+  // TODO: the (?<! is a signal to the parser that it should be used as a "precedes" clause, do we need it?
   // val KRegexAttributeKey3 = """(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"""
-  // the (?<! is a signal to the parser that it should be used as a "precedes" clause, do we need it?
 
   val KAttributeKey = Sort("KAttributeKey")
   val KKeyList = Sort("KKeyList")
@@ -215,6 +234,7 @@ object KoreDefintion {
 
   // ### KORE
   val KORE = Map( "KSTRING" -> KSTRING
+                , "KBUBBLE" -> KBUBBLE
                 , "KATTRIBUTES" -> KATTRIBUTES
                 , "KML" -> KML
                 , "KSENTENCES" -> KSENTENCES
@@ -256,8 +276,7 @@ object KoreDefinitionDown {
 
   def downPriorityBlocks(parsedPriority: K): Seq[Set[Tag]] = parsedPriority match {
     case KApply(KLabelLookup("KPriorityItems"), KList(priorityBlocks), _) => priorityBlocks flatMap downPriorityBlocks
-    case keys@KApply(KLabelLookup("KKeySet"), _, _)                       => Seq(downKKeySet(keys) map Tag)
-    case _                                                                => Seq.empty
+    case _                                                                => Seq(downKKeySet(parsedPriority) map Tag)
   }
 
   def downSentences(parsedSentence: K, atts: Att = Att()): Set[Sentence] = parsedSentence match {
