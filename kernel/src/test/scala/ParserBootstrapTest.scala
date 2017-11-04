@@ -35,13 +35,29 @@ class KParserBootstrapTest {
     println(parseK(""""renuth"""", KString))
   }
 
+  @Test def priorityTest(): Unit = {
+    val priorityString =
+      """
+      module EXP
+        syntax Exp ::= Exp "+" Exp [klabel(p), plus]
+                     > Exp "-" Exp [minus, klabel(m)]
+                     | Exp "*" Exp [klabel(t), times]
+                     > Exp "/" Exp [klabel(d), div]
+      endmodule
+      """
+    val parsed = preProcess(parseK(priorityString, KDefinition))
+    val downed = downModules(parsed, Map.empty)
+    assertEquals(EXP, downed("EXP"))
+  }
+
   @Test def kdefFixpoint(): Unit = {
 
-    val KORE_STRING = io.Source.fromFile("src/test/scala/kore.k").mkString
+    val KORE_STRING = io.Source.fromFile("/Users/lpena/kframework/k/kernel/src/test/scala/kore.k").mkString
 
     val parsed = preProcess(parseK(KORE_STRING, KDefinition))
     val builtins: Map[String, Module] = Map.empty
     val downed = downModules(parsed, builtins)
+    println(downed)
 
     val modules = List( ("KSORT", KSORT)
                       , ("KBASIC", KBASIC)
