@@ -13,13 +13,17 @@ object KDefinitionDSL {
   case class module(name: String, sentences: Sentence*) {
     def att(atts: Pattern*): Module = Module(name, sentences, atts)
   }
+
   implicit def asModule(m: module): Module = m.att()
 
   def imports(name: String) = Import(name, Seq.empty)
 
   trait ProductionItem
+
   case class Sort(name: String) extends ProductionItem
+
   case class Regex(regex: String) extends ProductionItem
+
   case class Terminal(name: String) extends ProductionItem
 
   implicit def asTerminal(name: String): Terminal = Terminal(name)
@@ -27,27 +31,59 @@ object KDefinitionDSL {
   // TODO: move to minikore, findAtt should use it
   def getAttributeKey(key: String, atts: Attributes): Seq[Seq[Pattern]] = atts collect {
     //case dv@DomainValue(str, _) if key == str => dv
-    case Application(str, args) if key == str => args
+    case Application(`key`, args) => args
   }
 
   def getKLabel(atts: Attributes): Option[String] = getAttributeKey("klabel", atts) match {
-    case (DomainValue("KSymbol", value) :: _) :: _ => Some(value)
-    case _                                         => None
+    case Seq(Seq(Application(value, Nil))) => Some(value)
+    case _                                 => None
   }
 
 
   // TODO: This representation should probably be changed (to nested applications)
   def productionsAsPatterns(pis: Seq[ProductionItem]): Seq[Pattern] = pis map {
-    case Terminal(str)  => attribute(KoreToMini.iTerminal, str)
-    case Sort(sortName) => attribute(KoreToMini.iNonTerminal, sortName)
-    case Regex(str)     => Application(KoreToMini.iRegexTerminal, Seq(DomainValue("S", "#"), DomainValue("S", str), DomainValue("S", "#")))
+    case Terminal(str)  => application(KoreToMini.iTerminal, str)
+    case Sort(sortName) => application(KoreToMini.iNonTerminal, sortName)
+    case Regex(str)     => Application(KoreToMini.iRegexTerminal, Seq(Application("#", Nil), Application(str, Nil), Application("#", Nil)))
   }
 
   def makeCtorString(pis: Seq[Pattern]): String = pis flatMap {
-    case Application(KoreToMini.`iNonTerminal`, Seq(DomainValue("S", s)))                                                            => "_"
-    case Application(KoreToMini.`iTerminal`, DomainValue("S", str) +: followRegex)                                                   => str // should take into account the followRegex
-    case Application(KoreToMini.`iRegexTerminal`, Seq(DomainValue("S", precede), DomainValue("S", regex), DomainValue("S", follow))) => "r\"" + regex + "\"" // should take into account the precede/follow
+    case Application(KoreToMini.`iNonTerminal`, Seq(Application(_, Nil)))                                                            => "_"
+    case Application(KoreToMini.`iTerminal`, Application(str, Nil) :: followRegex :: Nil)                                            => str // should take into account the followRegex
+    case Application(KoreToMini.`iRegexTerminal`, Seq(Application(precede, Nil), Application(regex, Nil), Application(follow, Nil))) => "r\"" + regex + "\"" // should take into account the precede/follow
   } mkString
+  
+  def toMiniKoreEncoding: Pattern => Pattern = {
+    case Application(KoreToMini.`iNonTerminal`, Application(str, Nil) :: Nil)      => Application(KoreToMini.iNonTerminal, Seq(DomainValue("S", str)))
+    case Application(KoreToMini.`iTerminal`, Application(str, Nil) :: followRegex) => Application(KoreToMini.iTerminal, DomainValue("S", str) :: followRegex)
+    case Application(KoreToMini.`iRegexTerminal`, Application(precede, Nil) :: Application(regex, Nil) :: Application(follow, Nil) :: Nil) 
+                                                                                   => Application(KoreToMini.iRegexTerminal, Seq(DomainValue("S", precede), DomainValue("S", regex), DomainValue("S", follow)))
+    case pattern                                                                   => pattern
+  }
+
+  def onAttributesSent(f: Pattern => Pattern): Sentence => Sentence = {
+    case Import(name, att)                         => Import(name, att map f)
+    case SortDeclaration(sort, att)                => SortDeclaration(sort, att map f)
+    case SymbolDeclaration(sort, label, args, att) => SymbolDeclaration(sort, label, args, att map f)
+    case Rule(pattern, att)                        => Rule(pattern, att map f)
+    case Axiom(pattern, att)                       => Axiom(pattern, att map f)
+  }
+
+  def onAttributesSent2(f: Pattern => Pattern, s: Sentence): Sentence = s match {
+    case Import(name, att)                         => Import(name, att map f)
+    case SortDeclaration(sort, att)                => SortDeclaration(sort, att map f)
+    case SymbolDeclaration(sort, label, args, att) => SymbolDeclaration(sort, label, args, att map f)
+    case Rule(pattern, att)                        => Rule(pattern, att map f)
+    case Axiom(pattern, att)                       => Axiom(pattern, att map f)
+  }
+  
+  def onAttributesMod(f: Pattern => Pattern): Module => Module = {
+    case Module(name, sentences, att) => Module(name, sentences map onAttributesSent(f), att map f)
+  }
+  
+  def onAttributesDef(f: Pattern => Pattern): Definition => Definition = {
+    case Definition(modules, att) => Definition(modules map onAttributesMod(f), att map f)
+  }
 
   case class syntax(sort: Sort, pis: Seq[ProductionItem] = Seq.empty) {
     def is(pis: ProductionItem*): syntax = syntax(sort, pis)
@@ -91,7 +127,7 @@ object KOREDefinition {
   // ### KTOKENS
   //val KRegexSort = "[A-Z][A-Za-z0-9]*"
   val KRegexSymbol = "[A-Za-z0-9\\.@#\\|\\-]+"
-  //val KRegexSymbol2 = "`(\\\\`|\\\\\\\\|[^`\\\\\n\r\t\f])+`"
+  //val KRegexSymbolEscaped = "`(\\\\`|\\\\\\\\|[^`\\\\\n\r\t\f])+`"
   //val KRegexSymbol3 = "(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"
   // TODO: the (?<! is a signal to the parser that it should be used as a "precedes" clause, do we need it?
   // val KRegexAttributeKey3 = """(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"""
