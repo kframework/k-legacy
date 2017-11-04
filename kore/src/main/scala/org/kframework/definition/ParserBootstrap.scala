@@ -1,8 +1,10 @@
 package org.kframework.definition
 
 import org.kframework.attributes.Att
+import org.kframework.builtin.Sorts
 import org.kframework.kore.ADT._
 import org.kframework.kore._
+
 import collection.JavaConverters._
 //import collection.immutable.Set._
 
@@ -10,7 +12,7 @@ import collection.JavaConverters._
   * Created by lpena on 10/11/16.
   */
 
-object KParserBootsrap {
+object KParserBootstrap {
 
   implicit def BecomingNonTerminal(s: ADT.SortLookup): NonTerminal = NonTerminal(s)
   implicit def BecomingTerminal(s: String): Terminal = Terminal(s)
@@ -57,28 +59,37 @@ object KParserBootsrap {
   implicit def axiomWithoutAttributes(bax: BecomingAxiom) : Axiom =
     Axiom(bax.ax, Att())
 
+  def asKList(label: String, values: List[String]): K =
+    KORE.KApply(KORE.KLabel(label), KORE.KList(values map { value => KORE.KToken(value, Sorts.KString, Att()) }), Att())
+
   def imports(s: Module*): Set[Module] = s.toSet
   def sentences(s: Sentence*): Set[Sentence] = s.toSet
-  def klabel(label: String): K = Att.asK("klabel", label)
+  def klabel(label: String): K = asKList("klabel", List(label))
   def ktoken(label: String): K = Att.asK("ktoken", label)
 
   // TODO: Suggestion: Change `getASTNodes` to `byLabel`
-  def getASTNodes(parsed: K, nodeLabel: String): Set[K] = parsed match {
-    case node@KApply(nl, klist, _) => klist.items.asScala.flatMap(x => getASTNodes(x, nodeLabel)).toSet ++ (if (nl == KLabelLookup(nodeLabel)) Set(node) else Set.empty)
-    case _ => Set.empty
+  def getASTNodes(parsed: K, nodeLabel: String): List[K] = parsed match {
+    case node@KApply(nl, klist, _) => klist.items.asScala.flatMap(x => getASTNodes(x, nodeLabel)).toList ++ (if (nl == KLabelLookup(nodeLabel)) List(node) else List.empty)
+    case _ => List.empty
   }
-  def getASTNodes(parsed: K, nodeLabels: String*): Set[K] = nodeLabels.foldLeft(Set.empty: Set[K]) ((curr:Set[K], nL:String) => getASTNodes(parsed, nL) ++ curr)
+  def getASTNodes(parsed: K, nodeLabels: String*): List[K] = nodeLabels.foldLeft(List.empty: List[K]) ((acc, nL) => acc ++ getASTNodes(parsed, nL))
 
-  def getASTModules(parsed: K): Set[K] = getASTNodes(parsed, "KModule")
+  def getASTTokens(parsed: K, tokenName: ADT.SortLookup): List[K] = parsed match {
+    case KApply(_, KList(rest), _) => rest flatMap (x => getASTTokens(x, tokenName))
+    case token@KToken(_, tn, _) if tokenName == tn => List(token)
+    case _ => List.empty
+  }
+
+  def getASTModules(parsed: K): Set[K] = getASTNodes(parsed, "KModule") toSet
 
   def decomposeModule(parsedModule: K): (String, Set[String], Set[K]) = parsedModule match {
     case module@KApply(KLabelLookup("KModule"), KList(KToken(name, _, _) :: importList :: _), _) =>
-      (name, getASTNodes(importList, "KImport") map { case KApply(_, KList(KToken(mn, _, _) :: _), _) => mn }, getASTNodes(parsedModule, "KSentenceSyntax"))
+      (name, getASTNodes(importList, "KImport") map { case KApply(_, KList(KToken(mn, _, _) :: _), _) => mn } toSet, getASTNodes(parsedModule, "KSentenceSyntax") toSet)
   }
 
   def downAttribute(attr: K): K = attr match {
-    case KApply(KLabelLookup("KAttributeApply"), KList(KToken("klabel", KAttributeKey, _) ::
-      KApply(KLabelLookup("KKeyList"), KList(KToken(str, KAttributeKey, _) :: _), _) :: _), _) => klabel(str)
+    case KApply(KLabelLookup("KAttributeApply"), KList(KToken(fnc, KAttributeKey, _) :: keyList :: _), _)
+    => asKList(fnc, getASTTokens(keyList, KAttributeKey) map { case KToken(arg, KAttributeKey, _) => arg })
     case _ => attr
   }
 
@@ -182,7 +193,7 @@ object KParserBootsrap {
       imports KTOKENS .KImportList
       syntax KKeyList ::= ".KKeyList" [klabel(.KKeyList, .KKeyList), .KAttributes]
       syntax KKeyList ::= KAttributeKey "," KKeyList [klabel(KKeyList, .KKeyList), .KAttributes]
-      syntax KAttribute ::= KAttributeKey [klabel(KAttribute, .KKeyList), .KAttributes]
+      syntax KAttribute ::= KAttributeKey [.KAttributes]
       syntax KAttribute ::= KAttributeKey "(" KKeyList ")" [klabel(KAttributeApply, .KKeyList), .KAttributes]
       syntax KAttributes ::= ".KAttributes" [klabel(.KAttributes, .KKeyList), .KAttributes]
       syntax KAttributes ::= KAttribute "," KAttributes [klabel(KAttributes, .KKeyList), .KAttributes]
@@ -200,7 +211,7 @@ object KParserBootsrap {
     syntax(KKeyList) is (KAttributeKey, ",", KKeyList) att klabel("KKeyList"),
 
 
-    syntax(KAttribute) is KAttributeKey att klabel("KAttribute"),
+    syntax(KAttribute) is KAttributeKey,
     syntax(KAttribute) is (KAttributeKey, "(", KKeyList, ")") att klabel("KAttributeApply"),
     syntax(KAttributes) is ".KAttributes" att klabel(".KAttributes"),
     syntax(KAttributes) is (KAttribute, ",", KAttributes) att klabel("KAttributes")
