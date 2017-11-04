@@ -85,7 +85,7 @@ object test {
   // module KML
   //   imports KTOKENS .KImportList
   //
-  //   syntax KMLVar ::= "mlvar" "(" KString ")" [klabel(mlvar(_)), .KAttributes]
+  //   syntax KMLVar ::= "kmlvar" "(" KString ")" [klabel(kmlvar(_)), .KAttributes]
   //
   //   syntax KMLFormula ::= KMLVar [.KAttributes]
   //   syntax KMLFormula ::= "KMLtrue" [klabel(KMLtrue), .KAttributes]
@@ -95,7 +95,7 @@ object test {
   //   syntax KMLFormula ::= "KMLnot" KMLFormula [klabel(KMLnot_), .KAttributes]
   //   syntax KMLFormula ::= "KMLexists" KMLVar "." KMLFormula [klabel(KMLexists_._), .KAttributes]
   //   syntax KMLFormula ::= "KMLforall" KMLVar "." KMLVar [klabel(KMLforall_._), .KAttributes]
-  //   syntax KMLFormula ::= KMLFormula "K=>" KMLFormula [klabel(_K=>_), .KAttributes]
+  //   syntax KMLFormula ::= KMLFormula "KML=>" KMLFormula [klabel(_KML=>_), .KAttributes]
   //
   //   .KSentenceList
   // endmodule
@@ -105,7 +105,7 @@ object test {
 
   val KML = Module("KML", imports(KTOKENS), sentences(
 
-    syntax(KMLVar) is ("mlvar", "(", KString, ")") att klabel("mlvar(_)"),
+    syntax(KMLVar) is ("kmlvar", "(", KString, ")") att klabel("kmlvar(_)"),
 
     syntax(KMLFormula) is KMLVar,
     syntax(KMLFormula) is "KMLtrue" att klabel("KMLtrue"),
@@ -115,7 +115,7 @@ object test {
     syntax(KMLFormula) is ("KMLnot", KMLFormula) att klabel("KMLnot_"),
     syntax(KMLFormula) is ("KMLexists", KMLVar, ".", KMLFormula) att klabel("KMLexists_._"),
     syntax(KMLFormula) is ("KMLforall", KMLVar, ".", KMLVar) att klabel("KMLforall._"),
-    syntax(KMLFormula) is (KMLFormula, "K=>", KMLFormula) att klabel("_K=>_")
+    syntax(KMLFormula) is (KMLFormula, "KML=>", KMLFormula) att klabel("_KML=>_")
 
   ))
 
