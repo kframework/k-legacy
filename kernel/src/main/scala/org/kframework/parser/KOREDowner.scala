@@ -5,12 +5,14 @@ import org.kframework.attributes.Source
 
 import org.kframework.definition.KOREDefinition._
 import org.kframework.definition.KDefinitionDSL._
-import org.kframework.definition._
-import org.kframework.attributes.Att
+//import org.kframework.definition._
+//import org.kframework.attributes.Att
 import org.kframework.kore.ADT.{KList => Args, _}
-import org.kframework.kore._
+import org.kframework.kore.K
 
 import org.apache.commons.lang3.StringEscapeUtils
+
+import org.kframework.minikore.MiniKore._
 
 
 object KOREDowner {
@@ -32,41 +34,70 @@ object KOREDowner {
     case KToken(att, KAttributeKey, _)                   => Set(att)
     case _                                               => Set.empty
   }
-
-  def downAttributes(parsedAttributes: K): Att = parsedAttributes match {
-    case KApply(KLabelLookup("KAttributes"), Args(atts), _)                                              => atts.foldLeft(Att()) ((accAtt: Att, newAtt: K) => accAtt ++ downAttributes(newAtt))
-    case KApply(KLabelLookup("KAttributeApply"), Args(KToken(fnc, KAttributeKey, _) :: keyList :: _), _) => Att(asKApply(fnc, downKKeyList(keyList)))
-    case KToken(attName, KAttributeKey, _)                                                               => Att(attName)
-    case _                                                                                               => Att()
+  
+  def downVariable(parsedVariable: K): Variable = parsedVariable match {
+    case KApply(KLabelLookup("KMLVariable"), Args(KToken(name, KSymbol, _) :: KToken(sort, KSymbol, _) :: _), _) => Variable(name, sort)
   }
 
-  def downProduction(parsedProduction: K): Seq[ProductionItem] = parsedProduction match {
-    case KApply(KLabelLookup("KProductionItems"), Args(productionItems), _)    => productionItems flatMap downProduction
-    case KApply(KLabelLookup("KRegex"), Args(KToken(str, KString, _) :: _), _) => Seq(RegexTerminal("#", str, "#"))
-    case KToken(sortName, KSort, _)                                            => Seq(NonTerminal(sortName))
-    case KToken(str, KString, _)                                               => Seq(Terminal(str))
-    case _                                                                     => Seq.empty
+  def downPatternList(parsedPatternList: K): Seq[Pattern] = parsedPatternList match {
+    case KApply(KLabelLookup(".KPatternList"), _, _)                           => Seq.empty
+    case KApply(KLabelLookup("KPatternList"), Args(kPattern :: pList :: _), _) => downPattern(kPattern) +: downPatternList(pList)
+    case _                                                                     => Seq(downPattern(parsedPatternList))
   }
 
-  def downPriorityBlocks(parsedPriority: K): Seq[Set[Tag]] = parsedPriority match {
-    case KApply(KLabelLookup("KPriorityItems"), Args(priorityBlocks), _) => priorityBlocks flatMap downPriorityBlocks
-    case _                                                               => Seq(downKKeySet(parsedPriority) map Tag)
+  def downPattern(parsedPattern: K): Pattern = parsedPattern match {
+    case KApply(KLabelLookup("KMLApplication"), Args(KToken(label, KSymbol, _) :: pList :: _), _)               => Application(label, downPatternList(pList))
+    case KApply(KLabelLookup("KMLValue"), Args(KToken(label, KSymbol, _) :: KToken(value, KString, _) :: _), _) => DomainValue(label, value)
+    case KApply(KLabelLookup("KMLTrue"), _, _)                                                                  => True()
+    case KApply(KLabelLookup("KMLFalse"), _, _)                                                                 => False()
+    case KApply(KLabelLookup("KMLAnd"), Args(k1 :: k2 :: _), _) => And(downPattern(k1), downPattern(k2))
+    case KApply(KLabelLookup("KMLOr"), Args(k1 :: k2 :: _), _) => Or(downPattern(k1), downPattern(k2))
+    case KApply(KLabelLookup("KMLNot"), Args(k :: _), _) => Not(downPattern(k))
+    case KApply(KLabelLookup("KMLImplies"), Args(k1 :: k2 :: _), _) => Implies(downPattern(k1), downPattern(k2))
+    case KApply(KLabelLookup("KMLExists"), Args(v :: k :: _), _) => Exists(downVariable(v), downPattern(k))
+    case KApply(KLabelLookup("KMLForall"), Args(v :: k :: _), _) => ForAll(downVariable(v), downPattern(k))
+    case KApply(KLabelLookup("KMLNext"), Args(k :: _), _) => Next(downPattern(k))
+    case KApply(KLabelLookup("KMLRewrite"), Args(k1 :: k2 :: _), _) => Rewrite(downPattern(k1), downPattern(k2))
+    case KApply(KLabelLookup("KMLEqual"), Args(k1 :: k2 :: _), _) => Equal(downPattern(k1), downPattern(k2))
+    case _ => downVariable(parsedPattern)
   }
 
-  def downSyntaxSentences(parsedSentence: K, atts: Att = Att()): Set[Sentence] = parsedSentence match {
-    case KApply(KLabelLookup("KSentenceList"), Args(sentences), _)                                         => sentences.toSet flatMap ((pS: K) => downSyntaxSentences(pS, Att()))
-    case KApply(KLabelLookup("KSentenceWithAttributes"), Args(sentence :: newAtts :: _), _)                => downSyntaxSentences(sentence, downAttributes(newAtts) ++ atts)
-    case KApply(KLabelLookup("KSyntaxSort"), Args(KToken(sortName, KSort, _) :: _), _)                     => Set(SyntaxSort(SortLookup(sortName), atts))
-    case KApply(KLabelLookup("KSyntaxProduction"), Args(KToken(sortName, KSort, _) :: production :: _), _) => Set(Production(SortLookup(sortName), downProduction(production), atts))
-    case KApply(KLabelLookup("KSyntaxPriority"), Args(priority :: _), _)                                   => Set(SyntaxPriority(downPriorityBlocks(priority), atts))
-    case KApply(KLabelLookup("KRule"), Args(KToken(rule, KBubble, _) :: _), _)                             => Set(Bubble("rule", rule.replaceAll("\\s+$", "").replaceAll("^\\s+^", ""), atts))
-    case _                                                                                                 => Set.empty
+  def downAttributes(parsedAttributes: K): Attributes = parsedAttributes match {
+    case KApply(KLabelLookup("KAttributes"), Args(atts), _)                                              => atts map downPattern
+//    case KApply(KLabelLookup("KAttributeApply"), Args(KToken(fnc, KAttributeKey, _) :: keyList :: _), _) => Att(asKApply(fnc, downKKeyList(keyList)))
+//    case KToken(attName, KAttributeKey, _)                                                               => Att(attName)
   }
 
-  def downImports(parsedImports: K): List[String] = parsedImports match {
+//  def downProduction(parsedProduction: K): Seq[ProductionItem] = parsedProduction match {
+//    case KApply(KLabelLookup("KProductionItems"), Args(productionItems), _)    => productionItems flatMap downProduction
+//    case KApply(KLabelLookup("KRegex"), Args(KToken(str, KString, _) :: _), _) => Seq(RegexTerminal("#", str, "#"))
+//    case KToken(sortName, KSort, _)                                            => Seq(NonTerminal(sortName))
+//    case KToken(str, KString, _)                                               => Seq(Terminal(str))
+//    case _                                                                     => Seq.empty
+//  }
+
+//  def downPriorityBlocks(parsedPriority: K): Seq[Set[Tag]] = parsedPriority match {
+//    case KApply(KLabelLookup("KPriorityItems"), Args(priorityBlocks), _) => priorityBlocks flatMap downPriorityBlocks
+//    case _                                                               => Seq(downKKeySet(parsedPriority) map Tag)
+//  }
+
+  def downSortList(parsed)
+
+  def downSyntaxSentences(parsedSentence: K): Seq[Sentence] = parsedSentence match {
+    case KApply(KLabelLookup("KSentenceList"), Args(sentences), _)                                                 => sentences flatMap ((sent: K) => downSyntaxSentences(sent, Seq.empty))
+    //case KApply(KLabelLookup("KSentenceWithAttributes"), Args(sentence :: newAtts :: _), _)                => downSyntaxSentences(sentence, downAttributes(newAtts) ++ atts)
+    case KApply(KLabelLookup("KSortDeclaration"), Args(KToken(sortName, KSort, _) :: atts :: _), _)                => Seq(SortDeclaration(sortName, downAttributes(atts)))
+    case KApply(KLabelLookup("KSyntaxProduction"), Args(KToken(sortName, KSort, _) :: production :: atts :: _), _) => ??? //Seq(SymbolDeclaration(sortName, getKLabel(atts), downProduction(production), atts)
+    case KApply(KLabelLookup("KSymbolDeclaration"), Args(KToken(sortName, KSort, _) :: KToken(label, KSymbol, _) :: sortList :: atts :: _), _) => Seq(SymbolDeclaration(sortName, label, downSortList(sortList), downAttributes(atts)))
+    // case KApply(KLabelLookup("KSyntaxPriority"), Args(priority :: _), _)                                   => Seq(SyntaxPriority(downPriorityBlocks(priority), atts))
+    case KApply(KLabelLookup("KRule"), Args(KToken(rule, KBubble, _) :: _), _)                             => Seq(Bubble("rule", rule.replaceAll("\\s+$", "").replaceAll("^\\s+^", ""), atts))
+    case _                                                                                                 => Seq.empty
+  }
+
+  def downImports(parsedImports: K): Seq[Sentence] = parsedImports match {
     case KApply(KLabelLookup("KImportList"), Args(importStmt :: rest :: _), _)               => downImports(importStmt) ++ downImports(rest)
-    case KApply(KLabelLookup("KImport"), Args(KToken(importModule, KModuleName, _) :: _), _) => List(importModule)
-    case _                                                                                   => List.empty
+    case KApply(KLabelLookup("KImport"), Args(KToken(importModule, KModuleName, _) :: _), _) => Seq(Import(importModule, Seq.empty))
+    case _                                                                                   => Seq.empty
   }
 
   // TODO: Make this chase the requires list
