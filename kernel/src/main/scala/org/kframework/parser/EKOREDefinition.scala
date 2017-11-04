@@ -184,8 +184,7 @@ object EKOREDefinition {
   }
 
   val upUserPattern: Pattern => Pattern = {
-    case Application("KMLApplication", (sym@Application("KMLDomainValue", Application("KSymbol@KTOKENS", Nil) :: Application(_, Nil) :: Nil)) :: children)
-                                                                                   => Application("KMLApplication", sym +: (children map upUserPattern))
+    case sym@Application("KMLDomainValue", _)                                      => sym
     case Application(label, args) if (KTOKENS_LABELS ++ KML_LABELS) contains label => Application(label, args map upUserPattern)
     case Application(label, args)                                                  => Application("KMLApplication", Seq(upSymbol(label), consListLeft("KMLPatternList", ".KMLPatternList")(args map upUserPattern)))
   }
