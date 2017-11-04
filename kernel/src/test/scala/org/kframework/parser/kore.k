@@ -1,14 +1,6 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 
 
-module KBUBBLE
-  // TODO: Must make the parser actually accept reject2 in this format (as opposed to vertical bars)
-  syntax KBubbleItem ::= r"[^ \\t\\n\\r]+" [token, reject2(rule|syntax|endmodule|configuration|context)]
-  syntax KBubble ::= KBubble KBubbleItem   [token]
-  syntax KBubble ::= KBubbleItem           [token]
-endmodule
-
-
 module KTOKENS
   syntax KSymbol ::= r"[\\.A-Za-z\\-0-9]*"                    [token]
   syntax KSymbol ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\n\r\t\f])+`"  [token]
@@ -18,6 +10,14 @@ module KTOKENS
   // TODO: the (?<! is a signal to the parser that it should be used as a "precedes" clause, do we need it?
 
   syntax KString ::= r"[\"](([^\n\r\t\f\"\\\\])|([\\\\][nrtf\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\"]" [token]
+endmodule
+
+
+module KBUBBLE
+  // TODO: Must make the parser actually accept reject2 in this format (as opposed to vertical bars)
+  syntax KBubbleItem ::= r"[^ \\t\\n\\r]+" [token, reject2(rule|syntax|endmodule|configuration|context)]
+  syntax KBubble ::= KBubble KBubbleItem   [token]
+  syntax KBubble ::= KBubbleItem           [token]
 endmodule
 
 
