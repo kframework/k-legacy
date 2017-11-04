@@ -1,6 +1,6 @@
 package org.kframework.parser
 
-import org.kframework.attributes.Source
+import org.kframework.attributes.{Source, Att}
 import org.kframework.parser.concrete2kore.ParseInModule
 import org.junit.Test
 import org.junit.Assert._
@@ -9,8 +9,8 @@ import org.kframework.kore.ADT.SortLookup
 //import org.kframework.kore._
 //import org.kframework.definition.Module
 
+import org.kframework.kore.KORE
 import org.kframework.minikore.MiniKore._
-import org.kframework.minikore.MiniToKore
 import org.kframework.minikore.KDefinitionDSL._
 import org.kframework.minikore.KOREDefinition._
 import org.kframework.parser.KOREDowner._
@@ -18,9 +18,11 @@ import org.kframework.parser.KOREDowner._
 
 object ExpDefinition {
 
+  val expSentence = "syntax Exp ::= BExp Stmt Stmt"
+
   val expString =
     """
-      module EXP
+      module
         syntax Exp ::= "0" [klabel(0)]
         syntax Exp ::= "1" [klabel(1)]
         syntax Exp ::= "2" [klabel(2)]
@@ -62,10 +64,10 @@ object ExpDefinition {
     syntax(Exp) is (Exp, "/", Exp) att(klabel("d"), "div")
 
     // priority( >("p", "t") , >("m", "d") ),
-//    rule(term("p", term("3"), term("3")), term("6")),
-//    rule(term("m", term("9"), term("4")), term("5")),
-//    rule(term("t", term("7"), term("0")), term("0"))
-  ) att KoreToMini.iMainModule
+    // rule(term("p", term("3"), term("3")), term("6")),
+    // rule(term("m", term("9"), term("4")), term("5")),
+    // rule(term("t", term("7"), term("0")), term("0"))
+  )
 }
 
 
@@ -96,17 +98,24 @@ class ParserBootstrapTest {
     println("\n\n")
   }
 
-  def expressionTest(): Unit = {
+  @Test def expressionTest(): Unit = {
     import ExpDefinition._
-    val parsed = preProcess(parseK(expString, "KModuleList"))
-    val downed = downModules(parsed)
+    println("==================")
+    println(KOREDef)
+    println("==================")
+    println(MiniToKore(KOREDef))
+    println("==================")
+    val parsed = parseK(expSentence, "KSentence")
+    println(parsed)
+    //val parsed = preProcess(parseK(zeroProduction, "KProduction"))
+    //val downed = downModules(parsed)
     //printInfo("EXP", parsed, EXP, downed)
-    assertEquals(Seq(EXP), downed)
+    //assertEquals(Seq(EXP), downed)
   }
 
-  @Test def kdefFixpoint(): Unit = {
-    val KORE_STRING = io.Source.fromFile("/Users/lpena/kframework/k/kernel/src/test/scala/org/kframework/parser/kore.k").mkString
-    //val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
+  def kdefFixpoint(): Unit = {
+    //val KORE_STRING = io.Source.fromFile("/Users/lpena/kframework/k/kernel/src/test/scala/org/kframework/parser/kore.k").mkString
+    val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
     val parsed = preProcess(parseK(KORE_STRING, "KDefinition"))
     val downed = downDefinition(parsed)
     assertEquals(KOREDef, downed)
