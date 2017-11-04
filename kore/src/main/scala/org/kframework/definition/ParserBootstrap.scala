@@ -103,8 +103,8 @@ object KoreDefintion {
     syntax(K) is KItem att "allowChainSubsort",
 
     syntax(KList) is K att "allowChainSubsort",
-    syntax(KList) is (".KList") att(klabel(".KList"), khook("org.kframework.kore.EmptyKList")),
-    syntax(KList) is (".::KList") att(klabel(".KList"), khook("org.kframework.kore.EmptyKList")),
+    syntax(KList) is ".KList" att(klabel(".KList"), khook("org.kframework.kore.EmptyKList")),
+    syntax(KList) is ".::KList" att(klabel(".KList"), khook("org.kframework.kore.EmptyKList")),
     syntax(KList) is (KList, ",", KList) att(klabel("KList"), "left", "assoc", kunit(".KList"), khook("org.kframework.kore.KList"), "prefer")
   ))
 
@@ -138,7 +138,7 @@ object KoreDefintion {
     syntax(KAttributes) is (KAttributes, ",", KAttributes) att klabel("KAttributes"),
 
     syntax(KBott) is KAttributes,
-    syntax(KItem) is KBott att("allowChainSubsort")
+    syntax(KItem) is KBott att "allowChainSubsort"
   ))
 
 
@@ -146,11 +146,13 @@ object KoreDefintion {
   // TODO: Fix this regex
   val KRegexString = """[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"""
   val KRegexString2 = """[\"](([^\"\n\r\\])|([\\][nrtf\"\\])|([\\][x][0-9a-fA-F]{2})|([\\][u][0-9a-fA-F]{4})|([\\][U][0-9a-fA-F]{8}))*[\"]"""
+  val KRegexString3 = """[\\\"](([^\\\"\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"""
+  val KRegexString4 = """[\"](([^\"\\])|([\\][nrtf\"\\])|([\\][x][0-9a-fA-F]{2})|([\\][u][0-9a-fA-F]{4})|([\\][U][0-9a-fA-F]{8}))*[\"]"""
 
   val KString = Sort("KString")
 
   val KSTRING = Module("KSTRING", imports(), sentences(
-    syntax(KString) is regex(KRegexString) att("token", khook("org.kframework.kore.KString"))
+    syntax(KString) is regex(KRegexString3) att("token", khook("org.kframework.kore.KString"))
   ))
 
 
@@ -158,7 +160,7 @@ object KoreDefintion {
   val KMLVar = Sort("KMLVar")
   val KMLFormula = Sort("KMLFormula")
   val KML = Module("KML", imports(KSTRING), sentences(
-    sort(KMLVar) att(klabel("KMLVar")),
+    sort(KMLVar) att klabel("KMLVar"),
 
     syntax(KMLFormula) is KMLVar,
     syntax(KMLFormula) is "tt" att klabel("KMLtrue"),
@@ -208,15 +210,15 @@ object KoreDefintion {
     syntax(KSentence) is (KPreSentence, "[", KAttributes, "]") att klabel("KSentence"),
 
     syntax(KSentenceList) is "" att klabel(".KSentenceList"),
-    syntax(KSentenceList) is (KSentence, KSentenceList) att klabel("KSentenceList"),
+    syntax(KSentenceList) is (KSentence, KSentenceList) att klabel("KSentenceList")
 
-    priority( >("KRegex")
-            , >("KString")
-            , >("KSort")
-            , >("KSortDecl", "KSyntax")
-            , >("KSentence")
-            , >("KSentenceList")
-            )
+//    priority( >("KRegex")
+//            , >("KString")
+//            , >("KSort")
+//            , >("KSortDecl", "KSyntax")
+//            , >("KSentence")
+//            , >("KSentenceList")
+//            )
   ))
 
 
