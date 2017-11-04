@@ -163,7 +163,7 @@ class ParserBootstrapTest {
     ruleTests foreach { strings => assertEquals(strings._1, downSentence(resolveRule(ruleParser)(preProcess(parseK(strings._2, "KSentence"))))) }
   }
 
-  def lambdaTest(): Unit = {
+  @Test def lambdaTest(): Unit = {
     val LAMBDA_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/lambda.k").mkString
     val lambda_parsed = ekoreToKore(preProcess(parseK(LAMBDA_STRING, "KDefinition")))
     println(lambda_parsed)
