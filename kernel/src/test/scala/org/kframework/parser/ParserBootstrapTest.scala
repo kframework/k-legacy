@@ -46,6 +46,9 @@ object ExpDefinition {
         rule p(3, 3) => 6
         rule m(9, 4) => 5
         rule t(7, 0) => 0
+
+        rule 2 + 2 => 4
+        rule 6 / 3 => 2
       endmodule
     """
 
@@ -70,7 +73,10 @@ object ExpDefinition {
     // priority( >("p", "t") , >("m", "d") ),
     rule(term("p", term("3"), term("3")), term("6")),
     rule(term("m", term("9"), term("4")), term("5")),
-    rule(term("t", term("7"), term("0")), term("0"))
+    rule(term("t", term("7"), term("0")), term("0")),
+
+    rule(term("p", term("2"), term("2")), term("4")),
+    rule(term("d", term("6"), term("3")), term("2"))
   )
 
   val EXP_DEF = definition(EXP) att(application(KoreToMini.iMainModule, "EXP"), application(KoreToMini.iEntryModules, "EXP"))
@@ -142,7 +148,7 @@ class ParserBootstrapTest {
   @Test def abstractRulesTest(): Unit = {
     import ExpDefinition._
 
-    val parsed = ekoreToKore(preProcess(parseK(expString, "KDefinition")))
+    val parsed = resolveDefinitionRules(ekoreToKore(preProcess(parseK(expString, "KDefinition"))))
     val downed = downDefinition(parsed)
     assertEquals(EXP_DEF, downed)
   }
