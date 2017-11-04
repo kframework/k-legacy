@@ -22,6 +22,7 @@ object EKOREDefinition {
   val KRegexTerminal = Sort("KRegexTerminal")
   val KNonTerminal   = Sort("KNonTerminal")
   val KProduction    = Sort("KProduction")
+  val KProductions   = Sort("KProductions")
   val KPriority      = Sort("KPriority")
 
   val K_PRETTY_PRODUCTION: Module = module("K-PRETTY-PRODUCTION",
@@ -36,29 +37,37 @@ object EKOREDefinition {
     syntax(KProduction) is KNonTerminal,
     syntax(KProduction) is (KProduction, KProduction) att(klabel("KProduction"), "assoc"),
 
+    syntax(KProductions) is (KProduction, KAttributes) att klabel("KProductionWithAttributes"),
+    syntax(KProductions) is (KProduction, KAttributes, "|", KProductions) att klabel("KProductions"),
+
     syntax(KPriority) is KMLPatternList,
     syntax(KPriority) is (KPriority, ">", KPriority) att(klabel("KPriorityItems"), "assoc"),
 
     syntax(KSentence) is ("syntax", KSymbol, KAttributes) att klabel("KSortDeclaration"),
-    syntax(KSentence) is ("syntax", KSymbol, "::=", KProduction, KAttributes) att klabel("KSyntaxProduction"),
+    syntax(KSentence) is ("syntax", KSymbol, "::=", KProductions) att klabel("KSyntaxProduction"),
     syntax(KSentence) is ("syntax", "priority", KPriority, KAttributes) att klabel("KSyntaxPriority")
   )
 
   // TODO: correctly process precede/follow regex clauses
-  val normalizeProductions: Pattern => Pattern = {
+  val normalizeProductionItems: Pattern => Pattern = {
     case DomainValue(name@"KTerminal@K-PRETTY-PRODUCTION", term)       => application(name, stripString(1, 1)(term))
     case DomainValue(name@"KRegexTerminal@K-PRETTY-PRODUCTION", rterm) => Application(name, Seq(Application("#", Nil), Application(stripString(2, 1)(rterm), Nil), Application("#", Nil)))
     case DomainValue(name@"KNonTerminal@K-PRETTY-PRODUCTION", nterm)   => application(name, nterm)
     case pattern                                                       => pattern
   }
 
-  val syntaxProductionToSymbolDeclaration: Pattern => Pattern = {
-    case Application("KSyntaxProduction", sortName :: production :: atts :: Nil) => {
+  val desugarSyntaxProduction: Pattern => Pattern = {
+    case Application("KSyntaxProduction", sort :: Application("KProductionWithAttributes", production :: atts :: Nil) :: Nil) => {
       val downedAtts = downAttributes(atts)
-      val prodItems  = flattenByLabels("KProduction")(production)
+      val prodItems  = flattenByLabels("KProduction")(traverseBottomUp(normalizeProductionItems)(production))
       val newKLabel  = upSymbol(getKLabel(downedAtts).getOrElse(prodItems map makeCtorString mkString))
       val args       = prodItems collect { case Application("KNonTerminal@K-PRETTY-PRODUCTION", Application(nt, Nil) :: Nil) => upSymbol(nt) }
-      Application("KSymbolDeclaration", Seq(sortName, newKLabel, consListLeft("KSymbolList", ".KSymbolList")(args), upAttributes(downedAtts :+ prod(prodItems))))
+      Application("KSymbolDeclaration", Seq(sort, newKLabel, consListLeft("KSymbolList", ".KSymbolList")(args), upAttributes(downedAtts :+ prod(prodItems))))
+    }
+    case Application("KSyntaxProduction", sort :: Application("KProductions", production :: atts :: productions :: Nil) :: Nil) => {
+      val firstSent = Application("KSyntaxProduction", Seq(sort, Application("KProductionWithAttributes", Seq(production, atts))))
+      val restSent  = Application("KSyntaxProduction", Seq(sort, productions))
+      Application("KSentenceList", Seq(firstSent, restSent))
     }
     case pattern => pattern
   }
@@ -88,7 +97,7 @@ object EKOREDefinition {
 
   val EKORE = definition((KORE.modules :+ K_PRETTY_PRODUCTION):_*) att(application(iMainModule, "K-PRETTY-PRODUCTION"), application(iEntryModules, "K-PRETTY-PRODUCTION"))
 
-  val ekoreToKore: Pattern => Pattern = traverseBottomUp(normalizeProductions andThen syntaxProductionToSymbolDeclaration)
+  val ekoreToKore: Pattern => Pattern = traverseTopDown(desugarSyntaxProduction)
 }
 
 object KToMiniKorePasses {
