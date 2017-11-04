@@ -4,6 +4,8 @@ import org.kframework.minikore.MiniKore._
 import org.kframework.minikore.KoreToMini._
 import org.kframework.minikore.MiniKoreOuterUtils._
 
+import org.kframework.minikore.MiniKoreMeta._
+
 
 object KDefinitionDSL {
 
@@ -44,7 +46,7 @@ object KDefinitionDSL {
   def prod(production: Seq[Pattern]): Application            = Application("KProduction", production)
   def kprod(production: ProductionItem*): Application        = prod(production map productionAsPattern)
   def priority(priorities: Seq[Pattern]): Application        = Application("KSyntaxPriority", priorities)
-  def kpriority(priorities: Seq[String]*): Application       = priority(Application("KPriorityItems", priorities map upSymbolList))
+  def kpriority(priorities: Seq[String]*): Application       = priority(Seq(Application("KPriorityItems", priorities map upSymbolList)))
 
   def getKLabel(atts: Attributes): Option[String] = getAttributeKey("klabel", atts) match {
     case Seq(Seq(Application(value, Nil))) => Some(value)
@@ -119,7 +121,7 @@ object KOREDefinition {
     syntax(KSymbolList) is (KSymbol, ",", KSymbolList) att klabel("KSymbolList"),
 
     syntax(KString) is Regex(KRegexString) att "token"
-  ) att kpriority()
+  ) //att kpriority()
 
   val KTOKENS_LABELS = Seq(".KSymbolList", "KSymbolList", "KSymbol@KTOKENS")
 
