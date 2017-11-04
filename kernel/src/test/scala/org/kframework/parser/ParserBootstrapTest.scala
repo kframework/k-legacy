@@ -19,7 +19,7 @@ import org.kframework.parser.MetaPasses._
 
 object ExpDefinition {
 
-  val expSentence = """syntax Exp ::= Exp "true" Stmt"""
+  val expSentence = """syntax Exp ::= Stmt "true""""
 
   val expString =
     """
@@ -105,13 +105,13 @@ class ParserBootstrapTest {
 
   def expressionTest(): Unit = {
     import ExpDefinition._
-    println("==================")
-    println(KOREDef)
-    println("==================")
-    println(MiniToKore(KOREDef))
-    println("==================")
-    val parsed = parseK(expString, "KModule")
-    println(parsed)
+//    println("==================")
+//    println(KOREDef)
+//    println("==================")
+//    println(MiniToKore(KOREDef))
+//    println("==================")
+    val parsed = parseK(expSentence, "KSentence")
+    println(preProcess(parsed))
     //val parsed2 = preProcess(parseK(zeroProduction, "KProduction"))
     //val downed = downModules(parsed)
     //printInfo("EXP", parsed, EXP, downed)
@@ -119,7 +119,6 @@ class ParserBootstrapTest {
   }
 
   @Test def kdefFixpoint(): Unit = {
-    //val KORE_STRING = io.Source.fromFile("/Users/lpena/kframework/k/kernel/src/test/scala/org/kframework/parser/kore.k").mkString
     val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
     val parsed = preProcess(parseK(KORE_STRING, "KDefinition"))
     println(parsed)
