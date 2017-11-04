@@ -4,7 +4,6 @@ import org.kframework.attributes.Att
 import org.kframework.builtin.Sorts
 import org.kframework.kore.ADT._
 import org.kframework.kore._
-import org.kframework.meta.Down
 
 import collection.JavaConverters._
 
@@ -33,60 +32,56 @@ object KDefinitionDSL {
     def is(pis: ProductionItem*): BecomingSyntax = BecomingSyntax(s, pis)
   }
   case class BecomingSyntax(sort: ADT.SortLookup, pis: Seq[ProductionItem]) {
-    def att(atts: K*): Sentence = Production(sort, pis, atts.foldLeft(Att())(_+_))
+    def att(atts: K*): Production = Production(sort, pis, atts.foldLeft(Att())(_+_))
   }
 
   def sort(sort: ADT.SortLookup): BecomingSyntaxSort = BecomingSyntaxSort(sort)
   case class BecomingSyntaxSort(sort: ADT.SortLookup) {
-    def att(atts: K*): Sentence = SyntaxSort(sort, atts.foldLeft(Att())(_+_))
+    def att(atts: K*): SyntaxSort = SyntaxSort(sort, atts.foldLeft(Att())(_+_))
   }
 
-  def imports(s: Module*): Set[Module] = s.toSet
-  def sentences(s: Sentence*): Set[Sentence] = s.toSet
-  def khook(label: String): K = asKApply("hook", List(label))
+  def >(labels: String*): Set[Tag] = labels map Tag toSet
+  def priority(labels: Set[Tag]*): SyntaxPriority = SyntaxPriority(labels)
+
+  def imports(s: Module*): Set[Module] = s toSet
+  def sentences(s: Sentence*): Set[Sentence] = s toSet
+  def khook(label: String): K = asKApply("khook", List(label))
   def klabel(label: String): K = asKApply("klabel", List(label))
   def ktoken(label: String): K = asKApply("ktoken", List(label))
+  def kunit(label: String): K = asKApply("unit", label)
+}
+
+object ExpDefinition {
+  import KDefinitionDSL._
+
+  val Exp = Sort("Exp")
+  val EXP = Module("EXP", imports(), sentences(
+    syntax(Exp) is "a" att klabel("a"),
+    syntax(Exp) is "b" att klabel("b"),
+    syntax(Exp) is "c" att klabel("c"),
+    syntax(Exp) is (Exp, "+", Exp) att(klabel("p"), "plus"),
+    syntax(Exp) is (Exp, "*", Exp) att(klabel("t"), "times"),
+    priority( >("t") // >
+            , >("p")
+            )
+  ))
+  // plus > times => (a + b) * c
+  // times > plus => a + (b * c)
 }
 
 object KoreDefintion {
   import KDefinitionDSL._
 
-  // ### KSORT
-  var KORE_STRING =
-    """
-    module KSORT
-      syntax K [hook(K.K)]
-    endmodule
-    """
 
+  // ### KSORT
   val K = Sort("K")
+
   val KSORT = Module("KSORT", imports(), sentences(
     sort(K) att khook("K.K")
   ))
 
+
   // ### KBASIC
-  KORE_STRING +=
-    """
-    module KBASIC
-      imports KSORT
-
-      syntax KLabel
-      syntax KItem        [hook(K.KItem)]
-      syntax KConfigVar
-      syntax KBott
-      syntax KResult
-      syntax MetaVariable
-      syntax Bottom
-
-      syntax K ::= KItem  [allowChainSubsort]
-
-      syntax KList ::= K                 [allowChainSubsort]
-      syntax KList ::= ".KList"          [klabel(#EmptyKList), hook(org.kframework.kore.EmptyKList)]
-      syntax KList ::= ".::KList"        [klabel(#EmptyKList), hook(org.kframework.kore.EmptyKList)]
-      syntax KList ::= KList "," KList   [klabel(#KList), left, assoc, unit(#EmptyKList), hook(org.kframework.kore.KList), prefer]
-    endmodule
-    """
-
   val KLabel = Sort("KLabel")
   val KItem = Sort("KItem")
   val KConfigVar = Sort("KConfigVar")
@@ -95,6 +90,7 @@ object KoreDefintion {
   val KResult = Sort("KResult")
   val MetaVariable = Sort("MetaVariable")
   val Bottom = Sort("Bottom")
+
   val KBASIC = Module("KBASIC", imports(KSORT), sentences(
     sort(KLabel),
     sort(KItem) att khook("K.KItem"),
@@ -107,60 +103,28 @@ object KoreDefintion {
     syntax(K) is KItem att "allowChainSubsort",
 
     syntax(KList) is K att "allowChainSubsort",
-    syntax(KList) is (".KList") att(klabel("#EmptyKList"), khook("org.kframework.kore.EmptyKList")),
-    syntax(KList) is (".::KList") att(klabel("#EmptyKList"), khook("org.kframework.kore.EmptyKList")),
-    syntax(KList) is (KList, ",", KList) att(klabel("#KList"), "left", "assoc", asKApply("unit", "#EmptyKList"), khook("org.kframework.kore.KList"), "prefer")
-  ))
-
-  // ### KSTRING
-  val KStringRegex = """[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"""
-  KORE_STRING +=
-    """
-    module KSTRING
-      syntax KString ::= r""" + "\"" + KStringRegex + "\"" + """ [token, hook(org.kframework.kore.KString)]
-    endmodule
-    """
-
-  val KString = Sort("KString")
-  val KSTRING = Module("KSTRING", imports(), sentences(
-    syntax(KString) is regex(KStringRegex) att("token", khook("org.kframework.kore.KString"))
+    syntax(KList) is (".KList") att(klabel(".KList"), khook("org.kframework.kore.EmptyKList")),
+    syntax(KList) is (".::KList") att(klabel(".KList"), khook("org.kframework.kore.EmptyKList")),
+    syntax(KList) is (KList, ",", KList) att(klabel("KList"), "left", "assoc", kunit(".KList"), khook("org.kframework.kore.KList"), "prefer")
   ))
 
 
   // ### KATTRIBUTES
-  val KRegexAttributeKey1 = """`(\\\\`|\\\\\\\\|[^`\\\\\n\r])+`"""
-  val KRegexAttributeKey2 = """(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"""
-  KORE_STRING +=
-    """
-    module KATTRIBUTES
-      imports KSTRING
-
-      syntax KAttributeKey ::= """ + "r\"" + KRegexAttributeKey1 + "r\"" + """ [token, hook(org.kframework.kore.KLabel)]
-      syntax KAttributeKey ::= """ + "r\"" + KRegexAttributeKey2 + "r\"" + """ [token, hook(org.kframework.kore.KLabel), autoReject]
-
-      syntax KKeyList ::= KAttributeKey
-      syntax KKeyList ::= "" [klabel(.KKeyList)]
-      syntax KKeyList ::= KKeyList "," KKeyList [klabel(KKeyList)]
-
-      syntax KAttribute ::= KAttributeKey
-      syntax KAttribute ::= KAttributeKey "(" KKeyList ")" [klabel(KAttributeApply)]
-
-      syntax KAttributes ::= KAttribute
-      syntax KAttributes ::= "" [klabel(.KAttributes)]
-      syntax KAttributes ::= KAttributes "," KAttributes [klabel(KAttributes)]
-
-      syntax KBott ::= KAttributes
-      syntax KItem ::= KBott [allowChainSubsort]
-    endmodule
-    """
+  // TODO: Figure out these regexs.
+  val KRegexAttributeKey1 = """[\\.A-Za-z\\-0-9]*"""
+  val KRegexAttributeKey2 = """`(\\\\`|\\\\\\\\|[^`\\\\\n\r])+`"""
+  val KRegexAttributeKey3 = """(?![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"""
+  // val KRegexAttributeKey3 = """(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"""
 
   val KAttributeKey = Sort("KAttributeKey")
   val KKeyList = Sort("KKeyList")
   val KAttribute= Sort("KAttribute")
   val KAttributes= Sort("KAttributes")
-  val KATTRIBUTES = Module("KATTRIBUTES", imports(KSTRING), sentences(
+
+  val KATTRIBUTES = Module("KATTRIBUTES", imports(KBASIC), sentences(
     syntax(KAttributeKey) is regex(KRegexAttributeKey1) att("token", khook("org.kframework.kore.KLabel")),
-    syntax(KAttributeKey) is regex(KRegexAttributeKey2) att("token", khook("org.kframework.kore.KLabel"), "autoReject"),
+    syntax(KAttributeKey) is regex(KRegexAttributeKey2) att("token", khook("org.kframework.kore.KLabel")),
+    syntax(KAttributeKey) is regex(KRegexAttributeKey3) att("token", khook("org.kframework.kore.KLabel"), "autoReject"),
 
     syntax(KKeyList) is KAttributeKey,
     syntax(KKeyList) is "" att klabel(".KKeyList"),
@@ -177,77 +141,42 @@ object KoreDefintion {
     syntax(KItem) is KBott att("allowChainSubsort")
   ))
 
+
+  // ### KSTRING
+  // TODO: Fix this regex
+  val KRegexString = """[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"""
+  val KRegexString2 = """[\"](([^\"\n\r\\])|([\\][nrtf\"\\])|([\\][x][0-9a-fA-F]{2})|([\\][u][0-9a-fA-F]{4})|([\\][U][0-9a-fA-F]{8}))*[\"]"""
+
+  val KString = Sort("KString")
+
+  val KSTRING = Module("KSTRING", imports(), sentences(
+    syntax(KString) is regex(KRegexString) att("token", khook("org.kframework.kore.KString"))
+  ))
+
+
   // ### KML
-  KORE_STRING +=
-    """
-    module KML
-      imports KSTRING
-
-      syntax KMLVar ::= "kmlvar" "(" KString ")" [klabel(kmlvar)]
-      syntax KMLFormula ::= KMLVar
-
-      syntax KMLFormula ::= "KMLtrue" [klabel(KMLtrue)]
-      syntax KMLFormula ::= "KMLfalse" [klabel(KMLfalse)]
-
-      syntax KMLFormula ::= "KMLnot" KMLFormula [klabel(KMLnot)]
-      syntax KMLFormula ::= KMLFormula "KMLand" KMLFormula [klabel(KMLand)]
-      syntax KMLFormula ::= KMLFormula "KMLor" KMLFormula [klabel(KMLor)]
-
-      syntax KMLFormula ::= "KMLexists" KMLVar "." KMLFormula [klabel(KMLexists)]
-      syntax KMLFormula ::= "KMLforall" KMLVar "." KMLFormula [klabel(KMLforall)]
-
-      syntax KMLFormula ::= KMLFormula "KML=>" KMLFormula [klabel(KMLnext)]
-    endmodule
-    """
-
   val KMLVar = Sort("KMLVar")
   val KMLFormula = Sort("KMLFormula")
-
   val KML = Module("KML", imports(KSTRING), sentences(
-    syntax(KMLVar) is ("kmlvar", "(", KString, ")") att klabel("kmlvar"),
+    sort(KMLVar) att(klabel("KMLVar")),
+
     syntax(KMLFormula) is KMLVar,
+    syntax(KMLFormula) is "tt" att klabel("KMLtrue"),
+    syntax(KMLFormula) is "ff" att klabel("KMLfalse"),
 
-    syntax(KMLFormula) is "KMLtrue" att klabel("KMLtrue"),
-    syntax(KMLFormula) is "KMLfalse" att klabel("KMLfalse"),
+    syntax(KMLFormula) is ("~", KMLFormula) att klabel("KMLnot"),
+    syntax(KMLFormula) is (KMLFormula, "/\\", KMLFormula) att klabel("KMLand"),
+    syntax(KMLFormula) is (KMLFormula, "\\/", KMLFormula) att klabel("KMLor"),
 
-    syntax(KMLFormula) is ("KMLnot", KMLFormula) att klabel("KMLnot"),
-    syntax(KMLFormula) is (KMLFormula, "KMLand", KMLFormula) att klabel("KMLand"),
-    syntax(KMLFormula) is (KMLFormula, "KMLor", KMLFormula) att klabel("KMLor"),
+    syntax(KMLFormula) is ("E", KMLVar, ".", KMLFormula) att klabel("KMLexists"),
+    syntax(KMLFormula) is ("A", KMLVar, ".", KMLFormula) att klabel("KMLforall"),
 
-    syntax(KMLFormula) is ("KMLexists", KMLVar, ".", KMLFormula) att klabel("KMLexists"),
-    syntax(KMLFormula) is ("KMLforall", KMLVar, ".", KMLFormula) att klabel("KMLforall"),
-
-    syntax(KMLFormula) is (KMLFormula, "KML=>", KMLFormula) att klabel("KMLnext")
+    syntax(KMLFormula) is (KMLFormula, "=>", KMLFormula) att klabel("KMLnext")
   ))
+
 
   // ### KSENTENCES
   val KRegexSort = "[A-Z][A-Za-z0-9]*"
-  KORE_STRING +=
-    """
-    module KSENTENCES
-      imports KATTRIBUTES
-      imports KML
-
-      syntax KTerminal ::= KString [.KAttributes]
-      syntax KTerminal ::= "r" KString [klabel(KRegex)]
-      syntax KSort ::= """ + "r\"" + KRegexSort + "\"" + """ [token, klabel(KSort)]
-      syntax KNonTerminal ::= KSort [.KAttributes]
-
-      syntax KProductionItem ::= KTerminal [.KAttributes]
-      syntax KProductionItem ::= KNonTerminal [.KAttributes]
-      syntax KProduction ::= KProductionItem [.KAttributes]
-      syntax KProduction ::= KProductionItem KProduction [klabel(KProduction)]
-
-      syntax KPreSentence ::= "syntax" KSort [klabel(KSortDecl)]
-      syntax KPreSentence ::= "syntax" KSort "::=" KProduction [klabel(KSyntax)]
-
-      syntax KSentence ::= KPreSentence [.KAttributes]
-      syntax KSentence ::= KPreSentence "[" KAttributes "]" [klabel(KSentence)]
-
-      syntax KSentenceList ::= "" [klabel(.KSentenceList)]
-      syntax KSentenceList ::= KSentence KSentenceList [klabel(KSentenceList)]
-    endmodule
-    """
 
   val KTerminal = Sort("KTerminal")
   val KSort = Sort("KSort")
@@ -260,16 +189,17 @@ object KoreDefintion {
   val KSentence = Sort("KSentence")
   val KSentenceList = Sort("KSentenceList")
 
-  val KSENTENCES = Module("KSENTENCES", imports(KATTRIBUTES, KML), sentences(
+  val KSENTENCES = Module("KSENTENCES", imports(KSTRING, KATTRIBUTES), sentences(
+    syntax(KSort) is regex(KRegexSort) att("token", klabel("KSort")),
+
     syntax(KTerminal) is KString,
     syntax(KTerminal) is ("r", KString) att klabel("KRegex"),
-    syntax(KSort) is regex(KRegexSort) att("token", klabel("KSort")),
     syntax(KNonTerminal) is KSort,
 
     syntax(KProductionItem) is KTerminal,
     syntax(KProductionItem) is KNonTerminal,
     syntax(KProduction) is KProductionItem,
-    syntax(KProduction) is (KProductionItem, KProduction) att klabel("KProduction"),
+    syntax(KProduction) is (KProductionItem, KProduction) att(klabel("KProduction"), "assoc"),
 
     syntax(KPreSentence) is ("syntax", KSort) att klabel("KSortDecl"),
     syntax(KPreSentence) is ("syntax", KSort, "::=", KProduction) att klabel("KSyntax"),
@@ -278,32 +208,20 @@ object KoreDefintion {
     syntax(KSentence) is (KPreSentence, "[", KAttributes, "]") att klabel("KSentence"),
 
     syntax(KSentenceList) is "" att klabel(".KSentenceList"),
-    syntax(KSentenceList) is (KSentence, KSentenceList) att klabel("KSentenceList")
+    syntax(KSentenceList) is (KSentence, KSentenceList) att klabel("KSentenceList"),
+
+    priority( >("KRegex")
+            , >("KString")
+            , >("KSort")
+            , >("KSortDecl", "KSyntax")
+            , >("KSentence")
+            , >("KSentenceList")
+            )
   ))
+
 
   // ### KDEFINITION
   val KRegexModuleName = "[A-Z][A-Z\\-]*"
-  KORE_STRING +=
-    """
-    module KDEFINITION
-      imports KSENTENCES
-
-      syntax KRequire ::= "require" KString [klabel(KRequire)]
-      syntax KRequireList ::= "" [klabel(.KRequireList)]
-      syntax KRequireList ::= KRequire KRequireList [klabel(KRequireList)]
-
-      syntax KModuleName ::= """ + "r\"" + KRegexModuleName + "\"" + """ [token, klabel(KModuleName)]
-      syntax KImport ::= "imports" KModuleName [klabel(KImport)]
-      syntax KImportList ::= "" [klabel(.KImportList)]
-      syntax KImportList ::= KImport KImportList [klabel(KImportList)]
-
-      syntax KModule ::= "module" KModuleName KImportList KSentenceList "endmodule" [klabel(KModule)]
-      syntax KModuleList ::= "" [klabel(.KModuleList)]
-      syntax KModuleList ::= KModule KModuleList [klabel(KModuleList)]
-
-      syntax KDefinition ::= KRequireList KModuleList [klabel(KDefinition)]
-    endmodule
-    """
 
   val KRequire = Sort("KRequire")
   val KRequireList = Sort("KRequireList")
@@ -334,6 +252,8 @@ object KoreDefintion {
     syntax(KDefinition) is (KRequireList, KModuleList) att klabel("KDefinition")
   ))
 
+
+  // ### KORE
   val KORE = Map( "KSORT" -> KSORT
                 , "KBASIC" -> KBASIC
                 , "KSTRING" -> KSTRING
@@ -342,179 +262,6 @@ object KoreDefintion {
                 , "KSENTENCES" -> KSENTENCES
                 , "KDEFINITION" -> KDEFINITION
                 )
-
-
-
-  val REST_STRING =
-    """
-    // To be used when parsing/pretty-printing ground configurations
-    module KSEQ
-      imports KAST
-      imports K-TOP-SORT
-      syntax KBott ::= ".K"      [klabel(#EmptyK), hook(org.kframework.kore.EmptyK)]
-                     | "."       [klabel(#EmptyK), hook(org.kframework.kore.EmptyK)]
-                     | ".::K"    [klabel(#EmptyK), hook(org.kframework.kore.EmptyK)]
-                     | K "~>" K  [klabel(#KSequence), left, assoc, unit(#EmptyK), hook(org.kframework.kore.KSequence)]
-      syntax left #KSequence
-      syntax KBott     ::= "(" K ")"    [bracket]
-    endmodule
-
-    // To be used when parsing/pretty-printing symbolic configurations
-    module KSEQ-SYMBOLIC
-      imports KSEQ
-      syntax #KVariable ::= r"(?<![A-Za-z0-9_\\$!\\?])(\\!|\\?)?([A-Z][A-Za-z0-9'_]*|_)"   [token, autoReject, hook(org.kframework.kore.KVariable)]
-      syntax KConfigVar ::= r"(?<![A-Za-z0-9_\\$!\\?])(\\$)([A-Z][A-Za-z0-9'_]*)"          [token, autoReject]
-      syntax KBott      ::= #KVariable [allowChainSubsort]
-      syntax KBott      ::= KConfigVar [allowChainSubsort]
-      syntax KLabel     ::= #KVariable [allowChainSubsort]
-    endmodule
-
-    module KCELLS
-      imports KAST
-
-      syntax Cell
-      syntax Bag ::= Bag Bag  [left, assoc, klabel(#cells), unit(#cells)]
-                   | ".Bag"   [klabel(#cells)]
-                   | ".::Bag" [klabel(#cells)]
-                   | Cell     [allowChainSubsort]
-      syntax Bag ::= "(" Bag ")" [bracket]
-      syntax K ::= Bag
-      syntax Bag ::= KBott
-    endmodule
-
-    module RULE-CELLS
-      imports KCELLS
-      // if this module is imported, the parser automatically
-      // generates, for all productions that have the attribute 'cell' or 'maincell',
-      // a production like below:
-      //syntax Cell ::= "<top>" #OptionalDots K #OptionalDots "</top>" [klabel(<top>)]
-
-      syntax #OptionalDots ::= "..." [klabel(#dots)]
-                             | ""    [klabel(#noDots)]
-    endmodule
-
-    module RULE-PARSER
-      imports RULE-LISTS
-      imports RULE-CELLS
-      // imported in modules which generate rule parsers
-      // TODO: (radumereuta) don't use modules as markers to generate parsers
-    endmodule
-
-    module CONFIG-CELLS
-      imports KCELLS
-      imports RULE-LISTS
-      syntax #CellName ::= r"[a-zA-Z0-9\\-]+"  [token]
-
-      syntax Cell ::= "<" #CellName #CellProperties ">" K "</" #CellName ">" [klabel(#configCell)]
-      syntax Cell ::= "<" #CellName "/>" [klabel(#externalCell)]
-      syntax Cell ::= "<br" "/>" [klabel(#breakCell)]
-
-      syntax #CellProperties ::= #CellProperty #CellProperties [klabel(#cellPropertyList)]
-                               | ""                            [klabel(#cellPropertyListTerminator)]
-      syntax #CellProperty ::= #CellName "=" KString           [klabel(#cellProperty)]
-
-    endmodule
-
-    module REQUIRES-ENSURES
-      imports BASIC-K
-
-      syntax RuleContent ::= K                                 [klabel("#ruleNoConditions"), allowChainSubsort, latex({#1}{}{})]
-                           | K "requires" K                    [klabel("#ruleRequires"), latex({#1}{#2}{})]
-                           | K "when" K                        [klabel("#ruleRequires"), latex({#1}{#2}{})]
-                           | K "ensures"  K                    [klabel("#ruleEnsures"), latex({#1}{}{#3})]
-                           | K "requires" K "ensures" K        [klabel("#ruleRequiresEnsures"), latex({#1}{#2}{#3})]
-                           | K "when" K "ensures" K            [klabel("#ruleRequiresEnsures"), latex({#1}{#2}{#3})]
-    endmodule
-
-    module K-TOP-SORT
-      // if this module is imported, the parser automatically
-      // generates, for all sorts, productions of the form:
-      // K     ::= Sort
-      // this is part of the mechanism that allows concrete user syntax in K
-    endmodule
-
-    module K-BOTTOM-SORT
-      // if this module is imported, the parser automatically
-      // generates, for all sorts, productions of the form:
-      // Sort  ::= KBott
-      // this is part of the mechanism that allows concrete user syntax in K
-    endmodule
-
-    module K-SORT-LATTICE
-      imports K-TOP-SORT
-      imports K-BOTTOM-SORT
-    endmodule
-
-    module AUTO-CASTS
-      // if this module is imported, the parser automatically
-      // generates, for all sorts, productions of the form:
-      // Sort  ::= Sort "::Sort"
-      // Sort  ::= Sort ":Sort"
-      // KBott ::= Sort "<:Sort"
-      // Sort  ::= K    ":>Sort"
-      // this is part of the mechanism that allows concrete user syntax in K
-    endmodule
-
-    module AUTO-FOLLOW
-      // if this module is imported, the parser automatically
-      // generates a follow restriction for every terminal which is a prefix
-      // of another terminal. This is useful to prevent ambiguities such as:
-      // syntax K ::= "a"
-      // syntax K ::= "b"
-      // syntax K ::= "ab"
-      // syntax K ::= K K
-      // #parse("ab", "K")
-      // In the above example, the terminal "a" is not allowed to be followed by a "b"
-      // because it would turn the terminal into the terminal "ab".
-    endmodule
-
-    module PROGRAM-LISTS
-      imports SORT-K
-      // if this module is imported, the parser automatically
-      // replaces the default productions for lists:
-      // Es ::= E "," Es [userList("*"), klabel('_,_)]
-      //      | ".Es"    [userList("*"), klabel('.Es)]
-      // into a series of productions more suitable for programs:
-      // Es#Terminator ::= ""      [klabel('.Es)]
-      // Ne#Es ::= E "," Ne#Es     [klabel('_,_)]
-      //         | E Es#Terminator [klabel('_,_)]
-      // Es ::= Ne#Es
-      //      | Es#Terminator      // if the list is *
-    endmodule
-
-    module RULE-LISTS
-      // if this module is imported, the parser automatically
-      // adds the subsort production to the parsing module only:
-      // Es ::= E        [userList("*")]
-
-    endmodule
-
-    module DEFAULT-CONFIGURATION
-      imports BASIC-K
-
-      configuration <k> $PGM:K </k>
-    endmodule
-
-    // To be used to parse semantic rules
-    module K
-      imports KSEQ-SYMBOLIC
-      imports REQUIRES-ENSURES
-      imports K-SORT-LATTICE
-      imports AUTO-CASTS
-      imports AUTO-FOLLOW
-      syntax KBott     ::= K "=>" K     [klabel(#KRewrite), hook(org.kframework.kore.KRewrite), non-assoc]
-      syntax non-assoc #KRewrite
-
-    endmodule
-
-    // To be used to parse terms in full K
-    module K-TERM
-      imports KSEQ-SYMBOLIC
-      imports K-SORT-LATTICE
-      imports AUTO-CASTS
-      imports AUTO-FOLLOW
-    endmodule
-    """
 }
 
 object KoreDefinitionDown {
@@ -524,7 +271,7 @@ object KoreDefinitionDown {
 
   def downKKeyList(parsedKKeyList: K): List[String] = parsedKKeyList match {
     case KApply(KLabelLookup("KKeyList"), KList(list1 :: list2 :: _), _) => downKKeyList(list1) ++ downKKeyList(list2)
-    case KApply(KLabelLookup("KAttributeKey"), KList(KToken(att, KAttributeKey, _) :: _), _) => List(att)
+    case KToken(att, KAttributeKey, _) => List(att)
     case _ => List.empty
   }
 
@@ -546,8 +293,8 @@ object KoreDefinitionDown {
   def downSentences(parsedSentence: K, atts: Att = Att()): Set[Sentence] = parsedSentence match {
     case KApply(KLabelLookup("KSentenceList"), KList(sentence :: rest :: _), _) => downSentences(sentence, atts) ++ downSentences(rest, atts)
     case KApply(KLabelLookup("KSentence"), KList(preSentence :: newAtts :: _), _) => downSentences(preSentence, downAttributes(newAtts))
-    case KApply(KLabelLookup("KSortDecl"), KList(KToken(sortName, _, _) :: _), _) => Set(SyntaxSort(Sort(sortName), atts))
-    case KApply(KLabelLookup("KSyntax"), KList(KToken(sortName, _, _) :: prod :: _), _) => Set(Production(Sort(sortName), downProduction(prod), atts))
+    case KApply(KLabelLookup("KSortDecl"), KList(KToken(sortName, KSort, _) :: _), _) => Set(SyntaxSort(Sort(sortName), atts))
+    case KApply(KLabelLookup("KSyntax"), KList(KToken(sortName, KSort, _) :: prod :: _), _) => Set(Production(Sort(sortName), downProduction(prod), atts))
     case _ => Set.empty
   }
 
@@ -562,7 +309,7 @@ object KoreDefinitionDown {
     case KApply(KLabelLookup("KDefinition"), KList(requires :: modules :: _), _) => downModules(modules, downModules(requires, downedModules))
     case KApply(KLabelLookup("KRequireList"), _, _) => downedModules
     case KApply(KLabelLookup("KModuleList"), KList(module :: modules :: _), _) => downModules(modules, downModules(module, downedModules))
-    case KApply(KLabelLookup("KModule"), KList(KToken(name, _, _) :: imports :: sentences :: _), _)
+    case KApply(KLabelLookup("KModule"), KList(KToken(name, KModuleName, _) :: imports :: sentences :: _), _)
       => downedModules ++ Map(name -> Module(name, downImports(imports) map downedModules toSet, downSentences(sentences)))
     case _ => downedModules
   }
