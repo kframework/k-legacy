@@ -89,7 +89,7 @@ object KOREDefinition {
 
   // ### KTOKENS
   //val KRegexSort = "[A-Z][A-Za-z0-9]*"
-  val KRegexSymbol = "[A-Za-z0-9\\.@#\\|\\-]*"
+  val KRegexSymbol = "[A-Za-z0-9\\.@#\\|\\-]+"
   //val KRegexSymbol2 = "`(\\\\`|\\\\\\\\|[^`\\\\\n\r\t\f])+`"
   //val KRegexSymbol3 = "(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"
   // TODO: the (?<! is a signal to the parser that it should be used as a "precedes" clause, do we need it?
@@ -168,8 +168,9 @@ object KOREDefinition {
 
     syntax(KProduction) is KTerminal,
     syntax(KProduction) is KNonTerminal,
+
     syntax(KProduction) is (KProduction, KProduction) att(klabel("KProduction"), "assoc"),         // this doesn't work
-    //syntax(KProduction) is (KProduction, ";", KProduction) att(klabel("KProduction"), "assoc"),  // this works
+    //syntax(KProduction) is (KProduction, ";", KProduction) att(klabel("KProduction"), "assoc"), // this works
 
     syntax(KPriority) is KMLPatternList,
     syntax(KPriority) is (KPriority, ">", KPriority) att(klabel("KPriorityItems"), "assoc"),
