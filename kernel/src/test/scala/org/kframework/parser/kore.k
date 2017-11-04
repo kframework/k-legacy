@@ -1,3 +1,5 @@
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
+
 module KTOKENS
   syntax KID ::= r"[A-Za-z\\-0-9]*" [token, klabel(KID)]
   syntax KSort ::= r"[A-Z][A-Za-z0-9]*" [token, klabel(KSort)]
