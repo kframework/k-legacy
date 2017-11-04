@@ -80,8 +80,9 @@ object KOREDowner {
 
   def downRules(module: Module): Module = {
     if (module.name == "KML") return module
+    val newImports = (module.imports map downRules) + KML + KBOOL
     val diamondKMLSubsorts = module.localSorts flatMap (sort => Set(Production(sort, Seq(NonTerminal(KMLVar)), Att()), Production(KMLTerm, Seq(NonTerminal(sort)), Att())))
-    val parser = new ParseInModule(Module(module.name, module.imports + KML, module.localSentences ++ diamondKMLSubsorts))
+    val parser = new ParseInModule(Module(module.name, newImports, module.localSentences ++ diamondKMLSubsorts))
     val resolvedRules: Set[Rule] = module.localSentences
         .collect { case Bubble("rule", rule, atts) =>
           parser.parseString(rule, KMLRewrite, Source(""))._1 match {
@@ -91,6 +92,6 @@ object KOREDowner {
           }
         }.toSet  // TODO: remove this toSet (it turns scala.collection.Set => scala.collection.immutable.Set)
     val moduleSentences = module.localSentences.filter { case x:Bubble => false case _ => true } ++ diamondKMLSubsorts ++ resolvedRules
-    Module(module.name, module.imports + KML + KBOOL, moduleSentences.toSet)
+    Module(module.name, newImports, moduleSentences.toSet)
   }
 }
