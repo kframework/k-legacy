@@ -16,7 +16,7 @@ object test {
 
   def Sort(s: String): ADT.SortLookup = ADT.SortLookup(s)
 
-  def regex(s: String): ProductionItem = RegexTerminal("", s, "")
+  def regex(s: String): ProductionItem = RegexTerminal("#", s, "#")
 
   case class token(s: ADT.SortLookup) {
     def is(pis: ProductionItem): BecomingToken = BecomingToken(s, List(pis))
@@ -75,7 +75,7 @@ object test {
 
   val KTOKENS = Module("KTOKENS", imports(), sentences(
 
-    token(KString) is regex("\"[a-zA-Z0-9\\-]*\"") att klabel("KString"),
+    token(KString) is regex("[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]") att klabel("KString"),
     token(KSort) is regex("[A-Z][A-Za-z0-9]*") att klabel("KSort"),
     token(KAttributeKey) is regex("[a-z][A-Za-z\\-0-9]*") att klabel("KAttributeKey"),
     token(KModuleName) is regex("[A-Z][A-Z\\-]*") att klabel("KModuleName")
@@ -94,7 +94,7 @@ object test {
   //   syntax KMLFormula ::= KMLFormula "KMLor" KMLFormula [klabel(_KMLor_), .KAttributes]
   //   syntax KMLFormula ::= "KMLnot" KMLFormula [klabel(KMLnot_), .KAttributes]
   //   syntax KMLFormula ::= "KMLexists" KMLVar "." KMLFormula [klabel(KMLexists_._), .KAttributes]
-  //   syntax KMLFormula ::= "KMLforall" KMLVar "." KMLVar [klabel(KMLforall_._), .KAttributes]
+  //   syntax KMLFormula ::= "KMLforall" KMLVar "." KMLFormula [klabel(KMLforall_._), .KAttributes]
   //   syntax KMLFormula ::= KMLFormula "KML=>" KMLFormula [klabel(_KML=>_), .KAttributes]
   //
   //   .KSentenceList
@@ -114,7 +114,7 @@ object test {
     syntax(KMLFormula) is (KMLFormula, "KMLor", KMLFormula) att klabel("_KMLor_"),
     syntax(KMLFormula) is ("KMLnot", KMLFormula) att klabel("KMLnot_"),
     syntax(KMLFormula) is ("KMLexists", KMLVar, ".", KMLFormula) att klabel("KMLexists_._"),
-    syntax(KMLFormula) is ("KMLforall", KMLVar, ".", KMLVar) att klabel("KMLforall._"),
+    syntax(KMLFormula) is ("KMLforall", KMLVar, ".", KMLFormula) att klabel("KMLforall_._"),
     syntax(KMLFormula) is (KMLFormula, "KML=>", KMLFormula) att klabel("_KML=>_")
 
   ))
