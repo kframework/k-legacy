@@ -2,10 +2,17 @@ module KSTRING
   syntax KString ::= r"[\"](([^\n\r\t\f\"\\\\])|([\\\\][nrtf\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\"]" [token, khook(org.kframework.kore.KString)]
 endmodule
 
+module KBUBBLE
+  syntax KBubbleItem ::= r"[^ \t\n\r]+"  [token, reject2(rule, syntax, endmodule, configuration, context)]
+
+  syntax KBubble ::= KBubble KBubbleItem [token]
+  syntax KBubble ::= KBubbleItem         [token]
+endmodule
+
 module KATTRIBUTES
-  syntax KAttributeKey ::= r"[\\.A-Za-z\\-0-9]*" [token, khook(org.kframework.kore.KLabel)]
-  syntax KAttributeKey ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\n\r\t\f])+`" [token, khook(org.kframework.kore.KLabel)]
-  syntax KAttributeKey ::= r"(?![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*" [token, khook(org.kframework.kore.KLabel), autoReject]
+  syntax KAttributeKey ::= r"[\\.A-Za-z\\-0-9]*" [token]
+  syntax KAttributeKey ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\n\r\t\f])+`" [token]
+  syntax KAttributeKey ::= r"(?![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*" [token, autoReject]
 
   syntax KKeyList ::= KAttributeKey
   syntax KKeyList ::= "" [klabel(.KKeyList)]
