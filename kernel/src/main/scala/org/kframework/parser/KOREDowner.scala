@@ -2,9 +2,9 @@ package org.kframework.parser
 
 import org.kframework.parser.concrete2kore.ParseInModule
 import org.kframework.attributes.Source
-
 import org.kframework.definition.KOREDefinition._
 import org.kframework.definition.KDefinitionDSL._
+import org.kframework.minikore.KoreToMini
 //import org.kframework.definition._
 //import org.kframework.attributes.Att
 import org.kframework.kore.ADT.{KList => Args, _}
@@ -17,10 +17,9 @@ import org.kframework.minikore.MiniKore._
 
 object KOREDowner {
 
-  def preProcess(parsed: K): K = parsed match {
-    case KToken(str, KString, atts)         => KToken(StringEscapeUtils.unescapeJava(str.drop(1).dropRight(1)), KString, atts)
-    case kt@KToken(_, _, _)                 => kt
-    case KApply(head, Args(subNodes), atts) => KApply(head, Args(subNodes map preProcess), atts)
+  def preProcess(parsedConverted: Pattern): Pattern = parsedConverted match {
+    case Application(label, args) => Application(label, args map preProcess)
+    case DomainValue("KString", value) => DomainValue("KString", StringEscapeUtils.unescapeJava(value.drop(1).dropRight(1)))
   }
 
   def downKKeyList(parsedKKeyList: K): List[String] = parsedKKeyList match {
@@ -39,14 +38,14 @@ object KOREDowner {
     case KApply(KLabelLookup("KMLVariable"), Args(KToken(name, KSymbol, _) :: KToken(sort, KSymbol, _) :: _), _) => Variable(name, sort)
   }
 
-  def downPatternList(parsedPatternList: K): Seq[Pattern] = parsedPatternList match {
+  def downPatternList(parsedPatternList: Pattern): Seq[Pattern] = parsedPatternList match {
     case KApply(KLabelLookup(".KPatternList"), _, _)                           => Seq.empty
     case KApply(KLabelLookup("KPatternList"), Args(kPattern :: pList :: _), _) => downPattern(kPattern) +: downPatternList(pList)
     case _                                                                     => Seq(downPattern(parsedPatternList))
   }
 
-  def downPattern(parsedPattern: K): Pattern = parsedPattern match {
-    case KApply(KLabelLookup("KMLApplication"), Args(KToken(label, KSymbol, _) :: pList :: _), _)               => Application(label, downPatternList(pList))
+  def downPattern(parsedPattern: Pattern): Pattern = parsedPattern match {
+    case Application("KMLApplication", DomainValue("KSymbol", label) :: pList :: _)              => Application(label, downPatternList(pList))
     case KApply(KLabelLookup("KMLValue"), Args(KToken(label, KSymbol, _) :: KToken(value, KString, _) :: _), _) => DomainValue(label, value)
     case KApply(KLabelLookup("KMLTrue"), _, _)                                                                  => True()
     case KApply(KLabelLookup("KMLFalse"), _, _)                                                                 => False()
