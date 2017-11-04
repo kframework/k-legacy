@@ -49,7 +49,7 @@ object ExpDefinition {
     """
 
   val Exp = SortLookup("Exp")
-  val EXP = Module("EXP", imports(KBOOL), sentences(
+  val EXP = Module("EXP", imports(KML), sentences(
     syntax(Exp) is "0" att klabel("0"),
     syntax(Exp) is "1" att klabel("1"),
     syntax(Exp) is "2" att klabel("2"),
@@ -130,7 +130,7 @@ class ParserBootstrapRewritingTest {
     val parser: ParseInModule = new ParseInModule(topModule)
     val parsedTerm: K         = runParser(parser, term, ADT.SortLookup(termSort))
 
-    val definition: Definition           = Definition(topModule, Set.empty)
+    val definition: Definition           = Definition(topModule, Set(topModule))
     val initRewriter: InitializeRewriter = new InitializeRewriter(new KapiGlobal, mapAsJavaMap(Map.empty).asInstanceOf[java.util.Map[String,java.lang.invoke.MethodHandle]], new InitializeRewriter.InitializeDefinition)
     val symbRewriter: Rewriter           = initRewriter(topModule)
 
@@ -141,9 +141,9 @@ class ParserBootstrapRewritingTest {
     import ExpDefinition._
     val parsed = preProcess(parseK(expString, KDefinition))
     val downed = downRules(downModules(parsed, Map.empty)("EXP"))
-    printInfo("EXP", parsed, EXP, downed)
+    printInfo("EXP", parsed, downRules(EXP), downed)
+    assertEquals(downRules(EXP), downed)
     println(rewriteInDefinition(expString, "EXP", "3 + 3", "Exp", Some(3)))
-    //assertEquals(downRules(EXP), downed)
   }
 
   def kdefFixpoint(): Unit = {
