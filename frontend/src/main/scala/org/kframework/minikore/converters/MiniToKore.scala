@@ -60,7 +60,7 @@ object MiniToKore {
   def apply(s: Sentence): definition.Sentence = s match {
     case SortDeclaration(Sort(sort), att) => definition.SyntaxSort(KORE.Sort(sort), apply(att))
     case SymbolDeclaration(Sort(sort), _, _, Attributes(att)) =>
-      val items = att.collect({
+      val items = findAtt(att, "production").collect({
         case Application(`iNonTerminal`, Seq(DomainValue(Symbol("S"), Value(s: String)))) =>
           definition.NonTerminal(KORE.Sort(s))
         case Application(`iTerminal`, DomainValue(Symbol("S"), Value(value)) +: followRegex) =>
