@@ -41,18 +41,16 @@ object ParserNormalization {
 
   def toKoreEncoding: Pattern => Pattern = {
     case Application("KTerminal@K-PRETTY-PRODUCTION", Application(str, Seq.empty) :: followRegex) => Application(iTerminal, S(str) :: followRegex)
-    case Application("KRegexTerminal@K-PRETTY-PRODUCTION", Application(precede, Nil) :: Application(regex, Nil) :: Application(follow, Nil) :: Nil)
+    case Application("KRegexTerminal@K-PRETTY-PRODUCTION", Seq(Application(precede, Seq.empty), Application(regex, Seq.empty), Application(follow, Seq.empty)))
                                                                                                   => Application(iRegexTerminal, Seq(S(precede), S(regex), S(follow)))
-    case Application("KNonTerminal@K-PRETTY-PRODUCTION", Application(str, Nil) :: Nil)            => Application(iNonTerminal, Seq(S(str)))
+    case Application("KNonTerminal@K-PRETTY-PRODUCTION", Seq(Application(str, Seq.empty)))        => Application(iNonTerminal, Seq(S(str)))
     case Application(`iMainModule`, Seq(Application(modName, Nil)))                               => Application(iMainModule, Seq(S(modName)))
-      case Application(`iEntryModules`, Seq(Application(modName, Nil)))                           => Application(iEntryModules, Seq(S(modName)))
-      case pattern                                                                                => pattern
+    case Application(`iEntryModules`, Seq(Application(modName, Nil)))                             => Application(iEntryModules, Seq(S(modName)))
+    case pattern                                                                                  => pattern
   }
 
   // Preprocessing
   // =============
-  // `preProcess` first prunes the parse-tree using a top-down traversal of `removeParseInfo`
-  // then normalizes the defintion by running a bottom-up traversal of `syntaxProductionToSymbolDeclaration . normalizeMetaDomainValues . unescapeStrings`
 
   val preProcess: Pattern => Pattern = traverseTopDown(removeParseInfo) andThen traverseBottomUp(normalizeTokens)
 }
@@ -167,15 +165,18 @@ object EKOREDefinition {
     case pattern                     => pattern
   }
 
+  val upUserPattern: Pattern => Pattern = {
+    case Application(label, args) if KML_LABELS contains label => Application(label, args)
+    case Application(label, args)                              => Application("KMLApplication", Seq(upSymbol(label), consListLeft("KMLPatternList", ".KMLPatternList")(args)))
+    case pattern                                               => pattern
+  }
+
   def resolveRules(parser: String => Pattern): Pattern => Pattern = {
-    case Application("KRule", rule :: atts :: Nil) => Application("KRule", Seq(preProcess(traverseTopDown(resolveBubbles(parser))(rule)), atts))
+    case Application("KRule", rule :: atts :: Nil) => Application("KRule", Seq(traverseBottomUp(upUserPattern)(preProcess(traverseTopDown(resolveBubbles(parser))(rule))), atts))
     case pattern                                   => pattern
   }
 
-  def resolveDefinitionRules(parsed: Pattern): Pattern = {
-    val ruleParser = mkParser(mkRuleParserDefinition(parsed))
-    traverseTopDown(resolveRules(ruleParser))(parsed)
-  }
+  def resolveDefinitionRules(parsed: Pattern): Pattern = traverseTopDown(resolveRules(mkParser(mkRuleParserDefinition(parsed))))(parsed)
 
   // EKORE
   // =====
@@ -189,4 +190,3 @@ object EKOREDefinition {
 
   val ekoreToKore: Pattern => Pattern = traverseTopDown(desugarSyntaxProduction)
 }
-
