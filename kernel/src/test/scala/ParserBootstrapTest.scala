@@ -104,7 +104,7 @@ class KParserBootstrapTest {
 
     val parseResult = parseK(combined, KDefinition)
     //println(getSortMap(parseResult))
-    //println(getASTModules(parseResult))
+    println(getASTModules(parseResult))
 
   }
 
