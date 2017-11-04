@@ -25,7 +25,7 @@ object KDefinitionDSL {
   implicit def asTerminal(name: String): Terminal = Terminal(name)
 
   // TODO: move to minikore, findAtt should use it
-  def getAttributeKey(key: String, atts: Attributes): Seq[Seq[Pattern]] = atts.collect {
+  def getAttributeKey(key: String, atts: Attributes): Seq[Seq[Pattern]] = atts collect {
     //case dv@DomainValue(str, _) if key == str => dv
     case Application(str, args) if key == str => args
   }
@@ -43,7 +43,7 @@ object KDefinitionDSL {
     case Regex(str)     => Application(KoreToMini.iRegexTerminal, Seq(DomainValue("S", "#"), DomainValue("S", str), DomainValue("S", "#")))
   }
 
-  def makeKLabel(pis: Seq[Pattern]): String = pis flatMap {
+  def makeCtorString(pis: Seq[Pattern]): String = pis flatMap {
     case Application(KoreToMini.`iNonTerminal`, Seq(DomainValue("S", s)))                                                            => "_"
     case Application(KoreToMini.`iTerminal`, DomainValue("S", str) +: followRegex)                                                   => str // should take into account the followRegex
     case Application(KoreToMini.`iRegexTerminal`, Seq(DomainValue("S", precede), DomainValue("S", regex), DomainValue("S", follow))) => "r\"" + regex + "\"" // should take into account the precede/follow
@@ -51,7 +51,7 @@ object KDefinitionDSL {
 
   case class syntax(sort: Sort, pis: Seq[ProductionItem] = Seq.empty) {
     def is(pis: ProductionItem*): syntax = syntax(sort, pis)
-    def att(atts: Pattern*): SymbolDeclaration = SymbolDeclaration(sort.name, getKLabel(atts).getOrElse(makeKLabel(productionsAsPatterns(pis))), pis.collect { case Sort(name) => name }, atts :+ kprod(productionsAsPatterns(pis)))
+    def att(atts: Pattern*): SymbolDeclaration = SymbolDeclaration(sort.name, getKLabel(atts).getOrElse(makeCtorString(productionsAsPatterns(pis))), pis.collect { case Sort(name) => name }, atts :+ kprod(productionsAsPatterns(pis)))
   }
   implicit def asSentence(bs: syntax): SymbolDeclaration = bs.att()
 
@@ -65,6 +65,7 @@ object KDefinitionDSL {
 
   //application(key, value) // maybe should be this
   def attribute(key: String, value: String): Application = Application(key, Seq(KoreToMini.S(value)))
+  def symbol(str: String): DomainValue                   = DomainValue("KSymbol@TOKENS", str)
 
 }
 
@@ -163,14 +164,12 @@ object KOREDefinition {
     imports("KBUBBLE"),
 
     syntax(KTerminal) is KString,
-    syntax(KTerminal) is ("r", KString) att klabel("KRegex"),
+    syntax(KTerminal) is ("r", KString) att klabel("KRegexTerminal"),
     syntax(KNonTerminal) is KSymbol,
 
     syntax(KProduction) is KTerminal,
     syntax(KProduction) is KNonTerminal,
-
-    syntax(KProduction) is (KProduction, KProduction) att(klabel("KProduction"), "assoc"),         // this doesn't work
-    //syntax(KProduction) is (KProduction, ";", KProduction) att(klabel("KProduction"), "assoc"), // this works
+    syntax(KProduction) is (KProduction, KProduction) att(klabel("KProduction"), "assoc"),
 
     syntax(KPriority) is KMLPatternList,
     syntax(KPriority) is (KPriority, ">", KPriority) att(klabel("KPriorityItems"), "assoc"),
