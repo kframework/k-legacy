@@ -84,7 +84,7 @@ object ExpDefinition {
 
 class ParserBootstrapTest {
 
-  val miniDef = MiniToKore(onAttributesDef(traverseTopDown(toKoreEncoding))(EKORE))
+  val miniDef = MiniToKore(toKoreEncodingDef(EKORE))
   val mainMod = miniDef.mainModule
   val kParser = new ParseInModule(mainMod)
 
@@ -94,6 +94,7 @@ class ParserBootstrapTest {
       case Left(y) => throw new Error("runParser error: " + y.toString)
     }
   def parseK(toParse: String, parseAs: String): Pattern = runParser(kParser, toParse, parseAs)
+  def parsePrettySentences(input: String): Seq[Pattern] = flattenByLabels("KSentenceList", ".KSentenceList")(preProcess(parseK(input, "KSentenceList"))) flatMap desugarPrettySentence
 
   // TODO: won't pass because priorities are generated
   def kdefFixpoint(): Unit = {
@@ -106,22 +107,22 @@ class ParserBootstrapTest {
     val Exp  = Sort("Exp")
     val Stmt = Sort("Stmt")
     val sentenceTests: Seq[(Sentence, String)]
-        = Seq( (symbol(Exp, "mystmt", Stmt)               , """syntax Exp := mystmt(Stmt)"""                                                                     )
-             , (symbol(Exp, "_", Stmt) att kprod(Stmt)    , """syntax Exp ::= Stmt"""                                                                            )
-             , (syntax(Exp) is Stmt att klabel("mystmt")  , """syntax Exp := mystmt(Stmt) [klabel(mystmt), production(KNonTerminal@K-PRETTY-PRODUCTION(Stmt))]""")
-             , (syntax(Exp) is Stmt                       , """syntax Exp ::= Stmt"""                                                                            )
-             , (syntax(Exp) is Stmt att klabel("mystmt")  , """syntax Exp ::= Stmt [klabel(mystmt)]"""                                                           )
-             , (syntax(Exp) is ("true", Stmt)             , """syntax Exp ::= "true" Stmt"""                                                                     )
-             , (syntax(Exp) is Regex("[^ \n\r\t]+")       , """syntax Exp ::= r"[^ \n\r\t]+""""                                                                  )
-             , (syntax(Exp) is Regex(" a\n\r\tb")         , """syntax Exp ::= r" a\n\r\tb""""                                                                    )
-             , (syntax(Exp) is Regex("`[^ a\n\r\tb]+`")   , """syntax Exp ::= r"`[^ a\n\r\tb]+`""""                                                              )
+        = Seq( (symbol(Exp, "mystmt", Stmt)               , """syntax Exp := mystmt(Stmt)"""                                                                      )
+             , (symbol(Exp, "_", Stmt) att kprod(Stmt)    , """syntax Exp ::= Stmt"""                                                                             )
+             , (syntax(Exp) is Stmt att klabel("mystmt")  , """syntax Exp := mystmt(Stmt) [klabel(mystmt), KProduction(KNonTerminal@K-PRETTY-PRODUCTION(Stmt))]""")
+             , (syntax(Exp) is Stmt                       , """syntax Exp ::= Stmt"""                                                                             )
+             , (syntax(Exp) is Stmt att klabel("mystmt")  , """syntax Exp ::= Stmt [klabel(mystmt)]"""                                                            )
+             , (syntax(Exp) is ("true", Stmt)             , """syntax Exp ::= "true" Stmt"""                                                                      )
+             , (syntax(Exp) is Regex("[^ \n\r\t]+")       , """syntax Exp ::= r"[^ \n\r\t]+""""                                                                   )
+             , (syntax(Exp) is Regex(" a\n\r\tb")         , """syntax Exp ::= r" a\n\r\tb""""                                                                     )
+             , (syntax(Exp) is Regex("`[^ a\n\r\tb]+`")   , """syntax Exp ::= r"`[^ a\n\r\tb]+`""""                                                               )
              )
 
-    sentenceTests foreach { sentStr => println(parseK(sentStr._2, "KSentence")) }
+
     sentenceTests foreach { sentStr => assertEquals(sentStr._1, downSentence(desugarPrettySentence(preProcess(parseK(sentStr._2, "KSentence"))) head)) }
   }
 
-  def multipleProductions(): Unit = {
+  @Test def multipleProductions(): Unit = {
     val prettyTests: Seq[(String, String)]
         = Seq( ("""syntax Exp ::= "true"                         syntax Exp ::= Exp"""                            , """syntax Exp ::= "true"                         | Exp"""                           )
              , ("""syntax Exp ::= Exp "+" Exp                    syntax Exp ::= Exp "/" Exp [klabel(division)]""" , """syntax Exp ::= Exp "+" Exp                    | Exp "/" Exp [klabel(division)]""")
@@ -129,12 +130,23 @@ class ParserBootstrapTest {
              , ("""syntax Exp ::= Exp "+" Exp [klabel(addition)] syntax Exp ::= Exp "/" Exp [klabel(division)]""" , """syntax Exp ::= Exp "+" Exp [klabel(addition)] | Exp "/" Exp [klabel(division)]""")
              )
 
-    def parseAndDown(input: String): Seq[Sentence] = flattenByLabels("KSentenceList", ".KSentenceList")(preProcess(parseK(input, "KSentenceList"))) flatMap desugarPrettySentence map downSentence
+    def stripPriorities(input: Seq[Pattern]): Seq[Pattern] = input collect { case a@Application("KSymbolDeclaration", _) => a }
 
-    prettyTests foreach { strings => assertEquals(parseAndDown(strings._1), parseAndDown(strings._2)) }
+    prettyTests foreach { strings => assertEquals(parsePrettySentences(strings._1) map downSentence, stripPriorities(parsePrettySentences(strings._2)) map downSentence) }
   }
 
-  def ruleParsingTest(): Unit = {
+  @Test def prioritiesTest(): Unit = {
+    val prioritiesTests: Seq[(String, String)]
+        = Seq( ("""syntax Exp ::= "true" syntax Exp ::= Exp "+" Exp [klabel(p)] syntax Exp ::= Exp "/" Exp [klabel(d)] syntax priority true , p , d""" , """syntax Exp ::= "true" | Exp "+" Exp [klabel(p)] | Exp "/" Exp [klabel(d)]""")
+             , ("""syntax Exp ::= "true" syntax Exp ::= Exp "+" Exp [klabel(p)] syntax Exp ::= Exp "/" Exp [klabel(d)] syntax priority true > p , d""" , """syntax Exp ::= "true" > Exp "+" Exp [klabel(p)] | Exp "/" Exp [klabel(d)]""")
+             , ("""syntax Exp ::= "true" syntax Exp ::= Exp "+" Exp [klabel(p)] syntax Exp ::= Exp "/" Exp [klabel(d)] syntax priority true , p > d""" , """syntax Exp ::= "true" | Exp "+" Exp [klabel(p)] > Exp "/" Exp [klabel(d)]""")
+             , ("""syntax Exp ::= "true" syntax Exp ::= Exp "+" Exp [klabel(p)] syntax Exp ::= Exp "/" Exp [klabel(d)] syntax priority true > p > d""" , """syntax Exp ::= "true" > Exp "+" Exp [klabel(p)] > Exp "/" Exp [klabel(d)]""")
+             )
+
+    prioritiesTests foreach { strings => assertEquals(parsePrettySentences(strings._1), parsePrettySentences(strings._2)) }
+  }
+
+  @Test def ruleParsingTest(): Unit = {
     import ExpDefinition._
 
     val ruleTests: Seq[(Sentence, String)]
