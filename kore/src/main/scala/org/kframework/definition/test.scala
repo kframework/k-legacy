@@ -83,20 +83,22 @@ object test {
   ))
 
   val KML_STRING =
-    "module KML" +
-      "imports KTOKENS .KImportList" +
-      "syntax KMLVar ::= \"kmlvar\" \"(\" KString \")\" [klabel(kmlvar(_)), .KAttributes]" +
-      "syntax KMLFormula ::= KMLVar [.KAttributes]" +
-      "syntax KMLFormula ::= \"KMLtrue\" [klabel(KMLtrue), .KAttributes]" +
-      "syntax KMLFormula ::= \"KMLfalse\" [klabel(KMLfalse), .KAttributes]" +
-      "syntax KMLFormula ::= KMLFormula \"KMLand\" KMLFormula [klabel(_KMLand_), .KAttributes]" +
-      "syntax KMLFormula ::= KMLFormula \"KMLor\" KMLFormula [klabel(_KMLor_), .KAttributes]" +
-      "syntax KMLFormula ::= \"KMLnot\" KMLFormula [klabel(KMLnot_), .KAttributes]" +
-      "syntax KMLFormula ::= \"KMLexists\" KMLVar \".\" KMLFormula [klabel(KMLexists_._), .KAttributes]" +
-      "syntax KMLFormula ::= \"KMLforall\" KMLVar \".\" KMLFormula [klabel(KMLforall_._), .KAttributes]" +
-      "syntax KMLFormula ::= KMLFormula \"KML=>\" KMLFormula [klabel(_KML=>_), .KAttributes]" +
+    """
+    module KML
+      imports KTOKENS .KImportList
+      syntax KMLVar ::= \"kmlvar\" \"(\" KString \")\" [klabel(kmlvar(_)), .KAttributes]
+      syntax KMLFormula ::= KMLVar [.KAttributes]
+      syntax KMLFormula ::= \"KMLtrue\" [klabel(KMLtrue), .KAttributes]
+      syntax KMLFormula ::= \"KMLfalse\" [klabel(KMLfalse), .KAttributes]
+      syntax KMLFormula ::= KMLFormula \"KMLand\" KMLFormula [klabel(_KMLand_), .KAttributes]
+      syntax KMLFormula ::= KMLFormula \"KMLor\" KMLFormula [klabel(_KMLor_), .KAttributes]
+      syntax KMLFormula ::= \"KMLnot\" KMLFormula [klabel(KMLnot_), .KAttributes]
+      syntax KMLFormula ::= \"KMLexists\" KMLVar \".\" KMLFormula [klabel(KMLexists_._), .KAttributes]
+      syntax KMLFormula ::= \"KMLforall\" KMLVar \".\" KMLFormula [klabel(KMLforall_._), .KAttributes]
+      syntax KMLFormula ::= KMLFormula \"KML=>\" KMLFormula [klabel(_KML=>_), .KAttributes]
       ".KSentenceList" +
     "endmodule"
+    """
 
   val KMLVar = Sort("MLVar")
   val KMLFormula = Sort("MLFormula")
@@ -118,16 +120,18 @@ object test {
   ))
 
   val KATTRIBUTES_STRING =
-    "module KATTRIBUTES" +
-      "imports KTOKENS .KImportList" +
-      "syntax KKeyList ::= KAttributeKey [.KAttributes]" +
-      "syntax KKeyList ::= KAttributeKey "," KKeyList [klabel(_,_), .KAttributes]" +
-      "syntax KAttribute ::= KAttributeKey [.Attributes]" +
-      "syntax KAttribute ::= KAttributeKey "(" KKeyList ")" [klabel(_(_)), .KAttributes]" +
-      "syntax KAttributes ::= \".KAttributes\" [klabel(.KAttributes), .KAttributes]" +
-      "syntax KAttributes ::= KAttribute "," KAttributes [klabel(_,_), .KAttributes]" +
-      ".KSentenceList" +
-    "endmodule"
+    """
+    module KATTRIBUTES
+      imports KTOKENS .KImportList
+      syntax KKeyList ::= KAttributeKey [.KAttributes]
+      syntax KKeyList ::= KAttributeKey "," KKeyList [.KAttributes]
+      syntax KAttribute ::= KAttributeKey [.KAttributes]
+      syntax KAttribute ::= KAttributeKey "(" KKeyList ")" [.KAttributes]
+      syntax KAttributes ::= ".KAttributes" [.KAttributes]
+      syntax KAttributes ::= KAttribute "," KAttributes [.KAttributes]
+      .KSentenceList
+    endmodule
+    """
 
   val KKeyList = Sort("KeyList")
   val KAttribute = Sort("Attribute")
