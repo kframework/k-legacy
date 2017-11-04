@@ -79,6 +79,7 @@ object KOREDowner {
   }
 
   def downRules(module: Module): Module = {
+    if (module.name == "KML") return module
     val diamondKMLSubsorts = module.localSorts flatMap (sort => Set(Production(sort, Seq(NonTerminal(KMLVar)), Att()), Production(KMLTerm, Seq(NonTerminal(sort)), Att())))
     val parser = new ParseInModule(Module(module.name, module.imports + KML, module.localSentences ++ diamondKMLSubsorts))
     val resolvedRules: Set[Rule] = module.localSentences
