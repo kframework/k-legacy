@@ -148,6 +148,9 @@ object KOREDefinition {
     syntax(KMLPatternList) is (KMLPattern, ",", KMLPatternList) att klabel("KMLPatternList")
   )
 
+  // TODO: Define this programatically (so that if the module changes so does it)
+  def KML_LABELS = Seq("KMLVariable", "KMLTrue", "KMLFalse", "KMLAnd", "KMLOr", "KMLNot", "KMLImplies", "KMLExists", "KMLForAll", "KMLNext", "KMLRewrite", "KMLEqual", "KMLApplication", "KMLPatternList", ".KMLPatternList")
+
   // KSENTENCE
   // =========
 
