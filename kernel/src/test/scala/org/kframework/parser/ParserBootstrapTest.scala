@@ -137,10 +137,11 @@ class ParserBootstrapTest {
     import ExpDefinition._
 
     val ruleTests: Seq[(Sentence, String)]
-        = Seq( (rule(term("p", term("3"), term("3")), term("6"))                       , """rule p(3,3) => 6"""     )
-             , (rule(term("m", term("t", term("4"), term("3")), term("9")), term("3")) , """rule m(t(4,3),9) => 3""")
-             , (rule(term("p", term("2"), term("2")), term("4"))                       , """rule 2 + 2 => 4"""      )
-             , (rule(term("p", Variable("E1", "Exp"), Variable("E2", "Exp")), term("0")), """rule E1:Exp + E2:Exp => 0""")
+        = Seq( (rule(term("p", term("3"), term("3")), term("6"))                                    , """rule p(3,3) => 6"""     )
+             , (rule(term("m", term("t", term("4"), term("3")), term("9")), term("3"))              , """rule m(t(4,3),9) => 3""")
+             , (rule(term("p", term("2"), term("2")), term("4"))                                    , """rule 2 + 2 => 4"""      )
+             , (rule(term("p", Variable("E1", "Exp"), Variable("E2", "Exp")), term("0"))            , """rule E1:Exp + E2:Exp => 0""")
+             , (rule(term("p", Variable("E1", "Exp"), Variable("E2", "Exp")), Variable("E1", "Exp")), """rule E1:Exp + E2:Exp => E1:Exp""")
              //, (rule(term("p", term("2"), term("t", term("3"), term("2"))), term("8")) , """rule 2 + 3 * 2 => 8"""  )
              )
 
@@ -153,7 +154,7 @@ class ParserBootstrapTest {
     val LAMBDA_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/lambda.k").mkString
     val lambda_parsed = ekoreToKore(preProcess(parseK(LAMBDA_STRING, "KDefinition")))
     println(lambda_parsed)
-    val lambda_downed = downDefinition(lambda_parsed)
+    val lambda_downed = downDefinition(resolveDefinitionRules(lambda_parsed))
     println(lambda_downed)
   }
 
