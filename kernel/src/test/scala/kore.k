@@ -69,13 +69,13 @@ module KSENTENCES
   syntax KSort ::= r"[A-Z][A-Za-z0-9]*" [token, klabel(KSort)]
 
   syntax KTerminal ::= KString
-  syntax KTerminal ::= "blah" KString [klabel(KRegex)]
+  syntax KTerminal ::= "r" KString [klabel(KRegex)]
   syntax KNonTerminal ::= KSort
 
   syntax KProductionItem ::= KTerminal
   syntax KProductionItem ::= KNonTerminal
   syntax KProduction ::= KProductionItem
-  syntax KProduction ::= KProductionItem KProduction [klabel(KProduction)]
+  syntax KProduction ::= KProductionItem KProduction [assoc, klabel(KProduction)]
 
   syntax KPreSentence ::= "syntax" KSort [klabel(KSortDecl)]
   syntax KPreSentence ::= "syntax" KSort "::=" KProduction [klabel(KSyntax)]
