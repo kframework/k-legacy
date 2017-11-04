@@ -87,7 +87,7 @@ class KParserBootstrapTest {
     val parsed = parseK(KORE_STRING, KDefinition)
     println(parsed)
     val downed = getAllDownModules(parsed)
-    assertEquals(downed, Map("KSORT" -> KSORT, "KBASIC" -> KBASIC))
+    assertEquals(downed, Map("KSORT" -> KSORT, "KBASIC" -> KBASIC, "KSTRING" -> KSTRING))
   }
 
 }
