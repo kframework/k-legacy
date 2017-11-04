@@ -1,114 +1,104 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 
-module KTOKENS
-  syntax KID ::= r"[A-Za-z\\-0-9]*" [token, klabel(KID)]
-  syntax KSort ::= r"[A-Z][A-Za-z0-9]*" [token, klabel(KSort)]
-  syntax KString ::= r"[\"](([^\n\r\t\f\"\\\\])|([\\\\][nrtf\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\"]" [token, klabel(KString)]
-endmodule
 
 module KBUBBLE
-  syntax KBubbleItem ::= r"[^ \t\n\r]+"  [token, reject2(rule, syntax, endmodule, configuration, context)]
-
-  syntax KBubble ::= KBubble KBubbleItem [token]
-  syntax KBubble ::= KBubbleItem         [token]
+  // TODO: Must make the parser actually accept reject2 in this format (as opposed to vertical bars)
+  syntax KBubbleItem ::= r"[^ \\t\\n\\r]+" [token, reject2(rule|syntax|endmodule|configuration|context)]
+  syntax KBubble ::= KBubble KBubbleItem   [token]
+  syntax KBubble ::= KBubbleItem           [token]
 endmodule
 
-module KATTRIBUTES
-  syntax KAttributeKey ::= r"[\\.A-Za-z\\-0-9]*" [token]
-  syntax KAttributeKey ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\n\r\t\f])+`" [token]
-  syntax KAttributeKey ::= r"(?![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*" [token, autoReject]
 
-  syntax KKeyList ::= KAttributeKey
-  syntax KKeyList ::= "" [klabel(.KKeyList)]
-  syntax KKeyList ::= KKeyList "," KKeyList [klabel(KKeyList), assoc, unit(.KKeyList)]
+module KTOKENS
+  syntax KSymbol ::= r"[\\.A-Za-z\\-0-9]*"                    [token]
+  syntax KSymbol ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\n\r\t\f])+`"  [token]
+  syntax KSymbol ::= r"(?![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*" [token, autoReject]
 
-  syntax KKeySet ::= KAttributeKey
-  syntax KKeySet ::= "" [klabel(.KKeySet)]
-  syntax KKeySet ::= KKeySet KKeySet [klabel(KKeySet), assoc, comm, unit(.KKeyList)]
+  // syntax KSymbol ::= """(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"""
+  // TODO: the (?<! is a signal to the parser that it should be used as a "precedes" clause, do we need it?
 
-  syntax KAttribute ::= KAttributeKey
-  syntax KAttribute ::= KAttributeKey "(" KKeyList ")" [klabel(KAttributeApply)]
-
-  syntax KAttributes ::= KAttribute
-  syntax KAttributes ::= "" [klabel(.KAttributes)]
-  syntax KAttributes ::= KAttributes "," KAttributes [klabel(KAttributes), assoc, comm, unit(.KAttributes)]
+  syntax KString ::= r"[\"](([^\n\r\t\f\"\\\\])|([\\\\][nrtf\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\"]" [token]
 endmodule
 
-module KABSTRACT
-  imports KATTRIBUTES
-
-  syntax KAbstract ::= KAttributeKey
-  syntax KAbstract ::= KAbstract "," KAbstract [klabel(KAbstractArgs), assoc]
-  syntax KAbstract ::= KAttributeKey "(" KAbstract ")" [klabel(KAbstractApply)]
-endmodule
-
+  
 module KML
   imports KTOKENS
-  imports KABSTRACT
 
-  syntax KMLVar [klabel(KMLVar)]
-  syntax KMLTerm ::= KMLVar
-  syntax KMLFormula ::= KMLTerm
+  syntax KMLVariable ::= KSymbol ":" KSymbol [klabel(KMLVariable)]
+  syntax KMLPattern ::= KMLVariable
+  syntax KMLPattern ::= KSymbol
 
-  syntax KMLFormula ::= "tt" [klabel(KMLtrue)]
-  syntax KMLFormula ::= "ff" [klabel(KMLfalse)]
+  // every <SORT> should have a production like this for variables
+  // syntax <SORT> ::= KID ":" "<SORT>"
 
-  syntax KMLFormula ::= "~" KMLFormula [klabel(KMLnot)]
-  syntax KMLFormula ::= KMLFormula "/\\" KMLFormula [klabel(KMLand)]
-  syntax KMLFormula ::= KMLFormula "\\/" KMLFormula [klabel(KMLor)]
+  syntax KMLPattern ::= "tt" [klabel(KMLTrue)]
+  syntax KMLPattern ::= "ff" [klabel(KMLFalse)]
 
-  syntax KMLFormula ::= "E" KMLVar "." KMLFormula [klabel(KMLexists)]
-  syntax KMLFormula ::= "A" KMLVar "." KMLFormula [klabel(KMLforall)]
+  syntax KMLPattern ::= "~" KMLPattern              [klabel(KMLNot)]
+  syntax KMLPattern ::= KMLPattern "/\\" KMLPattern [klabel(KMLAnd)]
+  syntax KMLPattern ::= KMLPattern "\\/" KMLPattern [klabel(KMLOr)]
+  syntax KMLPattern ::= KMLPattern "->"  KMLPattern [klabel(KMLImplies)]
 
-  syntax KMLRewrite ::= KMLFormula "=>" KMLTerm [klabel(KMLRewrite)]
+  syntax KMLPattern ::= "E" KMLVariable "." KMLPattern [klabel(KMLExists)]
+  syntax KMLPattern ::= "A" KMLVariable "." KMLPattern [klabel(KMLForAll)]
+
+  syntax KMLPattern ::= KMLPattern "==" KMLPattern [klabel(KMLEquals)]
+  syntax KMLPattern ::= "next" KMLPattern          [klabel(KMLNext)]
+  syntax KMLPattern ::= KMLPattern "=>" KMLPattern [klabel(KMLRewrite)]
+
+  syntax KMLPatternList ::= "" [klabel(.KMLPatternList)]
+  syntax KMLPatternList ::= KMLPattern
+  syntax KMLPatternList ::= KMLPattern "," KMLPatternList [klabel(KMLPatternList)]
+
+  syntax KMLPattern ::= KSymbol "(" KMLPatternList ")"    [klabel(KMLApplication)]
+  syntax KMLPattern ::= "val" "(" KSymbol "," KString ")" [klabel(KMLDomainValue)]
 endmodule
 
-module KSENTENCES
-  imports KTOKENS
+
+module KSENTENCE
+  imports KML
   imports KBUBBLE
-  imports KATTRIBUTES
 
-  syntax KSort ::= r"[A-Z][A-Za-z0-9]*" [token, klabel(KSort)]
-
-  syntax KTerminal ::= KString
+  syntax KTerminal ::= KString,
   syntax KTerminal ::= "r" KString [klabel(KRegex)]
-  syntax KNonTerminal ::= KSort
+  syntax KNonTerminal ::= KSymbol
 
-  syntax KProductionItems ::= KTerminal
-  syntax KProductionItems ::= KNonTerminal
-  syntax KProductionItems ::= KProductionItems KProductionItems [klabel(KProductionItems), assoc]
-  syntax KProduction ::= KProductionItems
+  syntax KProduction ::= KTerminal
+  syntax KProduction ::= KNonTerminal
+  syntax KProduction ::= KProduction KProduction [klabel(KProduction), assoc]
 
-  syntax KPriority ::= KKeySet
+  syntax KPriority ::= KMLPatternList
   syntax KPriority ::= KPriority ">" KPriority [klabel(KPriorityItems), assoc]
 
-  syntax KSentence ::= "syntax" KSort [klabel(KSyntaxSort)]
-  syntax KSentence ::= "syntax" KSort "::=" KProduction [klabel(KSyntaxProduction)]
-  syntax KSentence ::= "syntax" "priority" KPriority [klabel(KSyntaxPriority)]
-  syntax KSentence ::= "rule" KBubble [klabel(KRule)]
-  syntax KSentence ::= KSentence "[" KAttributes "]" [klabel(KSentenceWithAttributes)]
+  syntax KAttributes ::= "" [klabel(.KAttributes)]
+  syntax KAttributes ::= "[" KMLPatternList "]" [klabel(KAttributes)]
+
+  syntax KSentence ::= "imports" KSymbol KAttributes                  [klabel("KImport")]
+  syntax KSentence ::= "syntax" KSymbol KAttributes                   [klabel("KSortDeclaration")]
+  syntax KSentence ::= "syntax" KSymbol "::=" KProduction KAttributes [klabel("KSyntaxProduction")]
+  syntax KSentence ::= "syntax" KSymbol "::=" KMLPattern KAttributes  [klabel("KSymbolDeclaration")]
+  syntax KSentence ::= "syntax" "priority" KPriority KAttributes      [klabel("KSyntaxPriority")]
+  syntax KSentence ::= "rule" KBubble KAttributes                     [klabel("KRule")]
 
   syntax KSentenceList ::= KSentence
-  syntax KSentenceList ::= "" [klabel(.KSentenceList)]
-  syntax KSentenceList ::= KSentence KSentenceList [klabel(KSentenceList)]
+  syntax KSentenceList ::= "" att klabel(".KSentenceList"),
+  syntax KSentenceList ::= (KSentence, KSentenceList) att klabel("KSentenceList")
+
+  // TODO: Why doesn't this work?
+  //syntax KSentenceList ::= (KSentenceList, KSentenceList) [klabel("KSentenceList"), "assoc", "comm"] kunit(".KSentenceList"))
 endmodule
 
+
 module KDEFINITION
-  imports KSENTENCES
+  imports KSENTENCE
 
-  syntax KRequire ::= "require" KString [klabel(KRequire)]
-  syntax KRequireList ::= "" [klabel(.KRequireList)]
-  syntax KRequireList ::= KRequire KRequireList [klabel(KRequireList)]
+  // syntax KRequire ::= "require" KString [klabel(KRequire)]
+  // syntax KRequireList ::= "" [klabel(.KRequireList)]
+  // syntax KRequireList ::= KRequire KRequireList [klabel(KRequireList)]
 
-  syntax KModuleName ::= r"[A-Z][A-Z\\-]*" [token, klabel(KModuleName)]
-
-  syntax KImport ::= "imports" KModuleName [klabel(KImport)]
-  syntax KImportList ::= "" [klabel(.KImportList)]
-  syntax KImportList ::= KImport KImportList [klabel(KImportList)]
-
-  syntax KModule ::= "module" KModuleName KImportList KSentenceList "endmodule" [klabel(KModule)]
+  syntax KModule ::= "module" KSymbol KSentenceList "endmodule" KAttributes [klabel(KModule)]
   syntax KModuleList ::= "" [klabel(.KModuleList)]
   syntax KModuleList ::= KModule KModuleList [klabel(KModuleList)]
 
-  syntax KDefinition ::= KRequireList KModuleList [klabel(KDefinition)]
-endmodule
+  syntax KDefinition ::= KAttributes KModuleList [klabel(KDefinition)]
+endmodule [mainModule]
