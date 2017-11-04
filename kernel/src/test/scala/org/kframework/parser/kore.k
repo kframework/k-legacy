@@ -29,7 +29,7 @@ module KATTRIBUTES
 
   syntax KAttributes ::= KAttribute
   syntax KAttributes ::= "" [klabel(.KAttributes)]
-  syntax KAttributes ::= KAttribute "," KAttributes [klabel(KAttributes)]
+  syntax KAttributes ::= KAttributes "," KAttributes [klabel(KAttributes), assoc, comm, unit(.KAttributes)]
 endmodule
 
 module KABSTRACT 
@@ -50,16 +50,20 @@ module KML
 
   syntax KMLFormula ::= "tt" [klabel(KMLtrue)]
   syntax KMLFormula ::= "ff" [klabel(KMLfalse)]
+
   syntax KMLFormula ::= "~" KMLFormula [klabel(KMLnot)]
   syntax KMLFormula ::= KMLFormula "/\\" KMLFormula [klabel(KMLand)]
   syntax KMLFormula ::= KMLFormula "\\/" KMLFormula [klabel(KMLor)]
+
   syntax KMLFormula ::= "E" KMLVar "." KMLFormula [klabel(KMLexists)]
   syntax KMLFormula ::= "A" KMLVar "." KMLFormula [klabel(KMLforall)]
-  syntax KMLFormula ::= KMLFormula "=>" KMLFormula [klabel(KMLnext)]
+
+  syntax KMLRewrite ::= KMLFormula "=>" KMLTerm [klabel(KMLRewrite)]
 endmodule
 
 module KSENTENCES
   imports KTOKENS
+  imports KBUBBLE
   imports KATTRIBUTES
 
   syntax KSort ::= r"[A-Z][A-Za-z0-9]*" [token, klabel(KSort)]
@@ -68,9 +72,10 @@ module KSENTENCES
   syntax KTerminal ::= "r" KString [klabel(KRegex)]
   syntax KNonTerminal ::= KSort
 
-  syntax KProduction ::= KTerminal
-  syntax KProduction ::= KNonTerminal
-  syntax KProduction ::= KProduction KProduction [klabel(KProductionItems), assoc]
+  syntax KProductionItems ::= KTerminal
+  syntax KProductionItems ::= KNonTerminal
+  syntax KProductionItems ::= KProductionItems KProductionItems [klabel(KProductionItems), assoc]
+  syntax KProduction ::= KProductionItems
 
   syntax KPriority ::= KKeySet
   syntax KPriority ::= KPriority ">" KPriority [klabel(KPriorityItems), assoc]
@@ -78,6 +83,7 @@ module KSENTENCES
   syntax KSentence ::= "syntax" KSort [klabel(KSyntaxSort)]
   syntax KSentence ::= "syntax" KSort "::=" KProduction [klabel(KSyntaxProduction)]
   syntax KSentence ::= "syntax" "priority" KPriority [klabel(KSyntaxPriority)]
+  syntax KSentence ::= "rule" KBubble [klabel(KRule)]
   syntax KSentence ::= KSentence "[" KAttributes "]" [klabel(KSentenceWithAttributes)]
 
   syntax KSentenceList ::= KSentence
