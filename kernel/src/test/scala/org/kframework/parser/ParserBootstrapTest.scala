@@ -78,40 +78,35 @@ class ParserBootstrapTest {
     }
   def parseK(toParse: String, parseAs: String): Pattern = runParser(kParser, toParse, parseAs)
 
-  def printInfo(name: String, parsedPattern: Pattern, origModule: Module, downedModule: Module): Unit = {
-    println(name ++ " PARSED AS:")
+  def printInfo(parsedPattern: Pattern, origModule: Module, downedModule: Module): Unit = {
+    println("PARSED AS:")
     println("===================")
     println(parsedPattern)
     println("===================")
-    println(name ++ " ORIG MODULE:")
+    println("ORIG MODULE:")
     println("=====================")
     println(origModule)
     println("=====================")
-    println(name ++ " DOWNED MODULE:")
+    println("DOWNED MODULE:")
     println("=======================")
     println(downedModule)
     println("=======================")
     println("\n\n")
   }
 
-  @Test def expressionTest(): Unit = {
+  def expressionTest(): Unit = {
     import ExpDefinition._
-    val parsed = preProcess(parseK(expString, "KDefinition"))
+    val parsed = preProcess(parseK(expString, "KModuleList"))
     val downed = downModules(parsed)
     //printInfo("EXP", parsed, EXP, downed)
-    gassertEquals(Seq(EXP), downed)
+    assertEquals(Seq(EXP), downed)
   }
 
-  def kdefFixpoint(): Unit = {
-
+  @Test def kdefFixpoint(): Unit = {
     //val KORE_STRING = io.Source.fromFile("/Users/lpena/kframework/k/kernel/src/test/scala/org/kframework/parser/kore.k").mkString
     val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
     val parsed = preProcess(parseK(KORE_STRING, "KDefinition"))
-    val downed = downModules(parsed)
-
-    KOREDef.modules.foreach { case module =>
-      //printInfo(name, parsed, module, downed(name))
-      //assertEquals(module, downRules(downed(name)))
-    }
+    val downed = downDefinition(parsed)
+    assertEquals(KOREDef, downed)
   }
 }
