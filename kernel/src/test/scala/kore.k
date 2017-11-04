@@ -16,11 +16,11 @@ module KATTRIBUTES
 
   syntax KKeyList ::= KAttributeKey
   syntax KKeyList ::= "" [klabel(.KKeyList)]
-  syntax KKeyList ::= KKeyList "," KKeyList [klabel(KKeyList), assoc, kunit(.KKeyList)]
+  syntax KKeyList ::= KKeyList "," KKeyList [klabel(KKeyList), assoc, unit(.KKeyList)]
 
   syntax KKeySet ::= KAttributeKey
   syntax KKeySet ::= "" [klabel(.KKeySet)]
-  syntax KKeySet ::= KKeySet KKeySet [klabel(KKeySet), assoc, comm, kunit(.KKeyList)]
+  syntax KKeySet ::= KKeySet KKeySet [klabel(KKeySet), assoc, comm, unit(.KKeyList)]
 
   syntax KAttribute ::= KAttributeKey
   syntax KAttribute ::= KAttributeKey "(" KKeyList ")" [klabel(KAttributeApply)]
