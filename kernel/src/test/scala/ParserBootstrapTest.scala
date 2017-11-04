@@ -53,22 +53,12 @@ class KParserBootstrapTest {
 
   @Test def kdefFixpoint(): Unit = {
 
-    //val KORE_STRING = io.Source.fromFile("/Users/lpena/kframework/k/kernel/src/test/scala/kore.k").mkString
     val KORE_STRING = io.Source.fromFile("src/test/scala/kore.k").mkString
-
     val parsed = preProcess(parseK(KORE_STRING, KDefinition))
     val builtins: Map[String, Module] = Map.empty
     val downed = downModules(parsed, builtins)
-    //println(downed)
 
-    val modules = List( ("KSTRING", KSTRING)
-                      , ("KATTRIBUTES", KATTRIBUTES)
-                      , ("KML", KML)
-                      , ("KSENTENCES", KSENTENCES)
-                      , ("KDEFINITION", KDEFINITION)
-                      )
-
-    modules.foreach { case (name, module) => 
+    KORE.foreach { case (name, module) => 
       // println(name ++ " ORIG:")
       // println("==============")
       // println(module)
