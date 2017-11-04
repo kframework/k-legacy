@@ -72,24 +72,29 @@ object KOREDowner {
   def downSyntaxSentences(parsedSentence: Pattern): Seq[Sentence] = parsedSentence match {
     case Application("KSentenceList", sentences)                                                       => sentences flatMap ((sent: Pattern) => downSyntaxSentences(sent))
     case Application("KSortDeclaration", DomainValue("KSymbol", sortName) :: atts :: _)                => Seq(SortDeclaration(sortName, downAttributes(atts)))
+    case Application("KSymbolDeclaration", DomainValue("KSymbol", sortName) :: ctor :: atts :: _)      => Seq(SymbolDeclaration(sortName, downCtor(ctor)._1, downCtor(ctor)._2, downAttributes(atts)))
+
+    // TODO: Move this case to a pre-processing extension (instead of in kore)
     case Application("KSyntaxProduction", DomainValue("KSymbol", sortName) :: production :: atts :: _) => {
       val (genKLabel, sortList) = productionInfo(flattenProduction(production))
       Seq(SymbolDeclaration(sortName, getKLabel(downAttributes(atts)).getOrElse(genKLabel), sortList, downAttributes(atts) :+ kprod(genKLabel)))
     }
-    case Application("KSymbolDeclaration", DomainValue("KSymbol", sortName) :: ctor :: atts :: _)      => Seq(SymbolDeclaration(sortName, downCtor(ctor)._1, downCtor(ctor)._2, downAttributes(atts)))
+
     case Application("KImport", DomainValue("KSymbol", importName) :: atts :: _)                       => Seq(Import(importName, downAttributes(atts)))
     case Application("KRule", DomainValue("KBubble", rule) :: atts :: _)                               => Seq(dummySentence(Application(iBubble, Seq(S("rule"), S(rule.replaceAll("\\s+$", "").replaceAll("^\\s+^", "")))) +: downAttributes(atts)))
     case _                                                                                             => Seq.empty
   }
 
-  // TODO: Make this chase the requires list
-  def downModules(parsedModule: Pattern): Seq[Module] = parsedModule match {
-    case Application("KDefinition", requires :: modules :: _)                               => downModules(modules) ++ downModules(requires)
+  def downModules(parsedModules: Pattern): Seq[Module] = parsedModules match {
     case Application("KModuleList", module :: modules :: _)                                 => downModules(modules) ++ downModules(module)
     case Application("KModule", DomainValue("KModuleName", name) :: sentences :: atts :: _) => Seq(Module(name, downSyntaxSentences(sentences), downAttributes(atts)))
-    case Application("KRequireList", _)                                                     => Seq.empty
     case _                                                                                  => Seq.empty
-  }
+ }
+
+ // TODO: Make this chase the requires list
+ def downDefinition(parsedDefinition: Pattern): Definition = parsedDefinition match {
+    case Application("KDefinition", atts :: modules :: _) => Definition(downModules(modules), downAttributes(atts))
+ }
 
 //  def downRules(module: Module): Module = {
 //    if (module.name == "KML") return module
