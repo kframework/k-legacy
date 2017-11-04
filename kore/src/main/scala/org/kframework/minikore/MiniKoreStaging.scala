@@ -1,6 +1,7 @@
 package org.kframework.minikore
 
 import org.kframework.minikore.MiniKore._
+import org.kframework.minikore.KoreToMini._
 
 
 object MiniKoreOuterUtils {
@@ -63,11 +64,11 @@ object MiniKorePatternUtils {
   // Cons Lists
   // ==========
   // Create cons-lists given the klabel for the `cons` operator and the `nil` operator.
-  // consListLeft("apply", "0")(Seq("1","2","3")) => apply(apply(apply(0,1),2),3)
-  // consListRight("apply", "4")(Seq("1","2","3")) => apply(1,apply(2,apply(3,4)))
+  // consListLeft("apply", "4")(Seq("1","2","3")) => apply(1,apply(2,apply(3,4)))
+  // consListRight("apply", "0")(Seq("1","2","3")) => apply(apply(apply(0,1),2),3)
 
-  def consListLeft(cons: String, nil: String)(ps: Seq[Pattern]): Pattern = ps.foldLeft(Application(nil, Seq.empty))((acc, next) => Application(cons, Seq(acc, next)))
-  def consListRight(cons: String, nil: String)(ps: Seq[Pattern]): Pattern = ps.foldRight(Application(nil, Seq.empty))((acc, next) => Application(cons, Seq(next, acc)))
+  def consListLeft(cons: String, nil: String)(ps: Seq[Pattern]): Pattern = ps.foldRight(Application(nil, Seq.empty))((acc, next) => Application(cons, Seq(acc, next)))
+  def consListRight(cons: String, nil: String)(ps: Seq[Pattern]): Pattern = ps.foldLeft(Application(nil, Seq.empty))((acc, next) => Application(cons, Seq(acc, next)))
 
   // Flatten parse-trees
   // ===================
@@ -94,11 +95,11 @@ object MiniKoreMeta {
   def makeDomainValueByName(name: String)(concrete: String): DomainValue = DomainValue(name, concrete)
   def getDomainValueByName(name: String): DomainValue => String = { case DomainValue(`name`, value) => value }
 
-  def makeSymbol(concrete: String) : DomainValue = makeDomainValueByName("KSymbol@KTOKENS")(concrete)
+  val makeSymbol: String => DomainValue = makeDomainValueByName("KSymbol@KTOKENS")
   def getSymbol(parsed: Pattern): String = getDomainValueByName("KSymbol@KTOKENS")(downDomainValue(parsed))
 
-  def makeSymbolList(concrete: Seq[String]): Pattern = upPatternList(concrete map (cs => makeSymbol(cs)))
-  def getSymbolList(parsed: Pattern): Seq[String] = downPatternList(parsed) map { case DomainValue("KSymbol@KTOKENS", value) => value }
+  def makeSymbolList(concrete: Seq[String]): Pattern = consListLeft("KSymbolList", ".KSymbolList")(concrete map (cs => makeSymbol(cs)))
+  def getSymbolList(parsed: Pattern): Seq[String] = flattenByLabels("KSymbolList", ".KSymbolList")(parsed) map (downDomainValue andThen { case DomainValue("KSymbol@KTOKENS", value) => value })
 
   // Patterns
   // ========
@@ -106,14 +107,16 @@ object MiniKoreMeta {
   val upDomainValue: DomainValue => Application = { case DomainValue(name, value) => Application("KMLDomainValue", Seq(Application(name, Nil), Application(value, Nil))) }
   val downDomainValue: Pattern => DomainValue = {
     case Application("KMLDomainValue", Application(name, Nil) :: Application(value, Nil) :: Nil) => DomainValue(name, value)
-    case Application(value, Nil) => DomainValue("KSymbol@KTOKENS", value) // TODO: remove/fix this case
+    //case Application(value, Nil) => DomainValue("KSymbol@KTOKENS", value) // TODO: remove/fix this case
   }
+  val upSymbol: String => Application = makeSymbol andThen upDomainValue
 
   val upVariable: Variable => Application = { case Variable(name, sort) => Application("KMLVariable", Seq(makeSymbol(name), makeSymbol(sort))) }
   val downVariable: Pattern => Variable = { case Application("KMLVariable", DomainValue("KSymbol@KTOKENS", name) :: DomainValue("KSymbol@KTOKENS", sort) :: Nil) => Variable(name, sort) }
 
   val upPattern: Pattern => Application = {
-    case Application(label, args) => Application("KMLApplication", Seq(Application(label, Seq.empty), upPatternList(args)))
+    case Application(label, Nil)  => Application("KMLApplication", Seq(Application(label, Seq.empty)))
+    case Application(label, args) => Application("KMLApplication", Seq(upSymbol(label), upPatternList(args)))
     case And(p, q)                => Application("KMLAnd", Seq(upPattern(p), upPattern(q)))
     case Or(p, q)                 => Application("KMLOr",  Seq(upPattern(p), upPattern(q)))
     case Not(p)                   => Application("KMLNot",  Seq(upPattern(p)))
@@ -127,23 +130,24 @@ object MiniKoreMeta {
     case dv@DomainValue(_, _)     => upDomainValue(dv)
   }
   val downPattern: Pattern => Pattern = {
-    case Application("KMLApplication", label :: pList :: Nil) => Application(getSymbol(label), downPatternList(pList))
-    case Application("KMLTrue", Nil)                          => True()
-    case Application("KMLFalse", Nil)                         => False()
-    case Application("KMLAnd", p1 :: p2 :: Nil)               => And(downPattern(p1), downPattern(p2))
-    case Application("KMLOr", p1 :: p2 :: Nil)                => Or(downPattern(p1), downPattern(p2))
-    case Application("KMLNot", p :: Nil)                      => Not(downPattern(p))
-    case Application("KMLImplies", p1 :: p2 :: Nil)           => Implies(downPattern(p1), downPattern(p2))
-    case Application("KMLExists", v :: p :: Nil)              => Exists(downVariable(v), downPattern(p))
-    case Application("KMLForall", v :: p :: Nil)              => ForAll(downVariable(v), downPattern(p))
-    case Application("KMLNext", p :: Nil)                     => Next(downPattern(p))
-    case Application("KMLRewrite", p1 :: p2 :: Nil)           => Rewrite(downPattern(p1), downPattern(p2))
-    case Application("KMLEqual", p1 :: p2 :: Nil)             => Equal(downPattern(p1), downPattern(p2))
-    case vb@Application("KMLVariable", _)                     => downVariable(vb)
-    case dv@Application("KMLDomainValue", _)                  => downDomainValue(dv)
+    case Application("KMLApplication", Application(label, Nil) :: Nil) => Application(label, Seq.empty)
+    case Application("KMLApplication", label :: pList :: Nil)          => Application(getSymbol(label), downPatternList(pList))
+    case Application("KMLTrue", Nil)                                   => True()
+    case Application("KMLFalse", Nil)                                  => False()
+    case Application("KMLAnd", p1 :: p2 :: Nil)                        => And(downPattern(p1), downPattern(p2))
+    case Application("KMLOr", p1 :: p2 :: Nil)                         => Or(downPattern(p1), downPattern(p2))
+    case Application("KMLNot", p :: Nil)                               => Not(downPattern(p))
+    case Application("KMLImplies", p1 :: p2 :: Nil)                    => Implies(downPattern(p1), downPattern(p2))
+    case Application("KMLExists", v :: p :: Nil)                       => Exists(downVariable(v), downPattern(p))
+    case Application("KMLForall", v :: p :: Nil)                       => ForAll(downVariable(v), downPattern(p))
+    case Application("KMLNext", p :: Nil)                              => Next(downPattern(p))
+    case Application("KMLRewrite", p1 :: p2 :: Nil)                    => Rewrite(downPattern(p1), downPattern(p2))
+    case Application("KMLEqual", p1 :: p2 :: Nil)                      => Equal(downPattern(p1), downPattern(p2))
+    case vb@Application("KMLVariable", _)                              => downVariable(vb)
+    case dv@Application("KMLDomainValue", _)                           => downDomainValue(dv)
   }
 
-  def upPatternList(concretes: Seq[Pattern]): Pattern = consListRight("KMLPatternList", ".KMLPatternList")(concretes map upPattern)
+  def upPatternList(concretes: Seq[Pattern]): Pattern = consListLeft("KMLPatternList", ".KMLPatternList")(concretes map upPattern)
   def downPatternList(parsed: Pattern): Seq[Pattern] = flattenByLabels("KMLPatternList", ".KMLPatternList")(parsed) map downPattern
 
   // Sentences
@@ -165,7 +169,7 @@ object MiniKoreMeta {
   val downSentence: Pattern => Sentence = {
     case Application("KImport", importName :: atts :: Nil)        => Import(getSymbol(importName), downAttributes(atts))
     case Application("KSortDeclaration", sortName :: atts :: Nil) => SortDeclaration(getSymbol(sortName), downAttributes(atts))
-    case Application("KSymbolDeclaration", sortName :: Application("KMLApplication", label :: args :: Nil) :: atts :: Nil)
+    case Application("KSymbolDeclaration", sortName :: label :: args :: atts :: Nil)
                                                                   => SymbolDeclaration(getSymbol(sortName), getSymbol(label), getSymbolList(args), downAttributes(atts))
     case Application("KRule", rule :: atts :: Nil)                => dummySentence(Application(iBubble, Seq(S("rule"), S(getSymbol(rule).replaceAll("\\s+$", "").replaceAll("^\\s+^", "")))) +: downAttributes(atts))
     // TODO: This case should not be parsed like this, should it?
@@ -177,14 +181,14 @@ object MiniKoreMeta {
   // ===========
 
   val upModule: Module => Pattern = {
-    case Module(name: String, sentences: Seq[Sentence], atts: Attributes) => Application("KModule", Seq(makeSymbol(name), consListRight("KSentenceList", ".KSentenceList")(sentences map upSentence), upAttributes(atts)))
+    case Module(name: String, sentences: Seq[Sentence], atts: Attributes) => Application("KModule", Seq(makeSymbol(name), consListLeft("KSentenceList", ".KSentenceList")(sentences map upSentence), upAttributes(atts)))
   }
   val downModule: Pattern => Module = {
     case Application("KModule", name :: sentences :: atts :: Nil) => Module(getSymbol(name), flattenByLabels("KSentenceList", ".KSentenceList")(sentences) map downSentence, downAttributes(atts))
   }
 
   val upDefinition: Definition => Pattern = {
-     case Definition(modules: Seq[Module], atts: Attributes) => Application("KDefinition", Seq(upAttributes(atts), consListRight("KModuleList", ".KModuleList")(modules map upModule)))
+     case Definition(modules: Seq[Module], atts: Attributes) => Application("KDefinition", Seq(upAttributes(atts), consListLeft("KModuleList", ".KModuleList")(modules map upModule)))
   }
   val downDefinition: Pattern => Definition = {
      case Application("KDefinition", atts :: modules :: Nil) => Definition(flattenByLabels("KModuleList", ".KModuleList")(modules) map downModule, downAttributes(atts))
