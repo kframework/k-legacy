@@ -35,14 +35,15 @@ class KParserBootstrapTest {
     println(parseK(""""renuth"""", KString))
   }
 
-  @Test def priorityTest(): Unit = {
+  def priorityTest(): Unit = {
     val priorityString =
       """
       module EXP
         syntax Exp ::= Exp "+" Exp [klabel(p), plus]
-                     > Exp "-" Exp [minus, klabel(m)]
-                     | Exp "*" Exp [klabel(t), times]
-                     > Exp "/" Exp [klabel(d), div]
+        syntax Exp ::= Exp "-" Exp [minus, klabel(m)]
+        syntax Exp ::= Exp "*" Exp [klabel(t), times]
+        syntax Exp ::= Exp "/" Exp [klabel(d), div]
+        syntax priority p m > t d
       endmodule
       """
     val parsed = preProcess(parseK(priorityString, KDefinition))
@@ -58,11 +59,9 @@ class KParserBootstrapTest {
     val parsed = preProcess(parseK(KORE_STRING, KDefinition))
     val builtins: Map[String, Module] = Map.empty
     val downed = downModules(parsed, builtins)
-    println(downed)
+    //println(downed)
 
-    val modules = List( ("KSORT", KSORT)
-                      , ("KBASIC", KBASIC)
-                      , ("KSTRING", KSTRING)
+    val modules = List( ("KSTRING", KSTRING)
                       , ("KATTRIBUTES", KATTRIBUTES)
                       , ("KML", KML)
                       , ("KSENTENCES", KSENTENCES)
