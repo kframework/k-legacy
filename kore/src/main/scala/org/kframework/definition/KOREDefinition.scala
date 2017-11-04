@@ -44,16 +44,15 @@ object KDefinitionDSL {
   }
 
   def makeKLabel(pis: Seq[Pattern]): String = pis flatMap {
-      case Application(KoreToMini.`iNonTerminal`, Seq(DomainValue("S", s)))                                                            => "_"
-      case Application(KoreToMini.`iTerminal`, DomainValue("S", value) +: followRegex)                                                 => value // should take into account the followRegex
-      case Application(KoreToMini.`iRegexTerminal`, Seq(DomainValue("S", precede), DomainValue("S", regex), DomainValue("S", follow))) => "r\"" + regex + "\"" // should take into account the precede/follow
+    case Application(KoreToMini.`iNonTerminal`, Seq(DomainValue("S", s)))                                                            => "_"
+    case Application(KoreToMini.`iTerminal`, DomainValue("S", str) +: followRegex)                                                   => str // should take into account the followRegex
+    case Application(KoreToMini.`iRegexTerminal`, Seq(DomainValue("S", precede), DomainValue("S", regex), DomainValue("S", follow))) => "r\"" + regex + "\"" // should take into account the precede/follow
   } mkString
 
   case class syntax(sort: Sort, pis: Seq[ProductionItem] = Seq.empty) {
     def is(pis: ProductionItem*): syntax = syntax(sort, pis)
     def att(atts: Pattern*): SymbolDeclaration = SymbolDeclaration(sort.name, getKLabel(atts).getOrElse(makeKLabel(productionsAsPatterns(pis))), pis.collect { case Sort(name) => name }, atts :+ kprod(productionsAsPatterns(pis)))
   }
-
   implicit def asSentence(bs: syntax): SymbolDeclaration = bs.att()
 
   implicit def asApplication(name: String): Application = Application(name, Seq.empty)
@@ -90,9 +89,9 @@ object KOREDefinition {
 
   // ### KTOKENS
   //val KRegexSort = "[A-Z][A-Za-z0-9]*"
-  val KRegexSymbol1 = "[\\.A-Za-z\\|\\-0-9]*"
-  val KRegexSymbol2 = "`(\\\\`|\\\\\\\\|[^`\\\\\n\r\t\f])+`"
-  val KRegexSymbol3 = "(?![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"
+  val KRegexSymbol = "[A-Za-z0-9\\.@#\\|\\-]*"
+  //val KRegexSymbol2 = "`(\\\\`|\\\\\\\\|[^`\\\\\n\r\t\f])+`"
+  //val KRegexSymbol3 = "(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"
   // TODO: the (?<! is a signal to the parser that it should be used as a "precedes" clause, do we need it?
   // val KRegexAttributeKey3 = """(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"""
 
@@ -102,9 +101,9 @@ object KOREDefinition {
   val KString = Sort("KString")
 
   val KTOKENS: Module = module("KTOKENS",
-    syntax(KSymbol) is Regex(KRegexSymbol1) att "token",
-    syntax(KSymbol) is Regex(KRegexSymbol2) att "token",
-    syntax(KSymbol) is Regex(KRegexSymbol3) att("token", "autoReject"),
+    syntax(KSymbol) is Regex(KRegexSymbol) att "token",
+    //syntax(KSymbol) is Regex(KRegexSymbol2) att "token",
+    //syntax(KSymbol) is Regex(KRegexSymbol3) att("token", "autoReject"),
     syntax(KString) is Regex(KRegexString) att "token"
   )
 
@@ -147,7 +146,7 @@ object KOREDefinition {
   )
 
 
-  // ### KSENTENCES
+  // ### KSENTENCE
   val KTerminal = Sort("KTerminal")
   val KNonTerminal = Sort("KNonTerminal")
 
@@ -169,7 +168,9 @@ object KOREDefinition {
 
     syntax(KProduction) is KTerminal,
     syntax(KProduction) is KNonTerminal,
-    syntax(KProduction) is (KProduction, KProduction) att(klabel("KProduction"), "assoc"),
+    syntax(KProduction) is (KProduction, KProduction) att(klabel("KProduction"), "assoc"),         // this doesn't work
+    //syntax(KProduction) is (KProduction, ";", KProduction) att(klabel("KProduction"), "assoc"),  // this works
+
     syntax(KPriority) is KMLPatternList,
     syntax(KPriority) is (KPriority, ">", KPriority) att(klabel("KPriorityItems"), "assoc"),
 
@@ -179,7 +180,7 @@ object KOREDefinition {
     syntax(KSentence) is ("imports", KSymbol, KAttributes) att klabel("KImport"),
     syntax(KSentence) is ("syntax", KSymbol, KAttributes) att klabel("KSortDeclaration"),
     syntax(KSentence) is ("syntax", KSymbol, "::=", KProduction, KAttributes) att klabel("KSyntaxProduction"),
-    syntax(KSentence) is ("syntax", KSymbol, "::=", KMLPattern, KAttributes) att klabel("KSymbolDeclaration"),
+    syntax(KSentence) is ("syntax", KSymbol, ":=", KMLPattern, KAttributes) att klabel("KSymbolDeclaration"),
     syntax(KSentence) is ("syntax", "priority", KPriority, KAttributes) att klabel("KSyntaxPriority"),
     syntax(KSentence) is ("rule", KBubble, KAttributes) att klabel("KRule"),
 
