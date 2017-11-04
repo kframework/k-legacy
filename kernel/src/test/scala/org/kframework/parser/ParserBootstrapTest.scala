@@ -43,7 +43,7 @@ object ExpDefinition {
     """
 
   val Exp = SortLookup("Exp")
-  val EXP = Module("EXP", imports(KBOOL), sentences(
+  val EXP = Module("EXP", imports(), sentences(
     syntax(Exp) is "0" att klabel("0"),
     syntax(Exp) is "1" att klabel("1"),
     syntax(Exp) is "2" att klabel("2"),
