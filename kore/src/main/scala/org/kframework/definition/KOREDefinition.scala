@@ -188,9 +188,9 @@ object KOREDefinition {
     syntax(KPriority) is KKeySet,
     syntax(KPriority) is (KPriority, ">", KPriority) att(klabel("KPriorityItems"), "assoc"),
 
-    syntax(KSentence) is ("syntax", KSort) att klabel("KSortDecl"),
-    syntax(KSentence) is ("syntax", KSort, "::=", KProduction) att klabel("KProduction"),
-    syntax(KSentence) is ("syntax", "priority", KPriority) att klabel("KPriority"),
+    syntax(KSentence) is ("syntax", KSort) att klabel("KSyntaxSort"),
+    syntax(KSentence) is ("syntax", KSort, "::=", KProduction) att klabel("KSyntaxProduction"),
+    syntax(KSentence) is ("syntax", "priority", KPriority) att klabel("KSyntaxPriority"),
     syntax(KSentence) is ("rule", KBubble) att klabel("KRule"),
     syntax(KSentence) is (KSentence, "[", KAttributes, "]") att klabel("KSentenceWithAttributes"),
 
