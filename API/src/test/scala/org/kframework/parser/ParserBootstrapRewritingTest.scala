@@ -10,8 +10,14 @@ import org.kframework.definition.Module
 
 import org.kframework.definition.KDefinitionDSL._
 import org.kframework.definition.KOREDefinition._
+import org.kframework.definition.Definition
 import org.kframework.parser.KOREDowner._
+import org.kframework.backend.java.symbolic._
+import org.kframework.KapiGlobal
+import org.kframework.rewriter._
 
+import collection.JavaConverters.mapAsJavaMap
+import java.util.Optional
 
 object ExpDefinition {
   import org.kframework.kore.ADT._
@@ -93,12 +99,51 @@ class ParserBootstrapRewritingTest {
     println("\n\n")
   }
 
+//    public InitializeRewriter(KapiGlobal g,
+//                              Map<String, MethodHandle> hookProvider,
+//                              InitializeDefinition initializeDefinition) {
+//        this(g.fs, g.deterministicFunctions, g.globalOptions, g.kem, g.smtOptions, hookProvider, g.kompileOptions.transition, g.kRunOptions, g.files, initializeDefinition);
+//    }
+//
+//    @Override
+//    public synchronized Rewriter apply(Module module) {
+//        TermContext initializingContext = TermContext.builder(new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING))
+//                .freshCounter(0).build();
+//        Definition evaluatedDef = initializeDefinition.invoke(module, kem, initializingContext.global());
+//
+//        GlobalContext rewritingContext = new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
+//        rewritingContext.setDefinition(evaluatedDef);
+//
+//        return new SymbolicRewriterGlue(module, evaluatedDef, transitions, initializingContext.getCounterValue(), rewritingContext, kem);
+//    }
+
+//  Map<String, MethodHandle> hookProvider = HookProvider.get(kem);
+//  InitializeRewriter.InitializeDefinition initializeDefinition = new InitializeRewriter.InitializeDefinition();
+//  //
+//  //
+//  initializeRewriter = new InitializeRewriter(fs, javaExecutionOptions.deterministicFunctions, kRunOptions.global, kem, kRunOptions.experimental.smt, hookProvider, kompileOptions.transition, kRunOptions, files, initializeDefinition);
+
+  def rewriteInDefinition(defn: String, topModuleName: String, term: String, termSort: String, maxSteps: Option[Integer]): K = {
+
+    val parsedDefn: K         = preProcess(parseK(defn, KDefinition))
+    val topModule: Module     = downRules(downModules(parsedDefn, Map.empty)(topModuleName))
+    val parser: ParseInModule = new ParseInModule(topModule)
+    val parsedTerm: K         = runParser(parser, term, ADT.SortLookup(termSort))
+
+    val definition: Definition           = Definition(topModule, Set.empty)
+    val initRewriter: InitializeRewriter = new InitializeRewriter(new KapiGlobal, mapAsJavaMap(Map.empty).asInstanceOf[java.util.Map[String,java.lang.invoke.MethodHandle]], new InitializeRewriter.InitializeDefinition)
+    val symbRewriter: Rewriter           = initRewriter(topModule)
+
+    symbRewriter.execute(parsedTerm, Optional.ofNullable(maxSteps.orNull)).k
+  }
+
   @Test def expressionTest(): Unit = {
     import ExpDefinition._
     val parsed = preProcess(parseK(expString, KDefinition))
     val downed = downRules(downModules(parsed, Map.empty)("EXP"))
-    //printInfo("EXP", parsed, EXP, downed)
-    assertEquals(downRules(EXP), downed)
+    printInfo("EXP", parsed, EXP, downed)
+    println(rewriteInDefinition(expString, "EXP", "3 + 3", "Exp", Some(3)))
+    //assertEquals(downRules(EXP), downed)
   }
 
   def kdefFixpoint(): Unit = {
