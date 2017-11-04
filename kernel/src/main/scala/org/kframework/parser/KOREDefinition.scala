@@ -11,15 +11,18 @@ object KDefinitionDSL {
   // ===========
 
   trait ProductionItem
+
   case class Sort(name: String) extends ProductionItem
+
   case class Regex(regex: String) extends ProductionItem
+
   case class Terminal(name: String) extends ProductionItem
 
   implicit def asTerminal(name: String): Terminal = Terminal(name)
 
   def productionAsPattern: ProductionItem => Pattern = {
-    case Terminal(str)  => application("KTerminal@K-PRETTY-PRODUCTION", str)
-    case Regex(str)     => Application("KRegexTerminal@K-PRETTY-PRODUCTION", Seq(Application("#", Nil), Application(str, Nil), Application("#", Nil)))
+    case Terminal(str) => application("KTerminal@K-PRETTY-PRODUCTION", str)
+    case Regex(str) => Application("KRegexTerminal@K-PRETTY-PRODUCTION", Seq(Application("#", Nil), Application(str, Nil), Application("#", Nil)))
     case Sort(sortName) => application("KNonTerminal@K-PRETTY-PRODUCTION", sortName)
   }
 
@@ -27,8 +30,8 @@ object KDefinitionDSL {
   val makeCtorString: Pattern => String = {
     case Application("KTerminal@K-PRETTY-PRODUCTION", Application(str, Nil) :: followRegex) => str
     case Application("KRegexTerminal@K-PRETTY-PRODUCTION", Application(precede, Nil) :: Application(regex, Nil) :: Application(follow, Nil) :: Nil)
-                                                                                            => "r\"" + regex + "\""
-    case Application("KNonTerminal@K-PRETTY-PRODUCTION", Application(_, Nil) :: Nil)        => "_"
+    => "r\"" + regex + "\""
+    case Application("KNonTerminal@K-PRETTY-PRODUCTION", Application(_, Nil) :: Nil) => "_"
   }
 
   // Attributes
@@ -37,13 +40,15 @@ object KDefinitionDSL {
   implicit def asPatternSymbol(name: String): Application = Application(name, Seq.empty)
 
   def application(label: String, value: String): Application = Application(label, Seq(Application(value, Seq.empty)))
-  def klabel(value: String): Application                     = application("klabel", value)
-  def prod(production: Seq[Pattern]): Application            = Application("production", production)
-  def kprod(production: ProductionItem*): Application        = prod(production map productionAsPattern)
+  def klabel(value: String): Application = application("klabel", value)
+  def prod(production: Seq[Pattern]): Application = Application("production", production)
+  def kprod(production: ProductionItem*): Application = prod(production map productionAsPattern)
+  def priority(priorities: Seq[Pattern]): Application = Application("priority", priorities)
+  def kpriority(priorities: (Seq[Seq[String]])*): Application = priority(priorities map (pGroup => Application("KPriorityItems", pGroup map (pBlock => Application("KSymbolList", pBlock map (label => Application(label, Seq.empty)))))))
 
   def getKLabel(atts: Attributes): Option[String] = getAttributeKey("klabel", atts) match {
     case Seq(Seq(Application(value, Nil))) => Some(value)
-    case _                                 => None
+    case _ => None
   }
 
   // MINIKORE DSL
@@ -74,11 +79,13 @@ object KDefinitionDSL {
 
   def term(label: String, args: Pattern*): Application = Application(label, args)
 
-  implicit def asDefinition(d: definition): Definition  = d.att()
-  implicit def asModule(m: module): Module              = m.att()
+  implicit def asDefinition(d: definition): Definition = d.att()
+  implicit def asModule(m: module): Module = m.att()
   implicit def asSentence(s: symbol): SymbolDeclaration = s.att()
   implicit def asSentence(s: syntax): SymbolDeclaration = s.att()
-  implicit def asSentence(r: rule): Rule                = r.att()
+  implicit def asSentence(r: rule): Rule = r.att()
+
+  def mkDefaultPriorities(m: Module): Module = ???
 }
 
 
@@ -109,7 +116,7 @@ object KOREDefinition {
     syntax(KSymbolList) is (KSymbol, ",", KSymbolList) att klabel("KSymbolList"),
 
     syntax(KString) is Regex(KRegexString) att "token"
-  )
+  ) att kpriority()
 
   val KTOKENS_LABELS = Seq(".KSymbolList", "KSymbolList", "KSymbol@KTOKENS")
 
