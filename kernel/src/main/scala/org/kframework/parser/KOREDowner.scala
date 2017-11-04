@@ -16,8 +16,9 @@ import org.kframework.minikore.MiniKore._
 object KOREDowner {
 
   def preProcess(parsedConverted: Pattern): Pattern = parsedConverted match {
-    case Application(label, args)      => Application(label, args map preProcess)
+    //case Application("KString", Seq(Application(str, _))) => ... // TODO: should it be this?
     case DomainValue("KString", value) => DomainValue("KString", StringEscapeUtils.unescapeJava(value.drop(1).dropRight(1)))
+    case Application(label, args)      => Application(label, args map preProcess)
   }
   
   def downVariable(parsedVariable: Pattern): Variable = parsedVariable match {
