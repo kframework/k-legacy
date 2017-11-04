@@ -4,6 +4,7 @@ import org.kframework.attributes.Att
 import org.kframework.kore.ADT._
 import org.kframework.kore._
 import collection.JavaConverters._
+//import collection.immutable.Set._
 
 /**
   * Created by lpena on 10/11/16.
@@ -58,28 +59,75 @@ object KParserBootsrap {
   def sentences(s: Sentence*): Set[Sentence] = s.toSet
   def klabel(label: String): K = Att.asK("klabel", label)
 
-
-  def downToModule(parsed: K): Module = {
-    // KApply(KLabel("module___endmodule"), moduleName, importList, sentenceList) =>
-    // BecomingModule(downToModuleName(moduleName), downToImportStringSet(importList)
-    // downToSentenceList(sentenceList)
-    // syntax(getSort(s))
-    ???
-  }
-
   def getASTNodes(parsed: K, nodeLabel: String): List[K] = parsed match {
     case node@KApply(nl, klist, _) => klist.items.asScala.flatMap(x => getASTNodes(x, nodeLabel)).toList ++ (if (nl == KLabelLookup(nodeLabel)) List(node) else List.empty)
     case _ => List.empty
   }
 
-  def getSortMap(parsed: K): Map[String, ADT.SortLookup] =
-    getASTNodes(parsed, "syntax_::=_").foldLeft(Map.empty : Map[String, ADT.SortLookup]) ( (x, z) => z match {
-      case KApply(_, KList(KToken(sortName, _, _) :: tl), _) => Map(sortName -> Sort(sortName)) ++ x
-    })
-
   def getASTModules(parsed: K): List[K] = getASTNodes(parsed, "module___endmodule")
 
+  def getSortMap(parsed: K): Map[String, (ADT.SortLookup, Set[K])] =
+    getASTNodes(parsed, "syntax_::=_").foldLeft(Map.empty : Map[String, (ADT.SortLookup, Set[K])]) ( (sortMap, currentSyntax) => currentSyntax match {
+      case KApply(_, KList(KToken(sortName, _, _) :: production :: nil), _) => {
+        val newSortInfo: (ADT.SortLookup, Set[K]) = if (sortMap contains sortName) (sortMap(sortName)._1, sortMap(sortName)._2 + production) else (Sort(sortName), Set.empty)
+        sortMap.updated(sortName, newSortInfo)
+      }
+    })
 
+  def decomposeModule(parsedModule: K): (String, Set[String], Map[String, (ADT.SortLookup, Set[K])]) = parsedModule match {
+    case module@KApply(KLabelLookup("module___endmodule"), KList(KToken(name, _, _) :: importList :: _), _) =>
+      (name, getASTNodes(importList, "imports_").map { case KApply(_, KList(KToken(mn, _, _) :: _), _) => mn }.toSet, getSortMap(module))
+  }
+
+  def nextDownModuleName(moduleImports: Set[(String, Set[String])], downedModules: Set[String]): Option[String] =
+    moduleImports.find(mi => mi._2 subsetOf downedModules).map(_._1)
+
+  def getImports(parsedModule: K): (String, Set[String]) = parsedModule match {
+    case KApply(KLabelLookup("module___endmodule"), KList(KToken(name, _, _) :: importList :: _), _) =>
+      (name, getASTNodes(importList, "imports_").map { case KApply(_, KList(KToken(mn, _, _) :: _), _) => mn }.toSet)
+  }
+
+  def downSentence(parsedSentence: K, sorts: Map[String, ADT.SortLookup]): Production = ???
+
+//  def downModuleWith(parsedModule: K, sorts: Map[String, ADT.SortLookup], downedModules: Map[String, Module]): Module = {
+//    val imports = getImports(parsedModule)._2.map(downedModules(_))
+//    val sentences = getASTNodes(parsedModule, "syntax_::=_").map(downSentence(_, sorts))
+//  }
+
+  def getParsedModule(ASTNodes: List[K], moduleName: String): K =
+    ASTNodes.find{ case KApply(_, KList(KToken(mn, _, _) :: _), _) => mn == moduleName }.get
+    //ASTNodes.find( (elt: K) => elt == KApply(_, KList(KToken(moduleName, _, _) :: _), _))
+
+  def sortModules(decomposedModules: List[(String, Set[String], Map[String, (ADT.SortLookup, Set[K])])], orderedModules: List[String]): List[String] = ???
+
+
+  def down(downedModules: Map[String, Module], moduleName: String, importSet: Set[String], sortInfo: Map[String, (SortLookup, Set[K])]): Module = ???
+
+  def getAllDownModules(parsed: K): Map[String, Module] = {
+    var decomposedModules = getASTNodes(parsed, "module__endmodule") map decomposeModule
+
+    var downedModules = Map.empty : Map[String, Module]
+
+    while (decomposedModules.nonEmpty) {
+      val (moduleName, importSet, sortInfo) = decomposedModules.find { case (_, importSet, _) => importSet subsetOf downedModules.keySet }.get
+      decomposedModules = decomposedModules.filterNot { case (mn, _, _) => mn == moduleName }
+      downedModules += moduleName -> down(downedModules, moduleName, importSet, sortInfo)
+    }
+    downedModules
+
+
+
+//    val decomposedModules = getASTNodes(parsed, "module___endmodule") map decomposeModule
+//    var sorts = Map.empty: Map[String, ADT.SortLookup]
+//    var downedModules = Map.empty : Map[String, Module]
+//    val nonDownedModules = getASTModules(parsed)
+//    while(downedModules.size > 0) {
+//      val nextModule = nextDownModuleName(nonDownedModules.map(getImports).toSet, downedModules.keySet).get
+//      sorts = sorts ++ getSortMap(getParsedModule(nonDownedModules, nextModule))
+//      downedModules = downedModules + (nextModule -> downModuleWith(getParsedModule(nonDownedModules, nextModule), sorts, downedModules))
+//    }
+//    downedModules
+  }
 
 
 
