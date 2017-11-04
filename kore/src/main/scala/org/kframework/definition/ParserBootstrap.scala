@@ -58,7 +58,7 @@ object KParserBootstrapDSL {
     """
 
   val K = Sort("K")
-  val KSORT = Module("KSORT", Set.empty, sentences(
+  val KSORT = Module("KSORT", imports(), sentences(
     sort(K) att khook("K.K")
     )
   )
@@ -79,21 +79,6 @@ object KParserBootstrapDSL {
       syntax Bottom
     endmodule
     """
-//
-//  KDefinition(.KRequireList(),KModuleList(KModule(#token("KSORT",KModuleName@KTOKENS),.KImportList(),
-//  KSentenceList(KSentence(KSortDecl(#token("K",KSort@KTOKENS)),KAttributes(KAttributeApply(#token("hook",KAttributeKey@KTOKENS),KKeyList(#token("K.K",KAttributeKey@KTOKENS),.KKeyList())),.KAttributes())),.KSentenceList())),
-//
-//  KModuleList(KModule(#token("KBASIC",KModuleName@KTOKENS),KImportList(KImport(#token("KSORT",KModuleName@KTOKENS)),.KImportList()),
-//  KSentenceList(KSortDecl(#token("KLabel",KSort@KTOKENS)),
-//  KSentenceList(KSentence(KSortDecl(#token("KItem",KSort@KTOKENS)),KAttributes(KAttributeApply(#token("hook",KAttributeKey@KTOKENS),KKeyList(#token("K.KItem",KAttributeKey@KTOKENS),.KKeyList())),.KAttributes())),
-//  KSentenceList(KSentence(KSyntax(#token("K",KSort@KTOKENS),#token("KItem",KSort@KTOKENS)),KAttributes(#token("allowChainSubsort",KAttributeKey@KTOKENS),.KAttributes())),
-//  KSentenceList(KSortDecl(#token("KConfigVar",KSort@KTOKENS)),
-//  KSentenceList(KSortDecl(#token("KBott",KSort@KTOKENS)),
-//  KSentenceList(KSortDecl(#token("KList",KSort@KTOKENS)),
-//  KSentenceList(KSortDecl(#token("KResult",KSort@KTOKENS)),
-//  KSentenceList(KSortDecl(#token("MetaVariable",KSort@KTOKENS)),
-//  KSentenceList(KSortDecl(#token("Bottom",KSort@KTOKENS)),.KSentenceList())))))))))),.KModuleList())))
-
 
   val KLabel = Sort("KLabel")
   val KItem = Sort("KItem")
@@ -116,13 +101,22 @@ object KParserBootstrapDSL {
     )
   )
 
+  val KStringRegex = """[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"""
+  KORE_STRING +=
+    """
+    module KSTRING
+      syntax KString ::= r""" + "\"" + KStringRegex + "\"" + """ [token, hook(org.kframework.kore.KString, .KKeyList), .KAttributes]
+    endmodule
+    """
+
+  val KString = Sort("KString")
+  val KSTRING = Module("KSTRING", imports(), sentences(
+    syntax(KString) is regex(KStringRegex) att("token", khook("org.kframework.kore.KString"))
+
+  ))
+
   val REST_STRING =
     """
-       |
-       |
-       |    module KSTRING
-       |      syntax KString ::= r"[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"      [token, hook(org.kframework.kore.KString)]
-       |    endmodule
     module KAST
       imports BASIC-K
       imports KSTRING
@@ -338,7 +332,7 @@ object KParserBootstrapDSL {
     endmodule
     """
 
-  val KString = Sort("KString")
+  //val KString = Sort("KString")
   val KSort = Sort("KSort")
   val KAttributeKey = Sort("KAttributeKey")
   val KModuleName = Sort("KModuleName")
@@ -584,11 +578,12 @@ object KParserBootstrapDown {
 
 
   def productionSeq(prod: K): Seq[ProductionItem] = prod match {
-    case KApply(KLabelLookup("KProduction"), KList(KToken(str, KString, _) :: rest :: _), _) => Terminal(str.drop(1).dropRight(1)) +: productionSeq(rest)
+    case KApply(KLabelLookup("KRegex"), KList(KToken(str, KString, _) :: _), _) => Seq(RegexTerminal("#", str.drop(1).dropRight(1), "#"))
     case KToken(str, KString, _) => Seq(Terminal(str.drop(1).dropRight(1)))
-    case KApply(KLabelLookup("KProduction"), KList(KToken(sortName, KSort, _) :: rest :: _), _) => NonTerminal(Sort(sortName)) +: productionSeq(rest)
     case KToken(sortName, KSort, _) => Seq(NonTerminal(Sort(sortName)))
-    case KApply(KLabelLookup("KProduction"), KList(KApply(KLabelLookup("KRegex"), KList(KToken(str, KString, _) :: _), _) :: rest :: _), _) => Terminal(str.drop(1).dropRight(1)) +: productionSeq(rest)
+    case KToken(sortName, KSort, _) => Seq(NonTerminal(Sort(sortName)))
+    case KApply(KLabelLookup("KProduction"), KList(prodItem :: rest :: _), _) => productionSeq(prodItem) ++ productionSeq(rest)
+    case _ => Seq.empty
   }
 
   def downSentence(parsedSentence: K, atts: Att = Att()): Sentence = parsedSentence match {
