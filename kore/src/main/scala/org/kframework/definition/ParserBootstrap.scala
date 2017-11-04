@@ -1,5 +1,6 @@
 package org.kframework.definition
 
+import org.apache.commons.lang3.StringEscapeUtils
 import org.kframework.attributes.Att
 import org.kframework.builtin.Sorts
 import org.kframework.kore.ADT._
@@ -173,6 +174,7 @@ object KoreDefintion {
   val KRegexAttributeKey2 = "`(\\\\`|\\\\\\\\|[^`\\\\\n\r\t\f])+`"
   val KRegexAttributeKey3 = "(?![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"
   // val KRegexAttributeKey3 = """(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"""
+  // the (?<! is a signal to the parser that it should be used as a "precedes" clause, do we need it?
 
   val KAttributeKey = Sort("KAttributeKey")
   val KKeyList = Sort("KKeyList")
@@ -202,11 +204,7 @@ object KoreDefintion {
 
   // ### KSTRING
   // TODO: Fix this regex
-  val KRegexString = "[\\\"](([^\n\r\t\f\\\"\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"
-  val KRegexString22 = """[\\\"](([^\\\"\\r\\n\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"""
-  val KRegexString2 = """[\\\"](([^\\\"\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"""
-  val KRegexString3bad = """[\"](([^\"\n\r\\])|([\\][nrtf\"\\])|([\\][x][0-9a-fA-F]{2})|([\\][u][0-9a-fA-F]{4})|([\\][U][0-9a-fA-F]{8}))*[\"]"""
-  val KRegexString4bad = """[\"](([^\"\\])|([\\][nrtf\"\\])|([\\][x][0-9a-fA-F]{2})|([\\][u][0-9a-fA-F]{4})|([\\][U][0-9a-fA-F]{8}))*[\"]"""
+  val KRegexString = "[\\\"](([^\\\n\\\r\\\t\\\f\\\"\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"
 
   val KString = Sort("KString")
 
@@ -345,8 +343,8 @@ object KoreDefinitionDown {
 
   def downProduction(parsedProduction: K): Seq[ProductionItem] = parsedProduction match {
     case KApply(KLabelLookup("KProduction"), KList(prodItem :: rest :: _), _) => downProduction(prodItem) ++ downProduction(rest)
-    case KApply(KLabelLookup("KRegex"), KList(KToken(str, KString, _) :: _), _) => Seq(RegexTerminal("#", str.drop(1).dropRight(1), "#"))
-    case KToken(str, KString, _) => Seq(Terminal(str.drop(1).dropRight(1)))
+    case KApply(KLabelLookup("KRegex"), KList(KToken(str, KString, _) :: _), _) => Seq(RegexTerminal("#", str, "#"))
+    case KToken(str, KString, _) => Seq(Terminal(str))
     case KToken(sortName, KSort, _) => Seq(NonTerminal(Sort(sortName)))
     case _ => Seq.empty
   }
@@ -373,5 +371,11 @@ object KoreDefinitionDown {
     case KApply(KLabelLookup("KModule"), KList(KToken(name, KModuleName, _) :: imports :: sentences :: _), _)
       => downedModules ++ Map(name -> Module(name, downImports(imports) map downedModules toSet, downSentences(sentences)))
     case _ => downedModules
+  }
+
+  def preProcess(parsed: K): K = parsed match {
+    case KToken(str, KString, atts) => KToken(StringEscapeUtils.unescapeJava(str.drop(1).dropRight(1)), KString, atts)
+    case kt@KToken(_, _, _) => kt
+    case KApply(head, KList(subNodes), atts) => KApply(head, KList(subNodes map preProcess), atts)
   }
 }
