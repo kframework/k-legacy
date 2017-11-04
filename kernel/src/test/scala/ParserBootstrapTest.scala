@@ -11,8 +11,8 @@ import org.kframework.builtin.KLabels.ML_FALSE
 import org.kframework.utils.errorsystem.ParseFailedException
 
 
-class ParseTest {
-  import test._
+class KParserBootstrapTest {
+  import KParserBootsrap._
 
   val expParser = new ParseInModule(EXP)
   val kParser = new ParseInModule(KDEFINITION)
@@ -55,6 +55,15 @@ class ParseTest {
     assertEquals(parseK("kmlvar(\"testVar\") KML=> KMLtrue", KMLFormula), l("_KML=>_")(testVar, kmlTrue))
   }
 
+  @Test def allDefsTest(): Unit = {
+    val parseResult = parseK(ALL_DEFS_STRING, KDefinition)
+    //println(parseResult)
+    //println(getSortMap(parseResult))
+    //println(getASTModules(parseResult))
+    assertEquals(getASTModules(parseResult).size, 4)
+    assertEquals(getASTModules(parseResult), List(KML_STRING, KATTRIBUTES_STRING, KSENTENCES_STRING, KDEFINITION_STRING).map(x => parseK(x, KModule)))
+  }
+
   @Test def simpleExpModule(): Unit = {
     val MYEXP_STRING =
       """
@@ -67,6 +76,8 @@ class ParseTest {
         .KSentenceList
       endmodule
       """
+
+    val combined = ".KRequireList" + MYEXP_STRING + "\n" + KML_STRING
 
     val res = l("module___endmodule")(t("MYEXP",KModuleName)
       , l("__")(l("imports_")(t("BASIC-EXP-SYNTAX", KModuleName)), k(".KImportList"))
@@ -87,6 +98,13 @@ class ParseTest {
 //    ))
 
     assertEquals(parseK(MYEXP_STRING, KModule), res)
+
+    //println(getSortMap(parseK(MYEXP_STRING, KModule)))
+    //println(getSortMap(parseK(KML_STRING, KModule)))
+
+    val parseResult = parseK(combined, KDefinition)
+    //println(getSortMap(parseResult))
+    //println(getASTModules(parseResult))
 
   }
 
