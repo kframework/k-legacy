@@ -22,6 +22,7 @@ object EKOREDefinition {
   val KRegexTerminal = Sort("KRegexTerminal")
   val KNonTerminal   = Sort("KNonTerminal")
   val KProduction    = Sort("KProduction")
+  val KPriority      = Sort("KPriority")
 
   val K_PRETTY_PRODUCTION: Module = module("K-PRETTY-PRODUCTION",
     imports("KDEFINITION"),
@@ -35,13 +36,18 @@ object EKOREDefinition {
     syntax(KProduction) is KNonTerminal,
     syntax(KProduction) is (KProduction, KProduction) att(klabel("KProduction"), "assoc"),
 
+    syntax(KPriority) is KMLPatternList,
+    syntax(KPriority) is (KPriority, ">", KPriority) att(klabel("KPriorityItems"), "assoc"),
+
     syntax(KSentence) is ("syntax", KSymbol, KAttributes) att klabel("KSortDeclaration"),
-    syntax(KSentence) is ("syntax", KSymbol, "::=", KProduction, KAttributes) att klabel("KSyntaxProduction")
+    syntax(KSentence) is ("syntax", KSymbol, "::=", KProduction, KAttributes) att klabel("KSyntaxProduction"),
+    syntax(KSentence) is ("syntax", "priority", KPriority, KAttributes) att klabel("KSyntaxPriority")
   )
 
+  // TODO: correctly process precede/follow regex clauses
   val normalizeProductions: Pattern => Pattern = {
     case DomainValue(name@"KTerminal@K-PRETTY-PRODUCTION", term)       => application(name, stripString(1, 1)(term))
-    case DomainValue(name@"KRegexTerminal@K-PRETTY-PRODUCTION", rterm) => application(name, stripString(2, 1)(rterm))
+    case DomainValue(name@"KRegexTerminal@K-PRETTY-PRODUCTION", rterm) => Application(name, Seq(Application("#", Nil), Application(stripString(2, 1)(rterm), Nil), Application("#", Nil)))
     case DomainValue(name@"KNonTerminal@K-PRETTY-PRODUCTION", nterm)   => application(name, nterm)
     case pattern                                                       => pattern
   }
@@ -93,14 +99,14 @@ object KToMiniKorePasses {
 
   val removeParseInfo: Pattern => Pattern = {
     case Application("#", Application("#", actual :: _) :: _) => actual
-    case parsed                                               => parsed
+    case pattern                                              => pattern
   }
 
   val normalizeTokens: Pattern => Pattern = {
     case dv@DomainValue("KSymbol@KTOKENS", _)     => upDomainValue(dv)
     case DomainValue(name@"KString@KTOKENS", str) => upDomainValue(DomainValue(name, stripString(1,1)(str)))
     case DomainValue("KMLPattern@KML", name)      => application("KMLApplication", name)
-    case parsed                                   => parsed
+    case pattern                                  => pattern
   }
 
   // Disagreements on encoding
