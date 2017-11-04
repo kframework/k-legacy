@@ -85,8 +85,7 @@ module KSENTENCES
                      | "syntax" KSort "[" KAttributes "]" [klabel(KSortDeclWithAttributes)]
                      | "syntax" KSort "::=" KProductions [klabel(KSyntax)]
 
-  syntax KSentenceList ::= KSentence
-                         | "" [klabel(.KSentenceList)]
+  syntax KSentenceList ::= "" [klabel(.KSentenceList)]
                          | KSentence KSentenceList [klabel(KSentenceList)]
 endmodule
 
