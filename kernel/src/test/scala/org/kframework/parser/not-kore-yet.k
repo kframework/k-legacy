@@ -1,3 +1,5 @@
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
+
 // To be used when parsing/pretty-printing ground configurations
 module KSEQ
   imports KAST
