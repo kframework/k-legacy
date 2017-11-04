@@ -5,13 +5,6 @@
 ]
 
 
-module KBUBBLE
-  syntax KBubbleItem ::= r"[^ \n\r\t]+" [token, reject2(rule|syntax|endmodule|configuration|context)]
-  syntax KBubble ::= KBubble KBubbleItem   [token]
-                   | KBubbleItem           [token]
-endmodule
-
-
 module KTOKENS
   syntax KSymbol ::= r"[A-Za-z0-9\\.@#\\|\\-]+"  [token]
                    | r"`[^\n\r\t\f]+`"           [token]
@@ -56,14 +49,13 @@ endmodule
 
 module KSENTENCE
   imports KML
-  imports KBUBBLE
 
   syntax KAttributes ::= ""                     [klabel(.KAttributes)]
                        | "[" KMLPatternList "]" [klabel(KAttributes)]
 
   syntax KSentence ::= "imports" KSymbol KAttributes                                 [klabel(KImport)]
                      | "syntax" KSymbol ":=" KSymbol "(" KSymbolList ")" KAttributes [klabel(KSymbolDeclaration)]
-                     | "rule" KBubble KAttributes                                    [klabel(KRule)]
+                     | "rule" KMLPattern KAttributes                                 [klabel(KRule)]
 
   syntax KSentenceList ::= KSentence
                          | "" [klabel(.KSentenceList)]
