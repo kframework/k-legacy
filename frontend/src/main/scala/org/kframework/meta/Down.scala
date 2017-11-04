@@ -72,6 +72,9 @@ case class Down(hooks: String => Seq[AnyRef] => Any) extends (K => Any) {
     case KToken(v, `AttVal`) => v
     case KApply(KLabel("Att"), atts) => Att(atts: _*)
 
+    // TODO: fix downer to not use reflection
+    case KApply(KLabel(str), Nil) => str
+
     case KApply(KLabel(name), list) =>
       val downedList = list map apply
       val res = hooks(name)(downedList.asInstanceOf[Seq[AnyRef]])
