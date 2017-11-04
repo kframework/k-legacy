@@ -30,7 +30,7 @@ class KParserBootstrapTest {
   def parseK(toParse: String, parseAs: SortLookup): K = parseTest(kParser, toParse, parseAs)
 
   def getDownedModule(toParse: String, name: String, builtins: Map[String, Module]): Module =
-    getAllDownModules(parseK(".KRequireList" + "\n" + toParse + "\n" + ".KModuleList", KDefinition), builtins)(name)
+    getAllDownModules(parseK(toParse, KDefinition), builtins)(name)
 
   def ktokens(): Unit = {
     println(parseK("r\"sdlakfj\" \"adslkfj\"", KProduction))
@@ -69,19 +69,19 @@ class KParserBootstrapTest {
     assertEquals(getDownedModule(KTOKENS_STRING, "KTOKENS", Map()), KTOKENS)
   }
 
-  def kattributesFixpoint(): Unit = {
+  @Test def kattributesFixpoint(): Unit = {
     assertEquals(getDownedModule(KATTRIBUTES_STRING, "KATTRIBUTES", Map("KTOKENS" -> KTOKENS)), KATTRIBUTES)
   }
 
-  def kmlFixpoint(): Unit = {
+  @Test def kmlFixpoint(): Unit = {
     assertEquals(getDownedModule(KML_STRING, "KML", Map("KTOKENS" -> KTOKENS, "KATTRIBUTES" -> KATTRIBUTES)), KML)
   }
 
-  def ksentencesFixpoint(): Unit = {
+  @Test def ksentencesFixpoint(): Unit = {
     assertEquals(getDownedModule(KSENTENCES_STRING, "KSENTENCES", Map("KTOKENS" -> KTOKENS, "KATTRIBUTES" -> KATTRIBUTES, "KML" -> KML)), KSENTENCES)
   }
 
-  def kdefinitionFixpoint(): Unit = {
+  @Test def kdefinitionFixpoint(): Unit = {
     assertEquals(getDownedModule(KDEFINITION_STRING, "KDEFINITION", Map("KTOKENS" -> KTOKENS, "KATTRIBUTES" -> KATTRIBUTES, "KML" -> KML, "KSENTENCES" -> KSENTENCES)), KDEFINITION)
   }
 
