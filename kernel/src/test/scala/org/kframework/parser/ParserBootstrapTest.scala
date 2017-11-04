@@ -1,6 +1,6 @@
 package org.kframework.parser
 
-import org.kframework.attributes.{Source, Att}
+import org.kframework.attributes.Source
 import org.kframework.parser.concrete2kore.ParseInModule
 import org.junit.Test
 import org.junit.Assert._
@@ -16,14 +16,16 @@ import org.kframework.minikore.MiniKorePatternUtils._
 import org.kframework.parser.KDefinitionDSL._
 import org.kframework.parser.KOREDefinition._
 import org.kframework.parser.EKOREDefinition._
-import org.kframework.parser.KToMiniKorePasses._
+import org.kframework.parser.ParserNormalization._
 
 object ExpDefinition {
 
-  val expSentence = """syntax Exp ::= Stmt "true""""
-
   val expString =
     """
+      [ #MainModule(EXP)
+      , #EntryModules(EXP)
+      ]
+
       module EXP
         syntax Exp ::= "0" [klabel(0)]
         syntax Exp ::= "1" [klabel(1)]
@@ -41,16 +43,13 @@ object ExpDefinition {
         syntax Exp ::= Exp "*" Exp [klabel(t), times]
         syntax Exp ::= Exp "/" Exp [klabel(d), div]
 
-        rule 3 + 3 => 6
-        rule 9 - 4 => 5
-        rule 7 * 0 => 0
+        rule p(3, 3) => 6
+        rule m(9, 4) => 5
+        rule t(7, 0) => 0
       endmodule
     """
 
   val Exp = Sort("Exp")
-  val Stmt = Sort("Stmt")
-  val SubExp1 = Sort("SubExp1")
-  val SubExp2 = Sort("SubExp2")
   val EXP: Module = module("EXP",
     syntax(Exp) is "0" att klabel("0"),
     syntax(Exp) is "1" att klabel("1"),
@@ -66,20 +65,19 @@ object ExpDefinition {
     syntax(Exp) is (Exp, "+", Exp) att(klabel("p"), "plus"),
     syntax(Exp) is (Exp, "-", Exp) att("minus", klabel("m")),
     syntax(Exp) is (Exp, "*", Exp) att(klabel("t"), "times"),
-    syntax(Exp) is (Exp, "/", Exp) att(klabel("d"), "div")
+    syntax(Exp) is (Exp, "/", Exp) att(klabel("d"), "div"),
 
     // priority( >("p", "t") , >("m", "d") ),
-    // rule(term("p", term("3"), term("3")), term("6")),
-    // rule(term("m", term("9"), term("4")), term("5")),
-    // rule(term("t", term("7"), term("0")), term("0"))
+    rule(term("p", term("3"), term("3")), term("6")),
+    rule(term("m", term("9"), term("4")), term("5")),
+    rule(term("t", term("7"), term("0")), term("0"))
   )
 
-  val EXP_DEF = Definition(Seq(EXP), Seq(application(KoreToMini.iMainModule, "EXP"), application(KoreToMini.iEntryModules, "EXP")))
+  val EXP_DEF = definition(EXP) att(application(KoreToMini.iMainModule, "EXP"), application(KoreToMini.iEntryModules, "EXP"))
 }
 
 class ParserBootstrapTest {
 
-  //println(onAttributesDef(traverseTopDown(toKoreEncoding))(KOREDef))
   val miniDef = MiniToKore(onAttributesDef(traverseTopDown(toKoreEncoding))(EKORE))
   val mainMod = miniDef.mainModule
   val kParser = new ParseInModule(mainMod)
@@ -105,14 +103,14 @@ class ParserBootstrapTest {
 
   @Test def kdefFixpoint(): Unit = {
     val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
-    val parsed = preProcess(parseK(KORE_STRING, "KDefinition"))
+    val parsed = ekoreToKore(preProcess(parseK(KORE_STRING, "KDefinition")))
     val downed = downDefinition(parsed)
     assertEquals(KORE, downed)
   }
 
   @Test def sentenceTest(): Unit = {
-    import ExpDefinition._
-
+    val Exp  = Sort("Exp")
+    val Stmt = Sort("Stmt")
     val sentenceTests: Seq[(Sentence, String)]
         = Seq( (symbol(Exp, "mystmt", Stmt)               , """syntax Exp := mystmt(Stmt)"""                                                                     )
              , (symbol(Exp, "_", Stmt) att kprod(Stmt)    , """syntax Exp ::= Stmt"""                                                                            )
@@ -126,21 +124,27 @@ class ParserBootstrapTest {
              )
 
     sentenceTests foreach { sentStr =>
-      val parsed = preProcess(parseK(sentStr._2, "KSentence"))
+      val parsed = ekoreToKore(preProcess(parseK(sentStr._2, "KSentence")))
       assertEquals(sentStr._1, downSentence(parsed))
     }
   }
 
   @Test def prettyProductionsTest(): Unit = {
     val prettyTests: Seq[(String, String)]
-        = Seq( ("""syntax Exp ::= "true" syntax Exp ::= Exp""", """syntax Exp ::= "true" | Exp""")
+        = Seq( ("""syntax Exp ::= "true" syntax Exp ::= Exp""", """syntax Exp ::= "true" | Exp""") )
 
-    )
-
-    def parseAndDown(input: String): Seq[Sentence] = flattenByLabels("KSentenceList", ".KSentenceList")(preProcess(parseK(input, "KSentenceList"))) map downSentence
+    def parseAndDown(input: String): Seq[Sentence] = flattenByLabels("KSentenceList", ".KSentenceList")(ekoreToKore(preProcess(parseK(input, "KSentenceList")))) map downSentence
     prettyTests foreach { strings =>
       assertEquals(parseAndDown(strings._1), parseAndDown(strings._2))
     }
+  }
+
+  @Test def abstractRulesTest(): Unit = {
+    import ExpDefinition._
+
+    val parsed = ekoreToKore(preProcess(parseK(expString, "KDefinition")))
+    val downed = downDefinition(parsed)
+    assertEquals(EXP_DEF, downed)
   }
 
 }
