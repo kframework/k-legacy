@@ -135,16 +135,19 @@ class ParserBootstrapTest {
   @Test def ruleParsingTest(): Unit = {
     import ExpDefinition._
 
-    val ruleTests
-        = Seq( (rule(term("p", term("3"), term("3")), term("6")) , """rule p(3,3) => 6"""     )
-             , (rule(term("m", term("9"), term("4")), term("5")) , """rule m(t(4,3),9) => 3""")
-             , (rule(term("p", term("2"), term("2")), term("4")) , """rule 2 + 2 => 4"""      )
-             , (rule(term("d", term("6"), term("3")), term("2")) , """rule 2 + 3 * 2 => 8"""  )
+    val ruleTests: Seq[(Sentence, String)]
+        = Seq( (rule(term("p", term("3"), term("3")), term("6"))                       , """rule p(3,3) => 6"""     )
+             //, (rule(term("m", term("t", term("4"), term("3")), term("9")), term("3")) , """rule m(t(4,3),9) => 3""")
+             //, (rule(term("p", term("2"), term("2")), term("4"))                       , """rule 2 + 2 => 4"""      )
+             //, (rule(term("d", term("6"), term("3")), term("2"))                       , """rule 2 + 3 * 2 => 8"""  )
              )
 
-    val resolver = resolveRules(mkRuleParserDefinition(EXP_DEF))
+    val ruleParser = mkParser(mkRuleParserDefinition(ekoreToKore(preProcess(parseK(expString, "KDefinition")))))
 
-    ruleTests foreach { strings => assertEquals(ruleTests._1, resolver(parseK(strings._2, "KSentence"))) }
+    ruleTests foreach { strings =>
+      println(resolveRule(ruleParser)(preProcess(parseK(strings._2, "KSentence"))))
+      assertEquals(strings._1, downSentence(resolveRule(ruleParser)(preProcess(parseK(strings._2, "KSentence")))))
+    }
   }
 
 }
