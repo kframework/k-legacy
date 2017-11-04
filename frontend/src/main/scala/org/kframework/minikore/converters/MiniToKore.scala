@@ -145,6 +145,9 @@ object MiniToKore {
     val argss = att.patterns.collect({
       case Application(Symbol(`key`), args) => args
     })
+    //println(key)
+    //println(argss)
+    //println(att)
     assert(argss.size == 1)
     argss.head
   }
