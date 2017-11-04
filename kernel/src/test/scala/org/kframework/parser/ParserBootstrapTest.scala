@@ -118,12 +118,33 @@ class ParserBootstrapTest {
     //assertEquals(Seq(EXP), downed)
   }
 
-  @Test def kdefFixpoint(): Unit = {
+  @Test def profiling(): Unit = {
+    val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
+    val KORE40_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore40.k").mkString
+    val start = System.currentTimeMillis()
+    val parsed = parseK(KORE_STRING, "KDefinition")
+    val start40 = System.currentTimeMillis()
+    val parsed40 = parseK(KORE40_STRING, "KDefinition")
+    val end = System.currentTimeMillis()
+    println("Parsing once: " + (start40 - start))
+    println("Parsing 40 times: " + (end - start40))
+
+  }
+
+  def kdefFixpoint(): Unit = {
     val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
     val parsed = preProcess(parseK(KORE_STRING, "KDefinition"))
     println(parsed)
     val downed = downDefinition(parsed)
+    println()
+    println("----- DOWNED -----")
     println(downed)
-    assertEquals(KOREDef, downed)
+    assertEquals(KOREDef.modules map { case Module(name, _, _) => name }, downed.modules map { case Module(name, _, _) => name })
+    KOREDef.modules foreach { case Module(name, sentences, atts) =>
+      val (dSents, dAtts) = downed.modules collect { case Module(`name`, downedSentences, downedAtts) => (downedSentences, downedAtts) } head;
+      println("MODULE: " + name)
+      assertEquals(sentences, dSents)
+      assertEquals(atts, dAtts)
+    }
   }
 }
