@@ -112,9 +112,9 @@ object KOREDefinition {
   val KAttributes= Sort("KAttributes")
 
   val KATTRIBUTES = Module("KATTRIBUTES", imports(), sentences(
-    syntax(KAttributeKey) is regex(KRegexAttributeKey1) att("token", khook("org.kframework.kore.KLabel")),
-    syntax(KAttributeKey) is regex(KRegexAttributeKey2) att("token", khook("org.kframework.kore.KLabel")),
-    syntax(KAttributeKey) is regex(KRegexAttributeKey3) att("token", khook("org.kframework.kore.KLabel"), "autoReject"),
+    syntax(KAttributeKey) is regex(KRegexAttributeKey1) att "token",
+    syntax(KAttributeKey) is regex(KRegexAttributeKey2) att "token",
+    syntax(KAttributeKey) is regex(KRegexAttributeKey3) att("token", "autoReject"),
 
     syntax(KKeyList) is KAttributeKey,
     syntax(KKeyList) is "" att klabel(".KKeyList"),
@@ -133,13 +133,23 @@ object KOREDefinition {
   ))
 
 
+  // ### KABSTRACT
+  val KAbstract = Sort("KAbstract")
+
+  val KABSTRACT = Module("KABSTRACT", imports(KATTRIBUTES), sentences(
+    syntax(KAbstract) is KAttributeKey,
+    syntax(KAbstract) is (KAbstract, ",", KAbstract) att(klabel("KAbstractArgs"), "assoc"),
+    syntax(KAbstract) is (KAttributeKey, "(", KAbstract, ")") att klabel("KAbstractApply")
+  ))
+
+
   // ### KML
   val KMLVar = Sort("KMLVar")
   val KMLTerm = Sort("KMLTerm")
   val KMLFormula = Sort("KMLFormula")
   val KMLRewrite = Sort("KMLRewrite")
 
-  val KML = Module("KML", imports(KTOKENS), sentences(
+  val KML = Module("KML", imports(KTOKENS, KABSTRACT), sentences(
     sort(KMLVar) att klabel("KMLVar"),
     // syntax(KMLVar) is (KID, ":", KSort) att klabel("KMLVar"),
     // every <SORT> should have a production like this for variables
@@ -239,9 +249,9 @@ object KOREDefinition {
   val KOREDef = Map( "KTOKENS" -> KTOKENS
                    , "KBUBBLE" -> KBUBBLE
                    , "KATTRIBUTES" -> KATTRIBUTES
+                   , "KABSTRACT" -> KABSTRACT
                    , "KML" -> KML
                    , "KSENTENCES" -> KSENTENCES
                    , "KDEFINITION" -> KDEFINITION
                    )
 }
-
