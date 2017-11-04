@@ -14,6 +14,7 @@ import org.kframework.minikore.MiniKore._
 import org.kframework.minikore.KDefinitionDSL._
 import org.kframework.minikore.KOREDefinition._
 import org.kframework.parser.KOREDowner._
+import org.kframework.parser.MetaPasses._
 
 
 object ExpDefinition {
@@ -103,7 +104,7 @@ class ParserBootstrapTest {
     println("\n\n")
   }
 
-  @Test def expressionTest(): Unit = {
+  def expressionTest(): Unit = {
     import ExpDefinition._
     println("==================")
     println(KOREDef)
@@ -118,11 +119,13 @@ class ParserBootstrapTest {
     //assertEquals(Seq(EXP), downed)
   }
 
-  def kdefFixpoint(): Unit = {
+  @Test def kdefFixpoint(): Unit = {
     val KORE_STRING = io.Source.fromFile("/Users/lpena/kframework/k/kernel/src/test/scala/org/kframework/parser/kore.k").mkString
     //val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
     val parsed = preProcess(parseK(KORE_STRING, "KDefinition"))
+    println(parsed)
     val downed = downDefinition(parsed)
+    println(downed)
     assertEquals(KOREDef, downed)
   }
 }
