@@ -37,10 +37,10 @@ object KDefinitionDSL {
 
 
   // TODO: This representation should probably be changed (to nested applications)
-  implicit def productionsAsPatterns(pis: Seq[ProductionItem]): Seq[Pattern] = pis map {
+  def productionsAsPatterns(pis: Seq[ProductionItem]): Seq[Pattern] = pis map {
     case Terminal(str)  => attribute(KoreToMini.iTerminal, str)
     case Sort(sortName) => attribute(KoreToMini.iNonTerminal, sortName)
-    case Regex(str)     => Application(KoreToMini.iRegexTerminal, Seq(DomainValue("S", ""), DomainValue("S", str), DomainValue("S", "")))
+    case Regex(str)     => Application(KoreToMini.iRegexTerminal, Seq(DomainValue("S", "#"), DomainValue("S", str), DomainValue("S", "#")))
   }
 
   def makeKLabel(pis: Seq[Pattern]): String = pis flatMap {
@@ -51,7 +51,7 @@ object KDefinitionDSL {
 
   case class syntax(sort: Sort, pis: Seq[ProductionItem] = Seq.empty) {
     def is(pis: ProductionItem*): syntax = syntax(sort, pis)
-    def att(atts: Pattern*): SymbolDeclaration = SymbolDeclaration(sort.name, getKLabel(atts).getOrElse(makeKLabel(pis)), pis.collect { case Sort(name) => name }, atts :+ kprod(pis))
+    def att(atts: Pattern*): SymbolDeclaration = SymbolDeclaration(sort.name, getKLabel(atts).getOrElse(makeKLabel(productionsAsPatterns(pis))), pis.collect { case Sort(name) => name }, atts :+ kprod(productionsAsPatterns(pis)))
   }
 
   implicit def asSentence(bs: syntax): SymbolDeclaration = bs.att()
@@ -82,7 +82,7 @@ object KOREDefinition {
 
   val KBUBBLE: Module = module("KBUBBLE",
     // TODO: Must make the parser actually accept reject2 in this format (as opposed to vertical bars)
-    syntax(KBubbleItem) is Regex(KBubbleRegex) att("token", DomainValue("reject2", "rule|syntax|endmodule|configuration|context")),
+    syntax(KBubbleItem) is Regex(KBubbleRegex) att("token", application("reject2", "rule|syntax|endmodule|configuration|context")),
     syntax(KBubble) is (KBubble, KBubbleItem) att "token",
     syntax(KBubble) is KBubbleItem att "token"
   )
@@ -90,7 +90,7 @@ object KOREDefinition {
 
   // ### KTOKENS
   //val KRegexSort = "[A-Z][A-Za-z0-9]*"
-  val KRegexSymbol1 = "[\\.A-Za-z\\-0-9]*"
+  val KRegexSymbol1 = "[\\.A-Za-z\\|\\-0-9]*"
   val KRegexSymbol2 = "`(\\\\`|\\\\\\\\|[^`\\\\\n\r\t\f])+`"
   val KRegexSymbol3 = "(?![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"
   // TODO: the (?<! is a signal to the parser that it should be used as a "precedes" clause, do we need it?
@@ -117,7 +117,7 @@ object KOREDefinition {
   val KML: Module = module("KML",
     imports("KTOKENS"),
 
-    syntax(KMLVariable) is (KSymbol, ":", KSymbol) att DomainValue("klabel", "KMLVariable"), //klabel("KMLVariable"),
+    syntax(KMLVariable) is (KSymbol, ":", KSymbol) att klabel("KMLVariable"),
     syntax(KMLPattern) is KMLVariable,
     syntax(KMLPattern) is KSymbol,
     // every <SORT> should have a production like this for variables
