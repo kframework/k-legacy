@@ -95,26 +95,13 @@ class ParserBootstrapTest {
     }
   def parseK(toParse: String, parseAs: String): Pattern = runParser(kParser, toParse, parseAs)
 
-  def profiling(): Unit = {
-    val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
-    val KORE40_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore40.k").mkString
-    val start = System.currentTimeMillis()
-    val parsed = parseK(KORE_STRING, "KDefinition")
-    val start40 = System.currentTimeMillis()
-    val parsed40 = parseK(KORE40_STRING, "KDefinition")
-    val end = System.currentTimeMillis()
-    println("Parsing once: " + (start40 - start))
-    println("Parsing 40 times: " + (end - start40))
-  }
-
   @Test def kdefFixpoint(): Unit = {
     val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
-    val parsed = ekoreToKore(preProcess(parseK(KORE_STRING, "KDefinition")))
-    val downed = downDefinition(parsed)
+    val downed      = downDefinition(ekoreToKore(preProcess(parseK(KORE_STRING, "KDefinition"))))
     assertEquals(KORE, downed)
   }
 
-  @Test def sentenceTest(): Unit = {
+  @Test def concreteAndAbstractSentencesMatch(): Unit = {
     val Exp  = Sort("Exp")
     val Stmt = Sort("Stmt")
     val sentenceTests: Seq[(Sentence, String)]
@@ -129,28 +116,35 @@ class ParserBootstrapTest {
              , (syntax(Exp) is Regex("`[^ a\n\r\tb]+`")   , """syntax Exp ::= r"`[^ a\n\r\tb]+`""""                                                              )
              )
 
-    sentenceTests foreach { sentStr =>
-      val parsed = ekoreToKore(preProcess(parseK(sentStr._2, "KSentence")))
-      assertEquals(sentStr._1, downSentence(parsed))
-    }
+    sentenceTests foreach { sentStr => assertEquals(sentStr._1, downSentence(ekoreToKore(preProcess(parseK(sentStr._2, "KSentence"))))) }
   }
 
-  @Test def prettyProductionsTest(): Unit = {
+  @Test def multipleProductions(): Unit = {
     val prettyTests: Seq[(String, String)]
-        = Seq( ("""syntax Exp ::= "true" syntax Exp ::= Exp""", """syntax Exp ::= "true" | Exp""") )
+        = Seq( ("""syntax Exp ::= "true"                         syntax Exp ::= Exp"""                            , """syntax Exp ::= "true"                         | Exp"""                           )
+             , ("""syntax Exp ::= Exp "+" Exp                    syntax Exp ::= Exp "/" Exp [klabel(division)]""" , """syntax Exp ::= Exp "+" Exp                    | Exp "/" Exp [klabel(division)]""")
+             , ("""syntax Exp ::= "true" Exp [klabel(withTrue)]  syntax Exp ::= "not" Exp Exp "plus" Exp"""       , """syntax Exp ::= "true" Exp [klabel(withTrue)]  | "not" Exp Exp "plus" Exp"""      )
+             , ("""syntax Exp ::= Exp "+" Exp [klabel(addition)] syntax Exp ::= Exp "/" Exp [klabel(division)]""" , """syntax Exp ::= Exp "+" Exp [klabel(addition)] | Exp "/" Exp [klabel(division)]""")
+             )
 
     def parseAndDown(input: String): Seq[Sentence] = flattenByLabels("KSentenceList", ".KSentenceList")(ekoreToKore(preProcess(parseK(input, "KSentenceList")))) map downSentence
-    prettyTests foreach { strings =>
-      assertEquals(parseAndDown(strings._1), parseAndDown(strings._2))
-    }
+
+    prettyTests foreach { strings => assertEquals(parseAndDown(strings._1), parseAndDown(strings._2)) }
   }
 
-  @Test def abstractRulesTest(): Unit = {
+  @Test def ruleParsingTest(): Unit = {
     import ExpDefinition._
 
-    val parsed = resolveDefinitionRules(ekoreToKore(preProcess(parseK(expString, "KDefinition"))))
-    val downed = downDefinition(parsed)
-    assertEquals(EXP_DEF, downed)
+    val ruleTests
+        = Seq( (rule(term("p", term("3"), term("3")), term("6")) , """rule p(3,3) => 6"""     )
+             , (rule(term("m", term("9"), term("4")), term("5")) , """rule m(t(4,3),9) => 3""")
+             , (rule(term("p", term("2"), term("2")), term("4")) , """rule 2 + 2 => 4"""      )
+             , (rule(term("d", term("6"), term("3")), term("2")) , """rule 2 + 3 * 2 => 8"""  )
+             )
+
+    val resolver = resolveRules(mkRuleParserDefinition(EXP_DEF))
+
+    ruleTests foreach { strings => assertEquals(ruleTests._1, resolver(parseK(strings._2, "KSentence"))) }
   }
 
 }
