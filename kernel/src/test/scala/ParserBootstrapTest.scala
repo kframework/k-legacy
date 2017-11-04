@@ -8,11 +8,10 @@ import org.kframework.kore.ADT.SortLookup
 import org.kframework.kore._
 import org.kframework.kore.KORE._
 import org.kframework.builtin.KLabels.ML_FALSE
-import org.kframework.utils.errorsystem.ParseFailedException
 
 
 class KParserBootstrapTest {
-  import KParserBootsrap._
+  import KParserBootstrap._
 
   val expParser = new ParseInModule(EXP)
   val kParser = new ParseInModule(KDEFINITION)
@@ -85,6 +84,13 @@ class KParserBootstrapTest {
 
   @Test def entireDefinitionFixpoint(): Unit = {
     assertEquals(getAllDownModules(parseK(ALL_DEFS_STRING, KDefinition), Map("KTOKENS" -> KTOKENS)),
+      Map("KTOKENS" -> KTOKENS, "KATTRIBUTES" -> KATTRIBUTES, "KML" -> KML, "KSENTENCES" -> KSENTENCES, "KDEFINITION" -> KDEFINITION))
+  }
+
+  @Test def actualFixpoint(): Unit = {
+    val KDEF_PARSED_DOWN = getAllDownModules(parseK(ALL_DEFS_STRING, KDefinition), Map("KTOKENS" -> KTOKENS))("KDEFINITION")
+    val newKParser = new ParseInModule(KDEF_PARSED_DOWN)
+    assertEquals(getAllDownModules(parseTest(newKParser, ALL_DEFS_STRING, KDefinition), Map("KTOKENS" -> KTOKENS)),
       Map("KTOKENS" -> KTOKENS, "KATTRIBUTES" -> KATTRIBUTES, "KML" -> KML, "KSENTENCES" -> KSENTENCES, "KDEFINITION" -> KDEFINITION))
   }
 
