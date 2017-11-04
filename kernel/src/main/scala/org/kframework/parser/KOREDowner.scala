@@ -1,8 +1,5 @@
 package org.kframework.parser
 
-import org.kframework.parser.concrete2kore.ParseInModule
-import org.kframework.attributes.Source
-import org.kframework.minikore.KOREDefinition._
 import org.kframework.minikore.KDefinitionDSL._
 import org.kframework.minikore.KoreToMini._
 
@@ -14,7 +11,7 @@ object MiniKoreStaging {
 
   // Map
   // ===
-  def onChildren(f: Pattern => Patten): Pattern => Pattern = {
+  def onChildren(f: Pattern => Pattern): Pattern => Pattern = {
     case Application(label, args) => Application(label, args map f)
     case And(p, q)                => And(f(p), f(q))
     case Or(p, q)                 => Or(f(p), f(q))
@@ -33,10 +30,10 @@ object MiniKoreStaging {
 
   // `traverseTopDown` will first apply `f` to the root, then apply it to the sub-terms.
   // This will perform better than `traverseBottomUp` when `f: Pattern => Pattern` may eliminate sub-terms.
-  def traverseTopDown(f: Pattern => Pattern): Pattern => Pattern = f andThen onChildren(traverseTopDown(f))
+  def traverseTopDown(f: Pattern => Pattern): Pattern => Pattern = pattern => onChildren(traverseTopDown(f))(f(pattern))
 
   // `traverseBottomUp` will first apply `f` to the sub-terms, then to the root.
-  def traverseBottomUp(f: Pattern => Pattern): Pattern => Pattern = onChildren(traverseBottomUp(f)) andThen f
+  def traverseBottomUp(f: Pattern => Pattern): Pattern => Pattern = pattern => f(onChildren(traverseBottomUp(f))(pattern))
 
   // Cons Lists
   // ==========
@@ -216,5 +213,7 @@ object MetaPasses {
   // `preProcess` first prunes the parse-tree using a top-down traversal of `removeParseInfo`
   // then normalizes the defintion by running a bottom-up traversal of `syntaxProductionToSymbolDeclaration . normalizeMetaDomainValues . unescapeStrings`
 
-  val preProcess: Pattern => Pattern = traverseTopDown(removeParseInfo) andThen traverseBottomUp(unescapeStrings andThen normalizeMetaDomainValues andThen syntaxProductionToSymbolDeclaration)
+  val preProcess: Pattern => Pattern =
+    traverseTopDown(removeParseInfo) andThen
+      traverseBottomUp(unescapeStrings andThen normalizeMetaDomainValues andThen syntaxProductionToSymbolDeclaration)
 }
