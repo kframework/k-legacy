@@ -13,7 +13,7 @@ import org.kframework.kore.KORE
 import org.kframework.minikore.MiniKore._
 import org.kframework.minikore.KDefinitionDSL._
 import org.kframework.minikore.KOREDefinition._
-import org.kframework.parser.KOREDowner._
+import org.kframework.parser.MiniKoreMeta._
 import org.kframework.parser.MetaPasses._
 
 
@@ -74,7 +74,6 @@ object ExpDefinition {
 
   val EXP_DEF = Definition(Seq(EXP), Seq(attribute(KoreToMini.iMainModule, "EXP"), attribute(KoreToMini.iEntryModules, "EXP")))
 }
-
 
 class ParserBootstrapTest {
   val miniDef = MiniToKore(KOREDef)
