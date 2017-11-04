@@ -29,7 +29,7 @@ module KATTRIBUTES
   imports KBASIC
 
   syntax KAttributeKey ::= r"[\\.A-Za-z\\-0-9]*" [token, khook(org.kframework.kore.KLabel)]
-  syntax KAttributeKey ::= r"`(\\\\`|\\\\|[^`\\\\\n\r\t\f])+`" [token, khook(org.kframework.kore.KLabel)]
+  syntax KAttributeKey ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\n\r\t\f])+`" [token, khook(org.kframework.kore.KLabel)]
   syntax KAttributeKey ::= r"(?![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*" [token, khook(org.kframework.kore.KLabel), autoReject]
 
   syntax KKeyList ::= KAttributeKey
