@@ -1,6 +1,8 @@
 package org.kframework.minikore
 
 import org.kframework.minikore.MiniKore._
+import org.kframework.definition
+import org.kframework.kore.KORE
 
 /**
   * Created by lpena on 10/11/16.
@@ -33,35 +35,37 @@ object KDefinitionDSL {
     case _                                         => None
   }
 
-  implicit def productionItemToPatterns(pis: Seq[ProductionItem]): Seq[Pattern] = pis map {
-    case Sort(name)     => DomainValue("KSymbol", name)
-    case Terminal(name) => DomainValue("KString", name)
-    case Regex(str)     => Application("KRegex", Seq(DomainValue("KString", str)))
+
+  // TODO: This representation should probably be changed (to nested applications)
+  implicit def productionsAsPatterns(pis: Seq[ProductionItem]): Seq[Pattern] = pis map {
+    case Terminal(str)  => attribute(KoreToMini.iTerminal, str)
+    case Sort(sortName) => attribute(KoreToMini.iNonTerminal, sortName)
+    case Regex(str)     => Application(KoreToMini.iRegexTerminal, Seq(DomainValue("S", ""), DomainValue("S", str), DomainValue("S", "")))
   }
 
-  def productionInfo(pis: Seq[Pattern]): (String, Seq[String]) = {
-    val prodInfo = pis map {
-      case DomainValue("KString", str)                             => (str, Seq.empty)
-      case DomainValue("KSymbol", sortName)                        => ("_", Seq(sortName))
-      case Application("KRegex", DomainValue("KString", str) :: _) => ("r\"" + str + "\"", Seq.empty)
-      case _ => throw new Exception
-    }
-    (prodInfo flatMap (x => x._1) mkString, prodInfo flatMap (x => x._2))
-  }
+  def makeKLabel(pis: Seq[Pattern]): String = pis flatMap {
+      case Application(KoreToMini.`iNonTerminal`, Seq(DomainValue("S", s)))                                                            => "_"
+      case Application(KoreToMini.`iTerminal`, DomainValue("S", value) +: followRegex)                                                 => value // should take into account the followRegex
+      case Application(KoreToMini.`iRegexTerminal`, Seq(DomainValue("S", precede), DomainValue("S", regex), DomainValue("S", follow))) => "r\"" + regex + "\"" // should take into account the precede/follow
+  } mkString
 
   case class syntax(sort: Sort, pis: Seq[ProductionItem] = Seq.empty) {
     def is(pis: ProductionItem*): syntax = syntax(sort, pis)
-    def att(atts: Pattern*): SymbolDeclaration = SymbolDeclaration(sort.name, getKLabel(atts).getOrElse(""), pis.collect { case Sort(name) => name }, atts :+ kprod(productionInfo(pis)._1))
+    def att(atts: Pattern*): SymbolDeclaration = SymbolDeclaration(sort.name, getKLabel(atts).getOrElse(makeKLabel(pis)), pis.collect { case Sort(name) => name }, atts :+ kprod(pis))
   }
 
   implicit def asSentence(bs: syntax): SymbolDeclaration = bs.att()
 
-  implicit def asDomainValue(name: String): DomainValue = DomainValue(name, "")
+  implicit def asApplication(name: String): Application = Application(name, Seq.empty)
+  def application(label: String, value: String): Application = Application(label, Seq(Application(value, Seq.empty)))
 
-  def klabel(value: String): DomainValue = DomainValue("klabel", value)
-  def kprod(production: String): DomainValue = DomainValue("production", production)
+  def klabel(value: String): Application = application("klabel", value)
+  def kprod(production: Seq[Pattern]): Application = Application("production", production)
   //def khook(value: String): DomainValue = DomainValue("khook", value)
   //def kunit(value: String): DomainValue = DomainValue("unit", value)
+
+  //application(key, value) // maybe should be this
+  def attribute(key: String, value: String): Application = Application(key, Seq(KoreToMini.S(value)))
 
 }
 
@@ -113,7 +117,7 @@ object KOREDefinition {
   val KML: Module = module("KML",
     imports("KTOKENS"),
 
-    syntax(KMLVariable) is (KSymbol, ":", KSymbol) att klabel("KMLVariable"),
+    syntax(KMLVariable) is (KSymbol, ":", KSymbol) att DomainValue("klabel", "KMLVariable"), //klabel("KMLVariable"),
     syntax(KMLPattern) is KMLVariable,
     syntax(KMLPattern) is KSymbol,
     // every <SORT> should have a production like this for variables
@@ -209,9 +213,12 @@ object KOREDefinition {
     syntax(KModuleList) is (KModule, KModuleList) att klabel("KModuleList"),
 
     syntax(KDefinition) is (KAttributes, KModuleList) att klabel("KDefinition")
-  ) att KoreToMini.iMainModule
+  )
 
 
   // ### KORE
-  val KOREDef = Definition(Seq(KTOKENS, KBUBBLE, KML, KSENTENCE, KDEFINITION), Seq.empty)
+  val KOREDef = Definition(Seq(KTOKENS, KBUBBLE, KML, KSENTENCE, KDEFINITION),
+    Seq(attribute(KoreToMini.iMainModule, "KDEFINITION"), attribute(KoreToMini.iEntryModules, "KDEFINITION")))
+
+
 }
