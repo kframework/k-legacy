@@ -1,3 +1,5 @@
+// Copyright (c) 2015-2016 K Team. All Rights Reserved.
+
 extension MULTI-PRODUCTIONS
 
   syntax KProduction ::= KProductionItems "[" KAttributes "]" [klabel(KProductionWithAttributes)]
