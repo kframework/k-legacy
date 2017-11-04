@@ -101,6 +101,7 @@ object KParserBootstrap {
     case KToken(str, KString, _) => Seq(Terminal(str.drop(1).dropRight(1)))
     case KApply(KLabelLookup("KProduction"), KList(KToken(sortName, KSort, _) :: rest :: _), _) => NonTerminal(Sort(sortName)) +: productionSeq(rest)
     case KToken(sortName, KSort, _) => Seq(NonTerminal(Sort(sortName)))
+    case KApply(KLabelLookup("KProduction"), KList(KApply(KLabelLookup("KRegex"), KList(KToken(str, KString, _) :: _), _) :: rest :: _), _) => Terminal(str.drop(1).dropRight(1)) +: productionSeq(rest)
   }
 
   def downSentence(parsedSentence: K): Production = parsedSentence match {
@@ -122,16 +123,28 @@ object KParserBootstrap {
 
   def getAllDownModules(parsed: K): Map[String, Module] = getAllDownModules(parsed, Map.empty: Map[String, Module])
 
+  val KRegexString = "[\\\"][\\.A-Za-z\\-0-9]*[\\\"]"
+//  val KRegexString = "[\\\"]( ([^\\\"\n\r\\\\])" +
+//    "                       | ([\\\\][nrtf\\\"\\\\])" +
+//    "                       | ([\\\\][x][0-9a-fA-F]{2})" +
+//    "                       | ([\\\\][u][0-9a-fA-F]{4})" +
+//    "                       | ([\\\\][U][0-9a-fA-F]{8})" +
+//    "                       )*" +
+//    "                 [\\\"]"
+  val KRegexSort = "[A-Z][A-Za-z0-9]*"
+  val KRegexAttributeKey = "[\\.A-Za-z\\-0-9]*"
+  val KRegexModuleName = "[A-Z][A-Z\\-]*"
+  def rString(str: String) : String = "r\"" + str + "\""
+
   val KTOKENS_STRING =
     """
     module KTOKENS
       .KImportList
 
-      token KString       ::= r"\"[a-zA-Z0-9\\-]*\"" [klabel(KString), .Attributes]
-      token KSort         ::= r"[A-Z][A-Za-z0-9]*" [klabel(KSort), .Attributes]
-      token KAttributeKey ::= r"[A-Za-z\\-0-9]*" [klabel(KAttributeKey), .Attributes]
-      token KModuleName   ::= r"[A-Z][A-Z]*" [klabel(KModuleName), .Attributes]
-
+      token KString ::= """ + rString(KRegexString) + """ [klabel(KString, .KKeyList), .KAttributes]
+      token KSort ::= """ + rString(KRegexSort) + """ [klabel(KSort, .KKeyList), .KAttributes]
+      token KAttributeKey ::= """ + rString(KRegexAttributeKey) + """ [klabel(KAttributeKey, .KKeyList), .KAttributes]
+      token KModuleName ::= """ + rString(KRegexModuleName) + """ [klabel(KModuleName, .KKeyList), .KAttributes]
       .KSentenceList
     endmodule
     """
@@ -143,10 +156,10 @@ object KParserBootstrap {
 
   val KTOKENS = Module("KTOKENS", imports(), sentences(
 
-    token(KString) is regex("[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]") att klabel("KString"),
-    token(KSort) is regex("[A-Z][A-Za-z0-9]*") att klabel("KSort"),
-    token(KAttributeKey) is regex("[\\.A-Za-z\\-0-9]*") att klabel("KAttributeKey"),
-    token(KModuleName) is regex("[A-Z][A-Z\\-]*") att klabel("KModuleName")
+    token(KString) is regex(KRegexString) att klabel("KString"),
+    token(KSort) is regex(KRegexSort) att klabel("KSort"),
+    token(KAttributeKey) is regex(KRegexAttributeKey) att klabel("KAttributeKey"),
+    token(KModuleName) is regex(KRegexModuleName) att klabel("KModuleName")
 
   ))
 
@@ -228,14 +241,13 @@ object KParserBootstrap {
       syntax KImportList ::= ".KImportList" [klabel(.KImportList, .KKeyList), .KAttributes]
       syntax KImportList ::= KImport KImportList [klabel(KImportList, .KKeyList), .KAttributes]
       syntax KTerminal ::= KString [.KAttributes]
+      syntax KTerminal ::= "r" KString [klabel(KRegex, .KKeyList), .KAttributes]
       syntax KNonTerminal ::= KSort [.KAttributes]
       syntax KProductionItem ::= KTerminal [.KAttributes]
       syntax KProductionItem ::= KNonTerminal [.KAttributes]
       syntax KProduction ::= KProductionItem [.KAttributes]
       syntax KProduction ::= KProductionItem KProduction [klabel(KProduction, .KKeyList), .KAttributes]
-      syntax KSentence ::= "token" KSort "::=" KProduction "[" KAttributes "]" [klabel(KSentenceToken, .KKeyList), .KAttributes]
       syntax KSentence ::= "syntax" KSort "::=" KProduction "[" KAttributes "]" [klabel(KSentenceSyntax, .KKeyList), .KAttributes]
-      syntax KSentence ::= "axiom" KMLFormula "[" KAttributes "]" [klabel(KSentenceAxiom, .KKeyList), .KAttributes]
       syntax KSentenceList ::= ".KSentenceList" [klabel(.KSentenceList, .KKeyList), .KAttributes]
       syntax KSentenceList ::= KSentence KSentenceList [klabel(KSentenceList, .KKeyList), .KAttributes]
       .KSentenceList
@@ -261,15 +273,13 @@ object KParserBootstrap {
     syntax(KImportList) is (KImport, KImportList) att klabel("KImportList"),
 
     syntax(KTerminal) is KString,
+    syntax(KTerminal) is ("r", KString) att klabel("KRegex"),
     syntax(KNonTerminal) is KSort,
     syntax(KProductionItem) is KTerminal,
     syntax(KProductionItem) is KNonTerminal,
     syntax(KProduction) is KProductionItem,
     syntax(KProduction) is (KProductionItem, KProduction) att klabel("KProduction"),
-
-    syntax(KSentence) is ("token", KSort, "::=", KProduction, "[", KAttributes, "]") att klabel("KSentenceToken"),
     syntax(KSentence) is ("syntax", KSort, "::=", KProduction, "[", KAttributes, "]") att klabel("KSentenceSyntax"),
-    syntax(KSentence) is ("axiom", KMLFormula, "[", KAttributes, "]") att klabel("KSentenceAxiom"),
 
     syntax(KSentenceList) is ".KSentenceList" att klabel(".KSentenceList"),
     syntax(KSentenceList) is (KSentence, KSentenceList) att klabel("KSentenceList")
