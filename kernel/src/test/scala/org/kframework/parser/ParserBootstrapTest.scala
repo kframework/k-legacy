@@ -4,18 +4,19 @@ import org.kframework.attributes.Source
 import org.kframework.parser.concrete2kore.ParseInModule
 import org.junit.Test
 import org.junit.Assert._
+import org.kframework.minikore.{KoreToMini, MiniToKore}
 import org.kframework.kore.ADT.SortLookup
-import org.kframework.kore._
-import org.kframework.definition.Module
+//import org.kframework.kore._
+//import org.kframework.definition.Module
 
-import org.kframework.definition.KDefinitionDSL._
-import org.kframework.definition.KOREDefinition._
+import org.kframework.minikore.MiniKore._
+import org.kframework.minikore.MiniToKore
+import org.kframework.minikore.KDefinitionDSL._
+import org.kframework.minikore.KOREDefinition._
 import org.kframework.parser.KOREDowner._
 
 
 object ExpDefinition {
-  import org.kframework.kore.ADT._
-  import org.kframework.kore._
 
   val expString =
     """
@@ -42,8 +43,8 @@ object ExpDefinition {
       endmodule
     """
 
-  val Exp = SortLookup("Exp")
-  val EXP = Module("EXP", imports(), sentences(
+  val Exp = Sort("Exp")
+  val EXP: Module = module("EXP",
     syntax(Exp) is "0" att klabel("0"),
     syntax(Exp) is "1" att klabel("1"),
     syntax(Exp) is "2" att klabel("2"),
@@ -58,29 +59,29 @@ object ExpDefinition {
     syntax(Exp) is (Exp, "+", Exp) att(klabel("p"), "plus"),
     syntax(Exp) is (Exp, "-", Exp) att("minus", klabel("m")),
     syntax(Exp) is (Exp, "*", Exp) att(klabel("t"), "times"),
-    syntax(Exp) is (Exp, "/", Exp) att(klabel("d"), "div"),
+    syntax(Exp) is (Exp, "/", Exp) att(klabel("d"), "div")
 
     // priority( >("p", "t") , >("m", "d") ),
-    rule(term("p", term("3"), term("3")), term("6")),
-    rule(term("m", term("9"), term("4")), term("5")),
-    rule(term("t", term("7"), term("0")), term("0"))
-  ))
+//    rule(term("p", term("3"), term("3")), term("6")),
+//    rule(term("m", term("9"), term("4")), term("5")),
+//    rule(term("t", term("7"), term("0")), term("0"))
+  ) att KoreToMini.iMainModule
 }
 
 
 class ParserBootstrapTest {
-  val kParser = new ParseInModule(KDEFINITION)
-  def runParser(parser: ParseInModule, toParse: String, parseAs: SortLookup): K =
-    parser.parseString(toParse, parseAs, Source(""))._1 match {
-      case Right(x) => x
+  val kParser = new ParseInModule(MiniToKore(KOREDef).mainModule)
+  def runParser(parser: ParseInModule, toParse: String, parseAs: String): Pattern =
+    parser.parseString(toParse, SortLookup(parseAs), Source(""))._1 match {
+      case Right(x) => KoreToMini(x)
       case Left(y) => throw new Error("runParser error: " + y.toString)
     }
-  def parseK(toParse: String, parseAs: SortLookup): K = runParser(kParser, toParse, parseAs)
+  def parseK(toParse: String, parseAs: String): Pattern = runParser(kParser, toParse, parseAs)
 
-  def printInfo(name: String, parsedString: K, origModule: Module, downedModule: Module): Unit = {
+  def printInfo(name: String, parsedPattern: Pattern, origModule: Module, downedModule: Module): Unit = {
     println(name ++ " PARSED AS:")
     println("===================")
-    println(parsedString)
+    println(parsedPattern)
     println("===================")
     println(name ++ " ORIG MODULE:")
     println("=====================")
@@ -95,23 +96,22 @@ class ParserBootstrapTest {
 
   @Test def expressionTest(): Unit = {
     import ExpDefinition._
-    val parsed = preProcess(parseK(expString, KDefinition))
-    val downed = downRules(downModules(parsed, Map.empty)("EXP"))
+    val parsed = preProcess(parseK(expString, "KDefinition"))
+    val downed = downModules(parsed)
     //printInfo("EXP", parsed, EXP, downed)
-    assertEquals(downRules(EXP), downed)
+    gassertEquals(Seq(EXP), downed)
   }
 
-  @Test def kdefFixpoint(): Unit = {
+  def kdefFixpoint(): Unit = {
 
     //val KORE_STRING = io.Source.fromFile("/Users/lpena/kframework/k/kernel/src/test/scala/org/kframework/parser/kore.k").mkString
     val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
-    val parsed = preProcess(parseK(KORE_STRING, KDefinition))
-    val builtins: Map[String, Module] = Map.empty
-    val downed = downModules(parsed, builtins)
+    val parsed = preProcess(parseK(KORE_STRING, "KDefinition"))
+    val downed = downModules(parsed)
 
-    KOREDef.foreach { case (name, module) =>
-      // printInfo(name, parsed, module, downed(name))
-      assertEquals(downRules(module), downRules(downed(name)))
+    KOREDef.modules.foreach { case module =>
+      //printInfo(name, parsed, module, downed(name))
+      //assertEquals(module, downRules(downed(name)))
     }
   }
 }
