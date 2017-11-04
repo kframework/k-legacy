@@ -20,7 +20,7 @@ module KTOKENS
   syntax KString ::= r"[\"](([^\n\r\t\f\"\\\\])|([\\\\][nrtf\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\"]" [token]
 endmodule
 
-  
+
 module KML
   imports KTOKENS
 
