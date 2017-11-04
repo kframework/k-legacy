@@ -1,5 +1,7 @@
-module KSTRING
-  syntax KString ::= r"[\"](([^\n\r\t\f\"\\\\])|([\\\\][nrtf\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\"]" [token, khook(org.kframework.kore.KString)]
+module KTOKENS
+  syntax KID ::= r"[A-Za-z\\-0-9]*" [token, klabel(KID)]
+  syntax KSort ::= r"[A-Z][A-Za-z0-9]*" [token, klabel(KSort)]
+  syntax KString ::= r"[\"](([^\n\r\t\f\"\\\\])|([\\\\][nrtf\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\"]" [token, klabel(KString)]
 endmodule
 
 module KBUBBLE
@@ -31,11 +33,12 @@ module KATTRIBUTES
 endmodule
 
 module KML
-  imports KSTRING
+  imports KTOKENS
 
   syntax KMLVar [klabel(KMLVar)]
+  syntax KMLTerm ::= KMLVar
+  syntax KMLFormula ::= KMLTerm
 
-  syntax KMLFormula ::= KMLVar
   syntax KMLFormula ::= "tt" [klabel(KMLtrue)]
   syntax KMLFormula ::= "ff" [klabel(KMLfalse)]
   syntax KMLFormula ::= "~" KMLFormula [klabel(KMLnot)]
@@ -47,7 +50,7 @@ module KML
 endmodule
 
 module KSENTENCES
-  imports KSTRING
+  imports KTOKENS
   imports KATTRIBUTES
 
   syntax KSort ::= r"[A-Z][A-Za-z0-9]*" [token, klabel(KSort)]
