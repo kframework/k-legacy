@@ -21,38 +21,38 @@ class KParserBootstrapTest {
     }
   def parseK(toParse: String, parseAs: SortLookup): K = parseTest(kParser, toParse, parseAs)
 
-  def ktokensFixpoint(): Unit = {
-    println(parseK(KTOKENS_STRING, KModule))
-    assertEquals(KTOKENS, downModules(KTOKENS_STRING, Map())("KTOKENS"))
-  }
+//  def ktokensFixpoint(): Unit = {
+//    println(parseK(KTOKENS_STRING, KModule))
+//    assertEquals(KTOKENS, downModules(KTOKENS_STRING, Map())("KTOKENS"))
+//  }
+//
+//  def kmlFixpoint(): Unit = {
+//    assertEquals(KML, downModules(KML_STRING, Map("KTOKENS" -> KTOKENS))("KML"))
+//  }
+//
+//  def kattributesFixpoint(): Unit = {
+//    assertEquals(KATTRIBUTES, downModules(KATTRIBUTES_STRING, Map("KTOKENS" -> KTOKENS))("KATTRIBUTES"))
+//  }
+//
+//  def ksentencesFixpoint(): Unit = {
+//    assertEquals(KSENTENCES, downModules(KSENTENCES_STRING, Map("KTOKENS" -> KTOKENS, "KATTRIBUTES" -> KATTRIBUTES, "KML" -> KML))("KSENTENCES"))
+//  }
+//
+//  def kdefinitionFixpoint(): Unit = {
+//    assertEquals(KDEFINITION, downModules(KDEFINITION_STRING, Map("KTOKENS" -> KTOKENS, "KATTRIBUTES" -> KATTRIBUTES, "KML" -> KML, "KSENTENCES" -> KSENTENCES))("KDEFINITION"))
+//  }
+//
+//  def entireDefinitionFixpoint(): Unit = {
+//    assertEquals(KOREDEF, downModules(parseK(KORE_STRING, KDefinition), Map("KTOKENS" -> KTOKENS)))
+//  }
+//
+//  def actualFixpoint(): Unit = {
+//    val KDEF_PARSED_DOWN = downModules(parseK(KORE_STRING, KDefinition), Map("KTOKENS" -> KTOKENS))("KDEFINITION")
+//    val newKParser = new ParseInModule(KDEF_PARSED_DOWN)
+//    assertEquals(KOREDEF, downModules(parseTest(newKParser, KORE_STRING, KDefinition), Map("KTOKENS" -> KTOKENS)))
+//  }
 
-  def kmlFixpoint(): Unit = {
-    assertEquals(KML, downModules(KML_STRING, Map("KTOKENS" -> KTOKENS))("KML"))
-  }
-
-  def kattributesFixpoint(): Unit = {
-    assertEquals(KATTRIBUTES, downModules(KATTRIBUTES_STRING, Map("KTOKENS" -> KTOKENS))("KATTRIBUTES"))
-  }
-
-  def ksentencesFixpoint(): Unit = {
-    assertEquals(KSENTENCES, downModules(KSENTENCES_STRING, Map("KTOKENS" -> KTOKENS, "KATTRIBUTES" -> KATTRIBUTES, "KML" -> KML))("KSENTENCES"))
-  }
-
-  def kdefinitionFixpoint(): Unit = {
-    assertEquals(KDEFINITION, downModules(KDEFINITION_STRING, Map("KTOKENS" -> KTOKENS, "KATTRIBUTES" -> KATTRIBUTES, "KML" -> KML, "KSENTENCES" -> KSENTENCES))("KDEFINITION"))
-  }
-
-  def entireDefinitionFixpoint(): Unit = {
-    assertEquals(KOREDEF, downModules(parseK(KOREDEF_STRING, KDefinition), Map("KTOKENS" -> KTOKENS)))
-  }
-
-  def actualFixpoint(): Unit = {
-    val KDEF_PARSED_DOWN = downModules(parseK(KOREDEF_STRING, KDefinition), Map("KTOKENS" -> KTOKENS))("KDEFINITION")
-    val newKParser = new ParseInModule(KDEF_PARSED_DOWN)
-    assertEquals(KOREDEF, downModules(parseTest(newKParser, KOREDEF_STRING, KDefinition), Map("KTOKENS" -> KTOKENS)))
-  }
-
-  def sandboxTest(): Unit = {
+  @Test def sandboxTest(): Unit = {
     val origString = KORE_STRING
     val downedActual = KORE
     val builtins: Map[String, Module] = Map.empty
