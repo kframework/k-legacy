@@ -62,12 +62,13 @@ object EKOREDefinition {
   // K-PRETTY-PRODUCTION
   // ===================
 
-  val KTerminal      = Sort("KTerminal")
-  val KRegexTerminal = Sort("KRegexTerminal")
-  val KNonTerminal   = Sort("KNonTerminal")
-  val KProduction    = Sort("KProduction")
-  val KProductions   = Sort("KProductions")
-  val KPriority      = Sort("KPriority")
+  val KTerminal         = Sort("KTerminal")
+  val KRegexTerminal    = Sort("KRegexTerminal")
+  val KNonTerminal      = Sort("KNonTerminal")
+  val KProduction       = Sort("KProduction")
+  val KProductions      = Sort("KProductions")
+  val KProductionsBlock = Sort("KProductionsBlock")
+  val KPriority         = Sort("KPriority")
 
   val K_PRETTY_PRODUCTION: Module = module("K-PRETTY-PRODUCTION",
     imports("KDEFINITION"),
@@ -112,16 +113,16 @@ object EKOREDefinition {
       val args       = prodItems collect { case Application("KNonTerminal@K-PRETTY-PRODUCTION", Application(nt, Nil) :: Nil) => upSymbol(nt) }
       Seq(Application("KSymbolDeclaration", Seq(sort, newKLabel, consListLeft("KSymbolList", ".KSymbolList")(args), upAttributes(downedAtts :+ prod(prodItems)))))
 
-    case Application("KSyntaxProduction", sort :: kpb@Application("KProductionsBlock", _) :: Nil) =>
+    case Application("KSyntaxProduction", sort :: (kpb@Application("KProductionsBlock", _)) :: Nil) =>
       val sents        = flattenByLabels("KProductionsBlock")(kpb) flatMap (kp => desugarPrettySentence(Application("KSyntaxProduction", Seq(sort, kp))))
       val klabels      = sents collect { case Application("KSymbolDeclaration", _ :: klabel :: _ :: _ :: Nil) => klabel }
       val prioritySent = Application("KSyntaxPriority", Seq(Application("KSymbolList", klabels)))
       sents :+ prioritySent
 
-    case Application("KSyntaxProduction", sort :: kpp@Application("KProductionsPriority", _) :: Nil) =>
+    case Application("KSyntaxProduction", sort :: (kpp@Application("KProductionsPriority", _)) :: Nil) =>
       val kpbs                 = flattenByLabels("KProductionsPriority")(kpp) flatMap desugarPrettySentence
       val (pBlocks, prodSents) = kpbs partition { case Application("KSyntaxPriority", _) => true case _ => false }
-      val prioritySent         = Application("KSyntaxPriority", Application("KPriorityItems", pBlocks map { case Application("KSyntaxPriority", pBlock :: Nil) => pBlock }))
+      val prioritySent         = Application("KSyntaxPriority", Seq(Application("KPriorityItems", pBlocks map { case Application("KSyntaxPriority", pBlock :: Nil) => pBlock })))
       prodSents :+ prioritySent
 
     case pattern => Seq(pattern)
@@ -133,8 +134,8 @@ object EKOREDefinition {
     // the attributes for priorities separate because that's how we get them in the module.
     case Application("KModule", name :: sentences :: atts :: Nil) =>
       val desugaredSentences      = flattenByLabels("KSentenceList", ".KSentenceList")(sentences) flatMap desugarPrettySentence
-      val (priorities, sentences) = desugaredSentences partition { case Application("KSyntaxPriority", _) => true case _ => false }
-      Application("KModule", Seq(name, consListLeft("KSentenceList", ".KSentenceList")(sentences), upAttributes(downAttributes(atts) ++ priorities)))
+      val (priorities, newSentences) = desugaredSentences partition { case Application("KSyntaxPriority", _) => true case _ => false }
+      Application("KModule", Seq(name, consListLeft("KSentenceList", ".KSentenceList")(newSentences), upAttributes(downAttributes(atts) ++ priorities)))
 
     case pattern => pattern
   }
