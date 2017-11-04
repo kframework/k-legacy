@@ -39,26 +39,29 @@ class KParserBootstrapTest {
 
     val KORE_STRING = io.Source.fromFile("src/test/scala/kore.k").mkString
 
-    val builtins = Map("KSTRING" -> KSTRING)
-
-    val parsed = parseK(KORE_STRING, KDefinition)
+    val parsed = preProcess(parseK(KORE_STRING, KDefinition))
+    val builtins: Map[String, Module] = Map.empty
     val downed = downModules(parsed, builtins)
 
-    println("PARSED:")
-    println("=======")
-    println(parsed)
-    println("=======")
+    val modules = List( ("KSORT", KSORT)
+                      , ("KBASIC", KBASIC)
+                      , ("KSTRING", KSTRING)
+                      , ("KATTRIBUTES", KATTRIBUTES)
+                      , ("KML", KML)
+                      , ("KSENTENCES", KSENTENCES)
+                      , ("KDEFINITION", KDEFINITION)
+                      )
 
-    List(("KSORT", KSORT), ("KBASIC", KBASIC), ("KSTRING", KSTRING), ("KATTRIBUTES", KATTRIBUTES), ("KML", KML), ("KSENTENCES", KSENTENCES), ("KDEFINITION", KDEFINITION)).foreach { case (name, module) => 
-      println(name ++ " ORIG:")
-      println("==============")
-      println(module)
-      println("==============")
-      println(name ++ " DOWNED:")
-      println("================")
-      println(downed(name))
-      println("================")
-      println("\n\n")
+    modules.foreach { case (name, module) => 
+      // println(name ++ " ORIG:")
+      // println("==============")
+      // println(module)
+      // println("==============")
+      // println(name ++ " DOWNED:")
+      // println("================")
+      // println(downed(name))
+      // println("================")
+      // println("\n\n")
       assertEquals(module, downed(name))
     }
   }
