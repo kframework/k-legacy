@@ -32,8 +32,17 @@ module KATTRIBUTES
   syntax KAttributes ::= KAttribute "," KAttributes [klabel(KAttributes)]
 endmodule
 
+module KABSTRACT 
+  imports KATTRIBUTES
+
+  syntax KAbstract ::= KAttributeKey
+  syntax KAbstract ::= KAbstract "," KAbstract [klabel(KAbstractArgs), assoc]
+  syntax KAbstract ::= KAttributeKey "(" KAbstract ")" [klabel(KAbstractApply)]
+endmodule
+
 module KML
   imports KTOKENS
+  imports KABSTRACT
 
   syntax KMLVar [klabel(KMLVar)]
   syntax KMLTerm ::= KMLVar
