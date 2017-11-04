@@ -56,7 +56,7 @@ object EKOREDefinition {
     case Application("KSyntaxProduction", sortName :: production :: atts :: Nil) => {
       val downedAtts = downAttributes(atts)
       val prodItems  = flattenByLabels("KProduction")(production)
-      val newKLabel  = upDomainValue(makeSymbol(getKLabel(downedAtts).getOrElse(prodItems map makeCtorString mkString)))
+      val newKLabel  = upSymbol(getKLabel(downedAtts).getOrElse(prodItems map makeCtorString mkString))
       val args       = prodItems collect { case Application("KNonTerminal@K-PRETTY-PRODUCTION", Application(nt, Nil) :: Nil) => upSymbol(nt) }
       Application("KSymbolDeclaration", Seq(sortName, newKLabel, consListLeft("KSymbolList", ".KSymbolList")(args), upAttributes(downedAtts :+ prod(prodItems))))
     }
