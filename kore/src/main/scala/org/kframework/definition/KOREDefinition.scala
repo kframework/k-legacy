@@ -189,8 +189,8 @@ object KOREDefinition {
 
   // ### KDEFINITION
   // val KRegexModuleName = "[A-Z][A-Z\\-]*"
-  val KRequire = Sort("KRequire")
-  val KRequireList = Sort("KRequireList")
+  // val KRequire = Sort("KRequire")
+  // val KRequireList = Sort("KRequireList")
 
   val KModule = Sort("KModule")
   val KModuleList = Sort("KModuleList")
@@ -200,15 +200,15 @@ object KOREDefinition {
   val KDEFINITION: Module = module("KDEFINITION",
     imports("KSENTENCE"),
 
-    syntax(KRequire) is ("require", KString) att klabel("KRequire"),
-    syntax(KRequireList) is "" att klabel(".KRequireList"),
-    syntax(KRequireList) is (KRequire, KRequireList) att klabel("KRequireList"),
+    // syntax(KRequire) is ("require", KString) att klabel("KRequire"),
+    // syntax(KRequireList) is "" att klabel(".KRequireList"),
+    // syntax(KRequireList) is (KRequire, KRequireList) att klabel("KRequireList"),
 
     syntax(KModule) is ("module", KSymbol, KSentenceList, "endmodule", KAttributes) att klabel("KModule"),
     syntax(KModuleList) is "" att klabel(".KModuleList"),
     syntax(KModuleList) is (KModule, KModuleList) att klabel("KModuleList"),
 
-    syntax(KDefinition) is (KRequireList, KModuleList) att klabel("KDefinition")
+    syntax(KDefinition) is (KAttributes, KModuleList) att klabel("KDefinition")
   ) att KoreToMini.iMainModule
 
 
