@@ -39,14 +39,32 @@ object ParserNormalization {
   // Disagreements on encoding
   // =========================
 
-  def toKoreEncoding: Pattern => Pattern = {
+  // TODO: fix toKoreEncoding
+
+  val toKoreEncodingProdItems: Pattern => Pattern = {
     case Application("KTerminal@K-PRETTY-PRODUCTION", Application(str, Nil) :: followRegex) => Application(iTerminal, S(str) :: followRegex)
     case Application("KRegexTerminal@K-PRETTY-PRODUCTION", Seq(Application(precede, Nil), Application(regex, Nil), Application(follow, Nil)))
                                                                                             => Application(iRegexTerminal, Seq(S(precede), S(regex), S(follow)))
     case Application("KNonTerminal@K-PRETTY-PRODUCTION", Seq(Application(str, Nil)))        => Application(iNonTerminal, Seq(S(str)))
-    case Application(`iMainModule`, Seq(Application(modName, Nil)))                         => Application(iMainModule, Seq(S(modName)))
-    case Application(`iEntryModules`, Seq(Application(modName, Nil)))                       => Application(iEntryModules, Seq(S(modName)))
-    case pattern                                                                            => pattern
+  }
+
+  val toKoreEncodingAttributes: Pattern => Pattern = {
+    case Application(`iMainModule`, Seq(Application(modName, Nil)))   => Application(iMainModule, Seq(S(modName)))
+    case Application(`iEntryModules`, Seq(Application(modName, Nil))) => Application(iEntryModules, Seq(S(modName)))
+    case Application("KSyntaxPriority", Seq(ksp))                     => Application(iSyntaxPriority, flattenByLabels("KPriorityItems", ".KPriorityItems")(ksp))
+    case Application("KProduction", args)                             => Application("production", args map toKoreEncodingProdItems)
+    case pattern                                                      => pattern
+  }
+
+  val toKoreEncodingMod: Module => Module = {
+    case Module(name, sentences, atts) =>
+      val koreEncodingAttributes = atts map toKoreEncodingAttributes
+      val priorityDummyAxioms = getAttributeKey(iSyntaxPriority, koreEncodingAttributes) map (kp => dummySentence(Seq(Application(iSyntaxPriority, kp map (kpg => Application(iSyntaxPriorityGroup, flattenByLabels("KSymbolList", ".KSymbolList")(kpg)))))))
+      Module(name, sentences ++ priorityDummyAxioms, koreEncodingAttributes)
+  }
+
+  val toKoreEncodingDef: Definition => Definition = {
+    case Definition(modules, atts) => Definition(modules map toKoreEncodingMod, atts map toKoreEncodingAttributes)
   }
 
   // Preprocessing
@@ -62,13 +80,14 @@ object EKOREDefinition {
   // K-PRETTY-PRODUCTION
   // ===================
 
-  val KTerminal         = Sort("KTerminal")
-  val KRegexTerminal    = Sort("KRegexTerminal")
-  val KNonTerminal      = Sort("KNonTerminal")
-  val KProduction       = Sort("KProduction")
-  val KProductions      = Sort("KProductions")
-  val KProductionsBlock = Sort("KProductionsBlock")
-  val KPriority         = Sort("KPriority")
+  val KTerminal                 = Sort("KTerminal")
+  val KRegexTerminal            = Sort("KRegexTerminal")
+  val KNonTerminal              = Sort("KNonTerminal")
+  val KProduction               = Sort("KProduction")
+  val KProductions              = Sort("KProductions")
+  val KProductionsBlock         = Sort("KProductionsBlock")
+  val KPriority                 = Sort("KPriority")
+  val KProductionWithAttributes = Sort("KProductionWithAttributes")
 
   val K_PRETTY_PRODUCTION: Module = module("K-PRETTY-PRODUCTION",
     imports("KDEFINITION"),
@@ -81,13 +100,15 @@ object EKOREDefinition {
     syntax(KProduction) is KRegexTerminal,
     syntax(KProduction) is KNonTerminal,
     syntax(KProduction) is (KProduction, KProduction) att(klabel("KProduction"), "assoc"),
+    syntax(KProductionWithAttributes) is (KProduction, KAttributes) att klabel("KProductionWithAttributes"),
 
-    syntax(KProductionsBlock) is (KProduction, KAttributes) att klabel("KProductionWithAttributes"),
-    syntax(KProductionsBlock) is (KProduction, KAttributes, "|", KProductionsBlock) att klabel("KProductionsBlock"),
+    syntax(KProductionsBlock) is KProductionWithAttributes,
+    syntax(KProductionsBlock) is (KProductionWithAttributes, "|", KProductionsBlock) att klabel("KProductionsBlock"),
 
     syntax(KProductions) is KProductionsBlock,
     syntax(KProductions) is (KProductionsBlock, ">", KProductions) att(klabel("KProductionsPriority"), "assoc"),
 
+    syntax(KPriority) is "" att klabel(".KPriorityItems"),
     syntax(KPriority) is KSymbolList,
     syntax(KPriority) is (KPriority, ">", KPriority) att(klabel("KPriorityItems"), "assoc"),
 
@@ -111,18 +132,18 @@ object EKOREDefinition {
       val prodItems  = flattenByLabels("KProduction")(traverseBottomUp(normalizeProductionItems)(production))
       val newKLabel  = upSymbol(getKLabel(downedAtts).getOrElse(prodItems map makeCtorString mkString))
       val args       = prodItems collect { case Application("KNonTerminal@K-PRETTY-PRODUCTION", Application(nt, Nil) :: Nil) => upSymbol(nt) }
-      Seq(Application("KSymbolDeclaration", Seq(sort, newKLabel, consListLeft("KSymbolList", ".KSymbolList")(args), upAttributes(downedAtts :+ prod(prodItems)))))
+      Seq(Application("KSymbolDeclaration", Seq(sort, newKLabel, consListLeftSubsort("KSymbolList", ".KSymbolList")(args), upAttributes(downedAtts :+ prod(prodItems)))))
 
     case Application("KSyntaxProduction", sort :: (kpb@Application("KProductionsBlock", _)) :: Nil) =>
       val sents        = flattenByLabels("KProductionsBlock")(kpb) flatMap (kp => desugarPrettySentence(Application("KSyntaxProduction", Seq(sort, kp))))
       val klabels      = sents collect { case Application("KSymbolDeclaration", _ :: klabel :: _ :: _ :: Nil) => klabel }
-      val prioritySent = Application("KSyntaxPriority", Seq(Application("KSymbolList", klabels)))
+      val prioritySent = Application("KSyntaxPriority", Seq(consListLeftSubsort("KSymbolList", ".KSymbolList")(klabels)))
       sents :+ prioritySent
 
     case Application("KSyntaxProduction", sort :: (kpp@Application("KProductionsPriority", _)) :: Nil) =>
-      val kpbs                 = flattenByLabels("KProductionsPriority")(kpp) flatMap desugarPrettySentence
+      val kpbs                 = flattenByLabels("KProductionsPriority")(kpp) flatMap (kpb => desugarPrettySentence(Application("KSyntaxProduction", Seq(sort, Application("KProductionsBlock", Seq(kpb))))))
       val (pBlocks, prodSents) = kpbs partition { case Application("KSyntaxPriority", _) => true case _ => false }
-      val prioritySent         = Application("KSyntaxPriority", Seq(Application("KPriorityItems", pBlocks map { case Application("KSyntaxPriority", pBlock :: Nil) => pBlock })))
+      val prioritySent         = Application("KSyntaxPriority", Seq(consListLeftSubsort("KPriorityItems", ".KPriorityItems")(pBlocks map { case Application("KSyntaxPriority", pBlock :: Nil) => pBlock })))
       prodSents :+ prioritySent
 
     case pattern => Seq(pattern)
@@ -130,10 +151,8 @@ object EKOREDefinition {
 
   val desugarPrettyModule: Pattern => Pattern = {
 
-    // TODO: NOTE ASK LUCAS ABOUT: I made the `priority` function just build things with `KSyntaxPriority`, and kept all the priorities separate in
-    // the attributes for priorities separate because that's how we get them in the module.
     case Application("KModule", name :: sentences :: atts :: Nil) =>
-      val desugaredSentences      = flattenByLabels("KSentenceList", ".KSentenceList")(sentences) flatMap desugarPrettySentence
+      val desugaredSentences         = flattenByLabels("KSentenceList", ".KSentenceList")(sentences) flatMap desugarPrettySentence
       val (priorities, newSentences) = desugaredSentences partition { case Application("KSyntaxPriority", _) => true case _ => false }
       Application("KModule", Seq(name, consListLeft("KSentenceList", ".KSentenceList")(newSentences), upAttributes(downAttributes(atts) ++ priorities)))
 
@@ -177,7 +196,7 @@ object EKOREDefinition {
     import org.kframework.minikore.MiniToKore
     import org.kframework.minikore.KoreToMini
 
-    val parser = new ParseInModule(MiniToKore(onAttributesDef(traverseTopDown(toKoreEncoding))(d)).mainModule)
+    val parser = new ParseInModule(MiniToKore(toKoreEncodingDef(d)).mainModule)
     parser.parseString(input, SortLookup("KMLPattern"), Source(""))._1 match {
       case Right(x) => KoreToMini(x)
       case Left(y) => throw new Error("runParser error: " + y.toString)
