@@ -61,14 +61,13 @@ class KParserBootstrapTest {
     //println(getSortMap(parseResult))
     //println(getASTModules(parseResult))
     assertEquals(getASTModules(parseResult).size, 4)
-    assertEquals(getASTModules(parseResult), List(KML_STRING, KATTRIBUTES_STRING, KSENTENCES_STRING, KDEFINITION_STRING).map(x => parseK(x, KModule)))
+    assertEquals(getASTModules(parseResult), Set(KML_STRING, KATTRIBUTES_STRING, KSENTENCES_STRING, KDEFINITION_STRING).map(x => parseK(x, KModule)))
   }
 
   @Test def simpleExpModule(): Unit = {
     val MYEXP_STRING =
       """
       module MYEXP
-        imports BASIC-EXP-SYNTAX
         .KImportList
         syntax MyExp ::= MyExp "*" MyExp   [mul, left, strict, .KAttributes]
         syntax MyExp ::= MyExp "/" MyExp   [div, left, strict, .KAttributes]
@@ -76,8 +75,15 @@ class KParserBootstrapTest {
         .KSentenceList
       endmodule
       """
+//    val MYEXP_STRING =
+//      """
+//      module MYEXP
+//        .KImportList
+//        .KSentenceList
+//      endmodule
+//      """
 
-    val combined = ".KRequireList" + MYEXP_STRING + "\n" + KML_STRING
+    val MY_K_DEF = ".KRequireList" + MYEXP_STRING + "\n" + ".KModuleList"
 
     val res = l("module___endmodule")(t("MYEXP",KModuleName)
       , l("__")(l("imports_")(t("BASIC-EXP-SYNTAX", KModuleName)), k(".KImportList"))
@@ -91,20 +97,22 @@ class KParserBootstrapTest {
     val MyExp = Sort("MyExp")
     val BASICEXPSYNTAX = Module("BASIC-EXP-SYNTAX", imports(), sentences())
 
-//    val MYEXP = Module("MYEXP", imports(BASICEXPSYNTAX), sentences(
-//      syntax(MyExp) is (MyExp, "*", MyExp) att("mul", "left", "strict"),
-//      syntax(MyExp) is (MyExp, "/", MyExp) att("div", "left", "strict"),
-//      syntax(MyExp) is (MyExp, "*", MyExp) att("plus", "left", "strict")
-//    ))
+    val MYEXP = Module("MYEXP", imports(), sentences(
+      syntax(MyExp) is (MyExp, "*", MyExp) att(klabel("mul"), ktoken("left"), ktoken("strict")),
+      syntax(MyExp) is (MyExp, "/", MyExp) att(klabel("div"), ktoken("left"), ktoken("strict")),
+      syntax(MyExp) is (MyExp, "*", MyExp) att(klabel("plus"), ktoken("left"), ktoken("strict"))
+    ))
 
-    assertEquals(parseK(MYEXP_STRING, KModule), res)
+    //assertEquals(parseK(MYEXP_STRING, KModule), res)
 
     //println(getSortMap(parseK(MYEXP_STRING, KModule)))
     //println(getSortMap(parseK(KML_STRING, KModule)))
 
-    val parseResult = parseK(combined, KDefinition)
-    //println(getSortMap(parseResult))
+    val parseResult = parseK(MY_K_DEF, KDefinition)
+    println(getASTNodes(parseResult, "syntax_::=_[_]"))
+    println(parseResult)
     println(getASTModules(parseResult))
+    println(getAllDownModules(parseResult))
 
   }
 
