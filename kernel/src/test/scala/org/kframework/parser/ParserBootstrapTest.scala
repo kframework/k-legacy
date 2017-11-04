@@ -117,10 +117,11 @@ class ParserBootstrapTest {
              , (syntax(Exp) is Regex("`[^ a\n\r\tb]+`")   , """syntax Exp ::= r"`[^ a\n\r\tb]+`""""                                                              )
              )
 
+    sentenceTests foreach { sentStr => println(parseK(sentStr._2, "KSentence")) }
     sentenceTests foreach { sentStr => assertEquals(sentStr._1, downSentence(desugarPrettySentence(preProcess(parseK(sentStr._2, "KSentence"))) head)) }
   }
 
-  @Test def multipleProductions(): Unit = {
+  def multipleProductions(): Unit = {
     val prettyTests: Seq[(String, String)]
         = Seq( ("""syntax Exp ::= "true"                         syntax Exp ::= Exp"""                            , """syntax Exp ::= "true"                         | Exp"""                           )
              , ("""syntax Exp ::= Exp "+" Exp                    syntax Exp ::= Exp "/" Exp [klabel(division)]""" , """syntax Exp ::= Exp "+" Exp                    | Exp "/" Exp [klabel(division)]""")
@@ -133,7 +134,7 @@ class ParserBootstrapTest {
     prettyTests foreach { strings => assertEquals(parseAndDown(strings._1), parseAndDown(strings._2)) }
   }
 
-  @Test def ruleParsingTest(): Unit = {
+  def ruleParsingTest(): Unit = {
     import ExpDefinition._
 
     val ruleTests: Seq[(Sentence, String)]
@@ -150,7 +151,7 @@ class ParserBootstrapTest {
     ruleTests foreach { strings => assertEquals(strings._1, downSentence(resolveRule(ruleParser)(preProcess(parseK(strings._2, "KSentence"))))) }
   }
 
-  @Test def lambdaTest(): Unit = {
+  def lambdaTest(): Unit = {
     val LAMBDA_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/lambda.k").mkString
     val lambda_parsed = ekoreToKore(preProcess(parseK(LAMBDA_STRING, "KDefinition")))
     println(lambda_parsed)
