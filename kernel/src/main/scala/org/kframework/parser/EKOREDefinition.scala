@@ -40,13 +40,13 @@ object ParserNormalization {
   // =========================
 
   def toKoreEncoding: Pattern => Pattern = {
-    case Application("KTerminal@K-PRETTY-PRODUCTION", Application(str, Seq.empty) :: followRegex) => Application(iTerminal, S(str) :: followRegex)
-    case Application("KRegexTerminal@K-PRETTY-PRODUCTION", Seq(Application(precede, Seq.empty), Application(regex, Seq.empty), Application(follow, Seq.empty)))
-                                                                                                  => Application(iRegexTerminal, Seq(S(precede), S(regex), S(follow)))
-    case Application("KNonTerminal@K-PRETTY-PRODUCTION", Seq(Application(str, Seq.empty)))        => Application(iNonTerminal, Seq(S(str)))
-    case Application(`iMainModule`, Seq(Application(modName, Nil)))                               => Application(iMainModule, Seq(S(modName)))
-    case Application(`iEntryModules`, Seq(Application(modName, Nil)))                             => Application(iEntryModules, Seq(S(modName)))
-    case pattern                                                                                  => pattern
+    case Application("KTerminal@K-PRETTY-PRODUCTION", Application(str, Nil) :: followRegex) => Application(iTerminal, S(str) :: followRegex)
+    case Application("KRegexTerminal@K-PRETTY-PRODUCTION", Seq(Application(precede, Nil), Application(regex, Nil), Application(follow, Nil)))
+                                                                                            => Application(iRegexTerminal, Seq(S(precede), S(regex), S(follow)))
+    case Application("KNonTerminal@K-PRETTY-PRODUCTION", Seq(Application(str, Nil)))        => Application(iNonTerminal, Seq(S(str)))
+    case Application(`iMainModule`, Seq(Application(modName, Nil)))                         => Application(iMainModule, Seq(S(modName)))
+    case Application(`iEntryModules`, Seq(Application(modName, Nil)))                       => Application(iEntryModules, Seq(S(modName)))
+    case pattern                                                                            => pattern
   }
 
   // Preprocessing
@@ -161,22 +161,22 @@ object EKOREDefinition {
   }
 
   def resolveBubbles(parser: String => Pattern): Pattern => Pattern = {
-    case b@Application("KBubble", _) => parser(flattenByLabels("KBubble")(b) map { case DomainValue("KBubbleItem@K-CONCRETE-RULES", str) => str } mkString " ")
+    case b@Application("KBubble", _) => preProcess(parser(flattenByLabels("KBubble")(b) map { case DomainValue("KBubbleItem@K-CONCRETE-RULES", str) => str } mkString " "))
     case pattern                     => pattern
   }
 
   val upUserPattern: Pattern => Pattern = {
-    case Application(label, args) if KML_LABELS contains label => Application(label, args)
-    case Application(label, args)                              => Application("KMLApplication", Seq(upSymbol(label), consListLeft("KMLPatternList", ".KMLPatternList")(args)))
-    case pattern                                               => pattern
+    case Application(label, args) if (KTOKENS_LABELS ++ KML_LABELS) contains label => Application(label, args)
+    case Application(label, args)                                                  => Application("KMLApplication", Seq(upSymbol(label), consListLeft("KMLPatternList", ".KMLPatternList")(args)))
+    case pattern                                                                   => pattern
   }
 
-  def resolveRules(parser: String => Pattern): Pattern => Pattern = {
-    case Application("KRule", rule :: atts :: Nil) => Application("KRule", Seq(traverseBottomUp(upUserPattern)(preProcess(traverseTopDown(resolveBubbles(parser))(rule))), atts))
+  def resolveRule(parser: String => Pattern): Pattern => Pattern = {
+    case Application("KRule", rule :: atts :: Nil) => Application("KRule", Seq(traverseBottomUp(upUserPattern)(traverseTopDown(resolveBubbles(parser))(rule)), atts))
     case pattern                                   => pattern
   }
 
-  def resolveDefinitionRules(parsed: Pattern): Pattern = traverseTopDown(resolveRules(mkParser(mkRuleParserDefinition(parsed))))(parsed)
+  def resolveDefinitionRules(parsed: Pattern): Pattern = traverseTopDown(resolveRule(mkParser(mkRuleParserDefinition(parsed))))(parsed)
 
   // EKORE
   // =====
