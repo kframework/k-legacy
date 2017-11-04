@@ -14,7 +14,6 @@ object KDefinitionDSL {
   def asKApply(label: String, values: List[String]): K =
     KORE.KApply(KORE.KLabel(label), KORE.KList(values map { value => KORE.KToken(value, Sorts.KString, Att()) }), Att())
   def asKApply(label: String, values: String*): K = asKApply(label, values toList)
-  def apply(label: String, values: K*): K = KORE.KApply(KORE.KLabel(label), KORE.KList(values toList), Att())
 
   implicit def asAttribute(str: String): K = asKApply(str, List.empty)
   implicit def asNonTerminal(s: ADT.SortLookup): NonTerminal = NonTerminal(s)
@@ -39,8 +38,8 @@ object KDefinitionDSL {
     def att(atts: K*): SyntaxSort = SyntaxSort(sort, atts.foldLeft(Att())(_+_))
   }
 
-  def rule(rewrite: ADT.KRewrite): Rule = Rule(rewrite, KORE.KToken("true", ADT.SortLookup("Bool")), KORE.KToken("true", ADT.SortLookup("Bool")))
-  def rewrite(left: K, right: K): ADT.KRewrite = ADT.KRewrite(left, right)
+  def term(label: String, args: K*): K = KApply(KLabelLookup(label), KList(args.toList), Att())
+  def rule(lhs: K, rhs: K): Rule = Rule(ADT.KRewrite(lhs, rhs), KORE.KToken("true", ADT.SortLookup("KBool")), KORE.KToken("true", ADT.SortLookup("KBool")))
 
   def >(labels: String*): Set[Tag] = labels map Tag toSet
   def priority(labels: Set[Tag]*): SyntaxPriority = SyntaxPriority(labels)
@@ -54,69 +53,34 @@ object KDefinitionDSL {
   def kunit(label: String): K = asKApply("unit", label)
 }
 
-object ExpDefinition {
-  import KDefinitionDSL._
-
-//  KDefinition(.KRequireList(),KModuleList(KModule(#token("EXP",KModuleName@KDEFINITION),.KImportList(),
-  // KSentenceList(KSentenceWithAttributes(KProduction(#token("Exp",KSort@KSENTENCES),KProductionItems(#token("Exp",KSort@KSENTENCES),KProductionItems(#token("+",KString),#token("Exp",KSort@KSENTENCES)))),KAttributes(KAttributeApply(#token("klabel",KAttributeKey@KATTRIBUTES),#token("p",KAttributeKey@KATTRIBUTES)),#token("plus",KAttributeKey@KATTRIBUTES))),
-  // KSentenceList(KSentenceWithAttributes(KProduction(#token("Exp",KSort@KSENTENCES),KProductionItems(#token("Exp",KSort@KSENTENCES),KProductionItems(#token("-",KString),#token("Exp",KSort@KSENTENCES)))),KAttributes(#token("minus",KAttributeKey@KATTRIBUTES),KAttributeApply(#token("klabel",KAttributeKey@KATTRIBUTES),#token("m",KAttributeKey@KATTRIBUTES)))),
-  // KSentenceList(KSentenceWithAttributes(KProduction(#token("Exp",KSort@KSENTENCES),KProductionItems(#token("Exp",KSort@KSENTENCES),KProductionItems(#token("*",KString),#token("Exp",KSort@KSENTENCES)))),KAttributes(KAttributeApply(#token("klabel",KAttributeKey@KATTRIBUTES),#token("t",KAttributeKey@KATTRIBUTES)),#token("times",KAttributeKey@KATTRIBUTES))),
-  // KSentenceList(KSentenceWithAttributes(KProduction(#token("Exp",KSort@KSENTENCES),KProductionItems(#token("Exp",KSort@KSENTENCES),KProductionItems(#token("/",KString),#token("Exp",KSort@KSENTENCES)))),KAttributes(KAttributeApply(#token("klabel",KAttributeKey@KATTRIBUTES),#token("d",KAttributeKey@KATTRIBUTES)),#token("div",KAttributeKey@KATTRIBUTES))),
-  // KRule(#token("3 + 3 => 6\n      ",KBubble@KBUBBLE))))))),.KModuleList()))
-
-
-  val expString =
-    """
-      module EXP
-        syntax Exp ::= Exp "+" Exp [klabel(p), plus]
-        syntax Exp ::= Exp "-" Exp [minus, klabel(m)]
-        syntax Exp ::= Exp "*" Exp [klabel(t), times]
-        syntax Exp ::= Exp "/" Exp [klabel(d), div]
-        syntax Exp ::= "0"
-        syntax Exp ::= "1"
-        syntax Exp ::= "2"
-        syntax Exp ::= "3"
-        syntax Exp ::= "4"
-        syntax Exp ::= "5"
-        syntax Exp ::= "6"
-        syntax Exp ::= "7"
-        syntax Exp ::= "8"
-        syntax Exp ::= "9"
-        rule 3 + 3 => 6
-        rule 9 - 4 => 5
-        rule 7 * 0 => 0
-      endmodule
-    """
-
-  val Bool = Sort("Bool")
-  val BOOL = Module("BOOL", imports(), sentences(
-    sort(Bool),
-    syntax(Bool) is "true" att klabel("true"),
-    syntax(Bool) is "false" att klabel("false")
-  ))
-
-  val Exp = Sort("Exp")
-  val EXP = Module("EXP", imports(BOOL), sentences(
-    syntax(Exp) is (Exp, "+", Exp) att(klabel("p"), "plus"),
-    syntax(Exp) is (Exp, "-", Exp) att("minus", klabel("m")),
-    syntax(Exp) is (Exp, "*", Exp) att(klabel("t"), "times"),
-    syntax(Exp) is (Exp, "/", Exp) att(klabel("d"), "div"),
-    priority( >("p", "t") , >("m", "d") ),
-    rule(rewrite(KApply(KLabelLookup("p"), KList(List(KToken("3", Exp), KToken("3", Exp)))), KToken("6", Exp)))
-  ))
-}
 
 object KOREDefinition {
   import KDefinitionDSL._
 
 
-  // ### KSTRING
+  // TODO: This is a temporary workaround to get rules to work
+  // ### KBOOL
+  val KBool = SortLookup("KBool")
+  val KBOOL = Module("KBOOL", imports(), sentences(
+    sort(KBool),
+    syntax(KBool) is "true" att klabel("true"),
+    syntax(KBool) is "false" att klabel("false")
+  ))
+
+
+  // ### KTOKENS
+  val KRegexID = "[A-Za-z\\-0-9]*"
+  val KRegexSort = "[A-Z][A-Za-z0-9]*"
   val KRegexString = "[\"](([^\n\r\t\f\"\\\\])|([\\\\][nrtf\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\"]"
 
+  val KID = Sort("KID")
+  val KSort = Sort("KSort")
   val KString = Sort("KString")
 
-  val KSTRING = Module("KSTRING", imports(), sentences(
-    syntax(KString) is regex(KRegexString) att("token", khook("org.kframework.kore.KString"))
+  val KTOKENS = Module("KTOKENS", imports(), sentences(
+    syntax(KID) is regex(KRegexID) att("token", klabel("KID")),
+    syntax(KSort) is regex(KRegexSort) att("token", klabel("KSort")),
+    syntax(KString) is regex(KRegexString) att("token", klabel("KString"))
   ))
 
 
@@ -171,12 +135,19 @@ object KOREDefinition {
 
   // ### KML
   val KMLVar = Sort("KMLVar")
+  val KMLTerm = Sort("KMLTerm")
   val KMLFormula = Sort("KMLFormula")
+  val KMLRewrite = Sort("KMLRewrite")
 
-  val KML = Module("KML", imports(KSTRING), sentences(
+  val KML = Module("KML", imports(KTOKENS), sentences(
     sort(KMLVar) att klabel("KMLVar"),
+    // syntax(KMLVar) is (KID, ":", KSort) att klabel("KMLVar"),
+    // every <SORT> should have a production like this for variables
+    // syntax <SORT> ::= KID ":" "<SORT>"
 
-    syntax(KMLFormula) is KMLVar,
+    syntax(KMLTerm) is KMLVar,
+    syntax(KMLFormula) is KMLTerm,
+
     syntax(KMLFormula) is "tt" att klabel("KMLtrue"),
     syntax(KMLFormula) is "ff" att klabel("KMLfalse"),
 
@@ -187,15 +158,11 @@ object KOREDefinition {
     syntax(KMLFormula) is ("E", KMLVar, ".", KMLFormula) att klabel("KMLexists"),
     syntax(KMLFormula) is ("A", KMLVar, ".", KMLFormula) att klabel("KMLforall"),
 
-    syntax(KMLFormula) is (KMLFormula, "=>", KMLFormula) att klabel("KMLnext")
+    syntax(KMLRewrite) is (KMLFormula, "=>", KMLTerm) att klabel("KMLRewrite")
   ))
 
 
   // ### KSENTENCES
-  val KRegexSort = "[A-Z][A-Za-z0-9]*"
-
-  val KSort = Sort("KSort")
-
   val KTerminal = Sort("KTerminal")
   val KNonTerminal = Sort("KNonTerminal")
 
@@ -208,8 +175,7 @@ object KOREDefinition {
   val KSentence = Sort("KSentence")
   val KSentenceList = Sort("KSentenceList")
 
-  val KSENTENCES = Module("KSENTENCES", imports(KSTRING, KBUBBLE, KATTRIBUTES), sentences(
-    syntax(KSort) is regex(KRegexSort) att("token", klabel("KSort")),
+  val KSENTENCES = Module("KSENTENCES", imports(KTOKENS, KBUBBLE, KATTRIBUTES), sentences(
 
     syntax(KTerminal) is KString,
     syntax(KTerminal) is ("r", KString) att klabel("KRegex"),
@@ -270,12 +236,12 @@ object KOREDefinition {
 
 
   // ### KORE
-  val KOREDef = Map( "KSTRING" -> KSTRING
-                , "KBUBBLE" -> KBUBBLE
-                , "KATTRIBUTES" -> KATTRIBUTES
-                , "KML" -> KML
-                , "KSENTENCES" -> KSENTENCES
-                , "KDEFINITION" -> KDEFINITION
-                )
+  val KOREDef = Map( "KTOKENS" -> KTOKENS
+                   , "KBUBBLE" -> KBUBBLE
+                   , "KATTRIBUTES" -> KATTRIBUTES
+                   , "KML" -> KML
+                   , "KSENTENCES" -> KSENTENCES
+                   , "KDEFINITION" -> KDEFINITION
+                   )
 }
 
