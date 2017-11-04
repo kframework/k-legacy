@@ -49,6 +49,64 @@ object KDefinitionDSL {
   def klabel(label: String): K = asKApply("klabel", List(label))
   def ktoken(label: String): K = asKApply("ktoken", List(label))
   def kunit(label: String): K = asKApply("unit", label)
+//  implicit def asAttribute(str: String): K = asKApply(str, List.empty)
+//  implicit def asNonTerminal(s: ADT.SortLookup): NonTerminal = NonTerminal(s)
+//  implicit def asTerminal(s: String): Terminal = Terminal(s)
+//  implicit def syntaxAsSyntaxSort(syn: syntax): Set[SyntaxSort] = Set(SyntaxSort(syn.sort, Att()))
+//  //implicit def asProduction(ps: ProductionItem*): Seq[ProductionItem] = ps
+//  //implicit def asSortDecl(bs: BecomingSort): Set[SyntaxSort] = bs.att()
+//
+//  case class BecomingSyntax(production: Seq[ProductionItem], atts: Att = Att()) {
+//    def att(newAtts: K*): BecomingSyntax = BecomingSyntax(production, newAtts.foldLeft(atts)(_+_))
+//    def toSentence(sort: ADT.SortLookup): Production = Production(sort, production, atts)
+//  }
+//  case class syntax(sort: ADT.SortLookup) {
+//    def apply(bps: BecomingProduction*): Set[Production] = (bps toSet) map ((x:BecomingProduction) => x.toSentence(sort))
+//    def att(atts: K*): Set[SyntaxSort] = Set(SyntaxSort(sort, atts.foldLeft(Att())(_+_)))
+//  }
+//
+//  def |(production: ProductionItem*): BecomingProduction = BecomingProduction(production)
+//  case class BecomingProduction(production: Seq[ProductionItem], atts: Att = Att()) {
+//    def att(newAtts: K*): BecomingProduction = BecomingProduction(production, newAtts.foldLeft(atts)(_+_))
+//    def toSentence(sort: ADT.SortLookup): Production = Production(sort, production, atts)
+//  }
+//
+//  // case class syntax2 ( sort: ADT.SortLookup
+//  //                    , sealedPriorityProductions: Seq[Set[BecomingProduction]]
+//  //                    , unsealedCurrentPriority: Set[BecomingProduction]
+//  //                    , currentProduction: Seq[ProductionItem]
+//  //                    , atts: Att = Att()
+//  //                    ) {
+//  //   def att(newAtts: K*): syntax2 = sealedPriorityProductions match {
+//  //     case Seq() =>
+//  //   }
+//  //   def |(production: ProductionItem*): syntax2 = {
+//  //     val pSize = productions.size
+//  //     productions match {
+//  //       case Seq() => syntax2(sort, Seq(Set((production, Att()))))
+//  //       case _     => syntax2(sort, productions(0, pSize-1) ++ (productions(pSize-1) ++ (production, Att())))
+//  //     }
+//  //   }
+//  //   def att(newAtts: K*):
+//  // }
+//
+//  //case class BecomingSort(sort: ADT.SortLookup, atts: Att = Att()) {
+//  //  def att(atts: K*): Set[SyntaxSort] = Set(SyntaxSort(sort, atts.foldLeft(Att())(_+_)))
+//  //}
+//  //def sort(sort: ADT.SortLookup): BecomingSort = BecomingSort(sort)
+//
+//  def >(labels: String*): Set[Tag] = labels map Tag toSet
+//  def priority(labels: Set[Tag]*): Set[SyntaxPriority] = Set(SyntaxPriority(labels))
+//
+//  def Sort(s: String): ADT.SortLookup = ADT.SortLookup(s)
+//  def imports(s: Module*): Set[Module] = s toSet
+//  def sentences(s: Set[_ <: Sentence]*): Set[Sentence] = s.flatten.toSet
+//  def regex(s: String): ProductionItem = RegexTerminal("#", s, "#")
+//
+//  def khook(label: String): K = asKApply("khook", List(label))
+//  def klabel(label: String): K = asKApply("klabel", List(label))
+//  def ktoken(label: String): K = asKApply("ktoken", List(label))
+//  def kunit(label: String): K = asKApply("unit", label)
 }
 
 object ExpDefinition {
@@ -111,9 +169,9 @@ object KoreDefintion {
 
   // ### KATTRIBUTES
   // TODO: Figure out these regexs.
-  val KRegexAttributeKey1 = """[\\.A-Za-z\\-0-9]*"""
-  val KRegexAttributeKey2 = """`(\\\\`|\\\\\\\\|[^`\\\\\n\r])+`"""
-  val KRegexAttributeKey3 = """(?![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"""
+  val KRegexAttributeKey1 = "[\\.A-Za-z\\-0-9]*"
+  val KRegexAttributeKey2 = "`(\\\\`|\\\\\\\\|[^`\\\\\n\r\t\f])+`"
+  val KRegexAttributeKey3 = "(?![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"
   // val KRegexAttributeKey3 = """(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*"""
 
   val KAttributeKey = Sort("KAttributeKey")
@@ -135,7 +193,7 @@ object KoreDefintion {
 
     syntax(KAttributes) is KAttribute,
     syntax(KAttributes) is "" att klabel(".KAttributes"),
-    syntax(KAttributes) is (KAttributes, ",", KAttributes) att klabel("KAttributes"),
+    syntax(KAttributes) is (KAttribute, ",", KAttributes) att(klabel("KAttributes")),
 
     syntax(KBott) is KAttributes,
     syntax(KItem) is KBott att "allowChainSubsort"
@@ -144,15 +202,16 @@ object KoreDefintion {
 
   // ### KSTRING
   // TODO: Fix this regex
-  val KRegexString = """[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"""
-  val KRegexString2 = """[\"](([^\"\n\r\\])|([\\][nrtf\"\\])|([\\][x][0-9a-fA-F]{2})|([\\][u][0-9a-fA-F]{4})|([\\][U][0-9a-fA-F]{8}))*[\"]"""
-  val KRegexString3 = """[\\\"](([^\\\"\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"""
-  val KRegexString4 = """[\"](([^\"\\])|([\\][nrtf\"\\])|([\\][x][0-9a-fA-F]{2})|([\\][u][0-9a-fA-F]{4})|([\\][U][0-9a-fA-F]{8}))*[\"]"""
+  val KRegexString = "[\\\"](([^\n\r\t\f\\\"\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"
+  val KRegexString22 = """[\\\"](([^\\\"\\r\\n\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"""
+  val KRegexString2 = """[\\\"](([^\\\"\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"""
+  val KRegexString3bad = """[\"](([^\"\n\r\\])|([\\][nrtf\"\\])|([\\][x][0-9a-fA-F]{2})|([\\][u][0-9a-fA-F]{4})|([\\][U][0-9a-fA-F]{8}))*[\"]"""
+  val KRegexString4bad = """[\"](([^\"\\])|([\\][nrtf\"\\])|([\\][x][0-9a-fA-F]{2})|([\\][u][0-9a-fA-F]{4})|([\\][U][0-9a-fA-F]{8}))*[\"]"""
 
   val KString = Sort("KString")
 
   val KSTRING = Module("KSTRING", imports(), sentences(
-    syntax(KString) is regex(KRegexString3) att("token", khook("org.kframework.kore.KString"))
+    syntax(KString) is regex(KRegexString) att("token", khook("org.kframework.kore.KString"))
   ))
 
 
