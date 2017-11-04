@@ -21,11 +21,15 @@ module KBASIC
   syntax KList ::= KList "," KList   [klabel(KList), left, assoc, unit(.KList), khook(org.kframework.kore.KList), prefer]
 endmodule
 
+module KSTRING
+  syntax KString ::= r"[\"](([^\n\r\t\f\"\\])|([\\][nrtf\"\\])|([\\][x][0-9a-fA-F]{2})|([\\][u][0-9a-fA-F]{4})|([\\][U][0-9a-fA-F]{8}))*[\"]" [token, khook(org.kframework.kore.KString)]
+endmodule
+
 module KATTRIBUTES
   imports KBASIC
 
   syntax KAttributeKey ::= r"[\\.A-Za-z\\-0-9]*" [token, khook(org.kframework.kore.KLabel)]
-  syntax KAttributeKey ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\n\r])+`" [token, khook(org.kframework.kore.KLabel)]
+  syntax KAttributeKey ::= r"`(\\\\`|\\\\\\\\|[^`\n\r\\\\])+`" [token, khook(org.kframework.kore.KLabel)]
   syntax KAttributeKey ::= r"(?![a-zA-Z0-9])[#a-z][a-zA-Z0-9@\\-]*" [token, khook(org.kframework.kore.KLabel), autoReject]
 
   syntax KKeyList ::= KAttributeKey
