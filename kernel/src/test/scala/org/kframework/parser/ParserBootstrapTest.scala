@@ -131,4 +131,16 @@ class ParserBootstrapTest {
     }
   }
 
+  @Test def prettyProductionsTest(): Unit = {
+    val prettyTests: Seq[(String, String)]
+        = Seq( ("""syntax Exp ::= "true" syntax Exp ::= Exp""", """syntax Exp ::= "true" | Exp""")
+
+    )
+
+    def parseAndDown(input: String): Seq[Sentence] = flattenByLabels("KSentenceList", ".KSentenceList")(preProcess(parseK(input, "KSentenceList"))) map downSentence
+    prettyTests foreach { strings =>
+      assertEquals(parseAndDown(strings._1), parseAndDown(strings._2))
+    }
+  }
+
 }
