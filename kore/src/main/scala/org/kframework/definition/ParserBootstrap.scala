@@ -5,6 +5,7 @@ import org.kframework.attributes.Att
 import org.kframework.builtin.Sorts
 import org.kframework.kore.ADT._
 import org.kframework.kore._
+import org.kframework.parser.concrete2kore.generator.RuleGrammarGenerator
 
 import collection.JavaConverters._
 
@@ -348,14 +349,64 @@ object KoreSyntaxDown {
     case KApply(head, KList(subNodes), atts) => KApply(head, KList(subNodes map preProcess), atts)
   }
 
-  def processRules(downedModules: Map[String, Module]): Map[String, Module] = ??? // {
-    //downedModules.foreach { case (name: String, module: Module) => ???
-      // separate module from rules
-      // import KML into module
-      // subsort everything in module to KMLFormula
-      // parse rules in resulting module as sort KMLFormula
-      // put rules back into original module
+  def resolveRules(module: Module): Module = {
+
+  }
+//    val resolvedImports = (module.imports map resolveRules) + KML
+//    val sorts = module.localSorts
+//    val ruleSyntax = (module.localSorts map ((ls: org.kframework.kore.Sort) => Production(ls, KMLFormula, Att()))) ++ module.localSyntaxSentences
+//    val rulesToParse = module.localSemanticSentences
+//    Module(module.name, resolvedImports, module.localSentences ++ kmlSubsorts)
+//    // separate module from rules
+//    // import KML into module
+//    // subsort everything in module to KMLFormula
+//    // parse rules in resulting module as sort KMLFormula
+//    // put rules back into original module
+//  }
+
+
+//    private Module resolveNonConfigBubbles(Module module, Function<String, Module> getProcessedModule, boolean isStrict) {
+//        if (stream(module.localSentences())
+//                .filter(s -> s instanceof Bubble)
+//                .map(b -> (Bubble) b)
+//                .filter(b -> !b.sentenceType().equals("config")).count() == 0)
+//            return module;
+//        Module ruleParserModule = RuleGrammarGenerator.getRuleGrammar(module, getProcessedModule);
+//
+//        ParseCache cache = loadCache(ruleParserModule);
+//        ParseInModule parser = RuleGrammarGenerator.getCombinedGrammar(cache.getModule(), isStrict);
+//
+//        java.util.Set<Bubble> bubbles = stream(module.localSentences())
+//                .parallel()
+//                .filter(s -> s instanceof Bubble)
+//                .map(b -> (Bubble) b).collect(Collectors.toSet());
+//
+//        Set<Sentence> ruleSet = bubbles.stream()
+//                .filter(b -> b.sentenceType().equals("rule"))
+//                .map(b -> performParse(cache.getCache(), parser, b))
+//                .flatMap(r -> {
+//                    if (r.isRight()) {
+//                        return Stream.of(this.upRule(r.right().get()));
+//                    } else {
+//                        errors.addAll(r.left().get());
+//                        return Stream.empty();
+//                    }
+//                }).collect(Collections.toSet());
+//
+//        Set<Sentence> contextSet = bubbles.stream()
+//                .filter(b -> b.sentenceType().equals("context"))
+//                .map(b -> performParse(cache.getCache(), parser, b))
+//                .flatMap(r -> {
+//                    if (r.isRight()) {
+//                        return Stream.of(this.upContext(r.right().get()));
+//                    } else {
+//                        errors.addAll(r.left().get());
+//                        return Stream.empty();
+//                    }
+//                }).collect(Collections.toSet());
+//
+//        return Module(module.name(), module.imports(),
+//                stream((Set<Sentence>) module.localSentences().$bar(ruleSet).$bar(contextSet)).filter(b -> !(b instanceof Bubble)).collect(Collections.toSet()), module.att());
 //    }
-  //}
 
 }
