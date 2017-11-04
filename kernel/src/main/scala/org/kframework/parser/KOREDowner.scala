@@ -54,13 +54,13 @@ object KOREDowner {
   }
 
   def downSyntaxSentences(parsedSentence: K, atts: Att = Att()): Set[Sentence] = parsedSentence match {
-    case KApply(KLabelLookup("KSentenceList"), Args(sentences), _)                                   => sentences.toSet flatMap ((pS: K) => downSyntaxSentences(pS, Att()))
-    case KApply(KLabelLookup("KSentenceWithAttributes"), Args(sentence :: newAtts :: _), _)          => downSyntaxSentences(sentence, downAttributes(newAtts) ++ atts)
-    case KApply(KLabelLookup("KSortDecl"), Args(KToken(sortName, KSort, _) :: _), _)                 => Set(SyntaxSort(SortLookup(sortName), atts))
-    case KApply(KLabelLookup("KProduction"), Args(KToken(sortName, KSort, _) :: production :: _), _) => Set(Production(SortLookup(sortName), downProduction(production), atts))
-    case KApply(KLabelLookup("KPriority"), Args(priority :: _), _)                                   => Set(SyntaxPriority(downPriorityBlocks(priority), atts))
-    case KApply(KLabelLookup("KRule"), Args(KToken(rule, KBubble, _) :: _), _)                       => Set(Bubble("rule", rule.replaceAll("\\s+$", "").replaceAll("^\\s+^", ""), atts))
-    case _                                                                                           => Set.empty
+    case KApply(KLabelLookup("KSentenceList"), Args(sentences), _)                                         => sentences.toSet flatMap ((pS: K) => downSyntaxSentences(pS, Att()))
+    case KApply(KLabelLookup("KSentenceWithAttributes"), Args(sentence :: newAtts :: _), _)                => downSyntaxSentences(sentence, downAttributes(newAtts) ++ atts)
+    case KApply(KLabelLookup("KSyntaxSort"), Args(KToken(sortName, KSort, _) :: _), _)                     => Set(SyntaxSort(SortLookup(sortName), atts))
+    case KApply(KLabelLookup("KSyntaxProduction"), Args(KToken(sortName, KSort, _) :: production :: _), _) => Set(Production(SortLookup(sortName), downProduction(production), atts))
+    case KApply(KLabelLookup("KSyntaxPriority"), Args(priority :: _), _)                                   => Set(SyntaxPriority(downPriorityBlocks(priority), atts))
+    case KApply(KLabelLookup("KRule"), Args(KToken(rule, KBubble, _) :: _), _)                             => Set(Bubble("rule", rule.replaceAll("\\s+$", "").replaceAll("^\\s+^", ""), atts))
+    case _                                                                                                 => Set.empty
   }
 
   def downImports(parsedImports: K): List[String] = parsedImports match {
