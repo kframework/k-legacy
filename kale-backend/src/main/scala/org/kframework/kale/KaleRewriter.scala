@@ -8,7 +8,7 @@ import org.kframework.definition._
 import org.kframework.frontend.Unapply.KRewrite
 import org.kframework.frontend._
 import org.kframework.rewriter.SearchType
-import org.kframework.{RewriterResult, frontend}
+import org.kframework.{ProofResult, RewriterResult, frontend}
 
 import scala.collection._
 
@@ -206,5 +206,5 @@ class KaleRewriter(m: Module) extends org.kframework.rewriter.Rewriter {
 
   override def executeAndMatch(k: K, depth: Optional[Integer], rule: Rule): (RewriterResult, K) = ???
 
-  override def prove(rules: util.List[Rule]): util.List[K] = ???
+  override def prove(rules: util.List[Rule]): ProofResult = ???
 }

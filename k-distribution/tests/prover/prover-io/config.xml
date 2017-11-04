@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2012-2016 K Team. All Rights Reserved. -->
+
+<tests>
+    <test
+            definition="iotest.k"
+            programs="."
+            results="."
+            extension="iotest"
+            >
+        <program name="p1.iotest">
+          <krun-option name="--prove" value="proof1.k" />
+          <krun-option name="--z3-executable" />
+        </program>
+        <program name="p1_without_attribute.iotest">
+          <krun-option name="--prove" value="proof1_without_attribute.k" />
+          <krun-option name="--z3-executable" />
+        </program>
+        <program name="p2.iotest">
+          <krun-option name="--prove" value="p2.k" />
+          <krun-option name="--z3-executable" />
+        </program>
+    </test>
+</tests>
+

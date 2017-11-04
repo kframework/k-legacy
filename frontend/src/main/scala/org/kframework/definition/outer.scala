@@ -255,6 +255,12 @@ case class Module(val name: String, val imports: Set[Module], unresolvedLocalSen
 
   lazy val rules: Set[Rule] = sentences collect { case r: Rule => r }
 
+  private val locationKey: String = "org.kframework.attributes.Source"
+
+  lazy val claims: Set[Rule] = rules.filter(r => {
+    r.att.contains("claim") || (r.att.attMap.contains(locationKey) && r.att.attMap.get(locationKey).toString.contains("spec.k"))
+  })
+
   lazy val localRules: Set[Rule] = localSentences collect { case r: Rule => r }
 
   // Check that productions with the same klabel have identical attributes
