@@ -120,7 +120,7 @@ object MiniKoreMeta {
   def downAttributes(parsed: Pattern): Attributes = flattenByLabels("KAttributes", ".KAttributes")(parsed) flatMap downPatternList
 
   def upSymbolList(concrete: Seq[String]): Pattern = upPatternList(concrete map (cs => makeSymbol(cs)))
-  def getSymbolList(parsed: Pattern): Seq[String] = downPatternList(parsed) map getSymbol
+  def getSymbolList(parsed: Pattern): Seq[String] = downPatternList(parsed) map { case DomainValue("KSymbol@KTOKENS", value) => value }
 
   val upSentence: Sentence => Pattern = _ => ???
   def downSentence(parsed: Pattern): Sentence = parsed match {
