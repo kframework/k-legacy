@@ -8,16 +8,16 @@
 module KBUBBLE
   syntax KBubbleItem ::= r"[^ \n\r\t]+" [token, reject2(rule|syntax|endmodule|configuration|context)]
   syntax KBubble ::= KBubble KBubbleItem   [token]
-  syntax KBubble ::= KBubbleItem           [token]
+                   | KBubbleItem           [token]
 endmodule
 
 
 module KTOKENS
   syntax KSymbol ::= r"[A-Za-z0-9\\.@#\\|\\-]+"  [token]
-  syntax KSymbol ::= r"`[^\n\r\t\f]+`"           [token]
+                   | r"`[^\n\r\t\f]+`"           [token]
   syntax KSymbolList ::= ""                      [klabel(.KSymbolList)]
-  syntax KSymbolList ::= KSymbol
-  syntax KSymbolList ::= KSymbol "," KSymbolList [klabel(KSymbolList)]
+                       | KSymbol
+                       | KSymbol "," KSymbolList [klabel(KSymbolList)]
 
   syntax KString ::= r"[\"](([^\n\r\t\f\"\\\\])|([\\\\][nrtf\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\"]" [token]
 endmodule
