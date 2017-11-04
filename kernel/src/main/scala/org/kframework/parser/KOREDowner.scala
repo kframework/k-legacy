@@ -76,8 +76,8 @@ object KOREDowner {
 
     // TODO: Move this case to a pre-processing extension (instead of in kore)
     case Application("KSyntaxProduction", DomainValue("KSymbol", sortName) :: production :: atts :: _) => {
-      val (genKLabel, sortList) = productionInfo(flattenProduction(production))
-      Seq(SymbolDeclaration(sortName, getKLabel(downAttributes(atts)).getOrElse(genKLabel), sortList, downAttributes(atts) :+ kprod(genKLabel)))
+      val productionItems = flattenProduction(production) // map downProductionItem
+      Seq(SymbolDeclaration(sortName, getKLabel(downAttributes(atts)).getOrElse(makeKLabel(productionItems)), productionItems collect { case Application(`iNonTerminal`, Seq(DomainValue("S", s))) => s }, downAttributes(atts) :+ kprod(productionItems)))
     }
 
     case Application("KImport", DomainValue("KSymbol", importName) :: atts :: _)                       => Seq(Import(importName, downAttributes(atts)))
