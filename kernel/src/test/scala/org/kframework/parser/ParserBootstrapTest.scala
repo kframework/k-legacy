@@ -6,14 +6,16 @@ import org.junit.Test
 import org.junit.Assert._
 import org.kframework.kore.ADT.SortLookup
 
-import org.kframework.kore.KORE
 import org.kframework.minikore.MiniKore._
 import org.kframework.minikore.KoreToMini
 import org.kframework.minikore.MiniToKore
 import org.kframework.minikore.KDefinitionDSL._
 import org.kframework.minikore.KOREDefinition._
 import org.kframework.minikore.MiniKoreMeta._
-import org.kframework.minikore.KToMiniKorePasses._
+import org.kframework.minikore.MiniKoreOuterUtils._
+import org.kframework.minikore.MiniKorePatternUtils._
+import org.kframework.parser.EKOREDefinition._
+import org.kframework.parser.KToMiniKorePasses._
 
 object ExpDefinition {
 
@@ -71,12 +73,13 @@ object ExpDefinition {
     // rule(term("t", term("7"), term("0")), term("0"))
   )
 
-  val EXP_DEF = Definition(Seq(EXP), Seq(attribute(KoreToMini.iMainModule, "EXP"), attribute(KoreToMini.iEntryModules, "EXP")))
+  val EXP_DEF = Definition(Seq(EXP), Seq(application(KoreToMini.iMainModule, "EXP"), application(KoreToMini.iEntryModules, "EXP")))
 }
 
 class ParserBootstrapTest {
 
-  val miniDef = MiniToKore(onAttributesDef(traverseTopDown(toKoreEncoding))(KOREDef))
+  //println(onAttributesDef(traverseTopDown(toKoreEncoding))(KOREDef))
+  val miniDef = MiniToKore(onAttributesDef(traverseTopDown(toKoreEncoding))(EKORE))
   val mainMod = miniDef.mainModule
   val kParser = new ParseInModule(mainMod)
 
@@ -139,8 +142,8 @@ class ParserBootstrapTest {
     println()
     println("----- DOWNED -----")
     println(downed)
-    assertEquals(KOREDef.modules map { case Module(name, _, _) => name }, downed.modules map { case Module(name, _, _) => name })
-    KOREDef.modules foreach { case Module(name, sentences, atts) =>
+    assertEquals(KORE.modules map { case Module(name, _, _) => name }, downed.modules map { case Module(name, _, _) => name })
+    KORE.modules foreach { case Module(name, sentences, atts) =>
       val (dSents, dAtts) = downed.modules collect { case Module(`name`, downedSentences, downedAtts) => (downedSentences, downedAtts) } head;
       println("MODULE: " + name)
       assertEquals(sentences, dSents)
@@ -151,16 +154,18 @@ class ParserBootstrapTest {
   @Test def sentenceTest(): Unit = {
     import ExpDefinition._
 
-    val sentenceTests: Seq[(String, Sentence)]
-        = Seq( (symbol(Exp, "mystmt", Stmt)              , """syntax Exp := mystmt(Stmt)"""                                                 )
-             , (syntax(Exp) is Stmt att klabel("mystmt") , """syntax Exp := mystmt(Stmt) [klabel(mystmt), production(#NonTerminal(Stmt))]""")
-             , (syntax(Exp) is Stmt att klabel("mystmt") , """syntax Exp := Stmt [klabel(mystmt)]"""                                        )
-             , (symbol(Exp, "_", Stmt)                   , """syntax Exp := Stmt"""                                                         )
-             , (syntax(Exp) is Stmt att klabel("_")      , """syntax Exp := Stmt"""                                                         )
+    val sentenceTests: Seq[(Sentence, String)]
+        = Seq( (symbol(Exp, "mystmt", Stmt)              , """syntax Exp := mystmt(Stmt)"""                                                                     )
+             , (symbol(Exp, "_", Stmt) att kprod(Stmt)   , """syntax Exp ::= Stmt"""                                                                            )
+             , (syntax(Exp) is Stmt att klabel("mystmt") , """syntax Exp := mystmt(Stmt) [klabel(mystmt), production(KNonTerminal@K-PRETTY-PRODUCTION(Stmt))]""")
+             , (syntax(Exp) is Stmt                      , """syntax Exp ::= Stmt"""                                                                            )
+             , (syntax(Exp) is Stmt att klabel("mystmt") , """syntax Exp ::= Stmt [klabel(mystmt)]"""                                                           )
+             , (syntax(Exp) is ("true", Stmt)            , """syntax Exp ::= "true" Stmt"""                                                                     )
              )
 
-    sentenceTests forEach { (sent: Sentence, str: String) =>
-      assertEquals(sent, preProcess(parseK(str, "KSentence")))
+    sentenceTests.foreach { sentStr =>
+      val parsed = preProcess(parseK(sentStr._2, "KSentence"))
+      assertEquals(sentStr._1, downSentence(parsed))
     }
   }
 
