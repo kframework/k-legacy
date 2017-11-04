@@ -129,7 +129,7 @@ object KOREDefinition {
 
     syntax(KAttributes) is KAttribute,
     syntax(KAttributes) is "" att klabel(".KAttributes"),
-    syntax(KAttributes) is (KAttribute, ",", KAttributes) att klabel("KAttributes")
+    syntax(KAttributes) is (KAttributes, ",", KAttributes) att(klabel("KAttributes"), "assoc", "comm", kunit(".KAttributes"))
   ))
 
 
@@ -191,9 +191,10 @@ object KOREDefinition {
     syntax(KTerminal) is ("r", KString) att klabel("KRegex"),
     syntax(KNonTerminal) is KSort,
 
-    syntax(KProduction) is KTerminal,
-    syntax(KProduction) is KNonTerminal,
-    syntax(KProduction) is (KProduction, KProduction) att(klabel("KProductionItems"), "assoc"),
+    syntax(KProductionItems) is KTerminal,
+    syntax(KProductionItems) is KNonTerminal,
+    syntax(KProductionItems) is (KProductionItems, KProductionItems) att(klabel("KProductionItems"), "assoc"),
+    syntax(KProduction) is KProductionItems,
 
     syntax(KPriority) is KKeySet,
     syntax(KPriority) is (KPriority, ">", KPriority) att(klabel("KPriorityItems"), "assoc"),
