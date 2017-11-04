@@ -70,7 +70,9 @@ object ExpDefinition {
 
 
 class ParserBootstrapTest {
-  val kParser = new ParseInModule(MiniToKore(KOREDef).mainModule)
+  val miniDef = MiniToKore(KOREDef)
+  val mainMod = miniDef.mainModule
+  val kParser = new ParseInModule(mainMod)
   def runParser(parser: ParseInModule, toParse: String, parseAs: String): Pattern =
     parser.parseString(toParse, SortLookup(parseAs), Source(""))._1 match {
       case Right(x) => KoreToMini(x)
@@ -103,8 +105,8 @@ class ParserBootstrapTest {
   }
 
   @Test def kdefFixpoint(): Unit = {
-    //val KORE_STRING = io.Source.fromFile("/Users/lpena/kframework/k/kernel/src/test/scala/org/kframework/parser/kore.k").mkString
-    val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
+    val KORE_STRING = io.Source.fromFile("/Users/lpena/kframework/k/kernel/src/test/scala/org/kframework/parser/kore.k").mkString
+    //val KORE_STRING = io.Source.fromFile("src/test/scala/org/kframework/parser/kore.k").mkString
     val parsed = preProcess(parseK(KORE_STRING, "KDefinition"))
     val downed = downDefinition(parsed)
     assertEquals(KOREDef, downed)
