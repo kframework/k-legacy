@@ -43,7 +43,7 @@ object KDefinitionDSL {
 
   def application(label: String, value: String): Application = Application(label, Seq(Application(value, Seq.empty)))
   def klabel(value: String): Application                     = application("klabel", value)
-  def prod(production: Seq[Pattern]): Application            = Application("KProduction", production)
+  def prod(production: Seq[Pattern]): Application            = Application("KProduction", production) // TODO: talk to Daejun about disagreements in encoding
   def kprod(production: ProductionItem*): Application        = prod(production map productionAsPattern)
   def priority(priorities: Seq[Pattern]): Application        = Application("KSyntaxPriority", priorities)
   def kpriority(priorities: Seq[String]*): Application       = priority(Seq(Application("KPriorityItems", priorities map upSymbolList)))
@@ -100,7 +100,7 @@ object KOREDefinition {
   // KTOKENS
   // =======
 
-  val KRegexSymbol        = "[A-Za-z0-9\\.@#\\|\\-]+"
+  val KRegexSymbol        = "[A-Za-z0-9\\.@#\\-]+"
   val KRegexSymbolEscaped = "`[^\n\r\t\f]+`"
   val KRegexString        = "[\"](([^\n\r\t\f\"\\\\])|([\\\\][nrtf\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\"]"
 
