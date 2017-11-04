@@ -68,30 +68,22 @@ object KDefinitionDSL {
     def att(atts: Pattern*): SymbolDeclaration = SymbolDeclaration(sort.name, getKLabel(atts).getOrElse(pis map (productionAsPattern andThen makeCtorString) mkString), pis.collect { case Sort(name) => name }, atts :+ prod(pis map productionAsPattern))
   }
 
+  case class rule(l: Pattern, r: Pattern) {
+    def att(atts: Pattern*): Rule = Rule(Rewrite(l, r), atts)
+  }
+
+  def term(label: String, args: Pattern*): Application = Application(label, args)
+
   implicit def asDefinition(d: definition): Definition  = d.att()
   implicit def asModule(m: module): Module              = m.att()
   implicit def asSentence(s: symbol): SymbolDeclaration = s.att()
   implicit def asSentence(s: syntax): SymbolDeclaration = s.att()
+  implicit def asSentence(r: rule): Rule                = r.att()
 }
 
 
 object KOREDefinition {
   import KDefinitionDSL._
-
-  // KBUBBLE
-  // =======
-
-  val KBubbleRegex = "[^ \n\r\t]+"
-
-  val KBubbleItem = Sort("KBubbleItem")
-  val KBubble = Sort("KBubble")
-
-  val KBUBBLE: Module = module("KBUBBLE",
-    syntax(KBubbleItem) is Regex(KBubbleRegex) att("token", application("reject2", "rule|syntax|endmodule|configuration|context")),
-
-    syntax(KBubble) is (KBubble, KBubbleItem) att "token",
-    syntax(KBubble) is KBubbleItem att "token"
-  )
 
   // KTOKENS
   // =======
@@ -165,14 +157,13 @@ object KOREDefinition {
 
   val KSENTENCE: Module = module("KSENTENCE",
     imports("KML"),
-    imports("KBUBBLE"),
 
     syntax(KAttributes) is "" att klabel(".KAttributes"),
     syntax(KAttributes) is ("[", KMLPatternList, "]") att klabel("KAttributes"),
 
     syntax(KSentence) is ("imports", KSymbol, KAttributes) att klabel("KImport"),
     syntax(KSentence) is ("syntax", KSymbol, ":=", KSymbol, "(", KSymbolList, ")", KAttributes) att klabel("KSymbolDeclaration"),
-    syntax(KSentence) is ("rule", KBubble, KAttributes) att klabel("KRule"),
+    syntax(KSentence) is ("rule", KMLPattern, KAttributes) att klabel("KRule"),
 
     syntax(KSentenceList) is KSentence,
     syntax(KSentenceList) is "" att klabel(".KSentenceList"),
@@ -203,5 +194,5 @@ object KOREDefinition {
   // KORE
   // ====
 
-  val KORE = definition(KBUBBLE, KTOKENS, KML, KSENTENCE, KDEFINITION) att (application(iMainModule, "KDEFINITION"), application(iEntryModules, "KDEFINITION"))
+  val KORE = definition(KTOKENS, KML, KSENTENCE, KDEFINITION) att (application(iMainModule, "KDEFINITION"), application(iEntryModules, "KDEFINITION"))
 }
