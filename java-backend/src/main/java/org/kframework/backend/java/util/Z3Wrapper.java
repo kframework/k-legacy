@@ -94,7 +94,12 @@ public class Z3Wrapper {
                     z3Process.getInputStream()));
                 input.write(SMT_PRELUDE + query + "(check-sat)\n");
                 input.flush();
-                result = output.readLine();
+                input.close();
+                String line = output.readLine();
+                while (line != null) {
+                    result = line;
+                    line = output.readLine();
+                }
                 z3Process.destroy();
                 if (result != null) {
                     break;
