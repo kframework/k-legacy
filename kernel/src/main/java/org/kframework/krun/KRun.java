@@ -310,8 +310,9 @@ public class KRun {
             print.accept("".getBytes());
             break;
         case PRETTY:
+        case NOWRAP:
             Module unparsingModule = compiledDef.getExtensionModule(compiledDef.languageParsingModule());
-            print.accept((unparseTerm(result, unparsingModule) + "\n").getBytes());
+            print.accept((unparseTerm(result, unparsingModule, output == OutputModes.NOWRAP) + "\n").getBytes());
             break;
         case BINARY:
             print.accept(ToBinary.apply(result));
@@ -426,7 +427,10 @@ public class KRun {
         return KORE.KApply(compiledDef.topCellInitializer, output.entrySet().stream().map(e -> KORE.KApply(KLabel("_|->_"), e.getKey(), e.getValue())).reduce(KORE.KApply(KLabel(".Map")), (a, b) -> KORE.KApply(KLabel("_Map_"), a, b)));
     }
 
-    private static String unparseTerm(K input, Module test) {
+    private static String unparseTerm(K input, Module test, Boolean noWrap) {
+        if (noWrap){
+            return KOREToTreeNodes.toString(KOREToTreeNodes.apply(KOREToTreeNodes.up(test, input), test));
+        }
         return KOREToTreeNodes.toString(
                 new AddBrackets(test).addBrackets((ProductionReference)
                         KOREToTreeNodes.apply(KOREToTreeNodes.up(test, input), test)));

@@ -200,6 +200,7 @@ public class MetaK {
     }
 
     public static Term configuration(TermContext context) {
-        return KLabelInjection.injectionOf(context.getTopTerm(), context.global());
+        //return KLabelInjection.injectionOf(context.getTopTerm(), context.global());
+        return context.getTopTerm();
     }
 }
