@@ -38,3 +38,6 @@
 
 (declare-fun smt_seq_filter (Int IntSeq) IntSeq)
 ;(assert (forall ((v Int) (e Int)) (= (smt_seq_filter v (smt_seq_elem e)) (ite (= v e) smt_seq_nil (smt_seq_elem e)))))
+
+; other sort declarations
+(declare-sort String)
