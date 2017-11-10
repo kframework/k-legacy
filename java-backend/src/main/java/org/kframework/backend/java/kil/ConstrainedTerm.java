@@ -219,8 +219,9 @@ public class ConstrainedTerm extends JavaSymbolicObject {
             candidate = candidate.orientSubstitution(variables);
 
             Pair<Map<scala.collection.immutable.List<Pair<Integer, Integer>>, Term>, ConjunctiveFormula> pair = ConstrainedTerm.splitRewrites(candidate);
+            ConjunctiveFormula candidateConstraint = pair.getRight();
 
-            ConjunctiveFormula solution = pair.getRight().addAndSimplify(subjectConstraint, context);
+            ConjunctiveFormula solution = candidateConstraint.addAndSimplify(subjectConstraint, context);
             if (solution.isFalse()) {
                 continue;
             }
@@ -234,7 +235,16 @@ public class ConstrainedTerm extends JavaSymbolicObject {
             }
 
             assert solution.disjunctions().isEmpty();
-            solutions.add(Triple.of(solution, isMatching, pair.getLeft()));
+            if (candidate.substitution().keySet().equals(variables)
+                    && !candidate.isSubstitution()
+                    && subjectConstraint.implies(ConjunctiveFormula.of(context.global()).addAll(candidateConstraint.equalities()), Sets.newHashSet())) {
+                solutions.add(Triple.of(
+                        subjectConstraint.addAndSimplify(candidateConstraint.substitution(), context),
+                        true,
+                        pair.getLeft()));
+            } else {
+                solutions.add(Triple.of(solution, isMatching, pair.getLeft()));
+            }
         }
 
         return solutions;

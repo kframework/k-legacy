@@ -7,6 +7,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.kframework.backend.java.builtins.BoolToken;
 import org.kframework.backend.java.kil.*;
 import org.kframework.backend.java.util.RewriteEngineUtils;
@@ -753,11 +754,17 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
         return simplifiedConstraint;
     }
 
+    private static final Map<Triple<ConjunctiveFormula, ConjunctiveFormula, Set<Variable>>, Boolean> impliesSMTCache = Maps.newHashMap();
+
     private static boolean impliesSMT(
             ConjunctiveFormula left,
             ConjunctiveFormula right,
             Set<Variable> rightOnlyVariables) {
-        return left.global.constraintOps.impliesSMT(left, right, rightOnlyVariables);
+        Triple<ConjunctiveFormula, ConjunctiveFormula, Set<Variable>> triple = Triple.of(left, right, rightOnlyVariables);
+        if (!impliesSMTCache.containsKey(triple)) {
+            impliesSMTCache.put(triple, left.global.constraintOps.impliesSMT(left, right, rightOnlyVariables));
+        }
+        return impliesSMTCache.get(triple);
     }
 
     public boolean hasMapEqualities() {
