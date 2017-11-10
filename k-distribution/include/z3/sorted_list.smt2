@@ -69,3 +69,6 @@
 (assert (forall ((s IntSeq)) (>= (smt_seq_len s) 0)))
 
 (assert (forall ((e Int) (s IntSet)) (not (= (smt_set_cup (smt_set_ele e) s) smt_set_emp))))
+
+; other sort declarations
+(declare-sort String)

@@ -33,3 +33,6 @@
 (declare-fun smt_seq_sorted (IntSeq) Bool)
 
 (declare-fun smt_seq_filter (Int IntSeq) IntSeq)
+
+; other sort declarations
+(declare-sort String)
