@@ -234,6 +234,16 @@ public class ConstrainedTerm extends JavaSymbolicObject {
                 continue;
             }
 
+            /* OPTIMIZATION: If the new constraint is implied by existing assumptions,
+               then we do not need to add any formulas.
+               It may still be necessary to add substitutions resulting from matching,
+               so we do still add the equalities from the candidate constraint.
+               We assume it will be uncommon to have multiple candidate solutions in this
+               category, so we don't bother trying to deduplicate here.
+               (bmmoore): I don't know whether it's actually possible for two candidate
+                  constraints to both fall under this optimization but to have equalities
+                  that induce different results.
+             */
             assert solution.disjunctions().isEmpty();
             if (candidate.substitution().keySet().equals(variables)
                     && !candidate.isSubstitution()
