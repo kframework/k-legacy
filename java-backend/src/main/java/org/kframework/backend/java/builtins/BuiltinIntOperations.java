@@ -59,6 +59,10 @@ public class BuiltinIntOperations {
         return IntToken.of(term1.bigIntegerValue().pow(term2.bigIntegerValue().intValue()));
     }
 
+    public static IntToken powmod(IntToken term1, IntToken term2, IntToken term3, TermContext context) {
+        return IntToken.of(term1.bigIntegerValue().modPow(term2.bigIntegerValue(), term3.bigIntegerValue()));
+    }
+
     public static IntToken shl(IntToken term1, IntToken term2, TermContext context) {
         return IntToken.of(term1.bigIntegerValue().shiftLeft(term2.bigIntegerValue().intValue()));
     }
