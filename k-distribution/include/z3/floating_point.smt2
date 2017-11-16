@@ -23,3 +23,6 @@
 (declare-fun smt_seq_sum (IntSeq) Int)
 (declare-fun smt_seq2set (IntSeq) IntSet)
 (declare-fun smt_seq_sorted (IntSeq) Bool)
+
+; other sort declarations
+(declare-sort String)
