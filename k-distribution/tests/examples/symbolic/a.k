@@ -56,6 +56,6 @@ rule if("") => "default" [transition]
 rule symIExp(I:Int) => iexp(I)
 
 // uninterpreted function
-syntax Int ::= iexp(Int) [function]
+syntax Int ::= iexp(Int) [function, smtlib(iexp)]
 
 endmodule
