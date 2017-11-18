@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
+import org.kframework.main.GlobalOptions;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.Variable;
 import org.kframework.backend.java.util.Z3Wrapper;
@@ -14,18 +15,21 @@ import com.google.inject.Provider;
 
 public class SMTOperations {
 
-    private final SMTOptions smtOptions;
-    private final Z3Wrapper z3;
-
+    private final SMTOptions        smtOptions;
+    private final Z3Wrapper         z3;
+    private final GlobalOptions     global;
     private final KExceptionManager kem;
 
     public SMTOperations(
             Provider<Definition> definitionProvider,
             SMTOptions smtOptions,
-            Z3Wrapper z3, KExceptionManager kem) {
+            Z3Wrapper z3,
+            KExceptionManager kem,
+            GlobalOptions global) {
         this.smtOptions = smtOptions;
-        this.z3 = z3;
-        this.kem = kem;
+        this.z3         = z3;
+        this.kem        = kem;
+        this.global     = global;
     }
 
     public boolean checkUnsat(ConjunctiveFormula constraint) {
@@ -64,8 +68,9 @@ public class SMTOperations {
                         smtOptions.z3ImplTimeout);
             } catch (UnsupportedOperationException | SMTTranslationFailure e) {
                 kem.registerCriticalWarning(e.getMessage(), e);
-                System.err.println(e.getMessage() + "\n");
-                // TODO: no longer printing stack trace. Perhaps in the future can extract useful information from stack trace to print
+                if (global.debug) {
+                    System.err.println(e.getMessage() + "\n");
+                }
             }
         }
         return false;
