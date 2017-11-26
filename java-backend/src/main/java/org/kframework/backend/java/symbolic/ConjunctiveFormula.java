@@ -627,7 +627,11 @@ public class ConjunctiveFormula extends Term implements CollectionInternalRepres
                 global);
 
         List<Set<ConjunctiveFormula>> collect = disjunctions.stream()
-                .map(disjunction -> ImmutableSet.<ConjunctiveFormula>copyOf(disjunction.conjunctions()))
+                .map(disjunction -> disjunction.conjunctions().stream()
+                        .map(ConjunctiveFormula::getDisjunctiveNormalForm)
+                        .map(DisjunctiveFormula::conjunctions)
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toSet()))
                 .collect(Collectors.toList());
         return new DisjunctiveFormula(Sets.cartesianProduct(collect).stream()
                 .map(result::addAll)
