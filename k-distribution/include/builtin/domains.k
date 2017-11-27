@@ -932,7 +932,7 @@ module MINT
                 | xorMInt(MInt, MInt)   [function, hook(MINT.xor), smtlib(bvxor)]
 
   syntax MInt ::= negMInt(MInt)   [function]
-  rule negMInt(MI:MInt) => xorMInt(MI, mi(bitwidthMInt(MI), 0))
+  rule negMInt(MI:MInt) => xorMInt(MI, mi(bitwidthMInt(MI), -1))
 
   /*@ Comparison operations */
   syntax Bool ::= sltMInt(MInt, MInt)   [function, hook(MINT.slt), smtlib(bvslt)]
