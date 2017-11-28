@@ -1,3 +1,4 @@
+// Copyright (c) 2016 K Team. All Rights Reserved.
 requires "domains.k"
 
 module NEGMINT-TEST-SYNTAX
