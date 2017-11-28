@@ -13,11 +13,5 @@
           results="array"
           skip="pdf" >
     </test>
-    <test definition="negmint-test/negmint-test.k"
-          extension="negmint-test"
-          programs="negmint-test"
-          results="negmint-test"
-          skip="pdf" >
-    </test>
-
+    <include file="mint/config.xml" directory="mint" skip="pdf" />
 </tests>
