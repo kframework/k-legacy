@@ -268,7 +268,7 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
         StringBuilder sb = new StringBuilder();
 
         for (Sort sort : Sets.difference(sorts, SMTLIB_BUILTIN_SORTS)) {
-            if (sort.name().equals("Map@MAP")) {
+            if (sort.name().equals("Map@MAP") && krunOptions.experimental.smt.mapAsIntArray) {
                 sb.append("(define-sort Map () (Array Int Int))");
             } else {
                 sb.append("(declare-sort ");
@@ -483,10 +483,10 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
         }
 
         String label = kLabel.smtlib();
-        if (kLabel.label().equals("Map:lookup")) {
+        if (kLabel.label().equals("Map:lookup") && krunOptions.experimental.smt.mapAsIntArray) {
             label = "select";
         }
-        if (kLabel.label().equals("_[_<-_]")) {
+        if (kLabel.label().equals("_[_<-_]") && krunOptions.experimental.smt.mapAsIntArray) {
             label = "store";
         }
         if (label == null) {

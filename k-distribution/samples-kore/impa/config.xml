@@ -11,11 +11,13 @@
         <krun-option name="--prove" value="1_spec.k" />
         <krun-option name="--smt_prelude" value="../../include/z3/basic.smt2" />
         <krun-option name="--z3-executable" />
+        <krun-option name="--map-as-int-array" />
       </program>
       <program name="2.imp">
         <krun-option name="--prove" value="2_spec.k" />
         <krun-option name="--smt_prelude" value="../../include/z3/basic.smt2" />
         <krun-option name="--z3-executable" />
+        <krun-option name="--map-as-int-array" />
       </program>
     </test>
 </tests>
