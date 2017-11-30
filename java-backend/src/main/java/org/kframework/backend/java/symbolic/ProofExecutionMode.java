@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 K Team. All Rights Reserved.
 package org.kframework.backend.java.symbolic;
 
+import org.kframework.ProofResult;
 import org.kframework.attributes.Att;
 import org.kframework.backend.java.frontend.compile.ExpandMacros;
 import org.kframework.compile.NormalizeKSeq;
@@ -29,11 +30,14 @@ import org.kframework.krun.KRunOptions;
 import org.kframework.krun.modes.ExecutionMode;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.Stopwatch;
+import org.kframework.utils.errorsystem.KEMException;
 import org.kframework.utils.errorsystem.KExceptionManager;
 import org.kframework.utils.file.FileUtil;
 import scala.Function1;
+import scala.collection.JavaConverters;
 import scala.collection.Set;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -49,7 +53,7 @@ import static org.kframework.Collections.*;
 /**
  * Class that implements the "--prove" option.
  */
-public class ProofExecutionMode implements ExecutionMode<List<K>> {
+public class ProofExecutionMode implements ExecutionMode<ProofResult> {
 
     private final KExceptionManager kem;
     private final KRunOptions options;
@@ -66,7 +70,7 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
     }
 
     @Override
-    public List<K> execute(K k, Rewriter rewriter, CompiledDefinition compiledDefinition) {
+    public ProofResult execute(K k, Rewriter rewriter, CompiledDefinition compiledDefinition) {
         String proofFile = options.experimental.prove;
         Kompile kompile = new Kompile(compiledDefinition.kompileOptions, globalOptions, files, kem, sw, false);
         Module mod = kompile.parseModule(compiledDefinition, files.resolveWorkingDirectory(proofFile).getAbsoluteFile());
@@ -145,20 +149,25 @@ public class ProofExecutionMode implements ExecutionMode<List<K>> {
 
         ExpandMacros macroExpander = new ExpandMacros(compiledDefinition.kompiledDefinition.mainModule(), kem, files, globalOptions, compiledDefinition.kompileOptions.transition, compiledDefinition.kompileOptions.experimental.smt);
 
-        List<Rule> rules = stream(mod.localRules())
-                .filter(r -> r.toString().contains("spec.k"))
-                .map(r -> new Rule(
-                        cellPlaceholderSubstitutionApplication.apply(r.body()),
-                        cellPlaceholderSubstitutionApplication.apply(r.requires()),
-                        cellPlaceholderSubstitutionApplication.apply(r.ensures()),
-                        r.att()))
-                .map(r -> (Rule) macroExpander.expand(r))
-                .map(r -> transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
-                .map(r -> transformFunction(Kompile::convertKSeqToKApply, r))
-                .map(r -> transform(NormalizeKSeq.self(), r))
-                //.map(r -> kompile.compileRule(compiledDefinition, r))
-                .collect(Collectors.toList());
-        return rewriter.prove(rules);
+        List<Rule> rules = JavaConverters.seqAsJavaList(mod.claims().toSeq());
+
+        if(rules.isEmpty()) {
+            return new ProofResult(new ArrayList<K>(), ProofResult.Status.EMPTY_SPEC);
+        }
+        else {
+            rules = rules.stream()
+                    .map(r -> new Rule(
+                            cellPlaceholderSubstitutionApplication.apply(r.body()),
+                            cellPlaceholderSubstitutionApplication.apply(r.requires()),
+                            cellPlaceholderSubstitutionApplication.apply(r.ensures()),
+                            r.att()))
+                    .map(r -> (Rule) macroExpander.expand(r))
+                    .map(r -> transformFunction(JavaBackend::ADTKVariableToSortedVariable, r))
+                    .map(r -> transformFunction(Kompile::convertKSeqToKApply, r))
+                    .map(r -> transform(NormalizeKSeq.self(), r))
+                    .collect(Collectors.toList());
+            return rewriter.prove(rules);
+        }
     }
 
     public static Rule transformFunction(Function<K, K> f, Rule r) {

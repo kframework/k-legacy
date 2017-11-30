@@ -32,5 +32,8 @@
   <include file="builtins/config.xml" directory="tests/builtins" skip="pdf" />
 
   <include file="issues/config.xml" directory="tests/issues" skip="pdf" />
-</tests>
+
+  <include file="prover/prover-io/config.xml" directory="tests/prover/prover-io" skip="pdf" />
+ </tests>
+
 

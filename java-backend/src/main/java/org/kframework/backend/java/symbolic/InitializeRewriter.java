@@ -3,6 +3,7 @@ package org.kframework.backend.java.symbolic;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.kframework.KapiGlobal;
+import org.kframework.ProofResult;
 import org.kframework.RewriterResult;
 import org.kframework.backend.java.MiniKoreUtils;
 import org.kframework.backend.java.compile.KOREtoBackendKIL;
@@ -172,7 +173,7 @@ public class InitializeRewriter implements Function<Pair<Module, org.kframework.
         }
 
         @Override
-        public List<K> prove(List<Rule> rules) {
+        public ProofResult prove(List<Rule> rules) {
             TermContext termContext = TermContext.builder(rewritingContext).freshCounter(initCounterValue).build();
             KOREtoBackendKIL converter = new KOREtoBackendKIL(module, definition, termContext.global(), false);
             termContext.setKOREtoBackendKILConverter(converter);
@@ -212,10 +213,15 @@ public class InitializeRewriter implements Function<Pair<Module, org.kframework.
                     .flatMap(List::stream)
                     .collect(Collectors.toList());
 
-            return proofResults.stream()
-                    .map(ConstrainedTerm::term)
-                    .map(t -> (KItem) t)
-                    .collect(Collectors.toList());
+            List<K> filteredResults = proofResults.stream()
+                        .map(ConstrainedTerm::term)
+                        .map(t -> (KItem) t)
+                        .collect(Collectors.toList());
+
+            if (filteredResults.isEmpty()) {
+               return new ProofResult(filteredResults, ProofResult.Status.PROVED);
+            }
+            return new ProofResult(filteredResults, ProofResult.Status.NOT_PROVED);
         }
 
     }

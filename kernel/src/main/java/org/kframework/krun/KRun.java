@@ -3,6 +3,7 @@ package org.kframework.krun;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.tuple.Pair;
+import org.kframework.ProofResult;
 import org.kframework.RewriterResult;
 import org.kframework.attributes.Source;
 import org.kframework.builtin.KLabels;
@@ -123,9 +124,18 @@ public class KRun {
                 return (Integer) tuple._2();
             }
         } else if (options.experimental.prove != null) {
-            if (((List) result).isEmpty()) {
+            ProofResult proofResult = (ProofResult) result;
+            switch (proofResult.getStatus()) {
+            case PROVED:
                 System.out.println("true");
+                break;
+            case NOT_PROVED:
+                System.out.println("Claim(s) Couldn't Be Proven!");
+                break;
+            case EMPTY_SPEC:
+                System.out.println("No Rules with attribute \"claim\" found");
             }
+
         } else if (result instanceof Integer) {
             return (Integer) result;
         }

@@ -3,7 +3,7 @@ package org.kframework.rewriter
 import java.util.Optional
 
 import org.kframework.definition.{Module, Rule}
-import org.kframework.{RewriterResult, frontend}
+import org.kframework.{ProofResult, RewriterResult, frontend}
 
 trait RewriterConstructor extends (Module => Rewriter)
 
@@ -38,5 +38,6 @@ trait Rewriter {
 
   def executeAndMatch(k: frontend.K, depth: Optional[Integer], rule: Rule): Tuple2[RewriterResult, frontend.K]
 
-  def prove(rules: java.util.List[Rule]): java.util.List[frontend.K]
+//  def prove(rules: java.util.List[Rule]): java.util.List[frontend.K]
+  def prove(rules: java.util.List[Rule]): ProofResult
 }
