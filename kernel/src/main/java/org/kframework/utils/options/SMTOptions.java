@@ -27,6 +27,9 @@ public class SMTOptions implements Serializable {
     @Parameter(names="--floats-as-po", description="Abstracts floating-point values as a partial order relation.")
     public boolean floatsAsPO = false;
 
+    @Parameter(names="--map-as-int-array", description="Encode maps using integer array theory.")
+    public boolean mapAsIntArray = false;
+
     @Parameter(names="--smt_prelude", description="Path to the SMT prelude file.")
     public String smtPrelude;
 
