@@ -30,6 +30,9 @@ public class SMTOptions implements Serializable {
     @Parameter(names="--map-as-int-array", description="Encode maps using integer array theory.")
     public boolean mapAsIntArray = false;
 
+    @Parameter(names="--ignore-missing-smtlib-warning", description="Ignore the 'missing SMTLib translation' warning.")
+    public boolean ignoreMissingSMTLibWarning = false;
+
     @Parameter(names="--smt_prelude", description="Path to the SMT prelude file.")
     public String smtPrelude;
 
