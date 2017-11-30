@@ -18,6 +18,7 @@
         <krun-option name="--smt_prelude" value="../../include/z3/basic.smt2" />
         <krun-option name="--z3-executable" />
         <krun-option name="--map-as-int-array" />
+        <krun-option name="--ignore-missing-smtlib-warning" />
       </program>
     </test>
 </tests>
