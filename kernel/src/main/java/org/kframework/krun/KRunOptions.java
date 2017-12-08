@@ -264,6 +264,9 @@ public final class KRunOptions {
         @Parameter(names="--prove", description="Prove a set of reachability rules.")
         public String prove;
 
+        @Parameter(names="--prove-debugger", description="Run kprover (krun --prove) in debug mode.")
+        public boolean proveDebugger = false;
+
         @ParametersDelegate
         public SMTOptions smt = new SMTOptions();
 

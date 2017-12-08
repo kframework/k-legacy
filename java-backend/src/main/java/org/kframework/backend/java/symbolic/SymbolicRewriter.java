@@ -41,8 +41,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author AndreiS
@@ -85,6 +88,7 @@ public class SymbolicRewriter {
         while (step != bound && !(results = computeRewriteStep(constrainedTerm, step, true)).isEmpty()) {
             /* get the first solution */
             constrainedTerm = results.get(0);
+            String t = constrainedTerm.toString().replaceAll("<", "\n<");
             step++;
         }
 
@@ -588,6 +592,30 @@ public class SymbolicRewriter {
                 .reduce(KORE.KApply(KORE.KLabel(KLabels.ML_FALSE)), (x, y) -> KORE.KApply(KORE.KLabel(KLabels.ML_OR), x, y));
     }
 
+    private static void printQueue(List<ConstrainedTerm> queue, String cell) {
+        int stepQueue = 0;
+        for (ConstrainedTerm term : queue) {
+            stepQueue++;
+            String s = term.toString();
+            Matcher m = Pattern.compile(cell + "(.*?)<").matcher(s);
+            if (m.find()) {
+                System.out.println("[" + stepQueue + "] " + m.group(1));
+            } else {
+                System.out.println("[" + stepQueue + "] " + s);
+            }
+        }
+    }
+
+    private static void printTerm(ConstrainedTerm term, String cell) {
+        String s = term.toString();
+        Matcher m = Pattern.compile(cell + "(.*?)<").matcher(s);
+        if (m.find()) {
+            System.out.println(m.group(1));
+        } else {
+            System.out.println(s);
+        }
+    }
+
     public List<ConstrainedTerm> proveRule(
             ConstrainedTerm initialTerm,
             ConstrainedTerm targetTerm,
@@ -601,11 +629,57 @@ public class SymbolicRewriter {
 
         visited.add(initialTerm);
         queue.add(initialTerm);
+        boolean proveDebugger = initialTerm.termContext().global().krunOptions.experimental.proveDebugger;
+        Scanner scanIn = new Scanner(System.in);
+        String bpcond = "";
         boolean guarded = false;
         int step = 0;
         while (!queue.isEmpty()) {
             step++;
+          //if (proveDebugger) {
+          //    printQueue(queue, "<k>");
+          //    loop: while (true) {
+          //        String cmd = scanIn.next();
+          //        switch (cmd) {
+          //        case "n":
+          //        case "next":
+          //            break loop;
+          //        case "p":
+          //        case "print":
+          //            String cell = scanIn.next();
+          //            printQueue(queue, cell);
+          //            break;
+          //        case "s":
+          //        case "stop":
+          //            return proofResults;
+          //        }
+          //    }
+          //}
             for (ConstrainedTerm term : queue) {
+                if (proveDebugger && term.toString().startsWith(bpcond)) {
+                    printTerm(term, "<k>");
+                    loop: while (true) {
+                        String cmd = scanIn.next();
+                        switch (cmd) {
+                        case "n":
+                        case "next":
+                            break loop;
+                        case "b":
+                        case "break":
+                            bpcond = scanIn.next();
+                            break loop;
+                        case "p":
+                        case "print":
+                            String cell = scanIn.next();
+                            printTerm(term, cell);
+                            break;
+                        case "s":
+                        case "stop":
+                            return proofResults;
+                        }
+                    }
+                }
+                String t = term.toString().replaceAll("<", "\n<");
                 if (term.implies(targetTerm)) {
                     continue;
                 }
