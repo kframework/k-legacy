@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -390,6 +391,12 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
          */
         public Term evaluateFunction(KItem kItem, TermContext context) {
             if (!kItem.isEvaluable()) {
+                return kItem;
+            }
+
+            // the function is not evaluated if it is concrete but some arguments are symbolic
+            if (((KLabel) kItem.kLabel).isConcreteFunction()
+                    && !((KList) kItem.kList).getContents().stream().filter(Term::isSymbolic).collect(Collectors.toList()).isEmpty()) {
                 return kItem;
             }
 

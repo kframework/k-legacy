@@ -51,6 +51,15 @@ public abstract class KLabel extends Term {
      */
     public abstract boolean isFunction();
 
+    /**
+     * Checks if this {@code KLabel} represents a concrete function.
+     * A concrete function is supposed to be evaluated only when all of the
+     * given arguments are concrete (i.e., not symbolic).
+     *
+     * @return true if this {@code KLabel} represents a concrete function;
+     * otherwise, false.
+     */
+    public abstract boolean isConcreteFunction();
 
     /**
      * Checks if this {@code KLabel} represents a pattern. A {@code KLabel}

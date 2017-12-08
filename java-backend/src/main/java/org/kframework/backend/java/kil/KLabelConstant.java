@@ -57,6 +57,12 @@ public class KLabelConstant extends KLabel implements org.kframework.frontend.KL
     private final boolean isFunction;
 
     /*
+     * boolean flag set iff a production tagged with both "function" and "concrete"
+     * generates this {@code KLabelConstant}
+     */
+    private final boolean isConcreteFunction;
+
+    /*
      * boolean flag set iff a production tagged with "pattern" generates
      * this {@code KLabelConstant}
      */
@@ -82,6 +88,7 @@ public class KLabelConstant extends KLabel implements org.kframework.frontend.KL
         // TODO(YilongL): urgent; how to detect KLabel clash?
 
         boolean isFunction;
+        boolean isConcrete = false;
         boolean isPattern = false;
         String smtlib = null;
         // there are labels which are just predicates, but are not obligated to be sort membership predicates
@@ -89,6 +96,7 @@ public class KLabelConstant extends KLabel implements org.kframework.frontend.KL
             predicateSort = null;
             isFunction = productionAttributes.containsKey(Attribute.FUNCTION.getKey())
                     || productionAttributes.containsKey(Attribute.PREDICATE.getKey());
+            isConcrete = productionAttributes.containsKey(Attribute.CONCRETE_FUNCTION.getKey());
             isPattern = productionAttributes.containsKey(Attribute.keyOf(Attribute.PATTERN_KEY));
             Attribute<?> smtlibAttribute = productionAttributes.get(Attribute.keyOf(Attribute.SMTLIB_KEY));
             smtlib = smtlibAttribute != null ? (String) smtlibAttribute.getValue() : null;
@@ -99,6 +107,7 @@ public class KLabelConstant extends KLabel implements org.kframework.frontend.KL
         }
         this.isSortPredicate = predicateSort != null;
         this.isFunction = isFunction;
+        this.isConcreteFunction = isConcrete && isFunction;
         this.isPattern = isPattern;
         this.smtlib = smtlib;
     }
@@ -137,6 +146,15 @@ public class KLabelConstant extends KLabel implements org.kframework.frontend.KL
     @Override
     public boolean isFunction() {
         return isFunction;
+    }
+
+    /**
+     * Returns true iff a production tagged with both "function" and "concrete" generates
+     * this {@code KLabelConstant}.
+     */
+    @Override
+    public boolean isConcreteFunction() {
+        return isConcreteFunction;
     }
 
     /**

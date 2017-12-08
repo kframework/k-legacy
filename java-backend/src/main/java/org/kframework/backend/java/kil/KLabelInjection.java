@@ -66,6 +66,11 @@ public class KLabelInjection extends KLabel {
     }
 
     @Override
+    public final boolean isConcreteFunction() {
+        return false;
+    }
+
+    @Override
     public final boolean isPattern() {
         return false;
     }
