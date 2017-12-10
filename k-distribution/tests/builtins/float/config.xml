@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2016 K Team. All Rights Reserved. -->
+<tests>
+    <test definition="convertfloatmint/convertfloatmint-test.k"
+          extension="convertfloatmint"
+          programs="convertfloatmint"
+          results="convertfloatmint" >
+    </test>
+</tests>

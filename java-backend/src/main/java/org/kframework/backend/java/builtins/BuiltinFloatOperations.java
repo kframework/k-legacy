@@ -6,6 +6,7 @@ import java.math.RoundingMode;
 import org.kframework.backend.java.kil.*;
 import org.kframework.mpfr.BigFloat;
 import org.kframework.mpfr.BinaryMathContext;
+import java.math.BigInteger;
 
 /**
  * Table of {@code public static} methods on builtin floats.
@@ -223,12 +224,151 @@ public class BuiltinFloatOperations {
     }
 
     /**
-     * Rounds {@code term} to an integer by truncating it. Function is only
+     * Converts {@code term} to an integer by truncating it. Function is only
      * defined on ordinary numbers (i.e. not NaN or infinity).
      */
     public static IntToken float2int(FloatToken term, TermContext context) {
         return IntToken.of(term.bigFloatValue().rint(getMathContext(term)
                 .withRoundingMode(RoundingMode.DOWN)).toBigIntegerExact());
+    }
+
+    /**
+     * mint2float converts a Bitvector or MInt {@code term} to an single or double precision float point value.
+     */
+    public static FloatToken mint2float(BitVector term, IntToken precision, IntToken exponentBits, TermContext context) {
+
+
+        int termBitwidth = term.bitwidth();
+        int expectedPrecision = precision.intValue();
+        int expectedExponentBits = exponentBits.intValue();
+
+        // Sanity Checks.
+        if(termBitwidth != expectedExponentBits + expectedPrecision) {
+            throw new IllegalArgumentException("A float with requested precision and exponentBit cannot be obtained from the input MInt");
+        }
+
+        if(termBitwidth != 32 && termBitwidth != 64) {
+            throw new IllegalArgumentException("Illegal bitwidth provided: "
+                    + "Only 32 or 64 are supported in order to obtain a single precision or double precision floating point value");
+        }
+
+        // Determine the sign.
+        boolean sign = !term.extract(0,1).isZero();
+
+        // Determine if a double or single precision floating point is requested and fix constants
+        // based on them.
+        boolean isDoublePrecision = (precision.intValue() == 53 && exponentBits.intValue() == 11);
+        int beginExponent = 1, endExponent = 0 , beginSignificand = 0 , endSignificand = 0;
+        if(isDoublePrecision) {
+            endExponent = 12;
+            beginSignificand = 12;
+            endSignificand = 64;
+        } else {
+            endExponent = 9;
+            beginSignificand = 9;
+            endSignificand = 32;
+        }
+
+        BitVector biasedExponentBV = term.extract(beginExponent, endExponent);
+        BitVector significandBV = term.extract(beginSignificand, endSignificand);
+
+        // Case I: biasedExponentBV == 0H and significand == 0H, return +0 or -0.
+        if(biasedExponentBV.isZero() && significandBV.isZero()) {
+            if(sign) {
+                return FloatToken.of(BigFloat.negativeZero(precision.intValue()), exponentBits.intValue());
+            } else {
+                return FloatToken.of(BigFloat.zero(precision.intValue()), exponentBits.intValue());
+            }
+        }
+
+        // Case II: biasedExponentBV == all Ones and significandBV == 0H, return +inf/-inf
+        //          biasedExponentBV == all Ones and significandBV != 0H, return nan.
+        if(biasedExponentBV.eq(BitVector.of(-1, expectedExponentBits)).booleanValue()) {
+            if(significandBV.isZero()) {
+                if(sign) {
+                    return FloatToken.of(BigFloat.negativeInfinity(precision.intValue()), exponentBits.intValue());
+                } else {
+                    return FloatToken.of(BigFloat.positiveInfinity(precision.intValue()), exponentBits.intValue());
+                }
+            } else {
+                return FloatToken.of(BigFloat.NaN(precision.intValue()), exponentBits.intValue());
+            }
+        }
+
+        // Case III: Sub-Nornals: biasedExponentBV == 0H and significand != 0H
+        //               Normals: biasedExponentBV > 0H and biasedExponentBV < all Ones
+        // For sub-normals, 0 need to be prepended to significandBV.
+        // For Normals, 1 need to be appended.
+        if(biasedExponentBV.isZero()) {
+            significandBV = BitVector.of(0,1).concatenate(significandBV);
+        } else {
+            significandBV = BitVector.of(1,1).concatenate(significandBV);
+        }
+
+
+        // Compute the unbiased exponent.
+        BigInteger bias = BigInteger.valueOf(2).pow( exponentBits.intValue() - 1 ).subtract(BigInteger.ONE);
+        long exponent = biasedExponentBV.unsignedValue().longValue()-  bias.longValue();
+
+        // Compute the BigFloat.
+        BinaryMathContext mc = new BinaryMathContext(precision.intValue(), exponentBits.intValue());
+        return FloatToken.of(new BigFloat(sign,
+                significandBV.unsignedValue(), exponent, mc),
+                exponentBits.intValue());
+    }
+
+    /**
+     * float2mint converts a float point value (single or double precision) {@code term} to a BitVector or MInt
+     * of bitwidth {@code bitwidth}.
+     */
+    public static BitVector float2mint(FloatToken term, IntToken bitwidth, TermContext context) {
+        BinaryMathContext mc = getMathContext(term);
+
+        int termPrecision = term.bigFloatValue().precision();
+        long termExponent = term.bigFloatValue().exponent(mc.minExponent, mc.maxExponent);
+        int termExponentBits = term.exponent();
+
+        // Sanity Checks.
+        if(bitwidth.intValue() != 32 && bitwidth.intValue() != 64) {
+            throw new IllegalArgumentException("Illegal bitwidth provided: Only 32 or 64 are supported");
+        }
+
+        int expectedPrecision = (bitwidth.intValue() == 32)? 24 : 53;
+        int expectedExponentBits = (bitwidth.intValue() == 32)? 8 : 11;
+
+        if(termPrecision != expectedPrecision || termExponentBits != expectedExponentBits) {
+            throw new IllegalArgumentException("mismatch precision or exponent bits: "
+                    + "input floating point precision " + termPrecision + "whereas expected precision based on bitwidth " + expectedPrecision
+                    + "input floating point exponent bits " + termExponentBits + "whereas expected exponent bits " + expectedExponentBits);
+        }
+
+
+        BigInteger bias = BigInteger.valueOf(2).pow( termExponentBits - 1 ).subtract(BigInteger.ONE);
+
+        // Compute MInt for sign.
+        boolean sign = term.bigFloatValue().sign();
+        BitVector signBV = BitVector.of((sign)?1:0,1);
+
+        // Compute MInt for significand.
+        BitVector termSignificand = BitVector.of(term.bigFloatValue().significand(mc.minExponent, mc.maxExponent), mc.precision);
+        BitVector significandBV = termSignificand.extract(1, mc.precision);
+
+        BigFloat termBigFloat = term.bigFloatValue();
+        // Case I: positive/negative zero and sub-normals
+        if(termBigFloat.isNegativeZero() || termBigFloat.isPositiveZero() || termBigFloat.isSubnormal(mc.minExponent)) {
+            BitVector exponentBV = BitVector.of(0, termExponentBits);
+            return signBV.concatenate(exponentBV.concatenate(significandBV));
+        }
+
+        // Case II: Nan and Infinite(Positive or Negative)
+        if(termBigFloat.isNaN() || termBigFloat.isInfinite()) {
+            BitVector exponentBV = BitVector.of(-1, termExponentBits);
+            return signBV.concatenate(exponentBV.concatenate(significandBV));
+        }
+
+        // Case III: Normalized values
+        BitVector exponentBV = BitVector.of(termExponent + bias.longValue(), termExponentBits);
+        return signBV.concatenate(exponentBV.concatenate(significandBV));
     }
 
     public static FloatToken ceil(FloatToken term, TermContext context) {
