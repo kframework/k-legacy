@@ -394,12 +394,6 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                 return kItem;
             }
 
-            // the function is not evaluated if it is concrete but some arguments are symbolic
-            if (((KLabel) kItem.kLabel).isConcreteFunction()
-                    && !((KList) kItem.kList).getContents().stream().filter(Term::isSymbolic).collect(Collectors.toList()).isEmpty()) {
-                return kItem;
-            }
-
             Definition definition = context.definition();
             KLabelConstant kLabelConstant = (KLabelConstant) kItem.kLabel;
 
@@ -452,6 +446,8 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                     Term result = null;
                     Term owiseResult = null;
 
+                    // an argument is concrete if it doesn't contain variables or unresolved functions
+                    boolean isConcrete = kList.getContents().stream().filter(elem -> !elem.isGround() || !elem.isNormal()).collect(Collectors.toList()).isEmpty();
                     for (Rule rule : definition.functionRules().get(kLabelConstant)) {
                         try {
                             if (rule == RuleAuditing.getAuditingRule()) {
@@ -460,6 +456,10 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                                 System.err.println("\nAuditing " + rule + "...\n");
                             }
 
+                            // a concrete rule is skipped if some argument is not concrete
+                            if (rule.isConcrete() && !isConcrete) {
+                                continue;
+                            }
 
                             Substitution<Variable, Term> solution;
                             List<Substitution<Variable, Term>> matches = PatternMatcher.match(kItem, rule, context);
