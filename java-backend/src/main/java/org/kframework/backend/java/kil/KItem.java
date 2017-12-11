@@ -666,6 +666,7 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
         // TODO(AndreiS): handle KLabel variables
         //return !(kLabel instanceof KLabel) || ((KLabel) kLabel).isFunction();
         return kLabel instanceof KLabel
+                && !((KLabel) kLabel).isInjectiveFunction()
                 && (((KLabel) kLabel).isFunction() || ((KLabel) kLabel).isPattern());
     }
 

@@ -22,6 +22,7 @@ public class Attribute<T> extends ASTNode {
     public static final String BUILTIN_KEY = "builtin";
     public static final String FUNCTION_KEY = "function";
     public static final String CONCRETE_FUNCTION_KEY = "concrete";
+    public static final String INJECTIVE_FUNCTION_KEY = "injective";
     public static final String ASSOCIATIVE_KEY = "assoc";
     public static final String COMMUTATIVE_KEY = "comm";
     public static final String IDEMPOTENT_KEY = "idem";
@@ -61,6 +62,7 @@ public class Attribute<T> extends ASTNode {
     public static final Attribute<String> BRACKET = Attribute.of("bracket", "");
     public static final Attribute<String> FUNCTION = Attribute.of(FUNCTION_KEY, "");
     public static final Attribute<String> CONCRETE_FUNCTION = Attribute.of(CONCRETE_FUNCTION_KEY, "");
+    public static final Attribute<String> INJECTIVE_FUNCTION = Attribute.of(INJECTIVE_FUNCTION_KEY, "");
     public static final Attribute<String> PREDICATE = Attribute.of(PREDICATE_KEY, "");
     public static final Attribute<String> PATTERN = Attribute.of(PATTERN_KEY, "");
     public static final Attribute<String> PATTERN_FOLDING = Attribute.of(PATTERN_FOLDING_KEY, "");

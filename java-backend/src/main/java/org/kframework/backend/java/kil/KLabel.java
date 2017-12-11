@@ -61,6 +61,8 @@ public abstract class KLabel extends Term {
      */
     public abstract boolean isConcreteFunction();
 
+    public abstract boolean isInjectiveFunction();
+
     /**
      * Checks if this {@code KLabel} represents a pattern. A {@code KLabel}
      * represents a constructor, a function, or a pattern.
