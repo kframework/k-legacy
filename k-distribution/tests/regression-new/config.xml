@@ -13,5 +13,10 @@
            programs="issue-2273/tests"
            results="issue-2273/tests" />
 
+  <include file="concrete-function/config.xml"
+           directory="concrete-function"
+           programs="concrete-function"
+           results="concrete-function" />
+
 </tests>
 
