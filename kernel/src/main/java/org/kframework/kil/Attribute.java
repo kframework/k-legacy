@@ -21,6 +21,7 @@ public class Attribute<T> extends ASTNode {
 
     public static final String BUILTIN_KEY = "builtin";
     public static final String FUNCTION_KEY = "function";
+    public static final String CONCRETE_FUNCTION_KEY = "concrete";
     public static final String ASSOCIATIVE_KEY = "assoc";
     public static final String COMMUTATIVE_KEY = "comm";
     public static final String IDEMPOTENT_KEY = "idem";
