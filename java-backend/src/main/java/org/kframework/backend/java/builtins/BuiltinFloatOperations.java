@@ -224,7 +224,7 @@ public class BuiltinFloatOperations {
     }
 
     /**
-     * Converts {@code term} to an integer by truncating it. Function is only
+     * Rounds {@code term} to an integer by truncating it. Function is only
      * defined on ordinary numbers (i.e. not NaN or infinity).
      */
     public static IntToken float2int(FloatToken term, TermContext context) {
