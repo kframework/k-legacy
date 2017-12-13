@@ -29,8 +29,12 @@
   <include file     =      "examples/symbolic/config.xml"
            directory="tests/examples/symbolic" />
 
+  <include file = "../samples-kore/impa/config.xml"
+           directory="samples-kore/impa" />
+
   <include file="builtins/config.xml" directory="tests/builtins" skip="pdf" />
 
   <include file="issues/config.xml" directory="tests/issues" skip="pdf" />
+
 </tests>
 
