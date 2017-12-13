@@ -326,7 +326,11 @@ public class FastRuleMatcher {
             return unifyMapModuloPatternFolding((BuiltinMap) subject, (BuiltinMap) pattern, ruleMask, path);
         } else if (subject instanceof Token && pattern instanceof Token) {
             // TODO: make tokens unique?
-            return subject.equals(pattern) ? ruleMask : empty;
+            if (subject.equals(pattern)) {
+                return ruleMask;
+            } else {
+                return empty;
+            }
         } else if (subject instanceof BuiltinSet && pattern instanceof BuiltinSet) {
             return subject.equals(pattern) ? ruleMask : empty;
         } else {

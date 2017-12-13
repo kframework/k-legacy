@@ -234,6 +234,10 @@ public class Rule extends JavaSymbolicObject<Rule> {
                && !containsAttribute(Attribute.PATTERN_FOLDING_KEY);
     }
 
+    public boolean isConcrete() {
+        return containsAttribute(Attribute.CONCRETE_FUNCTION_KEY);
+    }
+
     public boolean isAnywhere() {
         return containsAttribute(Attribute.ANYWHERE_KEY);
     }
