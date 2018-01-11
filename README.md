@@ -1,5 +1,5 @@
 <!-- Copyright (c) 2010-2016 K Team. All Rights Reserved. -->
-[ ![Codeship Status for kframework/k](https://codeship.com/projects/51591a00-a8f8-0133-7b85-7a8c162db443/status?branch=master)](https://codeship.com/projects/130795)
+[![Build Status](http://fsl-ci.cs.illinois.edu/job/k-framework-master/badge/icon)](https://fsl-ci.cs.illinois.edu/job/k-framework-master/)
 [![Join the chat at https://gitter.im/kframework/k](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/kframework/k?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This is a readme file for the developers.
@@ -23,8 +23,8 @@ Mac:
     http://maven.apache.org/download.cgi and follow the instructions on the webpage.
 
 Windows:
-*   Go to http://maven.apache.org/download.cgi and download the zip with the 
-    binary distribution. Unzip it in your desired location and follow the 
+*   Go to http://maven.apache.org/download.cgi and download the zip with the
+    binary distribution. Unzip it in your desired location and follow the
     installation instructions on the webpage.
 
 Maven usually requires setting an environment variable `JAVA_HOME` pointing
@@ -33,7 +33,7 @@ to the installation directory of the JDK (not to be mistaken with JRE).
 You can test if it works by calling `mvn -version` in a Terminal.
 This will provide the information about the JDK Maven is using, in case
 it is the wrong one.
-	
+
 ### Git - command line
 Having a GUI client is not enough. Most distributions have an installation
 option to make git accessible in the command line too.
@@ -164,5 +164,5 @@ If you still cannot build, please contact a K developer.
 
 ![Logo](http://www.yourkit.com/images/yklogo.png)
 
- 
+
 
