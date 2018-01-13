@@ -580,6 +580,7 @@ module K-REFLECTION
   syntax String ::= #sort(K) [function, hook(KREFLECTION.sort)]
   syntax KItem ::= #fresh(String)   [function, hook(KREFLECTION.fresh), impure]
   syntax KItem ::= getKLabel(K)  [function, hook(KREFLECTION.getKLabel)]
+  syntax Bool ::= #isConcrete(K)  [function, hook(KREFLECTION.isConcrete)]
 
   // meaningful only for the purposes of compilation to a binary, otherwise
   // undefined
