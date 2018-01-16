@@ -38,7 +38,7 @@ public class SubstituteAndEvaluateTransformer extends CopyOnWriteTransformer {
     }
 
     protected boolean proceed(JavaSymbolicObject object) {
-        return object.canSubstituteAndEvaluate(substitution, context.getTopConstraint());
+        return object.canSubstituteAndEvaluateQuickCheck(substitution);
     }
 
     @Override

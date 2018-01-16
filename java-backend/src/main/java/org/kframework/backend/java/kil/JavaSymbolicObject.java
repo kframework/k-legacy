@@ -101,6 +101,13 @@ public abstract class JavaSymbolicObject<T extends JavaSymbolicObject<T>> extend
     }
 
     /**
+     * Quick check if a call to {@link org.kframework.backend.java.kil.Term#substituteAndEvaluate(java.util.Map, TermContext)} may simplify this term.
+     */
+    public boolean canSubstituteAndEvaluateQuickCheck(Map<Variable, ? extends Term> substitution) {
+        return (!substitution.isEmpty() && !isGround()) || !isNormal();
+    }
+
+    /**
      * Returns a lazily computed {@code Set} view of the variables in this
      * {@code JavaSymbolicObject}.
      */
