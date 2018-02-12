@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableSet;
 import com.martiansoftware.nailgun.NGContext;
 import org.apache.commons.lang3.tuple.Pair;
 import org.fusesource.jansi.AnsiConsole;
+import org.fusesource.jansi.Ansi;
 import org.kframework.HookProvider;
 import org.kframework.Kapi;
 import org.kframework.backend.Backends;
@@ -68,6 +69,7 @@ public class Main {
      */
     public static void main(String[] args) {
         AnsiConsole.systemInstall();
+        System.err.println(Ansi.ansi().fgBright(Ansi.Color.RED).a("[WARNING] https://github.com/kframework/k will be undergoing a force push on June 15, 2018. Please refer to README.md in the root of the repository for details.").fg(Ansi.Color.DEFAULT));
         if (args.length >= 1) {
             String[] args2 = Arrays.copyOfRange(args, 1, args.length);
             int result = runApplication(args[0], args2, new File("."), System.getenv());
