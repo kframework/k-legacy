@@ -109,7 +109,7 @@ public class JavaBackend implements Backend {
                 .andThen(expandMacrosDefinitionTransformer::apply)
                 .andThen(DefinitionTransformer.fromSentenceTransformer(new NormalizeAssoc(KORE.c()), "normalize assoc"))
                 .andThen(convertDataStructureToLookup)
-                .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
+                .andThen(DefinitionTransformer.fromRuleBodyTranformer(Kompile::ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(Kompile::convertKSeqToKApply, "kseq to kapply"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(NormalizeKSeq.self(), "normalize kseq"))
                 .andThen(JavaBackend::markRegularRules)
@@ -132,7 +132,7 @@ public class JavaBackend implements Backend {
                 .andThen(AddBottomSortForListsWithIdenticalLabels.singleton().lift())
                 .andThen(DefinitionTransformer.fromKTransformerWithModuleInfo(JavaBackend::moduleQualifySortPredicates, "Module-qualify sort predicates"))
                 .andThen(expandMacrosDefinitionTransformer::apply)
-                .andThen(DefinitionTransformer.fromRuleBodyTranformer(JavaBackend::ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
+                .andThen(DefinitionTransformer.fromRuleBodyTranformer(Kompile::ADTKVariableToSortedVariable, "ADT.KVariable to SortedVariable"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(Kompile::convertKSeqToKApply, "kseq to kapply"))
                 .andThen(DefinitionTransformer.fromRuleBodyTranformer(NormalizeKSeq.self(), "normalize kseq"))
                 .andThen(JavaBackend::markRegularRules)
@@ -155,17 +155,6 @@ public class JavaBackend implements Backend {
             } else
                 return s;
         }, "mark regular rules").apply(d);
-    }
-
-    /**
-     * The Java backend expects sorted variables, so transform them to the sorted flavor.
-     */
-    public static K ADTKVariableToSortedVariable(K ruleBody) {
-        return new TransformK() {
-            public K apply(KVariable kvar) {
-                return new SortedADT.SortedKVariable(kvar.name(), kvar.att());
-            }
-        }.apply(ruleBody);
     }
 
     /**

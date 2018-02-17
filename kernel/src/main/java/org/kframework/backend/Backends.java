@@ -8,7 +8,7 @@ public class Backends {
     public static final String DOC = "doc";
     public static final String HTML = "html";
     public static final String JAVA = "java";
-    public static final String KALE = "kale";
+    public static final String SKALA = "skala";
 
     public static final String AUTOINCLUDE_JAVA = "autoinclude-java.k";
 }

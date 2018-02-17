@@ -79,7 +79,8 @@ public class DefinitionLoadingModule {
     // NOTE: should be matched with org.kframework.kompile.KompileFrontEnd.save()
     public static CompiledDefinition koreDefinition(BinaryLoader loader, FileUtil files) {
         // org.kframework.definition.Definition kompiledDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.KOMPILED_DEFINITION_BIN)); // deprecated
-        org.kframework.definition.Definition kompiledDefinition = MiniToKore.apply(parseKore(files));
+        org.kframework.kore.Definition koreDefition = parseKore(files);
+        org.kframework.definition.Definition kompiledDefinition = MiniToKore.apply(koreDefition);
         KompileOptions kompileOptions = loader.loadOrDie(KompileOptions.class, files.resolveKompiled(FileUtil.KOMPILE_OPTIONS_BIN));
         org.kframework.definition.Definition parsedDefinition = loader.loadOrDie(org.kframework.definition.Definition.class, files.resolveKompiled(FileUtil.PARSED_DEFINITION_BIN));
         org.kframework.frontend.KLabel topCellInitializer = loader.loadOrDie(org.kframework.frontend.KLabel.class, files.resolveKompiled(FileUtil.TOP_CELL_INITIALIZER_BIN));
