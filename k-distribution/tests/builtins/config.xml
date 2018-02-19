@@ -14,4 +14,5 @@
           skip="pdf" >
     </test>
     <include file="mint/config.xml" directory="mint" skip="pdf" />
+    <include file="float/config.xml" directory="float" skip="pdf" />
 </tests>

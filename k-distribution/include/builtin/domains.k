@@ -359,6 +359,7 @@ endmodule
 module FLOAT
   imports FLOAT-SYNTAX
   imports BOOL
+  imports MINT
   imports INT-SYNTAX
 
   syntax Int ::= precisionFloat(Float) [function, hook(FLOAT.precision)]
@@ -416,6 +417,8 @@ module FLOAT
 
   syntax Float ::= Int2Float(Int, Int, Int)    [function, latex({\\it{}Int2Float}), hook(FLOAT.int2float)]
   syntax Int ::= Float2Int(Float)    [function, latex({\\it{}Float2Int}), hook(FLOAT.float2int)]
+  syntax Float ::= MInt2Float(MInt, Int, Int)    [function, latex({\\it{}MInt2Float}), hook(FLOAT.mint2float)]
+  syntax MInt ::= Float2MInt(Float, Int)    [function, latex({\\it{}Float2MInt}), hook(FLOAT.float2mint)]
 
   rule sqrtFloat(F:Float) => rootFloat(F, 2)
 
