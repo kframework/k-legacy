@@ -312,7 +312,7 @@ module INT
                  Int ">>Int" Int                [function, left, latex({#1}\mathrel{\gg_{\scriptstyle\it Int}}{#2}), hook(INT.shr)]
                | Int "<<Int" Int                [function, left, latex({#1}\mathrel{\ll_{\scriptstyle\it Int}}{#2}), hook(INT.shl)]
                > left:
-                 Int "&Int" Int                 [function, left, latex({#1}\mathrel{\&_{\scriptstyle\it Int}}{#2}), hook(INT.and)]
+                 Int "&Int" Int                 [function, left, smtlib(int_and), latex({#1}\mathrel{\&_{\scriptstyle\it Int}}{#2}), hook(INT.and)]
                > left:
                  Int "xorInt" Int               [function, left, latex({#1}\mathrel{\oplus_{\scriptstyle\it Int}}{#2}), hook(INT.xor)]
                > left:
