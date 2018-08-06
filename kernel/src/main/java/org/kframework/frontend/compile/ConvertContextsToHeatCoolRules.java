@@ -12,6 +12,8 @@ import org.kframework.definition.ProductionItem;
 import org.kframework.definition.Sentence;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.frontend.FindK;
+import org.kframework.frontend.KORE;
+import org.kframework.frontend.Sort;
 import org.kframework.frontend.VisitK;
 import org.kframework.frontend.K;
 import org.kframework.frontend.KApply;
@@ -19,6 +21,9 @@ import org.kframework.frontend.KLabel;
 import org.kframework.frontend.KRewrite;
 import org.kframework.frontend.KVariable;
 import org.kframework.utils.errorsystem.KEMException;
+import scala.Option;
+import scala.Tuple2;
+import scala.collection.Seq;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -61,7 +66,8 @@ public class ConvertContextsToHeatCoolRules {
 
     private Set<KLabel> klabels;
 
-    private KLabel getUniqueFreezerLabel(Module input, String nameHint) {
+    private Tuple2<KLabel, Tuple2<Seq<Sort>, Sort>> getUniqueFreezerLabel(Module input, String name, Integer pos) {
+        String nameHint = pos == null ? name : name + pos;
         if (klabels.isEmpty()) {
             klabels.addAll(mutable(input.definedKLabels()));
         }
@@ -71,7 +77,19 @@ public class ConvertContextsToHeatCoolRules {
             freezer = KLabel("#freezer" + nameHint + (counter++ == 0 ? "" : counter));
         } while (klabels.contains(freezer));
         klabels.add(freezer);
-        return freezer;
+
+        Tuple2<Seq<Sort>, Sort> sig;
+        if (kompileOptions.minikore) {
+            Option<scala.collection.Set<Tuple2<Seq<Sort>, Sort>>> sigSetOpt = input.signatureFor().get(KLabel(name));
+            if (sigSetOpt.isEmpty()) assert false;
+            scala.collection.Set<Tuple2<Seq<Sort>, Sort>> sigSet = sigSetOpt.get();
+            if (sigSet.size() != 1) assert false;
+            sig = sigSet.iterator().next();
+        } else {
+            sig = null;
+        }
+
+        return Tuple2.apply(freezer, sig);
     }
 
     private Stream<? extends Sentence> resolve(Context context, Module input) {
@@ -83,6 +101,9 @@ public class ConvertContextsToHeatCoolRules {
 
         int currentHolePosition[] = new int[] { 0 };
         int finalHolePosition[] = new int[] { 0 };
+        int currentPosition[] = new int[] { 0 };
+        int firstHolePosition[] = new int[] { -1 };
+        final ArrayList<Integer> nonHolePositions = new ArrayList<>();
         // Find a heated hole
         // e.g., context ++(HOLE => lvalue(HOLE))
         K heated = new VisitK() {
@@ -108,10 +129,13 @@ public class ConvertContextsToHeatCoolRules {
                 if (!k.name().equals("HOLE")) {
                     vars.put(k, k);
                     finalHolePosition[0] = currentHolePosition[0];
+                    nonHolePositions.add(currentPosition[0]);
                 } else {
                     holeVar = k;
                     currentHolePosition[0]++;
+                    if (firstHolePosition[0] == -1) firstHolePosition[0] = currentPosition[0];
                 }
+                currentPosition[0]++;
                 super.apply(k);
             }
 
@@ -126,23 +150,35 @@ public class ConvertContextsToHeatCoolRules {
         K cooled = RewriteToTop.toLeft(body);
         // TODO(dwightguth): generate freezers better for pretty-printing purposes
         List<ProductionItem> items = new ArrayList<>();
-        KLabel freezerLabel;
+        Tuple2<KLabel, Tuple2<Seq<Sort>, Sort>> freezerLabelAndSig;
+        int pos = kompileOptions.minikore ? firstHolePosition[0] : finalHolePosition[0];
         if (cooled instanceof KApply) {
-            freezerLabel = getUniqueFreezerLabel(input, ((KApply)cooled).klabel().name() + finalHolePosition[0]);
+            freezerLabelAndSig = getUniqueFreezerLabel(input, ((KApply)cooled).klabel().name(), pos);
         } else {
-            freezerLabel = getUniqueFreezerLabel(input, "");
+            freezerLabelAndSig = getUniqueFreezerLabel(input, "", null);
         }
+        KLabel freezerLabel = freezerLabelAndSig._1();
+        Tuple2<Seq<Sort>, Sort> freezerLabelSig = freezerLabelAndSig._2();
         items.add(Terminal(freezerLabel.name()));
         items.add(Terminal("("));
-        for (int i = 0; i < vars.size(); i++) {
-            items.add(NonTerminal(Sort("K")));
-            items.add(Terminal(","));
+        if (kompileOptions.minikore) {
+            for (int i : nonHolePositions) {
+                items.add(NonTerminal(freezerLabelSig._1().apply(i)));
+                items.add(Terminal(","));
+            }
+            assert (nonHolePositions.size() == vars.size());
+        } else {
+            for (int i = 0; i < vars.size(); i++) {
+                items.add(NonTerminal(Sort("K")));
+                items.add(Terminal(","));
+            }
         }
         if (vars.size() > 0) {
             items.remove(items.size() - 1);
         }
         items.add(Terminal(")"));
-        Production freezer = Production(freezerLabel.name(), Sorts.KItem(), immutable(items), Att());
+        Sort targetSort = kompileOptions.minikore ? freezerLabelSig._2() : Sorts.KItem();
+        Production freezer = Production(freezerLabel.name(), targetSort, immutable(items), Att());
         K frozen = KApply(freezerLabel, vars.values().stream().collect(Collections.toList()));
         return Stream.of(freezer,
                 Rule(KRewrite(cooled, KSequence(heated, frozen)), requiresHeat, BooleanUtils.TRUE, context.att().add("heat")),
