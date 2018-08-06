@@ -49,7 +49,15 @@ public class Z3Wrapper {
 
     public synchronized boolean isUnsat(String query, int timeout) {
         if (options.z3Executable) {
-            return checkQueryWithExternalProcess(query, timeout);
+            return checkQueryWithExternalProcess(query, 0, timeout);
+        } else {
+            return checkQueryWithLibrary(query, timeout);
+        }
+    }
+
+    public synchronized boolean isImplication(String query, int timeout) {
+        if (options.z3Executable) {
+            return checkQueryWithExternalProcess(query, 1, timeout);
         } else {
             return checkQueryWithLibrary(query, timeout);
         }
@@ -76,7 +84,7 @@ public class Z3Wrapper {
         return result;
     }
 
-    private boolean checkQueryWithExternalProcess(String query, int timeout) {
+    private boolean checkQueryWithExternalProcess(String query, int intermediateCheckSatCalls, int timeout) {
         String result = "";
         try {
             for (int i = 0; i < Z3_RESTART_LIMIT; i++) {
@@ -94,6 +102,16 @@ public class Z3Wrapper {
                     z3Process.getInputStream()));
                 input.write(SMT_PRELUDE + query + "(check-sat)\n");
                 input.flush();
+                input.close();
+                for (int ignores = 0; ignores < intermediateCheckSatCalls; ++ignores) {
+                    result = output.readLine();
+                    if (result == null) {
+                        break;
+                    }
+                    if (globalOptions.debug && !Z3_QUERY_RESULTS.contains(result)) {
+                        break;
+                    }
+                }
                 result = output.readLine();
                 z3Process.destroy();
                 if (result != null) {

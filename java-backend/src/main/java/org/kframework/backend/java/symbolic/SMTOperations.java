@@ -63,7 +63,7 @@ public class SMTOperations {
             Set<Variable> rightOnlyVariables) {
         if (smtOptions.smt == SMTSolver.Z3) {
             try {
-                return z3.isUnsat(
+                return z3.isImplication(
                         KILtoSMTLib.translateImplication(left, right, rightOnlyVariables),
                         smtOptions.z3ImplTimeout);
             } catch (UnsupportedOperationException | SMTTranslationFailure e) {

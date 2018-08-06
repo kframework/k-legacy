@@ -85,6 +85,7 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
             "int_max",
             "int_min",
             "int_abs",
+            "int_and",
             /* extra float theory */
             "remainder",
             "min",
@@ -194,9 +195,9 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
         sb.append(leftTransformer.getConstantDeclarations(Sets.difference(
                 Sets.union(leftTransformer.variables(), rightTransformer.variables()),
                 rightHandSideOnlyVariables)));
-        sb.append("(assert (and ");
+        sb.append("(assert ");
         sb.append(leftExpression);
-        sb.append(" (not ");
+        sb.append(")\n(check-sat)\n(assert (not ");
         rightHandSideOnlyVariables = Sets.intersection(
                 rightTransformer.variables(),
                 rightHandSideOnlyVariables);
@@ -209,7 +210,7 @@ public class KILtoSMTLib extends CopyOnWriteTransformer {
         if (!rightHandSideOnlyVariables.isEmpty()) {
             sb.append(")");
         }
-        sb.append(")))");
+        sb.append("))");
         return sb.toString();
     }
 
